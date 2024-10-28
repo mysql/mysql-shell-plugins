@@ -28,27 +28,19 @@
 import { createRef } from "preact";
 
 import { mount } from "enzyme";
-import {
-    IShellMrsUpdateDbObjectKwargsValue,
-} from "../../../../../communication/ProtocolMrs.js";
+
+import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
+import { IShellMrsUpdateDbObjectKwargsValue } from "../../../../../communication/ProtocolMrs.js";
 import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
-import {
-    MrsSdkLanguage,
-} from "../../../../../modules/mrs/types.js";
-import { IMrsDbObjectEditRequest } from "../../../../../supplement/Requisitions.js";
+import { MrsSdkLanguage } from "../../../../../modules/mrs/types.js";
+import { IMrsDbObjectEditRequest } from "../../../../../supplement/RequisitionTypes.js";
 import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
 import { KeyboardKeys } from "../../../../../utilities/helpers.js";
+import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
 import {
-    DialogHelper,
-    JestReactWrapper,
-    createBackend,
-    nextRunLoop,
-    recreateMrsData,
-    sendKeyPress,
-    setupShellForTests,
+    DialogHelper, JestReactWrapper, createBackend, nextRunLoop, recreateMrsData, sendKeyPress, setupShellForTests,
 } from "../../../test-helpers.js";
-
 
 describe("MRS Db Object dialog tests", () => {
     let host: JestReactWrapper;
@@ -59,6 +51,7 @@ describe("MRS Db Object dialog tests", () => {
     let backend: ShellInterfaceSqlEditor;
 
     beforeAll(async () => {
+        registerUiLayer(uiLayerMock);
         launcher = await setupShellForTests(false, true, "DEBUG2");
 
         await recreateMrsData();
@@ -168,7 +161,7 @@ describe("MRS Db Object dialog tests", () => {
             await nextRunLoop();
 
             const contents = dialogHelper.searchChild<HTMLDivElement>({
-                class: "msg container fixedScrollbar content",
+                class: "msg container fixedScrollbar tabContent",
             });
             const gridCells = dialogHelper.searchChildren({ docRoot: contents, class: "gridCell" });
 
@@ -202,7 +195,7 @@ describe("MRS Db Object dialog tests", () => {
             await nextRunLoop();
 
             const contents = dialogHelper.searchChild<HTMLDivElement>({
-                class: "msg container fixedScrollbar content",
+                class: "msg container fixedScrollbar tabContent",
             });
             const gridCells = dialogHelper.searchChildren({ docRoot: contents, class: "gridCell" });
 
@@ -213,13 +206,13 @@ describe("MRS Db Object dialog tests", () => {
             expect(gridCells[0].children[1].firstElementChild?.textContent).toBe("");
         }
 
-        //  opions tab
+        //  options tab
         {
             optionsTab.click();
             await nextRunLoop();
 
             const contents = dialogHelper.searchChild<HTMLDivElement>({
-                class: "msg container fixedScrollbar content",
+                class: "msg container fixedScrollbar tabContent",
             });
             const gridCells = dialogHelper.searchChildren({ docRoot: contents, class: "gridCell" });
 

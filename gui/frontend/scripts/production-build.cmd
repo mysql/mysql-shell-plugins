@@ -22,6 +22,7 @@ rem along with this program; if not, write to the Free Software Foundation, Inc.
 rem 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 node --no-warnings --loader ts-node/esm scripts/generate-mrs-grammar.ts
+node --no-warnings --loader ts-node/esm scripts/copy-oci-typings.ts
 
 antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/mysql/generated src/parsing/mysql/*.g4
 antlr4ng -Dlanguage=TypeScript -no-visitor -Xexact-output-dir -o src/parsing/SQLite/generated src/parsing/SQLite/*.g4

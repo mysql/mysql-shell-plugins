@@ -29,8 +29,10 @@ import Adapter from "enzyme-adapter-preact-pure";
 import "fake-indexeddb/auto";
 import "jest-canvas-mock";
 
-// @ts-ignore, because TS does not infer the correct use of the `Adapter` type.
-Enzyme.configure({ adapter: new Adapter() });
+Enzyme.configure({
+    // @ts-ignore, because TS does not infer the correct use of the `Adapter` type.
+    adapter: new Adapter({ simulateEventsOnComponents: true }),
+});
 
 Object.defineProperty(window, "matchMedia", {
     writable: true,

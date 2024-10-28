@@ -23,17 +23,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
+import type { ICdmAdminEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
+import { ConnectionBaseTreeItem } from "./ConnectionBaseTreeItem.js";
 
-export class AdminTreeItem extends ConnectionsTreeBaseItem {
+export class AdminTreeItem extends ConnectionBaseTreeItem<ICdmAdminEntry> {
     public override contextValue = "admin";
 
-    public constructor(
-        name: string,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number,
-        hasChildren: boolean) {
-        super(name, "", backend, connectionId, "adminDashboard.svg", hasChildren);
+    public constructor(dataModelEntry: ICdmAdminEntry) {
+        super(dataModelEntry, "adminDashboard.svg", true);
     }
 }

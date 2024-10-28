@@ -6,27 +6,7 @@ exports[`Menu component tests Test Menu output (snapshot) 1`] = `
   onItemClick={[MockFunction]}
   orientation="column"
   placement="bottom-start"
->
-  <Popup
-    className="msg menu"
-    id="tileActionMenu"
-    onClose={[Function]}
-    onKeyDown={[Function]}
-    onOpen={[Function]}
-    orientation="column"
-    pinned={false}
-    placement="bottom-start"
-    showArrow={false}
-  >
-    <Portal
-      className="popupPortal"
-      id="tileActionMenu"
-      onClose={[Function]}
-      onKeyDown={[Function]}
-      onOpen={[Function]}
-    />
-  </Popup>
-</Menu>
+/>
 `;
 
 exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
@@ -54,8 +34,13 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
       }
     >
       <MenuItem
-        caption="File"
         className="nohover"
+        command={
+          {
+            "command": "",
+            "title": "File",
+          }
+        }
         id="fileMenu"
         onClick={[Function]}
         onMouseEnter={[Function]}
@@ -66,11 +51,12 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
       >
         <Container
           className="msg menuItem nohover submenu"
+          fixedScrollbars={false}
           id="fileMenu"
           innerRef={
             {
               "current": <div
-                class="msg container fixedScrollbar menuItem nohover submenu"
+                class="msg container menuItem nohover submenu"
                 id="fileMenu"
                 style="flex-direction: row;"
               >
@@ -89,7 +75,7 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           orientation="row"
         >
           <div
-            className="msg container fixedScrollbar menuItem nohover submenu"
+            className="msg container menuItem nohover submenu"
             id="fileMenu"
             onClick={[Function]}
             onMouseEnter={[Function]}
@@ -115,6 +101,12 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           </div>
         </Container>
         <Menu
+          command={
+            {
+              "command": "",
+              "title": "File",
+            }
+          }
           id="fileMenu"
           onClick={[Function]}
           onClose={[Function]}
@@ -124,35 +116,16 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           onOpen={[Function]}
           orientation="column"
           placement="bottom-start"
-        >
-          <Popup
-            className="msg menu"
-            id="fileMenu"
-            onClick={[Function]}
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onMouseEnter={[Function]}
-            onOpen={[Function]}
-            orientation="column"
-            pinned={false}
-            placement="bottom-start"
-            showArrow={false}
-          >
-            <Portal
-              className="popupPortal"
-              id="fileMenu"
-              onClick={[Function]}
-              onClose={[Function]}
-              onKeyDown={[Function]}
-              onMouseEnter={[Function]}
-              onOpen={[Function]}
-            />
-          </Popup>
-        </Menu>
+        />
       </MenuItem>
       <MenuItem
-        caption="Edit"
         className="nohover"
+        command={
+          {
+            "command": "",
+            "title": "Edit",
+          }
+        }
         id="editMenu"
         onClick={[Function]}
         onMouseEnter={[Function]}
@@ -163,11 +136,12 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
       >
         <Container
           className="msg menuItem nohover submenu"
+          fixedScrollbars={false}
           id="editMenu"
           innerRef={
             {
               "current": <div
-                class="msg container fixedScrollbar menuItem nohover submenu"
+                class="msg container menuItem nohover submenu"
                 id="editMenu"
                 style="flex-direction: row;"
               >
@@ -186,7 +160,7 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           orientation="row"
         >
           <div
-            className="msg container fixedScrollbar menuItem nohover submenu"
+            className="msg container menuItem nohover submenu"
             id="editMenu"
             onClick={[Function]}
             onMouseEnter={[Function]}
@@ -212,6 +186,12 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           </div>
         </Container>
         <Menu
+          command={
+            {
+              "command": "",
+              "title": "Edit",
+            }
+          }
           id="editMenu"
           onClick={[Function]}
           onClose={[Function]}
@@ -221,35 +201,16 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           onOpen={[Function]}
           orientation="column"
           placement="bottom-start"
-        >
-          <Popup
-            className="msg menu"
-            id="editMenu"
-            onClick={[Function]}
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onMouseEnter={[Function]}
-            onOpen={[Function]}
-            orientation="column"
-            pinned={false}
-            placement="bottom-start"
-            showArrow={false}
-          >
-            <Portal
-              className="popupPortal"
-              id="editMenu"
-              onClick={[Function]}
-              onClose={[Function]}
-              onKeyDown={[Function]}
-              onMouseEnter={[Function]}
-              onOpen={[Function]}
-            />
-          </Popup>
-        </Menu>
+        />
       </MenuItem>
       <MenuItem
-        caption="Selection"
         className="nohover"
+        command={
+          {
+            "command": "",
+            "title": "Selection",
+          }
+        }
         id="selectionMenu"
         onClick={[Function]}
         onMouseEnter={[Function]}
@@ -260,11 +221,12 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
       >
         <Container
           className="msg menuItem nohover submenu"
+          fixedScrollbars={false}
           id="selectionMenu"
           innerRef={
             {
               "current": <div
-                class="msg container fixedScrollbar menuItem nohover submenu"
+                class="msg container menuItem nohover submenu"
                 id="selectionMenu"
                 style="flex-direction: row;"
               >
@@ -283,7 +245,7 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           orientation="row"
         >
           <div
-            className="msg container fixedScrollbar menuItem nohover submenu"
+            className="msg container menuItem nohover submenu"
             id="selectionMenu"
             onClick={[Function]}
             onMouseEnter={[Function]}
@@ -309,6 +271,12 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           </div>
         </Container>
         <Menu
+          command={
+            {
+              "command": "",
+              "title": "Selection",
+            }
+          }
           id="selectionMenu"
           onClick={[Function]}
           onClose={[Function]}
@@ -318,35 +286,16 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           onOpen={[Function]}
           orientation="column"
           placement="bottom-start"
-        >
-          <Popup
-            className="msg menu"
-            id="selectionMenu"
-            onClick={[Function]}
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onMouseEnter={[Function]}
-            onOpen={[Function]}
-            orientation="column"
-            pinned={false}
-            placement="bottom-start"
-            showArrow={false}
-          >
-            <Portal
-              className="popupPortal"
-              id="selectionMenu"
-              onClick={[Function]}
-              onClose={[Function]}
-              onKeyDown={[Function]}
-              onMouseEnter={[Function]}
-              onOpen={[Function]}
-            />
-          </Popup>
-        </Menu>
+        />
       </MenuItem>
       <MenuItem
-        caption="View"
         className="nohover"
+        command={
+          {
+            "command": "",
+            "title": "View",
+          }
+        }
         id="viewMenu"
         onClick={[Function]}
         onMouseEnter={[Function]}
@@ -357,11 +306,12 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
       >
         <Container
           className="msg menuItem nohover submenu"
+          fixedScrollbars={false}
           id="viewMenu"
           innerRef={
             {
               "current": <div
-                class="msg container fixedScrollbar menuItem nohover submenu"
+                class="msg container menuItem nohover submenu"
                 id="viewMenu"
                 style="flex-direction: row;"
               >
@@ -380,7 +330,7 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           orientation="row"
         >
           <div
-            className="msg container fixedScrollbar menuItem nohover submenu"
+            className="msg container menuItem nohover submenu"
             id="viewMenu"
             onClick={[Function]}
             onMouseEnter={[Function]}
@@ -406,6 +356,12 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           </div>
         </Container>
         <Menu
+          command={
+            {
+              "command": "",
+              "title": "View",
+            }
+          }
           id="viewMenu"
           onClick={[Function]}
           onClose={[Function]}
@@ -415,35 +371,16 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           onOpen={[Function]}
           orientation="column"
           placement="bottom-start"
-        >
-          <Popup
-            className="msg menu"
-            id="viewMenu"
-            onClick={[Function]}
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onMouseEnter={[Function]}
-            onOpen={[Function]}
-            orientation="column"
-            pinned={false}
-            placement="bottom-start"
-            showArrow={false}
-          >
-            <Portal
-              className="popupPortal"
-              id="viewMenu"
-              onClick={[Function]}
-              onClose={[Function]}
-              onKeyDown={[Function]}
-              onMouseEnter={[Function]}
-              onOpen={[Function]}
-            />
-          </Popup>
-        </Menu>
+        />
       </MenuItem>
       <MenuItem
-        caption="Go"
         className="nohover"
+        command={
+          {
+            "command": "",
+            "title": "Go",
+          }
+        }
         id="goMenu"
         onClick={[Function]}
         onMouseEnter={[Function]}
@@ -454,11 +391,12 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
       >
         <Container
           className="msg menuItem nohover submenu"
+          fixedScrollbars={false}
           id="goMenu"
           innerRef={
             {
               "current": <div
-                class="msg container fixedScrollbar menuItem nohover submenu"
+                class="msg container menuItem nohover submenu"
                 id="goMenu"
                 style="flex-direction: row;"
               >
@@ -477,7 +415,7 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           orientation="row"
         >
           <div
-            className="msg container fixedScrollbar menuItem nohover submenu"
+            className="msg container menuItem nohover submenu"
             id="goMenu"
             onClick={[Function]}
             onMouseEnter={[Function]}
@@ -503,6 +441,12 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           </div>
         </Container>
         <Menu
+          command={
+            {
+              "command": "",
+              "title": "Go",
+            }
+          }
           id="goMenu"
           onClick={[Function]}
           onClose={[Function]}
@@ -512,31 +456,7 @@ exports[`Menu component tests Test MenuBar output (snapshot) 1`] = `
           onOpen={[Function]}
           orientation="column"
           placement="bottom-start"
-        >
-          <Popup
-            className="msg menu"
-            id="goMenu"
-            onClick={[Function]}
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onMouseEnter={[Function]}
-            onOpen={[Function]}
-            orientation="column"
-            pinned={false}
-            placement="bottom-start"
-            showArrow={false}
-          >
-            <Portal
-              className="popupPortal"
-              id="goMenu"
-              onClick={[Function]}
-              onClose={[Function]}
-              onKeyDown={[Function]}
-              onMouseEnter={[Function]}
-              onOpen={[Function]}
-            />
-          </Popup>
-        </Menu>
+        />
       </MenuItem>
     </div>
   </Container>

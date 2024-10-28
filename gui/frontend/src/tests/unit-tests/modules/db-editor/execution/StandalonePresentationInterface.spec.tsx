@@ -25,14 +25,14 @@
 
 import { mount } from "enzyme";
 
-import { ScriptEditor } from "../../../../../modules/db-editor/ScriptEditor.js";
+import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
+import { ICodeEditorModel, IEditorPersistentState } from "../../../../../components/ui/CodeEditor/CodeEditor.js";
 import { CodeEditorMode, Monaco } from "../../../../../components/ui/CodeEditor/index.js";
-import {
-    ICodeEditorModel, IEditorPersistentState,
-} from "../../../../../components/ui/CodeEditor/CodeEditor.js";
-import { ExecutionContexts } from "../../../../../script-execution/ExecutionContexts.js";
-import { EntityType } from "../../../../../modules/db-editor/index.js";
 import { ISavedEditorState } from "../../../../../modules/db-editor/DBConnectionTab.js";
+import { ScriptEditor } from "../../../../../modules/db-editor/ScriptEditor.js";
+import { ExecutionContexts } from "../../../../../script-execution/ExecutionContexts.js";
+import { notebookDocumentMock } from "../../../__mocks__/DBEditorModuleMocks.js";
+import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
 
 describe("Standalone presentation interface tests", (): void => {
 
@@ -49,6 +49,10 @@ describe("Standalone presentation interface tests", (): void => {
     model.setEOL(Monaco.EndOfLineSequence.LF);
     model.setValue(content);
 
+    beforeAll(() => {
+        registerUiLayer(uiLayerMock);
+    });
+
     it("Standalone presentation interface instantiation", () => {
         const editorState: IEditorPersistentState = {
             viewState: null,
@@ -57,23 +61,21 @@ describe("Standalone presentation interface tests", (): void => {
         };
 
         const savedState: ISavedEditorState = {
-            editors: [{
-                type: EntityType.Notebook,
-                id: "1",
-                caption: "Test",
-                currentVersion: 1,
+            documentStates: [{
+                document: notebookDocumentMock,
                 state: editorState,
+                currentVersion: 1,
             }],
             activeEntry: "1",
             heatWaveEnabled: false,
             mleEnabled: false,
-            connectionId: -1,
         };
 
         const component = mount<ScriptEditor>(
             <ScriptEditor
                 savedState={savedState}
                 standaloneMode={false}
+                connectionId={-1}
                 toolbarItemsTemplate={{ navigation: [], execution: [], editor: [], auxillary: [] }}
             />,
         );

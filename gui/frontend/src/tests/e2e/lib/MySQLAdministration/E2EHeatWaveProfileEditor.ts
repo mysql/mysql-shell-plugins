@@ -24,7 +24,7 @@
  */
 
 import { WebElement, until, Condition } from "selenium-webdriver";
-import { driver } from "../driver.js";
+import { driver } from "../../lib/driver.js";
 import * as locator from "../locators.js";
 import * as interfaces from "../interfaces.js";
 import * as constants from "../constants.js";

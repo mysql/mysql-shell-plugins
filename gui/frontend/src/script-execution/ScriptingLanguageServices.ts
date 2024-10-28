@@ -52,7 +52,7 @@ import { isWhitespaceOnly } from "../utilities/string-helpers.js";
 
 import { LanguageWorkerPool } from "../parsing/worker/LanguageWorkerPool.js";
 import { IShellEditorModel } from "../modules/shell/index.js";
-import { IDictionary } from "../app-logic/Types.js";
+import { IDictionary } from "../app-logic/general-types.js";
 import { IExecutionContext } from "../supplement/index.js";
 import { ITextToken } from "./index.js";
 

@@ -6,6 +6,19 @@ exports[`Shell tab tests Connection tests Test ShellModule instantiation 1`] = `
   mainAlignment="stretch"
   orientation="column"
 >
+  <DBEditorToolbar
+    documentState={[]}
+    heatWaveEnabled={false}
+    language="msg"
+    toolbarItems={
+      {
+        "auxillary": [],
+        "editor": [],
+        "execution": [],
+        "navigation": [],
+      }
+    }
+  />
   <ShellPrompt
     getSchemas={[Function]}
     id="shellPrompt"
@@ -15,6 +28,7 @@ exports[`Shell tab tests Connection tests Test ShellModule instantiation 1`] = `
         "backend": {
           "execute": [Function],
         },
+        "dataModelEntry": {},
         "serverEdition": "foo",
         "serverVersion": 0,
         "sqlMode": "bar",

@@ -443,6 +443,18 @@ export class CommandResultGrid {
         subContextMenuItem?: string): Promise<void> => {
 
         const cellContextMenu = locator.notebook.codeEditor.editor.result.grid.row.cell.contextMenu;
+
+        const getCellMenuItem = async (contextMenu: WebElement, itemName: string): Promise<WebElement> => {
+            const items = await contextMenu.findElements(cellContextMenu.item);
+            for (const item of items) {
+                if (await item.getText() === itemName) {
+                    return item;
+                }
+            }
+
+            throw new Error(`Could not find item '${itemName}' on cell context menu`);
+        };
+
         await driver.wait(async () => {
             try {
                 await driver.findElement(locator.notebook.codeEditor.textArea)
@@ -455,170 +467,29 @@ export class CommandResultGrid {
                 const contextMenu = await driver.wait(until
                     .elementLocated(cellContextMenu.exists),
                     constants.wait5seconds, "Cell context menu was not displayed");
-                let item: WebElement;
-                let reloadResult = false;
-                switch (contextMenuItem) {
+                const cellMenuItem = await getCellMenuItem(contextMenu, contextMenuItem);
+                await driver.actions().move({ origin: cellMenuItem }).perform();
 
-                    case constants.resultGridContextMenu.capitalizeText: {
-                        item = await contextMenu.findElement(cellContextMenu.capitalize);
-                        reloadResult = true;
-                        break;
+                if (subContextMenuItem) {
+                    let subMenu: WebElement | undefined;
+                    if (contextMenuItem === constants.resultGridContextMenu.copySingleRow) {
+                        subMenu = await driver.wait(until
+                            .elementLocated(cellContextMenu.copySingleRowSubMenu),
+                            constants.wait5seconds, "Copy Row sub menu was not displayed");
+                    } else {
+                        subMenu = await driver.wait(until
+                            .elementLocated(cellContextMenu.copyAllRowsSubMenu),
+                            constants.wait5seconds, "Copy All Rows sub menu was not displayed");
                     }
-
-                    case constants.resultGridContextMenu.convertTextToLowerCase: {
-                        item = await contextMenu.findElement(cellContextMenu.lowerCase);
-                        reloadResult = true;
-                        break;
-                    }
-
-                    case constants.resultGridContextMenu.convertTextToUpperCase: {
-                        item = await contextMenu.findElement(cellContextMenu.upperCase);
-                        reloadResult = true;
-                        break;
-                    }
-
-                    case constants.resultGridContextMenu.toggleForDeletion: {
-                        item = await contextMenu.findElement(cellContextMenu.toggleForDeletion);
-                        reloadResult = true;
-                        break;
-                    }
-
-                    case constants.resultGridContextMenu.copySingleRow: {
-                        const copySingleRow = await contextMenu
-                            .findElement(cellContextMenu.copySingleRow.exists);
-                        await driver.actions().move({ origin: copySingleRow }).perform();
-                        const subMenu = await driver.wait(until
-                            .elementLocated(cellContextMenu.copySingleRow.subMenu.exists),
-                            constants.wait3seconds, "Sub menu context was not displayed");
-
-                        switch (subContextMenuItem) {
-
-                            case constants.resultGridContextMenu.copySingleRowContextMenu.copyRow: {
-                                item = await subMenu
-                                    .findElement(cellContextMenu.copySingleRow.subMenu.copyRow);
-                                break;
-                            }
-
-                            case constants.resultGridContextMenu.copySingleRowContextMenu.copyRowTabSeparated: {
-                                item = await subMenu
-                                    .findElement(cellContextMenu.copySingleRow.subMenu.copyRowTabSeparated);
-                                break;
-                            }
-
-                            case constants.resultGridContextMenu.copySingleRowContextMenu.copyRowUnquoted: {
-                                item = await subMenu
-                                    .findElement(cellContextMenu.copySingleRow.subMenu.copyRowUnquoted);
-                                break;
-                            }
-
-                            case constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNames: {
-                                item = await subMenu
-                                    .findElement(cellContextMenu.copySingleRow.subMenu.copyRowWithNames);
-                                break;
-                            }
-
-                            case constants.resultGridContextMenu.copySingleRowContextMenu
-                                .copyRowWithNamesTabSeparated: {
-                                    item = await subMenu
-                                        .findElement(cellContextMenu.copySingleRow.subMenu
-                                            .copyRowWithNamesTabSeparated);
-                                    break;
-                                }
-
-                            case constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesUnquoted: {
-                                item = await subMenu
-                                    .findElement(cellContextMenu.copySingleRow.subMenu.copyRowWithNamesUnquoted);
-                                break;
-                            }
-
-                            default: {
-                                break;
-                            }
-                        }
-                        break;
-                    }
-
-                    case constants.resultGridContextMenu.copyMultipleRows: {
-                        const copyAllRows = await contextMenu
-                            .findElement(cellContextMenu.copyAllRows.exists);
-                        await driver.actions().move({ origin: copyAllRows }).perform();
-                        await driver.wait(until
-                            .elementLocated(cellContextMenu.copyAllRows.subMenu.exists),
-                            constants.wait3seconds, "Sub menu context was not displayed");
-                        switch (subContextMenuItem) {
-
-                            case constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRows: {
-                                item = await driver.findElement(cellContextMenu.copyAllRows.subMenu.copyAllRows);
-                                break;
-                            }
-
-                            case constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsTabSeparated: {
-                                item = await driver
-                                    .findElement(cellContextMenu.copyAllRows.subMenu.copyAllRowsTabSeparated);
-                                break;
-                            }
-
-                            case constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsUnquoted: {
-                                item = await driver
-                                    .findElement(cellContextMenu.copyAllRows.subMenu.copyAllRowsUnquoted);
-                                break;
-                            }
-
-                            case constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNames: {
-                                item = await driver
-                                    .findElement(cellContextMenu.copyAllRows.subMenu.copyAllRowsWithNames);
-                                break;
-                            }
-
-                            case constants.resultGridContextMenu.copyMultipleRowsContextMenu
-                                .copyAllRowsWithNamesTabSeparated: {
-                                    item = await driver
-                                        .findElement(cellContextMenu.copyAllRows.subMenu
-                                            .copyAllRowsWithNamesTabSeparated);
-                                    break;
-                                }
-
-                            case constants.resultGridContextMenu.copyMultipleRowsContextMenu
-                                .copyAllRowsWithNamesUnquoted: {
-                                    item = await driver
-                                        .findElement(cellContextMenu.copyAllRows.subMenu
-                                            .copyAllRowsWithNamesUnquoted);
-                                    break;
-                                }
-                            default: {
-                                break;
-                            }
-                        }
-                        break;
-                    }
-
-                    case constants.resultGridContextMenu.copyField: {
-                        item = await driver.findElement(cellContextMenu.copyField);
-                        break;
-                    }
-
-                    case constants.resultGridContextMenu.copyFieldUnquoted: {
-                        item = await driver.findElement(cellContextMenu.copyFieldUnquoted);
-                        break;
-                    }
-
-                    case constants.resultGridContextMenu.setFieldToNull: {
-                        item = await driver.findElement(cellContextMenu.setFieldToNull);
-                        break;
-                    }
-                    default: {
-                        break;
-                    }
+                    await (await getCellMenuItem(subMenu, subContextMenuItem)).click();
+                } else {
+                    await cellMenuItem.click();
                 }
-
-                await item.click();
 
                 return driver.wait(until.stalenessOf(contextMenu), constants.wait150MilliSeconds,
                     `The context menu should have been closed, after clicking ${contextMenuItem}, 
                     ${subContextMenuItem}`).then(async () => {
-                        if (reloadResult) {
-                            await this.result.loadResult();
-                        }
+                        await this.result.loadResult();
 
                         return true;
                     }).catch(() => {
@@ -629,7 +500,9 @@ export class CommandResultGrid {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "The cell or the context menu were always stale");
+        }, constants.wait5seconds,
+            // eslint-disable-next-line max-len
+            `Clicking on Item ${contextMenuItem}/${subContextMenuItem ? subContextMenuItem : ""} did not generate any outcome`);
     };
 
     /**

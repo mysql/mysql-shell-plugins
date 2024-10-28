@@ -32,12 +32,12 @@ import {
     ISqlEditorHistoryEntry,
 } from "../../communication/ProtocolGui.js";
 import { ShellInterfaceDb } from "./ShellInterfaceDb.js";
-import { ShellInterfaceMds } from "./ShellInterfaceMds.js";
+import { ShellInterfaceMhs } from "./ShellInterfaceMhs.js";
 import { ShellInterfaceMrs } from "./ShellInterfaceMrs.js";
 
 export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPromptReplyBackend {
 
-    public mds: ShellInterfaceMds = new ShellInterfaceMds();
+    public mhs: ShellInterfaceMhs = new ShellInterfaceMhs();
     public mrs: ShellInterfaceMrs = new ShellInterfaceMrs();
 
     /**

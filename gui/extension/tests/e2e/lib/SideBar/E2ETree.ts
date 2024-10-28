@@ -120,22 +120,31 @@ export class E2ETree {
      * @param element The element
      * @returns A condition resolving to true if the element exists, false otherwise
      */
-    public untilExists = (element: string | RegExp): Condition<boolean> => {
-        return new Condition(`for ${element} to exist`, async () => {
+    public untilExists = (element: Array<string | RegExp> | string | RegExp): Condition<boolean> => {
+        return new Condition(`for ${element.toString()} to exist on the tree`, async () => {
             let reloadLabel: string;
             await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
+
             if (this.accordionSection.accordionSectionName === constants.dbTreeSection ||
                 this.accordionSection.accordionSectionName === constants.ociTreeSection) {
+
                 if (this.accordionSection.accordionSectionName === constants.dbTreeSection) {
                     reloadLabel = constants.reloadConnections;
                 } else if (this.accordionSection.accordionSectionName === constants.ociTreeSection) {
                     reloadLabel = constants.reloadOci;
                 }
+
                 await this.accordionSection.clickToolbarButton(reloadLabel);
                 await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
             }
 
-            return this.elementExists(element);
+            if (Array.isArray(element)) {
+                await this.accordionSection.tree.expandElement(element);
+
+                return this.elementExists(element[element.length - 1]);
+            } else {
+                return this.elementExists(element);
+            }
         });
     };
 
@@ -144,8 +153,8 @@ export class E2ETree {
      * @param element The element
      * @returns A condition resolving to true if the element does not exist, false otherwise
      */
-    public untilDoesNotExist = (element: string | RegExp): Condition<boolean> => {
-        return new Condition(`for ${element} to not exist`, async () => {
+    public untilDoesNotExist = (element: Array<string | RegExp> | string | RegExp): Condition<boolean> => {
+        return new Condition(`for ${element.toString()} to not exist`, async () => {
             let reloadLabel: string;
             await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
             if (this.accordionSection.accordionSectionName === constants.dbTreeSection ||
@@ -159,7 +168,14 @@ export class E2ETree {
                 await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
             }
 
-            return !(await this.elementExists(element));
+            if (Array.isArray(element)) {
+                const lastElement = element.pop();
+                await this.accordionSection.tree.expandElement(element);
+
+                return !(await this.elementExists(lastElement));
+            } else {
+                return !(await this.elementExists(element));
+            }
         });
     };
 
@@ -454,6 +470,7 @@ export class E2ETree {
                         .press(Button.RIGHT)
                         .pause(150)
                         .perform();
+
                     if (Array.isArray(ctxMenuItem)) {
                         for (const item of ctxMenuItem) {
                             await Os.selectItemMacOS(item, itemMap);

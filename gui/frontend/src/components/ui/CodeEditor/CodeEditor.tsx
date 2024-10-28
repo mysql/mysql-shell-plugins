@@ -32,9 +32,8 @@ import { ComponentChild, createRef } from "preact";
 import "./userWorker.js";
 
 import {
-    CodeEditorMode, ICodeEditorOptions, ICodeEditorViewState, IDisposable, ILanguageDefinition, IPosition,
-    IProviderEditorModel, IScriptExecutionOptions, KeyCode, KeyMod, languages, Monaco,
-    Range, Selection,
+    CodeEditorMode, ICodeEditorViewState, IDisposable, ILanguageDefinition, IPosition, IProviderEditorModel,
+    IScriptExecutionOptions, KeyCode, KeyMod, languages, Monaco, Range, Selection,
 } from "./index.js";
 
 import { msg } from "./languages/msg/msg.contribution.js";
@@ -43,18 +42,20 @@ import { mysql } from "./languages/mysql/mysql.contribution.js";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
 import { EditorLanguage, isEditorLanguage, ITextRange } from "../../../supplement/index.js";
+import { appParameters, requisitions } from "../../../supplement/Requisitions.js";
 import {
-    appParameters, IEditorCommonExecutionOptions, IEditorExtendedExecutionOptions, requisitions,
-} from "../../../supplement/Requisitions.js";
+    IEditorCommonExecutionOptions, IEditorExtendedExecutionOptions,
+} from "../../../supplement/RequisitionTypes.js";
 import { Settings } from "../../../supplement/Settings/Settings.js";
 import { editorRangeToTextRange } from "../../../utilities/ts-helpers.js";
 
 import { IThemeChangeData, IThemeObject, ITokenEntry } from "../../Theming/ThemeManager.js";
 
-import { MessageType } from "../../../app-logic/Types.js";
+import { MessageType } from "../../../app-logic/general-types.js";
 import { ExecutionContext } from "../../../script-execution/ExecutionContext.js";
 import { splitTextToLines } from "../../../utilities/string-helpers.js";
 import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import type { ICodeEditorOptions } from "../index.js";
 import { CodeCompletionProvider } from "./CodeCompletionProvider.js";
 import { DefinitionProvider } from "./DefinitionProvider.js";
 import { DocumentHighlightProvider } from "./DocumentHighlightProvider.js";
@@ -104,7 +105,6 @@ export type ResultPresentationFactory = (editor: CodeEditor, language: EditorLan
 export interface IEditorPersistentState {
     viewState: ICodeEditorViewState | null;
     model: ICodeEditorModel;
-    //contextStates?: IExecutionContextState[]; // Serializable execution blocks.
     options: ICodeEditorOptions;
 }
 
@@ -209,6 +209,9 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
 
     // Set when a new execution context is being added. Requires special handling in the change event.
     private addingNewContext = false;
+    private scrolling = false;
+
+    private scrollingTimer: ReturnType<typeof setTimeout> | null = null;
     private keyboardTimer: ReturnType<typeof setTimeout> | null = null;
 
     // Automatic re-layout on host resize.
@@ -341,6 +344,16 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             });
         }
     }
+
+    /**
+     * A method that can be used to determine if the editor is currently scrolling its content because of mouse wheel
+     * events. This is used to correctly scroll embedded content like result panes in editor zones.
+     *
+     * @returns True if the editor is currently scrolling.
+     */
+    public isScrolling = (): boolean => {
+        return this.scrolling;
+    };
 
     public override componentDidMount(): void {
         if (!this.hostRef.current) {
@@ -483,6 +496,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         if (languages.typescript) {
             extraLibs?.forEach((entry) => {
                 this.disposables.push(languages.typescript.typescriptDefaults.addExtraLib(entry.code, entry.path));
+                this.disposables.push(languages.typescript.javascriptDefaults.addExtraLib(entry.code, entry.path));
             });
         }
 
@@ -502,6 +516,11 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     }
 
     public override componentWillUnmount(): void {
+        if (this.scrollingTimer) {
+            clearTimeout(this.scrollingTimer);
+            this.scrollingTimer = null;
+        }
+
         const { savedState } = this.props;
 
         requisitions.unregister("settingsChanged", this.handleSettingsChanged);
@@ -782,8 +801,16 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         return block;
     }
 
+    /**
+     * Restores the context to a previously saved state. Usually used when switching between history entries.
+     *
+     * @param context The context to restore.
+     * @param text The text for the context.
+     * @param language The language for the context.
+     * @param placeCaretAtStart A flag to control where to place the caret.
+     */
     public setExecutionBlockLanguageAndText(context: ExecutionContext, text: string,
-        language: string, placeCursorAtStart = false): void {
+        language: string, placeCaretAtStart = false): void {
 
         if (isEditorLanguage(language)) {
             this.switchCurrentLanguage(language, false);
@@ -792,7 +819,8 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         const editor = this.backend;
         const model = this.model;
         if (editor && model) {
-            const endColumn = model.getLineMaxColumn(context.endLine);
+            const endColumn = this.model.getLineMaxColumn(context.endLine);
+
             // Replace the current ExecutionContext text
             const range = {
                 startLineNumber: context.startLine,
@@ -802,7 +830,7 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             };
 
             editor.executeEdits("", [{ range, text }], () => {
-                if (placeCursorAtStart) {
+                if (placeCaretAtStart) {
                     return [new Selection(context.startLine, 1, context.startLine, 1)];
                 } else {
                     // Make sure to place the cursor at the new ending line number, based on the line count
@@ -1210,6 +1238,20 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         this.disposables.push(editor.onDidPaste(this.handlePaste));
 
         this.disposables.push(editor.onDidScrollChange((e) => {
+            if (e.scrollTopChanged) {
+                this.scrolling = true;
+                if (this.scrollingTimer) {
+                    clearTimeout(this.scrollingTimer);
+                }
+                this.scrollingTimer = setTimeout(() => {
+                    this.scrolling = false;
+                    if (this.scrollingTimer) {
+                        clearTimeout(this.scrollingTimer);
+                    }
+
+                    this.scrollingTimer = null;
+                }, 500);
+            }
 
             if (e.scrollLeftChanged) {
                 const viewZones = editor.getDomNode()?.getElementsByClassName("view-zones");

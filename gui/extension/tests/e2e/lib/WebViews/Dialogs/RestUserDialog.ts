@@ -40,7 +40,7 @@ export class RestUserDialog {
      * @param restUser The user
      * @returns A promise resolving when the user is set and the dialog is closed
      */
-    public static set = async (restUser: interfaces.IRestUser): Promise<void> => {
+    public static set = async (restUser: interfaces.IRestUser): Promise<interfaces.IRestUser> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
@@ -48,8 +48,13 @@ export class RestUserDialog {
         const dialog = await driver.wait(until.elementLocated(locator.mrsUserDialog.exists),
             constants.wait20seconds, "User dialog was not displayed");
 
-        await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.username, restUser.username);
-        await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.password, restUser.password);
+        if (restUser.username) {
+            await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.username, restUser.username);
+        }
+
+        if (restUser.password) {
+            await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.password, restUser.password);
+        }
 
         if (restUser.email) {
             await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.email, restUser.email);
@@ -91,6 +96,8 @@ export class RestUserDialog {
 
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The MRS User dialog was not closed");
+
+        return restUser;
     };
 
     /**

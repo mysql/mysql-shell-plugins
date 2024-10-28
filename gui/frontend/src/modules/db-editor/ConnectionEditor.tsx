@@ -24,7 +24,7 @@
  */
 
 import { ComponentChild, createRef } from "preact";
-import { DialogResponseClosure, IDictionary, IServicePasswordRequest } from "../../app-logic/Types.js";
+import { DialogResponseClosure, IDictionary, IServicePasswordRequest } from "../../app-logic/general-types.js";
 
 import {
     IMySQLConnectionOptions, MySQLConnCompression, MySQLConnectionScheme, MySQLSqlMode, MySQLSslMode,
@@ -34,8 +34,7 @@ import { IMdsProfileData } from "../../communication/ProtocolMds.js";
 import { ISqliteConnectionOptions } from "../../communication/Sqlite.js";
 import { ConfirmDialog } from "../../components/Dialogs/ConfirmDialog.js";
 import {
-    CommonDialogValueOption, DialogValueType, IDialogSection, IDialogValidations, IDialogValues,
-    ValueEditDialog,
+    CommonDialogValueOption, DialogValueType, IDialogSection, IDialogValidations, IDialogValues, ValueEditDialog,
 } from "../../components/Dialogs/ValueEditDialog.js";
 import { CheckState, ICheckboxProperties } from "../../components/ui/Checkbox/Checkbox.js";
 
@@ -45,12 +44,14 @@ import { Grid } from "../../components/ui/Grid/Grid.js";
 import { GridCell } from "../../components/ui/Grid/GridCell.js";
 import { Label } from "../../components/ui/Label/Label.js";
 import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator.js";
+import type { ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
 import { requisitions } from "../../supplement/Requisitions.js";
-import { DBConnectionEditorType, DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
-import { filterInt, basename } from "../../utilities/string-helpers.js";
-import { Settings } from "../../supplement/Settings/Settings.js";
+import { DBConnectionEditorType, DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
+import { basename, filterInt } from "../../utilities/string-helpers.js";
+import { DBEditorContext, type DBEditorContextType } from "./index.js";
 
 const editorHeading = "Database Connection Configuration";
 
@@ -67,8 +68,6 @@ interface IConnectionDialogLiveUpdateFields {
 }
 
 export interface IConnectionEditorProperties extends IComponentProperties {
-    connections: IConnectionDetails[];
-
     onAddConnection: (details: IConnectionDetails) => void;
     onUpdateConnection: (details: IConnectionDetails) => void;
 }
@@ -79,6 +78,8 @@ interface IConnectionEditorState extends IComponentState {
 }
 
 export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties, IConnectionEditorState> {
+    public static override contextType = DBEditorContext;
+
     private editorRef = createRef<ValueEditDialog>();
     private confirmClearPasswordDialogRef = createRef<ConfirmDialog>();
     private confirmNewBastionDialogRef = createRef<ConfirmDialog>();
@@ -182,7 +183,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         // Initializes useMDS/useSSH to have the tabs be shown or hidden based on the saved connection options.
         if (details?.dbType === DBType.MySQL) {
             const optionsMySQL = details.options as IMySQLConnectionOptions;
-            details.useMDS = optionsMySQL["mysql-db-system-id"] !== undefined;
+            details.useMHS = optionsMySQL["mysql-db-system-id"] !== undefined;
             details.useSSH = optionsMySQL.ssh !== undefined;
         }
 
@@ -213,7 +214,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
                 // Get all available bastions that are in the same compartment as the DbSystem but ensure that
                 // these bastions are valid for the specific DbSystem by having a matching target_subnet_id
-                const bastions = await this.shellSession.mds.getMdsBastions(profileName, compartmentId,
+                const bastions = await this.shellSession.mhs.getMdsBastions(profileName, compartmentId,
                     mysqlDbSystemId);
                 if (bastions.length > 0) {
                     // If there is a bastion in the same compartment
@@ -232,7 +233,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     contexts.push("useSSH");
                 }
 
-                if (details?.useMDS) {
+                if (details?.useMHS) {
                     contexts.push("useMDS");
                 }
 
@@ -261,10 +262,13 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         const generalSection = values.sections.get("general")!.values;
         const informationSection = values.sections.get("information")!.values;
         const sqliteDetailsSection = values.sections.get("sqliteDetails")!.values;
+
         //const sqliteAdvancedSection = values.sections.get("sqliteAdvanced")!.values;
         const mysqlDetailsSection = values.sections.get("mysqlDetails")!.values;
+
         //const mysqlSsSection = values.sections.get("ssl")!.values;
         const mysqlAdvancedSection = values.sections.get("mysqlAdvanced")!.values;
+
         //const mysqlSshSection = values.sections.get("ssh")!.values;
 
         /*if (mysqlDetailsSection.useMDS.value as boolean === false) {
@@ -289,13 +293,14 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             }
         } else {
             // Check duplicate captions.
-            const { connections } = this.props;
-            const details = connections.find((element: IConnectionDetails) => {
-                return element.caption === informationSection.caption.value;
+            const context = this.context as DBEditorContextType;
+            const connections = context.connectionsDataModel.connections;
+            const entry = connections.find((element: ICdmConnectionEntry) => {
+                return element.details.caption === informationSection.caption.value;
             });
 
             // The caption can be the same if it is the one from the connection that is currently being edited.
-            if (details && (String(details.id) !== values.id || data?.createNew)) {
+            if (entry && (String(entry.details.id) !== values.id || data?.createNew)) {
                 result.messages.caption = "A connection with that caption exists already";
             }
         }
@@ -344,6 +349,150 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         return result;
     };
 
+    private handleOptionsDialogClose = (closure: DialogResponseClosure, values: IDialogValues,
+        data?: IDictionary): void => {
+        if (closure === DialogResponseClosure.Accept) {
+            const generalSection = values.sections.get("general")!.values;
+            const informationSection = values.sections.get("information")!.values;
+            const sqliteDetailsSection = values.sections.get("sqliteDetails")!.values;
+            const sqliteAdvancedSection = values.sections.get("sqliteAdvanced")!.values;
+            const mysqlDetailsSection = values.sections.get("mysqlDetails")!.values;
+            const mdsAdvancedSection = values.sections.get("mdsAdvanced")!.values;
+            const mysqlSshSection = values.sections.get("ssh")!.values;
+            const mysqlAdvancedSection = values.sections.get("mysqlAdvanced")!.values;
+            const mysqlSslSection = values.sections.get("ssl")!.values;
+
+            const isSqlite = generalSection.databaseType.value === "Sqlite";
+            const isMySQL = generalSection.databaseType.value === "MySQL";
+
+            let details: IConnectionDetails | undefined = data?.details as IConnectionDetails;
+            const dbType = generalSection.databaseType.value as DBType; // value must be a string.
+
+            if (data?.createNew) {
+                details = {
+                    id: 0, // Will be replaced with the ID returned from the BE call.
+                    dbType,
+                    caption: informationSection.caption.value as string,
+                    description: informationSection.description.value as string,
+                    useSSH: false,
+                    useMHS: false,
+                    options: {},
+                };
+
+                if (isSqlite) {
+                    details.options = {
+                        dbFile: "",
+                        otherParameters: sqliteAdvancedSection.otherParameters.value as string,
+                    } as ISqliteConnectionOptions;
+                } else if (isMySQL) {
+                    details.options = {
+                        scheme: MySQLConnectionScheme.MySQL,
+                        host: "localhost",
+                    } as IMySQLConnectionOptions;
+                }
+            }
+
+            if (details) {
+                details.dbType = dbType;
+                details.useMHS = mysqlDetailsSection.useMDS.value as boolean;
+                details.useSSH = mysqlDetailsSection.useSSH.value as boolean;
+                details.caption = informationSection.caption.value as string;
+                details.description = informationSection.description.value as string;
+
+                // TODO: use current active nesting group, once available.
+                // details.folderPath = ...
+
+                if (isSqlite) {
+                    details.options = {
+                        dbFile: sqliteDetailsSection.dbFilePath.value as string,
+
+                        // Not "as string", to allow undefined too.
+                        otherParameters: sqliteAdvancedSection.otherParameters.value,
+                    } as ISqliteConnectionOptions;
+                } else if (isMySQL) {
+                    let sshKeyFile;
+                    if (details.useSSH && mysqlSshSection.sshKeyFile.value !== "") {
+                        sshKeyFile = mysqlSshSection.sshKeyFile.value;
+                    }
+
+                    if (details.useMHS && mdsAdvancedSection.sshKeyFile.value !== "") {
+                        sshKeyFile = mdsAdvancedSection.sshKeyFile.value;
+                    }
+
+                    let sshKeyFilePublic;
+                    if (details.useMHS && mdsAdvancedSection.sshPublicKeyFile.value !== "") {
+                        sshKeyFilePublic = mdsAdvancedSection.sshPublicKeyFile.value;
+                    }
+
+                    const useSsl = mysqlSslSection.sslMode.value !== MySQLSslMode.Disabled;
+                    let mode;
+                    if (useSsl) {
+                        ConnectionEditor.#mysqlSslModeMap.forEach((value: string, key: MySQLSslMode) => {
+                            if (value === mysqlSslSection.sslMode.value) {
+                                mode = key;
+                            }
+                        });
+                    }
+
+                    const compressionAlgorithms = Array.isArray(mysqlAdvancedSection.compressionAlgorithms.value)
+                        ? mysqlAdvancedSection.compressionAlgorithms.value.join(",")
+                        : undefined;
+
+                    details.options = {
+                        /* eslint-disable @typescript-eslint/naming-convention */
+                        "scheme": mysqlDetailsSection.scheme.value as MySQLConnectionScheme,
+                        "host": mysqlDetailsSection.hostName.value as string,
+                        "port": mysqlDetailsSection.port.value as number,
+                        "user": mysqlDetailsSection.userName.value as string,
+                        "schema": mysqlDetailsSection.defaultSchema.value as string,
+
+                        // "useSSL": useSsl ? undefined : "no",
+                        "ssl-mode": mode ?? undefined,
+                        "ssl-ca": mysqlSslSection.sslCaFile.value as string,
+                        "ssl-cert": mysqlSslSection.sslCertFile.value as string,
+                        "ssl-key": mysqlSslSection.sslKeyFile.value as string,
+                        "ssl-cipher": mysqlSslSection.sslCipher.value as string,
+                        "compression": (mysqlAdvancedSection.compression.value !== "")
+                            ? mysqlAdvancedSection.compression.value as MySQLConnCompression : undefined,
+                        "compression-algorithms": compressionAlgorithms,
+                        "compression-level": mysqlAdvancedSection.compressionLevel.value as number,
+
+                        //useAnsiQuotes: section5.ansiQuotes.value,
+                        //enableClearTextAuthPlugin: section5.clearTextAuth.value,
+                        "connect-timeout": mysqlAdvancedSection.timeout.value,
+                        //sqlMode: section5.sqlMode.value,
+                        "ssh": details.useSSH ? mysqlSshSection.ssh.value as string : undefined,
+
+                        //"ssh-password": details.useSSH ? mysqlSshSection.sshPassword.value : undefined,
+                        "ssh-identity-file": sshKeyFile as string,
+                        "ssh-config-file": details.useSSH
+                            ? mysqlSshSection.sshConfigFilePath.value as string
+                            : undefined,
+                        "ssh-public-identity-file": sshKeyFilePublic as string,
+                        "profile-name": details.useMHS ? mdsAdvancedSection.profileName.value as string : undefined,
+                        "bastion-id": details.useMHS ? mdsAdvancedSection.bastionId.value as string : undefined,
+                        "mysql-db-system-id": details.useMHS
+                            ? mdsAdvancedSection.mysqlDbSystemId.value as string : undefined,
+                        "disable-heat-wave-check": mysqlAdvancedSection.disableHeatwaveCheck.value as boolean,
+                        /* eslint-enabled @typescript-eslint/naming-convention */
+                    };
+
+                    details.settings = {
+                        defaultEditor: generalSection.defaultEditor.value as DBConnectionEditorType,
+                    };
+                }
+
+                if (data?.createNew) {
+                    const { onAddConnection } = this.props;
+                    onAddConnection(details);
+                } else {
+                    const { onUpdateConnection } = this.props;
+                    onUpdateConnection(details);
+                }
+            }
+        }
+    };
+
     /**
      * Generates the object to be used for the value editor.
      *
@@ -351,10 +500,26 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
      *
      * @returns The necessary dialog values to edit this connection.
      */
-    protected generateEditorConfig = (details?: IConnectionDetails): IDialogValues => {
-        const { connections } = this.props;
+    private generateEditorConfig = (details?: IConnectionDetails): IDialogValues => {
+        const context = this.context as DBEditorContextType;
+        const connections = context.connectionsDataModel.connections;
 
-        const caption = `New Connection ${connections.length + 1}`;
+        let caption = `New Connection`;
+
+        let index = 1;
+        while (index < 1000) {
+            const candidate = `New Connection ${index}`;
+            if (connections.findIndex((element: ICdmConnectionEntry) => {
+                return element.details.caption === candidate;
+            }) === -1) {
+                caption = candidate;
+
+                break;
+            }
+
+            index++;
+        }
+
         const description = "A new Database Connection";
 
         details = details ?? { // Default for new connections is MySQL.
@@ -363,7 +528,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             caption,
             description,
             useSSH: false,
-            useMDS: false,
+            useMHS: false,
             options: {
                 host: "localhost",
                 port: 3306,
@@ -403,7 +568,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 dbName: "",
             };
             optionsMySQL = details.options as IMySQLConnectionOptions;
-            details.useMDS = optionsMySQL["mysql-db-system-id"] !== undefined;
+            details.useMHS = optionsMySQL["mysql-db-system-id"] !== undefined;
             details.useSSH = optionsMySQL.ssh !== undefined;
         } else {
             optionsSqlite = {
@@ -600,7 +765,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 useMDS: {
                     type: "boolean",
                     caption: "Connect using OCI Bastion service",
-                    value: details.useMDS === true,
+                    value: details.useMHS === true,
                     onChange: (value: boolean, dialog: ValueEditDialog): void => {
                         // The MDS tab should be shown/hidden based on the checkbox value
                         const contexts = {
@@ -610,7 +775,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         dialog.updateActiveContexts(contexts);
 
                         if (value) {
-                            this.shellSession.mds.getMdsConfigProfiles().then((profiles) => {
+                            this.shellSession.mhs.getMdsConfigProfiles().then((profiles) => {
                                 this.fillProfileDropdown(profiles);
                             }).catch((reason) => {
                                 const message = reason instanceof Error ? reason.message : String(reason);
@@ -697,6 +862,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             caption: "Advanced",
             groupName: "group1",
             values: {
+
                 // ansiQuotes: {
                 //     caption: "Use ANSI Quotes to Quote Identifiers",
                 //     value: optionsMySQL.useAnsiQuotes ?? false,
@@ -806,9 +972,9 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 sshPublicKeyFile: {
                     type: "resource",
                     caption: "SSH Public Key File",
-                    value: details.useMDS ? optionsMySQL["ssh-public-identity-file"] ?? "id_rsa_mysql_shell.pub" : "",
+                    value: details.useMHS ? optionsMySQL["ssh-public-identity-file"] ?? "id_rsa_mysql_shell.pub" : "",
                     horizontalSpan: 4,
-                    options: !details.useMDS ? [CommonDialogValueOption.Disabled] : [],
+                    options: !details.useMHS ? [CommonDialogValueOption.Disabled] : [],
                 },
                 mysqlDbSystemId: {
                     type: "text",
@@ -859,148 +1025,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 ["mdsAdvanced", mdsAdvancedSection],
             ]),
         };
-    };
-
-    private handleOptionsDialogClose = (closure: DialogResponseClosure, values: IDialogValues,
-        data?: IDictionary): void => {
-        if (closure === DialogResponseClosure.Accept) {
-            const generalSection = values.sections.get("general")!.values;
-            const informationSection = values.sections.get("information")!.values;
-            const sqliteDetailsSection = values.sections.get("sqliteDetails")!.values;
-            const sqliteAdvancedSection = values.sections.get("sqliteAdvanced")!.values;
-            const mysqlDetailsSection = values.sections.get("mysqlDetails")!.values;
-            const mdsAdvancedSection = values.sections.get("mdsAdvanced")!.values;
-            const mysqlSshSection = values.sections.get("ssh")!.values;
-            const mysqlAdvancedSection = values.sections.get("mysqlAdvanced")!.values;
-            const mysqlSslSection = values.sections.get("ssl")!.values;
-
-            const isSqlite = generalSection.databaseType.value === "Sqlite";
-            const isMySQL = generalSection.databaseType.value === "MySQL";
-
-            let details: IConnectionDetails | undefined = data?.details as IConnectionDetails;
-            const dbType = generalSection.databaseType.value as DBType; // value must be a string.
-
-            const defaultEditor = (generalSection.defaultEditor.value as DBConnectionEditorType)
-                ?? DBConnectionEditorType.DbNotebook;
-
-            if (data?.createNew) {
-                details = {
-                    id: 0, // Will be replaced with the ID returned from the BE call.
-                    dbType,
-                    caption: informationSection.caption.value as string,
-                    description: informationSection.description.value as string,
-                    useSSH: false,
-                    useMDS: false,
-                    options: {},
-                };
-
-                if (isSqlite) {
-                    details.options = {
-                        dbFile: "",
-                        otherParameters: sqliteAdvancedSection.otherParameters.value as string,
-                    } as ISqliteConnectionOptions;
-                } else if (isMySQL) {
-                    details.options = {
-                        scheme: MySQLConnectionScheme.MySQL,
-                        host: "localhost",
-                    } as IMySQLConnectionOptions;
-                }
-            }
-
-            if (details) {
-                details.dbType = dbType;
-                details.useMDS = mysqlDetailsSection.useMDS.value as boolean;
-                details.useSSH = mysqlDetailsSection.useSSH.value as boolean;
-                details.caption = informationSection.caption.value as string;
-                details.description = informationSection.description.value as string;
-
-                details.settings = {
-                    defaultEditor,
-                };
-
-                // TODO: use current active nesting group, once available.
-                // details.folderPath = ...
-
-                if (isSqlite) {
-                    details.options = {
-                        dbFile: sqliteDetailsSection.dbFilePath.value as string,
-
-                        // Not "as string", to allow undefined too.
-                        otherParameters: sqliteAdvancedSection.otherParameters.value,
-                    } as ISqliteConnectionOptions;
-                } else if (isMySQL) {
-                    let sshKeyFile;
-                    if (details.useSSH && mysqlSshSection.sshKeyFile.value !== "") {
-                        sshKeyFile = mysqlSshSection.sshKeyFile.value;
-                    }
-                    if (details.useMDS && mdsAdvancedSection.sshKeyFile.value !== "") {
-                        sshKeyFile = mdsAdvancedSection.sshKeyFile.value;
-                    }
-                    let sshKeyFilePublic;
-                    if (details.useMDS && mdsAdvancedSection.sshPublicKeyFile.value !== "") {
-                        sshKeyFilePublic = mdsAdvancedSection.sshPublicKeyFile.value;
-                    }
-                    const useSsl = mysqlSslSection.sslMode.value !== MySQLSslMode.Disabled;
-                    let mode;
-                    if (useSsl) {
-                        ConnectionEditor.#mysqlSslModeMap.forEach((value: string, key: MySQLSslMode) => {
-                            if (value === mysqlSslSection.sslMode.value) {
-                                mode = key;
-                            }
-                        });
-                    }
-
-                    const compressionAlgorithms = Array.isArray(mysqlAdvancedSection.compressionAlgorithms.value)
-                        ? mysqlAdvancedSection.compressionAlgorithms.value.join(",")
-                        : undefined;
-
-                    details.options = {
-                        /* eslint-disable @typescript-eslint/naming-convention */
-                        "scheme": mysqlDetailsSection.scheme.value as MySQLConnectionScheme,
-                        "host": mysqlDetailsSection.hostName.value as string,
-                        "port": mysqlDetailsSection.port.value as number,
-                        "user": mysqlDetailsSection.userName.value as string,
-                        "schema": mysqlDetailsSection.defaultSchema.value as string,
-                        // "useSSL": useSsl ? undefined : "no",
-                        "ssl-mode": mode ?? undefined,
-                        "ssl-ca": mysqlSslSection.sslCaFile.value as string,
-                        "ssl-cert": mysqlSslSection.sslCertFile.value as string,
-                        "ssl-key": mysqlSslSection.sslKeyFile.value as string,
-                        "ssl-cipher": mysqlSslSection.sslCipher.value as string,
-                        "compression": (mysqlAdvancedSection.compression.value !== "")
-                            ? mysqlAdvancedSection.compression.value as MySQLConnCompression : undefined,
-                        "compression-algorithms": compressionAlgorithms,
-                        "compression-level": mysqlAdvancedSection.compressionLevel.value as number,
-                        //useAnsiQuotes: section5.ansiQuotes.value,
-                        //enableClearTextAuthPlugin: section5.clearTextAuth.value,
-                        "connect-timeout": mysqlAdvancedSection.timeout.value,
-                        //sqlMode: section5.sqlMode.value,
-                        "ssh": details.useSSH ? mysqlSshSection.ssh.value as string : undefined,
-                        //"ssh-password": details.useSSH ? mysqlSshSection.sshPassword.value : undefined,
-                        "ssh-identity-file": sshKeyFile as string,
-                        "ssh-config-file": details.useSSH
-                            ? mysqlSshSection.sshConfigFilePath.value as string
-                            : undefined,
-                        "ssh-public-identity-file": sshKeyFilePublic as string,
-                        "profile-name": details.useMDS ? mdsAdvancedSection.profileName.value as string : undefined,
-                        "bastion-id": details.useMDS ? mdsAdvancedSection.bastionId.value as string : undefined,
-                        "mysql-db-system-id": details.useMDS
-                            ? mdsAdvancedSection.mysqlDbSystemId.value as string : undefined,
-                        "disable-heat-wave-check": mysqlAdvancedSection.disableHeatwaveCheck.value as boolean,
-                        /* eslint-enabled @typescript-eslint/naming-convention */
-                    };
-                }
-
-                if (data?.createNew) {
-                    const { onAddConnection } = this.props;
-                    onAddConnection(details);
-                } else {
-                    const { onUpdateConnection } = this.props;
-                    onUpdateConnection(details);
-                }
-            }
-
-        }
     };
 
     /**
@@ -1062,6 +1086,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                         { accept: "OK" },
                         "Password Cleared",
                     );
+
                     // TODO: show message for success, once we have message toasts.
                 }
             }).catch((reason) => {
@@ -1091,7 +1116,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
     private loadMdsAdditionalDataAndShowConnectionDlg = ((dbTypeName: string, newConnection: boolean,
         details?: IConnectionDetails): void => {
         const contexts: string[] = [dbTypeName];
-        if (details?.useMDS) {
+        if (details?.useMHS) {
             contexts.push("useMDS");
         }
 
@@ -1113,7 +1138,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             },
         );
 
-        this.shellSession.mds.getMdsBastion(this.liveUpdateFields.profileName, this.liveUpdateFields.bastionId.value)
+        this.shellSession.mhs.getMdsBastion(this.liveUpdateFields.profileName, this.liveUpdateFields.bastionId.value)
             .then((summary) => {
                 if (summary) {
                     this.updateInputValue(summary.name, "bastionName");
@@ -1122,7 +1147,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 this.updateInputValue("<error loading bastion name data>", "bastionName");
             });
 
-        this.shellSession.mds.getMdsMySQLDbSystem(this.liveUpdateFields.profileName, this.liveUpdateFields.dbSystemId)
+        this.shellSession.mhs.getMdsMySQLDbSystem(this.liveUpdateFields.profileName, this.liveUpdateFields.dbSystemId)
             .then((system) => {
                 if (system) {
                     this.updateInputValue(system.displayName, "mysqlDbSystemName");
@@ -1138,7 +1163,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             this.liveUpdateFields.bastionId.value = value;
             this.beginValueUpdating("Loading...", "bastionName");
 
-            this.shellSession.mds.getMdsBastion(this.liveUpdateFields.profileName, value).then((summary) => {
+            this.shellSession.mhs.getMdsBastion(this.liveUpdateFields.profileName, value).then((summary) => {
                 if (summary) {
                     this.updateInputValue(summary.name, "bastionName");
                 }
@@ -1153,7 +1178,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             this.liveUpdateFields.dbSystemId = value;
             this.beginValueUpdating("Loading...", "mysqlDbSystemName");
 
-            this.shellSession.mds.getMdsMySQLDbSystem(this.liveUpdateFields.profileName, value).then((system) => {
+            this.shellSession.mhs.getMdsMySQLDbSystem(this.liveUpdateFields.profileName, value).then((system) => {
                 if (system) {
                     this.updateInputValue(system.displayName, "mysqlDbSystemName");
                 }
@@ -1176,7 +1201,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
     private handleTabSelect = (id: string): void => {
         if (id === "MDS/Bastion Service") {
-            this.shellSession.mds.getMdsConfigProfiles().then((profiles) => {
+            this.shellSession.mhs.getMdsConfigProfiles().then((profiles) => {
                 this.fillProfileDropdown(profiles);
             }).catch((reason) => {
                 const message = reason instanceof Error ? reason.message : String(reason);
@@ -1187,7 +1212,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
     private async createBastion(): Promise<IBastionSummary | undefined> {
         try {
-            const summary = await this.shellSession.mds.createBastion(this.liveUpdateFields.profileName,
+            const summary = await this.shellSession.mhs.createBastion(this.liveUpdateFields.profileName,
                 this.liveUpdateFields.dbSystemId, true);
 
             return summary;
@@ -1330,7 +1355,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 this.editorRef.current?.preventConfirm(true);
             });
 
-            this.shellSession.mds.getMdsMySQLDbSystem(this.liveUpdateFields.profileName,
+            this.shellSession.mhs.getMdsMySQLDbSystem(this.liveUpdateFields.profileName,
                 this.liveUpdateFields.dbSystemId)
                 .then((system) => {
                     if (system) {

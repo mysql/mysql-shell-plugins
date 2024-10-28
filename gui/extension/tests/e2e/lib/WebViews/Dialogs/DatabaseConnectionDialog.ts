@@ -321,46 +321,63 @@ export class DatabaseConnectionDialog {
 
                 return itemToReturn;
             };
-            const advanced: interfaces.IConnAdvancedMySQL = {
-                mode: {
-                    ansi: await DialogHelper.getCheckBoxValue(await getModeItem("ANSI")),
-                    traditional: await DialogHelper.getCheckBoxValue(await getModeItem("TRADITIONAL")),
-                    allowInvalidDates: await DialogHelper.getCheckBoxValue(await getModeItem("ALLOW_INVALID_DATES")),
-                    ansiQuotes: await DialogHelper.getCheckBoxValue(await getModeItem("ANSI_QUOTES")),
-                    errorForDivisionByZero: await DialogHelper
-                        .getCheckBoxValue(await getModeItem("ERROR_FOR_DIVISION_BY_ZERO")),
-                    highNotPrecedence: await DialogHelper.getCheckBoxValue(await getModeItem("HIGH_NOT_PRECEDENCE")),
-                    ignoreSpace: await DialogHelper.getCheckBoxValue(await getModeItem("IGNORE_SPACE")),
-                    noAutoValueOnZero: await DialogHelper.getCheckBoxValue(await getModeItem("NO_AUTO_VALUE_ON_ZERO")),
-                    noUnsignedSubtraction: await DialogHelper
-                        .getCheckBoxValue(await getModeItem("NO_UNSIGNED_SUBTRACTION")),
-                    noZeroDate: await DialogHelper.getCheckBoxValue(await getModeItem("NO_ZERO_DATE")),
-                    noZeroInDate: await DialogHelper.getCheckBoxValue(await getModeItem("NO_ZERO_IN_DATE")),
-                    onlyFullGroupBy: await DialogHelper.getCheckBoxValue(await getModeItem("ONLY_FULL_GROUP_BY")),
-                    padCharToFullLength: await DialogHelper
-                        .getCheckBoxValue(await getModeItem("PAD_CHAR_TO_FULL_LENGTH")),
-                    pipesAsConcat: await DialogHelper.getCheckBoxValue(await getModeItem("PIPES_AS_CONCAT")),
-                    realAsFloat: await DialogHelper.getCheckBoxValue(await getModeItem("REAL_AS_FLOAT")),
-                    strictAllTables: await DialogHelper.getCheckBoxValue(await getModeItem("STRICT_ALL_TABLES")),
-                    strictTransTables: await DialogHelper.getCheckBoxValue(await getModeItem("STRICT_TRANS_TABLES")),
-                    timeTruncateFractional: await DialogHelper
-                        .getCheckBoxValue(await getModeItem("TIME_TRUNCATE_FRACTIONAL")),
-                },
-                timeout: await DialogHelper.getFieldValue(dialog,
-                    locator.dbConnectionDialog.mysql.advanced.connectionTimeout),
-                compression: await dialog
-                    .findElement(locator.dbConnectionDialog.mysql.advanced.compression)
-                    .findElement(locator.htmlTag.label)
-                    .then((el) => {
-                        return el.getText();
-                    })
-                    .catch(() => {
-                        return undefined;
-                    }),
-                compressionLevel: await DialogHelper.getFieldValue(dialog,
-                    locator.dbConnectionDialog.mysql.advanced.compressionLevel),
-                disableHeatWave: await DialogHelper.getCheckBoxValue("disableHeatwaveCheck"),
-            };
+            let advanced: interfaces.IConnAdvancedMySQL;
+            await driver.wait(async () => {
+                try {
+                    advanced = {
+                        mode: {
+                            ansi: await DialogHelper.getCheckBoxValue(await getModeItem("ANSI")),
+                            traditional: await DialogHelper.getCheckBoxValue(await getModeItem("TRADITIONAL")),
+                            allowInvalidDates: await DialogHelper
+                                .getCheckBoxValue(await getModeItem("ALLOW_INVALID_DATES")),
+                            ansiQuotes: await DialogHelper.getCheckBoxValue(await getModeItem("ANSI_QUOTES")),
+                            errorForDivisionByZero: await DialogHelper
+                                .getCheckBoxValue(await getModeItem("ERROR_FOR_DIVISION_BY_ZERO")),
+                            highNotPrecedence: await DialogHelper
+                                .getCheckBoxValue(await getModeItem("HIGH_NOT_PRECEDENCE")),
+                            ignoreSpace: await DialogHelper.getCheckBoxValue(await getModeItem("IGNORE_SPACE")),
+                            noAutoValueOnZero: await DialogHelper
+                                .getCheckBoxValue(await getModeItem("NO_AUTO_VALUE_ON_ZERO")),
+                            noUnsignedSubtraction: await DialogHelper
+                                .getCheckBoxValue(await getModeItem("NO_UNSIGNED_SUBTRACTION")),
+                            noZeroDate: await DialogHelper.getCheckBoxValue(await getModeItem("NO_ZERO_DATE")),
+                            noZeroInDate: await DialogHelper.getCheckBoxValue(await getModeItem("NO_ZERO_IN_DATE")),
+                            onlyFullGroupBy: await DialogHelper
+                                .getCheckBoxValue(await getModeItem("ONLY_FULL_GROUP_BY")),
+                            padCharToFullLength: await DialogHelper
+                                .getCheckBoxValue(await getModeItem("PAD_CHAR_TO_FULL_LENGTH")),
+                            pipesAsConcat: await DialogHelper.getCheckBoxValue(await getModeItem("PIPES_AS_CONCAT")),
+                            realAsFloat: await DialogHelper.getCheckBoxValue(await getModeItem("REAL_AS_FLOAT")),
+                            strictAllTables: await DialogHelper
+                                .getCheckBoxValue(await getModeItem("STRICT_ALL_TABLES")),
+                            strictTransTables: await DialogHelper
+                                .getCheckBoxValue(await getModeItem("STRICT_TRANS_TABLES")),
+                            timeTruncateFractional: await DialogHelper
+                                .getCheckBoxValue(await getModeItem("TIME_TRUNCATE_FRACTIONAL")),
+                        },
+                        timeout: await DialogHelper.getFieldValue(dialog,
+                            locator.dbConnectionDialog.mysql.advanced.connectionTimeout),
+                        compression: await dialog
+                            .findElement(locator.dbConnectionDialog.mysql.advanced.compression)
+                            .findElement(locator.htmlTag.label)
+                            .then((el) => {
+                                return el.getText();
+                            })
+                            .catch(() => {
+                                return undefined;
+                            }),
+                        compressionLevel: await DialogHelper.getFieldValue(dialog,
+                            locator.dbConnectionDialog.mysql.advanced.compressionLevel),
+                        disableHeatWave: await DialogHelper.getCheckBoxValue("disableHeatwaveCheck"),
+                    };
+
+                    return true;
+                } catch (e) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
+                        throw e;
+                    }
+                }
+            }, constants.wait3seconds, "Could not set data on the advanced tabs");
             dbConnection.advanced = advanced;
             if (await DialogHelper.existsTab(constants.sshTab)) {
                 await DialogHelper.selectTab(constants.sshTab);

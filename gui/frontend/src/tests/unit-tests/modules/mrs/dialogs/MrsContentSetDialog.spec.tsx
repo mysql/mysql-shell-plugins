@@ -28,25 +28,19 @@
 import { createRef } from "preact";
 
 import { mount } from "enzyme";
+
+import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
 import { DataCallback } from "../../../../../communication/MessageScheduler.js";
 import { IShellDictionary } from "../../../../../communication/Protocol.js";
-import {
-    IMrsAddContentSetData,
-    ShellAPIMrs,
-} from "../../../../../communication/ProtocolMrs.js";
+import { IMrsAddContentSetData, ShellAPIMrs } from "../../../../../communication/ProtocolMrs.js";
 import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
 import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
 import { KeyboardKeys } from "../../../../../utilities/helpers.js";
+import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
 import {
-    DialogHelper,
-    JestReactWrapper,
-    createBackend,
-    recreateMrsData,
-    sendKeyPress,
-    setupShellForTests,
+    DialogHelper, JestReactWrapper, createBackend, recreateMrsData, sendKeyPress, setupShellForTests,
 } from "../../../test-helpers.js";
-
 
 describe("MRS Content Set dialog tests", () => {
     let host: JestReactWrapper;
@@ -57,6 +51,7 @@ describe("MRS Content Set dialog tests", () => {
     let backend: ShellInterfaceSqlEditor;
 
     beforeAll(async () => {
+        registerUiLayer(uiLayerMock);
         launcher = await setupShellForTests(false, true, "DEBUG2");
 
         await recreateMrsData();
@@ -125,7 +120,7 @@ describe("MRS Content Set dialog tests", () => {
         backend.mrs.addContentSet = (contentDir: string, requestPath: string,
             requiresAuth: boolean, options: IShellDictionary | null,
             serviceId?: string, comments?: string,
-            enabled?: boolean, replaceExisting?: boolean,
+            enabled?: number, replaceExisting?: boolean,
             ignoreList?: string,
             callback?: DataCallback<ShellAPIMrs.MrsAddContentSet>): Promise<IMrsAddContentSetData> => {
             expect(requestPath).toBe("/someRequestPath");

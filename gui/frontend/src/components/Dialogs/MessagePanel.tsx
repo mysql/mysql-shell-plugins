@@ -31,7 +31,7 @@ import { requisitions } from "../../supplement/Requisitions.js";
 import { Semaphore } from "../../supplement/Semaphore.js";
 import { Button } from "../ui/Button/Button.js";
 import { Codicon } from "../ui/Codicon.js";
-import { ComponentBase, IComponentState } from "../ui/Component/ComponentBase.js";
+import { ComponentBase, type IComponentState } from "../ui/Component/ComponentBase.js";
 import { Container, Orientation } from "../ui/Container/Container.js";
 import { Dialog } from "../ui/Dialog/Dialog.js";
 import { Icon } from "../ui/Icon/Icon.js";

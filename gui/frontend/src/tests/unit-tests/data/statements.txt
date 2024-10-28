@@ -360,7 +360,6 @@ SHOW CREATE VIEW viewey$$
 SELECT statementt0_ . type_id as type1_3_ , statementt0_ . type_name AS type2_3_ , statementt0_ . namespace_id AS namespace3_3_ , statementt0_ . insert_count AS insert4_3_ FROM inventory_types statementt0_ , inventory_namespaces hibnamespa1_ WHERE ( SELECT CONCAT( inv_ns . namespace , ? , `t` . type_name ) FROM inventory_namespaces inv_ns JOIN inventory_types `t` ON ( inv_ns . namespace_id = `t` . namespace_id ) WHERE `t` . type_id = statementt0_ . type_id ) = ? AND statementt0_ . namespace_id = hibnamespa1_ . namespace_id AND hibnamespa1_ . namespace = ? AND statementt0_ . type_name = ?$$
 select statementt0_.type_id as type1_3_, statementt0_.type_name as type2_3_, statementt0_.namespace_id as namespace3_3_, statementt0_.insert_count as insert4_3_ from inventory_types statementt0_, inventory_namespaces hibnamespa1_ where (select concat(inv_ns.namespace, '.', t.type_name) from inventory_namespaces inv_ns join inventory_types t on (inv_ns.namespace_id=t.namespace_id) where t.type_id=statementt0_.type_id) ='mysql.Statement' and statementt0_.namespace_id=hibnamespa1_.namespace_id and hibnamespa1_.namespace='mysql' and statementt0_.type_name='Statement'$$
 SELECT 1 FROM dual where 1 = 2$$
-[<80017]select * from (select 1 from dual) = one$$
 DELETE FROM TABLE1 LIMIT 1$$
 SELECT * FROM a_a_ AS b_b_, a_a_ AS c_c_ limit 5$$
 SELECT  hibinvento0_.instance_id as instance1_5_2_, hibinvento0_.instance_name as instance2_5_2_, hibinvento0_.type_id as type3_5_2_, hibinvento0_.parent_id as parent4_5_2_, hibinvento0_.insert_count as insert5_5_2_, hibtype1_.type_id as type1_3_0_, hibtype1_.type_name as type2_3_0_, hibtype1_.namespace_id as namespace3_3_0_, hibtype1_.insert_count as insert4_3_0_, hibnamespa2_.namespace_id as namespace1_2_1_, hibnamespa2_.namespace as namespace2_1_  from inventory_instances hibinvento0_ inner join inventory_types hibtype1_ on hibinvento0_.type_id=hibtype1_.type_id left outer join inventory_namespaces hibnamespa2_ on hibtype1_.namespace_id=hibnamespa2_.namespace_id where hibinvento0_.instance_id=1835721$$
@@ -1147,12 +1146,6 @@ SELECT UCASE('Hej')$$
 SELECT @s, HEX(@s), HEX(WEIGHT_STRING(@s));$$
 SELECT HEX(WEIGHT_STRING('ab' AS BINARY(4)))$$
 SELECT HEX(WEIGHT_STRING('ab' AS CHAR(4)))$$
-[<80000]SELECT HEX(WEIGHT_STRING(0x007fff LEVEL 1))$$
-[<80000]SELECT HEX(WEIGHT_STRING(0x007fff LEVEL 1 DESC))$$
-[<80000]SELECT HEX(WEIGHT_STRING(0x007fff LEVEL 1 REVERSE))$$
-[<80000]SELECT HEX(WEIGHT_STRING(0x007fff LEVEL 1 DESC REVERSE))$$
-[<80000]SELECT HEX(WEIGHT_STRING('ab' AS CHAR(4) LEVEL 1-3))$$
-[<80000]SELECT HEX(WEIGHT_STRING('ab' AS CHAR(4) LEVEL 1, 2, 3, 4))$$
 SELECT 'Monty!' REGEXP '.*'$$
 SELECT 'new*\n*line' REGEXP 'new\\*.\\*line'$$
 SELECT 'a' REGEXP 'A', 'a' REGEXP BINARY 'A'$$
@@ -2116,20 +2109,15 @@ KEY `idx5656` (`col374`,`col1029`(107),`col306`,`col349`,`col239`(209),`col416`,
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 MIN_ROWS=178017 MAX_ROWS=1000251 PACK_KEYS=0 DELAY_KEY_WRITE=1 ROW_FORMAT=COMPACT$$
 
 alter database db default collate = 'utf8'$$
-[<80000]alter database db upgrade data directory name$$
 alter logfile group grp add undofile 'blah' initial_size 12345 wait engine = InnoDB$$
 alter function func1 comment 'blah' language sql contains sql reads sql data no sql modifies sql data sql security invoker contains sql$$
 alter procedure proc1 comment 'blah' language sql contains sql reads sql data no sql modifies sql data sql security invoker contains sql$$
 alter server server1 options (host 'host', database 'database', user 'user', password 'pw', socket 'socket', owner 'owner', port 1234, user 'user')$$
-[<50700]alter ignore table table1 discard tablespace$$
 alter table table1 import tablespace$$
 alter table table1 change column column1 column2 bit (5) column_format dynamic storage memory not null default now() key remove partitioning$$
 
 alter tablespace space1 add datafile '/path/to/data' initial_size = 123 wait engine innodb$$
 alter tablespace space2 drop datafile '/path/to/data' engine innodb$$
-[<80000]alter tablespace space1 change datafile '/path/to/data' initial_size = 123$$
-[<80000]alter tablespace test not accessible$$
-[<80000]alter tablespace test read_write$$
 
 alter definer = current_user () event event1 on schedule every a.b * 5 >> 1 week starts (select 1) + interval (15.2, 2) on completion preserve enable comment 'blah' do select @a := 1$$
 alter algorithm = merge definer = 'abc'@`def` sql security invoker view view1 (a, b) as select (select a from b) as subselect with cascaded check option$$
@@ -2137,7 +2125,6 @@ alter algorithm = merge definer = 'abc'@`def` sql security invoker view view1 (a
 create temporary table if not exists app_userprofile ( id INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY , user_id INTEGER NOT NULL UNIQUE , pref_brew_type VARCHAR( 1 ) NOT NULL , pref_make_starter bool NOT NULL , pref_secondary_ferm bool NOT NULL , pref_dispensing_style VARCHAR( 1 ) NOT NULL , timezone VARCHAR( 1 ) NOT NULL ) $$
 create table actor_copy (like sakial.actor)$$
 create fulltext index index1 on sakila.actor(id(123)ASC,actor_id desc) with parser gulp key_block_size = 15$$
-[<80011]create database if not exists sakila char set = default$$
 create database if not exists sakila char set = binary$$
 CREATE EVENT myevent ON SCHEDULE EVERY 6 HOUR COMMENT 'A sample comment.' DO UPDATE myschema.mytable SET mycol = mycol + 1$$
 CREATE ALGORITHM = UNDEFINED DEFINER = `root`@`localhost` SQL SECURITY DEFINER VIEW `film_list` AS
@@ -2185,7 +2172,6 @@ call sakila.rewards_report ((select * from actor where actor_id = 1), 22, @a)$$
 
 delete low_priority quick ignore from sakila.actor where actor_id = 1 order by actor_id limit 22$$
 delete from sakila.city.*, payment.*, staff using { OJ (select * from actor a) as oneone inner join sakila.store as s on s.store_id = a.actor_id } where payment.payment_id = 1$$
-[<80017]delete sakila.city.*, payment.*, staff from { one (select * from actor a) as oneone inner join sakila.store as s on s.store_id = a.actor_id } where payment.payment_id = 1$$
 
 do (select 1 from city), @a := 1,  111 >> 222 and 333$$
 
@@ -2221,14 +2207,10 @@ xa commit '1'$$
 xa recover$$
 
 purge binary logs to 'blah'$$
-[<80024]purge master logs before (select * from customer)$$
-[<80024]change master to master_bind = 'blah', relay_log_pos = 1, ignore_server_ids = (1, 2, 3, 4)$$
-[<80024]start slave relay_thread, sql_thread, sql_thread until master_log_pos = 42 user = 'mike'$$
-[<80024]stop slave relay_thread, sql_thread$$
-[>=80024]purge replication source logs before (select * from customer)$$
-[>=80024]change replication source to source_bind = 'blah', relay_log_pos = 1, ignore_server_ids = (1, 2, 3, 4)$$
-[>=80024]start replica relay_thread, sql_thread, sql_thread until source_log_pos = 42 user = 'mike'$$
-[>=80024]stop replica relay_thread, sql_thread$$
+purge binary logs before (select * from customer)$$
+change replication source to source_bind = 'blah', relay_log_pos = 1, ignore_server_ids = (1, 2, 3, 4)$$
+start replica relay_thread, sql_thread, sql_thread until source_log_pos = 42 user = 'mike'$$
+stop replica relay_thread, sql_thread$$
 
 prepare s1 from 'select * from customer'$$
 prepare s2 from @select_var$$
@@ -2236,12 +2218,10 @@ execute s1 using @'blah', @blah$$
 deallocate prepare s1$$
 
 drop user current_user(), 'mike'@localhost$$
-[<80011]grant insert (a, b, c), references (d, e, f) on function *.* to mike@'localhost', friends@`anyhost` require CIPHER '12345' ISSUER 'me' with max_queries_per_hour 10000 grant option$$
 grant insert (a, b, c), references (d, e, f) on function *.* to mike@'localhost', friends@`anyhost`$$
 rename user mike to ekim, ekim to mike, me to myself$$
 revoke all privileges, grant option from mike$$
 revoke insert (a, b, c), references (d, e, f) on sakily.* from mike, alex, alfredo, rene, sergio, carlos$$
-[<80014]set password for mike := password('blah')$$
 set password for mike := 'blah'$$
 
 analyze no_write_to_binlog table sakila.city, customer, film$$
@@ -2260,19 +2240,15 @@ show collation like 'blah'$$
 show full columns from customer in sakila where customer_id in (1, 2, 3)$$
 
 binlog 'blah'$$
-[<80000]flush local des_key_file, hosts, binary logs$$
 flush local hosts, binary logs$$
 cache index actor partition (all) index (idx_actor_last_name, primary, primary) in sakila$$
 cache index actor index (idx_actor_last_name, primary, primary), category key (primary) in default$$
 kill query 1$$
 load index into cache inventory$$
-[<80000]reset master, query cache, slave$$
-[<80024]reset master, slave$$
-[>=80024]reset replication source, replica$$
+reset binary logs and gtids to 1000, replica for channel 'abc'$$
 
 describe sakila.inventory store_id$$
-[<80000]explain extended replace staff (staff_id, address_id, active) (select staff_id, address_id, active from staff where staff_id < 5) union (select staff_id, address_id, active from staff where staff_id > 10)$$
-[>=80000]explain replace staff (staff_id, address_id, active) (select staff_id, address_id, active from staff where staff_id < 5) union (select staff_id, address_id, active from staff where staff_id > 10)$$
+explain replace staff (staff_id, address_id, active) (select staff_id, address_id, active from staff where staff_id < 5) union (select staff_id, address_id, active from staff where staff_id > 10)$$
 help 'me'$$
 use less$$
 
@@ -2810,7 +2786,6 @@ BEGIN
 
 END$$
 xa recover /*!50704 convert xid */$$
-[<50708]select /*!50704 max_statement_time = 1*/ *, x.a, b, xxx.c from x xxx$$
 CREATE DEFINER=`forex`@`%` PROCEDURE `set_next_minute`()
 BEGIN
     SET @next_minute = (
@@ -2862,14 +2837,13 @@ BEGIN
 RETURN (SELECT ROUND(AVG(Percentage)) as consolidatedAvg FROM AvgTemp);
 END$$
 select NOT NOT TRUE, NOT NOT NOT FALSE;$$
-[<80000]create user mike identified by password 'a'$$
 create user mike identified by 'a'$$
-[>=80011]select employee, monthname(date), sale, sum(sale) over (partition by month(date)) as sum from sales$$
-[>=80014]alter table table1 alter column `𐎅𐎧𐎨` set default (22 + 1 -2 / 3)$$
-[>=80014]alter table table1 convert to character set default collate utf8$$
-[>=80014]create tablespace space1 initial_size 123, autoextend_size = 456 max_size 789 extent_size=1005678G, nodegroup = 1000200030004000 storage engine innodb wait wait, no_wait, file_block_size 100 encryption 'got it'$$
-[>=80014]alter tablespace space1 initial_size 123, autoextend_size = 456 max_size =1005678G, storage engine innodb wait wait, no_wait, encryption 'got it'$$
-[>=80013]CREATE TABLE def_expr (
+select employee, monthname(date), sale, sum(sale) over (partition by month(date)) as sum from sales$$
+alter table table1 alter column `𐎅𐎧𐎨` set default (22 + 1 -2 / 3)$$
+alter table table1 convert to character set default collate utf8$$
+create tablespace space1 initial_size 123, autoextend_size = 456 max_size 789 extent_size=1005678G, nodegroup = 1000200030004000 storage engine innodb wait wait, no_wait, file_block_size 100 encryption 'got it'$$
+alter tablespace space1 initial_size 123, autoextend_size = 456 max_size =1005678G, storage engine innodb wait wait, no_wait, encryption 'got it'$$
+CREATE TABLE def_expr (
   id        INT        NOT NULL AUTO_INCREMENT,
   uuid_def  BINARY(16) DEFAULT (uuid_to_bin(uuid())),
   geo_def   POINT      DEFAULT (Point(0,0)),
@@ -2879,7 +2853,7 @@ create user mike identified by 'a'$$
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE
 )$$
-[>=80013]CREATE TABLE func_index (
+CREATE TABLE func_index (
   id        INT        NOT NULL AUTO_INCREMENT,
   ipaddr4   INT UNSIGNED /* 4 bytes */,
 
@@ -2897,7 +2871,7 @@ create user mike identified by 'a'$$
 [>=80031]revoke proxy on mike from current_user() ignore unknown user$$
 [>=80031]analyze table a, b, c update histogram on x using data 'xyz' $$
 [>=80031]select 1 except select 2 $$
-[>=80100]show parse tree drop logfile group Test WAIT, WAIT, storage engine = InnoDB $$
+[>=80100]show parse_tree drop logfile group Test WAIT, WAIT, storage engine = InnoDB $$
 [>=80200]load xml concurrent from S3 'blah' count 10 in primary key order into table dummy ignore 10 lines parallel=10 memory =100 algorithm = bulk $$
 [>=80200]select * qualify 1 + 1 $$
 [>=80200]analyze table a, b, c update histogram on x with 10 buckets manual update $$

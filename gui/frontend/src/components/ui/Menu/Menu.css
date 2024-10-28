@@ -96,7 +96,7 @@
     color: var(--menu-foreground);
 }
 
-.msg.popup.menu .menuItem:hover .icon {
+.msg.popup.menu .menuItem:hover .icon:not(.codicon) {
     background-color: var(--menu-foreground);
 }
 

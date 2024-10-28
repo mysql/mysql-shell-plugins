@@ -23,11 +23,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import path from "path";
+import * as path from "path";
 
 import {
-    window, TextEditorDecorationType, Uri, TextDocumentShowOptions, ExtensionContext, TextEditor, ViewColumn,
-    DecorationRangeBehavior, OverviewRulerLane, workspace, TextDocument, TextDocumentChangeEvent, Range,
+    DecorationRangeBehavior, ExtensionContext, OverviewRulerLane, Range, TextDocument, TextDocumentChangeEvent,
+    TextDocumentShowOptions, TextEditor, TextEditorDecorationType, Uri, ViewColumn, window, workspace,
 } from "vscode";
 
 import { CharStream, CommonTokenStream } from "antlr4ng";
@@ -35,9 +35,9 @@ import { CharStream, CommonTokenStream } from "antlr4ng";
 import { PythonLexer } from "../../frontend/src/parsing/python/generated/PythonLexer.js";
 
 import {
-    ICodeBlockExecutionOptions,
-    IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
-} from "../../frontend/src/supplement/Requisitions.js";
+    ICodeBlockExecutionOptions, IRequestListEntry, IRequestTypeMap, IWebviewProvider,
+} from "../../frontend/src/supplement/RequisitionTypes.js";
+import { requisitions } from "../../frontend/src/supplement/Requisitions.js";
 import { printChannelOutput } from "./extension.js";
 
 /** A record of white spaces in a code block, which must be re-applied when replacing the original block. */

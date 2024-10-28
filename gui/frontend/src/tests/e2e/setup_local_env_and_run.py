@@ -109,7 +109,7 @@ class SetEnvironmentVariablesTask:
         self.environment["DBHOSTNAME"] = "localhost"
         self.environment["DBUSERNAME"] = argv.db_root_user
         self.environment["DBPASSWORD"] = DB_ROOT_PASSWORD
-        self.environment["DBPORT"] = argv.db_port
+        self.environment["MYSQL_PORT"] = argv.db_port
         self.environment["DBPORTX"] = argv.db_port + "0"
         self.environment["DBUSERNAMESHELL"] = "clientqa"
         self.environment["DBPASSWORDSHELL"] = "dummy"
@@ -252,6 +252,14 @@ def main() -> None:
             raise "Please define environment variable 'HWUSERNAME'"
         if (os.environ["HWPASSWORD"]) is None:
             raise "Please define environment variable 'HWPASSWORD'"
+        if (os.environ["MYSQLSH_OCI_CONFIG_FILE"]) is None:
+            raise "Please define environment variable 'MYSQLSH_OCI_CONFIG_FILE'"
+        if (os.environ["OCI_BASTION_HOSTNAME"]) is None:
+            raise "Please define environment variable 'OCI_BASTION_HOSTNAME'"
+        if (os.environ["OCI_BASTION_USERNAME"]) is None:
+            raise "Please define environment variable 'OCI_BASTION_USERNAME'"
+        if (os.environ["OCI_BASTION_PASSWORD"]) is None:
+            raise "Please define environment variable 'OCI_BASTION_PASSWORD'"
 
         executor.add_prerequisite(task_utils.CheckVersionTask("MySQL Shell"))
         executor.add_prerequisite(task_utils.CheckVersionTask("MySQL Server"))

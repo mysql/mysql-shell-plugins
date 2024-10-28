@@ -24,41 +24,27 @@
  */
 
 /* eslint-disable dot-notation */
+// cSpell: disable
 
 import { createRef } from "preact";
 
 import { mount } from "enzyme";
 import { CellComponent, RowComponent } from "tabulator-tables";
 import {
-    IMrsDbObjectData,
-    IMrsDbObjectParameterData,
-    IMrsObject,
-    IMrsObjectFieldWithReference,
-    IMrsObjectReference,
+    IMrsDbObjectData, IMrsDbObjectParameterData, IMrsObject, IMrsObjectFieldWithReference, IMrsObjectReference,
     IMrsTableColumnWithReference,
 } from "../../../../../communication/ProtocolMrs.js";
 import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
 import {
-    IMrsObjectFieldEditorData,
-    IMrsObjectFieldTreeItem,
-    MrsObjectFieldEditor,
-    MrsObjectFieldTreeEntryType,
+    IMrsObjectFieldEditorData, IMrsObjectFieldTreeItem, MrsObjectFieldEditor, MrsObjectFieldTreeEntryType,
 } from "../../../../../modules/mrs/dialogs/MrsObjectFieldEditor.js";
-import {
-    MrsDbObjectType,
-    MrsObjectKind,
-    MrsSdkLanguage,
-} from "../../../../../modules/mrs/types.js";
+import { MrsDbObjectType, MrsObjectKind, MrsSdkLanguage } from "../../../../../modules/mrs/types.js";
 import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
-import { MockCellComponent } from "../../../__mocks__/CellComponentMock.js";
+import { CellComponentMock } from "../../../__mocks__/CellComponentMock.js";
 import { RowComponentMock } from "../../../__mocks__/RowComponentMock.js";
 import {
-    JestReactWrapper,
-    createBackend,
-    nextRunLoop,
-    recreateMrsData,
-    setupShellForTests,
+    JestReactWrapper, createBackend, nextRunLoop, recreateMrsData, setupShellForTests,
 } from "../../../test-helpers.js";
 
 
@@ -894,7 +880,7 @@ describe("MRS Object field editor tests", () => {
         const fieldEditor = mountResult.fieldEditor; //MrsObjectFieldEditor = fieldEditorMount.instance();
         let host: string | HTMLElement;
 
-        host = fieldEditor["treeGridJsonColumnFormatter"](new MockCellComponent() as CellComponent);
+        host = fieldEditor["treeGridJsonColumnFormatter"](new CellComponentMock() as CellComponent);
 
         expect(host).toBeInstanceOf(HTMLElement);
         // TODO: make more tests in host
@@ -902,30 +888,30 @@ describe("MRS Object field editor tests", () => {
         const cellData = createCellData();
         cellData.type = MrsObjectFieldTreeEntryType.DeletedField;
 
-        host = fieldEditor["treeGridJsonColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
+        host = fieldEditor["treeGridJsonColumnFormatter"](new CellComponentMock(cellData) as CellComponent);
 
         expect(host).toBeInstanceOf(HTMLElement);
         // TODO: make more tests in host
 
         cellData.type = MrsObjectFieldTreeEntryType.FieldListClose;
 
-        host = fieldEditor["treeGridJsonColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
+        host = fieldEditor["treeGridJsonColumnFormatter"](new CellComponentMock(cellData) as CellComponent);
 
         expect(host).toBeInstanceOf(HTMLElement);
         // TODO: make more tests in host
 
         cellData.type = MrsObjectFieldTreeEntryType.FieldListOpen;
 
-        host = fieldEditor["treeGridJsonColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
+        host = fieldEditor["treeGridJsonColumnFormatter"](new CellComponentMock(cellData) as CellComponent);
 
         expect(host).toBeInstanceOf(HTMLElement);
         // TODO: make more tests in host
 
         cellData.type = MrsObjectFieldTreeEntryType.LoadPlaceholder;
 
-        host = fieldEditor["treeGridJsonColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
+        host = fieldEditor["treeGridJsonColumnFormatter"](new CellComponentMock(cellData) as CellComponent);
 
-        const cell = new MockCellComponent(cellData);
+        const cell = new CellComponentMock(cellData);
         cell.parent = new RowComponentMock(createRowData());
         cell.parent.prevRow = new RowComponentMock(createRowData());
 
@@ -1010,63 +996,63 @@ describe("MRS Object field editor tests", () => {
         const fieldEditor: MrsObjectFieldEditor = mountResult.fieldEditor;
 
         const cellData = createCellData();
-        const mockCellComponent = new MockCellComponent(cellData);
-        mockCellComponent.data = createTreeItemData();
-        mockCellComponent.row.prevRow = new RowComponentMock();
+        const mockInstance = new CellComponentMock(cellData);
+        mockInstance.data = createTreeItemData();
+        mockInstance.row.prevRow = new RowComponentMock();
 
 
-        fieldEditor["treeGridRelationalColumnFormatter"](mockCellComponent as CellComponent);
+        fieldEditor["treeGridRelationalColumnFormatter"](mockInstance as CellComponent);
 
         // eslint-disable-next-line no-lone-blocks
         {
             cellData.type = MrsObjectFieldTreeEntryType.DeletedField;
 
-            fieldEditor["treeGridRelationalColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
+            fieldEditor["treeGridRelationalColumnFormatter"](new CellComponentMock(cellData) as CellComponent);
 
             cellData.field.objectReference!.referenceMapping.kind = "n:1";
 
-            fieldEditor["treeGridRelationalColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
+            fieldEditor["treeGridRelationalColumnFormatter"](new CellComponentMock(cellData) as CellComponent);
 
             cellData.field.objectReference!.referenceMapping.kind = "1:1";
 
-            fieldEditor["treeGridRelationalColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
+            fieldEditor["treeGridRelationalColumnFormatter"](new CellComponentMock(cellData) as CellComponent);
 
             const objectReferenceBackup = cellData.field.objectReference;
 
             cellData.field.objectReference = undefined;
 
-            fieldEditor["treeGridRelationalColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
+            fieldEditor["treeGridRelationalColumnFormatter"](new CellComponentMock(cellData) as CellComponent);
 
             cellData.field.objectReference = objectReferenceBackup;
         }
 
         cellData.type = MrsObjectFieldTreeEntryType.FieldListClose;
 
-        fieldEditor["treeGridRelationalColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
+        fieldEditor["treeGridRelationalColumnFormatter"](new CellComponentMock(cellData) as CellComponent);
 
         cellData.type = MrsObjectFieldTreeEntryType.FieldListOpen;
 
-        fieldEditor["treeGridRelationalColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
+        fieldEditor["treeGridRelationalColumnFormatter"](new CellComponentMock(cellData) as CellComponent);
 
         // eslint-disable-next-line no-lone-blocks
         {
             //  test for different dbObject types
             (mountResult.values.dbObject as IMrsDbObjectData).objectType = MrsDbObjectType.View;
 
-            fieldEditor["treeGridRelationalColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
+            fieldEditor["treeGridRelationalColumnFormatter"](new CellComponentMock(cellData) as CellComponent);
 
             (mountResult.values.dbObject as IMrsDbObjectData).objectType = MrsDbObjectType.Procedure;
 
-            fieldEditor["treeGridRelationalColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
+            fieldEditor["treeGridRelationalColumnFormatter"](new CellComponentMock(cellData) as CellComponent);
 
             (mountResult.values.dbObject as IMrsDbObjectData).objectType = MrsDbObjectType.Function;
 
-            fieldEditor["treeGridRelationalColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
+            fieldEditor["treeGridRelationalColumnFormatter"](new CellComponentMock(cellData) as CellComponent);
         }
 
         cellData.type = MrsObjectFieldTreeEntryType.LoadPlaceholder;
 
-        fieldEditor["treeGridRelationalColumnFormatter"](new MockCellComponent(cellData) as CellComponent);
+        fieldEditor["treeGridRelationalColumnFormatter"](new CellComponentMock(cellData) as CellComponent);
     });
 
     it("MrsObjectFieldEditor.editorHost tests", async () => {
@@ -1075,7 +1061,7 @@ describe("MRS Object field editor tests", () => {
 
         const cellData = createCellData();
         cellData.type = MrsObjectFieldTreeEntryType.DeletedField;
-        const cell = new MockCellComponent(cellData);
+        const cell = new CellComponentMock(cellData);
 
 
         fieldEditor["editorHost"](cell, () => { }, (): boolean => { return true; }, () => { });
@@ -1087,7 +1073,7 @@ describe("MRS Object field editor tests", () => {
 
         const cellData = createCellData();
         cellData.type = MrsObjectFieldTreeEntryType.DeletedField;
-        const cell = new MockCellComponent(cellData);
+        const cell = new CellComponentMock(cellData);
 
         const host = document.createElement("div");
 
@@ -1107,7 +1093,7 @@ describe("MRS Object field editor tests", () => {
         cellData.type = MrsObjectFieldTreeEntryType.FieldListOpen;
         cellData.field.id = "";
         cellData.field.name = "field name";
-        const cell1 = new MockCellComponent(cellData);
+        const cell1 = new CellComponentMock(cellData);
 
         const cell2Data = createCellData();
 
@@ -1131,7 +1117,7 @@ describe("MRS Object field editor tests", () => {
         {
             expect(values.currentTreeItems[0]?.field.dbColumn?.name).toBe("new_field");
             const tempValues = JSON.parse(JSON.stringify(values));
-            const tempCell = new MockCellComponent(cell2Data);
+            const tempCell = new CellComponentMock(cell2Data);
             const fieldEditorMount = mount<MrsObjectFieldEditor>(<MrsObjectFieldEditor
                 backend={backend}
                 dbObjectChange={handleDbObjectChange}
@@ -1146,7 +1132,7 @@ describe("MRS Object field editor tests", () => {
         {
             expect(values.currentTreeItems[0]?.field.dbColumn?.name).toBe("new_field");
             const tempValues = JSON.parse(JSON.stringify(values));
-            const tempCell = new MockCellComponent(cell2Data);
+            const tempCell = new CellComponentMock(cell2Data);
             const fieldEditorMount = mount<MrsObjectFieldEditor>(<MrsObjectFieldEditor
                 backend={backend}
                 dbObjectChange={handleDbObjectChange}
@@ -1163,7 +1149,7 @@ describe("MRS Object field editor tests", () => {
         {
             expect(values.currentTreeItems[0]?.field.dbColumn?.name).toBe("new_field");
             const tempValues = JSON.parse(JSON.stringify(values));
-            const tempCell = new MockCellComponent(cell2Data);
+            const tempCell = new CellComponentMock(cell2Data);
             const fieldEditorMount = mount<MrsObjectFieldEditor>(<MrsObjectFieldEditor
                 backend={backend}
                 dbObjectChange={handleDbObjectChange}
@@ -1180,7 +1166,7 @@ describe("MRS Object field editor tests", () => {
         {
             expect(values.currentTreeItems[0]?.field.dbColumn?.name).toBe("new_field");
             const tempValues = JSON.parse(JSON.stringify(values));
-            const tempCell = new MockCellComponent(cell2Data);
+            const tempCell = new CellComponentMock(cell2Data);
             const fieldEditorMount = mount<MrsObjectFieldEditor>(<MrsObjectFieldEditor
                 backend={backend}
                 dbObjectChange={handleDbObjectChange}
@@ -1197,7 +1183,7 @@ describe("MRS Object field editor tests", () => {
         {
             expect(values.currentTreeItems[0]?.field.dbColumn?.name).toBe("new_field");
             const tempValues = JSON.parse(JSON.stringify(values));
-            const tempCell = new MockCellComponent(cell2Data);
+            const tempCell = new CellComponentMock(cell2Data);
             const fieldEditorMount = mount<MrsObjectFieldEditor>(<MrsObjectFieldEditor
                 backend={backend}
                 dbObjectChange={handleDbObjectChange}
@@ -1298,7 +1284,7 @@ describe("MRS Object field editor tests", () => {
         const mountResult = await doMount();
         const fieldEditor: MrsObjectFieldEditor = mountResult.fieldEditor;
 
-        const cell = new MockCellComponent(createCellData());
+        const cell = new CellComponentMock(createCellData());
 
         fieldEditor["handleIconClick"](cell, 0, "icon1"); // ActionIconName.Crud
     });
@@ -1312,7 +1298,7 @@ describe("MRS Object field editor tests", () => {
         (mountResult.values as IMrsObjectFieldEditorData).currentTreeItems[0].field.enabled = false;
 
         fieldEditor["treeGridToggleEnableState"](new Event("treeGridToggleEnableState_Event"),
-            new MockCellComponent(cell));
+            new CellComponentMock(cell));
 
         (mountResult.values as IMrsObjectFieldEditorData).currentTreeItems[0].field.enabled = true;
         (mountResult.values as IMrsObjectFieldEditorData).currentTreeItems[0].field.objectReference = {
@@ -1320,7 +1306,7 @@ describe("MRS Object field editor tests", () => {
         } as IMrsObjectReference;
 
         fieldEditor["treeGridToggleEnableState"](new Event("treeGridToggleEnableState_Event"),
-            new MockCellComponent(cell));
+            new CellComponentMock(cell));
     });
 
     it("MrsObjectFieldEditor.handleRowExpanded tests", async () => {
@@ -1328,7 +1314,7 @@ describe("MRS Object field editor tests", () => {
         const fieldEditor: MrsObjectFieldEditor = mountResult.fieldEditor;
 
         const cell = createCellData();
-        const row: RowComponent = new MockCellComponent(cell).getRow();
+        const row: RowComponent = new CellComponentMock(cell).getRow();
 
 
         fieldEditor["handleRowExpanded"](row);
@@ -1343,7 +1329,7 @@ describe("MRS Object field editor tests", () => {
         const fieldEditor: MrsObjectFieldEditor = mountResult.fieldEditor;
 
         const cell = createCellData();
-        const row = new MockCellComponent(cell).getRow();
+        const row = new CellComponentMock(cell).getRow();
 
         fieldEditor["handleRowCollapsed"](row);
     });
@@ -1353,7 +1339,7 @@ describe("MRS Object field editor tests", () => {
         const fieldEditor: MrsObjectFieldEditor = mountResult.fieldEditor;
 
         const cell = createCellData();
-        const row = new MockCellComponent(cell).getRow();
+        const row = new CellComponentMock(cell).getRow();
 
         fieldEditor["isRowExpanded"](row);
 
@@ -1367,7 +1353,7 @@ describe("MRS Object field editor tests", () => {
         const fieldEditor: MrsObjectFieldEditor = mountResult.fieldEditor;
 
         const cell = createCellData();
-        const row = new MockCellComponent(cell).getRow();
+        const row = new CellComponentMock(cell).getRow();
 
         fieldEditor["addNewField"](row);
     });

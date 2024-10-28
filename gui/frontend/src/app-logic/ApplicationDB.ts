@@ -27,9 +27,10 @@
 
 import { DBSchema, deleteDB, IDBPDatabase, openDB } from "idb";
 
-import { requisitions, type IColumnDetails } from "../supplement/Requisitions.js";
+import { requisitions } from "../supplement/Requisitions.js";
+import { type IColumnDetails } from "../supplement/RequisitionTypes.js";
 import { uuid } from "../utilities/helpers.js";
-import { IColumnInfo, IDictionary, IStatusInfo } from "./Types.js";
+import { IColumnInfo, IDictionary, IStatusInfo } from "./general-types.js";
 
 export enum StoreType {
     Unused = "unused",

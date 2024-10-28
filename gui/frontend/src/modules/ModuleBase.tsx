@@ -25,7 +25,6 @@
 
 import { Component, ComponentChild, ComponentChildren, Ref } from "preact";
 
-import { IDictionary } from "../app-logic/Types.js";
 
 export interface IModuleInfo {
     id: string;
@@ -42,7 +41,7 @@ export interface IModuleProperties {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface IModuleState extends IDictionary { }
+export interface IModuleState { }
 
 /** The base class for registerable modules. */
 export class ModuleBase<P extends IModuleProperties = IModuleProperties,

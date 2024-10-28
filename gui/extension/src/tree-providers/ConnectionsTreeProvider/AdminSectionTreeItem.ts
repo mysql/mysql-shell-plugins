@@ -23,22 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Command } from "vscode";
+import type { ICdmAdminPageEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
+import { ConnectionBaseTreeItem } from "./ConnectionBaseTreeItem.js";
 
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-
-import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
-
-export class AdminSectionTreeItem extends ConnectionsTreeBaseItem {
+export class AdminSectionTreeItem extends ConnectionBaseTreeItem<ICdmAdminPageEntry> {
     public override contextValue = "adminSection";
-
-    public constructor(
-        name: string,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number,
-        iconName: string,
-        hasChildren: boolean,
-        command?: Command) {
-        super(name, "", backend, connectionId, iconName, hasChildren, command);
-    }
 }

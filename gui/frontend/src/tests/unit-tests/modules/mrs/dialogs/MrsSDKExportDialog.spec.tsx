@@ -41,6 +41,8 @@ import {
     sendKeyPress,
     setupShellForTests,
 } from "../../../test-helpers.js";
+import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
+import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
 
 describe("MRS SDK Export dialog tests", () => {
     let host: JestReactWrapper;
@@ -51,6 +53,7 @@ describe("MRS SDK Export dialog tests", () => {
     let backend: ShellInterfaceSqlEditor;
 
     beforeAll(async () => {
+        registerUiLayer(uiLayerMock);
         launcher = await setupShellForTests(false, true, "DEBUG2");
 
         const result = await recreateMrsData();

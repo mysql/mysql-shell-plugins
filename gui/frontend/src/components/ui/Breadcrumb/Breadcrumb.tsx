@@ -25,12 +25,12 @@
 
 import "./Breadcrumb.css";
 
-import { ComponentChild, Fragment } from "preact";
+import { ComponentChild } from "preact";
 
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
+import { Button } from "../Button/Button.js";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
 import { Container, Orientation } from "../Container/Container.js";
 import { Label } from "../Label/Label.js";
-import { Button } from "../Button/Button.js";
 
 // TODO: breadcrumb picker popup for a breadcrumb item.
 export interface IBreadcrumbProperties extends IComponentProperties {
@@ -74,10 +74,9 @@ export class Breadcrumb extends ComponentBase<IBreadcrumbProperties> {
                 const elementId = `${baseId}${index}`;
 
                 return (
-                    <Fragment
-                        key={elementId}
-                    >
+                    <>
                         <Button
+                            key={elementId}
                             id={element}
                             className={"breadcrumbItem" + (index === selected ? " selected" : "")}
                             onClick={this.handleButtonClick}
@@ -85,7 +84,7 @@ export class Breadcrumb extends ComponentBase<IBreadcrumbProperties> {
                             {element}
                         </Button>
                         {separatorItem}
-                    </Fragment>
+                    </>
                 );
             });
 

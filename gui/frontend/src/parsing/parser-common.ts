@@ -24,7 +24,7 @@
 // Common data structures/types used in all parser implementations.
 
 import { BufferedTokenStream, CommonTokenStream, Token } from "antlr4ng";
-import { IDictionary, ParameterFormatType } from "../app-logic/Types.js";
+import { IDictionary, ParameterFormatType } from "../app-logic/general-types.js";
 
 import { Stack } from "../supplement/index.js";
 

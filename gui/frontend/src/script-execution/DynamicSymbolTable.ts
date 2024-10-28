@@ -51,9 +51,8 @@ export class DynamicSymbolTable extends DBSymbolTable {
      * @returns A set of found symbols.
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    public override async getAllSymbols<T extends BaseSymbol>(
-        t: new (...args: any[]) => T, localOnly?: boolean,
-    ): Promise<T[]> {
+    public override async getAllSymbols<T extends BaseSymbol>(t: new (...args: any[]) => T,
+        localOnly?: boolean): Promise<T[]> {
         let existing = await super.getAllSymbols(t, localOnly);
         if (existing.length === 0) {
             // Not yet loaded, so do it now.

@@ -27,25 +27,27 @@ import { ComponentChild, createRef, RefObject } from "preact";
 
 import {
     DialogResponseClosure, DialogType, IDialogRequest, IDictionary, MrsDialogType,
-} from "../../app-logic/Types.js";
+} from "../../app-logic/general-types.js";
 
 import { IShellDictionary } from "../../communication/Protocol.js";
 
-import {
+import type {
     IMrsAddContentSetData, IMrsAuthAppData, IMrsContentSetData, IMrsObject, IMrsSchemaData, IMrsServiceData,
     IMrsUserData, IMrsUserRoleData,
 } from "../../communication/ProtocolMrs.js";
 import { AwaitableValueEditDialog } from "../../components/Dialogs/AwaitableValueEditDialog.js";
 import { ComponentBase } from "../../components/ui/Component/ComponentBase.js";
-import { IMrsDbObjectEditRequest, requisitions } from "../../supplement/Requisitions.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import type { IMrsDbObjectEditRequest } from "../../supplement/RequisitionTypes.js";
 
 import { DialogHost } from "../../app-logic/DialogHost.js";
+import { ui } from "../../app-logic/UILayer.js";
 import { getMySQLDbConnectionUri } from "../../communication/MySQL.js";
-import { StatusBar } from "../../components/ui/Statusbar/Statusbar.js";
 import { getRouterPortForConnection } from "../../modules/mrs/mrs-helpers.js";
 import { IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { convertErrorToString } from "../../utilities/helpers.js";
 import { convertSnakeToCamelCase } from "../../utilities/string-helpers.js";
 import { IMrsAuthenticationAppDialogData, MrsAuthenticationAppDialog } from "./dialogs/MrsAuthenticationAppDialog.js";
 import { IMrsContentSetDialogData, MrsContentSetDialog } from "./dialogs/MrsContentSetDialog.js";
@@ -255,11 +257,10 @@ export class MrsHub extends ComponentBase {
                         data.mrsAdminUserPassword, []);
                 }
 
-                void requisitions.executeRemote("refreshConnections", undefined);
                 void requisitions.execute("showInfo", "The MRS service has been created.");
             } catch (reason) {
                 const message = reason instanceof Error ? reason.message : String(reason);
-                void requisitions.execute("showError", `Error while adding MySQL REST service: ${message}`);
+                void ui.showErrorNotification(`Error while adding MySQL REST service: ${message}`);
             }
         } else {
             // Send update request.
@@ -289,12 +290,11 @@ export class MrsHub extends ComponentBase {
                     await backend.mrs.setCurrentService(service.id);
                 }
 
-                void requisitions.executeRemote("refreshConnections", undefined);
-                void requisitions.execute("showInfo", "The MRS service has been successfully updated.");
+                void ui.showInformationNotification("The MRS service has been successfully updated.");
 
             } catch (reason) {
                 const message = reason instanceof Error ? reason.message : String(reason);
-                void requisitions.execute("showError", `Error while updating MySQL REST service: ${message}`);
+                void ui.showErrorNotification(`Error while updating MySQL REST service: ${message}`);
             }
         }
 
@@ -308,11 +308,11 @@ export class MrsHub extends ComponentBase {
      * @param schemaName The name of the database schema.
      * @param schema If not assigned then a new schema must be created otherwise this contains the existing values.
      *
-     * @returns A promise resolving when the dialog was closed. Always resolves to true to indicate the request
-     *          was handled.
+     * @returns A promise resolving to the id of the REST service, being modified, when the dialog was closed.
+     *          This path is empty if the dialog was cancelled.
      */
     public showMrsSchemaDialog = async (backend: ShellInterfaceSqlEditor, schemaName?: string,
-        schema?: IMrsSchemaData): Promise<boolean> => {
+        schema?: IMrsSchemaData): Promise<string> => {
 
         try {
             const services = await backend.mrs.listServices();
@@ -339,9 +339,10 @@ export class MrsHub extends ComponentBase {
             };
 
             const result = await this.showDialog(request);
+
             // The request was not sent at all (e.g. there was already one running).
             if (result === DialogResponseClosure.Cancel) {
-                return true;
+                return "";
             }
 
             const data = result as IMrsSchemaDialogData;
@@ -361,11 +362,13 @@ export class MrsHub extends ComponentBase {
                         serviceId, dbSchemaName, enabled, requestPath, requiresAuth, options,
                         itemsPerPage, comments, metadata);
 
-                    void requisitions.executeRemote("refreshConnections", undefined);
-                    void requisitions.execute("showInfo", "The MRS schema has been added successfully.");
+                    void requisitions.executeRemote("refreshConnection", undefined);
+                    void ui.showInformationNotification("The MRS schema has been added successfully.");
+
+                    return data.serviceId;
                 } catch (reason) {
                     const message = reason instanceof Error ? reason.message : String(reason);
-                    await requisitions.execute("showError", `Error while adding MRS schema: ${message}`);
+                    void ui.showErrorNotification(`Error while adding MRS schema: ${message}`);
                 }
             } else {
                 try {
@@ -373,19 +376,34 @@ export class MrsHub extends ComponentBase {
                         requestPath, requiresAuth, enabled,
                         itemsPerPage, comments, options, metadata);
 
-                    void requisitions.executeRemote("refreshConnections", undefined);
-                    void requisitions.execute("showInfo", "The MRS schema has been updated successfully.");
+                    // Updating a schema can change the service it is associated with. Check that and update the
+                    // parent details accordingly.
+                    if (schema.serviceId !== serviceId) {
+                        const service = services.find((service) => {
+                            return service.id === serviceId;
+                        });
+
+                        if (service) {
+                            schema.serviceId = service.id;
+                            schema.hostCtx = service.hostCtx;
+                        }
+                    }
+
+                    void requisitions.executeRemote("refreshConnection", undefined);
+                    void ui.showInformationNotification("The MRS schema has been updated successfully.");
+
+                    return data.serviceId;
                 } catch (reason) {
                     const message = reason instanceof Error ? reason.message : String(reason);
-                    await requisitions.execute("showError", `Error while updating MRS schema: ${message}`);
+                    void ui.showErrorNotification(`Error while updating MRS schema: ${message}`);
                 }
             }
         } catch (reason) {
             const message = reason instanceof Error ? reason.message : String(reason);
-            await requisitions.execute("showError", `Error while listing MySQL REST services: ${message}`);
+            void ui.showErrorNotification(`Error while listing MySQL REST services: ${message}`);
         }
 
-        return true;
+        return "";
     };
 
     /**
@@ -490,6 +508,10 @@ export class MrsHub extends ComponentBase {
             return schema.requestPath === schemaPath;
         });
 
+        if (newService) {
+            dbObject.serviceId = newService.id;
+        }
+
         if (request.createObject) {
             // Create new DB Object
             try {
@@ -503,10 +525,10 @@ export class MrsHub extends ComponentBase {
                     metadata,
                     objects);
 
-                requisitions.executeRemote("refreshConnections", undefined);
+                requisitions.executeRemote("refreshConnection", undefined);
             } catch (reason) {
                 const message = reason instanceof Error ? reason.message : String(reason);
-                void requisitions.execute("showError", `The MRS Database Object ${name} could not be created: ` +
+                void ui.showErrorNotification(`The MRS Database Object ${name} could not be created: ` +
                     `${message}`);
 
                 return true;
@@ -535,17 +557,17 @@ export class MrsHub extends ComponentBase {
                         metadata: metadata === null ? undefined : metadata,
                     });
 
-                requisitions.executeRemote("refreshConnections", undefined);
+                requisitions.executeRemote("refreshConnection", undefined);
             } catch (reason) {
                 const message = reason instanceof Error ? reason.message : String(reason);
-                void requisitions.execute("showError", `The MRS Database Object ${name} could not be updated: ` +
+                void ui.showErrorNotification(`The MRS Database Object ${name} could not be updated: ` +
                     message);
 
                 return true;
             }
         }
 
-        void requisitions.execute("showInfo", `The MRS Database Object ${name} was ` +
+        void ui.showInformationNotification(`The MRS Database Object ${name} was ` +
             `${data.createObject ? "created" : "updated"} successfully.`);
 
         void requisitions.execute("refreshMrsServiceSdk", {});
@@ -660,63 +682,62 @@ export class MrsHub extends ComponentBase {
                         if (response.closure === DialogResponseClosure.Accept) {
                             requestPathValid = true;
                         } else {
-                            void requisitions.execute("showInfo", "Cancelled the upload.");
+                            void ui.showInformationNotification("Cancelled the upload.");
                         }
                     } else {
-                        void requisitions.execute(
-                            "showError", `The request path ${newRequestPath} is already used on ` +
+                        void ui.showErrorNotification(`The request path ${requestPath} is already used on ` +
                             `this service.`);
                     }
                 }
             } catch (reason) {
                 const message = reason instanceof Error ? reason.message : String(reason);
-                void requisitions.execute("showError", "Error while checking the MRS content set request path: " +
+                void ui.showErrorNotification("Error while checking the MRS content set request path: " +
                     message);
             }
 
             if (requestPathValid) {
                 if (!contentSet) {
-                    const firstItem = StatusBar.setStatusBarMessage("$(loading~spin) Starting to load static " +
-                        "content set ...");
+                    const statusBarItem = ui.createStatusBarItem();
 
                     try {
+                        statusBarItem.text = "$(loading~spin) Starting to load static content set ...";
                         let addedContentSet: IMrsAddContentSetData = {};
                         void await backend.mrs.addContentSet(data.directory, newRequestPath,
                             requiresAuth, options, serviceId, comments, enabled, true, ignoreList, (data) => {
                                 if (data.result.info) {
-                                    StatusBar.setStatusBarMessage("$(loading~spin) " + data.result.info);
+                                    ui.setStatusBarMessage("$(loading~spin) " + data.result.info);
                                 } else {
                                     addedContentSet = data.result;
                                 }
                             },
                         );
 
-                        firstItem.dispose();
+                        statusBarItem.dispose();
 
-                        void requisitions.executeRemote("refreshConnections", undefined);
+                        void requisitions.executeRemote("refreshConnection", undefined);
                         if (addedContentSet.numberOfFilesUploaded !== undefined) {
-                            void requisitions.execute("showInfo", "The MRS static content set has been added " +
+                            void ui.showInformationNotification("The MRS static content set has been added " +
                                 `successfully. ${addedContentSet.numberOfFilesUploaded} file` +
                                 `${addedContentSet.numberOfFilesUploaded > 1 ? "s" : ""} have been uploaded`);
                         }
                     } catch (reason) {
                         const message = reason instanceof Error ? reason.message : String(reason);
-                        void requisitions.execute("showError", "Error while adding MRS content set: " + message);
+                        void ui.showErrorNotification("Error while adding MRS content set: " + message);
                     } finally {
-                        firstItem.dispose();
+                        statusBarItem.dispose();
                     }
                 } else {
                     try {
                         // Todo
                     } catch (reason) {
                         const message = reason instanceof Error ? reason.message : String(reason);
-                        void requisitions.execute("showError", "Error while updating MRS content set: " + message);
+                        void ui.showErrorNotification("Error while updating MRS content set: " + message);
                     }
                 }
             }
         } catch (reason) {
             const message = reason instanceof Error ? reason.message : String(reason);
-            void requisitions.execute("showError", "Error while listing MySQL REST services: " + message);
+            void ui.showErrorNotification("Error while listing MySQL REST services: " + message);
         }
 
         return true;
@@ -810,12 +831,27 @@ export class MrsHub extends ComponentBase {
                     options,
                 });
 
-                void requisitions.executeRemote("refreshConnections", undefined);
-                void requisitions.execute("showInfo", "The MRS Authentication App has been updated.");
+                // For local use update the auth app with the returned values.
+                authApp.authVendor = authVendors.find((vendor) => {
+                    return vendor.id === authVendorId;
+                })?.name;
+                authApp.authVendorId = authVendorId;
+                authApp.name = data.name;
+                authApp.description = data.description;
+                authApp.options = options;
+                authApp.url = data.url;
+                authApp.urlDirectAuth = data.urlDirectAuth;
+                authApp.accessToken = data.accessToken;
+                authApp.appId = data.appId;
+                authApp.enabled = data.enabled;
+                authApp.limitToRegisteredUsers = data.limitToRegisteredUsers;
+                authApp.defaultRoleId = defaultRoleId;
+
+                void requisitions.executeRemote("refreshConnection", undefined);
+                void ui.showInformationNotification("The MRS Authentication App has been updated.");
             } catch (reason) {
                 const message = reason instanceof Error ? reason.message : String(reason);
-                void requisitions.execute("showError", "Error while updating MySQL REST Authentication App: " +
-                    message);
+                void ui.showErrorNotification("Error while updating MySQL REST Authentication App: " + message);
             }
         } else {
             try {
@@ -835,11 +871,11 @@ export class MrsHub extends ComponentBase {
                     }, []);
                 }
 
-                void requisitions.executeRemote("refreshConnections", undefined);
-                void requisitions.execute("showInfo", "The MRS Authentication App has been added.");
+                void requisitions.executeRemote("refreshConnection", undefined);
+                void ui.showInformationNotification("The MRS Authentication App has been added.");
             } catch (reason) {
                 const message = reason instanceof Error ? reason.message : String(reason);
-                void requisitions.execute("showError", "Error while adding MySQL REST Authentication App: " + message);
+                void ui.showErrorNotification("Error while adding MySQL REST Authentication App: " + message);
             }
         }
 
@@ -927,11 +963,21 @@ export class MrsHub extends ComponentBase {
                         authString: data.authString ?? null,
                     }, rolesToUpdate);
 
-                    void requisitions.executeRemote("refreshConnections", undefined);
-                    void requisitions.execute("showInfo", "The MRS User has been updated.");
+                    // For local use update the auth app with the returned values.
+                    user.name = data.name;
+                    user.email = data.email;
+                    user.vendorUserId = data.vendorUserId;
+                    user.loginPermitted = data.loginPermitted;
+                    user.mappedUserId = data.mappedUserId;
+                    user.appOptions = data.appOptions ? JSON.parse(data.appOptions) as IShellDictionary : undefined;
+                    user.authString = data.authString;
+
+
+                    void requisitions.executeRemote("refreshConnection", undefined);
+                    void ui.showInformationNotification(`The MRS User "${data.name}" has been updated.`);
                 } catch (reason) {
-                    const message = reason instanceof Error ? reason.message : String(reason);
-                    void requisitions.execute("showError", "Error while updating MySQL REST User: " + message);
+                    const message = convertErrorToString(reason);
+                    void ui.showErrorNotification("Error while updating MySQL REST User: " + message);
                 }
             }
         } else {
@@ -943,11 +989,11 @@ export class MrsHub extends ComponentBase {
                         data.authString!, rolesToUpdate);
                 }
 
-                void requisitions.executeRemote("refreshConnections", undefined);
-                void requisitions.execute("showInfo", "The MRS User has been added.");
+                void requisitions.executeRemote("refreshConnection", undefined);
+                void ui.showInformationNotification(`The MRS User "${data.name}" has been added.`);
             } catch (reason) {
-                const message = reason instanceof Error ? reason.message : String(reason);
-                void requisitions.execute("showError", "Error while adding MySQL REST User: " + message);
+                const message = convertErrorToString(reason);
+                void ui.showErrorNotification("Error while adding MySQL REST User: " + message);
             }
         }
 
@@ -1033,10 +1079,10 @@ export class MrsHub extends ComponentBase {
                 serviceUrl: data.serviceUrl,
                 addAppBaseClass: data.addAppBaseClass,
             });
-            void requisitions.execute("showInfo", "MRS SDK Files exported successfully.");
+            void ui.showInformationNotification("MRS SDK Files exported successfully.");
         } catch (reason) {
             const message = reason instanceof Error ? reason.message : String(reason);
-            void requisitions.execute("showError", "Error while exporting the REST Service SDK Files: " + message);
+            void ui.showErrorNotification("Error while exporting the REST Service SDK Files: " + message);
         }
 
         return true;

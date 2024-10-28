@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IRequestTypeMap } from "../Requisitions.js";
+import { IRequestTypeMap } from "../RequisitionTypes.js";
 
 // Contains descriptions for all settings used in the application.
 // Error handling is taken out of test coverage as errors can only be introduced by changing this file.
@@ -40,12 +40,17 @@ interface ISettingParameters {
 export interface ISettingValue {
     id: string;
     title: string;
-    key: string;         // The part of the access path which determines this instance.
-    description: string; // Settings without a description are not shown in the settings editor.
+
+    /** The part of the access path which determines this instance. */
+    key: string;
+
+    /** Settings without a description are not shown in the settings editor. */
+    description: string;
+
     valueType: SettingValueType;
     defaultValue: unknown;
 
-    // Set to indicate that this value should not be shown normally (only when the user wants to see it).
+    /** Set to indicate that this value should not be shown normally (only when the user wants to see it). */
     advanced: boolean;
 
     parameters: ISettingParameters;

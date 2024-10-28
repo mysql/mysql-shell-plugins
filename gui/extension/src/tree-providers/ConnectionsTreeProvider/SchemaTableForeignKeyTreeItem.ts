@@ -23,18 +23,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
+import type { ICdmForeignKeyEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
+import { ConnectionBaseTreeItem } from "./ConnectionBaseTreeItem.js";
 
-export class SchemaTableForeignKeyTreeItem extends ConnectionsTreeBaseItem {
+export class SchemaTableForeignKeyTreeItem extends ConnectionBaseTreeItem<ICdmForeignKeyEntry> {
     public override contextValue = "schemaTableForeignKeyItem";
 
-    public constructor(
-        name: string,
-        schema: string,
-        public table: string,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number) {
-        super(name, schema, backend, connectionId, "schemaTableForeignKey.svg", false);
+    public constructor(dataModelEntry: ICdmForeignKeyEntry) {
+        super(dataModelEntry, "schemaTableForeignKey.svg", false);
     }
 }

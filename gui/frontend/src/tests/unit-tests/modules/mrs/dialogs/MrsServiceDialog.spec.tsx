@@ -28,19 +28,17 @@
 import { createRef } from "preact";
 
 import { mount } from "enzyme";
+
+import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
 import { IShellDictionary } from "../../../../../communication/Protocol.js";
 import { IMrsServiceData } from "../../../../../communication/ProtocolMrs.js";
 import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
 import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
 import { KeyboardKeys, sleep } from "../../../../../utilities/helpers.js";
+import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
 import {
-    DialogHelper,
-    JestReactWrapper,
-    createBackend,
-    recreateMrsData,
-    sendKeyPress,
-    setupShellForTests,
+    DialogHelper, JestReactWrapper, createBackend, recreateMrsData, sendKeyPress, setupShellForTests,
 } from "../../../test-helpers.js";
 
 describe("MRS Service dialog tests", () => {
@@ -52,6 +50,8 @@ describe("MRS Service dialog tests", () => {
     let backend: ShellInterfaceSqlEditor;
 
     beforeAll(async () => {
+        registerUiLayer(uiLayerMock);
+
         launcher = await setupShellForTests(false, true, "DEBUG2");
 
         await recreateMrsData();

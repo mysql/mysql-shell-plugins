@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IDictionary } from "../app-logic/Types.js";
+import { IDictionary } from "../app-logic/general-types.js";
 import { convertHexToBase64 } from "./string-helpers.js";
 
 /**
@@ -145,6 +145,24 @@ export const saveTextAsFile = (text: string, fileName: string): void => {
 export const saveArrayAsFile = (content: ArrayBuffer, fileName: string): void => {
     const blob = new Blob([content], { type: "application/octet-stream" });
     saveBlobAsFile(blob, fileName);
+};
+
+/**
+ * Loads the content of the given file as text.
+ *
+ * @param file The file to load.
+ *
+ * @returns A promise that resolves to the content of the file.
+ */
+export const loadFileAsText = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = () => {
+            resolve(reader.result as string);
+        };
+        reader.readAsText(file);
+    });
 };
 
 /**
@@ -555,8 +573,22 @@ export const deepMapArray = (a: unknown[], ignoreList: string[],
     });
 };
 
+export const convertErrorToString = (error: unknown): string => {
+    if (!(error instanceof Error)) {
+        return String(error);
+    }
+
+    const e = error;
+    let result = e.message;
+    if (e.cause) {
+        result += "\n" + convertErrorToString(e.cause);
+    }
+
+    return result;
+};
+
 /* eslint-disable @typescript-eslint/naming-convention */
-/** Key names to key string. */
+/** Key names to key strings. */
 export const KeyboardKeys = {
     // Modifier keys
     Alt: "Alt",

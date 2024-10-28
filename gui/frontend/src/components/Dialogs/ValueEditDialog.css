@@ -153,6 +153,7 @@
     font-size: 0.9em;
 }
 
+
 .msg.dialog.valueEditDialog .matrixContainer #valueGrid {
     flex: 1;
     margin-right: 4px;
@@ -213,4 +214,8 @@
 
 .msg.dialog.valueEditDialog .msg.button.valueEditor {
     height: 24px;
+}
+
+.msg.dialog.valueEditDialog .icon:not(.codicon) {
+    background-color: var(--icon-foreground);
 }

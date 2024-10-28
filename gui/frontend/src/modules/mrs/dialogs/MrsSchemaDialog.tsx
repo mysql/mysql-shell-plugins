@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types.js";
+import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/general-types.js";
 import { IMrsServiceData } from "../../../communication/ProtocolMrs.js";
 import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog.js";
 import {

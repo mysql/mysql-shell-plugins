@@ -86,8 +86,8 @@ if (process.env.SHELL_UI_HOSTNAME!.includes("docker")) {
         error("No value for environment var DBPASSWORD1 (another password beyond root's password) was provided");
         exit(1);
     }
-    if (!process.env.DBPORT) {
-        error("No value for environment var DBPORT was provided");
+    if (!process.env.MYSQL_PORT) {
+        error("No value for environment var MYSQL_PORT was provided");
         exit(1);
     }
     if (!process.env.SSL_ROOT_FOLDER) {

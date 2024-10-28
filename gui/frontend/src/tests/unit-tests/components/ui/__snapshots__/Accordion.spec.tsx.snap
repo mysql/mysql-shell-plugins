@@ -119,6 +119,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
         panes={
           [
             {
+              "collapsed": true,
               "content": <AccordionSection
                 caption="FIRST SECTION"
                 dimmed={false}
@@ -140,16 +141,16 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                   id="item3"
                 />
               </AccordionSection>,
-              "expanded": false,
               "id": "first",
-              "initialSize": undefined,
-              "maxSize": 28,
-              "minSize": 28,
+              "initialSize": 22,
+              "maxSize": 22,
+              "minSize": 22,
               "resizable": false,
               "snap": true,
               "stretch": false,
             },
             {
+              "collapsed": false,
               "content": <AccordionSection
                 caption="SECOND SECTION"
                 dimmed={false}
@@ -174,16 +175,16 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                   picture="overviewPage.svg"
                 />
               </AccordionSection>,
-              "expanded": true,
               "id": "second",
               "initialSize": undefined,
               "maxSize": undefined,
-              "minSize": 28,
+              "minSize": 22,
               "resizable": false,
               "snap": true,
               "stretch": false,
             },
             {
+              "collapsed": false,
               "content": <AccordionSection
                 caption="THIRD SECTION"
                 dimmed={false}
@@ -205,11 +206,10 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                   id="item11"
                 />
               </AccordionSection>,
-              "expanded": true,
               "id": "third",
               "initialSize": undefined,
               "maxSize": undefined,
-              "minSize": 28,
+              "minSize": 22,
               "resizable": false,
               "snap": true,
               "stretch": false,
@@ -295,10 +295,12 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                 >
                   <Container
                     className="msg section"
+                    id="first"
                     innerRef={
                       {
                         "current": <div
                           class="msg container fixedScrollbar section"
+                          id="first"
                           style="flex-direction: column;"
                         >
                           <div
@@ -306,6 +308,9 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                             style="flex-direction: row; align-items: center;"
                             tabindex="0"
                           >
+                            <div
+                              class="msg icon codicon codicon-chevron-right"
+                            />
                             <label
                               class="msg label"
                               data-tooltip="expand"
@@ -369,6 +374,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                   >
                     <div
                       className="msg container fixedScrollbar section"
+                      id="first"
                       style={
                         {
                           "alignItems": undefined,
@@ -400,6 +406,14 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                           }
                           tabIndex={0}
                         >
+                          <Icon
+                            disabled={false}
+                            src={36}
+                          >
+                            <div
+                              className="msg icon codicon codicon-chevron-right"
+                            />
+                          </Icon>
                           <Label
                             caption="FIRST SECTION"
                           >
@@ -595,10 +609,12 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                 >
                   <Container
                     className="msg section expanded"
+                    id="second"
                     innerRef={
                       {
                         "current": <div
                           class="msg container fixedScrollbar section expanded"
+                          id="second"
                           style="flex-direction: column;"
                         >
                           <div
@@ -606,6 +622,9 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                             style="flex-direction: row; align-items: center;"
                             tabindex="0"
                           >
+                            <div
+                              class="msg icon codicon codicon-chevron-down"
+                            />
                             <label
                               class="msg label"
                               data-tooltip="expand"
@@ -690,6 +709,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                   >
                     <div
                       className="msg container fixedScrollbar section expanded"
+                      id="second"
                       style={
                         {
                           "alignItems": undefined,
@@ -721,6 +741,14 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                           }
                           tabIndex={0}
                         >
+                          <Icon
+                            disabled={false}
+                            src={34}
+                          >
+                            <div
+                              className="msg icon codicon codicon-chevron-down"
+                            />
+                          </Icon>
                           <Label
                             caption="SECOND SECTION"
                           >
@@ -964,10 +992,12 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                 >
                   <Container
                     className="msg section expanded"
+                    id="third"
                     innerRef={
                       {
                         "current": <div
                           class="msg container fixedScrollbar section expanded"
+                          id="third"
                           style="flex-direction: column;"
                         >
                           <div
@@ -975,6 +1005,9 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                             style="flex-direction: row; align-items: center;"
                             tabindex="0"
                           >
+                            <div
+                              class="msg icon codicon codicon-chevron-down"
+                            />
                             <label
                               class="msg label"
                               data-tooltip="expand"
@@ -1038,6 +1071,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                   >
                     <div
                       className="msg container fixedScrollbar section expanded"
+                      id="third"
                       style={
                         {
                           "alignItems": undefined,
@@ -1069,6 +1103,14 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                           }
                           tabIndex={0}
                         >
+                          <Icon
+                            disabled={false}
+                            src={34}
+                          >
+                            <div
+                              className="msg icon codicon codicon-chevron-down"
+                            />
+                          </Icon>
                           <Label
                             caption="THIRD SECTION"
                           >

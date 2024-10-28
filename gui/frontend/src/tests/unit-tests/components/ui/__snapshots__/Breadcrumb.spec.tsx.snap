@@ -33,6 +33,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
       <Button
         className="breadcrumbItem"
         id="root"
+        key="breadcrumb10"
         onClick={[Function]}
       >
         <div
@@ -66,6 +67,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
       <Button
         className="breadcrumbItem"
         id="folder"
+        key="breadcrumb11"
         onClick={[Function]}
       >
         <div
@@ -99,6 +101,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
       <Button
         className="breadcrumbItem"
         id="subfolder"
+        key="breadcrumb12"
         onClick={[Function]}
       >
         <div
@@ -187,6 +190,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
       <Button
         className="breadcrumbItem"
         id="root"
+        key="breadcrumb20"
         onClick={[Function]}
       >
         <div
@@ -220,6 +224,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
       <Button
         className="breadcrumbItem"
         id="folder"
+        key="breadcrumb21"
         onClick={[Function]}
       >
         <div
@@ -253,6 +258,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
       <Button
         className="breadcrumbItem"
         id="subfolder"
+        key="breadcrumb22"
         onClick={[Function]}
       >
         <div
@@ -286,6 +292,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
       <Button
         className="breadcrumbItem"
         id="subfolder2"
+        key="breadcrumb23"
         onClick={[Function]}
       >
         <div

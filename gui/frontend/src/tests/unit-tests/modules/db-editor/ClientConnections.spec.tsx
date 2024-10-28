@@ -27,10 +27,10 @@ import { mount } from "enzyme";
 
 import { ComponentChild } from "preact";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
-import { DBDataType, IColumnInfo } from "../../../../app-logic/Types.js";
+import { DBDataType, IColumnInfo } from "../../../../app-logic/general-types.js";
 import { ClientConnections } from "../../../../modules/db-editor/ClientConnections.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { MockCellComponent } from "../../__mocks__/CellComponentMock.js";
+import { CellComponentMock } from "../../__mocks__/CellComponentMock.js";
 import { RowComponentMock } from "../../__mocks__/RowComponentMock.js";
 import { nextRunLoop } from "../../test-helpers.js";
 
@@ -276,7 +276,7 @@ describe("Client connections module tests", (): void => {
         );
         const instance = new TestClientConnections(component.instance().props);
 
-        const result = instance.testStringFormatter(new MockCellComponent());
+        const result = instance.testStringFormatter(new CellComponentMock());
 
         expect(result).toEqual("Animal");
 

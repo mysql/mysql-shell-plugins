@@ -59,7 +59,7 @@ describe("ShellConsole tests", (): void => {
             options: {},
         };
 
-        const component = shallow(
+        const component = shallow<ShellConsole>(
             <ShellConsole
                 editorState={editorState}
             />,
@@ -82,7 +82,7 @@ describe("ShellConsole tests", (): void => {
 
         const component = mount(
             <ShellConsole
-                editorState = { editorState }
+                editorState={editorState}
             />,
         );
 

@@ -23,13 +23,24 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Condition, until, WebElement, error } from "selenium-webdriver";
-import { driver } from "../driver.js";
+import { Condition, WebElement, until, error } from "selenium-webdriver";
+import { driver } from "../../lib/driver.js";
 import * as constants from "../constants.js";
 import * as locator from "../locators.js";
 import * as interfaces from "../interfaces.js";
+import { ConfirmDialog } from "../Dialogs/ConfirmationDialog.js";
 
-export class E2ELakeHouseTables {
+export class E2ELakehouseTables {
+
+    /**
+     * Verifies if the Upload To Object Storage tab is selected
+     * @returns A promise resolving to true if the tab is selected, false otherwise
+     */
+    public isOpened = async (): Promise<boolean> => {
+        const tab = await driver.findElement(locator.lakeHouseNavigator.lakeHouseTables.tab);
+
+        return (await tab.getAttribute("class")).includes("selected");
+    };
 
     /**
      * Verifies if the Lakehouse Tables tab is selected
@@ -37,9 +48,7 @@ export class E2ELakeHouseTables {
      */
     public untilIsOpened = (): Condition<boolean> => {
         return new Condition(` for Lakehouse Tables tab to be opened`, async () => {
-            const tab = await driver.findElement(locator.lakeHouseNavigator.lakeHouseTables.tab);
-
-            return (await tab.getAttribute("class")).includes("selected");
+            return this.isOpened();
         });
     };
 
@@ -287,9 +296,8 @@ export class E2ELakeHouseTables {
         const wantedTable = await this.getLakehouseTableElement(tableLabel);
         await driver.executeScript("arguments[0].click()", wantedTable);
         await driver.findElement(locator.lakeHouseNavigator.lakeHouseTables.deleteTableBtn).click();
-        const dialog = await driver.wait(until.elementLocated(locator.confirmDialog.exists), constants.wait3seconds,
-            "Confirm dialog was not displayed");
-        await dialog.findElement(locator.confirmDialog.accept).click();
+        const dialog = await new ConfirmDialog().untilExists();
+        await dialog.accept();
         await this.refreshLakehouseTables();
         await driver.wait(this.untilLakehouseTableDoesNotExist(tableLabel), constants.wait5seconds,
             `The lake house table '${tableLabel}' was not deleted`);

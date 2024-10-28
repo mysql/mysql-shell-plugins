@@ -85,7 +85,7 @@ export class Workbench {
      */
     public static pushDialogButton = async (buttonName: string): Promise<void> => {
         const dialogBox = await driver.wait(until.elementLocated(locator.dialogBox.exists),
-            constants.wait5seconds, `Could not find dialog box`);
+            constants.wait5seconds, `Could not find the Modal dialog`);
         const dialogButtons = await dialogBox.findElements(locator.dialogBox.buttons);
         for (const button of dialogButtons) {
             if (await button.getAttribute("title") === buttonName) {
@@ -541,27 +541,40 @@ export class Workbench {
     public static untilNotificationExists = (notification: string, dismiss = true,
         expectFailure = false): Condition<boolean> => {
         return new Condition(`for notification '${notification}' to be displayed`, async () => {
-            try {
-                if (Misc.insideIframe) {
-                    await Misc.switchBackToTopFrame();
-                }
+            let exists = false;
 
+            if (Misc.insideIframe) {
+                await Misc.switchBackToTopFrame();
+            }
+
+            try {
                 const escapedText = notification.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-                const ntfs = await new extWorkbench().getNotifications();
-                for (const ntf of ntfs) {
+                const notifications = await new extWorkbench().getNotifications();
+
+                for (const notification of notifications) {
+
                     if (expectFailure === false) {
-                        if (await ntf.getType() === NotificationType.Error) {
+                        if (await notification.getType() === NotificationType.Error) {
                             throw new Error("There is a notification with error");
                         }
                     }
-                    if ((await ntf.getMessage()).match(new RegExp(escapedText)) !== null) {
-                        if (dismiss) {
-                            await Workbench.dismissNotifications();
-                        }
 
-                        return true;
-                    } else {
-                        console.warn(`Found notification: ${await ntf.getMessage()}`);
+                    const message = await notification.getMessage();
+
+                    if (message !== "") {
+                        if (message.match(new RegExp(escapedText)) !== null) {
+                            exists = true;
+
+                            if (dismiss) {
+                                await Workbench.dismissNotifications();
+                            }
+                        } else {
+                            console.warn(`Found notification: ${message}`);
+                            if (dismiss) {
+                                await notification.dismiss();
+                            }
+                        }
+                        break;
                     }
                 }
             } catch (e) {
@@ -569,6 +582,8 @@ export class Workbench {
                     throw e;
                 }
             }
+
+            return exists;
         });
     };
 
@@ -580,6 +595,7 @@ export class Workbench {
     public static untilTabIsOpened = (tabName: string | RegExp): Condition<boolean> => {
         return new Condition(`for ${tabName} to be opened`, async () => {
             const editors = await Workbench.getOpenEditorTitles();
+
             if (tabName instanceof RegExp) {
                 for (const editor of editors) {
                     if (editor.match(tabName) != null) {

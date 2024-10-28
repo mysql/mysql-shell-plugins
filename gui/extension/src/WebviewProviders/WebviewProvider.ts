@@ -27,12 +27,13 @@ import * as path from "path";
 
 import { commands, ConfigurationTarget, Uri, ViewColumn, WebviewPanel, window, workspace } from "vscode";
 
+import { RequisitionHub, requisitions } from "../../../frontend/src/supplement/Requisitions.js";
 import {
-    IRequestTypeMap, IRequisitionCallbackValues, IWebviewProvider, RequisitionHub, requisitions, SimpleCallback,
+    IRequestTypeMap, IRequisitionCallbackValues, IWebviewProvider, SimpleCallback,
     type IUpdateStatusBarItem,
-} from "../../../frontend/src/supplement/Requisitions.js";
+} from "../../../frontend/src/supplement/RequisitionTypes.js";
 
-import { IDialogResponse } from "../../../frontend/src/app-logic/Types.js";
+import { IDialogResponse } from "../../../frontend/src/app-logic/general-types.js";
 import { IEmbeddedMessage } from "../../../frontend/src/communication/index.js";
 
 import { printChannelOutput } from "../extension.js";
@@ -73,6 +74,15 @@ export class WebviewProvider implements IWebviewProvider {
             this.#notifyOnDispose = false;
             this.panel.dispose();
             this.panel = undefined;
+        }
+    }
+
+    /**
+     * Make the web view panel visible.
+     */
+    public reveal(): void {
+        if (this.panel) {
+            this.panel.reveal();
         }
     }
 
@@ -196,6 +206,7 @@ export class WebviewProvider implements IWebviewProvider {
             this.requisitions.register("showError", this.showError);
             this.requisitions.register("showInfo", this.showInfo);
             this.requisitions.register("showWarning", this.showWarning);
+            this.requisitions.register("updateMrsRoot", this.updateMrsRoot);
 
             this.requisitions.register("closeInstance",
                 this.forwardSimple.bind(this, "closeInstance") as SimpleCallback);
@@ -251,6 +262,13 @@ export class WebviewProvider implements IWebviewProvider {
         return requisitions.execute("proxyRequest", {
             provider: this,
             original: { requestType: "updateStatusBarItem", parameter: item },
+        });
+    };
+
+    private updateMrsRoot = (connectionId: string): Promise<boolean> => {
+        return requisitions.execute("proxyRequest", {
+            provider: this,
+            original: { requestType: "updateMrsRoot", parameter: connectionId },
         });
     };
 

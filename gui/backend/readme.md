@@ -1,5 +1,3 @@
-### Copyright (c) 2020, 2022, Oracle and/or its affiliates.
-
 <!--- cSpell:ignore Keychain mkdir --->
 
 # MySQL Shell GUI Backend
@@ -12,6 +10,7 @@ The backend is written as a python plugin for the MySQL Shell and hence needs to
 - A library with functionality that the frontend can use to do its work. This avoids having to make the entire shell functionality accessible from the web client (which also imposes security risks).
 
 To prepare the shell home directory, we need to have the plugin in place. To do so, execute the following commands:
+
 ```bash
 mkdir -p ~/.mysqlsh/plugins/
 ln -s `<gui plugin>/backend/gui_plugin` ~/.mysqlsh/plugins/gui_plugin
@@ -62,7 +61,7 @@ To start the tests, you need to run
  mysqlsh --py -f run_tests.py
 ```
 
-To allow the tests to wait for a debugger to be attached, the ATTACH_DEBUGGER environment variable needs to be set with 'TESTS' or 'BACKEND'. This enables to debug the tests part or the running backend used in the ser stories.
+To allow the tests to wait for a debugger to be attached, the ATTACH_DEBUGGER environment variable needs to be set with 'TESTS' or 'BACKEND'. This enables to debug the tests part or the running backend used in the user stories.
 
 ```bash
 ATTACH_DEBUGGER=BACKEND  mysqlsh --py -f run_tests.py
@@ -124,3 +123,5 @@ To debug the backend code in standalone mode, the following command should be is
 ```bash
 ATTACH_DEBUGGER=BACKEND mysqlsh --py -e "import gui_plugin.debug_utils; import gui_plugin.start; gui.start.web_server(port=8000, secure={}, single_instance_token=\"<same token used in the browser URL>\")"
 ```
+
+Copyright &copy; 2020, 2024, Oracle and/or its affiliates.

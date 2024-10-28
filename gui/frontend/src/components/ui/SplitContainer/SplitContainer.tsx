@@ -453,25 +453,32 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
             if (this.stretchCount > 0) {
                 let totalPaneSize = 0;
                 this.paneData.forEach((entry: IPanePositionData): void => {
+                    let actualSize = entry.currentSize;
+
                     if (entry.startSize === -1) {
                         // No initial size was set so far.
                         // Use the given size (if there's one) or determine a default one.
-                        let size = 0;
                         if (entry.initialSize != null) {
-                            size = Math.max(Math.min(entry.initialSize, entry.maxSize ?? 1e100), entry.minSize ?? 0);
+                            actualSize = Math.max(Math.min(entry.initialSize, entry.maxSize ?? 1e100),
+                                entry.minSize ?? 0);
                         } else {
-                            size = Math.max(Math.min(200, entry.maxSize ?? 1e100), entry.minSize ?? 0);
+                            actualSize = Math.max(Math.min(200, entry.maxSize ?? 1e100), entry.minSize ?? 0);
                         }
-                        entry.startSize = size;
-                        entry.currentSize = size;
                     } else {
+                        if (entry.initialSize != null) {
+                            // The initial size can be anything, even outside of min/max range.
+                            actualSize = entry.initialSize;
+                        }
+
                         // Once applied we don't need the initial size anymore.
                         // In fact it would prevent certain automatic layout.
                         entry.initialSize = undefined;
                     }
+                    entry.startSize = actualSize;
+                    entry.currentSize = actualSize;
 
-                    totalPaneSize += entry.startSize;
-                    computedSizes.push(entry.startSize);
+                    totalPaneSize += actualSize;
+                    computedSizes.push(actualSize);
                 });
 
                 // Distribute remaining space over stretchable panes.
@@ -657,13 +664,15 @@ export class SplitContainer extends ComponentBase<ISplitContainerProperties> {
         this.paneData = [];
         this.stretchCount = 0;
         panes.forEach((pane: ISplitterPane) => {
+            const minSize = pane.minSize ?? 0;
+            const maxSize = pane.maxSize ?? 10e100;
+            const startSize = Math.max(Math.min(0, maxSize), minSize);
+
             this.paneData.push({
                 id: pane.id ?? "",
-
-                minSize: pane.minSize ?? 0,
-                maxSize: pane.maxSize ?? 10e100,
-
-                startSize: pane.collapsed ? 0 : -1,
+                minSize,
+                maxSize,
+                startSize: pane.collapsed ? startSize : -1,
                 currentSize: -1,
                 initialSize: pane.initialSize,
 

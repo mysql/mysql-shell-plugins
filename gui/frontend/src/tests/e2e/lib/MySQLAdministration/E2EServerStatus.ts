@@ -22,12 +22,16 @@
  */
 
 import * as locator from "../locators.js";
-import { driver } from "../driver.js";
+import { driver } from "../../lib/driver.js";
+import { E2EEditorSelector } from "../E2EEditorSelector.js";
 
 /**
  * This class represents the Server Status page and all its related functions
  */
 export class E2EServerStatus {
+
+    /** The editor selector*/
+    public editorSelector = new E2EEditorSelector();
 
     // MAIN SETTINGS
 

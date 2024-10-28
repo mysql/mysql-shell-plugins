@@ -25,7 +25,7 @@
 
 /* eslint-disable jsdoc/no-undefined-types */ // Temporarily disabled. Will be fixed in a separate task.
 
-import type { IAccessibilityInformation } from "../../../app-logic/Types.js";
+import type { IAccessibilityInformation } from "../../../app-logic/general-types.js";
 import type { ThemeColor } from "../../Theming/ThemeColor.js";
 
 // Much of the code in this file is copied from the vscode API, to stay as close as possible to the original API.
@@ -42,8 +42,8 @@ export enum StatusBarAlignment {
 }
 
 /**
- * A status bar item is a status bar contribution that can
- * show text and icons and run a command on click.
+ * A status bar item is a status bar contribution that can show text and icons and run a command on click.
+ * Modelled after the VS Code StatusBarItem interface
  */
 export interface IStatusBarItem extends IStatusBarItemOptions {
     /**
@@ -103,11 +103,7 @@ export interface IStatusBarItem extends IStatusBarItemOptions {
 
     /**
      *
-     * **Note**: This field is not used currently.
-     *
      * {@linkcode Command} or identifier of a command to run on click.
-     *
-     * The command must be {@link commands.getCommands known}.
      *
      * Note that if this is a {@linkcode Command} object, only the {@linkcode Command.command command}
      * and {@linkcode Command.arguments arguments} are used by the editor.
@@ -139,7 +135,7 @@ export interface IStatusBarItem extends IStatusBarItemOptions {
 
 export interface IStatusBarItemOptions {
     id?: string;
-    text: string;
+    text?: string;
     tooltip?: string;
     command?: string;
     alignment?: StatusBarAlignment;
@@ -158,22 +154,22 @@ export class StatusBarItem implements IStatusBarItem {
     public backgroundColor: ThemeColor | undefined;
     public command?: string;
     public accessibilityInformation?: IAccessibilityInformation;
-    public timeout?: number;
 
     static #nextId = 0;
 
     #visible: boolean;
     #text = "";
+    #timeout: number | undefined;
 
     public constructor(private update: UpdateFunction, options: IStatusBarItemOptions) {
         this.id = options.id ?? `statusBarItem.${StatusBarItem.#nextId++}`;
-        this.text = options.text;
+        this.text = options.text ?? "";
         this.tooltip = options.tooltip;
         this.command = options.command;
         this.alignment = options.alignment ?? StatusBarAlignment.Left;
         this.priority = options.priority;
         this.#visible = true;
-        this.timeout = options.timeout;
+        this.#timeout = options.timeout;
     }
 
     public get visible(): boolean {
@@ -186,6 +182,15 @@ export class StatusBarItem implements IStatusBarItem {
 
     public set text(value: string) {
         this.#text = value;
+        this.update();
+    }
+
+    public get timeout(): number | undefined {
+        return this.#timeout;
+    }
+
+    public set timeout(value: number) {
+        this.#timeout = value;
         this.update();
     }
 

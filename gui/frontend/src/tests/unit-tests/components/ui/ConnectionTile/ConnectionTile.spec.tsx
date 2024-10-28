@@ -45,7 +45,6 @@ describe("ConnectionTile component tests", (): void => {
         const component = mount<ConnectionTile>(
             <ConnectionTile
                 id="tile1"
-                details={details}
                 tileId={1}
                 caption={details.caption}
                 description={details.description}

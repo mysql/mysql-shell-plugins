@@ -27,17 +27,17 @@
 
 import { appParameters, requisitions } from "../supplement/Requisitions.js";
 import { webSession } from "../supplement/WebSession.js";
-import { convertObjectKeysCamelToSnakeCase, convertObjectKeysSnakeToCamelCase } from "../utilities/string-helpers.js";
 import { uuid } from "../utilities/helpers.js";
+import { convertObjectKeysCamelToSnakeCase, convertObjectKeysSnakeToCamelCase } from "../utilities/string-helpers.js";
 
-import { IProtocolParameters } from "./ProtocolParameterMapper.js";
-import { IProtocolResults } from "./ProtocolResultMapper.js";
-import { IGenericResponse, Protocol, EventType } from "./Protocol.js";
-import { multiResultAPIs, ShellAPIGui, IErrorResult, IWebSessionData } from "./ProtocolGui.js";
+import { JsonParser } from "./JsonParser.js";
+import { EventType, type IGenericResponse, type Protocol } from "./Protocol.js";
+import { ShellAPIGui, multiResultAPIs, type IErrorResult, type IWebSessionData } from "./ProtocolGui.js";
 import { ShellAPIMds } from "./ProtocolMds.js";
 import { ShellAPIMrs } from "./ProtocolMrs.js";
+import type { IProtocolParameters } from "./ProtocolParameterMapper.js";
+import type { IProtocolResults } from "./ProtocolResultMapper.js";
 import { ResponseError } from "./ResponseError.js";
-import { JsonParser } from "./JsonParser.js";
 
 export interface IConnectionOptions {
     /** The http(s) URL to connect to. */

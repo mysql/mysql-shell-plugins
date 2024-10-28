@@ -23,13 +23,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { EditorLanguage } from "../index.js";
 import { MessageScheduler } from "../../communication/MessageScheduler.js";
 import {
-    ShellAPIGui, IShellModuleDataEntry, IDBDataTreeEntry, IShellModuleDataCategoriesEntry,
+    IDBDataTreeEntry, IShellModuleDataCategoriesEntry, IShellModuleDataEntry, ShellAPIGui,
 } from "../../communication/ProtocolGui.js";
-import { EntityType, IDBEditorScriptState, IFolderEntity, IDBDataEntry } from "../../modules/db-editor/index.js";
-import { uuid } from "../../utilities/helpers.js";
+import { EditorLanguage } from "../index.js";
 
 /** These are predefined data categories that always exist. */
 enum StandardDataCategories {
@@ -421,100 +419,4 @@ export class ShellInterfaceModule {
     public scriptTypeFromLanguage(language: EditorLanguage): number | undefined {
         return this.languageToScriptCategory.get(language);
     }
-
-    /**
-     * Collects a list of script data entries.
-     *
-     * @param profileId The profile for which to load the scripts (default profile, if undefined).
-     *
-     * @returns A promise which resolves with the script details.
-     */
-    public async loadScriptsTree(profileId?: number): Promise<IDBDataEntry[]> {
-        return this.loadScriptTreeEntries(StandardDataCategories.Script, profileId);
-    }
-
-    /**
-     * Loads all entries from the "scripts" subtree.
-     *
-     * @param categoryId The ID of the module data category for the "Script" type.
-     * @param profileId The ID of the profile for which to load the tree.
-     *
-     * @returns A promise resolving to a list of script state entries, comprising the tree.
-     */
-    private async loadScriptTreeEntries(categoryId: number, profileId?: number): Promise<IDBDataEntry[]> {
-        const dataTree = await this.getProfileDataTree("scripts", profileId);
-
-        const createTree = async (parentId: number, target: IDBDataEntry[]): Promise<void> => {
-            const result = dataTree.filter((entry, index, arr) => {
-                if (entry.parentFolderId === parentId) {
-                    arr.splice(index, 1);
-
-                    return true;
-                }
-
-                return false;
-            });
-
-            for await (const entry of result) {
-                const entries = await this.loadScriptStates(entry.id, categoryId);
-                await createTree(entry.id, entries);
-
-                target.push({
-                    id: "",
-                    folderId: parentId,
-                    dbDataId: entry.id,
-                    caption: entry.caption,
-                    children: entries,
-                    type: EntityType.Folder,
-                } as IFolderEntity);
-            }
-
-        };
-
-        const result: IDBDataEntry[] = [];
-        if (dataTree.length > 0 && dataTree[0].caption === "scripts") {
-            // The first entry is the always present root folder, which we do not show in the UI.
-
-            // First load the root (non-folder) data entries.
-            const root = dataTree.shift();
-            if (root) {
-                const states = await this.loadScriptStates(root.id, categoryId);
-                result.push(...states);
-
-                // Then create the remaining tree.
-                await createTree(root.id, result);
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Constructs script state entries from script data entries.
-     *
-     * @param folderId The ID of the folder from which to load the items.
-     * @param dataCategoryId The ID of the data category, which determines the data items to load.
-     *
-     * @returns A list of state entries for all found data entries.
-     */
-    private loadScriptStates = async (folderId: number, dataCategoryId: number): Promise<IDBEditorScriptState[]> => {
-        const listData: IDBEditorScriptState[] = [];
-        const dataEntries = await this.listData(folderId, dataCategoryId);
-
-        listData.push(...dataEntries.map((entry) => {
-            // The language depends on the data category.
-            const language = this.scriptCategoryToLanguage.get(entry.dataCategoryId) ?? "mysql";
-
-            return {
-                id: uuid(),
-                folderId,
-                type: EntityType.Script,
-                caption: entry.caption,
-                language,
-                dbDataId: entry.id,
-            };
-        }));
-
-        return listData;
-    };
 }

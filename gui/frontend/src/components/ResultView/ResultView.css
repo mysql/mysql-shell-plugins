@@ -396,13 +396,13 @@
     background-color: color-mix(in srgb, var(--tab-activeBackground) 75%, var(--editorZone-background));
 }
 
-.msg.connectionTabHost .renderTarget .actionOutput .actionLabel.clickable:hover,
+.msg.dbModuleTabview .renderTarget .actionOutput .actionLabel.clickable:hover,
 .msg#shellEditorHost .renderTarget .actionOutput .actionLabel.clickable:hover {
     text-decoration: underline;
     cursor: pointer;
 }
 
-.msg.connectionTabHost .renderTarget .resultStatus > .message {
+.msg.dbModuleTabview .renderTarget .resultStatus > .message {
     padding: 0 0 0 4px;
     border: none;
     border-radius: 0;
@@ -411,7 +411,7 @@
     font-family: var(--msg-monospace-font-family);
 }
 
-.msg.connectionTabHost .renderTarget .actionOutput {
+.msg.dbModuleTabview .renderTarget .actionOutput {
     font-family: var(--msg-monospace-font-family);
 }
 

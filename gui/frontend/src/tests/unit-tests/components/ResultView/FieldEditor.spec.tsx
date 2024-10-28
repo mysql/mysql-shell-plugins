@@ -24,7 +24,7 @@
  */
 
 import { mount } from "enzyme";
-import { DBDataType, DialogResponseClosure, DialogType, IDialogRequest } from "../../../../app-logic/Types.js";
+import { DBDataType, DialogResponseClosure, DialogType, IDialogRequest } from "../../../../app-logic/general-types.js";
 import { IDialogSection, IDialogValidations, IDialogValues } from "../../../../components/Dialogs/ValueEditDialog.js";
 import { FieldEditor, IFieldEditorData } from "../../../../components/ResultView/FieldEditor.js";
 import { DialogHelper, nextProcessTick } from "../../test-helpers.js";

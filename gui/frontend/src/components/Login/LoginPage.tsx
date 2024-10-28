@@ -29,8 +29,8 @@ import chevronRight from "../../assets/images/chevron-right.svg";
 
 import { ComponentChild } from "preact";
 
-import { MessageType } from "../../app-logic/Types.js";
-import { requisitions } from "../../supplement/Requisitions.js";
+import { MessageType } from "../../app-logic/general-types.js";
+import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 import { ResponseError } from "../../communication/ResponseError.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { IComponentState, ComponentBase } from "../ui/Component/ComponentBase.js";
@@ -66,6 +66,8 @@ export class LoginPage extends ComponentBase<{}, ILoginPageState> {
     public render(): ComponentChild {
         const { userName, password, errorMessage } = this.state;
 
+        const title = appParameters.embedded ? "MySQL Shell GUI" : "MySQL Shell Workbench";
+
         return (
             <Container id="loginDialog" orientation={Orientation.TopDown}>
                 <Icon src={logo} id="loginDialogSakilaLogo" />
@@ -74,8 +76,8 @@ export class LoginPage extends ComponentBase<{}, ILoginPageState> {
                         MySQL Shell
                     </Label>
                     <Label id="headingSubLabel">
-                        Welcome to the MySQL Shell GUI.
-                        <br />Please provide your MySQL Shell GUI credentials to log into the shell interface.
+                        Welcome to the ${title}.
+                        <br />Please provide your ${title} credentials to log into the shell interface.
                     </Label>
                 </Container>
                 <Container
@@ -125,7 +127,7 @@ export class LoginPage extends ComponentBase<{}, ILoginPageState> {
                 )}
 
                 <Label id="loginDialogSubtext">
-                    If you do not have an MySQL Shell GUI account yet, please<br />
+                    If you do not have a ${title} account yet, please<br />
                     ask your administrator to have one created for you.
                 </Label>
                 <div className="copyright" />

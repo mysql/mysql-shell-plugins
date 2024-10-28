@@ -23,26 +23,27 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { TreeDataProvider, TreeItem, EventEmitter, ProviderResult, Event, window } from "vscode";
+import { Event, EventEmitter, ProviderResult, TreeDataProvider, TreeItem, window } from "vscode";
 
-import {
-    IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
-} from "../../../../frontend/src/supplement/Requisitions.js";
+import { requisitions } from "../../../../frontend/src/supplement/Requisitions.js";
+import type {
+    IRequestListEntry, IRequestTypeMap, IWebviewProvider,
+} from "../../../../frontend/src/supplement/RequisitionTypes.js";
 
 import { ICompartment } from "../../../../frontend/src/communication/index.js";
 
-import {
-    OciConfigProfileTreeItem, OciCompartmentTreeItem, OciDbSystemTreeItem, OciComputeInstanceTreeItem,
-    OciBastionTreeItem, OciLoadBalancerTreeItem,
-} from "./index.js";
-import { OciDbSystemHWTreeItem } from "./OciDbSystemHWTreeItem.js";
-import { OciDbSystemStandaloneTreeItem } from "./OciDbSystemStandaloneTreeItem.js";
-import { OciHWClusterTreeItem } from "./OciHWClusterTreeItem.js";
 import { MessageScheduler } from "../../../../frontend/src/communication/MessageScheduler.js";
 import { IMdsProfileData } from "../../../../frontend/src/communication/ProtocolMds.js";
 import {
     ShellInterfaceShellSession,
 } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceShellSession.js";
+import {
+    OciBastionTreeItem, OciCompartmentTreeItem, OciComputeInstanceTreeItem, OciConfigProfileTreeItem,
+    OciDbSystemTreeItem, OciLoadBalancerTreeItem,
+} from "./index.js";
+import { OciDbSystemHWTreeItem } from "./OciDbSystemHWTreeItem.js";
+import { OciDbSystemStandaloneTreeItem } from "./OciDbSystemStandaloneTreeItem.js";
+import { OciHWClusterTreeItem } from "./OciHWClusterTreeItem.js";
 
 // An interface for the compartment cache
 interface IConfigProfileCompartments {
@@ -124,7 +125,7 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
     }
 
     private async listConfigProfiles(): Promise<TreeItem[]> {
-        const profiles = await this.shellSession.mds.getMdsConfigProfiles();
+        const profiles = await this.shellSession.mhs.getMdsConfigProfiles();
 
         return profiles.map((profile) => {
             return new OciConfigProfileTreeItem(profile);
@@ -158,7 +159,7 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
 
         // If the compartments have not been cached yet, fetch them.
         try {
-            const compartments = await this.shellSession.mds.getMdsCompartments(profile.profile);
+            const compartments = await this.shellSession.mhs.getMdsCompartments(profile.profile);
             this.compartmentCache[profile.profile] = compartments;
             this.compartmentCache[profile.profile].forEach((subCompartment) => {
                 this.addOciCompartmentTreeItem(items, profile, subCompartment, startWithCurrent, compartmentId);
@@ -177,7 +178,7 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
         const items: OciDbSystemTreeItem[] = [];
 
         try {
-            const systems = await this.shellSession.mds.getMdsMySQLDbSystems(profile.profile, compartment.id);
+            const systems = await this.shellSession.mhs.getMdsMySQLDbSystems(profile.profile, compartment.id);
             systems.forEach((dbSystem) => {
                 if (dbSystem.isSupportedForHwCluster || dbSystem.isSupportedForAnalyticsCluster) {
                     items.push(new OciDbSystemHWTreeItem(profile, compartment, dbSystem));
@@ -199,7 +200,7 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
         const items: OciComputeInstanceTreeItem[] = [];
 
         try {
-            const instances = await this.shellSession.mds.getMdsComputeInstances(profile.profile, compartment.id);
+            const instances = await this.shellSession.mhs.getMdsComputeInstances(profile.profile, compartment.id);
             instances.forEach((compute) => {
                 items.push(new OciComputeInstanceTreeItem(profile, compartment, compute, this.shellSession));
             });
@@ -217,7 +218,7 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
         const items: OciBastionTreeItem[] = [];
 
         try {
-            const bastions = await this.shellSession.mds.getMdsBastions(profile.profile, compartment.id);
+            const bastions = await this.shellSession.mhs.getMdsBastions(profile.profile, compartment.id);
             bastions.forEach((bastion) => {
                 items.push(new OciBastionTreeItem(profile, compartment, bastion));
             });
@@ -235,7 +236,7 @@ export class OciTreeDataProvider implements TreeDataProvider<TreeItem> {
         const items: OciLoadBalancerTreeItem[] = [];
 
         try {
-            const loadBalancers = await this.shellSession.mds.listLoadBalancers(profile.profile, compartment.id);
+            const loadBalancers = await this.shellSession.mhs.listLoadBalancers(profile.profile, compartment.id);
             loadBalancers.forEach((loadBalancer) => {
                 items.push(new OciLoadBalancerTreeItem(profile, compartment, loadBalancer));
             });

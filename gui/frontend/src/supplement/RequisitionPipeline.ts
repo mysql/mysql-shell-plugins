@@ -23,7 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IRequestListEntry, IRequestTypeMap, RequisitionHub } from "./Requisitions.js";
+import { RequisitionHub } from "./Requisitions.js";
+import type { IRequestListEntry, IRequestTypeMap } from "./RequisitionTypes.js";
 
 type IPendingRequestListEntry = IRequestListEntry<keyof IRequestTypeMap> & {
     jobId: number;

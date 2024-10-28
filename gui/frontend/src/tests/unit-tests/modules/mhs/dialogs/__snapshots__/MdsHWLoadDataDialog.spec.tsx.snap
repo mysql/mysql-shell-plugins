@@ -1,0 +1,75 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MdsHWLoadDataDialog tests Test render MdsHWLoadDataDialog 1`] = `
+<MdsHWLoadDataDialog
+  onClose={[MockFunction]}
+>
+  <ValueEditDialog
+    id="mdsHWLoadDataDialog"
+    onClose={[Function]}
+    onValidate={[Function]}
+  >
+    <Dialog
+      actions={
+        {
+          "begin": [],
+          "end": [
+            <Button
+              caption="OK"
+              disabled={false}
+              id="ok"
+              onClick={[Function]}
+            />,
+            <Button
+              caption="Cancel"
+              id="cancel"
+              onClick={[Function]}
+            />,
+          ],
+        }
+      }
+      caption={
+        <g>
+          <Icon
+            disabled={false}
+            src={391}
+          />
+          <Label />
+        </g>
+      }
+      className="msg valueEditDialog"
+      container={
+        <body
+          theme="dark"
+        />
+      }
+      content={
+        <Grid
+          columnGap={16}
+          columns={8}
+          id="contentGrid"
+          rowGap={16}
+        />
+      }
+      id="mdsHWLoadDataDialog"
+      onClose={[Function]}
+    >
+      <Portal
+        container={
+          <body
+            theme="dark"
+          />
+        }
+        id="mdsHWLoadDataDialog"
+        onClose={[Function]}
+        onOpen={[Function]}
+      />
+    </Dialog>
+    <Menu
+      onItemClick={[Function]}
+      orientation="column"
+      placement="right-start"
+    />
+  </ValueEditDialog>
+</MdsHWLoadDataDialog>
+`;

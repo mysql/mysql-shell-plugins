@@ -22,7 +22,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { until, By } from "vscode-extension-tester";
+import { until, By, WebElement } from "vscode-extension-tester";
 import { driver, Misc } from "../../Misc";
 import * as constants from "../../constants";
 import * as interfaces from "../../interfaces";
@@ -35,11 +35,32 @@ import { DialogHelper } from "./DialogHelper";
 export class AuthenticationAppDialog {
 
     /**
+     * Gets a tab
+     * @param tabName The tab name
+     * @returns A promise resolving with the tab
+     */
+    public static getTab = async (tabName: string): Promise<WebElement> => {
+        const dialog = await driver.wait(until.elementLocated(locator.mrsAuthenticationAppDialog.exists),
+            constants.wait20seconds, "Authentication app dialog was not displayed");
+
+        const tabs = await dialog.findElements(locator.mrsAuthenticationAppDialog.tab);
+
+        for (const tab of tabs) {
+            if (await tab.getText() === tabName) {
+                return tab;
+            }
+        }
+
+        throw new Error(`Could not find tab ${tabName} on Authentication App Dialog`);
+    };
+
+    /**
      * Sets a Rest Authentication App using the web view dialog
      * @param authApp The authentication app
      * @returns A promise resolving when the authentication app is set and the dialog is closed
      */
-    public static set = async (authApp: interfaces.IRestAuthenticationApp): Promise<void> => {
+    public static set = async (authApp: interfaces.IRestAuthenticationApp):
+        Promise<interfaces.IRestAuthenticationApp> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
@@ -58,31 +79,6 @@ export class AuthenticationAppDialog {
         if (authApp.name) {
             await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.authAppName, authApp.name);
         }
-        if (authApp.description) {
-            await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.description,
-                authApp.description);
-        }
-        if (authApp.accessToken) {
-            await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.accessToken,
-                authApp.accessToken);
-        }
-        if (authApp.appId) {
-            await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.authAppId, authApp.appId);
-        }
-        if (authApp.customURL) {
-            await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.authAppUrl, authApp.customURL);
-        }
-        if (authApp.customURLforAccessToken) {
-            await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.urlDirectAuth,
-                authApp.customURLforAccessToken);
-        }
-        if (authApp.defaultRole) {
-            await dialog.findElement(locator.mrsAuthenticationAppDialog.defaultRoleName).click();
-            const popup = await driver.wait(until.elementLocated(locator.mrsAuthenticationAppDialog.defaultRoleList),
-                constants.wait5seconds, "Auth vendor drop down list was not displayed");
-
-            await popup.findElement(By.id(authApp.defaultRole)).click();
-        }
 
         if (authApp.enabled !== undefined) {
             await DialogHelper.setCheckboxValue("enabled", authApp.enabled);
@@ -94,11 +90,63 @@ export class AuthenticationAppDialog {
             await dialog.click();
         }
 
+        if (authApp.settings) {
+            await (await this.getTab("Settings")).click();
+            if (authApp.settings.description) {
+                await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.description,
+                    authApp.settings.description);
+            }
+
+            if (authApp.settings.defaultRole) {
+                await dialog.findElement(locator.mrsAuthenticationAppDialog.defaultRoleName).click();
+                const popup = await driver.wait(until
+                    .elementLocated(locator.mrsAuthenticationAppDialog.defaultRoleList),
+                    constants.wait5seconds, "Auth vendor drop down list was not displayed");
+
+                await popup.findElement(By.id(authApp.settings.defaultRole)).click();
+            }
+        }
+
+        if (authApp.oauth2settings) {
+            await (await this.getTab("OAuth2 Settings")).click();
+
+            if (authApp.oauth2settings.appId) {
+                await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.authAppId,
+                    authApp.oauth2settings.appId);
+            }
+
+            if (authApp.oauth2settings.appSecret) {
+                if (authApp.oauth2settings.appSecret) {
+                    await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.accessToken,
+                        authApp.oauth2settings.appSecret);
+                }
+            }
+
+            if (authApp.oauth2settings.customURL) {
+                await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.authAppUrl,
+                    authApp.oauth2settings.customURL);
+            }
+
+            if (authApp.oauth2settings.customURLforAccessToken) {
+                await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.urlDirectAuth,
+                    authApp.oauth2settings.customURLforAccessToken);
+            }
+        }
+
+        if (authApp.options) {
+            await (await this.getTab("Options")).click();
+            await DialogHelper.setFieldText(dialog, locator.mrsAuthenticationAppDialog.options, authApp.options);
+        }
+
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsAuthenticationAppDialog.ok).click();
 
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The Authentication App Dialog was not closed");
+
+        authApp.treeName = `${authApp.name} (${authApp.vendor})`;
+
+        return authApp;
 
     };
 
@@ -114,20 +162,41 @@ export class AuthenticationAppDialog {
         const dialog = await driver.wait(until.elementLocated(locator.mrsAuthenticationAppDialog.exists),
             constants.wait20seconds, "Authentication app dialog was not displayed");
 
+        await (await this.getTab("Settings")).click();
+
+        const vendor = await dialog.findElement(locator.mrsAuthenticationAppDialog.authVendorNameLabel).getText();
+
         const authenticationApp: interfaces.IRestAuthenticationApp = {
-            vendor: await dialog.findElement(locator.mrsAuthenticationAppDialog.authVendorNameLabel).getText(),
+            vendor,
             name: await DialogHelper.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.authAppName),
-            description: await DialogHelper.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.description),
-            accessToken: await DialogHelper.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.accessToken),
-            appId: await DialogHelper.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.authAppId),
-            customURL: await DialogHelper.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.authAppUrl),
-            customURLforAccessToken: await dialog.findElement(locator.mrsAuthenticationAppDialog.urlDirectAuth)
-                .getAttribute("value"),
-            defaultRole: await dialog.findElement(locator.mrsAuthenticationAppDialog.defaultRoleNameLabel).getText(),
+            enabled: await DialogHelper.getCheckBoxValue("enabled"),
+            limitToRegisteredUsers: await DialogHelper.getCheckBoxValue("limitToRegisteredUsers"),
+            settings: {
+                description: await DialogHelper.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.description),
+                defaultRole: await dialog.findElement(locator.mrsAuthenticationAppDialog.defaultRoleNameLabel)
+                    .getText(),
+            },
         };
 
-        authenticationApp.enabled = await DialogHelper.getCheckBoxValue("enabled");
-        authenticationApp.limitToRegisteredUsers = await DialogHelper.getCheckBoxValue("limitToRegisteredUsers");
+        if (vendor === constants.vendorOCIOAuth2) {
+            await (await this.getTab("OAuth2 Settings")).click();
+            const oauth2settings = {
+                appId: await DialogHelper.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.authAppId),
+                appSecret: await DialogHelper.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.accessToken),
+                customURL: await DialogHelper.getFieldValue(dialog, locator.mrsAuthenticationAppDialog.authAppUrl),
+                customURLforAccessToken: await dialog.findElement(locator.mrsAuthenticationAppDialog.urlDirectAuth)
+                    .getAttribute("value"),
+            };
+
+            authenticationApp.oauth2settings = oauth2settings;
+        }
+
+        await (await this.getTab("Options")).click();
+        authenticationApp.options = (await dialog
+            .findElement(locator.mrsAuthenticationAppDialog.options)
+            .getAttribute("value")).replace(/\r?\n|\r|\s+/gm, "").trim();
+
+        authenticationApp.treeName = `${authenticationApp.name} (${authenticationApp.vendor})`;
 
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsAuthenticationAppDialog.ok).click();

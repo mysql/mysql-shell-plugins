@@ -27,18 +27,18 @@ import "./Dropdown.css";
 
 import { cloneElement, ComponentChild, createRef } from "preact";
 
-import { DropdownItem, IDropdownItemProperties } from "./DropdownItem.js";
-import { convertPropValue } from "../../../utilities/string-helpers.js";
+import { KeyboardKeys } from "../../../utilities/helpers.js";
 import { collectVNodes } from "../../../utilities/preact-helpers.js";
+import { convertPropValue } from "../../../utilities/string-helpers.js";
 import {
-    IComponentProperties, IComponentState, ComponentBase, ComponentPlacement, FocusEventType,
+    ComponentBase, ComponentPlacement, FocusEventType, IComponentProperties, IComponentState,
 } from "../Component/ComponentBase.js";
-import { Container, Orientation, ContentAlignment } from "../Container/Container.js";
+import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
 import { Divider } from "../Divider/Divider.js";
 import { Label } from "../Label/Label.js";
 import { Popup } from "../Popup/Popup.js";
 import { ITag, TagInput } from "../TagInput/TagInput.js";
-import { KeyboardKeys } from "../../../utilities/helpers.js";
+import { DropdownItem, IDropdownItemProperties } from "./DropdownItem.js";
 
 export interface IDropdownProperties extends IComponentProperties {
     /** A single id or a set of it that identify the items that shall be selected. */
@@ -83,9 +83,12 @@ export interface IDropdownProperties extends IComponentProperties {
      *
      * @param accept Set to true selected an item that caused the drop down to close (e.g. an item click).
      * @param selection The new selection.
-     * @param props The current properties of the dropdown.
+     * @param payload The associated payload of the dropdown item which was selected.
+     *
+     * @returns Usually nothing, but can return a promise if the selection needs to be updated asynchronously.
      */
-    onSelect?: (accept: boolean, selection: Set<string>, props: IDropdownProperties) => void;
+    onSelect?: (accept: boolean, selection: Set<string>, payload: unknown) => Promise<void> | void;
+
     onCancel?: () => void;
 }
 
@@ -94,9 +97,6 @@ interface IDropdownState extends IComponentState {
 }
 
 export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState> {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    public static Item = DropdownItem;
-
     public static override defaultProps = {
         optional: false,
         showDescription: false,
@@ -119,7 +119,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         };
 
         this.addHandledProperties("selection", "defaultId", "optional", "showDescription", "iconOnly", "multiSelect",
-            "withoutArrow", "autoFocus", "onSelect", "onCancel");
+            "withoutArrow", "placeholder", "autoFocus", "onSelect", "onCancel");
 
         this.connectEvents("onFocus", "onBlur");
     }
@@ -332,7 +332,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                     const current = childArray[this.currentSelectionIndex];
                     const id = current.props.id;
                     if (id) {
-                        this.toggleSelectedItem(id, false, true);
+                        this.toggleSelectedItem(id, false, true, current.props.payload);
                     }
                 } else {
                     this.popupRef.current?.open(element.getBoundingClientRect(), { backgroundOpacity: 0 });
@@ -357,7 +357,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 const current = childArray[this.currentSelectionIndex];
                 const id = current.props.id;
                 if (id) {
-                    this.toggleSelectedItem(id, true, false);
+                    this.toggleSelectedItem(id, true, false, current.props.payload);
                 }
                 e.stopPropagation();
                 e.preventDefault();
@@ -379,7 +379,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 const current = childArray[this.currentSelectionIndex];
                 const id = current.props.id;
                 if (id) {
-                    this.toggleSelectedItem(id, true, false);
+                    this.toggleSelectedItem(id, true, false, current.props.payload);
                 }
 
                 e.stopPropagation();
@@ -436,7 +436,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
             if (this.containerRef.current) {
                 this.containerRef.current.setAttribute("value", props.id);
             }
-            this.toggleSelectedItem(props.id, false, true);
+            this.toggleSelectedItem(props.id, false, true, props.payload);
         }
 
         if (!multiSelect) {
@@ -451,8 +451,9 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
      * @param id The item to toggle.
      * @param replace If true then the current selection is cleared and the item becomes the only selection entry.
      * @param accept If true then the selection is accepted and the dropdown is closed.
+     * @param payload The payload of the item that was selected.
      */
-    private readonly toggleSelectedItem = (id: string, replace: boolean, accept: boolean): void => {
+    private readonly toggleSelectedItem = (id: string, replace: boolean, accept: boolean, payload: unknown): void => {
         const { selection, multiSelect, optional, onSelect } = this.props;
 
         let newSelection: Set<string>;
@@ -467,7 +468,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
             }
         }
 
-        onSelect?.(accept, newSelection, this.props);
+        void onSelect?.(accept, newSelection, payload);
     };
 
     private readonly handleOpen = (): void => {
@@ -503,21 +504,17 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         const childArray = collectVNodes<IDropdownItemProperties>(children);
 
         // See if we have a child with the value as caption and add its id to the current selection, if so.
-        let id;
-        childArray.forEach((child) => {
-            const { caption: childCaption, id: childId } = child.props;
-            if (childCaption === value) {
-                id = childId;
-            }
+        const found = childArray.find((child) => {
+            return child.props.caption === value;
         });
 
-        if (id) {
-            this.toggleSelectedItem(id, false, false);
+        if (found) {
+            this.toggleSelectedItem(found.props.id!, false, false, found.props.payload);
         }
     };
 
     private readonly handleTagRemove = (id: string): void => {
-        this.toggleSelectedItem(id, false, false);
+        this.toggleSelectedItem(id, false, false, undefined);
     };
 
     private descriptionFromId(id?: string): string {

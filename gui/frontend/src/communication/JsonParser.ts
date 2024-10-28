@@ -23,6 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import type { IDictionary } from "../app-logic/general-types.js";
+
 /** The type of a token returned from the JSON scanner. */
 const enum TokenType {
     // Keywords

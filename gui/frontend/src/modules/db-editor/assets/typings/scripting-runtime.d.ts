@@ -372,6 +372,6 @@ declare class PieGraph {
 }
 
 /** Define the global object that is persisted between code blocks. */
-interface IDictionary { [key: string]: unknown; }
+declare interface IDictionary { [key: string]: unknown; }
 
 declare let $: IDictionary;

@@ -74,32 +74,21 @@ export class DatabaseConnectionOverview {
      * @returns A promise resolving with the connection details
      */
     public moreActions = async (dbConnection: string, option: string): Promise<void> => {
-        if (!(await Misc.insideIframe())) {
-            await Misc.switchToFrame();
-        }
         const connection = await this.getConnection(dbConnection);
         const moreActions = await connection.findElement(locator.dbConnectionOverview.dbConnection.moreActions);
         await driver.actions().move({ origin: moreActions }).perform();
         await driver.executeScript("arguments[0].click()", moreActions);
-        await driver.wait(until.elementLocated(locator.dbConnectionOverview.dbConnection.moreActionsMenu.exists),
-            constants.wait5seconds, "More actions menu was not displayed");
-        switch (option) {
-            case constants.editConnection: {
-                await driver.findElement(locator.dbConnectionOverview.dbConnection.moreActionsMenu.editConnection)
-                    .click();
-                break;
-            }
-            case constants.dupConnection: {
-                await driver.findElement(locator.dbConnectionOverview.dbConnection.moreActionsMenu.duplicateConnection)
-                    .click();
-                break;
-            }
-            case constants.removeConnection: {
-                await driver.findElement(locator.dbConnectionOverview.dbConnection.moreActionsMenu.removeConnection)
-                    .click();
-                break;
-            }
-            default: {
+        const menu = await driver
+            .wait(until.elementLocated(locator.dbConnectionOverview.dbConnection.moreActionsMenu.exists),
+                constants.wait5seconds, "More actions menu was not displayed");
+
+        const menuItems = await menu.findElements(locator.dbConnectionOverview.dbConnection.moreActionsMenu.item);
+
+        for (const item of menuItems) {
+            const label = await item.getText();
+
+            if (label.includes(option)) {
+                await item.click();
                 break;
             }
         }

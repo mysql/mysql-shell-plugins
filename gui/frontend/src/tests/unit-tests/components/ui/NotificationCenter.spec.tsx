@@ -50,7 +50,7 @@ describe("NotificationCenter component tests", () => {
         expect(slices).toHaveLength(0);
 
         const promise1 = notificationCenter.instance().showNotification({
-            caption: "Information message",
+            text: "Information message",
             type: NotificationType.Information,
             timeout: 2000,
         });
@@ -66,7 +66,7 @@ describe("NotificationCenter component tests", () => {
         expect(toasts).toHaveLength(1);
 
         const promise2 = notificationCenter.instance().showNotification({
-            caption: "Choice",
+            text: "Choice",
             type: NotificationType.Information,
             items: ["Yes", "No"],
         });
@@ -108,7 +108,7 @@ describe("NotificationCenter component tests", () => {
         expect(slices).toHaveLength(0);
 
         const promise1 = notificationCenter.instance().showNotification({
-            caption: "Error message",
+            text: "Error message",
             type: NotificationType.Error,
             timeout: 2000,
         });
@@ -124,7 +124,7 @@ describe("NotificationCenter component tests", () => {
         expect(toasts).toHaveLength(1);
 
         const promise2 = notificationCenter.instance().showNotification({
-            caption: "Warning message",
+            text: "Warning message",
             type: NotificationType.Warning,
         });
 

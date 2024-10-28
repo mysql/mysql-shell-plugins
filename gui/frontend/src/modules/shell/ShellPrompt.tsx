@@ -146,7 +146,7 @@ export class ShellPrompt extends ComponentBase<IShellPromptProperties, IShellPro
         }
 
         const menuItems = schemaNames.map((schema) => {
-            return <MenuItem key={schema} caption={TypeSymbol.Schema + " " + schema} />;
+            return <MenuItem key={schema} command={{ title: TypeSymbol.Schema + " " + schema, command: "" }} />;
         });
 
         return (
@@ -184,9 +184,9 @@ export class ShellPrompt extends ComponentBase<IShellPromptProperties, IShellPro
         });
     };
 
-    private handleSchemaItemClick = (e: MouseEvent, props: IMenuItemProperties): boolean => {
+    private handleSchemaItemClick = (props: IMenuItemProperties): boolean => {
         const { onSelectSchema } = this.props;
-        onSelectSchema?.(props.caption?.substr(2) ?? "");
+        onSelectSchema?.(props.command.title.substring(2) ?? "");
 
         return true;
     };

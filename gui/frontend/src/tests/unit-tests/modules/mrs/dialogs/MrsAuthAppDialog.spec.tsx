@@ -28,23 +28,17 @@
 import { createRef } from "preact";
 
 import { mount } from "enzyme";
-import {
-    IMrsAddAuthAppData,
-    IMrsAuthAppData,
-} from "../../../../../communication/ProtocolMrs.js";
+
+import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
+import { IMrsAddAuthAppData, IMrsAuthAppData } from "../../../../../communication/ProtocolMrs.js";
 import { MrsHub } from "../../../../../modules/mrs/MrsHub.js";
 import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
 import { KeyboardKeys } from "../../../../../utilities/helpers.js";
+import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
 import {
-    DialogHelper,
-    JestReactWrapper,
-    createBackend,
-    recreateMrsData,
-    sendKeyPress,
-    setupShellForTests,
+    DialogHelper, JestReactWrapper, createBackend, recreateMrsData, sendKeyPress, setupShellForTests,
 } from "../../../test-helpers.js";
-
 
 describe("MRS AuthApp dialog tests", () => {
     let host: JestReactWrapper;
@@ -54,6 +48,7 @@ describe("MRS AuthApp dialog tests", () => {
     let backend: ShellInterfaceSqlEditor;
 
     beforeAll(async () => {
+        registerUiLayer(uiLayerMock);
         launcher = await setupShellForTests(false, true, "DEBUG2");
 
         await recreateMrsData();
@@ -144,7 +139,7 @@ describe("MRS AuthApp dialog tests", () => {
         await dialogHelper.clickOk();
         dialogHelper.verifyErrors(["The vendor name must not be empty."]);
 
-        await dialogHelper.setComboBoxItem("authVendorName", 0);
+        await dialogHelper.setComboBoxItem("authVendorName", 1);
         await dialogHelper.clickOk();
         dialogHelper.verifyErrors();
 

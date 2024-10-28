@@ -27,11 +27,11 @@ import { DataCallback, MessageScheduler } from "../../communication/MessageSched
 import { IPromptReplyBackend, ShellPromptResponseType, Protocol } from "../../communication/Protocol.js";
 import { ShellAPIGui, IShellResultType } from "../../communication/ProtocolGui.js";
 import { webSession } from "../WebSession.js";
-import { ShellInterfaceMds } from "./ShellInterfaceMds.js";
+import { ShellInterfaceMhs } from "./ShellInterfaceMhs.js";
 
 export class ShellInterfaceShellSession implements IPromptReplyBackend {
 
-    public mds: ShellInterfaceMds = new ShellInterfaceMds();
+    public mhs: ShellInterfaceMhs = new ShellInterfaceMhs();
 
     private moduleSessionLookupId = "";
 

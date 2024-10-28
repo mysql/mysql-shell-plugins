@@ -1190,8 +1190,7 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async getFolderMrsScriptDefinitions(
-        path: string, language: string, ignoreList?: string,
+    public async getFolderMrsScriptDefinitions(path: string, language: string, ignoreList?: string,
         callback?: DataCallback<ShellAPIMrs.MrsGetFolderMrsScriptDefinitions>,
     ): Promise<IMrsScriptDefinitions | undefined> {
         const response = await MessageScheduler.get.sendRequest({

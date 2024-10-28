@@ -24,10 +24,10 @@
  */
 
 import { Condition, WebElement, until } from "selenium-webdriver";
-import { driver } from "../driver.js";
+import { driver } from "../../lib/driver.js";
+import * as constants from "../constants.js";
 import * as locator from "../locators.js";
 import { E2EObjectStorageBrowser } from "./E2EObjectStorageBrowser.js";
-import { wait5seconds } from "../constants.js";
 
 export class E2EUploadToObjectStorage {
 
@@ -44,33 +44,37 @@ export class E2EUploadToObjectStorage {
     };
 
     /**
-     * Gets a button from the Files for Upload section
-     * @param buttonName The button name
-     * @returns A promise resolving with the button
+     * Add files
+     * @param path The file location
      */
-    public getFilesForUploadButton = async (buttonName: string): Promise<WebElement> => {
-        const buttons = await driver
-            .findElements(locator.lakeHouseNavigator.uploadToObjectStorage.filesForUpload.button);
-        for (const button of buttons) {
-            const label = await button.findElement(locator.htmlTag.label);
-            if (await label.getText() === buttonName) {
-                return button;
-            }
-        }
+    public addFiles = async (path: string): Promise<void> => {
+        const button = await this.getFilesForUploadButton(constants.addFiles);
+        await driver.wait(async () => {
+            return !(await button.getAttribute("class")).includes("disabled");
+        }, constants.wait3seconds, `${constants.addFiles} button is disabled`);
 
-        throw new Error(`Could not find button '${buttonName}'`);
+        await button.click();
+        await driver.wait(until.elementLocated(locator.fileSelect),
+            constants.wait5seconds, "Could not find the input file box").sendKeys(path);
+
+        const splittedPath = path.split("/");
+        await driver.wait(this.untilExistsFileForUploadFile(splittedPath[splittedPath.length - 1]));
     };
 
     /**
-     * Sets the file path into the input box
-     * @param path The path for the file
-     * @returns A promise resolving when the path is set
+     * Clicks on the Start File Upload button
      */
-    public setFilesForUploadFilePath = async (path: string): Promise<void> => {
-        await driver.wait(until
-            .elementLocated(locator.lakeHouseNavigator.uploadToObjectStorage.filesForUpload.fileSelect),
-            wait5seconds, "Could not find the input file box")
-            .sendKeys(path);
+    public startFileUpload = async (): Promise<void> => {
+        const button = await this.getFilesForUploadButton(constants.startFileUpload);
+        await driver.wait(async () => {
+            return !(await button.getAttribute("class")).includes("disabled");
+        }, constants.wait3seconds, `${constants.addFiles} button is disabled`);
+
+        await button.click();
+
+        await driver.wait(async () => {
+            return (await button.getAttribute("class")).includes("disabled");
+        }, constants.wait3seconds, `${constants.addFiles} button should be disabled after clicking it`);
     };
 
     /**
@@ -78,7 +82,7 @@ export class E2EUploadToObjectStorage {
      * @param filename The file name
      * @returns A promise resolving wth true if the file exists, false otherwise
      */
-    public untilExistsFileForUploadFile = (filename: string): Condition<boolean | undefined> => {
+    private untilExistsFileForUploadFile = (filename: string): Condition<boolean | undefined> => {
         return new Condition(`for file '${filename}' to exist on Files For Upload section`, async () => {
             const fileLocator = locator.lakeHouseNavigator.uploadToObjectStorage.filesForUpload.file;
             const files = await driver.findElements(fileLocator);
@@ -90,5 +94,23 @@ export class E2EUploadToObjectStorage {
                 }
             }
         });
+    };
+
+    /**
+     * Gets a button from the Files for Upload section
+     * @param buttonName The button name
+     * @returns A promise resolving with the button
+     */
+    private getFilesForUploadButton = async (buttonName: string): Promise<WebElement> => {
+        const buttons = await driver
+            .findElements(locator.lakeHouseNavigator.uploadToObjectStorage.filesForUpload.button);
+        for (const button of buttons) {
+            const label = await button.findElement(locator.htmlTag.label);
+            if (await label.getText() === buttonName) {
+                return button;
+            }
+        }
+
+        throw new Error(`Could not find button '${buttonName}'`);
     };
 }

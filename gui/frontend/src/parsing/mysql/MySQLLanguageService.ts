@@ -28,7 +28,7 @@ import { IRdbmsDataTypeInfo, ServiceLanguage } from "../parser-common.js";
 import { CharsetSymbol, SystemVariableSymbol, SystemFunctionSymbol, DBSymbolTable } from "../DBSymbolTable.js";
 import { LanguageWorkerPool } from "../worker/LanguageWorkerPool.js";
 import { mysqlInfo } from "../../app-logic/RdbmsInfo.js";
-import { DBDataType, ParameterFormatType } from "../../app-logic/Types.js";
+import { DBDataType, ParameterFormatType } from "../../app-logic/general-types.js";
 import { convertCamelToTitleCase } from "../../utilities/string-helpers.js";
 import { RdbmsLanguageService } from "../worker/RdbmsLanguageService.js";
 

@@ -23,39 +23,42 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "./ValueEditDialog.css";
 import addProperty from "../../assets/images/add.svg";
 import removeProperty from "../../assets/images/remove.svg";
+import "./ValueEditDialog.css";
 
-import { cloneElement, ComponentChild, createRef, VNode, render } from "preact";
-import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
+import { cloneElement, ComponentChild, createRef, render, VNode } from "preact";
 import { Children } from "preact/compat";
+import { ColumnDefinition, RowComponent, type CellComponent } from "tabulator-tables";
 
-import { DialogResponseClosure, IDictionary, MessageType } from "../../app-logic/Types.js";
-import { ParamDialog } from "./ParamDialog.js";
-import { IOpenDialogFilters } from "../../supplement/Requisitions.js";
-import { Button, IButtonProperties } from "../ui/Button/Button.js";
-import { Checkbox, CheckState, ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
+import { DialogResponseClosure, MessageType, type IDictionary } from "../../app-logic/general-types.js";
+import { type IOpenDialogFilters } from "../../supplement/RequisitionTypes.js";
+import { Button, type IButtonProperties } from "../ui/Button/Button.js";
+import { Checkbox, CheckState, type ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
 import { Codicon } from "../ui/Codicon.js";
-import { IComponentProperties, IComponentState, ComponentBase, SelectionType } from "../ui/Component/ComponentBase.js";
-import { Container, Orientation, ContentAlignment } from "../ui/Container/Container.js";
+import {
+    ComponentBase, SelectionType, type IComponentProperties, type IComponentState,
+} from "../ui/Component/ComponentBase.js";
+import { Container, ContentAlignment, Orientation } from "../ui/Container/Container.js";
 import { Dialog } from "../ui/Dialog/Dialog.js";
-import { Dropdown, IDropdownProperties } from "../ui/Dropdown/Dropdown.js";
-import { FileSelector, IFileSelectorProperties } from "../ui/FileSelector/FileSelector.js";
+import { Dropdown } from "../ui/Dropdown/Dropdown.js";
+import { DropdownItem } from "../ui/Dropdown/DropdownItem.js";
+import { FileSelector, type IFileSelectorProperties } from "../ui/FileSelector/FileSelector.js";
 import { Grid } from "../ui/Grid/Grid.js";
 import { GridCell } from "../ui/Grid/GridCell.js";
 import { Icon } from "../ui/Icon/Icon.js";
-import { Input, IInputChangeProperties, IInputProperties } from "../ui/Input/Input.js";
+import { Input, type IInputChangeProperties, type IInputProperties } from "../ui/Input/Input.js";
 import { Label } from "../ui/Label/Label.js";
 import { Menu } from "../ui/Menu/Menu.js";
-import { MenuItem, IMenuItemProperties } from "../ui/Menu/MenuItem.js";
+import { MenuItem, type IMenuItemProperties } from "../ui/Menu/MenuItem.js";
 import { Message } from "../ui/Message/Message.js";
-import { IPortalOptions } from "../ui/Portal/Portal.js";
+import type { IPortalOptions } from "../ui/Portal/Portal.js";
 import { ProgressIndicator } from "../ui/ProgressIndicator/ProgressIndicator.js";
-import { ITabviewPage, Tabview } from "../ui/Tabview/Tabview.js";
-import { ITreeGridOptions, TreeGrid } from "../ui/TreeGrid/TreeGrid.js";
-import { UpDown, IUpDownProperties } from "../ui/UpDown/UpDown.js";
-import { IValueEditCustomProperties, ValueEditCustom } from "./ValueEditCustom.js";
+import { Tabview, type ITabviewPage } from "../ui/Tabview/Tabview.js";
+import { TreeGrid, type ITreeGridOptions } from "../ui/TreeGrid/TreeGrid.js";
+import { UpDown, type IUpDownProperties } from "../ui/UpDown/UpDown.js";
+import { ParamDialog } from "./ParamDialog.js";
+import { ValueEditCustom, type IValueEditCustomProperties } from "./ValueEditCustom.js";
 
 interface IContextUpdateData {
     add?: string[];
@@ -588,7 +591,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                     ref={this.relationListContextMenuRef}
                     onItemClick={this.handleRelationListContextMenuItemClick}
                 >
-                    <MenuItem id="removeEntry" caption="Remove Selected Entry" />
+                    <MenuItem command={{ title: "Remove Selected Entry", command: "removeEntry" }} />
                 </Menu>
             </>
         );
@@ -1105,10 +1108,11 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                         // A list of string values -> represented as dropdown.
                         // If an empty string is given, the value is optional.
                         const items = entry.value?.choices?.map((item: string, itemIndex: number) => {
-                            return <Dropdown.Item
+                            return <DropdownItem
                                 caption={item}
                                 key={itemIndex}
                                 id={item}
+                                payload={key}
                             />;
                         });
 
@@ -1163,10 +1167,11 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                     case "set": {
                         // A set of string values -> represented as tag input.
                         const items = entry.value.tagSet?.map((item: string, itemIndex: number) => {
-                            return <Dropdown.Item
+                            return <DropdownItem
                                 caption={item}
                                 key={itemIndex}
                                 id={item}
+                                payload={key}
                             />;
                         });
 
@@ -1556,14 +1561,15 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
     };
 
     private handleChoiceChange = (sectionId: string, accept: boolean, selectedIds: Set<string>,
-        props: IDropdownProperties): void => {
+        payload: unknown): void => {
         const { onValidate } = this.props;
         const { values, data } = this.state;
 
+        const id = payload as string;
         const newValue = selectedIds.size > 0 ? [...selectedIds][0] : "";
         const section = values.sections.get(sectionId);
-        if (section && props.id) {
-            const value = this.setValue(props.id, newValue, section) as IChoiceDialogValue;
+        if (section && id) {
+            const value = this.setValue(id, newValue, section) as IChoiceDialogValue;
             if (value) {
                 const validations = onValidate?.(false, values, data) || { messages: {} };
                 this.setState({ values, validations });
@@ -1574,14 +1580,15 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
     };
 
     private handleSetChange = (sectionId: string, accept: boolean, selectedIds: Set<string>,
-        props: IDropdownProperties): void => {
+        payload: unknown): void => {
         const { onValidate } = this.props;
         const { values, data } = this.state;
 
+        const id = payload as string;
         const newValue = [...selectedIds];
         const section = values.sections.get(sectionId);
-        if (section && props.id) {
-            const value = this.setValue(props.id, newValue, section) as ISetDialogValue;
+        if (section && id) {
+            const value = this.setValue(id, newValue, section) as ISetDialogValue;
             if (value) {
                 const validations = onValidate?.(false, values, data) || { messages: {} };
                 this.setState({ values, validations });
@@ -1743,12 +1750,13 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         this.relationListContextMenuRef.current?.open(targetRect, false, {}, { sectionId, value });
     };
 
-    private handleRelationListContextMenuItemClick = (_e: MouseEvent, props: IMenuItemProperties,
+    private handleRelationListContextMenuItemClick = (props: IMenuItemProperties, altActive: boolean,
         payload: unknown): boolean => {
 
         const itemData = payload as { sectionId: string; value: IRelationDialogValue; };
         const idName = itemData.value.listItemId ?? "id";
-        if (props.id === "addEntry") {
+        const command = props.command.command;
+        if (command === "addEntry") {
             const titleName = (itemData.value.listItemCaptionFields ?? ["title"])[0];
             itemData.value.value?.push({
                 [idName]: this.relationListCounter,

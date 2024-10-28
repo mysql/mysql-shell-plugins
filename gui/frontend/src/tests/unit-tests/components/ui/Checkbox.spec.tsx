@@ -27,7 +27,7 @@ import { mount, shallow } from "enzyme";
 import { act } from "@testing-library/preact";
 
 import { Checkbox, CheckState, ICheckboxProperties } from "../../../../components/ui/Checkbox/Checkbox.js";
-import { mouseEventMock } from "../../__mocks__/MockEvents.js";
+import { mouseEventMock } from "../../__mocks__/EventMocks.js";
 
 describe("Checkbox component tests", (): void => {
     it("Test checkbox click", async () => {

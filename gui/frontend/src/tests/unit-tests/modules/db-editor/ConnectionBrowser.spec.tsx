@@ -26,31 +26,19 @@
 import { mount } from "enzyme";
 
 import { ConnectionBrowser } from "../../../../modules/db-editor/ConnectionBrowser.js";
-import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
 
 describe("Connection browser tests", (): void => {
 
     it("Test ConnectionBrowser instantiation", () => {
-        const connection1: IConnectionDetails = {
-            id: 0,
-            dbType: DBType.MySQL,
-            caption: "",
-            description: "",
-            options: { type: "unknown" },
-            useSSH: false,
-            useMDS: false,
-        };
         const component = mount<ConnectionBrowser>(
             <ConnectionBrowser
-                connections={[connection1]}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
                 onAddConnection={jest.fn()}
                 onUpdateConnection={jest.fn()}
-                onDropConnection={jest.fn()}
+                onRemoveConnection={jest.fn()}
             />,
         );
-        const props = component.props();
-        expect(props.connections).toEqual([connection1]);
+
         expect(component).toMatchSnapshot();
         component.unmount();
     });

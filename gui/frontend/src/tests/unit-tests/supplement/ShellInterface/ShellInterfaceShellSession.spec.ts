@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IDictionary } from "../../../../app-logic/Types.js";
+import { IDictionary } from "../../../../app-logic/general-types.js";
 import { MySQLConnectionScheme } from "../../../../communication/MySQL.js";
 import { IShellPromptValues } from "../../../../communication/ProtocolGui.js";
 import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
@@ -57,7 +57,7 @@ describe("ShellInterfaceShellSession Tests", () => {
                 port: credentials.port,
             },
             useSSH: false,
-            useMDS: false,
+            useMHS: false,
 
         };
 

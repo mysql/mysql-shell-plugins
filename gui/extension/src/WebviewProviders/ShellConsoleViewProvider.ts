@@ -24,7 +24,7 @@
  */
 
 import { requisitions } from "../../../frontend/src/supplement/Requisitions.js";
-import { ShellModuleId } from "../../../frontend/src/modules/ModuleInfo.js";
+import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo.js";
 import { IShellSessionDetails } from "../../../frontend/src/supplement/ShellInterface/index.js";
 import { WebviewProvider } from "./WebviewProvider.js";
 
@@ -45,36 +45,9 @@ export class ShellConsoleViewProvider extends WebviewProvider {
      */
     public show(page: string): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showModule", parameter: ShellModuleId },
-            { requestType: "showPage", parameter: { module: ShellModuleId, page } },
+            { requestType: "showModule", parameter: DBEditorModuleId },
+            { requestType: "showPage", parameter: { module: DBEditorModuleId, page } },
         ], "newShellConsole");
-    }
-
-    /**
-     * Opens a page for a session with the given session id.
-     *
-     * @param session The session to open.
-     *
-     * @returns A promise which resolves after the command was executed.
-     */
-    public openSession(session: IShellSessionDetails): Promise<boolean> {
-        const command = session.sessionId === -1 ? "newSession" : "openSession";
-
-        return this.runCommand("job", [
-            { requestType: "showModule", parameter: ShellModuleId },
-            { requestType: command, parameter: session },
-        ], "newShellConsole");
-    }
-
-    /**
-     * Closes the session with the given id.
-     *
-     * @param session The session to remove.
-     *
-     * @returns A promise which resolves after the command was executed.
-     */
-    public removeSession(session: IShellSessionDetails): Promise<boolean> {
-        return this.runCommand("removeSession", session, "newShellConsole");
     }
 
     protected override requisitionsCreated(): void {

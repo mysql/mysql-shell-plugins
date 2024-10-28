@@ -396,6 +396,7 @@ describe("NOTEBOOKS", () => {
         it("Maximize and Normalize Result tab", async () => {
 
             await Workbench.dismissNotifications();
+            await notebook.codeEditor.clean();
             const result = await notebook.codeEditor.execute("select * from sakila.actor;");
             expect(result.toolbar.status).to.match(/OK/);
             await result.toolbar.maximize();
@@ -458,14 +459,10 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Copy paste into notebook", async function () {
-            console.log(1);
             await TestQueue.push(this.test.title);
-            console.log(2);
             existsInQueue = true;
             await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
-            console.log(3);
             await notebook.codeEditor.clean();
-            console.log(4);
             await Misc.switchBackToTopFrame();
             const filename = "users.sql";
             await browser.openResources(join(constants.workspace, "gui", "frontend",

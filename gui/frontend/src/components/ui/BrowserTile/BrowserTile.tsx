@@ -91,7 +91,7 @@ export abstract class BrowserTile<P extends IBrowserTileProperties> extends Comp
         return (
             <Button
                 innerRef={innerRef}
-                id={tileId.toString()}
+                id={String(tileId)}
                 className={className}
                 onClick={this.handleClick}
                 onKeyPress={this.handleKeydown}

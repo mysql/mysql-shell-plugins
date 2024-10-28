@@ -23,19 +23,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import * as path from "path";
-import { Command, TreeItem, TreeItemCollapsibleState } from "vscode";
+import type { IOdmShellSessionEntry } from "../../../../frontend/src/data-models/OpenDocumentDataModel.js";
+import { DocumentTreeBaseItem } from "../OpenEditorsTreeProvider/DocumentTreeBaseItem.js";
 
-export class ShellConsoleSessionTreeItem extends TreeItem {
+export class ShellConsoleSessionTreeItem<T extends IOdmShellSessionEntry> extends DocumentTreeBaseItem<T> {
     public override contextValue = "session";
 
-    public constructor(caption: string, command?: Command) {
-        super(caption, TreeItemCollapsibleState.None);
-
-        this.iconPath = {
-            light: path.join(__dirname, "..", "images", "light", "terminal.svg"),
-            dark: path.join(__dirname, "..", "images", "dark", "terminal.svg"),
-        };
-        this.command = command;
+    public constructor(dataModelEntry: T) {
+        super(dataModelEntry, "terminal.svg", false);
     }
 }

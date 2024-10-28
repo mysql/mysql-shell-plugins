@@ -23,23 +23,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import * as path from "path";
+import type { ICdmConnectionEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
+import { ConnectionBaseTreeItem } from "./ConnectionBaseTreeItem.js";
 
-import { TreeItem, TreeItemCollapsibleState } from "vscode";
-
-import { IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface/index.js";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-
-export class ConnectionTreeItem extends TreeItem {
-
+/** The tree item for a database connection. */
+export class ConnectionTreeItem extends ConnectionBaseTreeItem<ICdmConnectionEntry> {
     public override contextValue = "connection";
-
-    public constructor(public details: IConnectionDetails, public backend: ShellInterfaceSqlEditor) {
-        super(details.caption, TreeItemCollapsibleState.Collapsed);
-
-        this.iconPath = {
-            light: path.join(__dirname, "..", "images", "light", "connected.svg"),
-            dark: path.join(__dirname, "..", "images", "dark", "connected.svg"),
-        };
-    }
 }

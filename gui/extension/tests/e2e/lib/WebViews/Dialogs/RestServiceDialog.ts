@@ -39,7 +39,7 @@ export class RestServiceDialog {
      * @param restService The service
      * @returns A promise resolving when the service is set and the dialog is closed
      */
-    public static set = async (restService: interfaces.IRestService): Promise<void> => {
+    public static set = async (restService: interfaces.IRestService): Promise<interfaces.IRestService> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
@@ -105,11 +105,17 @@ export class RestServiceDialog {
             }
         }
 
+        restService.treeName = restService.settings.hostNameFilter ?
+            `${restService.servicePath} (${restService.settings.hostNameFilter})` :
+            restService.servicePath;
+
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsServiceDialog.ok).click();
 
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The MRS Service dialog was not closed");
+
+        return restService;
     };
 
     /**
@@ -157,6 +163,10 @@ export class RestServiceDialog {
         authentication.authCompletedChangeCont = await DialogHelper.getFieldValue(dialog,
             locator.mrsServiceDialog.authentication.authCompletedPageContent);
         restService.authentication = authentication;
+
+        restService.treeName = restService.settings.hostNameFilter ?
+            `${restService.servicePath} (${restService.settings.hostNameFilter})` :
+            restService.servicePath;
 
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsServiceDialog.cancel).click();

@@ -30,7 +30,7 @@ import { createRef } from "preact";
 import { ProfileSelector } from "../../../app-logic/ProfileSelector.js";
 import { Button } from "../../../components/ui/Button/Button.js";
 
-import { mouseEventMock } from "../__mocks__/MockEvents.js";
+import { mouseEventMock } from "../__mocks__/EventMocks.js";
 import { setupShellForTests } from "../test-helpers.js";
 
 let clicked = false;

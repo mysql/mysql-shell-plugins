@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { DBDataType } from "../../../../app-logic/Types.js";
+import { DBDataType } from "../../../../app-logic/general-types.js";
 import { QueryBuilder } from "../../../../components/ResultView/QueryBuilder.js";
 
 describe("QueryBuilder", () => {

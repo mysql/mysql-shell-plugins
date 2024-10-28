@@ -26,7 +26,7 @@
 /* eslint-disable max-len */
 
 import {
-    ICompartment, IComputeInstance, IMySQLDbSystemShapeSummary, IMySQLDbSystem, ILoadBalancer, IBastionSummary,
+    ICompartment, IComputeInstance, IMySQLDbSystemShapeSummary, IMySQLDbSystem, LoadBalancer, IBastionSummary,
     IBastionSession, IComputeShape, IBucketSummary, IBucketListObjects,
 } from "./Oci.js";
 import { IShellDictionary } from "./Protocol.js";
@@ -1491,7 +1491,7 @@ export interface IProtocolMdsResults {
     [ShellAPIMds.MdsCreateHeatWaveCluster]: {};
     [ShellAPIMds.MdsUpdateHeatWaveCluster]: {};
     [ShellAPIMds.MdsDeleteHeatWaveCluster]: {};
-    [ShellAPIMds.MdsListLoadBalancers]: { result: ILoadBalancer[]; };
+    [ShellAPIMds.MdsListLoadBalancers]: { result: LoadBalancer[]; };
     [ShellAPIMds.MdsListBastions]: { result: IBastionSummary[]; };
     [ShellAPIMds.MdsGetBastion]: { result: IBastionSummary; };
     [ShellAPIMds.MdsCreateBastion]: { result: IBastionSummary; };

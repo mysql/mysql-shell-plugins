@@ -24,7 +24,7 @@
  */
 
 import { mysqlInfo, sqliteInfo } from "../app-logic/RdbmsInfo.js";
-import { DBDataType, IColumnInfo, IDBDataTypeDetails, IDictionary } from "../app-logic/Types.js";
+import { DBDataType, type IColumnInfo, type IDBDataTypeDetails, type IDictionary } from "../app-logic/general-types.js";
 import { Base64Convert } from "../utilities/Base64Convert.js";
 import { DBType } from "./ShellInterface/index.js";
 
@@ -110,14 +110,17 @@ export interface ISqlPageRequest {
 
 /** A general request related to a code script (load/save etc.). */
 export interface IScriptRequest {
-    /** A unique ID to identify the script in this request. */
-    scriptId: string;
+    /** The data model id of the script to create/update/drop. */
+    id: string;
 
-    /** The language of the script. */
-    language: EditorLanguage;
+    /** The caption that should be set in that editor. */
+    caption: string;
 
-    name?: string;
+    /** The content to load/save. */
     content: string;
+
+    /** The language of the content. */
+    language: EditorLanguage;
 
     /**
      * Used when executing SQL statements to tell the executor to add a hint to SELECT statements to use the secondary

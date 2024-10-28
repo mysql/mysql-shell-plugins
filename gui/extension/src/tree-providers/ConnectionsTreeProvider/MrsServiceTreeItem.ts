@@ -23,31 +23,27 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IMrsServiceData } from "../../../../frontend/src/communication/ProtocolMrs.js";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import type { ICdmRestServiceEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
-export class MrsServiceTreeItem extends MrsTreeBaseItem {
+export class MrsServiceTreeItem extends MrsTreeBaseItem<ICdmRestServiceEntry> {
     public override contextValue = "mrsService";
 
-    public constructor(
-        label: string,
-        public value: IMrsServiceData,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number) {
+    public constructor(dataModelEntry: ICdmRestServiceEntry) {
+        const value = dataModelEntry.details;
         const iconName = value.isCurrent ?
-            !value.enabled ? "mrsServiceDefaultDisabled.svg" :
-                (value.inDevelopment?.developers
-                    ? "mrsServiceDefaultInDevelopment.svg" :
-                    (value.published ? "mrsServiceDefaultPublished.svg" : "mrsServiceDefault.svg")) :
+            !value.enabled ? "mrsServiceDefaultDisabled.svg" : (value.inDevelopment
+                ? "mrsServiceDefaultInDevelopment.svg"
+                : (value.published ? "mrsServiceDefaultPublished.svg" : "mrsServiceDefault.svg")) :
             !value.enabled ? "mrsServiceDisabled.svg" :
                 (value.inDevelopment?.developers ? "mrsServiceInDevelopment.svg" :
                     (value.published ? "mrsServicePublished.svg" : "mrsService.svg"));
 
-        super(label, backend, connectionId, iconName, true);
+        super(dataModelEntry, iconName, true);
 
+        const developers = value.inDevelopment?.developers?.join(",");
         if (value.enabled && value.inDevelopment?.developers) {
-            this.description = `In Development`;
+            this.description = `In Development [${developers}]`;
         } else {
             this.description = !value.enabled ? "Disabled" : (value.published ? "Published" : "Unpublished");
         }

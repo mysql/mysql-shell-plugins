@@ -430,6 +430,18 @@ export class CommandResultGrid {
         subContextMenuItem?: string): Promise<void> => {
 
         const cellContextMenu = locator.notebook.codeEditor.editor.result.grid.row.cell.contextMenu;
+
+        const getCellMenuItem = async (contextMenu: WebElement, itemName: string): Promise<WebElement> => {
+            const items = await contextMenu.findElements(cellContextMenu.item);
+            for (const item of items) {
+                if (await item.getText() === itemName) {
+                    return item;
+                }
+            }
+
+            throw new Error(`Could not find item '${itemName}' on cell context menu`);
+        };
+
         await driver.wait(async () => {
             try {
                 await driver.findElement(locator.notebook.codeEditor.textArea)
@@ -442,177 +454,35 @@ export class CommandResultGrid {
                 const contextMenu = await driver.wait(until
                     .elementLocated(cellContextMenu.exists),
                     constants.wait5seconds, "Cell context menu was not displayed");
-                let item: WebElement;
-                let reloadResult = false;
-                switch (contextMenuItem) {
+                const cellMenuItem = await getCellMenuItem(contextMenu, contextMenuItem);
+                await driver.actions().move({ origin: cellMenuItem }).perform();
 
-                    case constants.resultGridContextMenu.capitalizeText: {
-                        item = await contextMenu.findElement(cellContextMenu.capitalize);
-                        reloadResult = true;
-                        break;
+                if (subContextMenuItem) {
+                    let subMenu: WebElement | undefined;
+                    if (contextMenuItem === constants.resultGridContextMenu.copySingleRow) {
+                        subMenu = await driver.wait(until
+                            .elementLocated(cellContextMenu.copySingleRowSubMenu),
+                            constants.wait5seconds, "Copy Row sub menu was not displayed");
+                    } else {
+                        subMenu = await driver.wait(until
+                            .elementLocated(cellContextMenu.copyAllRowsSubMenu),
+                            constants.wait5seconds, "Copy All Rows sub menu was not displayed");
                     }
-
-                    case constants.resultGridContextMenu.convertTextToLowerCase: {
-                        item = await contextMenu.findElement(cellContextMenu.lowerCase);
-                        reloadResult = true;
-                        break;
-                    }
-
-                    case constants.resultGridContextMenu.convertTextToUpperCase: {
-                        item = await contextMenu.findElement(cellContextMenu.upperCase);
-                        reloadResult = true;
-                        break;
-                    }
-
-                    case constants.resultGridContextMenu.toggleForDeletion: {
-                        item = await contextMenu.findElement(cellContextMenu.toggleForDeletion);
-                        reloadResult = true;
-                        break;
-                    }
-
-                    case constants.resultGridContextMenu.copySingleRow: {
-                        const copySingleRow = await contextMenu
-                            .findElement(cellContextMenu.copySingleRow.exists);
-                        await driver.actions().move({ origin: copySingleRow }).perform();
-                        const subMenu = await driver.wait(until
-                            .elementLocated(cellContextMenu.copySingleRow.subMenu.exists),
-                            constants.wait3seconds, "Sub menu context was not displayed");
-
-                        switch (subContextMenuItem) {
-
-                            case constants.resultGridContextMenu.copySingleRowContextMenu.copyRow: {
-                                item = await subMenu
-                                    .findElement(cellContextMenu.copySingleRow.subMenu.copyRow);
-                                break;
-                            }
-
-                            case constants.resultGridContextMenu.copySingleRowContextMenu.copyRowTabSeparated: {
-                                item = await subMenu
-                                    .findElement(cellContextMenu.copySingleRow.subMenu.copyRowTabSeparated);
-                                break;
-                            }
-
-                            case constants.resultGridContextMenu.copySingleRowContextMenu.copyRowUnquoted: {
-                                item = await subMenu
-                                    .findElement(cellContextMenu.copySingleRow.subMenu.copyRowUnquoted);
-                                break;
-                            }
-
-                            case constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNames: {
-                                item = await subMenu
-                                    .findElement(cellContextMenu.copySingleRow.subMenu.copyRowWithNames);
-                                break;
-                            }
-
-                            case constants.resultGridContextMenu.copySingleRowContextMenu
-                                .copyRowWithNamesTabSeparated: {
-                                    item = await subMenu
-                                        .findElement(cellContextMenu.copySingleRow.subMenu
-                                            .copyRowWithNamesTabSeparated);
-                                    break;
-                                }
-
-                            case constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesUnquoted: {
-                                item = await subMenu
-                                    .findElement(cellContextMenu.copySingleRow.subMenu.copyRowWithNamesUnquoted);
-                                break;
-                            }
-
-                            default: {
-                                break;
-                            }
-                        }
-                        break;
-                    }
-
-                    case constants.resultGridContextMenu.copyMultipleRows: {
-                        const copyAllRows = await contextMenu
-                            .findElement(cellContextMenu.copyAllRows.exists);
-                        await driver.actions().move({ origin: copyAllRows }).perform();
-                        await driver.wait(until
-                            .elementLocated(cellContextMenu.copyAllRows.subMenu.exists),
-                            constants.wait3seconds, "Sub menu context was not displayed");
-                        switch (subContextMenuItem) {
-
-                            case constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRows: {
-                                item = await driver.findElement(cellContextMenu.copyAllRows.subMenu.copyAllRows);
-                                break;
-                            }
-
-                            case constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsTabSeparated: {
-                                item = await driver
-                                    .findElement(cellContextMenu.copyAllRows.subMenu.copyAllRowsTabSeparated);
-                                break;
-                            }
-
-                            case constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsUnquoted: {
-                                item = await driver
-                                    .findElement(cellContextMenu.copyAllRows.subMenu.copyAllRowsUnquoted);
-                                break;
-                            }
-
-                            case constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNames: {
-                                item = await driver
-                                    .findElement(cellContextMenu.copyAllRows.subMenu.copyAllRowsWithNames);
-                                break;
-                            }
-
-                            case constants.resultGridContextMenu.copyMultipleRowsContextMenu
-                                .copyAllRowsWithNamesTabSeparated: {
-                                    item = await driver
-                                        .findElement(cellContextMenu.copyAllRows.subMenu
-                                            .copyAllRowsWithNamesTabSeparated);
-                                    break;
-                                }
-
-                            case constants.resultGridContextMenu.copyMultipleRowsContextMenu
-                                .copyAllRowsWithNamesUnquoted: {
-                                    item = await driver
-                                        .findElement(cellContextMenu.copyAllRows.subMenu
-                                            .copyAllRowsWithNamesUnquoted);
-                                    break;
-                                }
-                            default: {
-                                break;
-                            }
-                        }
-                        break;
-                    }
-
-                    case constants.resultGridContextMenu.copyField: {
-                        item = await driver.findElement(cellContextMenu.copyField);
-                        break;
-                    }
-
-                    case constants.resultGridContextMenu.copyFieldUnquoted: {
-                        item = await driver.findElement(cellContextMenu.copyFieldUnquoted);
-                        break;
-                    }
-
-                    case constants.resultGridContextMenu.setFieldToNull: {
-                        item = await driver.findElement(cellContextMenu.setFieldToNull);
-                        break;
-                    }
-                    default: {
-                        break;
-                    }
+                    await (await getCellMenuItem(subMenu, subContextMenuItem)).click();
+                } else {
+                    await cellMenuItem.click();
                 }
-
-                await item!.click();
 
                 return driver.wait(until.stalenessOf(contextMenu), constants.wait150MilliSeconds,
                     `The context menu should have been closed, after clicking ${contextMenuItem}, 
                     ${subContextMenuItem}`).then(async () => {
-                        if (reloadResult) {
-                            await this.result.loadResult();
-                        }
+                        await this.result.loadResult();
 
                         return true;
                     }).catch(() => {
                         return false;
                     });
             } catch (e) {
-                console.log(e);
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
@@ -638,7 +508,11 @@ export class CommandResultGrid {
                 constants.resultGridContextMenu.copySingleRowContextMenu.copyRow);
             const fieldValues = (await Os.readClipboard()).split(",");
 
-            return fieldValues.length === allColumns.length;
+            if (fieldValues.length !== allColumns.length) {
+                console.log(`clipboard: ${fieldValues.join(",")}`);
+            } else {
+                return true;
+            }
         }, constants.wait5seconds, `Copy row - Copied field values don't match the number of table column`);
 
         return ((await this.getCellValues(row)).map((item, index) => {
@@ -666,6 +540,12 @@ export class CommandResultGrid {
                 constants.resultGridContextMenu.copySingleRow,
                 constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNames);
             const columns = (await Os.readClipboard()).split("\n");
+
+            if (columns[0].split(",").length !== allColumns.length) {
+                console.log(`clipboard: ${columns.join("\n")}`);
+            } else {
+                return true;
+            }
 
             return columns[0].split(",").length === allColumns.length;
         }, constants.wait5seconds, `Copy row with names - Copied field values don't match the number of table column`);
@@ -699,7 +579,11 @@ export class CommandResultGrid {
                 constants.resultGridContextMenu.copySingleRowContextMenu.copyRowUnquoted);
             const fieldValues = (await Os.readClipboard()).split(",");
 
-            return fieldValues.length === allColumns.length;
+            if (fieldValues.length !== allColumns.length) {
+                console.log(`clipboard: ${fieldValues.join(",")}`);
+            } else {
+                return true;
+            }
         }, constants.wait5seconds, `Copy row unquoted - Copied field values don't match the number of table column`);
 
         return ((await this.getCellValues(row)).map((item) => {
@@ -728,7 +612,11 @@ export class CommandResultGrid {
                 constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesUnquoted);
             const fieldValues = (await Os.readClipboard()).split("\n");
 
-            return fieldValues[0].split(",").length === allColumns.length;
+            if (fieldValues[0].split(",").length !== allColumns.length) {
+                console.log(`clipboard: ${fieldValues.join("\n")}`);
+            } else {
+                return true;
+            }
         }, constants.wait5seconds,
             `Copy row with names unquoted - Copied field values don't match the number of table column`);
 
@@ -761,7 +649,11 @@ export class CommandResultGrid {
                 constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesTabSeparated);
             const fieldValues = (await Os.readClipboard()).split("\n");
 
-            return fieldValues[0].split("\t").length === allColumns.length;
+            if (fieldValues[0].split("\t").length !== allColumns.length) {
+                console.log(`clipboard: ${fieldValues.join("\n")}`);
+            } else {
+                return true;
+            }
         }, constants.wait5seconds,
             `Copy row with names, tab separated - Copied field values don't match the number of table column`);
 
@@ -794,7 +686,11 @@ export class CommandResultGrid {
                 constants.resultGridContextMenu.copySingleRowContextMenu.copyRowTabSeparated);
             const fieldValues = (await Os.readClipboard()).split("\t");
 
-            return fieldValues.length === allColumns.length;
+            if (fieldValues.length !== allColumns.length) {
+                console.log(`clipboard: ${fieldValues.join("\t")}`);
+            } else {
+                return true;
+            }
         }, constants.wait5seconds,
             `Copy row, tab separated - Copied field values don't match the number of table column`);
 
@@ -823,7 +719,11 @@ export class CommandResultGrid {
                 constants.resultGridContextMenu.copyMultipleRows,
                 constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRows);
 
-            return (await Os.getClipboardContent())[0].split(",").length === allColumns.length;
+            if ((await Os.getClipboardContent())[0].split(",").length !== allColumns.length) {
+                console.log(`clipboard: ${(await Os.getClipboardContent()).toString()}`);
+            } else {
+                return true;
+            }
         }, constants.wait5seconds,
             `Copy all rows - Copied field values don't match the number of table column`);
 
@@ -858,7 +758,11 @@ export class CommandResultGrid {
                 constants.resultGridContextMenu.copyMultipleRows,
                 constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNames);
 
-            return (await Os.getClipboardContent())[0].split(",").length === allColumns.length;
+            if ((await Os.getClipboardContent())[0].split(",").length !== allColumns.length) {
+                console.log(`clipboard: ${(await Os.getClipboardContent()).toString()}`);
+            } else {
+                return true;
+            }
         }, constants.wait5seconds,
             `Copy all rows with names - Copied field values don't match the number of table column`);
 
@@ -893,7 +797,11 @@ export class CommandResultGrid {
                 constants.resultGridContextMenu.copyMultipleRows,
                 constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsUnquoted);
 
-            return (await Os.getClipboardContent())[0].split(",").length === allColumns.length;
+            if ((await Os.getClipboardContent())[0].split(",").length !== allColumns.length) {
+                console.log(`clipboard: ${(await Os.getClipboardContent()).toString()}`);
+            } else {
+                return true;
+            }
         }, constants.wait5seconds,
             `Copy all rows unquoted - Copied field values don't match the number of table column`);
 
@@ -928,7 +836,11 @@ export class CommandResultGrid {
                 constants.resultGridContextMenu.copyMultipleRows,
                 constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNamesUnquoted);
 
-            return (await Os.getClipboardContent())[0].split(",").length === allColumns.length;
+            if ((await Os.getClipboardContent())[0].split(",").length !== allColumns.length) {
+                console.log(`clipboard: ${(await Os.getClipboardContent()).toString()}`);
+            } else {
+                return true;
+            }
         }, constants.wait5seconds,
             `Copy all rows with names unquoted - Copied field values don't match the number of table column`);
 
@@ -963,7 +875,11 @@ export class CommandResultGrid {
                 constants.resultGridContextMenu.copyMultipleRows,
                 constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNamesTabSeparated);
 
-            return (await Os.getClipboardContent())[0].split("\t").length === allColumns.length;
+            if ((await Os.getClipboardContent())[0].split("\t").length !== allColumns.length) {
+                console.log(`clipboard: ${(await Os.getClipboardContent()).toString()}`);
+            } else {
+                return true;
+            }
         }, constants.wait5seconds,
             `Copy all rows with names tab separated - Copied field values don't match the number of table column`);
 
@@ -998,7 +914,11 @@ export class CommandResultGrid {
                 constants.resultGridContextMenu.copyMultipleRows,
                 constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsTabSeparated);
 
-            return (await Os.getClipboardContent())[0].split("\t").length === allColumns.length;
+            if ((await Os.getClipboardContent())[0].split("\t").length !== allColumns.length) {
+                console.log(`clipboard: ${(await Os.getClipboardContent()).toString()}`);
+            } else {
+                return true;
+            }
         }, constants.wait5seconds,
             `Copy all rows tab separated - Copied field values don't match the number of table column`);
 

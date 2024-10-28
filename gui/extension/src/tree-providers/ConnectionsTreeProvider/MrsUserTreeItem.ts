@@ -23,18 +23,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IMrsUserData } from "../../../../frontend/src/communication/ProtocolMrs.js";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import type { ICdmRestUserEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
-export class MrsUserTreeItem extends MrsTreeBaseItem {
+export class MrsUserTreeItem extends MrsTreeBaseItem<ICdmRestUserEntry> {
     public override contextValue = "mrsUser";
 
-    public constructor(
-        label: string,
-        public value: IMrsUserData,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number) {
-        super(label, backend, connectionId, "ociProfile.svg", false);
+    public constructor(dataModelEntry: ICdmRestUserEntry) {
+        super(dataModelEntry, "ociProfile.svg", false);
     }
 }

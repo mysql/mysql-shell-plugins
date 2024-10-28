@@ -25,17 +25,17 @@
 
 import { ComponentChild } from "preact";
 
-import toolbarMenuIcon from "../../../assets/images/toolbar/toolbar-menu.svg";
 import newNotebookIcon from "../../../assets/images/newNotebook.svg";
 import newScriptIcon from "../../../assets/images/newScript.svg";
+import toolbarMenuIcon from "../../../assets/images/toolbar/toolbar-menu.svg";
 
-import { IConnectionDetails } from "../../../supplement/ShellInterface/index.js";
+import type { ICdmConnectionEntry } from "../../../data-models/ConnectionDataModel.js";
 import { BrowserTile, IBrowserTileProperties } from "../BrowserTile/BrowserTile.js";
 import { Button } from "../Button/Button.js";
 import { Icon } from "../Icon/Icon.js";
 
 export interface IConnectionTileProperties extends IBrowserTileProperties {
-    details: IConnectionDetails;
+    entry?: ICdmConnectionEntry;
 }
 
 export class ConnectionTile extends BrowserTile<IConnectionTileProperties> {

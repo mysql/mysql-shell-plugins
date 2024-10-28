@@ -23,14 +23,15 @@
 
 import { Condition } from "selenium-webdriver";
 import * as locator from "../locators.js";
-import { driver } from "../driver.js";
+import { driver } from "../../lib/driver.js";
 import { PasswordDialog } from "../Dialogs/PasswordDialog.js";
 import * as interfaces from "../interfaces.js";
 import * as constants from "../constants.js";
 import { E2EServerStatus } from "./E2EServerStatus.js";
-import { E2EClientConnections } from "./E2EClientConnections.js";
 import { E2EPerformanceDashboard } from "./E2EPerformanceDashboard.js";
 import { E2ELakeHouseNavigator } from "./E2ELakeHouseNavigator.js";
+import { E2EClientConnections } from "./E2EClientConnections.js";
+import { E2ETabContainer } from "../E2ETabContainer.js";
 
 /**
  * This class represents the MySQL Administration pages and all its related functions
@@ -52,43 +53,22 @@ export class E2EMySQLAdministration {
     /**
      * Verifies if the page is opened and fully loaded
      * @param connection The DB connection
-     * @param page The page (Server Status, Client Connections, Performance Dashboard, Lakehouse Navigator))
      * @returns A condition resolving to true if the page is fully loaded, false otherwise
      */
-    public untilPageIsOpened = (connection: interfaces.IDBConnection, page: string): Condition<boolean> => {
-        return new Condition(`for Server Status to be opened`, async () => {
+    public untilPageIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
+        return new Condition(`for MySQL Administration page to be opened`, async () => {
 
-            const isOpened = async (page: string): Promise<boolean> => {
-                switch (page) {
-                    case constants.serverStatus: {
-                        return (await driver.findElements(locator.mysqlAdministration.serverStatus.exists)).length > 0;
-                    }
+            const isOpened = async (): Promise<boolean> => {
+                const tabContainer = new E2ETabContainer();
 
-                    case constants.clientConnections: {
-                        return (await driver.findElements(locator.mysqlAdministration.clientConnections.toolbar))
-                            .length > 0;
-                    }
-
-                    case constants.performanceDashboard: {
-                        return (await driver.findElements(locator.mysqlAdministration.performanceDashboard.exists))
-                            .length > 0;
-                    }
-
-                    case constants.lakeHouseNavigator: {
-                        return (await driver.findElements(locator.lakeHouseNavigator.exists)).length > 0;
-                    }
-
-                    default: {
-                        throw new Error(`Unknown page`);
-                    }
-                }
+                return (await tabContainer.getTab(connection.caption!)) !== undefined;
             };
 
             if (await PasswordDialog.exists()) {
                 await PasswordDialog.setCredentials(connection);
 
                 return driver.wait(async () => {
-                    return isOpened(page);
+                    return isOpened();
                 }, constants.wait10seconds).catch(async () => {
                     const existsErrorDialog = (await driver.findElements(locator.errorDialog.exists)).length > 0;
                     if (existsErrorDialog) {
@@ -100,7 +80,7 @@ export class E2EMySQLAdministration {
                     }
                 });
             } else {
-                return isOpened(page);
+                return isOpened();
             }
         });
     };

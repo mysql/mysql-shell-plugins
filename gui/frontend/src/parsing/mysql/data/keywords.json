@@ -13268,5 +13268,3323 @@
                 "reserved": false
             }
         ]
+    ],
+    "MySQL84": [
+        [
+            {
+                "word": "ACCESSIBLE",
+                "reserved": true
+            },
+            {
+                "word": "ACCOUNT",
+                "reserved": false
+            },
+            {
+                "word": "ACTION",
+                "reserved": false
+            },
+            {
+                "word": "ADD",
+                "reserved": true
+            },
+            {
+                "word": "ADDDATE",
+                "reserved": false
+            },
+            {
+                "word": "AFTER",
+                "reserved": false
+            },
+            {
+                "word": "AGAINST",
+                "reserved": false
+            },
+            {
+                "word": "AGGREGATE",
+                "reserved": false
+            },
+            {
+                "word": "ALGORITHM",
+                "reserved": false
+            },
+            {
+                "word": "ALL",
+                "reserved": true
+            },
+            {
+                "word": "ALTER",
+                "reserved": true
+            },
+            {
+                "word": "ALWAYS",
+                "reserved": false
+            },
+            {
+                "word": "ANALYZE",
+                "reserved": true
+            },
+            {
+                "word": "AND",
+                "reserved": true
+            },
+            {
+                "word": "SOME",
+                "reserved": false
+            },
+            {
+                "word": "ANY",
+                "reserved": false
+            },
+            {
+                "word": "AS",
+                "reserved": true
+            },
+            {
+                "word": "ASC",
+                "reserved": true
+            },
+            {
+                "word": "ASCII",
+                "reserved": false
+            },
+            {
+                "word": "ASENSITIVE",
+                "reserved": true
+            },
+            {
+                "word": "AT",
+                "reserved": false
+            },
+            {
+                "word": "AUTOEXTEND_SIZE",
+                "reserved": false
+            },
+            {
+                "word": "AUTO_INCREMENT",
+                "reserved": false
+            },
+            {
+                "word": "AVG_ROW_LENGTH",
+                "reserved": false
+            },
+            {
+                "word": "AVG",
+                "reserved": false
+            },
+            {
+                "word": "BACKUP",
+                "reserved": false
+            },
+            {
+                "word": "BEFORE",
+                "reserved": true
+            },
+            {
+                "word": "BEGIN",
+                "reserved": false
+            },
+            {
+                "word": "BETWEEN",
+                "reserved": true
+            },
+            {
+                "word": "BIGINT",
+                "reserved": true
+            },
+            {
+                "word": "BINARY",
+                "reserved": true
+            },
+            {
+                "word": "BINLOG",
+                "reserved": false
+            },
+            {
+                "word": "BIT",
+                "reserved": false
+            },
+            {
+                "word": "BLOB",
+                "reserved": true
+            },
+            {
+                "word": "BLOCK",
+                "reserved": false
+            },
+            {
+                "word": "BOOLEAN",
+                "reserved": false
+            },
+            {
+                "word": "BOOL",
+                "reserved": false
+            },
+            {
+                "word": "BOTH",
+                "reserved": true
+            },
+            {
+                "word": "BTREE",
+                "reserved": false
+            },
+            {
+                "word": "BY",
+                "reserved": true
+            },
+            {
+                "word": "BYTE",
+                "reserved": false
+            },
+            {
+                "word": "CACHE",
+                "reserved": false
+            },
+            {
+                "word": "CALL",
+                "reserved": true
+            },
+            {
+                "word": "CASCADE",
+                "reserved": true
+            },
+            {
+                "word": "CASCADED",
+                "reserved": false
+            },
+            {
+                "word": "CASE",
+                "reserved": true
+            },
+            {
+                "word": "CAST",
+                "reserved": true
+            },
+            {
+                "word": "CATALOG_NAME",
+                "reserved": false
+            },
+            {
+                "word": "CHAIN",
+                "reserved": false
+            },
+            {
+                "word": "CHANGE",
+                "reserved": true
+            },
+            {
+                "word": "CHANGED",
+                "reserved": false
+            },
+            {
+                "word": "CHANNEL",
+                "reserved": false
+            },
+            {
+                "word": "CHARSET",
+                "reserved": false
+            },
+            {
+                "word": "CHAR",
+                "reserved": true
+            },
+            {
+                "word": "CHARACTER",
+                "reserved": true
+            },
+            {
+                "word": "CHECKSUM",
+                "reserved": false
+            },
+            {
+                "word": "CHECK",
+                "reserved": true
+            },
+            {
+                "word": "CIPHER",
+                "reserved": false
+            },
+            {
+                "word": "CLASS_ORIGIN",
+                "reserved": false
+            },
+            {
+                "word": "CLIENT",
+                "reserved": false
+            },
+            {
+                "word": "CLONE",
+                "reserved": false
+            },
+            {
+                "word": "CLOSE",
+                "reserved": false
+            },
+            {
+                "word": "COALESCE",
+                "reserved": false
+            },
+            {
+                "word": "CODE",
+                "reserved": false
+            },
+            {
+                "word": "COLLATE",
+                "reserved": true
+            },
+            {
+                "word": "COLLATION",
+                "reserved": false
+            },
+            {
+                "word": "COLUMNS",
+                "reserved": false
+            },
+            {
+                "word": "FIELDS",
+                "reserved": false
+            },
+            {
+                "word": "COLUMN",
+                "reserved": true
+            },
+            {
+                "word": "COLUMN_FORMAT",
+                "reserved": false
+            },
+            {
+                "word": "COLUMN_NAME",
+                "reserved": false
+            },
+            {
+                "word": "COMMENT",
+                "reserved": false
+            },
+            {
+                "word": "COMMITTED",
+                "reserved": false
+            },
+            {
+                "word": "COMMIT",
+                "reserved": false
+            },
+            {
+                "word": "COMPACT",
+                "reserved": false
+            },
+            {
+                "word": "COMPLETION",
+                "reserved": false
+            },
+            {
+                "word": "COMPRESSED",
+                "reserved": false
+            },
+            {
+                "word": "COMPRESSION",
+                "reserved": false
+            },
+            {
+                "word": "ENCRYPTION",
+                "reserved": false
+            },
+            {
+                "word": "CONCURRENT",
+                "reserved": false
+            },
+            {
+                "word": "CONDITION",
+                "reserved": true
+            },
+            {
+                "word": "CONNECTION",
+                "reserved": false
+            },
+            {
+                "word": "CONSISTENT",
+                "reserved": false
+            },
+            {
+                "word": "CONSTRAINT",
+                "reserved": true
+            },
+            {
+                "word": "CONSTRAINT_CATALOG",
+                "reserved": false
+            },
+            {
+                "word": "CONSTRAINT_NAME",
+                "reserved": false
+            },
+            {
+                "word": "CONSTRAINT_SCHEMA",
+                "reserved": false
+            },
+            {
+                "word": "CONTAINS",
+                "reserved": false
+            },
+            {
+                "word": "CONTEXT",
+                "reserved": false
+            },
+            {
+                "word": "CONTINUE",
+                "reserved": true
+            },
+            {
+                "word": "CONVERT",
+                "reserved": true
+            },
+            {
+                "word": "COUNT",
+                "reserved": true
+            },
+            {
+                "word": "CREATE",
+                "reserved": true
+            },
+            {
+                "word": "CROSS",
+                "reserved": true
+            },
+            {
+                "word": "CUBE",
+                "reserved": true
+            },
+            {
+                "word": "CURRENT_DATE",
+                "reserved": true
+            },
+            {
+                "word": "CURRENT",
+                "reserved": false
+            },
+            {
+                "word": "CURRENT_USER",
+                "reserved": true
+            },
+            {
+                "word": "CURSOR",
+                "reserved": true
+            },
+            {
+                "word": "CURSOR_NAME",
+                "reserved": false
+            },
+            {
+                "word": "CURRENT_TIME",
+                "reserved": true
+            },
+            {
+                "word": "SCHEMA",
+                "reserved": true
+            },
+            {
+                "word": "SCHEMAS",
+                "reserved": true
+            },
+            {
+                "word": "DATABASE",
+                "reserved": true
+            },
+            {
+                "word": "DATABASES",
+                "reserved": true
+            },
+            {
+                "word": "DATAFILE",
+                "reserved": false
+            },
+            {
+                "word": "DATA",
+                "reserved": false
+            },
+            {
+                "word": "DATETIME",
+                "reserved": false
+            },
+            {
+                "word": "DATE_ADD",
+                "reserved": true
+            },
+            {
+                "word": "DATE_SUB",
+                "reserved": true
+            },
+            {
+                "word": "DATE",
+                "reserved": false
+            },
+            {
+                "word": "DAY_HOUR",
+                "reserved": true
+            },
+            {
+                "word": "DAY_MICROSECOND",
+                "reserved": true
+            },
+            {
+                "word": "DAY_MINUTE",
+                "reserved": true
+            },
+            {
+                "word": "DAY_SECOND",
+                "reserved": true
+            },
+            {
+                "word": "SQL_TSI_DAY",
+                "reserved": false
+            },
+            {
+                "word": "DAY",
+                "reserved": false
+            },
+            {
+                "word": "DEALLOCATE",
+                "reserved": false
+            },
+            {
+                "word": "DEC",
+                "reserved": true
+            },
+            {
+                "word": "DECIMAL",
+                "reserved": true
+            },
+            {
+                "word": "DECLARE",
+                "reserved": true
+            },
+            {
+                "word": "DEFAULT",
+                "reserved": true
+            },
+            {
+                "word": "DEFAULT_AUTH",
+                "reserved": false
+            },
+            {
+                "word": "DEFINER",
+                "reserved": false
+            },
+            {
+                "word": "DELAYED",
+                "reserved": true
+            },
+            {
+                "word": "DELAY_KEY_WRITE",
+                "reserved": false
+            },
+            {
+                "word": "DELETE",
+                "reserved": true
+            },
+            {
+                "word": "DESC",
+                "reserved": true
+            },
+            {
+                "word": "DESCRIBE",
+                "reserved": true
+            },
+            {
+                "word": "DETERMINISTIC",
+                "reserved": true
+            },
+            {
+                "word": "DIAGNOSTICS",
+                "reserved": false
+            },
+            {
+                "word": "DIRECTORY",
+                "reserved": false
+            },
+            {
+                "word": "DISABLE",
+                "reserved": false
+            },
+            {
+                "word": "DISCARD",
+                "reserved": false
+            },
+            {
+                "word": "DISK",
+                "reserved": false
+            },
+            {
+                "word": "DISTINCT",
+                "reserved": true
+            },
+            {
+                "word": "DISTINCTROW",
+                "reserved": true
+            },
+            {
+                "word": "DIV",
+                "reserved": true
+            },
+            {
+                "word": "DOUBLE",
+                "reserved": true
+            },
+            {
+                "word": "DO",
+                "reserved": false
+            },
+            {
+                "word": "DROP",
+                "reserved": true
+            },
+            {
+                "word": "DUAL",
+                "reserved": true
+            },
+            {
+                "word": "DUMPFILE",
+                "reserved": false
+            },
+            {
+                "word": "DUPLICATE",
+                "reserved": false
+            },
+            {
+                "word": "DYNAMIC",
+                "reserved": false
+            },
+            {
+                "word": "EACH",
+                "reserved": true
+            },
+            {
+                "word": "ELSE",
+                "reserved": true
+            },
+            {
+                "word": "ELSEIF",
+                "reserved": true
+            },
+            {
+                "word": "EMPTY",
+                "reserved": true
+            },
+            {
+                "word": "ENABLE",
+                "reserved": false
+            },
+            {
+                "word": "ENCLOSED",
+                "reserved": true
+            },
+            {
+                "word": "END",
+                "reserved": false
+            },
+            {
+                "word": "ENDS",
+                "reserved": false
+            },
+            {
+                "word": "ENGINES",
+                "reserved": false
+            },
+            {
+                "word": "ENGINE",
+                "reserved": false
+            },
+            {
+                "word": "ENUM",
+                "reserved": false
+            },
+            {
+                "word": "ERROR",
+                "reserved": false
+            },
+            {
+                "word": "ERRORS",
+                "reserved": false
+            },
+            {
+                "word": "ESCAPED",
+                "reserved": true
+            },
+            {
+                "word": "ESCAPE",
+                "reserved": false
+            },
+            {
+                "word": "EVENTS",
+                "reserved": false
+            },
+            {
+                "word": "EVENT",
+                "reserved": false
+            },
+            {
+                "word": "EVERY",
+                "reserved": false
+            },
+            {
+                "word": "EXCHANGE",
+                "reserved": false
+            },
+            {
+                "word": "EXECUTE",
+                "reserved": false
+            },
+            {
+                "word": "EXISTS",
+                "reserved": true
+            },
+            {
+                "word": "EXIT",
+                "reserved": true
+            },
+            {
+                "word": "EXPANSION",
+                "reserved": false
+            },
+            {
+                "word": "EXPIRE",
+                "reserved": false
+            },
+            {
+                "word": "EXPLAIN",
+                "reserved": true
+            },
+            {
+                "word": "EXPORT",
+                "reserved": false
+            },
+            {
+                "word": "EXTENDED",
+                "reserved": false
+            },
+            {
+                "word": "EXTENT_SIZE",
+                "reserved": false
+            },
+            {
+                "word": "EXTRACT",
+                "reserved": true
+            },
+            {
+                "word": "FALSE",
+                "reserved": true
+            },
+            {
+                "word": "FAST",
+                "reserved": false
+            },
+            {
+                "word": "FAULTS",
+                "reserved": false
+            },
+            {
+                "word": "FETCH",
+                "reserved": true
+            },
+            {
+                "word": "FILE",
+                "reserved": false
+            },
+            {
+                "word": "FILE_BLOCK_SIZE",
+                "reserved": false
+            },
+            {
+                "word": "FILTER",
+                "reserved": false
+            },
+            {
+                "word": "FIRST",
+                "reserved": false
+            },
+            {
+                "word": "FIXED",
+                "reserved": false
+            },
+            {
+                "word": "FLOAT",
+                "reserved": true
+            },
+            {
+                "word": "FLOAT4",
+                "reserved": true
+            },
+            {
+                "word": "FLOAT8",
+                "reserved": true
+            },
+            {
+                "word": "FLUSH",
+                "reserved": false
+            },
+            {
+                "word": "FOLLOWS",
+                "reserved": false
+            },
+            {
+                "word": "FORCE",
+                "reserved": true
+            },
+            {
+                "word": "FOREIGN",
+                "reserved": true
+            },
+            {
+                "word": "FOR",
+                "reserved": true
+            },
+            {
+                "word": "FORMAT",
+                "reserved": false
+            },
+            {
+                "word": "FOUND",
+                "reserved": false
+            },
+            {
+                "word": "FROM",
+                "reserved": true
+            },
+            {
+                "word": "FULL",
+                "reserved": false
+            },
+            {
+                "word": "FULLTEXT",
+                "reserved": true
+            },
+            {
+                "word": "FUNCTION",
+                "reserved": true
+            },
+            {
+                "word": "GENERAL",
+                "reserved": false
+            },
+            {
+                "word": "GENERATED",
+                "reserved": true
+            },
+            {
+                "word": "GROUP_REPLICATION",
+                "reserved": true
+            },
+            {
+                "word": "GEOMETRYCOLLECTION",
+                "reserved": false
+            },
+            {
+                "word": "GEOMCOLLECTION",
+                "reserved": false
+            },
+            {
+                "word": "GEOMETRY",
+                "reserved": false
+            },
+            {
+                "word": "GET_FORMAT",
+                "reserved": false
+            },
+            {
+                "word": "GET",
+                "reserved": true
+            },
+            {
+                "word": "GLOBAL",
+                "reserved": false
+            },
+            {
+                "word": "GRANT",
+                "reserved": true
+            },
+            {
+                "word": "GRANTS",
+                "reserved": false
+            },
+            {
+                "word": "GROUP",
+                "reserved": true
+            },
+            {
+                "word": "GROUP_CONCAT",
+                "reserved": true
+            },
+            {
+                "word": "HANDLER",
+                "reserved": false
+            },
+            {
+                "word": "HASH",
+                "reserved": false
+            },
+            {
+                "word": "HAVING",
+                "reserved": true
+            },
+            {
+                "word": "HELP",
+                "reserved": false
+            },
+            {
+                "word": "HIGH_PRIORITY",
+                "reserved": true
+            },
+            {
+                "word": "HOST",
+                "reserved": false
+            },
+            {
+                "word": "HOSTS",
+                "reserved": false
+            },
+            {
+                "word": "HOUR_MICROSECOND",
+                "reserved": true
+            },
+            {
+                "word": "HOUR_MINUTE",
+                "reserved": true
+            },
+            {
+                "word": "HOUR_SECOND",
+                "reserved": true
+            },
+            {
+                "word": "SQL_TSI_HOUR",
+                "reserved": false
+            },
+            {
+                "word": "HOUR",
+                "reserved": false
+            },
+            {
+                "word": "IDENTIFIED",
+                "reserved": false
+            },
+            {
+                "word": "IF",
+                "reserved": true
+            },
+            {
+                "word": "IGNORE",
+                "reserved": true
+            },
+            {
+                "word": "IGNORE_SERVER_IDS",
+                "reserved": false
+            },
+            {
+                "word": "IMPORT",
+                "reserved": false
+            },
+            {
+                "word": "INDEXES",
+                "reserved": false
+            },
+            {
+                "word": "INDEX",
+                "reserved": true
+            },
+            {
+                "word": "INFILE",
+                "reserved": true
+            },
+            {
+                "word": "INITIAL_SIZE",
+                "reserved": false
+            },
+            {
+                "word": "INNER",
+                "reserved": true
+            },
+            {
+                "word": "INOUT",
+                "reserved": true
+            },
+            {
+                "word": "INSENSITIVE",
+                "reserved": true
+            },
+            {
+                "word": "INSERT",
+                "reserved": true
+            },
+            {
+                "word": "INSERT_METHOD",
+                "reserved": false
+            },
+            {
+                "word": "INSTANCE",
+                "reserved": false
+            },
+            {
+                "word": "INSTALL",
+                "reserved": false
+            },
+            {
+                "word": "INTERVAL",
+                "reserved": true
+            },
+            {
+                "word": "INTO",
+                "reserved": true
+            },
+            {
+                "word": "INT",
+                "reserved": true
+            },
+            {
+                "word": "INT1",
+                "reserved": true
+            },
+            {
+                "word": "INT2",
+                "reserved": true
+            },
+            {
+                "word": "INT3",
+                "reserved": true
+            },
+            {
+                "word": "INT4",
+                "reserved": true
+            },
+            {
+                "word": "INT8",
+                "reserved": true
+            },
+            {
+                "word": "INTEGER",
+                "reserved": true
+            },
+            {
+                "word": "INVOKER",
+                "reserved": false
+            },
+            {
+                "word": "IN",
+                "reserved": true
+            },
+            {
+                "word": "IO_AFTER_GTIDS",
+                "reserved": true
+            },
+            {
+                "word": "IO_BEFORE_GTIDS",
+                "reserved": true
+            },
+            {
+                "word": "IO",
+                "reserved": false
+            },
+            {
+                "word": "IPC",
+                "reserved": false
+            },
+            {
+                "word": "IS",
+                "reserved": true
+            },
+            {
+                "word": "ISOLATION",
+                "reserved": false
+            },
+            {
+                "word": "ISSUER",
+                "reserved": false
+            },
+            {
+                "word": "ITERATE",
+                "reserved": true
+            },
+            {
+                "word": "JOIN",
+                "reserved": true
+            },
+            {
+                "word": "JSON",
+                "reserved": false
+            },
+            {
+                "word": "KEYS",
+                "reserved": true
+            },
+            {
+                "word": "KEY_BLOCK_SIZE",
+                "reserved": false
+            },
+            {
+                "word": "KEY",
+                "reserved": true
+            },
+            {
+                "word": "KILL",
+                "reserved": true
+            },
+            {
+                "word": "LANGUAGE",
+                "reserved": false
+            },
+            {
+                "word": "LAST",
+                "reserved": false
+            },
+            {
+                "word": "LEADING",
+                "reserved": true
+            },
+            {
+                "word": "LEAVES",
+                "reserved": false
+            },
+            {
+                "word": "LEAVE",
+                "reserved": true
+            },
+            {
+                "word": "LEFT",
+                "reserved": true
+            },
+            {
+                "word": "LESS",
+                "reserved": false
+            },
+            {
+                "word": "LEVEL",
+                "reserved": false
+            },
+            {
+                "word": "LIKE",
+                "reserved": true
+            },
+            {
+                "word": "LIMIT",
+                "reserved": true
+            },
+            {
+                "word": "LINEAR",
+                "reserved": true
+            },
+            {
+                "word": "LINES",
+                "reserved": true
+            },
+            {
+                "word": "LINESTRING",
+                "reserved": false
+            },
+            {
+                "word": "LIST",
+                "reserved": false
+            },
+            {
+                "word": "LOAD",
+                "reserved": true
+            },
+            {
+                "word": "LOCAL",
+                "reserved": false
+            },
+            {
+                "word": "LOCKS",
+                "reserved": false
+            },
+            {
+                "word": "LOCK",
+                "reserved": true
+            },
+            {
+                "word": "LOGFILE",
+                "reserved": false
+            },
+            {
+                "word": "LOGS",
+                "reserved": false
+            },
+            {
+                "word": "LONGBLOB",
+                "reserved": true
+            },
+            {
+                "word": "LONGTEXT",
+                "reserved": true
+            },
+            {
+                "word": "LONG",
+                "reserved": true
+            },
+            {
+                "word": "LOOP",
+                "reserved": true
+            },
+            {
+                "word": "LOW_PRIORITY",
+                "reserved": true
+            },
+            {
+                "word": "MASTER_AUTO_POSITION",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_BIND",
+                "reserved": true
+            },
+            {
+                "word": "MASTER_CONNECT_RETRY",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_DELAY",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_HOST",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_LOG_FILE",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_LOG_POS",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_PASSWORD",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_PORT",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_RETRY_COUNT",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_SSL_CAPATH",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_TLS_VERSION",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_SSL_CA",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_SSL_CERT",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_SSL_CIPHER",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_SSL_CRL",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_SSL_CRLPATH",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_SSL_KEY",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_SSL",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_SSL_VERIFY_SERVER_CERT",
+                "reserved": true
+            },
+            {
+                "word": "MASTER",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_USER",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_HEARTBEAT_PERIOD",
+                "reserved": false
+            },
+            {
+                "word": "MATCH",
+                "reserved": true
+            },
+            {
+                "word": "MAX_CONNECTIONS_PER_HOUR",
+                "reserved": false
+            },
+            {
+                "word": "MAX_QUERIES_PER_HOUR",
+                "reserved": false
+            },
+            {
+                "word": "MAX_ROWS",
+                "reserved": false
+            },
+            {
+                "word": "MAX_SIZE",
+                "reserved": false
+            },
+            {
+                "word": "MAX",
+                "reserved": true
+            },
+            {
+                "word": "MAX_UPDATES_PER_HOUR",
+                "reserved": false
+            },
+            {
+                "word": "MAX_USER_CONNECTIONS",
+                "reserved": false
+            },
+            {
+                "word": "MAXVALUE",
+                "reserved": true
+            },
+            {
+                "word": "MEDIUMBLOB",
+                "reserved": true
+            },
+            {
+                "word": "MIDDLEINT",
+                "reserved": true
+            },
+            {
+                "word": "MEDIUMINT",
+                "reserved": true
+            },
+            {
+                "word": "MEDIUMTEXT",
+                "reserved": true
+            },
+            {
+                "word": "MEDIUM",
+                "reserved": false
+            },
+            {
+                "word": "MEMORY",
+                "reserved": false
+            },
+            {
+                "word": "MERGE",
+                "reserved": false
+            },
+            {
+                "word": "MESSAGE_TEXT",
+                "reserved": false
+            },
+            {
+                "word": "MICROSECOND",
+                "reserved": false
+            },
+            {
+                "word": "MIGRATE",
+                "reserved": false
+            },
+            {
+                "word": "MINUTE_MICROSECOND",
+                "reserved": true
+            },
+            {
+                "word": "MINUTE_SECOND",
+                "reserved": true
+            },
+            {
+                "word": "SQL_TSI_MINUTE",
+                "reserved": false
+            },
+            {
+                "word": "MINUTE",
+                "reserved": false
+            },
+            {
+                "word": "MIN_ROWS",
+                "reserved": false
+            },
+            {
+                "word": "MIN",
+                "reserved": true
+            },
+            {
+                "word": "MODE",
+                "reserved": false
+            },
+            {
+                "word": "MODIFIES",
+                "reserved": true
+            },
+            {
+                "word": "MODIFY",
+                "reserved": false
+            },
+            {
+                "word": "MOD",
+                "reserved": true
+            },
+            {
+                "word": "SQL_TSI_MONTH",
+                "reserved": false
+            },
+            {
+                "word": "MONTH",
+                "reserved": false
+            },
+            {
+                "word": "MULTILINESTRING",
+                "reserved": false
+            },
+            {
+                "word": "MULTIPOINT",
+                "reserved": false
+            },
+            {
+                "word": "MULTIPOLYGON",
+                "reserved": false
+            },
+            {
+                "word": "MUTEX",
+                "reserved": false
+            },
+            {
+                "word": "MYSQL_ERRNO",
+                "reserved": false
+            },
+            {
+                "word": "NAMES",
+                "reserved": false
+            },
+            {
+                "word": "NAME",
+                "reserved": false
+            },
+            {
+                "word": "NATIONAL",
+                "reserved": false
+            },
+            {
+                "word": "NATURAL",
+                "reserved": true
+            },
+            {
+                "word": "NCHAR",
+                "reserved": false
+            },
+            {
+                "word": "NDB",
+                "reserved": false
+            },
+            {
+                "word": "NDBCLUSTER",
+                "reserved": false
+            },
+            {
+                "word": "NEVER",
+                "reserved": false
+            },
+            {
+                "word": "NEW",
+                "reserved": false
+            },
+            {
+                "word": "NEXT",
+                "reserved": false
+            },
+            {
+                "word": "NODEGROUP",
+                "reserved": false
+            },
+            {
+                "word": "NONE",
+                "reserved": false
+            },
+            {
+                "word": "NOT",
+                "reserved": true
+            },
+            {
+                "word": "CURRENT_TIMESTAMP",
+                "reserved": true
+            },
+            {
+                "word": "LOCALTIME",
+                "reserved": true
+            },
+            {
+                "word": "LOCALTIMESTAMP",
+                "reserved": true
+            },
+            {
+                "word": "NOW",
+                "reserved": true
+            },
+            {
+                "word": "NO",
+                "reserved": false
+            },
+            {
+                "word": "NO_WAIT",
+                "reserved": false
+            },
+            {
+                "word": "NO_WRITE_TO_BINLOG",
+                "reserved": true
+            },
+            {
+                "word": "NULL",
+                "reserved": true
+            },
+            {
+                "word": "NUMBER",
+                "reserved": false
+            },
+            {
+                "word": "NUMERIC",
+                "reserved": true
+            },
+            {
+                "word": "NVARCHAR",
+                "reserved": false
+            },
+            {
+                "word": "OFFSET",
+                "reserved": false
+            },
+            {
+                "word": "ON",
+                "reserved": true
+            },
+            {
+                "word": "ONE",
+                "reserved": false
+            },
+            {
+                "word": "ONLY",
+                "reserved": false
+            },
+            {
+                "word": "OPEN",
+                "reserved": false
+            },
+            {
+                "word": "OPTIMIZE",
+                "reserved": true
+            },
+            {
+                "word": "OPTIMIZER_COSTS",
+                "reserved": true
+            },
+            {
+                "word": "OPTIONS",
+                "reserved": false
+            },
+            {
+                "word": "OPTION",
+                "reserved": true
+            },
+            {
+                "word": "OPTIONAL",
+                "reserved": false
+            },
+            {
+                "word": "OPTIONALLY",
+                "reserved": true
+            },
+            {
+                "word": "ORDER",
+                "reserved": true
+            },
+            {
+                "word": "OR",
+                "reserved": true
+            },
+            {
+                "word": "OUTER",
+                "reserved": true
+            },
+            {
+                "word": "OUTFILE",
+                "reserved": true
+            },
+            {
+                "word": "OUT",
+                "reserved": true
+            },
+            {
+                "word": "OWNER",
+                "reserved": false
+            },
+            {
+                "word": "PACK_KEYS",
+                "reserved": false
+            },
+            {
+                "word": "PAGE",
+                "reserved": false
+            },
+            {
+                "word": "PARSER",
+                "reserved": false
+            },
+            {
+                "word": "PARTIAL",
+                "reserved": false
+            },
+            {
+                "word": "PARTITION",
+                "reserved": true
+            },
+            {
+                "word": "PARTITIONS",
+                "reserved": false
+            },
+            {
+                "word": "PARTITIONING",
+                "reserved": false
+            },
+            {
+                "word": "PASSWORD",
+                "reserved": false
+            },
+            {
+                "word": "PHASE",
+                "reserved": false
+            },
+            {
+                "word": "PLUGIN_DIR",
+                "reserved": false
+            },
+            {
+                "word": "PLUGIN",
+                "reserved": false
+            },
+            {
+                "word": "PLUGINS",
+                "reserved": false
+            },
+            {
+                "word": "POINT",
+                "reserved": false
+            },
+            {
+                "word": "POLYGON",
+                "reserved": false
+            },
+            {
+                "word": "PORT",
+                "reserved": false
+            },
+            {
+                "word": "POSITION",
+                "reserved": true
+            },
+            {
+                "word": "PRECEDES",
+                "reserved": false
+            },
+            {
+                "word": "PRECISION",
+                "reserved": true
+            },
+            {
+                "word": "PREPARE",
+                "reserved": false
+            },
+            {
+                "word": "PRESERVE",
+                "reserved": false
+            },
+            {
+                "word": "PREV",
+                "reserved": false
+            },
+            {
+                "word": "PRIMARY",
+                "reserved": true
+            },
+            {
+                "word": "PRIVILEGES",
+                "reserved": false
+            },
+            {
+                "word": "PROCEDURE",
+                "reserved": true
+            },
+            {
+                "word": "PROCESS",
+                "reserved": false
+            },
+            {
+                "word": "PROCESSLIST",
+                "reserved": false
+            },
+            {
+                "word": "PROFILE",
+                "reserved": false
+            },
+            {
+                "word": "PROFILES",
+                "reserved": false
+            },
+            {
+                "word": "PROXY",
+                "reserved": false
+            },
+            {
+                "word": "PURGE",
+                "reserved": true
+            },
+            {
+                "word": "SQL_TSI_QUARTER",
+                "reserved": false
+            },
+            {
+                "word": "QUARTER",
+                "reserved": false
+            },
+            {
+                "word": "QUERY",
+                "reserved": false
+            },
+            {
+                "word": "QUICK",
+                "reserved": false
+            },
+            {
+                "word": "RANGE",
+                "reserved": true
+            },
+            {
+                "word": "READS",
+                "reserved": true
+            },
+            {
+                "word": "READ_ONLY",
+                "reserved": false
+            },
+            {
+                "word": "READ",
+                "reserved": true
+            },
+            {
+                "word": "READ_WRITE",
+                "reserved": true
+            },
+            {
+                "word": "REAL",
+                "reserved": true
+            },
+            {
+                "word": "REBUILD",
+                "reserved": false
+            },
+            {
+                "word": "RECOVER",
+                "reserved": false
+            },
+            {
+                "word": "REDO_BUFFER_SIZE",
+                "reserved": false
+            },
+            {
+                "word": "REDUNDANT",
+                "reserved": false
+            },
+            {
+                "word": "REFERENCES",
+                "reserved": true
+            },
+            {
+                "word": "RLIKE",
+                "reserved": true
+            },
+            {
+                "word": "REGEXP",
+                "reserved": true
+            },
+            {
+                "word": "RELAY",
+                "reserved": false
+            },
+            {
+                "word": "RELAYLOG",
+                "reserved": false
+            },
+            {
+                "word": "RELAY_LOG_FILE",
+                "reserved": false
+            },
+            {
+                "word": "RELAY_LOG_POS",
+                "reserved": false
+            },
+            {
+                "word": "IO_THREAD",
+                "reserved": false
+            },
+            {
+                "word": "RELAY_THREAD",
+                "reserved": false
+            },
+            {
+                "word": "RELEASE",
+                "reserved": true
+            },
+            {
+                "word": "RELOAD",
+                "reserved": false
+            },
+            {
+                "word": "REMOVE",
+                "reserved": false
+            },
+            {
+                "word": "RENAME",
+                "reserved": true
+            },
+            {
+                "word": "REORGANIZE",
+                "reserved": false
+            },
+            {
+                "word": "REPAIR",
+                "reserved": false
+            },
+            {
+                "word": "REPEATABLE",
+                "reserved": false
+            },
+            {
+                "word": "REPEAT",
+                "reserved": true
+            },
+            {
+                "word": "REPLACE",
+                "reserved": true
+            },
+            {
+                "word": "REPLICATION",
+                "reserved": false
+            },
+            {
+                "word": "REPLICATE_DO_DB",
+                "reserved": false
+            },
+            {
+                "word": "REPLICATE_IGNORE_DB",
+                "reserved": false
+            },
+            {
+                "word": "REPLICATE_DO_TABLE",
+                "reserved": false
+            },
+            {
+                "word": "REPLICATE_IGNORE_TABLE",
+                "reserved": false
+            },
+            {
+                "word": "REPLICATE_WILD_DO_TABLE",
+                "reserved": false
+            },
+            {
+                "word": "REPLICATE_WILD_IGNORE_TABLE",
+                "reserved": false
+            },
+            {
+                "word": "REPLICATE_REWRITE_DB",
+                "reserved": false
+            },
+            {
+                "word": "REQUIRE",
+                "reserved": true
+            },
+            {
+                "word": "RESET",
+                "reserved": false
+            },
+            {
+                "word": "RESIGNAL",
+                "reserved": true
+            },
+            {
+                "word": "USER_RESOURCES",
+                "reserved": false
+            },
+            {
+                "word": "RESTORE",
+                "reserved": false
+            },
+            {
+                "word": "RESPECT",
+                "reserved": false
+            },
+            {
+                "word": "RESTRICT",
+                "reserved": true
+            },
+            {
+                "word": "RESUME",
+                "reserved": false
+            },
+            {
+                "word": "RETURNED_SQLSTATE",
+                "reserved": false
+            },
+            {
+                "word": "RETURNS",
+                "reserved": true
+            },
+            {
+                "word": "RETURN",
+                "reserved": false
+            },
+            {
+                "word": "REVERSE",
+                "reserved": false
+            },
+            {
+                "word": "REVOKE",
+                "reserved": true
+            },
+            {
+                "word": "RIGHT",
+                "reserved": true
+            },
+            {
+                "word": "ROLLBACK",
+                "reserved": false
+            },
+            {
+                "word": "ROLLUP",
+                "reserved": false
+            },
+            {
+                "word": "ROTATE",
+                "reserved": false
+            },
+            {
+                "word": "ROUTINE",
+                "reserved": false
+            },
+            {
+                "word": "ROWS",
+                "reserved": true
+            },
+            {
+                "word": "ROW_FORMAT",
+                "reserved": false
+            },
+            {
+                "word": "ROW",
+                "reserved": true
+            },
+            {
+                "word": "ROW_COUNT",
+                "reserved": false
+            },
+            {
+                "word": "ROW_NUMBER",
+                "reserved": true
+            },
+            {
+                "word": "RTREE",
+                "reserved": false
+            },
+            {
+                "word": "SAVEPOINT",
+                "reserved": false
+            },
+            {
+                "word": "SCHEDULE",
+                "reserved": false
+            },
+            {
+                "word": "SCHEMA_NAME",
+                "reserved": false
+            },
+            {
+                "word": "SECOND_MICROSECOND",
+                "reserved": true
+            },
+            {
+                "word": "SQL_TSI_SECOND",
+                "reserved": false
+            },
+            {
+                "word": "SECOND",
+                "reserved": false
+            },
+            {
+                "word": "SECURITY",
+                "reserved": false
+            },
+            {
+                "word": "SELECT",
+                "reserved": true
+            },
+            {
+                "word": "SENSITIVE",
+                "reserved": true
+            },
+            {
+                "word": "SEPARATOR",
+                "reserved": true
+            },
+            {
+                "word": "SERIALIZABLE",
+                "reserved": false
+            },
+            {
+                "word": "SERIAL",
+                "reserved": false
+            },
+            {
+                "word": "SESSION",
+                "reserved": false
+            },
+            {
+                "word": "SERVER",
+                "reserved": false
+            },
+            {
+                "word": "SET",
+                "reserved": true
+            },
+            {
+                "word": "SHARE",
+                "reserved": false
+            },
+            {
+                "word": "SHOW",
+                "reserved": true
+            },
+            {
+                "word": "SHUTDOWN",
+                "reserved": false
+            },
+            {
+                "word": "SIGNAL",
+                "reserved": true
+            },
+            {
+                "word": "SIGNED",
+                "reserved": false
+            },
+            {
+                "word": "SIMPLE",
+                "reserved": false
+            },
+            {
+                "word": "SLAVE",
+                "reserved": false
+            },
+            {
+                "word": "SLOW",
+                "reserved": false
+            },
+            {
+                "word": "SMALLINT",
+                "reserved": true
+            },
+            {
+                "word": "SNAPSHOT",
+                "reserved": false
+            },
+            {
+                "word": "SOCKET",
+                "reserved": false
+            },
+            {
+                "word": "SONAME",
+                "reserved": false
+            },
+            {
+                "word": "SOUNDS",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE",
+                "reserved": false
+            },
+            {
+                "word": "SPATIAL",
+                "reserved": true
+            },
+            {
+                "word": "SPECIFIC",
+                "reserved": true
+            },
+            {
+                "word": "SQLEXCEPTION",
+                "reserved": true
+            },
+            {
+                "word": "SQLSTATE",
+                "reserved": true
+            },
+            {
+                "word": "SQLWARNING",
+                "reserved": true
+            },
+            {
+                "word": "SQL_AFTER_GTIDS",
+                "reserved": false
+            },
+            {
+                "word": "SQL_AFTER_MTS_GAPS",
+                "reserved": false
+            },
+            {
+                "word": "SQL_BEFORE_GTIDS",
+                "reserved": false
+            },
+            {
+                "word": "SQL_BIG_RESULT",
+                "reserved": true
+            },
+            {
+                "word": "SQL_BUFFER_RESULT",
+                "reserved": false
+            },
+            {
+                "word": "SQL_CALC_FOUND_ROWS",
+                "reserved": true
+            },
+            {
+                "word": "SQL_NO_CACHE",
+                "reserved": false
+            },
+            {
+                "word": "SQL_SMALL_RESULT",
+                "reserved": true
+            },
+            {
+                "word": "SQL",
+                "reserved": true
+            },
+            {
+                "word": "SQL_THREAD",
+                "reserved": false
+            },
+            {
+                "word": "SSL",
+                "reserved": true
+            },
+            {
+                "word": "STACKED",
+                "reserved": false
+            },
+            {
+                "word": "STARTING",
+                "reserved": true
+            },
+            {
+                "word": "STARTS",
+                "reserved": false
+            },
+            {
+                "word": "START",
+                "reserved": false
+            },
+            {
+                "word": "STATS_AUTO_RECALC",
+                "reserved": false
+            },
+            {
+                "word": "STATS_PERSISTENT",
+                "reserved": false
+            },
+            {
+                "word": "STATS_SAMPLE_PAGES",
+                "reserved": false
+            },
+            {
+                "word": "STATUS",
+                "reserved": false
+            },
+            {
+                "word": "STOP",
+                "reserved": false
+            },
+            {
+                "word": "STORAGE",
+                "reserved": false
+            },
+            {
+                "word": "STORED",
+                "reserved": true
+            },
+            {
+                "word": "STRAIGHT_JOIN",
+                "reserved": true
+            },
+            {
+                "word": "STRING",
+                "reserved": false
+            },
+            {
+                "word": "SUBCLASS_ORIGIN",
+                "reserved": false
+            },
+            {
+                "word": "SUBJECT",
+                "reserved": false
+            },
+            {
+                "word": "SUBPARTITIONS",
+                "reserved": false
+            },
+            {
+                "word": "SUBPARTITION",
+                "reserved": false
+            },
+            {
+                "word": "SUPER",
+                "reserved": false
+            },
+            {
+                "word": "SUSPEND",
+                "reserved": false
+            },
+            {
+                "word": "SWAPS",
+                "reserved": false
+            },
+            {
+                "word": "SWITCHES",
+                "reserved": false
+            },
+            {
+                "word": "TABLES",
+                "reserved": true
+            },
+            {
+                "word": "TABLESPACE",
+                "reserved": false
+            },
+            {
+                "word": "TABLE",
+                "reserved": false
+            },
+            {
+                "word": "TABLE_CHECKSUM",
+                "reserved": false
+            },
+            {
+                "word": "TABLE_NAME",
+                "reserved": false
+            },
+            {
+                "word": "TEMPORARY",
+                "reserved": false
+            },
+            {
+                "word": "TEMPTABLE",
+                "reserved": false
+            },
+            {
+                "word": "TERMINATED",
+                "reserved": true
+            },
+            {
+                "word": "TEXT",
+                "reserved": false
+            },
+            {
+                "word": "THAN",
+                "reserved": false
+            },
+            {
+                "word": "THEN",
+                "reserved": true
+            },
+            {
+                "word": "TIMESTAMP",
+                "reserved": false
+            },
+            {
+                "word": "TIMESTAMPADD",
+                "reserved": false
+            },
+            {
+                "word": "TIMESTAMPDIFF",
+                "reserved": false
+            },
+            {
+                "word": "TIME",
+                "reserved": false
+            },
+            {
+                "word": "TINYBLOB",
+                "reserved": true
+            },
+            {
+                "word": "TINYINT",
+                "reserved": true
+            },
+            {
+                "word": "TINYTEXT",
+                "reserved": true
+            },
+            {
+                "word": "TO",
+                "reserved": true
+            },
+            {
+                "word": "TRAILING",
+                "reserved": true
+            },
+            {
+                "word": "TRANSACTION",
+                "reserved": false
+            },
+            {
+                "word": "TRIGGERS",
+                "reserved": false
+            },
+            {
+                "word": "TRIGGER",
+                "reserved": true
+            },
+            {
+                "word": "TRUE",
+                "reserved": true
+            },
+            {
+                "word": "TRUNCATE",
+                "reserved": false
+            },
+            {
+                "word": "TYPES",
+                "reserved": false
+            },
+            {
+                "word": "TYPE",
+                "reserved": false
+            },
+            {
+                "word": "UNCOMMITTED",
+                "reserved": false
+            },
+            {
+                "word": "UNDEFINED",
+                "reserved": false
+            },
+            {
+                "word": "UNDOFILE",
+                "reserved": false
+            },
+            {
+                "word": "UNDO_BUFFER_SIZE",
+                "reserved": false
+            },
+            {
+                "word": "UNDO",
+                "reserved": true
+            },
+            {
+                "word": "UNICODE",
+                "reserved": false
+            },
+            {
+                "word": "UNINSTALL",
+                "reserved": false
+            },
+            {
+                "word": "UNION",
+                "reserved": true
+            },
+            {
+                "word": "UNIQUE",
+                "reserved": true
+            },
+            {
+                "word": "UNKNOWN",
+                "reserved": false
+            },
+            {
+                "word": "UNLOCK",
+                "reserved": true
+            },
+            {
+                "word": "UNSIGNED",
+                "reserved": true
+            },
+            {
+                "word": "UNTIL",
+                "reserved": false
+            },
+            {
+                "word": "UPDATE",
+                "reserved": true
+            },
+            {
+                "word": "UPGRADE",
+                "reserved": false
+            },
+            {
+                "word": "USAGE",
+                "reserved": true
+            },
+            {
+                "word": "USER",
+                "reserved": false
+            },
+            {
+                "word": "USE_FRM",
+                "reserved": false
+            },
+            {
+                "word": "USE",
+                "reserved": true
+            },
+            {
+                "word": "USING",
+                "reserved": true
+            },
+            {
+                "word": "UTC_DATE",
+                "reserved": true
+            },
+            {
+                "word": "UTC_TIMESTAMP",
+                "reserved": true
+            },
+            {
+                "word": "UTC_TIME",
+                "reserved": true
+            },
+            {
+                "word": "VALIDATION",
+                "reserved": false
+            },
+            {
+                "word": "VALUES",
+                "reserved": true
+            },
+            {
+                "word": "VALUE",
+                "reserved": false
+            },
+            {
+                "word": "VARBINARY",
+                "reserved": true
+            },
+            {
+                "word": "VARCHARACTER",
+                "reserved": true
+            },
+            {
+                "word": "VARCHAR",
+                "reserved": true
+            },
+            {
+                "word": "VARIABLES",
+                "reserved": false
+            },
+            {
+                "word": "VARYING",
+                "reserved": true
+            },
+            {
+                "word": "VIEW",
+                "reserved": false
+            },
+            {
+                "word": "VIRTUAL",
+                "reserved": true
+            },
+            {
+                "word": "WAIT",
+                "reserved": false
+            },
+            {
+                "word": "WARNINGS",
+                "reserved": false
+            },
+            {
+                "word": "SQL_TSI_WEEK",
+                "reserved": false
+            },
+            {
+                "word": "WEEK",
+                "reserved": false
+            },
+            {
+                "word": "WEIGHT_STRING",
+                "reserved": false
+            },
+            {
+                "word": "WHEN",
+                "reserved": true
+            },
+            {
+                "word": "WHERE",
+                "reserved": true
+            },
+            {
+                "word": "WHILE",
+                "reserved": true
+            },
+            {
+                "word": "WITH",
+                "reserved": true
+            },
+            {
+                "word": "WITHOUT",
+                "reserved": false
+            },
+            {
+                "word": "WORK",
+                "reserved": false
+            },
+            {
+                "word": "WRAPPER",
+                "reserved": false
+            },
+            {
+                "word": "WRITE",
+                "reserved": true
+            },
+            {
+                "word": "X509",
+                "reserved": false
+            },
+            {
+                "word": "XA",
+                "reserved": false
+            },
+            {
+                "word": "XID",
+                "reserved": false
+            },
+            {
+                "word": "XML",
+                "reserved": false
+            },
+            {
+                "word": "XOR",
+                "reserved": true
+            },
+            {
+                "word": "YEAR_MONTH",
+                "reserved": true
+            },
+            {
+                "word": "SQL_TSI_YEAR",
+                "reserved": false
+            },
+            {
+                "word": "YEAR",
+                "reserved": false
+            },
+            {
+                "word": "ZEROFILL",
+                "reserved": true
+            }
+        ],
+        [
+            {
+                "word": "PERSIST",
+                "reserved": false
+            },
+            {
+                "word": "ROLE",
+                "reserved": false
+            },
+            {
+                "word": "ADMIN",
+                "reserved": false
+            },
+            {
+                "word": "INVISIBLE",
+                "reserved": false
+            },
+            {
+                "word": "VISIBLE",
+                "reserved": false
+            },
+            {
+                "word": "EXCEPT",
+                "reserved": true
+            },
+            {
+                "word": "COMPONENT",
+                "reserved": false
+            },
+            {
+                "word": "RECURSIVE",
+                "reserved": true
+            },
+            {
+                "word": "JSON_OBJECTAGG",
+                "reserved": true
+            },
+            {
+                "word": "JSON_ARRAYAGG",
+                "reserved": true
+            },
+            {
+                "word": "OF",
+                "reserved": true
+            },
+            {
+                "word": "SKIP",
+                "reserved": false
+            },
+            {
+                "word": "LOCKED",
+                "reserved": false
+            },
+            {
+                "word": "NOWAIT",
+                "reserved": false
+            },
+            {
+                "word": "GROUPING",
+                "reserved": true
+            },
+            {
+                "word": "PERSIST_ONLY",
+                "reserved": false
+            },
+            {
+                "word": "HISTOGRAM",
+                "reserved": false
+            },
+            {
+                "word": "BUCKETS",
+                "reserved": false
+            },
+            {
+                "word": "CLONE",
+                "reserved": false
+            },
+            {
+                "word": "CUME_DIST",
+                "reserved": true
+            },
+            {
+                "word": "DENSE_RANK",
+                "reserved": true
+            },
+            {
+                "word": "EXCLUDE",
+                "reserved": false
+            },
+            {
+                "word": "FIRST_VALUE",
+                "reserved": true
+            },
+            {
+                "word": "FOLLOWING",
+                "reserved": false
+            },
+            {
+                "word": "GROUPS",
+                "reserved": true
+            },
+            {
+                "word": "LAG",
+                "reserved": true
+            },
+            {
+                "word": "LAST_VALUE",
+                "reserved": true
+            },
+            {
+                "word": "LEAD",
+                "reserved": true
+            },
+            {
+                "word": "NTH_VALUE",
+                "reserved": true
+            },
+            {
+                "word": "NTILE",
+                "reserved": true
+            },
+            {
+                "word": "NULLS",
+                "reserved": false
+            },
+            {
+                "word": "OTHERS",
+                "reserved": false
+            },
+            {
+                "word": "OVER",
+                "reserved": true
+            },
+            {
+                "word": "PERCENT_RANK",
+                "reserved": true
+            },
+            {
+                "word": "PRECEDING",
+                "reserved": false
+            },
+            {
+                "word": "RANK",
+                "reserved": true
+            },
+            {
+                "word": "RESPECT",
+                "reserved": false
+            },
+            {
+                "word": "ROW_NUMBER",
+                "reserved": true
+            },
+            {
+                "word": "TIES",
+                "reserved": false
+            },
+            {
+                "word": "UNBOUNDED",
+                "reserved": false
+            },
+            {
+                "word": "WINDOW",
+                "reserved": true
+            },
+            {
+                "word": "EMPTY",
+                "reserved": true
+            },
+            {
+                "word": "JSON_TABLE",
+                "reserved": true
+            },
+            {
+                "word": "NESTED",
+                "reserved": false
+            },
+            {
+                "word": "ORDINALITY",
+                "reserved": false
+            },
+            {
+                "word": "PATH",
+                "reserved": false
+            },
+            {
+                "word": "HISTORY",
+                "reserved": false
+            },
+            {
+                "word": "REUSE",
+                "reserved": false
+            },
+            {
+                "word": "SRID",
+                "reserved": false
+            },
+            {
+                "word": "THREAD_PRIORITY",
+                "reserved": true
+            },
+            {
+                "word": "RESOURCE",
+                "reserved": false
+            },
+            {
+                "word": "SYSTEM",
+                "reserved": true
+            },
+            {
+                "word": "VCPU",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_PUBLIC_KEY_PATH",
+                "reserved": false
+            },
+            {
+                "word": "GET_MASTER_PUBLIC_KEY",
+                "reserved": false
+            },
+            {
+                "word": "RESTART",
+                "reserved": false
+            },
+            {
+                "word": "DEFINITION",
+                "reserved": false
+            },
+            {
+                "word": "DESCRIPTION",
+                "reserved": false
+            },
+            {
+                "word": "ORGANIZATION",
+                "reserved": false
+            },
+            {
+                "word": "REFERENCE",
+                "reserved": false
+            },
+            {
+                "word": "ACTIVE",
+                "reserved": false
+            },
+            {
+                "word": "INACTIVE",
+                "reserved": false
+            },
+            {
+                "word": "LATERAL",
+                "reserved": true
+            },
+            {
+                "word": "ARRAY",
+                "reserved": false
+            },
+            {
+                "word": "MEMBER",
+                "reserved": false
+            },
+            {
+                "word": "OPTIONAL",
+                "reserved": false
+            },
+            {
+                "word": "SECONDARY",
+                "reserved": false
+            },
+            {
+                "word": "SECONDARY_ENGINE",
+                "reserved": false
+            },
+            {
+                "word": "SECONDARY_LOAD",
+                "reserved": false
+            },
+            {
+                "word": "SECONDARY_UNLOAD",
+                "reserved": false
+            },
+            {
+                "word": "RETAIN",
+                "reserved": false
+            },
+            {
+                "word": "OLD",
+                "reserved": false
+            },
+            {
+                "word": "ENFORCED",
+                "reserved": false
+            },
+            {
+                "word": "OJ",
+                "reserved": false
+            },
+            {
+                "word": "NETWORK_NAMESPACE",
+                "reserved": false
+            },
+            {
+                "word": "RANDOM",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_COMPRESSION_ALGORITHM",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_ZSTD_COMPRESSION_LEVEL",
+                "reserved": false
+            },
+            {
+                "word": "PRIVILEGE_CHECKS_USER",
+                "reserved": false
+            },
+            {
+                "word": "MASTER_TLS_CIPHERSUITES",
+                "reserved": false
+            },
+            {
+                "word": "REQUIRE_ROW_FORMAT",
+                "reserved": false
+            },
+            {
+                "word": "PASSWORD_LOCK_TIME",
+                "reserved": false
+            },
+            {
+                "word": "FAILED_LOGIN_ATTEMPTS",
+                "reserved": false
+            },
+            {
+                "word": "REQUIRE_TABLE_PRIMARY_KEY_CHECK",
+                "reserved": false
+            },
+            {
+                "word": "STREAM",
+                "reserved": false
+            },
+            {
+                "word": "OFF",
+                "reserved": false
+            },
+            {
+                "word": "RETURNING",
+                "reserved": false
+            },
+            {
+                "word": "JSON_VALUE",
+                "reserved": false
+            },
+            {
+                "word": "TLS",
+                "reserved": false
+            },
+            {
+                "word": "ATTRIBUTE",
+                "reserved": false
+            },
+            {
+                "word": "ENGINE_ATTRIBUTE",
+                "reserved": false
+            },
+            {
+                "word": "SECONDARY_ENGINE_ATTRIBUTE",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_CONNECTION_AUTO_FAILOVER",
+                "reserved": false
+            },
+            {
+                "word": "ZONE",
+                "reserved": false
+            },
+            {
+                "word": "REPLICA",
+                "reserved": false
+            },
+            {
+                "word": "REPLICAS",
+                "reserved": false
+            },
+            {
+                "word": "ASSIGN_GTIDS_TO_ANONYMOUS_TRANSACTIONS",
+                "reserved": false
+            },
+            {
+                "word": "GET_SOURCE_PUBLIC_KEY",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_AUTO_POSITION",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_BIND",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_COMPRESSION_ALGORITHM",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_CONNECT_RETRY",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_DELAY",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_HEARTBEAT_PERIOD",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_HOST",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_LOG_FILE",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_LOG_POS",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_PASSWORD",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_PORT",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_PUBLIC_KEY_PATH",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_RETRY_COUNT",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_SSL",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_SSL_CA",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_SSL_CAPATH",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_SSL_CERT",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_SSL_CIPHER",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_SSL_CRL",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_SSL_CRLPATH",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_SSL_KEY",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_SSL_VERIFY_SERVER_CERT",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_TLS_CIPHERSUITES",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_TLS_VERSION",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_USER",
+                "reserved": false
+            },
+            {
+                "word": "SOURCE_ZSTD_COMPRESSION_LEVEL",
+                "reserved": false
+            },
+            {
+                "word": "ST_COLLECT",
+                "reserved": false
+            },
+            {
+                "word": "KEYRING",
+                "reserved": false
+            },
+            {
+                "word": "AUTHENTICATION",
+                "reserved": false
+            },
+            {
+                "word": "FACTOR",
+                "reserved": false
+            },
+            {
+                "word": "FINISH",
+                "reserved": false
+            },
+            {
+                "word": "INITIATE",
+                "reserved": false
+            },
+            {
+                "word": "REGISTRATION",
+                "reserved": false
+            },
+            {
+                "word": "UNREGISTER",
+                "reserved": false
+            },
+            {
+                "word": "INITIAL",
+                "reserved": false
+            },
+            {
+                "word": "CHALLENGE_RESPONSE",
+                "reserved": false
+            },
+            {
+                "word": "GTID_ONLY",
+                "reserved": false
+            },
+            {
+                "word": "INTERSECT",
+                "reserved": true
+            },
+            {
+                "word": "BULK",
+                "reserved": true
+            },
+            {
+                "word": "URL",
+                "reserved": true
+            },
+            {
+                "word": "GENERATE",
+                "reserved": true
+            },
+            {
+                "word": "PARSE_TREE",
+                "reserved": true
+            },
+            {
+                "word": "LOG",
+                "reserved": true
+            },
+            {
+                "word": "GTIDS",
+                "reserved": true
+            },
+            {
+                "word": "PARALLEL",
+                "reserved": true
+            },
+            {
+                "word": "S3",
+                "reserved": true
+            }
+        ],
+        [
+            {
+                "word": "CONFIGURE",
+                "reserved": false
+            },
+            {
+                "word": "REST",
+                "reserved": false
+            },
+            {
+                "word": "METADATA",
+                "reserved": false
+            },
+            {
+                "word": "SERVICES",
+                "reserved": false
+            },
+            {
+                "word": "SERVICE",
+                "reserved": false
+            },
+            {
+                "word": "RELATIONAL",
+                "reserved": false
+            },
+            {
+                "word": "DUALITY",
+                "reserved": false
+            },
+            {
+                "word": "VIEWS",
+                "reserved": false
+            },
+            {
+                "word": "PROCEDURES",
+                "reserved": false
+            },
+            {
+                "word": "PARAMETERS",
+                "reserved": false
+            },
+            {
+                "word": "RESULT",
+                "reserved": false
+            },
+            {
+                "word": "ENABLED",
+                "reserved": false
+            },
+            {
+                "word": "DISABLED",
+                "reserved": false
+            },
+            {
+                "word": "PROTOCOL",
+                "reserved": false
+            },
+            {
+                "word": "HTTP",
+                "reserved": false
+            },
+            {
+                "word": "HTTPS",
+                "reserved": false
+            },
+            {
+                "word": "COMMENTS",
+                "reserved": false
+            },
+            {
+                "word": "REQUEST",
+                "reserved": false
+            },
+            {
+                "word": "REDIRECTION",
+                "reserved": false
+            },
+            {
+                "word": "MANAGEMENT",
+                "reserved": false
+            },
+            {
+                "word": "AVAILABLE",
+                "reserved": false
+            },
+            {
+                "word": "REQUIRED",
+                "reserved": false
+            },
+            {
+                "word": "ITEMS",
+                "reserved": false
+            },
+            {
+                "word": "PER",
+                "reserved": false
+            },
+            {
+                "word": "CONTENT",
+                "reserved": false
+            },
+            {
+                "word": "MEDIA",
+                "reserved": false
+            },
+            {
+                "word": "AUTODETECT",
+                "reserved": false
+            },
+            {
+                "word": "FEED",
+                "reserved": false
+            },
+            {
+                "word": "ITEM",
+                "reserved": false
+            },
+            {
+                "word": "SETS",
+                "reserved": false
+            },
+            {
+                "word": "AUTH",
+                "reserved": false
+            },
+            {
+                "word": "APP",
+                "reserved": false
+            },
+            {
+                "word": "VENDOR",
+                "reserved": false
+            },
+            {
+                "word": "MRS",
+                "reserved": false
+            },
+            {
+                "word": "MYSQL",
+                "reserved": false
+            }
+        ],
+        [
+            {
+                "word": "@INOUT",
+                "reserved": false
+            },
+            {
+                "word": "@IN",
+                "reserved": false
+            },
+            {
+                "word": "@OUT",
+                "reserved": false
+            },
+            {
+                "word": "@NOCHECK",
+                "reserved": false
+            },
+            {
+                "word": "@NOUPDATE",
+                "reserved": false
+            },
+            {
+                "word": "@SORTABLE",
+                "reserved": false
+            },
+            {
+                "word": "@NOFILTERING",
+                "reserved": false
+            },
+            {
+                "word": "@ROWOWNERSHIP",
+                "reserved": false
+            },
+            {
+                "word": "@UNNEST",
+                "reserved": false
+            },
+            {
+                "word": "@REDUCETO",
+                "reserved": false
+            },
+            {
+                "word": "@DATATYPE",
+                "reserved": false
+            },
+            {
+                "word": "@SELECT",
+                "reserved": false
+            },
+            {
+                "word": "@NOSELECT",
+                "reserved": false
+            },
+            {
+                "word": "@INSERT",
+                "reserved": false
+            },
+            {
+                "word": "@NOINSERT",
+                "reserved": false
+            },
+            {
+                "word": "@UPDATE",
+                "reserved": false
+            },
+            {
+                "word": "@DELETE",
+                "reserved": false
+            },
+            {
+                "word": "@NODELETE",
+                "reserved": false
+            }
+        ]
     ]
 }

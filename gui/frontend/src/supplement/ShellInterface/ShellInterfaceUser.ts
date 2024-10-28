@@ -52,7 +52,7 @@ export class ShellInterfaceUser {
     }
 
     /**
-     * Creates a new MySQL Shell GUI user account.
+     * Creates a new MySQL Shell/Workbench user account.
      *
      * @param username The name of the user.
      * @param password The user's password.

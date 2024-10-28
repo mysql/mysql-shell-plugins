@@ -23,18 +23,22 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ComponentChild, createRef } from "preact";
 import cx from "classnames";
+import { ComponentChild, createRef } from "preact";
 
+import type { Command } from "../../../data-models/data-model-types.js";
+import { KeyboardKeys } from "../../../utilities/helpers.js";
+import { Codicon } from "../Codicon.js";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
 import { Icon } from "../Icon/Icon.js";
 import { Label } from "../Label/Label.js";
-import { MenuItem, IMenuItemProperties } from "../Menu/MenuItem.js";
+import { IMenuItemProperties, MenuItem } from "../Menu/MenuItem.js";
+import { ProgressIndicator } from "../ProgressIndicator/ProgressIndicator.js";
 import { IAccordionAction, IAccordionActionChoice } from "./Accordion.js";
-import { KeyboardKeys } from "../../../utilities/helpers.js";
 
 export interface IAccordionSectionProperties extends IComponentProperties {
+    /** The section title. */
     caption: string;
 
     /** If true then dim the content to give more visual focus on other elements. */
@@ -46,26 +50,36 @@ export interface IAccordionSectionProperties extends IComponentProperties {
     actions?: IAccordionAction[];
 
     onToggleExpandState?: (props: IAccordionSectionProperties) => void;
-    onAction?: (actionId: string, props: IAccordionSectionProperties) => void;
+    onAction?: (command?: Command) => void;
 }
 
-export class AccordionSection extends ComponentBase<IAccordionSectionProperties> {
+export interface IAccordionSectionState {
+    showProgress: boolean;
+}
+
+export class AccordionSection extends ComponentBase<IAccordionSectionProperties, IAccordionSectionState> {
 
     private sectionRef = createRef<HTMLDivElement>();
 
     public constructor(props: IAccordionSectionProperties) {
         super(props);
 
+        this.state = {
+            showProgress: false,
+        };
+
         this.addHandledProperties("caption", "dimmed", "expanded", "actions", "onToggleExpandState", "onAction");
     }
 
     public render(): ComponentChild {
         const { children, caption, actions, dimmed, expanded } = this.props;
+        const { showProgress } = this.state;
 
         const className = this.getEffectiveClassNames([
             "section",
             this.classFromProperty(expanded, "expanded"),
         ]);
+
         const contentClassName = cx([
             "content",
             this.classFromProperty(dimmed, "dimmed")],
@@ -76,6 +90,7 @@ export class AccordionSection extends ComponentBase<IAccordionSectionProperties>
                 orientation={Orientation.TopDown}
                 className={className}
                 innerRef={this.sectionRef}
+                {...this.unhandledProperties}
             >
                 <Container
                     orientation={Orientation.LeftToRight}
@@ -85,6 +100,7 @@ export class AccordionSection extends ComponentBase<IAccordionSectionProperties>
                     tabIndex={0}
                     crossAlignment={ContentAlignment.Center}
                 >
+                    <Icon src={expanded ? Codicon.ChevronDown : Codicon.ChevronRight} />
                     <Label caption={caption} />
                     <Container
                         className="actions"
@@ -92,35 +108,36 @@ export class AccordionSection extends ComponentBase<IAccordionSectionProperties>
                         crossAlignment={ContentAlignment.Center}
                     >
                         {
-                            actions?.map((action: IAccordionAction) => {
-                                if (action.choices == null) {
+                            actions?.map((action: IAccordionAction, index) => {
+                                if (!action.choices) {
                                     return <Icon
                                         src={action.icon}
-                                        id={action.id}
-                                        key={action.id}
-                                        data-tooltip={action.tooltip}
+                                        id={action.command?.command ?? String(index)}
+                                        key={String(index)}
+                                        className="accordionAction"
+                                        data-tooltip={action.command?.tooltip}
                                         tabIndex={0}
-                                        onKeyPress={this.handleActionKeyPress}
-                                        onClick={this.handleActionClick}
+                                        onKeyPress={this.handleActionKeyPress.bind(this, action.command)}
+                                        onClick={this.handleActionClick.bind(this, action.command)}
                                     />;
                                 } else {
                                     return (
-                                        <MenuItem
-                                            id={action.id}
-                                            key={action.id}
+                                        <MenuItem // Render a menu item here, not a menu (to an icon).
+                                            key={String(index)}
+                                            command={{ title: "", command: "" }}
                                             icon={action.icon}
+                                            data-tooltip={action.tooltip}
                                             subMenuShowOnClick={true}
                                             onSubMenuOpen={this.handleActionMenuOpen}
                                             onSubMenuClose={this.handleActionMenuClose}
+                                            onItemClick={this.handleActionMenuClick}
                                         >
                                             {
                                                 action.choices?.map((value: IAccordionActionChoice) => {
                                                     return <MenuItem
-                                                        key={value.id}
-                                                        id={value.id}
-                                                        caption={value.caption}
+                                                        key={value.command.command}
+                                                        command={value.command}
                                                         icon={value.icon}
-                                                        onClick={this.handleActionMenuClick}
                                                     />;
                                                 })
                                             }
@@ -130,6 +147,12 @@ export class AccordionSection extends ComponentBase<IAccordionSectionProperties>
                             })
                         }
                     </Container>
+                    {showProgress && <ProgressIndicator
+                        className="sectionProgress"
+                        linear
+                        indicatorHeight={2}
+                        indicatorWidth={100}
+                    />}
                 </Container>
 
                 <Container
@@ -141,6 +164,14 @@ export class AccordionSection extends ComponentBase<IAccordionSectionProperties>
                 </Container>
             </Container>
         );
+    }
+
+    public get showProgress(): boolean {
+        return this.state.showProgress;
+    }
+
+    public set showProgress(value: boolean) {
+        this.setState({ showProgress: value });
     }
 
     private handleClick = (): void => {
@@ -158,25 +189,26 @@ export class AccordionSection extends ComponentBase<IAccordionSectionProperties>
         onToggleExpandState?.(this.props);
     };
 
-    private handleActionClick = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
+    private handleActionClick = (command: Command | undefined, e: MouseEvent | KeyboardEvent): void => {
         e.stopPropagation();
 
         const { onAction } = this.props;
-        onAction?.(props.id || "", this.props);
+        onAction?.(command);
     };
 
-    private handleActionKeyPress = (e: KeyboardEvent, props: IComponentProperties): void => {
+    private handleActionKeyPress = (command: Command | undefined, e: KeyboardEvent): void => {
         if (e.key === KeyboardKeys.Space || e.key === KeyboardKeys.Enter) {
             e.stopPropagation();
 
             const { onAction } = this.props;
-            onAction?.(props.id || "", this.props);
+            onAction?.(command);
         }
     };
 
-    private handleActionMenuClick = (e: MouseEvent | KeyboardEvent, props: IMenuItemProperties): void => {
+    private handleActionMenuClick = (props: Readonly<IMenuItemProperties>): void => {
         const { onAction } = this.props;
-        onAction?.(props.id || "", this.props);
+
+        onAction?.(props.command);
     };
 
     private handleActionMenuOpen = (): void => {

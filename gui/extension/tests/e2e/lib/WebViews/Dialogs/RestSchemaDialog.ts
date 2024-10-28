@@ -39,7 +39,7 @@ export class RestSchemaDialog {
      * @param restSchema The service
      * @returns A promise resolving when the schema is set and the dialog is closed
      */
-    public static set = async (restSchema: interfaces.IRestSchema): Promise<void> => {
+    public static set = async (restSchema?: interfaces.IRestSchema): Promise<interfaces.IRestSchema> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
@@ -47,67 +47,73 @@ export class RestSchemaDialog {
         const dialog = await driver.wait(until.elementLocated(locator.mrsSchemaDialog.exists),
             constants.wait20seconds, "MRS Schema dialog was not displayed");
 
-        if (restSchema.restServicePath) {
-            await driver.wait(async () => {
-                try {
-                    await dialog.findElement(locator.mrsSchemaDialog.service).click();
-                } catch (e) {
-                    if (!(e instanceof error.ElementClickInterceptedError)) {
-                        throw e;
+        if (restSchema) {
+
+            if (restSchema.restServicePath) {
+                await driver.wait(async () => {
+                    try {
+                        await dialog.findElement(locator.mrsSchemaDialog.service).click();
+                    } catch (e) {
+                        if (!(e instanceof error.ElementClickInterceptedError)) {
+                            throw e;
+                        }
                     }
+
+                    return (await driver.findElements(locator.mrsSchemaDialog.serviceList))
+                        .length > 0;
+                }, constants.wait5seconds, "Service drop down list was not displayed");
+                const popup = await driver.findElement(locator.mrsSchemaDialog.serviceList);
+                await popup.findElement(By.id(restSchema.restServicePath)).click();
+            }
+
+            if (restSchema.restSchemaPath) {
+                await DialogHelper.setFieldText(dialog, locator.mrsSchemaDialog.requestPath, restSchema.restSchemaPath);
+            }
+
+            if (restSchema.accessControl !== undefined) {
+                const inAccessControl = await dialog.findElement(locator.mrsSchemaDialog.accessControl.exists);
+                await inAccessControl.click();
+                const popup = await driver.wait(until
+                    .elementLocated(locator.mrsSchemaDialog.accessControl.selectList.exists),
+                    constants.wait5seconds, "Access control drop down list was not found");
+                if (restSchema.accessControl === constants.accessControlEnabled) {
+                    await popup.findElement(locator.mrsSchemaDialog.accessControl.selectList.enabled).click();
+                } else if (restSchema.accessControl === constants.accessControlDisabled) {
+                    await popup.findElement(locator.mrsSchemaDialog.accessControl.selectList.disabled).click();
+                } else {
+                    await popup.findElement(locator.mrsSchemaDialog.accessControl.selectList.private).click();
                 }
-
-                return (await driver.findElements(locator.mrsSchemaDialog.serviceList))
-                    .length > 0;
-            }, constants.wait5seconds, "Service drop down list was not displayed");
-            const popup = await driver.findElement(locator.mrsSchemaDialog.serviceList);
-            await popup.findElement(By.id(restSchema.restServicePath)).click();
-        }
-
-        if (restSchema.restSchemaPath) {
-            await DialogHelper.setFieldText(dialog, locator.mrsSchemaDialog.requestPath, restSchema.restSchemaPath);
-        }
-
-        if (restSchema.accessControl !== undefined) {
-            const inAccessControl = await dialog.findElement(locator.mrsDbObjectDialog.accessControl.exists);
-            await inAccessControl.click();
-            const popup = await driver.wait(until
-                .elementLocated(locator.mrsSchemaDialog.accessControl.selectList.exists),
-                constants.wait5seconds, "Access control drop down list was not found");
-            if (restSchema.accessControl === constants.accessControlEnabled) {
-                await popup.findElement(locator.mrsSchemaDialog.accessControl.selectList.enabled).click();
-            } else if (restSchema.accessControl === constants.accessControlDisabled) {
-                await popup.findElement(locator.mrsSchemaDialog.accessControl.selectList.disabled).click();
-            } else {
-                await popup.findElement(locator.mrsSchemaDialog.accessControl.selectList.private).click();
             }
-        }
 
-        if (restSchema.requiresAuth !== undefined) {
-            await DialogHelper.setCheckboxValue("requiresAuth", restSchema.requiresAuth);
-        }
+            if (restSchema.requiresAuth !== undefined) {
+                await DialogHelper.setCheckboxValue("requiresAuth", restSchema.requiresAuth);
+            }
 
-        // Settings
-        if (restSchema.settings) {
-            if (restSchema.settings.schemaName) {
-                await DialogHelper.setFieldText(dialog, locator.mrsSchemaDialog.settings.dbSchemaName,
-                    restSchema.settings.schemaName);
+            // Settings
+            if (restSchema.settings) {
+                if (restSchema.settings.schemaName) {
+                    await DialogHelper.setFieldText(dialog, locator.mrsSchemaDialog.settings.dbSchemaName,
+                        restSchema.settings.schemaName);
+                }
+                if (restSchema.settings.itemsPerPage) {
+                    await DialogHelper.setFieldText(dialog, locator.mrsSchemaDialog.settings.itemsPerPage,
+                        restSchema.settings.itemsPerPage);
+                }
+                if (restSchema.settings.comments) {
+                    await DialogHelper.setFieldText(dialog, locator.mrsSchemaDialog.settings.comments,
+                        restSchema.settings.comments);
+                }
             }
-            if (restSchema.settings.itemsPerPage) {
-                await DialogHelper.setFieldText(dialog, locator.mrsSchemaDialog.settings.itemsPerPage,
-                    restSchema.settings.itemsPerPage);
-            }
-            if (restSchema.settings.comments) {
-                await DialogHelper.setFieldText(dialog, locator.mrsSchemaDialog.settings.comments,
-                    restSchema.settings.comments);
-            }
-        }
 
-        // Options
-        await dialog.findElement(locator.mrsSchemaDialog.optionsTab).click();
-        if (restSchema.options) {
-            await DialogHelper.setFieldText(dialog, locator.mrsSchemaDialog.options.options,
-                restSchema.options);
+            // Options
+            await dialog.findElement(locator.mrsSchemaDialog.optionsTab).click();
+            if (restSchema.options) {
+                await DialogHelper.setFieldText(dialog, locator.mrsSchemaDialog.options.options,
+                    restSchema.options);
+            }
+
+        } else {
+            restSchema = await this.get(false);
         }
 
         await driver.wait(async () => {
@@ -116,13 +122,18 @@ export class RestSchemaDialog {
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The REST Schema Dialog was not closed");
 
+        restSchema.treeName = `${restSchema.restSchemaPath} (${restSchema.settings.schemaName})`;
+
+        return restSchema;
+
     };
 
     /**
      * Gets a Rest schema using the web view dialog
+     * @param closeDialog True to close the dialog, false otherwise
      * @returns A promise resolving with the rest schema
      */
-    public static get = async (): Promise<interfaces.IRestSchema> => {
+    public static get = async (closeDialog = true): Promise<interfaces.IRestSchema> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
@@ -164,11 +175,15 @@ export class RestSchemaDialog {
         restSchema.options = (await DialogHelper.getFieldValue(dialog, locator.mrsSchemaDialog.options.options))
             .replace(/\r?\n|\r|\s+/gm, "").trim();
 
-        await driver.wait(async () => {
-            await dialog.findElement(locator.mrsSchemaDialog.cancel).click();
+        if (closeDialog) {
+            await driver.wait(async () => {
+                await dialog.findElement(locator.mrsSchemaDialog.cancel).click();
 
-            return (await DialogHelper.existsDialog()) === false;
-        }, constants.wait10seconds, "The MRS Service dialog was not closed");
+                return (await DialogHelper.existsDialog()) === false;
+            }, constants.wait10seconds, "The MRS Service dialog was not closed");
+        }
+
+        restSchema.treeName = `${restSchema.restSchemaPath} (${restSchema.settings.schemaName})`;
 
         return restSchema;
     };

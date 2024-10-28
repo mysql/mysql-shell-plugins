@@ -39,12 +39,26 @@
     transition: height 0.25s, top 0.25s, width 0.25s, left 0.25s;
 }
 
-.msg.accordion > .title {
+.msg.accordion .title {
+    font-size: 0.75rem;
+    padding: 5px 5px 5px 20px;
+
+    color: var(--sideBarTitle-foreground);
+    background-color: var(--sideBarTitle-background);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.msg.accordion .section > .title {
     font-size: 0.75rem;
     padding: 5px;
 
     color: var(--sideBarTitle-foreground);
     background-color: var(--sideBarTitle-background);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .msg.accordion > .footer {
@@ -64,7 +78,7 @@
 }
 
 .msg.accordion .splitHost > .section > .title {
-    flex: 0 0 28px;
+    flex: 0 0 22px;
     padding: 0 3px;
     cursor: pointer;
     vertical-align: middle;
@@ -74,8 +88,23 @@
     border-top: 1px solid var(--sideBarSectionHeader-border);
 }
 
+.msg.accordion .splitHost > .section > .title > .sectionProgress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
+
+.msg.accordion .splitHost > .section > .title > .sectionProgress > div {
+    padding: 0;
+}
+
+.msg.accordion .splitHost > .section:first-of-type > .title {
+    border-top: none !important;
+}
+
 .msg.accordion .splitHost > .section > .title .label {
-    font-size: 0.75rem;
+    font-size: 11px;
     font-weight: 700;
 
     flex: 2 2 auto;
@@ -93,31 +122,13 @@
     height: 16px;
 }
 
+.msg.accordion .splitHost > .section > .title > .actions > .accordionAction {
+    margin: 0 4px;
+}
+
 .msg.accordion .splitHost > .section.expanded:hover > .title > .actions,
 .msg.accordion .splitHost > .section.expanded:focus-within > .title > .actions {
     display: inherit;
-}
-
-.msg.accordion .splitHost > .section > .title::before {
-    display: inline-block;
-    content: '';
-    width: 0.5em;
-    height: 0.5em;
-    margin-left: 0.2em;
-    margin-right: 0.6em;
-
-    border-right: 1px solid var(--sideBarSectionHeader-foreground);
-    border-bottom: 1px solid var(--sideBarSectionHeader-foreground);
-
-    transform: rotate(-45deg);
-
-    transition: transform 0.2s
-}
-
-.msg.accordion .splitHost > .section.expanded > .title::before {
-    transform: translateY(-2px) rotate(45deg);
-
-    transition: transform 0.3s
 }
 
 .msg.accordion .splitHost > .section > .content :not(.codicon).icon {
@@ -148,7 +159,7 @@
 
 .msg.accordion .splitHost > .section > .content > .accordionItem {
     flex: 0 0 auto;
-    min-height: 32px;
+    min-height: 26px;
 
     margin: 0;
     padding: 0 8px 0 22px;

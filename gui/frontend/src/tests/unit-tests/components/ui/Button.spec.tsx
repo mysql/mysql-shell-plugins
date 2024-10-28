@@ -30,7 +30,7 @@ import { act } from "preact/test-utils";
 import { createRef } from "preact";
 
 import { requisitions } from "../../../../supplement/Requisitions.js";
-import { mouseEventMock } from "../../__mocks__/MockEvents.js";
+import { mouseEventMock } from "../../__mocks__/EventMocks.js";
 import { Button, IButtonProperties } from "../../../../components/ui/Button/Button.js";
 import { ComponentSize } from "../../../../components/ui/Component/ComponentBase.js";
 import { Image } from "../../../../components/ui/Image/Image.js";
@@ -84,7 +84,7 @@ describe("Button component tests", (): void => {
         const component = shallow(
             <Button requestType="editorCommit">
                 Test button
-            </Button>,
+            </Button >,
         );
 
         expect(component.text()).toEqual("Test button");
@@ -148,6 +148,13 @@ describe("Button component tests", (): void => {
                     id="button5"
                     caption="Large Button"
                     size={ComponentSize.Big}
+                />
+                <Button
+                    id="button6"
+                    caption="Large Button"
+                    size={ComponentSize.Big}
+                    requestType="editorChanged"
+                    title="Test"
                 />
                 <Container>
                     <Button round>M</Button>

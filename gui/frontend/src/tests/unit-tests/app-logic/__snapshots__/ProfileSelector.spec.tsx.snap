@@ -74,8 +74,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   style="--thickness: 4px;"
                 />
                 <div
-                  class="msg container fixedScrollbar menuItem"
-                  id="add"
+                  class="msg container menuItem"
                   style="flex-direction: row;"
                 >
                   <div
@@ -90,8 +89,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   </label>
                 </div>
                 <div
-                  class="msg container fixedScrollbar menuItem"
-                  id="edit"
+                  class="msg container menuItem"
                   style="flex-direction: row;"
                 >
                   <div
@@ -106,8 +104,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   </label>
                 </div>
                 <div
-                  class="msg container fixedScrollbar menuItem"
-                  id="delete"
+                  class="msg container menuItem"
                   style="flex-direction: row;"
                 >
                   <div
@@ -156,8 +153,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                     style="--thickness: 4px;"
                   />
                   <div
-                    class="msg container fixedScrollbar menuItem"
-                    id="add"
+                    class="msg container menuItem"
                     style="flex-direction: row;"
                   >
                     <div
@@ -172,8 +168,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                     </label>
                   </div>
                   <div
-                    class="msg container fixedScrollbar menuItem"
-                    id="edit"
+                    class="msg container menuItem"
                     style="flex-direction: row;"
                   >
                     <div
@@ -188,8 +183,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                     </label>
                   </div>
                   <div
-                    class="msg container fixedScrollbar menuItem"
-                    id="delete"
+                    class="msg container menuItem"
                     style="flex-direction: row;"
                   >
                     <div
@@ -216,25 +210,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
         onItemClick={[Function]}
         orientation="column"
         placement="right-start"
-      >
-        <Popup
-          className="msg menu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-          orientation="column"
-          pinned={false}
-          placement="right-start"
-          showArrow={false}
-        >
-          <Portal
-            className="popupPortal"
-            onClose={[Function]}
-            onKeyDown={[Function]}
-            onOpen={[Function]}
-          />
-        </Popup>
-      </Menu>
+      />
     </ValueEditDialog>
     <ConfirmDialog
       id="confirmDeleteDialog"
@@ -277,8 +253,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   style="--thickness: 4px;"
                 />
                 <div
-                  class="msg container fixedScrollbar menuItem"
-                  id="add"
+                  class="msg container menuItem"
                   style="flex-direction: row;"
                 >
                   <div
@@ -293,8 +268,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   </label>
                 </div>
                 <div
-                  class="msg container fixedScrollbar menuItem"
-                  id="edit"
+                  class="msg container menuItem"
                   style="flex-direction: row;"
                 >
                   <div
@@ -309,8 +283,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   </label>
                 </div>
                 <div
-                  class="msg container fixedScrollbar menuItem"
-                  id="delete"
+                  class="msg container menuItem"
                   style="flex-direction: row;"
                 >
                   <div
@@ -361,8 +334,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                     style="--thickness: 4px;"
                   />
                   <div
-                    class="msg container fixedScrollbar menuItem"
-                    id="add"
+                    class="msg container menuItem"
                     style="flex-direction: row;"
                   >
                     <div
@@ -377,8 +349,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                     </label>
                   </div>
                   <div
-                    class="msg container fixedScrollbar menuItem"
-                    id="edit"
+                    class="msg container menuItem"
                     style="flex-direction: row;"
                   >
                     <div
@@ -393,8 +364,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                     </label>
                   </div>
                   <div
-                    class="msg container fixedScrollbar menuItem"
-                    id="delete"
+                    class="msg container menuItem"
                     style="flex-direction: row;"
                   >
                     <div
@@ -422,27 +392,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
       onItemClick={[Function]}
       orientation="column"
       placement="top-start"
-    >
-      <Popup
-        className="msg menu"
-        id="tileActionMenu"
-        onClose={[Function]}
-        onKeyDown={[Function]}
-        onOpen={[Function]}
-        orientation="column"
-        pinned={false}
-        placement="top-start"
-        showArrow={false}
-      >
-        <Portal
-          className="popupPortal"
-          id="tileActionMenu"
-          onClose={[Function]}
-          onKeyDown={[Function]}
-          onOpen={[Function]}
-        />
-      </Popup>
-    </Menu>
+    />
   </ProfileSelector>
 </div>
 `;

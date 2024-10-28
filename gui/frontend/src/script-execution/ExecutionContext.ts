@@ -520,6 +520,8 @@ export class ExecutionContext implements IExecutionContext {
                 const nModifier = tokenModifiers.indexOf(modifier);
                 if (nModifier > -1) {
                     nModifiers |= (1 << nModifier) >>> 0;
+                } else if (modifier === "ts" || modifier === "js") {
+                    // Ignore these.
                 } else {
                     console.log(`Unknown modifier: ${modifier}`);
                 }

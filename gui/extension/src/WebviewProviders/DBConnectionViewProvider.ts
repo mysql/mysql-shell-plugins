@@ -27,16 +27,16 @@ import { readFile, writeFile } from "fs/promises";
 
 import { commands, OpenDialogOptions, SaveDialogOptions, Uri, window } from "vscode";
 
+import { requisitions } from "../../../frontend/src/supplement/Requisitions.js";
 import {
-    IEditorExtendedExecutionOptions, IMrsDbObjectEditRequest, InitialEditor, IOpenDialogOptions, IOpenFileDialogResult,
-    IRequestTypeMap, IRequisitionCallbackValues, ISaveDialogOptions, requisitions,
-} from "../../../frontend/src/supplement/Requisitions.js";
+    IEditorExtendedExecutionOptions, IMrsDbObjectEditRequest, IOpenDialogOptions, IOpenFileDialogResult,
+    IRequestTypeMap, IRequisitionCallbackValues, type IDocumentOpenData, type InitialEditor, type ISaveDialogOptions,
+} from "../../../frontend/src/supplement/RequisitionTypes.js";
 
-import { IMySQLDbSystem } from "../../../frontend/src/communication/index.js";
-import { EntityType, IDBEditorScriptState } from "../../../frontend/src/modules/db-editor/index.js";
+import type { IMySQLDbSystem } from "../../../frontend/src/communication/index.js";
 import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo.js";
-import { EditorLanguage, INewEditorRequest, IScriptRequest } from "../../../frontend/src/supplement/index.js";
-import { IShellSessionDetails } from "../../../frontend/src/supplement/ShellInterface/index.js";
+import type { EditorLanguage, INewEditorRequest, IScriptRequest } from "../../../frontend/src/supplement/index.js";
+import type { IShellSessionDetails } from "../../../frontend/src/supplement/ShellInterface/index.js";
 import { WebviewProvider } from "./WebviewProvider.js";
 
 export class DBConnectionViewProvider extends WebviewProvider {
@@ -64,20 +64,16 @@ export class DBConnectionViewProvider extends WebviewProvider {
     }
 
     /**
-     * Shows a sub part of a page.
+     * Shows a specific document.
      *
-     * @param pageId The page to open in the webview tab (if not already done). Can either be the name of a page
-     *               or a connection id.
-     * @param type The type of the section.
-     * @param id The id of the item to be selected.
+     * @param data The details for the document to open.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public showPageSection(pageId: string, type: EntityType, id: string): Promise<boolean> {
+    public showDocument(data: IDocumentOpenData): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showModule", parameter: DBEditorModuleId },
-            { requestType: "showPage", parameter: { module: DBEditorModuleId, page: pageId } },
-            { requestType: "showPageSection", parameter: { id, type } },
+            { requestType: "openDocument", parameter: data },
         ], "newConnection");
     }
 
@@ -167,23 +163,6 @@ export class DBConnectionViewProvider extends WebviewProvider {
     }
 
     /**
-     * Inserts data from a script (given by a module data id) into this connection editor.
-     * The editor must already exist.
-     *
-     * @param state The script information.
-     *
-     * @returns A promise which resolves after the command was executed.
-     */
-    public insertScriptData(state: IDBEditorScriptState): Promise<boolean> {
-        if (state.dbDataId) {
-            return this.runCommand("editorInsertUserScript",
-                { language: state.language, resourceId: state.dbDataId }, "newConnection");
-        }
-
-        return Promise.resolve(false);
-    }
-
-    /**
      * Opens the dialog for adding a new connection on the app.
      *
      * @param mdsData Additional data for MDS connections.
@@ -197,6 +176,22 @@ export class DBConnectionViewProvider extends WebviewProvider {
             { requestType: "showPage", parameter: { module: DBEditorModuleId, page: "connections" } },
             { requestType: "addNewConnection", parameter: { mdsData, profileName } },
         ], "connections");
+    }
+
+    /**
+     * Opens a page for a session with the given session id.
+     *
+     * @param session The session to open.
+     *
+     * @returns A promise which resolves after the command was executed.
+     */
+    public openSession(session: IShellSessionDetails): Promise<boolean> {
+        //const command = session.sessionId === -1 ? "newSession" : "openSession";
+
+        return this.runCommand("job", [
+            { requestType: "showModule", parameter: DBEditorModuleId },
+            { requestType: "openSession", parameter: session },
+        ], "newShellConsole");
     }
 
     /**
@@ -255,25 +250,42 @@ export class DBConnectionViewProvider extends WebviewProvider {
      * Closes the editor with the given id in the webview tab.
      *
      * @param connectionId The id of the webview tab.
-     * @param editorId The id of the editor to close.
+     * @param documentId The id of the editor to close.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public closeEditor(connectionId: number, editorId: string): Promise<boolean> {
+    public closeEditor(connectionId: number, documentId: string): Promise<boolean> {
         return this.runCommand("job", [
             // No need to send a showModule request here. The module must exist or the editor wouldn't be open.
-            { requestType: "editorClose", parameter: { connectionId, editorId } },
+            { requestType: "closeDocument", parameter: { connectionId, documentId } },
         ], "");
     }
 
-    public reselectLastItem(): void {
+    /**
+     * Sends a proxy request to the global extension to reselect the last item in the document list.
+     */
+    public reselectLastDocument(): void {
         void requisitions.execute("proxyRequest", {
             provider: this,
             original: {
-                requestType: "editorSelect",
-                parameter: { connectionId: -1, editorId: "" },
+                requestType: "selectDocument",
+                parameter: { connectionId: -1, documentId: "" },
             },
         });
+    }
+
+    /**
+     * Selects the given item in the webview tab.
+     *
+     * @param connectionId The id of the webview tab.
+     * @param documentId The id of the document to select.
+     *
+     * @returns A promise which resolves after the command was executed.
+     */
+    public selectDocument(connectionId: number, documentId: string): Promise<boolean> {
+        return this.runCommand("job", [
+            { requestType: "selectDocument", parameter: { connectionId, documentId } },
+        ], "");
     }
 
     /**
@@ -330,6 +342,17 @@ export class DBConnectionViewProvider extends WebviewProvider {
         return Promise.resolve(false);
     }
 
+    /**
+     * Closes the session with the given id.
+     *
+     * @param session The session to remove.
+     *
+     * @returns A promise which resolves after the command was executed.
+     */
+    public removeSession(session: IShellSessionDetails): Promise<boolean> {
+        return this.runCommand("removeSession", session, "newShellConsole");
+    }
+
     protected override requisitionsCreated(): void {
         super.requisitionsCreated();
 
@@ -339,9 +362,9 @@ export class DBConnectionViewProvider extends WebviewProvider {
             /* eslint-disable @typescript-eslint/no-unsafe-argument */
             // Have to disable ESLint checks for the following lines because ESLint cannot infer the type of the
             // callback.
-            ["refreshConnections", "connectionAdded", "connectionUpdated", "connectionRemoved", "refreshOciTree",
-                "codeBlocksUpdate", "editorLoadScript",
-                "editorSaveScript", "createNewEditor", "editorsChanged", "editorSelect"]
+            ["refreshConnection", "connectionAdded", "connectionUpdated", "connectionRemoved", "refreshOciTree",
+                "codeBlocksUpdate", "editorLoadScript", "editorSaveScript", "createNewEditor", "documentOpened",
+                "documentClosed", "selectDocument", "sessionAdded", "sessionRemoved"]
                 .forEach((requestType: keyof IRequestTypeMap) => {
                     this.requisitions!.register(requestType, this.forwardRequest.bind(this, requestType));
                 });

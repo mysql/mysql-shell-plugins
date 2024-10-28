@@ -30,18 +30,23 @@ import { SetIntervalAsyncTimer, clearIntervalAsync, setIntervalAsync } from "set
 import ts, { ScriptTarget } from "typescript";
 
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
+import { ui } from "../../app-logic/UILayer.js";
 import {
     DBDataType, IColumnInfo, IDictionary, IServicePasswordRequest, IStatusInfo, MessageType,
-} from "../../app-logic/Types.js";
-import { IDbEditorResultSetData, ISqlEditorHistoryEntry } from "../../communication/ProtocolGui.js";
+} from "../../app-logic/general-types.js";
+import { IDbEditorResultSetData, type ISqlEditorHistoryEntry } from "../../communication/ProtocolGui.js";
 import { IMdsChatData, IMdsChatStatus } from "../../communication/ProtocolMds.js";
 import { ResponseError } from "../../communication/ResponseError.js";
 import { ChatOptionAction, ChatOptions, IChatOptionsState } from "../../components/Chat/ChatOptions.js";
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
 import { IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
 import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase.js";
-import { ISplitterPaneSizeInfo, SplitContainer } from "../../components/ui/SplitContainer/SplitContainer.js";
-import { StatusBar } from "../../components/ui/Statusbar/Statusbar.js";
+import { SplitContainer } from "../../components/ui/SplitContainer/SplitContainer.js";
+import { type ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
+import {
+    OdmEntityType, type IOdmShellSessionEntry, type IOdmStandaloneDocumentEntry, type LeafDocumentEntry,
+    type OpenDocumentDataModel,
+} from "../../data-models/OpenDocumentDataModel.js";
 import { getRouterPortForConnection } from "../../modules/mrs/mrs-helpers.js";
 import { QueryType } from "../../parsing/parser-common.js";
 import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
@@ -51,22 +56,19 @@ import {
     IExecutionResult, INotebookFileFormat, IResponseDataOptions, ITextResultEntry, LoadingState, currentNotebookVersion,
 } from "../../script-execution/index.js";
 import {
-    IEditorExtendedExecutionOptions, IMrsDbObjectEditRequest, IMrsSchemaEditRequest, IOpenFileDialogResult,
-    appParameters, requisitions, type IColumnDetails,
-} from "../../supplement/Requisitions.js";
+    IEditorExtendedExecutionOptions, IMrsDbObjectEditRequest, IMrsSchemaEditRequest, type IColumnDetails,
+    type IOpenFileDialogResult,
+} from "../../supplement/RequisitionTypes.js";
+import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
-import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { DBType } from "../../supplement/ShellInterface/index.js";
 import {
     EditorLanguage, IScriptRequest, ISqlPageRequest, convertRows, generateColumnInfo,
 } from "../../supplement/index.js";
-import { saveTextAsFile, selectFile, uuid } from "../../utilities/helpers.js";
+import { convertErrorToString, saveTextAsFile, selectFile, uuid } from "../../utilities/helpers.js";
 import { formatBase64ToHex, formatTime, formatWithNumber, unquote } from "../../utilities/string-helpers.js";
 import { IMrsLoginResult } from "../mrs/sdk/MrsBaseClasses.js";
 import { IMrsAuthRequestPayload } from "../mrs/types.js";
 import { ClientConnections } from "./ClientConnections.js";
-import { Explorer, IExplorerSectionState } from "./Explorer.js";
 import { ILakehouseNavigatorSavedState, ILakehouseNavigatorState, LakehouseNavigator } from "./LakehouseNavigator.js";
 import { Notebook } from "./Notebook.js";
 import { PerformanceDashboard } from "./PerformanceDashboard.js";
@@ -74,9 +76,7 @@ import { ScriptEditor } from "./ScriptEditor.js";
 import { ServerStatus } from "./ServerStatus.js";
 import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types.js";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
-import {
-    EntityType, IDBDataEntry, IEntityBase, ISavedGraphData, ISchemaTreeEntry, IToolbarItems, SchemaTreeType,
-} from "./index.js";
+import { DBEditorContext, ISavedGraphData, IToolbarItems } from "./index.js";
 
 const errorRexExp = new RegExp(`(You have an error in your SQL syntax; check the manual that corresponds to your ` +
     `MySQL server version for the right syntax to use near '(.*)' at line )(\\d+)`);
@@ -91,18 +91,25 @@ interface IResultTimer {
  * Just the minimal information about existing editors.
  */
 export interface ISavedEditorState {
-    connectionId: number;
-    editors: IOpenEditorState[];
+    readonly documentStates: IOpenDocumentState[];
+
+    /** The ID of the document which is active currently. */
     activeEntry: string;
-    heatWaveEnabled: boolean;
+
+    /**
+     * Set when heatwave is available and enabled for the hosting connection.
+     * This flag is duplicated from that connection's details, to avoid having a dependency on the connection.
+     */
+    readonly heatWaveEnabled: boolean;
+
     mleEnabled: boolean;
 }
 
-export interface IOpenEditorState extends IEntityBase {
-    state?: IEditorPersistentState;
+/** A record holding state for an open document. */
+export interface IOpenDocumentState {
+    readonly document: LeafDocumentEntry | IOdmStandaloneDocumentEntry | IOdmShellSessionEntry;
 
-    /** A copy of the script state data id, if this editor was created from a script. */
-    dbDataId?: number;
+    readonly state?: IEditorPersistentState;
 
     /** The version number of the editor model when we last saved it (for entries that are actually saved). */
     currentVersion: number;
@@ -112,25 +119,15 @@ export interface IAdminPageStates {
     lakehouseNavigatorState: ILakehouseNavigatorState;
 }
 
-export interface IDBConnectionTabPersistentState extends ISavedEditorState {
-    backend: ShellInterfaceSqlEditor;
+/**
+ * Comprises states related to a connection's UI presentation, like editor settings, the current editor model version,
+ * the title of the editor and others.
+ */
+export interface IConnectionPresentationState extends ISavedEditorState {
+    /** The list of documents this tab currently shows (notebooks, script editors and admin pages). */
+    readonly documents: LeafDocumentEntry[];
 
-    /** Informations about the connected backend (where supported). */
-    serverVersion: number;
-    serverEdition: string;
-    sqlMode: string;
-
-    dbType: DBType;
-
-    scripts: IDBDataEntry[];
-    schemaTree: ISchemaTreeEntry[];
-    explorerState: Map<string, IExplorerSectionState>;
     adminPageStates: IAdminPageStates;
-
-    currentSchema: string;
-
-    /** The size to be used for the explorer pane. */
-    explorerWidth: number;
 
     /** Cached data/settings for the performance dashboard. */
     graphData: ISavedGraphData;
@@ -144,20 +141,10 @@ export interface IDBConnectionTabPersistentState extends ISavedEditorState {
 
 /** Selecting an item requires different data, depending on the type of the item. */
 export interface ISelectItemDetails {
-    /** The item's unique id. */
-    itemId: string,
+    document: LeafDocumentEntry | IOdmStandaloneDocumentEntry | IOdmShellSessionEntry;
 
     /** The id of this connection tab. */
     tabId: string,
-
-    /** The type of the item. */
-    type: EntityType,
-
-    /** For external/broken out scripts only: their language. */
-    language?: EditorLanguage,
-
-    /** For external/broken out scripts only: the script's name. */
-    caption?: string,
 
     /** For external/broken out scripts only: the script's content. */
     content?: string;
@@ -167,9 +154,8 @@ interface IDBConnectionTabProperties extends IComponentProperties {
     /** The caption of this page used in the hosting tabview. */
     caption?: string;
 
-    connectionId: number;
-    dbType: DBType;
-    savedState: IDBConnectionTabPersistentState;
+    connection?: ICdmConnectionEntry;
+    savedState: IConnectionPresentationState;
     workerPool: ExecutionWorkerPool;
 
     /** Top level toolbar items, to be integrated with page specific ones. */
@@ -197,24 +183,14 @@ interface IDBConnectionTabProperties extends IComponentProperties {
     /** Triggered when new text has to be loaded for a script editor. */
     onSaveScript?: (id: string, editorId: string, content: string) => void;
 
-    onAddScript?: (id: string, language: EditorLanguage, dbType: DBType) => void;
-
-    onSaveSchemaTree?: (id: string, schemaTree: ISchemaTreeEntry[]) => void;
-    onSaveExplorerState?: (id: string, state: Map<string, IExplorerSectionState>) => void;
-    onSaveAdminLakehouseNavigatorState?: (id: string, data: Partial<ILakehouseNavigatorSavedState>) => void;
-
     onGraphDataChange?: (id: string, data: ISavedGraphData) => void;
 
-    onExplorerResize?: (id: string, size: number) => void;
-    onExplorerMenuAction?: (id: string, itemId: string, params: unknown) => void;
-
+    onSaveAdminLakehouseNavigatorState?: (id: string, data: Partial<ILakehouseNavigatorSavedState>) => void;
     onChatOptionsChange?: (id: string, data: Partial<IChatOptionsState>) => void;
 }
 
 interface IDBConnectionTabState extends IComponentState {
     errorMessage?: string;
-
-    backend?: ShellInterfaceSqlEditor;
 
     /** Set to true if a notebook has been loaded the app is embedded, emulating so a one editor-only mode. */
     standaloneMode: boolean;
@@ -224,9 +200,6 @@ interface IDBConnectionTabState extends IComponentState {
 
 /** A list of parameters/options used for query execution. */
 interface IQueryExecutionOptions {
-    /** The backend for execution. */
-    backend: ShellInterfaceSqlEditor;
-
     /** The context to send result to. */
     context: SQLExecutionContext;
 
@@ -306,18 +279,22 @@ Execute \\help or \\? for help;`;
     // The global object that holds the properties which can be accessed across code blocks
     #globalScriptingObject: IDictionary = {};
 
+    // This is set during rendering to have it available in code outside of the render method.
+    // Another way would be to access it using `this.context as DBEditorContextType`, but for some unknown reason
+    // that doesn't work in this component.
+    #documentDataModel: OpenDocumentDataModel | undefined;
+
     public constructor(props: IDBConnectionTabProperties) {
         super(props);
 
         this.state = {
-            backend: props.savedState.backend,
             standaloneMode: false,
         };
 
         this.addHandledProperties("connectionId", "dbType", "savedState", "workerPool", "toolbarInset", "showExplorer",
             "showAbout", "extraLibs",
             "onHelpCommand", "onAddEditor", "onLoadEditor", "onRemoveEditor", "onSelectEditor", "onChangeEditor",
-            "onAddScript", "onSaveSchemaTree", "onSaveExplorerState", "onExplorerResize", "onExplorerMenuAction");
+            "onSaveSchemaTree", "onSaveExplorerState", "onExplorerResize", "onExplorerMenuAction");
 
     }
 
@@ -328,8 +305,6 @@ Execute \\help or \\? for help;`;
         requisitions.register("sqlShowDataAtPage", this.sqlShowDataAtPage);
         requisitions.register("editorRunCode", this.editorRunCode);
         requisitions.register("editorRunScript", this.editorRunScript);
-        requisitions.register("editorInsertUserScript", this.editorInsertUserScript);
-        requisitions.register("showPageSection", this.showPageSection);
         requisitions.register("editorEditScript", this.editorEditScript);
         requisitions.register("editorLoadScript", this.editorLoadScript);
         requisitions.register("editorRenameScript", this.editorRenameScript);
@@ -342,9 +317,12 @@ Execute \\help or \\? for help;`;
         requisitions.register("showChatOptions", this.showChatOptions);
         requisitions.register("selectFile", this.selectFile);
 
-        const { id, connectionId, savedState } = this.props;
-        requisitions.executeRemote("sqlSetCurrentSchema",
-            { id: id ?? "", connectionId, schema: savedState.currentSchema });
+        const { id, connection } = this.props;
+        if (connection) {
+            const details = connection.details;
+            requisitions.executeRemote("sqlSetCurrentSchema",
+                { id: id ?? "", connectionId: details.id, schema: connection.currentSchema });
+        }
 
         this.notebookRef.current?.focus();
 
@@ -361,9 +339,12 @@ Execute \\help or \\? for help;`;
         });
         this.resultTimers.clear();
 
-        const { id, connectionId } = this.props;
-        requisitions.executeRemote("sqlSetCurrentSchema",
-            { id: id ?? "", connectionId, schema: "" });
+        const { id, connection } = this.props;
+
+        if (connection) {
+            requisitions.executeRemote("sqlSetCurrentSchema",
+                { id: id ?? "", connectionId: connection.details.id, schema: "" });
+        }
 
         requisitions.unregister("editorStopExecution", this.editorStopExecution);
         requisitions.unregister("editorCommit", this.editorCommit);
@@ -371,8 +352,6 @@ Execute \\help or \\? for help;`;
         requisitions.unregister("sqlShowDataAtPage", this.sqlShowDataAtPage);
         requisitions.unregister("editorRunCode", this.editorRunCode);
         requisitions.unregister("editorRunScript", this.editorRunScript);
-        requisitions.unregister("editorInsertUserScript", this.editorInsertUserScript);
-        requisitions.unregister("showPageSection", this.showPageSection);
         requisitions.unregister("editorEditScript", this.editorEditScript);
         requisitions.unregister("editorLoadScript", this.editorLoadScript);
         requisitions.unregister("editorRenameScript", this.editorRenameScript);
@@ -387,182 +366,158 @@ Execute \\help or \\? for help;`;
     }
 
     public override componentDidUpdate(prevProps: IDBConnectionTabProperties): void {
-        const { id, connectionId, savedState } = this.props;
+        const { id, connection } = this.props;
 
-        if (connectionId !== prevProps.connectionId) {
-            this.setState({
-                backend: savedState.backend,
-            });
-
-            requisitions.executeRemote("sqlSetCurrentSchema",
-                { id: id ?? "", connectionId, schema: savedState.currentSchema });
+        if (connection) {
+            const details = connection.details;
+            if (details.id !== prevProps.connection?.details.id) {
+                requisitions.executeRemote("sqlSetCurrentSchema",
+                    { id: id ?? "", connectionId: details.id, schema: connection.currentSchema });
+            }
         }
     }
 
     public render(): ComponentChild {
-        const {
-            toolbarItems, id, savedState, dbType, showExplorer = true, onHelpCommand, showAbout, extraLibs,
-        } = this.props;
-        const { backend, standaloneMode, genAiStatus } = this.state;
+        const { connection, toolbarItems, savedState, onHelpCommand, showAbout, extraLibs } = this.props;
+        const { standaloneMode, genAiStatus } = this.state;
 
         const className = this.getEffectiveClassNames(["connectionTabHost"]);
 
-        let document;
-        const activeEditor = this.findActiveEditor();
-        if (activeEditor) {
-            switch (activeEditor.type) {
-                case EntityType.Notebook: {
-                    this.scriptRef.current = null;
-                    document = <Notebook
-                        ref={this.notebookRef}
-                        savedState={savedState}
-                        backend={backend}
-                        toolbarItemsTemplate={toolbarItems}
-                        standaloneMode={standaloneMode}
-                        dbType={dbType}
-                        extraLibs={extraLibs}
-                        showAbout={showAbout && !this.loadingNotebook}
-                        fontSize={appParameters.editorFontSize}
-                        onHelpCommand={onHelpCommand}
-                        onScriptExecution={this.handleExecution}
-                        onContextLanguageChange={this.handleContextLanguageChange}
-                        onNavigateHistory={this.handleNavigateHistory}
-                    />;
+        return <DBEditorContext.Consumer>{(context) => {
+            this.#documentDataModel = context?.documentDataModel;
 
-                    const chatOptionsExpanded = savedState.chatOptionsState.chatOptionsExpanded;
+            let document;
+            const activeEditor = this.findActiveEditor();
+            if (activeEditor && connection) {
+                switch (activeEditor.document.type) {
+                    case OdmEntityType.Notebook: {
+                        this.scriptRef.current = null;
+                        document = <Notebook
+                            ref={this.notebookRef}
+                            savedState={savedState}
+                            backend={connection.backend}
+                            toolbarItemsTemplate={toolbarItems}
+                            standaloneMode={standaloneMode}
+                            dbType={connection.details.dbType}
+                            extraLibs={extraLibs}
+                            showAbout={showAbout && !this.loadingNotebook}
+                            fontSize={appParameters.editorFontSize}
+                            onHelpCommand={onHelpCommand}
+                            onScriptExecution={this.handleExecution}
+                            onContextLanguageChange={this.handleContextLanguageChange}
+                            onNavigateHistory={this.handleNavigateHistory}
+                        />;
 
-                    document = <SplitContainer
-                        className={className}
-                        panes={
-                            [
-                                {
-                                    id: "notebook",
-                                    minSize: 350,
-                                    snap: false,
-                                    stretch: true,
-                                    resizable: chatOptionsExpanded,
-                                    content: document,
-                                },
-                                {
-                                    id: "chatOptions",
-                                    minSize: 340,
-                                    initialSize: savedState.chatOptionsState.chatOptionsWidth > -1
-                                        ? savedState.chatOptionsState.chatOptionsWidth : 340,
-                                    snap: true,
-                                    collapsed: !chatOptionsExpanded,
-                                    content: chatOptionsExpanded ? (
-                                        <ChatOptions savedState={savedState.chatOptionsState}
-                                            genAiStatus={genAiStatus}
-                                            onChatOptionsStateChange={this.updateChatOptionsState}
-                                            onAction={this.handleChatAction}
-                                            currentSchema={savedState.currentSchema} />) : undefined,
-                                },
-                            ]}
-                        onPaneResized={this.handlePaneResize}
-                    />;
-                    break;
+                        const chatOptionsExpanded = savedState.chatOptionsState.chatOptionsExpanded;
+                        let initialSize = 0;
+                        if (savedState.chatOptionsState.chatOptionsWidth > -1) {
+                            initialSize = savedState.chatOptionsState.chatOptionsWidth;
+                        }
+
+                        document = <SplitContainer
+                            className={className}
+                            panes={
+                                [
+                                    {
+                                        id: "notebook",
+                                        minSize: 350,
+                                        snap: false,
+                                        stretch: true,
+                                        resizable: chatOptionsExpanded,
+                                        content: document,
+                                    },
+                                    {
+                                        id: "chatOptions",
+                                        minSize: 340,
+                                        initialSize,
+                                        snap: true,
+                                        collapsed: !chatOptionsExpanded,
+                                        content: chatOptionsExpanded ? (
+                                            <ChatOptions savedState={savedState.chatOptionsState}
+                                                genAiStatus={genAiStatus}
+                                                onChatOptionsStateChange={this.updateChatOptionsState}
+                                                onAction={this.handleChatAction}
+                                                currentSchema={connection.currentSchema} />) : undefined,
+                                    },
+                                ]}
+                        />;
+                        break;
+                    }
+
+                    case OdmEntityType.Script: {
+                        this.notebookRef.current = null;
+                        document = <ScriptEditor
+                            id={savedState.activeEntry}
+                            ref={this.scriptRef}
+                            extraLibs={extraLibs}
+                            savedState={savedState}
+                            connectionId={connection.details.id}
+                            toolbarItemsTemplate={toolbarItems}
+                            standaloneMode={standaloneMode}
+                            fontSize={appParameters.editorFontSize}
+                            onScriptExecution={this.handleExecution}
+                            onEdit={this.handleEdit}
+                        />;
+
+                        break;
+                    }
+
+                    case OdmEntityType.AdminPage: {
+                        switch (activeEditor.document.pageType) {
+                            case "serverStatus": {
+                                document = <ServerStatus
+                                    backend={connection?.backend}
+                                    toolbarItems={toolbarItems}
+                                />;
+
+                                break;
+                            }
+
+                            case "clientConnections": {
+                                document = <ClientConnections
+                                    backend={connection?.backend}
+                                    toolbarItems={toolbarItems}
+                                />;
+
+                                break;
+                            }
+
+                            case "performanceDashboard": {
+                                document = <PerformanceDashboard
+                                    backend={connection?.backend}
+                                    toolbarItems={toolbarItems}
+                                    graphData={savedState.graphData}
+                                    onGraphDataChange={this.handleGraphDataChange}
+
+                                //stopAfter={10}
+                                />;
+
+                                break;
+                            }
+
+                            case "lakehouseNavigator": {
+                                document = <LakehouseNavigator
+                                    backend={connection?.backend}
+                                    toolbarItems={toolbarItems}
+                                    savedState={savedState.adminPageStates.lakehouseNavigatorState}
+                                    onLakehouseNavigatorStateChange={this.handleLakehouseNavigatorStateChange} />;
+
+                                break;
+                            }
+
+                            default:
+                        }
+
+                        break;
+                    }
+
+                    default:
                 }
-
-                case EntityType.Script: {
-                    this.notebookRef.current = null;
-                    document = <ScriptEditor
-                        id={savedState.activeEntry}
-                        ref={this.scriptRef}
-                        extraLibs={extraLibs}
-                        savedState={savedState}
-                        toolbarItemsTemplate={toolbarItems}
-                        standaloneMode={standaloneMode}
-                        fontSize={appParameters.editorFontSize}
-                        onScriptExecution={this.handleExecution}
-                        onEdit={this.handleEdit}
-                    />;
-
-                    break;
-                }
-
-                case EntityType.Status: {
-                    document = <ServerStatus backend={savedState.backend} toolbarItems={toolbarItems} />;
-
-                    break;
-                }
-
-                case EntityType.Connections: {
-                    document = <ClientConnections backend={savedState.backend} toolbarItems={toolbarItems} />;
-
-                    break;
-                }
-
-                case EntityType.LakehouseNavigator: {
-                    const { genAiStatus } = this.state;
-
-                    document = <LakehouseNavigator backend={savedState.backend} toolbarItems={toolbarItems}
-                        genAiStatus={genAiStatus}
-                        savedState={savedState.adminPageStates.lakehouseNavigatorState}
-                        onLakehouseNavigatorStateChange={this.handleLakehouseNavigatorStateChange} />;
-
-                    break;
-                }
-
-                case EntityType.Dashboard: {
-                    document = <PerformanceDashboard
-                        backend={savedState.backend}
-                        toolbarItems={toolbarItems}
-                        graphData={savedState.graphData}
-                        onGraphDataChange={this.handleGraphDataChange}
-                    //stopAfter={10}
-                    />;
-
-                    break;
-                }
-
-                default:
             }
-        }
 
-        return (
-            <SplitContainer
-                className={className}
-                panes={
-                    [
-                        {
-                            id: "explorer",
-                            minSize: 150,
-                            initialSize: savedState.explorerWidth > -1 ? savedState.explorerWidth : 250,
-                            snap: true,
-                            resizable: true,
-                            collapsed: !showExplorer,
-                            content: (
-                                <Explorer
-                                    id={id}
-                                    dbType={dbType}
-                                    schemaTree={savedState.schemaTree}
-                                    savedState={savedState.explorerState}
-                                    editors={savedState.editors}
-                                    scripts={savedState.scripts}
-                                    selectedEntry={savedState.activeEntry}
-                                    markedSchema={savedState.currentSchema}
-                                    backend={savedState.backend}
-                                    onSelectItem={this.handleSelectItem}
-                                    onCloseItem={this.handleCloseEditor}
-                                    onAddItem={this.handleAddEditor}
-                                    onChangeItem={this.handleEditorRename}
-                                    onAddScript={this.handleAddScript}
-                                    onSaveSchemaTree={this.saveSchemaTree}
-                                    onSaveExplorerState={this.saveExplorerState}
-                                    onContextMenuItemClick={this.handleExplorerMenuAction}
-                                />),
-                        },
-                        {
-                            id: "content",
-                            minSize: 350,
-                            snap: false,
-                            stretch: true,
-                            content: document,
-                        },
-                    ]}
-                onPaneResized={this.handlePaneResize}
-            />
-        );
+            return document;
+        }}
+        </DBEditorContext.Consumer>;
     }
 
     /**
@@ -578,12 +533,12 @@ Execute \\help or \\? for help;`;
     }
 
     private editorStopExecution = async (): Promise<boolean> => {
-        const { backend } = this.state;
+        const { connection } = this.props;
 
-        if (backend) {
+        if (connection) {
             // Only one query can run in a DB editor at a given time (single connection), so we stop here
             // whatever is running currently.
-            await backend.killQuery();
+            await connection.backend.killQuery();
 
             return true;
         }
@@ -592,14 +547,14 @@ Execute \\help or \\? for help;`;
     };
 
     private editorCommit = async (): Promise<boolean> => {
-        const { backend } = this.state;
+        const { connection } = this.props;
 
-        if (!backend) {
+        if (!connection) {
             return false;
         }
 
         try {
-            await backend.execute("commit");
+            await connection.backend.execute("commit");
             await requisitions.execute("sqlTransactionChanged", undefined);
 
             void requisitions.execute("showInfo", "Commit successful.");
@@ -612,16 +567,16 @@ Execute \\help or \\? for help;`;
     };
 
     private editorRollback = async (): Promise<boolean> => {
-        const { backend } = this.state;
+        const { connection } = this.props;
 
-        if (!backend) {
+        if (!connection) {
             return false;
         }
 
-        await backend.execute("rollback");
+        await connection.backend.execute("rollback");
         await requisitions.execute("sqlTransactionChanged", undefined);
 
-        // TODO: give a visual feedback (e.g. message toast) for the execution.
+        void ui.showInformationNotification("Rollback successful.");
 
         return true;
     };
@@ -659,13 +614,13 @@ Execute \\help or \\? for help;`;
 
             // Check first if we have a notebook in our editor list.
             const { savedState } = this.props;
-            const notebook = savedState.editors.find((e) => {
-                return e.type === EntityType.Notebook;
+            const state = savedState.documentStates.find((e) => {
+                return e.document.type === OdmEntityType.Notebook;
             });
 
-            if (notebook) {
+            if (state) {
                 // We have a notebook, so just activate it.
-                this.handleSelectItem(notebook.id, notebook.type);
+                await this.handleSelectItem(state.document);
             } else {
                 // Otherwise, create a new notebook.
                 await this.handleAddEditor();
@@ -705,45 +660,30 @@ Execute \\help or \\? for help;`;
         return false;
     };
 
-    private editorInsertUserScript = async (data: {
-        language: EditorLanguage;
-        resourceId: number;
-    }): Promise<boolean> => {
-        try {
-            const content = await ShellInterface.modules.getDataContent(data.resourceId);
-            if (this.notebookRef.current) {
-                this.notebookRef.current.insertScriptText(data.language, content);
-            } else if (this.scriptRef.current) {
-                this.scriptRef.current.insertScriptText(data.language, content);
-            }
-        } catch (reason) /* istanbul ignore next */ {
-            const message = reason instanceof ResponseError ? reason.message : String(reason);
-            await requisitions.execute("showError", "Cannot load scripts content: " + message);
-
-            return false;
-        }
-
-
-        return true;
-    };
-
-    private showPageSection = (details: { id: string, type: EntityType; }): Promise<boolean> => {
-        this.handleSelectItem(details.id, details.type);
-
-        return Promise.resolve(true);
-    };
-
     private editorEditScript = (details: IScriptRequest): Promise<boolean> => {
-        const { id, onSelectItem } = this.props;
+        const { id, onSelectItem, connection } = this.props;
 
-        onSelectItem?.({
-            tabId: id ?? "",
-            itemId: details.scriptId,
-            type: EntityType.Script,
-            language: details.language,
-            caption: details.name,
-            content: details.content,
-        });
+        // Create a new document entry for the script. Its parent will be set by the editor module.
+        if (this.#documentDataModel) {
+            const script = this.#documentDataModel.openDocument(undefined, {
+                type: OdmEntityType.Script,
+                parameters: {
+                    pageId: id!,
+                    id: uuid(),
+                    connection: connection!.details,
+                    caption: details.caption,
+                    language: details.language,
+                },
+            });
+
+            if (script) {
+                onSelectItem?.({
+                    tabId: id ?? "",
+                    document: script,
+                    content: details.content,
+                });
+            }
+        }
 
         return Promise.resolve(true);
     };
@@ -751,7 +691,7 @@ Execute \\help or \\? for help;`;
     private editorLoadScript = (details: IScriptRequest): Promise<boolean> => {
         const { id, onLoadScript: onLoadEditor } = this.props;
 
-        onLoadEditor?.(id ?? "", details.scriptId, details.content);
+        onLoadEditor?.(id ?? "", details.id, details.content);
 
         return Promise.resolve(true);
     };
@@ -759,7 +699,7 @@ Execute \\help or \\? for help;`;
     private editorRenameScript = (details: IScriptRequest): Promise<boolean> => {
         const { id, onEditorRename } = this.props;
 
-        onEditorRename?.(id ?? "", details.scriptId, details.name ?? "<untitled>");
+        onEditorRename?.(id ?? "", details.id, details.caption);
 
         return Promise.resolve(true);
     };
@@ -860,7 +800,7 @@ Execute \\help or \\? for help;`;
                 content = {
                     type: "MySQLNotebook",
                     version: currentNotebookVersion,
-                    caption: "Untitled",
+                    caption: "",
                     content: "",
                     options: {},
                     viewState: null,
@@ -870,14 +810,14 @@ Execute \\help or \\? for help;`;
                 try {
                     content = JSON.parse(text);
                 } catch (reason) {
-                    await requisitions.execute("showError", "The notebook file is not valid JSON.");
+                    void ui.showErrorNotification("The notebook file is not valid JSON.");
 
                     return;
                 }
             }
 
             if (content.type !== "MySQLNotebook") {
-                void requisitions.execute("showError", "Invalid notebook content");
+                void ui.showErrorNotification("Invalid notebook content");
             } else {
                 try {
                     this.loadingNotebook = true;
@@ -894,7 +834,11 @@ Execute \\help or \\? for help;`;
                     const persistentState: IEditorPersistentState | undefined = openState?.state;
                     if (persistentState) {
                         const { id } = this.props;
-                        openState!.caption = content.caption;
+
+                        // Replace the default caption with the one from the notebook file.
+                        if (content.caption) {
+                            openState!.document.caption = content.caption;
+                        }
                         persistentState.model.setValue(content.content);
                         persistentState.options = content.options;
 
@@ -932,9 +876,9 @@ Execute \\help or \\? for help;`;
                     if (appParameters.embedded) {
                         this.setState({ standaloneMode: details?.standalone ?? false });
                     }
-                } catch (reason) {
+                } catch (error) {
                     this.loadingNotebook = false;
-                    const message = reason instanceof ResponseError ? reason.message : String(reason);
+                    const message = convertErrorToString(error);
                     void requisitions.execute("showError", "Error while loading notebook: " + message);
                 }
             }
@@ -961,7 +905,7 @@ Execute \\help or \\? for help;`;
                             }
                         }
                     } else {
-                        void requisitions.execute("showError", "Cannot read notebook file.");
+                        void ui.showErrorNotification("Cannot read notebook file.");
                     }
                 };
 
@@ -974,10 +918,25 @@ Execute \\help or \\? for help;`;
         return Promise.resolve(true);
     };
 
-    private showLakehouseNavigator = async (_: unknown): Promise<boolean> => {
-        const { connectionId } = this.props;
+    private showLakehouseNavigator = async (): Promise<boolean> => {
+        const { id, connection } = this.props;
 
-        this.handleSelectItem(String(connectionId), EntityType.LakehouseNavigator, "Lakehouse Navigator");
+        if (id && connection) {
+            const document = this.#documentDataModel?.openDocument(undefined, {
+                type: OdmEntityType.AdminPage,
+                parameters: {
+                    pageId: id,
+                    id: uuid(),
+                    connection: connection?.details,
+                    pageType: "lakehouseNavigator",
+                    caption: "Lakehouse Navigator",
+                },
+            });
+
+            if (document) {
+                void this.handleSelectItem(document);
+            }
+        }
 
         return Promise.resolve(true);
     };
@@ -1011,7 +970,7 @@ Execute \\help or \\? for help;`;
                 const content: INotebookFileFormat = {
                     type: "MySQLNotebook",
                     version: currentNotebookVersion,
-                    caption: openState.caption,
+                    caption: openState.document.caption,
                     content: persistentState.model.getValue(),
                     options: persistentState.options,
                     viewState: this.notebookRef.current?.getViewState() ?? null,
@@ -1035,7 +994,7 @@ Execute \\help or \\? for help;`;
                 } else {
                     // TODO: make the file name configurable.
                     const { caption } = this.props;
-                    saveTextAsFile(text, `${caption ?? "<unnamed>"} - ${openState.caption}.mysql-notebook`);
+                    saveTextAsFile(text, `${caption ?? "<unnamed>"} - ${openState.document.caption}.mysql-notebook`);
                 }
             }
         }
@@ -1050,8 +1009,11 @@ Execute \\help or \\? for help;`;
      * @param options Content and details for script execution.
      */
     private runSQLCode = async (context: SQLExecutionContext, options: IScriptExecutionOptions): Promise<void> => {
-        const { savedState } = this.props;
-        const { backend } = this.state;
+        const { savedState, connection } = this.props;
+
+        if (!connection?.backend) {
+            return;
+        }
 
         let pageSize = Settings.get("sql.limitRowCount", 1000);
         if (pageSize < 1 || pageSize > 100000) {
@@ -1060,8 +1022,8 @@ Execute \\help or \\? for help;`;
 
         await context.clearResult();
         if (savedState.mleEnabled) {
-            // Reset MLE console log
-            void await backend?.execute("SELECT mle_session_reset()");
+            // Reset MLE console log.
+            void await connection.backend.execute("SELECT mle_session_reset()");
         }
 
         let statementCount = 0;
@@ -1104,8 +1066,7 @@ Execute \\help or \\? for help;`;
 
         // If MLE is enabled, collect all console.log() output and all errors.
         if (savedState.mleEnabled) {
-            const consoleLog = await backend?.execute(
-                `SELECT mle_session_state("stdout")`);
+            const consoleLog = await connection.backend.execute(`SELECT mle_session_state("stdout")`);
             if (consoleLog && consoleLog.rows && consoleLog.rows.length > 0
                 && (consoleLog.rows[0] as string[])[0] !== "") {
                 for (const row of consoleLog.rows) {
@@ -1121,8 +1082,8 @@ Execute \\help or \\? for help;`;
                     }, { resultId: "" });
                 }
             }
-            const stackTrace = await backend?.execute(
-                `SELECT mle_session_state("stack_trace")`);
+
+            const stackTrace = await connection?.backend?.execute(`SELECT mle_session_state("stack_trace")`);
             if (stackTrace && stackTrace.rows && stackTrace.rows.length > 0
                 && (stackTrace.rows[0] as string[])[0] !== "") {
                 for (const row of stackTrace.rows) {
@@ -1141,7 +1102,7 @@ Execute \\help or \\? for help;`;
         }
 
         const activeEditor = this.findActiveEditor();
-        if (activeEditor?.type === EntityType.Script && statementCount > 1) {
+        if (activeEditor?.document.type === OdmEntityType.Script && statementCount > 1) {
             const duration = formatTime((Date.now() - startTime) / 1000);
             const infoStr = errorCount > 0
                 ? `, ${errorCount} error${errorCount > 1 ? "s" : ""} occurred.`
@@ -1182,9 +1143,9 @@ Execute \\help or \\? for help;`;
             return;
         }
 
-        const { backend } = this.state;
+        const { connection } = this.props;
 
-        if (backend) {
+        if (connection) {
             // Extract embedded parameters.
             const services = ScriptingLanguageServices.instance;
             const queryType = await services.determineQueryType(context, sql);
@@ -1219,11 +1180,10 @@ Execute \\help or \\? for help;`;
 
                 let pkColumns: string[] | undefined;
                 if (result.updatable && result.fullTableName) {
-                    pkColumns = await this.getPrimaryKeyColumns(backend, result.fullTableName);
+                    pkColumns = await this.getPrimaryKeyColumns(result.fullTableName);
                 }
 
                 await this.doExecution({
-                    backend,
                     query: result.query,
                     original: sql,
                     queryType,
@@ -1240,7 +1200,6 @@ Execute \\help or \\? for help;`;
                 });
             } else {
                 await this.doExecution({
-                    backend,
                     query: sql,
                     original: sql,
                     queryType,
@@ -1265,7 +1224,7 @@ Execute \\help or \\? for help;`;
      * @returns A promise that resolves when all responses have been received.
      */
     private doExecution = async (options: IQueryExecutionOptions): Promise<void> => {
-        const { id = "" } = this.props;
+        const { id = "", connection } = this.props;
 
         let resultId = uuid();
         let replaceData = false;
@@ -1294,9 +1253,7 @@ Execute \\help or \\? for help;`;
             let setColumns = false;
 
             options.context.executionStarts();
-            await options.backend.execute(options.query, options.params, undefined, (data) => {
-                const { dbType } = this.props;
-
+            await connection!.backend.execute(options.query, options.params, undefined, (data) => {
                 let hasMoreRows = false;
                 let rowCount = 0;
                 let status: IStatusInfo = { text: "" };
@@ -1337,7 +1294,7 @@ Execute \\help or \\? for help;`;
                 }
 
                 if (data.result.columns) {
-                    columns = generateColumnInfo(dbType, data.result.columns);
+                    columns = generateColumnInfo(connection!.details.dbType, data.result.columns);
                     setColumns = true;
 
                     // Check if all PK columns are part of the columns list.
@@ -1556,8 +1513,7 @@ Execute \\help or \\? for help;`;
     };
 
     private runChatQuery = async (context: SQLExecutionContext, _options: IScriptExecutionOptions): Promise<void> => {
-        const { savedState } = this.props;
-        const { backend } = this.state;
+        const { savedState, connection } = this.props;
 
         // If there is no current chat, init the current chat options
         let currentChatOptions = savedState.chatOptionsState.options ?? {
@@ -1565,7 +1521,7 @@ Execute \\help or \\? for help;`;
             reportProgress: true,
         };
 
-        if (backend && backend.moduleSessionId) {
+        if (connection && connection.backend.moduleSessionId) {
             const chatQueryId = context.id;
             currentChatOptions.reRun = false;
             if (currentChatOptions.chatHistory &&
@@ -1584,8 +1540,8 @@ Execute \\help or \\? for help;`;
                     chatQueryId,
                 };
                 context.presentation.executionStarts(LoadingState.Waiting);
-                void await backend.mds.executeChatRequest(
-                    context.code, backend.moduleSessionId, options, (data) => {
+                void await connection.backend.mhs.executeChatRequest(
+                    context.code, connection.backend.moduleSessionId, options, (data) => {
                         let info;
                         const chatData = data.result.data;
                         if (chatData) {
@@ -1675,11 +1631,11 @@ Execute \\help or \\? for help;`;
     };
 
     private reconnect = async (context: ExecutionContext): Promise<void> => {
-        const { backend } = this.state;
+        const { connection } = this.props;
 
-        if (backend) {
+        if (connection) {
             try {
-                await backend.reconnect();
+                await connection.backend.reconnect();
                 await context.addResultData({
                     type: "text",
                     text: [{
@@ -1747,8 +1703,7 @@ Execute \\help or \\? for help;`;
      * @param options The query execution options.
      */
     private handleDependentTasks = (options: IQueryExecutionOptions): void => {
-        const { id, connectionId } = this.props;
-        const { backend } = this.state;
+        const { id, connection } = this.props;
 
         switch (options.queryType) {
             case QueryType.SetAutoCommit:
@@ -1764,10 +1719,13 @@ Execute \\help or \\? for help;`;
             case QueryType.Use: {
                 // The user wants to change the current schema.
                 // This may have failed so query the backend for the current schema and then trigger the command.
-                void backend?.getCurrentSchema().then((schema) => {
+                void connection?.backend.getCurrentSchema().then((schema) => {
                     if (schema) {
-                        requisitions.executeRemote("sqlSetCurrentSchema", { id: id ?? "", connectionId, schema });
-                        void requisitions.execute("sqlSetCurrentSchema", { id: id ?? "", connectionId, schema });
+                        const details = connection.details;
+                        requisitions.executeRemote("sqlSetCurrentSchema",
+                            { id: id ?? "", connectionId: details.id, schema });
+                        void requisitions.execute("sqlSetCurrentSchema",
+                            { id: id ?? "", connectionId: details.id, schema });
                     }
                 });
 
@@ -1779,7 +1737,7 @@ Execute \\help or \\? for help;`;
                 // Enforce a refresh of the MRS Sdk Cache
                 this.cachedMrsServiceSdk.schemaMetadataVersion = undefined;
                 void this.updateMrsServiceSdkCache().then(() => {
-                    void requisitions.executeRemote("refreshConnections", undefined);
+                    void requisitions.executeRemote("refreshConnection", undefined);
                 });
 
                 break;
@@ -1800,7 +1758,7 @@ Execute \\help or \\? for help;`;
      */
     private async updateColumnDetails(requestId: string, fullTableName: string,
         columnNames: string[]): Promise<void> {
-        const { backend } = this.state;
+        const { connection } = this.props;
 
         const parts = fullTableName.split(".");
         const table = unquote(parts.pop()!);
@@ -1810,11 +1768,11 @@ Execute \\help or \\? for help;`;
         }
 
         if (schema.length === 0) {
-            schema = await backend?.getCurrentSchema() ?? "";
+            schema = await connection?.backend.getCurrentSchema() ?? "";
         }
 
         // Get all column names.
-        const tableColumns = await backend?.getTableObjectNames(schema, table, "Column");
+        const tableColumns = await connection?.backend.getTableObjectNames(schema, table, "Column");
 
         // Retrieve the column details for each column in the result set.
         const details: IColumnDetails = {
@@ -1824,7 +1782,7 @@ Execute \\help or \\? for help;`;
 
         for (const tableColumn of tableColumns ?? []) {
             if (columnNames.includes(tableColumn)) {
-                const info = await backend?.getTableObject(schema, table, "Column", tableColumn);
+                const info = await connection?.backend.getTableObject(schema, table, "Column", tableColumn);
                 if (info) {
                     details.columns.push({
                         inPK: info.isPk === 1,
@@ -1842,12 +1800,13 @@ Execute \\help or \\? for help;`;
     /**
      * Retrieves all columns that are part of the primary key for the given table.
      *
-     * @param backend The backend to use for the query.
      * @param fullTableName The full name of the table to get the primary key columns for.
      *
      * @returns A promise that resolves to an array of column names that are part of the primary key.
      */
-    private async getPrimaryKeyColumns(backend: ShellInterfaceSqlEditor, fullTableName: string): Promise<string[]> {
+    private async getPrimaryKeyColumns(fullTableName: string): Promise<string[]> {
+        const { connection } = this.props;
+
         const parts = fullTableName.split(".");
         const table = unquote(parts.pop()!);
         let schema = "";
@@ -1856,22 +1815,22 @@ Execute \\help or \\? for help;`;
         }
 
         if (schema.length === 0) {
-            schema = await backend?.getCurrentSchema() ?? "";
+            schema = await connection?.backend.getCurrentSchema() ?? "";
         }
 
-        return backend?.getTableObjectNames(schema, table, "Primary Key");
+        return connection?.backend.getTableObjectNames(schema, table, "Primary Key") ?? [];
     }
 
     private updateMrsServiceSdkCache = async (): Promise<boolean> => {
-        const { connectionId } = this.props;
-        const { backend } = this.state;
+        const { connection } = this.props;
 
-        if (backend !== undefined) {
+        if (connection) {
             // Check if there is an current MRS Service set and if so, get the corresponding MRSruntime SDK
             // for that MRS Service
+            const statusBarItem = ui.createStatusBarItem();
             try {
-                const firstItem = StatusBar.setStatusBarMessage("$(loading~spin) Checking MRS status ...");
-                const serviceMetadata = await backend.mrs.getCurrentServiceMetadata();
+                statusBarItem.text = "$(loading~spin) Checking MRS status ...";
+                const serviceMetadata = await connection.backend.mrs.getCurrentServiceMetadata();
 
                 // Check if there is a current MRS service set and if the cached
                 if (serviceMetadata.id !== undefined && serviceMetadata.id !== null &&
@@ -1892,21 +1851,21 @@ Execute \\help or \\? for help;`;
 
                         // Fetch SDK BaseClasses only once
                         if (this.cachedMrsServiceSdk.baseClasses === undefined) {
-                            StatusBar.setStatusBarMessage("$(loading~spin) Loading MRS SDK Base Classes ...");
+                            statusBarItem.text = "$(loading~spin) Loading MRS SDK Base Classes ...";
                             this.cachedMrsServiceSdk.baseClasses =
-                                await backend.mrs.getSdkBaseClasses("TypeScript", true);
+                                await connection.backend.mrs.getSdkBaseClasses("TypeScript", true);
                             firstLoad = true;
                         }
 
                         // Fetch new SDK Service Classes and build full code
-                        StatusBar.setStatusBarMessage(`$(loading~spin) ${firstLoad
+                        statusBarItem.text = `$(loading~spin) ${firstLoad
                             ? "Loading"
-                            : "Refreshing"} MRS SDK for ${serviceMetadata.hostCtx}...`);
+                            : "Refreshing"} MRS SDK for ${serviceMetadata.hostCtx}...`;
                         if (this.cachedMrsServiceSdk.serviceUrl === undefined) {
                             if (!serviceMetadata.hostCtx.toLowerCase().startsWith("http")) {
-                                const service = await backend.mrs.getService(
+                                const service = await connection.backend.mrs.getService(
                                     serviceMetadata.id, null, null, null, null);
-                                const routerPort = getRouterPortForConnection(connectionId);
+                                const routerPort = getRouterPortForConnection(connection.details.id);
 
                                 this.cachedMrsServiceSdk.serviceUrl =
                                     `https://localhost:${routerPort}${service.urlContextRoot}`;
@@ -1916,7 +1875,7 @@ Execute \\help or \\? for help;`;
                         }
 
                         code += this.cachedMrsServiceSdk.baseClasses + "\n" +
-                            await backend.mrs.getSdkServiceClasses(
+                            await connection.backend.mrs.getSdkServiceClasses(
                                 serviceMetadata.id, "TypeScript", true, this.cachedMrsServiceSdk.serviceUrl);
 
                         // Update this.cachedMrsServiceSdk
@@ -1932,19 +1891,18 @@ Execute \\help or \\? for help;`;
 
                         const action = firstLoad ? "loaded" : ("refreshed (v" + String(libVersionNotebook) + ")");
                         const authInfo = authenticated ? " User authenticated." : "";
-                        StatusBar.setStatusBarMessage(
-                            `MRS SDK for ${serviceMetadata.hostCtx} has been ${action}.${authInfo}`, 5000);
-                    } else {
-                        firstItem.dispose();
+                        void ui.showInformationNotification(`MRS SDK for ${serviceMetadata.hostCtx} has been ` +
+                            `${action}.${authInfo}`);
                     }
+                    statusBarItem.dispose();
                 } else if (serviceMetadata.metadataVersion !== undefined) {
                     // If no current MRS service set, clean the cachedMrsServiceSdk and just load the MRS runtime
                     // management code
                     this.cachedMrsServiceSdk = {};
 
-                    StatusBar.setStatusBarMessage("$(loading~spin) Loading MRS Management Classes ...");
+                    statusBarItem.text = "$(loading~spin) Loading MRS Management Classes ...";
 
-                    const code = await backend.mrs.getRuntimeManagementCode();
+                    const code = await connection.backend.mrs.getRuntimeManagementCode();
                     this.cachedMrsServiceSdk.codeLineCount = (code.match(/\n/gm) ?? []).length + 1;
 
                     this.cachedMrsServiceSdk.code = code;
@@ -1952,16 +1910,19 @@ Execute \\help or \\? for help;`;
                     this.notebookRef.current?.addOrUpdateExtraLib(code, `mrsServiceSdk.d.ts`);
                     this.scriptRef.current?.addOrUpdateExtraLib(code, `mrsServiceSdk.d.ts`);
 
-                    StatusBar.setStatusBarMessage(`MRS Management Classes have been loaded.`, 5000);
+                    statusBarItem.dispose();
+                    ui.setStatusBarMessage(`MRS Management Classes have been loaded.`);
                 } else {
                     // If MRS is not enabled, just clear the statusbar
-                    firstItem.dispose();
+                    statusBarItem.dispose();
                 }
 
                 return true;
             } catch (e) {
+                statusBarItem.dispose();
+
                 // Ignore exception when MRS is not configured
-                StatusBar.setStatusBarMessage(`MRS SDK Error: ${String(e)}`);
+                void ui.showErrorNotification(`MRS SDK Error: ${String(e)}`);
 
                 return false;
             }
@@ -1971,10 +1932,10 @@ Execute \\help or \\? for help;`;
     };
 
     private getGenAiStatus = async () => {
-        const { backend } = this.state;
+        const { connection } = this.props;
 
-        if (backend?.moduleSessionId) {
-            const genAiStatus = await backend.mds.getMdsGetGenAiStatus(backend?.moduleSessionId);
+        if (connection?.backend?.moduleSessionId) {
+            const genAiStatus = await connection.backend.mhs.getMdsGetGenAiStatus(connection.backend.moduleSessionId);
             this.setState({ genAiStatus });
         }
     };
@@ -1988,8 +1949,7 @@ Execute \\help or \\? for help;`;
      * @returns True if something was actually executed, false otherwise.
      */
     private handleExecution = async (context: ExecutionContext, options: IScriptExecutionOptions): Promise<boolean> => {
-        const { workerPool, savedState } = this.props;
-        const { backend } = this.state;
+        const { workerPool, savedState, connection } = this.props;
 
         const command = context.code?.trim() ?? "";
         if (command.length === 0) {
@@ -2041,16 +2001,19 @@ Execute \\help or \\? for help;`;
         await context.clearResult();
 
         // Store this execution in the ExecutionHistory list for the connection in the backend database
-        try {
-            await backend?.addExecutionHistoryEntry(
-                savedState.connectionId, context.code, context.language);
+        if (connection && connection.backend) {
+            try {
+                await connection.backend?.addExecutionHistoryEntry(connection.details.id, context.code,
+                    context.language);
 
-            // Reset the currentExecutionHistoryIndex
-            savedState.currentExecutionHistoryIndex = 0;
+                // Reset the currentExecutionHistoryIndex
+                savedState.currentExecutionHistoryIndex = 0;
 
-            this.forceUpdate();
-        } catch (error) {
-            void requisitions.execute("showError", `Unable to create execution history entry. Error: ${String(error)}`);
+                this.forceUpdate();
+            } catch (error) {
+                const message = convertErrorToString(error);
+                void ui.showErrorNotification(`Unable to create execution history entry. Error: ${message}`);
+            }
         }
 
         switch (context.language) {
@@ -2140,9 +2103,9 @@ Execute \\help or \\? for help;`;
      * @param resultId The id of the associated result.
      */
     private async getHeatWaveTrace(context: ExecutionContext, sql: string, resultId: string): Promise<void> {
-        const { backend } = this.state;
+        const { connection } = this.props;
 
-        if (!backend) {
+        if (!connection) {
             return;
         }
 
@@ -2157,20 +2120,20 @@ Execute \\help or \\? for help;`;
         // Store the current values for the optimizer trace and enable it (if it wasn't yet).
         // Setting the offset every time is essential to trigger a reset which is required for correct results.
         try {
-            await backend.execute("SET @old_optimizer_trace = @@optimizer_trace, " +
+            await connection.backend.execute("SET @old_optimizer_trace = @@optimizer_trace, " +
                 "@old_optimizer_trace_offset = @@optimizer_trace_offset, @@optimizer_trace = \"enabled=on\", " +
                 "@@optimizer_trace_offset = -2;");
 
             // Run the query on the primary engine.
-            await backend.execute(sql);
+            await connection.backend.execute(sql);
 
             // Now we can read the optimizer trace to get the details.
-            const result = await backend.execute("SELECT QUERY, TRACE->'$**.Rapid_Offload_Fails', " +
+            const result = await connection.backend.execute("SELECT QUERY, TRACE->'$**.Rapid_Offload_Fails', " +
                 "TRACE->'$**.secondary_engine_not_used' FROM INFORMATION_SCHEMA.OPTIMIZER_TRACE;");
 
             // Restore the previous trace status.
-            await backend.execute("SET @@optimizer_trace = @old_optimizer_trace, @@optimizer_trace_offset = " +
-                "@old_optimizer_trace_offset;", [], resultId);
+            await connection.backend.execute("SET @@optimizer_trace = @old_optimizer_trace, " +
+                "@@optimizer_trace_offset = @old_optimizer_trace_offset;", [], resultId);
 
             if (result) {
                 const rows = result.rows as string[][];
@@ -2228,8 +2191,7 @@ Execute \\help or \\? for help;`;
      * @returns A promise which resolves when the result was handled.
      */
     private handleTaskResult = async (taskId: number, data: IConsoleWorkerResultData): Promise<void> => {
-        const { workerPool, connectionId } = this.props;
-        const { backend } = this.state;
+        const { workerPool, connection } = this.props;
 
         try {
             switch (data.api) {
@@ -2285,7 +2247,7 @@ Execute \\help or \\? for help;`;
                 }
 
                 case ScriptingApi.RunSql: {
-                    if (backend) {
+                    if (connection) {
                         // Make sure the task we are running currently on, stays assigned to this loop.
                         workerPool.retainTask(taskId);
 
@@ -2313,8 +2275,8 @@ Execute \\help or \\? for help;`;
                         };
 
                         try {
-                            const finalData = await backend.execute(data.code!, data.params as string[], uuid(),
-                                (data) => {
+                            const finalData = await connection.backend.execute(data.code!, data.params as string[],
+                                uuid(), (data) => {
                                     handleResult(data.result);
                                 });
 
@@ -2349,13 +2311,13 @@ Execute \\help or \\? for help;`;
                 }
 
                 case ScriptingApi.RunSqlIterative: {
-                    if (backend) {
+                    if (connection) {
                         // Make sure the task we are running currently on, stays assigned to this loop.
                         workerPool.retainTask(taskId);
 
                         try {
-                            const finalData = await backend.execute(data.code!, data.params as string[], undefined,
-                                (intermediateData) => {
+                            const finalData = await connection.backend.execute(data.code!, data.params as string[],
+                                undefined, (intermediateData) => {
                                     // Send back the result data to the worker to allow the user to act on that in
                                     // their JS code. If the `final` member of the data is set to true, the task is
                                     // implicitly released and freed.
@@ -2453,20 +2415,20 @@ Execute \\help or \\? for help;`;
                 }
 
                 case ScriptingApi.MrsSetCurrentService: {
-                    if (backend && data.serviceId && typeof data.serviceId === "string") {
-                        await backend.mrs.setCurrentService(data.serviceId);
+                    if (connection && data.serviceId && typeof data.serviceId === "string") {
+                        await connection.backend.mrs.setCurrentService(data.serviceId);
 
                         await this.updateMrsServiceSdkCache();
 
-                        void requisitions.executeRemote("refreshConnections", undefined);
+                        void requisitions.executeRemote("refreshConnection", undefined);
                     }
 
                     break;
                 }
 
                 case ScriptingApi.MrsEditService: {
-                    if (backend && data.serviceId && typeof data.serviceId === "string") {
-                        const service = await backend.mrs.getService(data.serviceId, null, null, null, null);
+                    if (connection && data.serviceId && typeof data.serviceId === "string") {
+                        const service = await connection.backend.mrs.getService(data.serviceId, null, null, null, null);
                         if (service !== undefined) {
                             void requisitions.execute("showMrsServiceDialog", service);
                         }
@@ -2479,12 +2441,12 @@ Execute \\help or \\? for help;`;
                 }
 
                 case ScriptingApi.MrsExportServiceSdk: {
-                    if (backend && data.serviceId && typeof data.serviceId === "string") {
-                        const service = await backend.mrs.getService(data.serviceId, null, null, null, null);
+                    if (connection && data.serviceId && typeof data.serviceId === "string") {
+                        const service = await connection.backend.mrs.getService(data.serviceId, null, null, null, null);
                         if (service !== undefined) {
                             void requisitions.execute("showMrsSdkExportDialog", {
                                 serviceId: data.serviceId,
-                                connectionId,
+                                connectionId: connection.details.id,
                             });
                         }
 
@@ -2494,13 +2456,13 @@ Execute \\help or \\? for help;`;
                 }
 
                 case ScriptingApi.MrsAddContentSet: {
-                    if (backend && data.serviceId && typeof data.serviceId === "string") {
-                        const service = await backend.mrs.getService(data.serviceId, null, null, null, null);
+                    if (connection && data.serviceId && typeof data.serviceId === "string") {
+                        const service = await connection.backend.mrs.getService(data.serviceId, null, null, null, null);
                         if (service !== undefined) {
                             void requisitions.execute("showMrsContentSetDialog", {
                                 serviceId: data.serviceId,
                                 directory: data.directory,
-                                connectionId,
+                                connectionId: connection.details.id,
                             });
                         }
 
@@ -2536,8 +2498,8 @@ Execute \\help or \\? for help;`;
                 }
 
                 case ScriptingApi.MrsEditSchema: {
-                    if (backend && data.schemaId && typeof data.schemaId === "string") {
-                        const schema = await backend.mrs.getSchema(data.schemaId);
+                    if (connection && data.schemaId && typeof data.schemaId === "string") {
+                        const schema = await connection.backend.mrs.getSchema(data.schemaId);
                         if (schema !== undefined) {
                             const editRequest: IMrsSchemaEditRequest = {
                                 schemaName: schema.name,
@@ -2552,8 +2514,8 @@ Execute \\help or \\? for help;`;
                 }
 
                 case ScriptingApi.MrsEditDbObject: {
-                    if (backend && data.dbObjectId && typeof data.dbObjectId === "string") {
-                        const dbObject = await backend.mrs.getDbObject(data.dbObjectId);
+                    if (connection && data.dbObjectId && typeof data.dbObjectId === "string") {
+                        const dbObject = await connection.backend.mrs.getDbObject(data.dbObjectId);
                         if (dbObject !== undefined) {
                             const editRequest: IMrsDbObjectEditRequest = {
                                 dbObject,
@@ -2592,14 +2554,14 @@ Execute \\help or \\? for help;`;
         }
     };
 
-    private handleSelectItem = (itemId: string, type: EntityType, caption?: string): void => {
+    private handleSelectItem = async (
+        entry: LeafDocumentEntry | IOdmStandaloneDocumentEntry | IOdmShellSessionEntry): Promise<void> => {
         const { id = "", onSelectItem } = this.props;
 
-        void this.canClose().then((canClose) => {
-            if (canClose) {
-                onSelectItem?.({ itemId, tabId: id, type, caption });
-            }
-        });
+        const canClose = await this.canClose();
+        if (canClose) {
+            return onSelectItem?.({ tabId: id, document: entry });
+        }
     };
 
     private handleCloseEditor = (editorId: string): void => {
@@ -2621,178 +2583,6 @@ Execute \\help or \\? for help;`;
                     resolve(onAddEditor?.(id ?? ""));
                 }
             });
-        });
-    };
-
-    private handleEditorRename = (editorId: string, newCaption: string): void => {
-        const { id, onEditorRename } = this.props;
-
-        onEditorRename?.(id ?? "", editorId, newCaption);
-    };
-
-    private handleAddScript = (language: EditorLanguage): void => {
-        const { id, onAddScript, dbType } = this.props;
-
-        onAddScript?.(id ?? "", language, dbType);
-    };
-
-    private saveSchemaTree = (id: string, schemaTree: ISchemaTreeEntry[]): void => {
-        const { onSaveSchemaTree } = this.props;
-
-        onSaveSchemaTree?.(id, schemaTree);
-    };
-
-    private saveExplorerState = (id: string, state: Map<string, IExplorerSectionState>): void => {
-        const { onSaveExplorerState } = this.props;
-
-        onSaveExplorerState?.(id, state);
-    };
-
-    private handleExplorerMenuAction = (id: string, actionId: string, params?: unknown): void => {
-        const { connectionId } = this.props;
-        const { backend } = this.state;
-
-        const data = params as ISchemaTreeEntry;
-        switch (actionId) {
-            case "setCurrentSchemaMenuItem": {
-                // Send the request to the DB editor module, which will then change the current schema for
-                // this connection.
-                void requisitions.execute("sqlSetCurrentSchema",
-                    { id, connectionId, schema: data.qualifiedName.schema });
-
-                break;
-            }
-
-            case "filterMenuItem": {
-                break;
-            }
-
-            case "inspectorMenuItem": {
-                break;
-            }
-
-            case "clipboardNameMenuItem": {
-                requisitions.writeToClipboard(data.caption);
-                break;
-            }
-
-            case "clipboardCreateStatementMenuItem":
-            case "editorCreateStatementMenuItem": {
-                let type;
-                let qualifier = `\`${data.qualifiedName.schema}\`.`;
-                let index = 1; // The column index in the result row.
-                switch (data.type) {
-                    case SchemaTreeType.Schema: {
-                        type = "schema";
-                        qualifier = "";
-                        break;
-                    }
-
-                    case SchemaTreeType.Table: {
-                        type = "table";
-                        break;
-                    }
-
-                    case SchemaTreeType.View: {
-                        type = "view";
-                        break;
-                    }
-
-                    case SchemaTreeType.StoredFunction: {
-                        index = 2;
-                        type = "function";
-                        break;
-                    }
-
-                    case SchemaTreeType.StoredProcedure: {
-                        index = 2;
-                        type = "procedure";
-                        break;
-                    }
-
-                    case SchemaTreeType.Trigger: {
-                        type = "trigger";
-                        break;
-                    }
-
-                    case SchemaTreeType.Event: {
-                        type = "event";
-                        break;
-                    }
-
-                    case SchemaTreeType.User: {
-                        type = "user";
-                        break;
-                    }
-
-                    default:
-                }
-
-                if (type) {
-                    void backend?.execute(`show create ${type} ${qualifier}\`${data.caption}\``).then((data) => {
-                        const rows = data?.rows;
-                        if (rows && rows.length > 0) {
-                            // Returns one row with 2 columns.
-                            const row = rows[0] as string[];
-                            if (row.length > index) {
-                                if (actionId === "clipboardCreateStatementMenuItem") {
-                                    requisitions.writeToClipboard(row[index]);
-                                } else {
-                                    if (this.notebookRef.current) {
-                                        this.notebookRef.current.insertScriptText("mysql", row[index]);
-                                    } else if (this.scriptRef.current) {
-                                        this.scriptRef.current.insertScriptText("sql", row[index]);
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-
-                break;
-            }
-
-            case "editorNameMenuItem": {
-                break;
-            }
-
-            case "createSchemaMenuItem": {
-                break;
-            }
-
-            case "alterSchemaMenuItem": {
-                break;
-            }
-
-            case "dropSchemaMenuItem": {
-                break;
-            }
-
-            case "refreshMenuItem": {
-                break;
-            }
-
-            default: {
-                // Forward any other menu action to the module.
-                const { id, onExplorerMenuAction } = this.props;
-                onExplorerMenuAction?.(id ?? "", actionId, params);
-
-                break;
-            }
-        }
-    };
-
-    private handlePaneResize = (info: ISplitterPaneSizeInfo[]): void => {
-        info.forEach((value) => {
-            if (value.id === "explorer") {
-                const { id = "", onExplorerResize } = this.props;
-
-                onExplorerResize?.(id, value.currentSize);
-            } else if (value.id === "chatOptions") {
-                const { id = "", onChatOptionsChange } = this.props;
-
-                onChatOptionsChange?.(id, { chatOptionsWidth: value.currentSize });
-            }
         });
     };
 
@@ -2965,16 +2755,14 @@ Execute \\help or \\? for help;`;
      *
      * @returns The active editor or undefined, if no editor is open.
      */
-    private findActiveEditor = (): IOpenEditorState | undefined => {
+    private findActiveEditor = (): IOpenDocumentState | undefined => {
         const { savedState } = this.props;
-        let activeEditor = savedState.editors.find(
-            (entry: IOpenEditorState): boolean => {
-                return entry.id === savedState.activeEntry;
-            },
-        );
+        let activeEditor = savedState.documentStates.find((entry): boolean => {
+            return entry.document.id === savedState.activeEntry;
+        });
 
-        if (!activeEditor && savedState.editors.length > 0) {
-            activeEditor = savedState.editors[0];
+        if (!activeEditor && savedState.documentStates.length > 0) {
+            activeEditor = savedState.documentStates[0];
         }
 
         return activeEditor;
@@ -3038,8 +2826,7 @@ Execute \\help or \\? for help;`;
     };
 
     private selectFile = async (fileResult: IOpenFileDialogResult): Promise<boolean> => {
-        const { backend } = this.state;
-        const { savedState, id, onChatOptionsChange } = this.props;
+        const { savedState, id, connection, onChatOptionsChange } = this.props;
 
         switch (fileResult.resourceId) {
             case "saveChatOptions": {
@@ -3049,7 +2836,7 @@ Execute \\help or \\? for help;`;
                         ...savedState.chatOptionsState.options,
                     };
                     try {
-                        void await backend?.mds.saveMdsChatOptions(fileResult.path[0], options);
+                        void await connection?.backend.mhs.saveMdsChatOptions(fileResult.path[0], options);
 
                         void requisitions.execute("showInfo",
                             `The HeatWave options have been saved successfully to ${fileResult.path[0]}`);
@@ -3079,7 +2866,7 @@ Execute \\help or \\? for help;`;
                 if (fileResult.path.length === 1) {
                     try {
                         // Load Chat Profile options
-                        const options = await backend?.mds.loadMdsChatOptions(fileResult.path[0]);
+                        const options = await connection?.backend.mhs.loadMdsChatOptions(fileResult.path[0]);
 
                         if (id && onChatOptionsChange) {
                             onChatOptionsChange(id, { options });
@@ -3114,10 +2901,39 @@ Execute \\help or \\? for help;`;
     };
 
     private handleNavigateHistory = (backwards: boolean): void => {
-        const { savedState } = this.props;
+        const { savedState, connection } = this.props;
 
-        savedState.currentExecutionHistoryIndex += backwards ? +1 : -1;
+        if (!this.notebookRef.current) {
+            return;
+        }
 
-        this.forceUpdate();
+        if (connection) {
+            const currentContext = this.notebookRef.current.currentContext;
+
+            // Store the unsaved current block code before moving back in history.
+            if (savedState.currentExecutionHistoryIndex === 0 && backwards) {
+                savedState.executionHistoryUnsavedCode = currentContext?.code;
+                savedState.executionHistoryUnsavedCodeLanguage = currentContext?.language;
+            }
+
+            // Restore unsaved current block code when the user moves forward to the current statement again
+            if (savedState.currentExecutionHistoryIndex === 1 && !backwards) {
+                const historyEntry = {
+                    index: savedState.currentExecutionHistoryIndex,
+                    code: savedState.executionHistoryUnsavedCode ?? "",
+                    languageId: savedState.executionHistoryUnsavedCodeLanguage ?? "sql",
+                    currentTimestamp: new Date().toISOString(),
+                };
+
+                this.notebookRef.current?.restoreHistoryState(historyEntry);
+            } else {
+                // Load the next/prev history entry and restore the state in the notebook.
+                savedState.currentExecutionHistoryIndex += backwards ? +1 : -1;
+                void connection.backend.getExecutionHistoryEntry(connection.details.id,
+                    savedState.currentExecutionHistoryIndex - 1).then((historyEntry) => {
+                        this.notebookRef.current?.restoreHistoryState(historyEntry);
+                    });
+            }
+        }
     };
 }

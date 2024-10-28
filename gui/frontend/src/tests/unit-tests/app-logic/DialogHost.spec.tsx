@@ -27,7 +27,7 @@ import { mount } from "enzyme";
 
 import { DialogHost } from "./../../../app-logic/DialogHost.js";
 import { JestReactWrapper, nextProcessTick, sendKeyPress } from "../test-helpers.js";
-import { DialogType, IDialogRequest } from "../../../app-logic/Types.js";
+import { DialogType, IDialogRequest } from "../../../app-logic/general-types.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
 import { KeyboardKeys } from "../../../utilities/helpers.js";
 

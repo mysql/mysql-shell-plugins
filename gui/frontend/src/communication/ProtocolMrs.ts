@@ -24,7 +24,7 @@
  */
 
 import { IShellDictionary } from "./Protocol.js";
-import { IDictionary } from "../app-logic/Types.js";
+import { IDictionary } from "../app-logic/general-types.js";
 import { MrsDbObjectType, MrsObjectKind, MrsSdkLanguage } from "../modules/mrs/types.js";
 
 /* eslint-disable max-len */
@@ -1663,7 +1663,7 @@ export interface IMrsRouterService {
     routerDeveloper: string | null;
     serviceId: string;
     serviceUrlHostName: string;
-    serviceUrlContextRoot : string;
+    serviceUrlContextRoot: string;
     serviceHostCtx: string;
     published: number;
     inDevelopment: IMrsServiceDevelopmentOptions | null;
@@ -1941,9 +1941,9 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsEnableContentSet]: {};
     [ShellAPIMrs.MrsDisableContentSet]: {};
     [ShellAPIMrs.MrsDeleteContentSet]: {};
-    [ShellAPIMrs.MrsGetFolderMrsScriptLanguage]: { result: string | undefined };
-    [ShellAPIMrs.MrsGetFileMrsScriptDefinitions]: { result: IMrsScriptModuleDefinition[] };
-    [ShellAPIMrs.MrsGetFolderMrsScriptDefinitions]: { result: IMrsScriptDefinitions | undefined };
+    [ShellAPIMrs.MrsGetFolderMrsScriptLanguage]: { result?: string; };
+    [ShellAPIMrs.MrsGetFileMrsScriptDefinitions]: { result: IMrsScriptModuleDefinition[]; };
+    [ShellAPIMrs.MrsGetFolderMrsScriptDefinitions]: { result?: IMrsScriptDefinitions; };
     [ShellAPIMrs.MrsUpdateMrsScriptsFromContentSet]: {};
     [ShellAPIMrs.MrsAddDbObject]: { result: string; };
     [ShellAPIMrs.MrsGetDbObject]: { result: IMrsDbObjectData; };
@@ -1999,15 +1999,15 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsDumpSdkServiceFiles]: { result: boolean; };
     [ShellAPIMrs.MrsGetSdkOptions]: { result: IMrsSdkOptions; };
     [ShellAPIMrs.MrsRunScript]: { result: IMrsScriptResult[]; };
-    [ShellAPIMrs.MrsGetServiceCreateStatement]: { result: string; }
-    [ShellAPIMrs.MrsGetSchemaCreateStatement]: { result: string; }
-    [ShellAPIMrs.MrsGetDbObjectCreateStatement]: { result: string; }
-    [ShellAPIMrs.MrsGetContentSetCreateStatement]: { result: string; }
-    [ShellAPIMrs.MrsGetContentFileCreateStatement]: { result: string; }
-    [ShellAPIMrs.MrsDumpServiceCreateStatement]: { result: boolean; }
-    [ShellAPIMrs.MrsDumpSchemaCreateStatement]: { result: boolean; }
-    [ShellAPIMrs.MrsDumpDbObjectCreateStatement]: { result: boolean; }
-    [ShellAPIMrs.MrsDumpContentSetCreateStatement]: { result: boolean; }
-    [ShellAPIMrs.MrsDumpContentFileCreateStatement]: { result: boolean; }
+    [ShellAPIMrs.MrsGetServiceCreateStatement]: { result: string; };
+    [ShellAPIMrs.MrsGetSchemaCreateStatement]: { result: string; };
+    [ShellAPIMrs.MrsGetDbObjectCreateStatement]: { result: string; };
+    [ShellAPIMrs.MrsGetContentSetCreateStatement]: { result: string; };
+    [ShellAPIMrs.MrsGetContentFileCreateStatement]: { result: string; };
+    [ShellAPIMrs.MrsDumpServiceCreateStatement]: { result: boolean; };
+    [ShellAPIMrs.MrsDumpSchemaCreateStatement]: { result: boolean; };
+    [ShellAPIMrs.MrsDumpDbObjectCreateStatement]: { result: boolean; };
+    [ShellAPIMrs.MrsDumpContentSetCreateStatement]: { result: boolean; };
+    [ShellAPIMrs.MrsDumpContentFileCreateStatement]: { result: boolean; };
 }
 

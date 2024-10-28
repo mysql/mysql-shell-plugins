@@ -55,7 +55,7 @@
             "request": "launch",
             "name": "Launch MSG on Chrome - Single user",
             "url": "http://127.0.0.1:3001?token=1234",
-            "webRoot": "${workspaceFolder}/src",
+            "webRoot": "${workspaceFolder}", // Point to folder with vite.config.ts.
             "userDataDir": "${workspaceRoot}/.vscode/chrome",
             "preLaunchTask": "tsc: watch",
             "sourceMaps": true,
@@ -63,14 +63,10 @@
                 "--allow-insecure-localhost"
             ],
             "showAsyncStacks": false,
-            "smartStep": true,
-            "perScriptSourcemaps": "auto",
-            "resolveSourceMapLocations": [
-                "${workspaceFolder}/**",
-                "!/node_modules/**"
-            ],
+            "smartStep": false,
+            "perScriptSourcemaps": "yes",
             "skipFiles": [
-                "${workspaceFolder}/node_modules/**/*.js",
+                //"${workspaceFolder}/node_modules/**", doesn't make startup faster, but prevents debugging 3rd party code.
             ]
         },
         {
@@ -87,7 +83,7 @@
                 "-i",
                 "${file}",
                 "-t",
-                "--no-coverage"
+                "--no-coverage",
             ],
             "console": "integratedTerminal",
         },
@@ -100,5 +96,21 @@
             "sourceMaps": true,
             "sourceMapPathOverrides": {},
         },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch OCI typings processing",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "runtimeArgs": [
+                "--no-warnings=ExperimentalWarning",
+                "--loader",
+                "ts-node/esm",
+                "scripts/copy-oci-typings.ts",
+            ],
+            "sourceMaps": true,
+            "outputCapture": "std"
+        }
     ]
 }

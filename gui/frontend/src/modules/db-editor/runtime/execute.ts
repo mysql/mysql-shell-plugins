@@ -25,7 +25,7 @@
 
 
 import { PrivateWorker } from "../console.worker-types.js";
-import { IDictionary } from "../../../app-logic/Types.js";
+import { IDictionary } from "../../../app-logic/general-types.js";
 
 /** This is a global var only in the current worker and used for all user-visible APIs. */
 export let currentWorker!: PrivateWorker;

@@ -145,6 +145,31 @@ exports[`Button component tests Test button output (Snapshot) 1`] = `
       Large Button
     </div>
   </Button>
+  <Button
+    caption="Large Button"
+    id="button6"
+    requestType="editorChanged"
+    size="big"
+    title="Test"
+  >
+    <div
+      caption="Large Button"
+      className="msg button big"
+      id="button6"
+      onClick={[Function]}
+      onMouseDown={[Function]}
+      role="button"
+      style={
+        {
+          "flexDirection": undefined,
+        }
+      }
+      tabIndex={0}
+      title="Test"
+    >
+      Large Button
+    </div>
+  </Button>
   <Container
     orientation="row"
   >

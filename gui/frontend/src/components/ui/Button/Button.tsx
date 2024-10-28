@@ -29,7 +29,8 @@ import { ComponentChild, createRef } from "preact";
 
 import { ComponentBase, DragEventType, IComponentProperties, MouseEventType } from "../Component/ComponentBase.js";
 import { Orientation } from "../Container/Container.js";
-import { IRequestTypeMap, requisitions } from "../../../supplement/Requisitions.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
+import type { IRequestTypeMap } from "../../../supplement/RequisitionTypes.js";
 
 export interface IButtonProperties extends IComponentProperties {
     innerRef?: preact.RefObject<HTMLDivElement>;
@@ -120,12 +121,15 @@ export class Button extends ComponentBase<IButtonProperties> {
             }
 
             case MouseEventType.Click: {
-                const { requestType: requestId } = this.props;
-                if (requestId) {
-                    void requisitions.execute(requestId, undefined);
+                const { requestType } = this.props;
+                if (requestType) {
+                    void requisitions.execute(requestType, undefined);
 
                     return false;
                 }
+
+                // Stop propagation for all other click events.
+                e.stopImmediatePropagation();
 
                 break;
             }

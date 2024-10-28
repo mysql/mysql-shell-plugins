@@ -122,9 +122,9 @@
     pointer-events: none;
 }
 
-.msg.dropdownList {
+.msg.popup.dropdownList {
     padding: 0;
-    border-radius: 0;
+    border-radius: 0 0 4px 4px;
 
     color: var(--dropdown-foreground);
     background-color: var(--dropdown-listBackground);
@@ -134,33 +134,45 @@
     overflow-y: scroll;
 }
 
-.msg.dropdownList > .dropdownItem {
+.msg.popup.dropdownList > .dropdownItem {
     cursor: pointer;
-    padding: 2px 4px;
+    padding: 4px 4px;
 
     min-height: 20px;
 }
 
-.msg.dropdownList > .dropdownItem[disabled=true] .icon {
-    background-color: var(--button-secondaryHoverBackground);
+.msg.dropdown .icon.codicon {
+    background-color: inherit;
 }
 
-.msg.dropdownList > .dropdownItem > .checkbox {
+.msg.popup.dropdownList > .dropdownItem .icon:not(.codicon) {
+    background-color: var(--dropdown-foreground);
+}
+
+.msg.popup.dropdownList > .dropdownItem[disabled=true] .icon:not(.codicon) {
+    background-color: var(--button-dimmedBackground);
+}
+
+.msg.dropdownList > .dropdownItem[disabled=true] .icon {
+    background-color: var(--button-dimmedBackground);
+}
+
+.msg.popup.dropdownList > .dropdownItem > .checkbox {
     flex: 1 1 auto;
 }
 
-.msg.dropdownList > .dropdownItem .image,
-.msg.dropdownList > .dropdownItem .icon {
-    width: 20px;
-    height: 20px;
+.msg.popup.dropdownList > .dropdownItem .image,
+.msg.popup.dropdownList > .dropdownItem .icon {
+    width: 16px;
+    height: 16px;
     margin-right: 4px;
 }
 
-.msg.dropdownList > .dropdownItem#empty {
+.msg.popup.dropdownList > .dropdownItem#empty {
     color: transparent;
 }
 
-.msg.dropdownList > .dropdownItem.default::after {
+.msg.popup.dropdownList > .dropdownItem.default::after {
     display: inline-block;
     content: "default";
 
@@ -170,19 +182,18 @@
     color: steelblue;
 }
 
-.msg.dropdownList > .dropdownItem:focus,
+.msg.popup.dropdownList > .dropdownItem:focus,
 .msg.dropdownList > .dropdownItem.selected {
-    background-color: var(--editorActionList-focusBackground);
-    color: var(--editorActionList-focusForeground);
-    border: 1px dotted var(--contrastActiveBorder);
+    background-color: var(--list-activeSelectionBackground);
+    color: var(--foreground);
 }
 
-.msg.dropdownList > .dropdownDivider {
+.msg.popup.dropdownList > .dropdownDivider {
     background-color: var(--menu-separatorBackground);
     margin: 2px 0;
 }
 
-.msg.dropdownList > .dropdownDescription {
+.msg.popup.dropdownList > .dropdownDescription {
     min-height: 15px;
     margin: 4px;
 }

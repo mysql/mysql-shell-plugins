@@ -24,11 +24,11 @@
  */
 
 import {
-    IServicePasswordRequest, IDialogRequest, DialogType, IDictionary, IDialogResponse, DialogResponseClosure,
-} from "../../app-logic/Types.js";
+    DialogResponseClosure, DialogType, IDialogRequest, IDialogResponse, IDictionary, IServicePasswordRequest,
+} from "../../app-logic/general-types.js";
 import { IPromptReplyBackend, ShellPromptResponseType } from "../../communication/Protocol.js";
 import {
-    IShellResultType, IShellPasswordFeedbackRequest, IShellFeedbackRequest,
+    IShellFeedbackRequest, IShellPasswordFeedbackRequest, IShellResultType,
 } from "../../communication/ProtocolGui.js";
 
 import { requisitions } from "../../supplement/Requisitions.js";
@@ -139,7 +139,7 @@ export class ShellPromptHandler {
         return false;
     }
 
-    // Must be public for the registration below. Switch to a static init block once we can use ES 2022.
+    // TODO: Must be public for the registration below. Switch to a static init block once we can use ES 2022.
     public static acceptPassword = (
         data: { request: IServicePasswordRequest; password: string; }): Promise<boolean> => {
         return new Promise((resolve) => {

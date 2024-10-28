@@ -87,9 +87,7 @@ export class ChatHost extends ComponentBase<IChatHostProperties, IChatHostState>
         );
     }
 
-    private handleRefineChatScopeClick = (_e: MouseEvent | KeyboardEvent,
-        _props: Readonly<IComponentProperties>): void => {
-
+    private handleRefineChatScopeClick = (): void => {
         void requisitions.execute("showChatOptions", undefined);
     };
 }

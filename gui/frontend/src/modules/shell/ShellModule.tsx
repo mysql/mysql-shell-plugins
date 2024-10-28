@@ -23,40 +23,41 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import closeButton from "../../assets/images/close2.svg";
 import shellIcon from "../../assets/images/modules/module-shell.svg";
 import sessionIcon from "../../assets/images/terminal.svg";
-import closeButton from "../../assets/images/close2.svg";
 
 import { ComponentChild, RefObject } from "preact";
 
-import { ModuleBase, IModuleInfo, IModuleState, IModuleProperties } from "../ModuleBase.js";
+import { IModuleInfo, IModuleProperties, IModuleState, ModuleBase } from "../ModuleBase.js";
 
-import { SessionBrowser } from "./SessionBrowser.js";
-import { appParameters, requisitions } from "../../supplement/Requisitions.js";
-import { IShellSessionDetails } from "../../supplement/ShellInterface/index.js";
-import { IShellTabPersistentState, ShellTab } from "./ShellTab.js";
-import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
-import { Settings } from "../../supplement/Settings/Settings.js";
-import { CodeEditorMode, Monaco } from "../../components/ui/CodeEditor/index.js";
-import { ExecutionContexts } from "../../script-execution/ExecutionContexts.js";
-import { DynamicSymbolTable } from "../../script-execution/DynamicSymbolTable.js";
-import { ShellModuleId } from "../ModuleInfo.js";
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
-import { IShellEditorModel } from "./index.js";
-import { ShellPromptHandler } from "../common/ShellPromptHandler.js";
-import { uuid } from "../../utilities/helpers.js";
-import { defaultEditorOptions } from "../../components/ui/index.js";
+import type { ISqlUpdateResult } from "../../app-logic/general-types.js";
+import { Button } from "../../components/ui/Button/Button.js";
+import { CodeEditorMode, Monaco } from "../../components/ui/CodeEditor/index.js";
 import { Container, Orientation } from "../../components/ui/Container/Container.js";
 import { Divider } from "../../components/ui/Divider/Divider.js";
 import { Dropdown } from "../../components/ui/Dropdown/Dropdown.js";
+import { DropdownItem } from "../../components/ui/Dropdown/DropdownItem.js";
 import { Icon } from "../../components/ui/Icon/Icon.js";
 import { Label } from "../../components/ui/Label/Label.js";
-import { Button } from "../../components/ui/Button/Button.js";
 import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator.js";
-import { ITabviewPage, Tabview, TabPosition } from "../../components/ui/Tabview/Tabview.js";
+import { ITabviewPage, TabPosition, Tabview } from "../../components/ui/Tabview/Tabview.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
+import { defaultEditorOptions } from "../../components/ui/index.js";
 import { parseVersion } from "../../parsing/mysql/mysql-helpers.js";
-import type { ISqlUpdateResult } from "../../app-logic/Types.js";
+import { DynamicSymbolTable } from "../../script-execution/DynamicSymbolTable.js";
+import { ExecutionContexts } from "../../script-execution/ExecutionContexts.js";
+import { appParameters, requisitions } from "../../supplement/Requisitions.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
+import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
+import { IShellSessionDetails } from "../../supplement/ShellInterface/index.js";
+import { uuid } from "../../utilities/helpers.js";
+import { ShellModuleId } from "../ModuleInfo.js";
+import { ShellPromptHandler } from "../common/ShellPromptHandler.js";
+import { IShellTabPersistentState, ShellTab } from "./ShellTab.js";
+import { IShellEditorModel } from "./index.js";
+import type { IOdmShellSessionEntry } from "../../data-models/OpenDocumentDataModel.js";
 
 interface IShellTabInfo {
     details: IShellSessionDetails;
@@ -71,7 +72,8 @@ interface IShellModuleState extends IModuleState {
     selectedTab?: string;
     showTabs: boolean;
 
-    pendingSession?: number; // The id of a session for which a tab must be opened on component mount/update.
+    /** The id of a session for which a tab must be opened on component mount/update. */
+    pendingSession?: string;
     pendingConnectionProgress: "inactive" | "inProgress";
 
     progressMessage: string;
@@ -159,10 +161,6 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         const { innerRef } = this.props;
         const { selectedTab, shellTabs, showTabs, progressMessage } = this.state;
 
-        const sessions = shellTabs.map((tabInfo) => {
-            return tabInfo.details;
-        });
-
         const pages: ITabviewPage[] = [];
         if (selectedTab === "waitPage") {
             const content = <>
@@ -187,9 +185,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                 icon: shellIcon,
                 caption: "GUI Console",
                 id: "sessions",
-                content: <SessionBrowser
-                    openSessions={sessions}
-                />,
+                content: <div />,
             });
 
             shellTabs.forEach((info: IShellTabInfo) => {
@@ -202,9 +198,15 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                     content: <ShellTab
                         id={info.id}
                         savedState={state}
+                        toolbarItemsTemplate={{
+                            navigation: [],
+                            execution: [],
+                            editor: [],
+                            auxillary: [],
+                        }}
                         onQuit={this.handleQuit}
                     />,
-                    auxillary: (
+                    auxiliary: (
                         <Button
                             id={info.id}
                             className="closeButton"
@@ -221,7 +223,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         let toolbarInset: ComponentChild | undefined;
         if (appParameters.embedded && selectedTab !== "waitPage") {
             const items = [
-                <Dropdown.Item
+                <DropdownItem
                     id="sessions"
                     key="sessions"
                     caption="MySQL Shell Consoles"
@@ -230,7 +232,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
             ];
 
             shellTabs.forEach((info: IShellTabInfo) => {
-                items.push(<Dropdown.Item
+                items.push(<DropdownItem
                     id={info.id}
                     key={info.id}
                     caption={info.caption}
@@ -343,17 +345,19 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         return true;
     };
 
-    private addTabForSessionId(sessionId: number): void {
+    private addTabForSessionId(sessionId: string): void {
         const { shellTabs, pendingConnectionProgress } = this.state;
 
         if (pendingConnectionProgress !== "inProgress") {
-            if (sessionId === -1) {
+            if (sessionId === "") {
                 // We need a new session.
                 //const session = (moduleParams?.data as IDictionary).session as IShellSessionDetails;
                 //this.addTabForNewSession(session);
             } else {
                 // A real session id was given. Activate the respective tab (add it, if it doesn't exist yet).
-                const session = shellTabs.find((candidate) => { return candidate.details.sessionId === sessionId; });
+                const session = shellTabs.find((candidate) => {
+                    return candidate.details.sessionId === sessionId;
+                });
                 if (session) {
                     void this.addShellTab(session.details);
                 }
@@ -363,13 +367,10 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
 
     private async addTabForNewSession(session?: IShellSessionDetails): Promise<void> {
         const details = session ?? {
-            sessionId: -1,
+            sessionId: uuid(),
         };
 
-        details.sessionId = ShellModule.counter++;
-        if (!details.caption) {
-            details.caption = `Session ${details.sessionId}`;
-        }
+        //details.sessionId = ShellModule.counter++;
 
         return this.addShellTab(details);
     }
@@ -409,7 +410,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                 // Modify the original caption to include the counter too (need to show this in tiles).
                 session.caption = caption;
             } else {
-                caption = session.caption ?? "<untitled>";
+                caption = session.caption ?? "Untitled";
             }
 
             // If there's no previous editor state for this connection, create a default editor.
@@ -447,6 +448,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                         currentSchema);
 
                     const sessionState: IShellTabPersistentState = {
+                        dataModelEntry: {} as IOdmShellSessionEntry,
                         state: {
                             model,
                             viewState: null,

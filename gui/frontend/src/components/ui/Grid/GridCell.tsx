@@ -26,7 +26,7 @@
 import { ComponentChild } from "preact";
 
 import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
-import { IDictionary } from "../../../app-logic/Types.js";
+import { IDictionary } from "../../../app-logic/general-types.js";
 import { Orientation, ContentAlignment, Container } from "../Container/Container.js";
 
 /**

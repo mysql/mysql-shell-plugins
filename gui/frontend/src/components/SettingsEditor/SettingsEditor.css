@@ -42,7 +42,7 @@
     flex-basis: 10%;
 }
 
-.msg.settingsEditor .content #settingsHost {
+.msg.settingsEditor .tabContent #settingsHost {
     flex: 1 1 auto;
     width: 100%;
     max-width: 950px;
@@ -50,21 +50,21 @@
     padding: 0 15px;
 }
 
-.msg.settingsEditor .content #advancedSettings {
+.msg.settingsEditor .tabContent #advancedSettings {
     font-size: 0.9em;
 }
 
-.msg.settingsEditor .content #optionsHost {
+.msg.settingsEditor .tabContent #optionsHost {
     min-height: 36px;
     margin: 12px 0 6px 0;
 }
 
-.msg.settingsEditor .content #settingsHost .searchContainer {
+.msg.settingsEditor .tabContent #settingsHost .searchContainer {
     flex: 1 1 auto;
     margin-right: 20px;
 }
 
-.msg.settingsEditor .content #settingsHost > #settingsTreeHost {
+.msg.settingsEditor .tabContent #settingsHost > #settingsTreeHost {
     flex: 1 1 auto;
 }
 
@@ -84,7 +84,7 @@
 }
 
 .msg.settingsEditor #settingsTree .treeToggle + .settingsTreeCell {
-    padding-left: 0px;
+    padding-left: 0;
 }
 
 .msg.settingsEditor #settingsValueList {

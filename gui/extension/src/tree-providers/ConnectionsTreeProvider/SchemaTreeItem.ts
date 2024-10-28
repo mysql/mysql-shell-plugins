@@ -23,13 +23,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
+import type { ICdmSchemaEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
+import { ConnectionBaseTreeItem } from "./ConnectionBaseTreeItem.js";
 
-export class SchemaTreeItem extends ConnectionsTreeBaseItem {
+export class SchemaTreeItem extends ConnectionBaseTreeItem<ICdmSchemaEntry> {
     public override contextValue = "schemaItem";
 
     public override get qualifiedName(): string {
-        return `\`${this.name}\``;
+        return `\`${this.dataModelEntry.caption}\``;
     }
 
     public override get dbType(): string {

@@ -191,7 +191,7 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
               </div>
             </div>
             <div
-              class="msg container fixedScrollbar content"
+              class="msg container fixedScrollbar tabContent"
               style="flex-direction: column;"
             >
               <div

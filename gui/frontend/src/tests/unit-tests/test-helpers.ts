@@ -38,6 +38,14 @@ import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { webSession } from "../../supplement/WebSession.js";
 import { LogLevel, MySQLShellLauncher } from "../../utilities/MySQLShellLauncher.js";
+import { uiLayerMock } from "./__mocks__/UILayerMock.js";
+
+import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../communication/MySQL.js";
+import { IMrsAuthAppData, IMrsServiceData } from "../../communication/ProtocolMrs.js";
+import { MrsDbObjectType, MrsObjectKind } from "../../modules/mrs/types.js";
+import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
+import { uuidBinary16Base64 } from "../../utilities/helpers.js";
 
 export const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipisci elit, " +
     "sed eiusmod tempor incidunt ut labore et dolore magna aliqua.";
@@ -209,6 +217,17 @@ export const checkMinStatementVersion = (statement: string, minimumVersion: numb
  */
 export const fail = (message: string): void => {
     throw new Error(message);
+};
+
+/**
+ * Can be used to check if neither warnings nor errors have been triggered in the UI.
+ * To make this work properly you have to reset the UILayer mock before the test.
+ */
+export const checkNoUiWarningsOrErrors = (): void => {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(uiLayerMock.showErrorNotification).toHaveBeenCalledTimes(0);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(uiLayerMock.showWarningNotification).toHaveBeenCalledTimes(0);
 };
 
 /**
@@ -804,13 +823,6 @@ export class DialogHelper {
     }
 }
 
-import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../communication/MySQL.js";
-import { DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
-import { uuidBinary16Base64 } from "../../utilities/helpers.js";
-import { MrsDbObjectType, MrsObjectKind } from "../../modules/mrs/types.js";
-import { IMrsAuthAppData, IMrsServiceData } from "../../communication/ProtocolMrs.js";
-
 export const createBackend = async (): Promise<ShellInterfaceSqlEditor> => {
     const credentials = getDbCredentials();
 
@@ -853,7 +865,8 @@ export const recreateMrsData = async (): Promise<IRecreateMrsDataResult> => {
     await backend.execute("DROP DATABASE IF EXISTS mysql_rest_service_metadata");
     await backend.execute("DROP DATABASE IF EXISTS MRS_TEST");
     await backend.execute("CREATE DATABASE MRS_TEST");
-    await backend.execute("CREATE TABLE MRS_TEST.actor (actor_id INT NOT NULL, first_name VARCHAR(45) NOT NULL, " +
+    await backend.execute("CREATE TABLE MRS_TEST.actor " +
+        "(actor_id INT NOT NULL, first_name VARCHAR(45) NOT NULL, " +
         "last_name VARCHAR(45) NOT NULL, last_update TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY " +
         "(actor_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci");
     await backend.execute("CREATE PROCEDURE MRS_TEST.actor_count (IN var1 CHAR(3), OUT actors INT)\n" +

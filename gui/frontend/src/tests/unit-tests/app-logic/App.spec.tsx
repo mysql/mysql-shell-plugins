@@ -30,7 +30,7 @@ import { MessageScheduler } from "../../../communication/MessageScheduler.js";
 import { appParameters, requisitions } from "../../../supplement/Requisitions.js";
 import { MySQLShellLauncher } from "../../../utilities/MySQLShellLauncher.js";
 import { waitFor } from "../../../utilities/helpers.js";
-import { mouseEventMock } from "../__mocks__/MockEvents.js";
+import { mouseEventMock } from "../__mocks__/EventMocks.js";
 import { setupShellForTests } from "../test-helpers.js";
 
 describe("Application tests", () => {

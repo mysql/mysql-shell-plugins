@@ -62,7 +62,7 @@ describe("PerformanceDashboard Tests", (): void => {
                 port: credentials.port,
             },
             useSSH: false,
-            useMDS: false,
+            useMHS: false,
 
         };
 

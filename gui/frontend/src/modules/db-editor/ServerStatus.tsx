@@ -107,7 +107,7 @@ interface IServerFirewall {
 }
 
 interface IServerStatusProperties extends IComponentProperties {
-    backend: ShellInterfaceSqlEditor;
+    backend?: ShellInterfaceSqlEditor;
     rowGap?: string | number;
 
     /** Top level toolbar items, to be integrated with page specific ones. */
@@ -506,9 +506,12 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
 
     private async updateValues(): Promise<void> {
         const { backend } = this.props;
+        if (!backend) {
+            return;
+        }
+
         const {
-            serverStatus, serverDirectories, serverFeatures, serverAuthentication,
-            serverSsl, firewall,
+            serverStatus, serverDirectories, serverFeatures, serverAuthentication, serverSsl, firewall,
         } = this.state;
 
         backend.execute("select 1").then(() => {

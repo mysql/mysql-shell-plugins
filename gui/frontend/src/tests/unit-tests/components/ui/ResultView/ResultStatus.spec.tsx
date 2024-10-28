@@ -25,7 +25,7 @@
 
 import { mount } from "enzyme";
 
-import { MessageType } from "../../../../../app-logic/Types.js";
+import { MessageType } from "../../../../../app-logic/general-types.js";
 import { ResultStatus } from "../../../../../components/ResultView/ResultStatus.js";
 
 describe("Result Status Tests", (): void => {

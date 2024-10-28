@@ -42,7 +42,7 @@ export enum EventType {
     /** A response indicating that an ongoing process was cancelled and did not end with either data or an error. */
     CancelResponse = -3,
 
-    /** The first response send back, immediately after the BE has received a request. */
+    /** The first response sent back, immediately after the BE has received a request. */
     StartResponse = 1,
 
     /** A response carrying result data. */

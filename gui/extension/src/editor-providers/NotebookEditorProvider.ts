@@ -106,10 +106,9 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
             void host.determineConnection(DBType.MySQL, true).then((connection) => {
                 if (connection) {
                     void workspace.openTextDocument(uri).then((document) => {
-                        const item = connection.treeItem;
                         void commands.executeCommand("vscode.openWith", uri, "msg.notebook").then(() => {
-                            void host.context.workspaceState.update(document.uri.toString(), item.details.id);
-                            void this.showNotebookPage(item.details.id, document.getText());
+                            void host.context.workspaceState.update(document.uri.toString(), connection.details.id);
+                            void this.showNotebookPage(connection.details.id, document.getText());
                         });
                     });
                 }
@@ -168,7 +167,7 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
         // Check if the connection is still valid.
         if (this.#document && this.#panel) {
             const connectionId = this.#host!.context.workspaceState.get<number>(this.#document.uri.toString());
-            if (!this.isValidConnectionId(connectionId)) {
+            if (connectionId !== undefined && !this.#host!.isValidConnectionId(connectionId)) {
                 if (this.#document.isDirty) {
                     void this.#document.save().then(() => {
                         this.#panel!.dispose();
@@ -236,7 +235,7 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
 
         // Do we have a connection id for this document, stored when it was last opened?
         let usedConnectionId = this.#host!.context.workspaceState.get<number>(document.uri.toString());
-        if (!this.isValidConnectionId(usedConnectionId)) {
+        if (usedConnectionId === undefined || !this.#host!.isValidConnectionId(usedConnectionId)) {
             usedConnectionId = undefined;
             await this.#host!.context.workspaceState.update(document.uri.toString(), undefined);
         }
@@ -245,7 +244,7 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
         if (usedConnectionId === undefined) {
             const connection = await this.#host!.determineConnection(DBType.MySQL);
             if (connection) {
-                usedConnectionId = connection.treeItem.details.id;
+                usedConnectionId = connection.details.id;
             }
         }
 
@@ -304,16 +303,6 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
         } else {
             webviewPanel.webview.html = "<br/><h2>No connection selected</h2>";
         }
-    }
-
-    /**
-     * @param connectionId The connection id to check.
-     *
-     * @returns true if the given connection id exists in the connection list.
-     */
-    private isValidConnectionId(connectionId?: number): boolean {
-        return connectionId !== undefined
-            && this.#host!.connections.find((c) => { return c.treeItem.details.id === connectionId; }) !== undefined;
     }
 
     private handleDispose(): void {

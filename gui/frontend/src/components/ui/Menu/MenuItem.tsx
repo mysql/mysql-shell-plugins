@@ -26,27 +26,47 @@
 import { ComponentChild, createRef, toChildArray } from "preact";
 
 import { Codicon } from "../Codicon.js";
-import { IComponentProperties, ComponentPlacement, ComponentBase } from "../Component/ComponentBase.js";
+import {
+    IComponentProperties, ComponentPlacement, ComponentBase, type IComponentState,
+} from "../Component/ComponentBase.js";
 import { Container, Orientation } from "../Container/Container.js";
 import { Divider } from "../Divider/Divider.js";
 import { Icon } from "../Icon/Icon.js";
 import { Label } from "../Label/Label.js";
 import { Menu } from "./Menu.js";
+import type { Command } from "../../../data-models/data-model-types.js";
 
-export interface IMenuItemProperties extends IComponentProperties {
-    caption?: string;
+export interface IMenuItemProperties extends Omit<IComponentProperties, "onClick" | "onMouseEnter" | "onMouseLeave"> {
+    /** Comprises the main title and action id (plus optional parameters) for the menu item. */
+    command: Command;
+
+    /** An alternative command, used when the user presses the alt key while clicking the menu item. */
+    altCommand?: Command;
+
     icon?: string | Codicon;
     active?: boolean;
     subMenuPlacement?: ComponentPlacement;
-    subMenuShowOnClick?: boolean;          // If true show the submenu only on item click, otherwise on mouse enter.
+
+    /** If true show the submenu only on item click, otherwise on mouse enter. */
+    subMenuShowOnClick?: boolean;
 
     innerRef?: preact.RefObject<HTMLDivElement>;
 
-    onSubMenuClose?: (props: IMenuItemProperties) => void;
-    onSubMenuOpen?: (props: IMenuItemProperties) => void;
+    onSubMenuClose?: (props: Readonly<IMenuItemProperties>) => void;
+    onSubMenuOpen?: (props: Readonly<IMenuItemProperties>) => void;
+
+    /** Replaces the standard onClick event. It's called when the user selects this item (using mouse or keyboard). */
+    onItemClick?: (props: Readonly<IMenuItemProperties>, altActive: boolean) => void;
+
+    onItemMouseEnter?: (e: MouseEvent, props: Readonly<IMenuItemProperties>) => void;
+    onItemMouseLeave?: (e: MouseEvent, props: Readonly<IMenuItemProperties>) => void;
 }
 
-export class MenuItem extends ComponentBase<IMenuItemProperties> {
+interface IMenuItemState extends IComponentState {
+    altActive: boolean;
+}
+
+export class MenuItem extends ComponentBase<IMenuItemProperties, IMenuItemState> {
 
     public static override defaultProps = {
         subMenuPlacement: ComponentPlacement.RightTop,
@@ -58,6 +78,10 @@ export class MenuItem extends ComponentBase<IMenuItemProperties> {
     public constructor(props: IMenuItemProperties) {
         super(props);
 
+        this.state = {
+            altActive: false,
+        };
+
         this.itemRef = props.innerRef ?? createRef<HTMLDivElement>();
 
         this.addHandledProperties("caption", "icon", "active", "subMenuPlacement", "onSubMenuClose",
@@ -65,13 +89,14 @@ export class MenuItem extends ComponentBase<IMenuItemProperties> {
     }
 
     public render(): ComponentChild {
-        const { children, id, caption, icon, disabled, active, subMenuPlacement, title } = this.props;
+        const { children, id, command, altCommand, icon, disabled, active, subMenuPlacement, title } = this.props;
+        const { altActive } = this.state;
 
-        const isSeparator = caption === "-";
-        const isDisabled = (disabled instanceof Function) ? disabled(this.props) : disabled;
+        const isSeparator = command.title === "-";
+        const actualCaption = (altActive && altCommand) ? altCommand.title : command.title;
         const className = this.getEffectiveClassNames([
             "menuItem",
-            this.classFromProperty(isDisabled || isSeparator, "disabled"),
+            this.classFromProperty(disabled || isSeparator, "disabled"),
             this.classFromProperty(active, "active"),
         ]);
 
@@ -83,6 +108,7 @@ export class MenuItem extends ComponentBase<IMenuItemProperties> {
                 id={id}
                 className={isSubMenu ? className + " submenu" : className}
                 orientation={Orientation.LeftToRight}
+                fixedScrollbars={false}
 
                 onMouseEnter={this.handleItemMouseEnter}
                 onMouseLeave={this.handleItemMouseLeave}
@@ -90,7 +116,7 @@ export class MenuItem extends ComponentBase<IMenuItemProperties> {
                 title={title}
             >
                 {icon && <Icon src={icon} />}
-                <Label>{caption}</Label>
+                <Label>{actualCaption}</Label>
             </Container>;
         } else {
             content = <Divider id={id} className={className + " separator"} />;
@@ -153,34 +179,33 @@ export class MenuItem extends ComponentBase<IMenuItemProperties> {
     };
 
     private handleItemMouseEnter = (e: MouseEvent): void => {
-        const { subMenuShowOnClick, disabled, onMouseEnter } = this.props;
+        const { subMenuShowOnClick, disabled, onItemMouseEnter } = this.props;
 
         const element = e.currentTarget as HTMLElement;
         element.classList.add("active");
 
         // If this item has a submenu then open it.
-        const isDisabled = (disabled instanceof Function) ? disabled(this.props) : disabled;
-        if (!isDisabled && !subMenuShowOnClick) {
+        if (!disabled && !subMenuShowOnClick) {
             this.menuRef.current?.open(element.getBoundingClientRect(), false);
         }
 
-        onMouseEnter?.(e, this.props);
+        onItemMouseEnter?.(e, this.props);
     };
 
     private handleItemMouseLeave = (e: MouseEvent): void => {
-        const { onMouseLeave } = this.props;
+        const { onItemMouseLeave } = this.props;
 
         const element = e.currentTarget as HTMLElement;
         element.classList.remove("active");
 
-        onMouseLeave?.(e, this.props);
+        onItemMouseLeave?.(e, this.props);
     };
 
     private handleItemClick = (e: MouseEvent | KeyboardEvent): void => {
-        const { subMenuShowOnClick, onClick, disabled } = this.props;
+        const { subMenuShowOnClick, disabled, onItemClick } = this.props;
+        const { altActive } = this.state;
 
-        const isDisabled = (disabled instanceof Function) ? disabled(this.props) : disabled;
-        if (isDisabled) {
+        if (disabled) {
             return;
         }
 
@@ -190,18 +215,17 @@ export class MenuItem extends ComponentBase<IMenuItemProperties> {
             this.menuRef.current?.open(element.getBoundingClientRect(), false);
         }
 
-        onClick?.(e, this.props);
+        onItemClick?.(this.props, altActive);
     };
 
-    private handleSubmenuItemClick = (e: MouseEvent, props: IMenuItemProperties): boolean => {
-        const { disabled, onClick } = this.props;
+    private handleSubmenuItemClick = (props: IMenuItemProperties, altActive: boolean): boolean => {
+        const { disabled, onItemClick } = this.props;
 
-        const isDisabled = (disabled instanceof Function) ? disabled(this.props) : disabled;
-        if (isDisabled) {
+        if (disabled) {
             return false;
         }
 
-        onClick?.(e, props);
+        onItemClick?.(props, altActive);
 
         return true;
     };

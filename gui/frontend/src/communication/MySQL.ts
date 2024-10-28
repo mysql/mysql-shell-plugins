@@ -228,7 +228,7 @@ export const getMySQLDbConnectionUri = (details: IConnectionDetails): string => 
 
     if (details.useSSH) {
         dbConnectionUri += `+ssh://`;
-    } else if (details.useMDS) {
+    } else if (details.useMHS) {
         dbConnectionUri += `+mds://`;
     }
 

@@ -30,6 +30,6 @@ export class SchemaRoutineMySQLTreeItem extends SchemaRoutineTreeItem {
     public override contextValue = "schemaRoutineItemMySQL";
 
     protected get iconName(): string {
-        return this.dbType === MrsDbObjectType.Procedure ? "schemaRoutine.svg" : "schemaFunction.svg";
+        return this.dbType === MrsDbObjectType.Procedure ? "schemaProcedure.svg" : "schemaFunction.svg";
     }
 }

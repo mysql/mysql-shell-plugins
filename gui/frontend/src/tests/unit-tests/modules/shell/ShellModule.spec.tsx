@@ -41,6 +41,7 @@ import { webSession } from "../../../../supplement/WebSession.js";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
 import { getDbCredentials, ITestDbCredentials, setupShellForTests } from "../../test-helpers.js";
 import { appParameters } from "../../../../supplement/Requisitions.js";
+import { uuid } from "../../../../utilities/helpers.js";
 
 describe("Shell module tests", (): void => {
     let launcher: MySQLShellLauncher;
@@ -65,7 +66,7 @@ describe("Shell module tests", (): void => {
                 port: credentials.port,
             },
             useSSH: false,
-            useMDS: false,
+            useMHS: false,
 
         };
 
@@ -183,8 +184,7 @@ describe("Shell module tests", (): void => {
 
     it("Test opening and closing tab function", async () => {
         const shellSession: IShellSessionDetails = {
-            sessionId: -1,
-            description: "Description 1",
+            sessionId: uuid(),
             dbConnectionId: testConnection.id,
         };
 
@@ -202,11 +202,11 @@ describe("Shell module tests", (): void => {
         let state = component.state();
         expect(state.pendingConnectionProgress).toStrictEqual("inactive");
         expect(state.shellTabs.length).toStrictEqual(1);
-        expect(state.shellTabs[0].id).toStrictEqual("session_1");
-        expect(state.shellTabs[0].caption).toMatch(/^Session \d+$/);
+        expect(state.shellTabs[0].id).toMatch(/session_[0-9a-f-]+/);
+        expect(state.shellTabs[0].caption).toBe("Untitled");
 
         const mockEvent = new MouseEvent("click", { bubbles: true });
-        Object.defineProperty(mockEvent, "currentTarget", { value: { id: "session_1" } });
+        Object.defineProperty(mockEvent, "currentTarget", { value: { id: state.shellTabs[0].id } });
 
         shellModuleInstance["closeTab"](mockEvent);
 

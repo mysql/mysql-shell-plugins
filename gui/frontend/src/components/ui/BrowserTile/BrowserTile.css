@@ -208,3 +208,9 @@
 
     opacity: 100%;
 }
+
+.msg.browserTile #actions .icon {
+    flex: 0 0 16px;
+    height: 16px;
+    margin: 0;
+}

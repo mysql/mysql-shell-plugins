@@ -30,20 +30,28 @@ import { shallow } from "enzyme";
 import { DataCallback } from "../../../../communication/MessageScheduler.js";
 import { IShellSimpleResult, ShellAPIGui } from "../../../../communication/ProtocolGui.js";
 import { IEditorPersistentState } from "../../../../components/ui/CodeEditor/CodeEditor.js";
+import type { IOdmShellSessionEntry } from "../../../../data-models/OpenDocumentDataModel.js";
 import { IShellTabPersistentState, IShellTabProperties, ShellTab } from "../../../../modules/shell/ShellTab.js";
 import { ExecutionContext } from "../../../../script-execution/ExecutionContext.js";
 import { IExecutionResult } from "../../../../script-execution/index.js";
 import { ShellInterfaceShellSession } from "../../../../supplement/ShellInterface/ShellInterfaceShellSession.js";
 
 describe("Shell tab tests", (): void => {
+    const toolbarItemsTemplate = {
+        navigation: [],
+        execution: [],
+        editor: [],
+        auxillary: [],
+    };
 
     describe("Connection tests", () => {
         // Generate the set of initial component state props
         const tSavedState = (result: IShellSimpleResult) => {
             return {
+                dataModelEntry: {} as IOdmShellSessionEntry,
                 backend: {
                     execute: (_command: string, _requestId: string,
-                    callback: DataCallback<ShellAPIGui.GuiShellExecute>) => {
+                        callback: DataCallback<ShellAPIGui.GuiShellExecute>) => {
                         return callback({ result }, "");
                     },
                 } as ShellInterfaceShellSession,
@@ -63,6 +71,7 @@ describe("Shell tab tests", (): void => {
         it("Test ShellModule instantiation", () => {
             const mockSavedState = (result: IShellSimpleResult) => {
                 return {
+                    dataModelEntry: {} as IOdmShellSessionEntry,
                     backend: {
                         execute: (_command: string, _requestId: string,
                             callback: DataCallback<ShellAPIGui.GuiShellExecute>) => {
@@ -86,6 +95,7 @@ describe("Shell tab tests", (): void => {
             const component = shallow<ShellTab>(
                 <ShellTab
                     savedState={savedState}
+                    toolbarItemsTemplate={toolbarItemsTemplate}
                     onQuit={() => { }}
                 />,
             );
@@ -100,21 +110,18 @@ describe("Shell tab tests", (): void => {
             const component = shallow<ShellTab>(
                 <ShellTab
                     savedState={savedState}
-                    onQuit={() => {}}
+                    toolbarItemsTemplate={toolbarItemsTemplate}
+                    onQuit={() => { }}
                 />,
             );
 
-            // This matches the handleExecution() private method on ShellTab.tsx...
-            const onScriptExecution: (context: object, options: object) =>
-                Promise<void> = component.find("#shellEditor").invoke("onScriptExecution");
-            // ...which accept as parameters, an object with the execution context
             const executionContext = {
                 // clearResult is not needed for this test
-                clearResult: () => {},
+                clearResult: () => { },
                 code: "\\connect root@localhost:3307",
             };
-            // and an object with additional execution details, which is not needed for the test
-            await onScriptExecution(executionContext, {});
+
+            await component.instance()["handleExecution"](executionContext as ExecutionContext, {});
 
             // Ultimately, the component props should include all the details needed for calling "openDbSession()"
             expect(savedState).toMatchObject({
@@ -133,19 +140,17 @@ describe("Shell tab tests", (): void => {
             const component = shallow<ShellTab>(
                 <ShellTab
                     savedState={savedState}
-                    onQuit={() => {}}
+                    toolbarItemsTemplate={toolbarItemsTemplate}
+                    onQuit={() => { }}
                 />,
             );
 
-            const onScriptExecution: (context: object, options: object) =>
-                Promise<void> = component.find("#shellEditor").invoke("onScriptExecution");
-
             const executionContext = {
-                clearResult: () => {},
+                clearResult: () => { },
                 code: "\\connect mysql://root@localhost:3307",
             };
 
-            await onScriptExecution(executionContext, {});
+            await component.instance()["handleExecution"](executionContext as ExecutionContext, {});
 
             expect(savedState).toMatchObject({
                 lastCommand: "\\connect mysql://root@localhost:3307",
@@ -163,19 +168,17 @@ describe("Shell tab tests", (): void => {
             const component = shallow<ShellTab>(
                 <ShellTab
                     savedState={savedState}
-                    onQuit={() => {}}
+                    toolbarItemsTemplate={toolbarItemsTemplate}
+                    onQuit={() => { }}
                 />,
             );
 
-            const onScriptExecution: (context: object, options: object) =>
-                Promise<void> = component.find("#shellEditor").invoke("onScriptExecution");
-
             const executionContext = {
-                clearResult: () => {},
+                clearResult: () => { },
                 code: "\\connect mysqlx://root@localhost:33070",
             };
 
-            await onScriptExecution(executionContext, {});
+            await component.instance()["handleExecution"](executionContext as ExecutionContext, {});
 
             expect(savedState).toMatchObject({
                 lastCommand: "\\connect mysqlx://root@localhost:33070",
@@ -190,8 +193,9 @@ describe("Shell tab tests", (): void => {
     });
 
     describe("Other tests", () => {
-        const tSavedState = (result: IShellSimpleResult) => {
+        const tSavedState = (result: IShellSimpleResult): IShellTabPersistentState => {
             return {
+                dataModelEntry: {} as IOdmShellSessionEntry,
                 backend: {
                     execute: (_command: string, _requestId: string,
                         callback: DataCallback<ShellAPIGui.GuiShellExecute>) => {
@@ -216,6 +220,7 @@ describe("Shell tab tests", (): void => {
             const component = shallow<ShellTab>(
                 <ShellTab
                     savedState={savedState}
+                    toolbarItemsTemplate={toolbarItemsTemplate}
                     onQuit={() => { }}
                 />,
             );
@@ -264,11 +269,12 @@ describe("Shell tab tests", (): void => {
             component.unmount();
         });
 
-        it("Test addTimedResult function", async () => {
+        it("Test addTimedResult function", () => {
             const savedState = tSavedState({ info: "" });
             const component = shallow<ShellTab>(
                 <ShellTab
                     savedState={savedState}
+                    toolbarItemsTemplate={toolbarItemsTemplate}
                     onQuit={() => { }}
                 />,
             );
@@ -301,6 +307,7 @@ describe("Shell tab tests", (): void => {
             const component = shallow<ShellTab>(
                 <ShellTab
                     savedState={savedState}
+                    toolbarItemsTemplate={toolbarItemsTemplate}
                     onQuit={() => { }}
                 />,
             );
@@ -319,6 +326,7 @@ describe("Shell tab tests", (): void => {
             const component = shallow<ShellTab>(
                 <ShellTab
                     savedState={savedState}
+                    toolbarItemsTemplate={toolbarItemsTemplate}
                     onQuit={() => { }}
                 />,
             );
@@ -337,6 +345,7 @@ describe("Shell tab tests", (): void => {
             const component = shallow<ShellTab>(
                 <ShellTab
                     savedState={savedState}
+                    toolbarItemsTemplate={toolbarItemsTemplate}
                     onQuit={() => { }}
                 />,
             );
@@ -365,18 +374,18 @@ describe("Shell tab tests", (): void => {
             const component = shallow<ShellTab>(
                 <ShellTab
                     savedState={savedState}
+                    toolbarItemsTemplate={toolbarItemsTemplate}
                     onQuit={() => { }}
                 />,
             );
 
             const shellTabInstance = component.instance();
-            const props = component.props();
-            (props as unknown as IShellTabPersistentState).lastCommand = "mysqlx://root:password@localhost:33060";
-            component.setProps(props);
+            savedState.lastCommand = "mysqlx://root:password@localhost:33060";
+            component.setProps({ savedState });
 
             const result = shellTabInstance["getPasswordFromLastCommand"]();
 
-            expect(result).toBe(undefined);
+            expect(result).toBe("password");
 
             component.unmount();
         });

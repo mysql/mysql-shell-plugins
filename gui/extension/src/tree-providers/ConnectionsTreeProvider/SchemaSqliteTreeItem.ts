@@ -25,26 +25,18 @@
 
 import { Command } from "vscode";
 
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { SchemaTreeItem } from "./SchemaTreeItem.js";
+import type { ICdmSchemaEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 
 export class SchemaSqliteTreeItem extends SchemaTreeItem {
-    public override contextValue = "schemaItem";
+    public override contextValue = "schemaItemSqlite";
 
-    public constructor(
-        name: string,
-        schema: string,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number,
-        isCurrent: boolean,
-        hasChildren: boolean,
-        command?: Command) {
-        super(name, schema, backend, connectionId, isCurrent ? "schemaSqliteCurrent.svg" : "schemaSqlite.svg",
-            hasChildren, command);
+    public constructor(dataModelEntry: ICdmSchemaEntry, isCurrent: boolean, command?: Command) {
+        super(dataModelEntry, isCurrent ? "schemaSqliteCurrent.svg" : "schemaSqlite.svg", true, command);
     }
 
     public override get qualifiedName(): string {
-        return `\`${this.name}\``;
+        return `\`${this.dataModelEntry.caption}\``;
     }
 
     public override get dbType(): string {

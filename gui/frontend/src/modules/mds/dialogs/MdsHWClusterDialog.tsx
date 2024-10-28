@@ -25,7 +25,7 @@
 
 import { ComponentChild, createRef } from "preact";
 
-import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types.js";
+import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/general-types.js";
 import { IMySQLDbSystemShapeSummary } from "../../../communication/Oci.js";
 import { ValueDialogBase } from "../../../components/Dialogs/ValueDialogBase.js";
 import {

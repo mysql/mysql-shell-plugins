@@ -27,14 +27,12 @@ import {
 import { Options, ServiceBuilder } from "selenium-webdriver/chrome.js";
 export let driver: WebDriver;
 
-const outDir = process.env.USERPROFILE ?? process.env.HOME;
-
 /**
  * Loads the webdriver object
- * @param useHeadless True to run tests in background
+ * @param runInBackground True to run tests in background
  * @returns A promise resolving when the webdriver is loaded
  */
-export const loadDriver = async (useHeadless?: boolean): Promise<void> => {
+export const loadDriver = async (runInBackground: boolean): Promise<void> => {
     const logger = logging.getLogger("webdriver");
     logger.setLevel(logging.Level.INFO);
     logging.installConsoleHandler();
@@ -43,7 +41,7 @@ export const loadDriver = async (useHeadless?: boolean): Promise<void> => {
     options.setUserPreferences({
         download: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            default_directory: `${String(outDir)}`,
+            default_directory: process.cwd(),
             // eslint-disable-next-line @typescript-eslint/naming-convention
             prompt_for_download: "false",
         },
@@ -53,12 +51,9 @@ export const loadDriver = async (useHeadless?: boolean): Promise<void> => {
                 exceptions: {
                     clipboard: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        "http://localhost,*":
-                        {
-                            expiration: "0",
+                        "[*.],*": {
                             // eslint-disable-next-line @typescript-eslint/naming-convention
-                            last_modified: Date.now(),
-                            model: 0,
+                            last_modified: "1576491240619",
                             setting: 1,
                         },
                     },
@@ -67,19 +62,7 @@ export const loadDriver = async (useHeadless?: boolean): Promise<void> => {
         },
     });
 
-    let headless: string;
-
-    if (useHeadless === undefined) {
-        headless = process.env.HEADLESS ?? "1"; // headless is enabled by default
-    } else {
-        if (useHeadless === true) {
-            headless = "1";
-        } else {
-            headless = "0";
-        }
-    }
-
-    if (headless === "1") {
+    if (!process.env.E2E_DEBUG && runInBackground) {
         options.headless().windowSize({ width: 1300, height: 768 });
     }
 
@@ -97,7 +80,7 @@ export const loadDriver = async (useHeadless?: boolean): Promise<void> => {
             .build();
     }
 
-    if (headless === "0") {
+    if (!runInBackground || process.env.E2E_DEBUG) {
         await driver.manage().window().maximize();
     }
 

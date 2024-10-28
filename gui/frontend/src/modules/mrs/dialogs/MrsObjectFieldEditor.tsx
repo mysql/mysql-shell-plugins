@@ -23,65 +23,66 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "./MrsObjectFieldEditor.css";
-import tableIcon from "../../../assets/images/schemaTable.svg";
-import viewIcon from "../../../assets/images/schemaView.svg";
-import procedureIcon from "../../../assets/images/schemaRoutine.svg";
+import allowSortingIcon from "../../../assets/images/allowSorting.svg";
+import arrowIcon from "../../../assets/images/arrow.svg";
+import checkAllIcon from "../../../assets/images/checkAll.svg";
+import checkNoneIcon from "../../../assets/images/checkNone.svg";
+import closeIcon from "../../../assets/images/close2.svg";
+import inIcon from "../../../assets/images/in.svg";
+import inOutIcon from "../../../assets/images/inOut.svg";
+import keyIcon from "../../../assets/images/isKey.svg";
+import mrsObjectIcon from "../../../assets/images/mrsDbObject.svg";
+import noCheckIcon from "../../../assets/images/noCheck.svg";
+import noFilterIcon from "../../../assets/images/noFilter.svg";
+import noUpdateIcon from "../../../assets/images/noUpdate.svg";
+import outIcon from "../../../assets/images/out.svg";
+import addIcon from "../../../assets/images/plus.svg";
+import rowOwnershipIcon from "../../../assets/images/rowOwnership.svg";
 import functionIcon from "../../../assets/images/schemaFunction.svg";
+import procedureIcon from "../../../assets/images/schemaProcedure.svg";
+import tableIcon from "../../../assets/images/schemaTable.svg";
 import columnIcon from "../../../assets/images/schemaTableColumn.svg";
 import columnNnIcon from "../../../assets/images/schemaTableColumnNN.svg";
 import columnPkIcon from "../../../assets/images/schemaTableColumnPK.svg";
+import fkIcon11 from "../../../assets/images/schemaTableForeignKey11.svg";
 import fkIcon1N from "../../../assets/images/schemaTableForeignKey1N.svg";
 import fkIconN1 from "../../../assets/images/schemaTableForeignKeyN1.svg";
-import fkIcon11 from "../../../assets/images/schemaTableForeignKey11.svg";
-import arrowIcon from "../../../assets/images/arrow.svg";
-import mrsObjectIcon from "../../../assets/images/mrsDbObject.svg";
+import viewIcon from "../../../assets/images/schemaView.svg";
 import unnestedIcon from "../../../assets/images/unnest.svg";
-import noFilterIcon from "../../../assets/images/noFilter.svg";
-import allowSortingIcon from "../../../assets/images/allowSorting.svg";
-import noUpdateIcon from "../../../assets/images/noUpdate.svg";
-import rowOwnershipIcon from "../../../assets/images/rowOwnership.svg";
-import noCheckIcon from "../../../assets/images/noCheck.svg";
-import checkAllIcon from "../../../assets/images/checkAll.svg";
-import checkNoneIcon from "../../../assets/images/checkNone.svg";
-import addIcon from "../../../assets/images/plus.svg";
-import inIcon from "../../../assets/images/in.svg";
-import outIcon from "../../../assets/images/out.svg";
-import inOutIcon from "../../../assets/images/inOut.svg";
-import closeIcon from "../../../assets/images/close2.svg";
-import keyIcon from "../../../assets/images/isKey.svg";
+
+import "./MrsObjectFieldEditor.css";
 
 import { ComponentChild, createRef, render } from "preact";
 import {
-    CellComponent, ColumnDefinition, EmptyCallback, RowComponent,
-    ValueBooleanCallback, ValueVoidCallback,
+    CellComponent, ColumnDefinition, EmptyCallback, RowComponent, ValueBooleanCallback, ValueVoidCallback,
 } from "tabulator-tables";
 
-import { IValueEditCustomProperties, ValueEditCustom } from "../../../components/Dialogs/ValueEditCustom.js";
-import { Label } from "../../../components/ui/Label/Label.js";
-import { ITreeGridOptions, TreeGrid } from "../../../components/ui/TreeGrid/TreeGrid.js";
-import {
-    IComponentProperties, IComponentState, SelectionType,
-} from "../../../components/ui/Component/ComponentBase.js";
-import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { Dropdown } from "../../../components/ui/Dropdown/Dropdown.js";
-import { Container, ContentAlignment, Orientation } from "../../../components/ui/Container/Container.js";
-import { CheckState, Checkbox } from "../../../components/ui/Checkbox/Checkbox.js";
+import { IDictionary } from "../../../app-logic/general-types.js";
 import {
     IMrsDbObjectData, IMrsObject, IMrsObjectFieldWithReference, IMrsObjectReference,
     IMrsTableColumn,
 } from "../../../communication/ProtocolMrs.js";
+import { IValueEditCustomProperties, ValueEditCustom } from "../../../components/Dialogs/ValueEditCustom.js";
+import { Button } from "../../../components/ui/Button/Button.js";
+import { CheckState, Checkbox } from "../../../components/ui/Checkbox/Checkbox.js";
+import { CodeEditor } from "../../../components/ui/CodeEditor/CodeEditor.js";
+import { Codicon } from "../../../components/ui/Codicon.js";
+import {
+    IComponentProperties, IComponentState, SelectionType,
+} from "../../../components/ui/Component/ComponentBase.js";
+import { Container, ContentAlignment, Orientation } from "../../../components/ui/Container/Container.js";
+import { Dropdown } from "../../../components/ui/Dropdown/Dropdown.js";
+import { DropdownItem } from "../../../components/ui/Dropdown/DropdownItem.js";
+import { Icon } from "../../../components/ui/Icon/Icon.js";
+import { IInputChangeProperties, Input } from "../../../components/ui/Input/Input.js";
+import { Label } from "../../../components/ui/Label/Label.js";
+import { ITreeGridOptions, TreeGrid } from "../../../components/ui/TreeGrid/TreeGrid.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
+import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { uuidBinary16Base64 } from "../../../utilities/helpers.js";
 import {
-    convertCamelToSnakeCase, convertCamelToTitleCase, convertToPascalCase, convertSnakeToCamelCase,
+    convertCamelToSnakeCase, convertCamelToTitleCase, convertSnakeToCamelCase, convertToPascalCase,
 } from "../../../utilities/string-helpers.js";
-import { IInputChangeProperties, Input } from "../../../components/ui/Input/Input.js";
-import { Icon } from "../../../components/ui/Icon/Icon.js";
-import { Button } from "../../../components/ui/Button/Button.js";
-import { CodeEditor } from "../../../components/ui/CodeEditor/CodeEditor.js";
-import { IDictionary } from "../../../app-logic/Types.js";
-import { Codicon } from "../../../components/ui/Codicon.js";
-import { requisitions } from "../../../supplement/Requisitions.js";
 import { MrsDbObjectType, MrsObjectKind, MrsSdkLanguage } from "../types.js";
 
 export interface IMrsObjectFieldEditorData extends IDictionary {
@@ -515,7 +516,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                                         itemName = obj.name;
                                     }
 
-                                    return <Dropdown.Item
+                                    return <DropdownItem
                                         caption={itemName}
                                         key={itemName}
                                         id={itemName}
@@ -597,7 +598,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                                 >
                                     {Object.values(MrsSdkLanguage).map((lang) => {
                                         if (!(Number(lang) >= 0)) {
-                                            return <Dropdown.Item
+                                            return <DropdownItem
                                                 caption={String(lang)}
                                                 key={String(lang)}
                                                 id={String(lang)}
@@ -1223,7 +1224,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                             autoFocus={false}
                         >
                             {cellData.children?.map((item, itemIndex) => {
-                                return item.field.dbColumn?.name ? <Dropdown.Item
+                                return item.field.dbColumn?.name ? <DropdownItem
                                     caption={item.field.dbColumn?.name}
                                     key={itemIndex}
                                     id={item.field.dbColumn?.name}

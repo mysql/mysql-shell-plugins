@@ -27,21 +27,22 @@ import "./MrsAuthDialog.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { requisitions } from "../../../supplement/Requisitions.js";
-import { IServicePasswordRequest } from "../../../app-logic/Types.js";
+import { IServicePasswordRequest } from "../../../app-logic/general-types.js";
 import { Button, IButtonProperties } from "../../../components/ui/Button/Button.js";
 import { Codicon } from "../../../components/ui/Codicon.js";
-import { IComponentState, ComponentBase } from "../../../components/ui/Component/ComponentBase.js";
+import { ComponentBase, IComponentState } from "../../../components/ui/Component/ComponentBase.js";
 import { ContentAlignment } from "../../../components/ui/Container/Container.js";
 import { Dialog } from "../../../components/ui/Dialog/Dialog.js";
+import { Dropdown } from "../../../components/ui/Dropdown/Dropdown.js";
+import { DropdownItem } from "../../../components/ui/Dropdown/DropdownItem.js";
 import { Grid } from "../../../components/ui/Grid/Grid.js";
 import { GridCell } from "../../../components/ui/Grid/GridCell.js";
 import { Icon } from "../../../components/ui/Icon/Icon.js";
-import { Input, IInputChangeProperties } from "../../../components/ui/Input/Input.js";
+import { IInputChangeProperties, Input } from "../../../components/ui/Input/Input.js";
 import { Label } from "../../../components/ui/Label/Label.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
 import { IMrsAuthApp, IMrsLoginResult, MrsBaseService } from "../sdk/MrsBaseClasses.js";
 import { IMrsAuthRequestPayload } from "../types.js";
-import { Dropdown } from "../../../components/ui/Dropdown/Dropdown.js";
 
 interface IMrsAuthDialogState extends IComponentState {
     request?: IServicePasswordRequest,
@@ -90,7 +91,7 @@ export class MrsAuthDialog extends ComponentBase<{}, IMrsAuthDialogState> {
         const payload: IMrsAuthRequestPayload = request.payload as IMrsAuthRequestPayload;
 
         const authAppItems = authAppList?.map((item: IMrsAuthApp, itemIndex: number) => {
-            return <Dropdown.Item
+            return <DropdownItem
                 caption={item.name}
                 key={itemIndex}
                 id={item.name}
@@ -131,7 +132,7 @@ export class MrsAuthDialog extends ComponentBase<{}, IMrsAuthDialogState> {
                                 >
                                     {
                                         (!authAppList && payload.authApp) &&
-                                        <Dropdown.Item
+                                        <DropdownItem
                                             caption={payload.authApp}
                                             key={payload.authApp}
                                             id={payload.authApp}

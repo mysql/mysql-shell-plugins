@@ -23,15 +23,16 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/Types.js";
-import { IMrsScriptDefinitions, IMrsScriptModuleFile, IMrsServiceData } from "../../../communication/ProtocolMrs.js";
+import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/general-types.js";
+import {
+    IMrsServiceData, type IMrsScriptDefinitions, type IMrsScriptModuleFile,
+} from "../../../communication/ProtocolMrs.js";
 import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog.js";
 import {
-    IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations,
-    ValueEditDialog,
+    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues, ValueEditDialog,
 } from "../../../components/Dialogs/ValueEditDialog.js";
-import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { StatusBar } from "../../../components/ui/Statusbar/Statusbar.js";
+import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { getEnabledState } from "../mrsUtils.js";
 
 export interface IMrsContentSetDialogData extends IDictionary {
@@ -411,13 +412,10 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
                 const dialogContexts = ["MrsScripts"];
 
                 let mrsScriptDefinitions: IMrsScriptDefinitions | undefined;
-                await this.#backend.mrs.getFolderMrsScriptDefinitions(
-                    mainSection.values.directory.value as string,
-                    this.#mrsScriptLanguage,
-                    mainSection.values.ignoreList.value as string,
-                    (data) => {
+                await this.#backend.mrs.getFolderMrsScriptDefinitions(mainSection.values.directory.value as string,
+                    this.#mrsScriptLanguage, mainSection.values.ignoreList.value as string, (data) => {
                         if (data.result?.info) {
-                            StatusBar.setStatusBarMessage("$(loading~spin) " + data.result.info);
+                            StatusBar.setStatusBarMessage(`$(loading~spin) ${data.result.info}`);
                         } else {
                             mrsScriptDefinitions = data.result;
                         }

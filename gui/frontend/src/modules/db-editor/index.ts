@@ -25,80 +25,55 @@
 
 /// <reference types="./assets/typings/scripting-runtime.d.ts" />
 
-import { ComponentChild } from "preact";
+import { ComponentChild, createContext } from "preact";
 
-import { EditorLanguage } from "../../supplement/index.js";
+import type { ConnectionDataModel, ConnectionDataModelEntry } from "../../data-models/ConnectionDataModel.js";
+import type { OciDataModel, OciDataModelEntry } from "../../data-models/OciDataModel.js";
+import type { OpenDocumentDataModel, OpenDocumentDataModelEntry } from "../../data-models/OpenDocumentDataModel.js";
+import type { ShellTaskDataModel } from "../../data-models/ShellTaskDataModel.js";
 
-/** The type of an entry in trees etc. */
-export enum EntityType {
-    Notebook,
-    Script,
-    Folder,
-    Status,
-    Connections,
-    Dashboard,
-    LakehouseNavigator,
-}
-
-export enum SchemaTreeType {
-    Document,
-    Schema,
-    Table,
-    StoredFunction,
-    StoredProcedure,
-    Event,
-    Trigger,
-    Column,
-    View,
-    Index,
-    ForeignKey,
-    GroupNode,
-    UserVariable,
-    User,
-    Engine,
-    Plugin,
-    Character
-}
-
-export interface ISchemaTreeEntry<T = unknown> {
-    type: SchemaTreeType;
-    expanded: boolean;     // Currently expanded?
-    expandedOnce: boolean; // Was expanded before?
-
-    id: string;            // To uniquely address the entry.
-    caption: string;       // The text to show in the tree.
-    qualifiedName: {       // The parts of the FQN to access a db object.
-        schema: string;
-        table?: string;    // Table or view name
-        name?: string;     // Column or index name.
-    };
-
-    details: T;
-    children?: Array<ISchemaTreeEntry<T>>;
-}
-
-// Base fields for entries in the various sections on a scripting tab.
-export interface IEntityBase {
-    type: EntityType;
-
+/** This is the base structure for a tree in the sidebar UI. */
+export interface IBaseTreeItem<T> {
+    /** This is a copy of the id from the data model entry to allow searching for it. */
     id: string;
+
+    /** The data model entry that this interface represents. */
+    dataModelEntry: T;
+
+    /** The caption for the UI. Can change at any time. */
     caption: string;
+
+    children?: Array<IBaseTreeItem<T>>;
 }
 
-export interface IDBDataEntry extends IEntityBase {
-    // The id under which this entry is reachable in the backend.
-    dbDataId: number;
+/** Comprises the parts of a fully qualified name. */
+export type QualifiedName = {
+    /** Not assigned for connections. */
+    schema?: string;
 
-    // The ID of the folder in which this entry resides.
-    folderId: number;
+    /** Not assigned for connections and schema entries. Holds a table or view name. */
+    table?: string;
+
+    /** Assigned only for entries that have either a table or a schema as parent. */
+    name?: string;
+};
+
+/** Represents the visual expression of a connection data model entry. */
+export interface IConnectionTreeItem extends IBaseTreeItem<ConnectionDataModelEntry> {
+    /** The parts of the FQN to access a db object. */
+    qualifiedName: QualifiedName;
+
+    children?: IConnectionTreeItem[];
 }
 
-export interface IFolderEntity extends IDBDataEntry {
-    children: IDBDataEntry[];
+/** Represents the visual expression of a connection data model entry. */
+export interface IDocumentTreeItem extends IBaseTreeItem<OpenDocumentDataModelEntry> {
+    children?: IDocumentTreeItem[];
 }
 
-export interface IDBEditorScriptState extends IDBDataEntry {
-    language: EditorLanguage;
+/** Represents the visual expression of an OCI data model entry. */
+export interface IOciTreeItem extends IBaseTreeItem<OciDataModelEntry> {
+    children?: IOciTreeItem[];
 }
 
 /**
@@ -141,4 +116,33 @@ export interface ISavedGraphData {
 
     /** Stored data per line graph. */
     series: Map<string, IXYDatum[]>;
+}
+
+/** The preact context holding shared data for all pages in the DB editor module. */
+export type DBEditorContextType = {
+    connectionsDataModel: ConnectionDataModel;
+    documentDataModel: OpenDocumentDataModel;
+    ociDataModel: OciDataModel;
+    shellTaskDataModel: ShellTaskDataModel;
+};
+
+/**
+ * The context class for the DB editor module. This is used to share data between the various
+ * components in the module.
+ * Note: have to include `undefined` in the type list here, to avoid being forced to provide a
+ *       default value in the `createContext` call.
+ */
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export const DBEditorContext = createContext<DBEditorContextType | undefined>(undefined);
+
+/** Describes possible results for a sidebar command. */
+export interface ISideBarCommandResult {
+    /** Indicates whether the command was successfully executed or cancelled (by the user or an error). */
+    success: boolean;
+
+    /** For MRS related commands: indicates the MRS service that was modified. */
+    mrsServiceId?: string;
+
+    /** For MRS related commands: indicates the MRS schema that was modified. */
+    mrsSchemaId?: string;
 }

@@ -21,26 +21,25 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import * as fs from "fs/promises";
 import { mkdir, writeFile } from "fs/promises";
-import { WebDriver, error, Condition, WebElement, until } from "selenium-webdriver";
+import { WebDriver, error, Condition, until } from "selenium-webdriver";
 import * as constants from "../lib/constants.js";
 import { driver } from "../lib/driver.js";
 import * as locator from "../lib/locators.js";
 import { E2EToastNotification } from "./E2EToastNotification.js";
+import { IOciProfileConfig } from "./interfaces.js";
 
 export const feLog = "fe.log";
 export const shellServers = new Map([
-    ["token.spec.ts", 2],
-    ["admin.spec.ts", 0],
-    ["db_connection_overview.spec.ts", 1],
-    ["notebook.spec.ts", 1],
-    ["scripts.spec.ts", 1],
-    ["main.spec.ts", 0],
-    ["guiconsole.spec.ts", 0],
-    ["sessions.spec.ts", 2],
-    ["shell_connections.spec.ts", 2],
-    ["notifications.spec.ts", 2],
-    ["result-grids.spec.ts", 0],
+    ["ui-db.ts", 0],
+    ["ui-notebook.ts", 1],
+    ["ui-oci.ts", 2],
+    ["ui-open-editors.ts", 0],
+    ["ui-rest.ts", 1],
+    ["ui-result-grids.ts", 2],
+    ["ui-shell.ts", 0],
+    ["ui-misc.ts", 1],
 ]);
 
 export class Misc {
@@ -185,9 +184,10 @@ export class Misc {
 
     /**
      * Gets the toast notification displayed on the page
+     * @param wait True to wait for notifications to be displayed, false otherwise
      *  @returns A promise resolving with the notifications
      */
-    public static getToastNotifications = async (): Promise<E2EToastNotification[]> => {
+    public static getToastNotifications = async (wait = false): Promise<E2EToastNotification[]> => {
 
         const toastNotifications: E2EToastNotification[] = [];
 
@@ -199,7 +199,11 @@ export class Misc {
                     toastNotifications.push(await new E2EToastNotification().create(id));
                 }
 
-                return true;
+                if (wait) {
+                    return toastNotifications.length > 0;
+                } else {
+                    return true;
+                }
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     if (e instanceof error.NoSuchElementError && !(String(e.stack).includes("toast-"))) {
@@ -207,47 +211,110 @@ export class Misc {
                     }
                 }
             }
-        }, constants.wait10seconds, "Never going to hit here");
+        }, constants.wait5seconds, "Could not find any notifications");
 
         return toastNotifications;
     };
 
     /**
-     * Verifies if the confirmation dialog exists
-     * @param context The context
-     * @returns A condition resolving to true when the confirmation dialog exists
+     * Closes all the existing notifications
+     * @param ignoreErrors True to ignore notifications with errors, false otherwise
      */
-    public static untilConfirmationDialogExists = (context?: string): Condition<WebElement | undefined> => {
-        let msg = "for confirmation dialog to be displayed";
-        if (context) {
-            msg += ` ${context}`;
-        }
+    public static dismissNotifications = async (ignoreErrors = false): Promise<void> => {
+        await driver.wait(async () => {
+            const notifications = await this.getToastNotifications();
 
-        return new Condition(msg, async () => {
-            const confirmDialog = await driver.findElements(locator.confirmDialog.exists);
-            if (confirmDialog) {
-                return confirmDialog[0];
+            if (ignoreErrors) {
+                for (const notification of notifications) {
+                    await notification.close();
+                }
+            } else {
+                for (const notification of notifications) {
+                    if (notification.type !== "error") {
+                        await notification.close();
+                    } else {
+                        throw new Error(`Notification error: ${notification.message}`);
+                    }
+                }
             }
-        });
+
+            return (await this.getToastNotifications()).length === 0;
+        }, constants.wait5seconds, "Could not dismiss all notifications");
     };
 
     /**
-     * Waits until the confirmation dialog exists
-     * @param context The context
-     * @returns A promise resolving when the confirmation dialog exists
+     * Uploads a file
+     * @param path The path to the file
      */
-    public untilConfirmationDialogExists = (context?: string): Condition<WebElement | undefined> => {
-        let msg = "for confirmation dialog to be displayed";
-        if (context) {
-            msg += ` ${context}`;
+    public static uploadFile = async (path: string): Promise<void> => {
+        await driver.wait(until
+            .elementLocated(locator.fileSelect),
+            constants.wait5seconds, "Could not find the input file box")
+            .sendKeys(path);
+    };
+
+    /**
+     * Reads and returns the content of the clipboard
+     * @returns A promise revolved with the clipboard content
+     */
+    public static readClipboard = async (): Promise<string | undefined> => {
+        let clipboard: string | undefined;
+
+        await driver.wait(async () => {
+            try {
+                clipboard = await driver.executeScript("return await navigator.clipboard.readText()");
+
+                return true;
+            } catch (e) {
+                console.log(e);
+                if (!(e instanceof error.JavascriptError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait3seconds, "Could not read the system clipboard");
+
+        return clipboard;
+    };
+
+    /**
+     * Writes text to the clipboard
+     * @param text The text to write
+     */
+    public static writeToClipboard = async (text: string): Promise<void> => {
+        const type = "text/plain";
+        const blob = new Blob([text], { type });
+        const data = [new ClipboardItem({ [type]: blob })];
+        await navigator.clipboard.write(data);
+    };
+
+    /**
+     * Reads the oci configuration file from process.env.MYSQLSH_OCI_CONFIG_FILE and maps it
+     * into a key=value pair object
+     *  @returns A promise resolving with the configuration object
+     */
+    public static mapOciConfig = async (): Promise<IOciProfileConfig[]> => {
+        const config = await fs.readFile(String(process.env.MYSQLSH_OCI_CONFIG_FILE), "utf-8");
+        const configLines = config.split("\n");
+        const ociConfig: IOciProfileConfig[] = [];
+        for (let line of configLines) {
+            line = line.trim();
+            if (line.length > 0) {
+                if (line.match(/\[.*\]/) !== null) {
+                    ociConfig.push({
+                        name: line.match(/\[(.*)\]/)![1],
+                    });
+                } else {
+                    let [key, val] = line.split("=");
+                    key = key.trim();
+                    val = val.trim();
+                    if (key === "key_file") {
+                        key = "keyFile";
+                    }
+                    ociConfig[ociConfig.length - 1][key as keyof IOciProfileConfig] = val;
+                }
+            }
         }
 
-        return new Condition(msg, async () => {
-            const confirmDialog = await driver.findElements(locator.confirmDialog.exists);
-
-            if (confirmDialog) {
-                return confirmDialog[0];
-            }
-        });
+        return ociConfig;
     };
 }

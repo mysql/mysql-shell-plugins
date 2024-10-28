@@ -22,61 +22,83 @@
  */
 import { Condition, until, error } from "selenium-webdriver";
 import { driver } from "./driver.js";
+import { Misc } from "./misc.js";
 import * as constants from "./constants.js";
 import * as locator from "./locators.js";
 import { E2ECodeEditor } from "./E2ECodeEditor.js";
-import { Toolbar } from "./Toolbar.js";
+import { E2EToolbar } from "./E2EToolbar.js";
 import * as interfaces from "./interfaces.js";
 import { PasswordDialog } from "./Dialogs/PasswordDialog.js";
-import { Misc } from "./misc.js";
-import { Explorer } from "./Explorer.js";
+import { ConfirmDialog } from "./Dialogs/ConfirmationDialog.js";
+import { E2ETabContainer } from "./E2ETabContainer.js";
 
 /**
  * This class aggregates the functions that perform operations inside notebooks
  */
 export class E2ENotebook {
 
-    /** The explorer*/
-    public explorer = new Explorer();
-
     /** The toolbar*/
-    public toolbar = new Toolbar();
+    public toolbar = new E2EToolbar();
 
     /** The code editor*/
     public codeEditor = new E2ECodeEditor(this);
 
     /**
-     * Waits until the DB connection is opened
+     * Verifies if the Notebook is opened and fully loaded
      * @param connection The database connection
-     * @returns A promise resolving when the MDS connection is opened
+     * @returns A condition resolving to true if the page is opened, false otherwise
      */
     public untilIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
         return new Condition(`for connection ${connection.caption} to be opened`, async () => {
-            const existsPasswordDialog = (await driver.findElements(locator.passwordDialog.exists)).length > 0;
-            const existsFingerPrintDialog = (await driver.findElements(locator.confirmDialog.exists)).length > 0;
+            const confirmDialog = new ConfirmDialog();
+            const existsFingerPrintDialog = await confirmDialog.exists();
 
             if (existsFingerPrintDialog) {
-                await driver.findElement(locator.confirmDialog.accept).click();
+                await confirmDialog.accept();
             }
 
-            if (existsPasswordDialog) {
+            const isOpened = async (): Promise<boolean> => {
+                const tabContainer = new E2ETabContainer();
+
+                return (await tabContainer.getTab(connection.caption!)) !== undefined;
+            };
+
+            if (await PasswordDialog.exists()) {
                 await PasswordDialog.setCredentials(connection);
-                await driver.wait(this.untilDbConnectionIsSuccessful(), constants.wait10seconds).catch(async () => {
-                    const existsErrorDialog = (await driver.findElements(locator.errorDialog.exists)).length > 0;
-                    if (existsErrorDialog) {
-                        const errorDialog = await driver.findElement(locator.errorDialog.exists);
-                        const errorMsg = await errorDialog.findElement(locator.errorDialog.message);
-                        throw new Error(await errorMsg.getText());
-                    } else {
-                        throw new Error("Unknown error");
+
+                await driver.wait(async () => {
+                    try {
+                        await isOpened();
+
+                        return true;
+                    } catch (e) {
+                        const existsErrorDialog = (await driver.findElements(locator.errorDialog.exists)).length > 0;
+                        if (existsErrorDialog) {
+                            const errorDialog = await driver.findElement(locator.errorDialog.exists);
+                            const errorMsg = await errorDialog.findElement(locator.errorDialog.message);
+                            throw new Error(await errorMsg.getText());
+                        } else {
+                            console.log(`error: ${String(e)}`);
+                            throw new Error("Unknown error");
+                        }
                     }
-                });
+                }, constants.wait10seconds, `Could not open connection ${connection.caption}`);
+
+                return true;
+            } else {
+                return isOpened();
             }
+        });
+    };
 
-            const existsGenericDialog = (await driver.findElements(locator.genericDialog.exists)).length > 0;
-            const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
-
-            return existsNotebook || existsGenericDialog;
+    /**
+     * Verifies if a word exists on the notebook
+     * @param word The word
+     * @returns A promise resolving with true if the word is found, false otherwise
+     */
+    public untilExists = (word: string): Condition<boolean> => {
+        return new Condition(`for '${word}' to exist on the notebook`, async () => {
+            return this.exists(word);
         });
     };
 
@@ -88,6 +110,7 @@ export class E2ENotebook {
     public exists = async (word: string): Promise<boolean> => {
         const commands: string[] = [];
         const regex = Misc.transformToMatch(word);
+
         await driver.wait(async () => {
             try {
                 const notebookCommands = await driver.wait(
@@ -108,49 +131,8 @@ export class E2ENotebook {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "No SQL commands were found on the notebook");
+        }, constants.wait3seconds, "No SQL commands were found on the notebook");
 
         return commands.toString().match(regex) !== null;
     };
-
-    /**
-     * Closes the notebook
-     * @param name The name of the notebook
-     * @returns A promise resolving when the notebook is closed
-     */
-    public close = async (name: string): Promise<void> => {
-
-        if (name === "current") {
-            const tab = await driver.findElement(locator.notebook.connectionTab.opened);
-            await tab.findElement(locator.notebook.connectionTab.close).click();
-        } else {
-            const tabs = await driver.findElements(locator.notebook.connectionTab.exists);
-
-            for (const tab of tabs) {
-                const text = await tab.findElement(locator.htmlTag.label).getAttribute("innerHTML");
-
-                if (text.trim() === name) {
-                    await tab.findElement(locator.notebook.connectionTab.close).click();
-
-                    return;
-                }
-            }
-            throw new Error(`Could not find connection tab with name '${name}'`);
-        }
-    };
-
-    /**
-     * Waits until the database connection is successful
-     * @returns A promise resolving when the database connection is successful
-     */
-    private untilDbConnectionIsSuccessful = (): Condition<boolean> => {
-        return new Condition("for DB Connection is successful", async () => {
-            const editorSelectorExists = (await driver.findElements(locator.notebook.toolbar.editorSelector.exists))
-                .length > 0;
-            const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
-
-            return editorSelectorExists || existsNotebook;
-        });
-    };
-
 }

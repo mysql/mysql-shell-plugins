@@ -44,11 +44,6 @@
 }
 
 body {
-    min-height: 100vh;
-    margin: 0;
-}
-
-body {
     display: flex;
     flex-direction: column;
     margin: 0;
@@ -167,13 +162,15 @@ html.themeSwitch *:after {
 
 .msg.applicationHost .moduleHost {
     display: none;
+    height: 100%;
+    width: 100%;
 }
 
 .msg.applicationHost .moduleHost.active {
     display: flex;
 }
 
-.msg.applicationHost > #appHostSplitter {
+.msg.applicationHost #appHostSplitter {
     flex: 1 1 auto;
 }
 

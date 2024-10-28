@@ -25,7 +25,7 @@ import { Buffer } from "buffer";
 
 import { Image } from "../ui/Image/Image.js";
 
-import { DBDataType, DialogResponseClosure, IDialogRequest } from "../../app-logic/Types.js";
+import { DBDataType, DialogResponseClosure, IDialogRequest } from "../../app-logic/general-types.js";
 import { AwaitableValueEditDialog } from "../Dialogs/AwaitableValueEditDialog.js";
 import { IDialogSection, IDialogValidations, IDialogValues } from "../Dialogs/ValueEditDialog.js";
 import { HexEditor, HexValueGrouping } from "../ui/HexEditor/HexEditor.js";

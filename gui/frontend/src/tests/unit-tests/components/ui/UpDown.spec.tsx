@@ -29,7 +29,7 @@ import { mount, shallow } from "enzyme";
 import { TextAlignment } from "../../../../components/ui/Label/Label.js";
 import { UpDown, IUpDownProperties, IUpDownState } from "../../../../components/ui/UpDown/UpDown.js";
 
-import { mouseEventMock } from "../../__mocks__/MockEvents.js";
+import { mouseEventMock } from "../../__mocks__/EventMocks.js";
 
 describe("UpDown render testing", (): void => {
 

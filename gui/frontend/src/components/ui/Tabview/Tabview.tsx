@@ -56,7 +56,7 @@ export interface ITabviewPage {
     tooltip?: string;
 
     /** Additional content that should be added on the right side of a tab. */
-    auxillary?: ComponentChild;
+    auxiliary?: ComponentChild;
 
     /** The content to show in the tabview body, when this tab is active. */
     content: ComponentChild;
@@ -163,7 +163,7 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
         ]);
 
         const tabs = pages.map((page: ITabviewPage) => {
-            let buttonClassName = "tabItem" + (page.auxillary ? " hasAuxillary" : "");
+            let buttonClassName = "tabItem" + (page.auxiliary ? " hasAuxillary" : "");
             if (page.id === selectedId) {
                 buttonClassName += " selected";
             }
@@ -183,7 +183,7 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
                 >
                     {page.icon && <Icon src={page.icon} data-tooltip="inherit" />}
                     {page.caption && <Label data-tooltip="inherit">{page.caption}</Label>}
-                    {page.auxillary && <span id="auxillary">{page.auxillary}</span>}
+                    {page.auxiliary && <span id="auxillary">{page.auxiliary}</span>}
                 </Button>
             );
         });
@@ -280,7 +280,7 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
                 <Container
                     innerRef={this.contentRef}
                     orientation={Orientation.TopDown}
-                    className="content"
+                    className="tabContent"
 
                     onDrop={this.handleTabviewDrop}
                     onDragEnter={this.handleTabviewDragEnter}

@@ -23,8 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Condition, until, WebElement, error } from "selenium-webdriver";
-import { driver } from "../driver.js";
+import { until, Condition, WebElement, error } from "selenium-webdriver";
+import { driver } from "../../lib/driver.js";
 import * as constants from "../constants.js";
 import * as locator from "../locators.js";
 
@@ -37,7 +37,8 @@ export class E2EObjectStorageBrowser {
      */
     public selectOciProfile = async (ociProfileName: string): Promise<void> => {
         const objStorageBrowser = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser;
-        await driver.findElement(objStorageBrowser.ociProfile).click();
+        await driver.findElement(objStorageBrowser.ociProfile)
+            .click();
         const list = await driver.wait(until
             .elementLocated(objStorageBrowser.ociProfileList.exists),
             constants.wait5seconds, "OCI Profile List was not found");
@@ -186,6 +187,19 @@ export class E2EObjectStorageBrowser {
      * @returns A promise resolving when the checkbox is clicked
      */
     public checkItem = async (itemName: string): Promise<void> => {
+
+        const untilItemIsChecked = (): Condition<boolean> => {
+            return new Condition(`waiting for '${itemName}' to be checked`, async () => {
+                const objectStorageItem = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
+                    .objectStorageItem;
+                const item = await this.getItem(itemName);
+                await driver.executeScript("arguments[0].scrollIntoView()", item);
+                const checkbox = await item.findElement(objectStorageItem.item.checkbox);
+
+                return (await checkbox.getAttribute("class")).includes("checked");
+            });
+        };
+
         await driver.wait(async () => {
             try {
                 const objectStorageItem = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
@@ -193,28 +207,41 @@ export class E2EObjectStorageBrowser {
                 const item = await this.getItem(itemName);
                 await driver.executeScript("arguments[0].scrollIntoView()", item);
                 const checkbox = await item.findElement(objectStorageItem.item.checkbox);
-                await checkbox.click();
-
-                return driver.wait(async () => {
-                    const path = await driver
-                        .findElements(locator.lakeHouseNavigator.uploadToObjectStorage.filesForUpload.path);
-                    if (path.length > 0) {
-                        return (await path[0].getAttribute("value")).includes(itemName);
-                    }
-
-                    const loadingTasks = await driver
-                        .findElements(locator.lakeHouseNavigator.loadIntoLakeHouse.newLoadingTask
-                            .loadingTaskItem.caption);
-                    if (loadingTasks.length > 0) {
-                        return (await loadingTasks[0].getText()).includes(itemName);
-                    }
-                }, constants.wait2seconds, "checkbox was not checked")
+                let isChecked = false;
+                await driver.executeScript("arguments[0].click()", checkbox);
+                await driver.sleep(500);
+                await driver.wait(untilItemIsChecked(), constants.wait3seconds)
                     .then(() => {
-                        return true;
+                        isChecked = true;
                     })
-                    .catch(() => {
-                        return false;
+                    .catch((e) => {
+                        console.log(e);
                     });
+
+                if (!isChecked) {
+                    return false;
+                } else {
+                    return driver.wait(async () => {
+                        const path = await driver
+                            .findElements(locator.lakeHouseNavigator.uploadToObjectStorage.filesForUpload.path);
+                        if (path.length > 0) {
+                            return (await path[0].getAttribute("value")).includes(itemName);
+                        }
+
+                        const loadingTasks = await driver
+                            .findElements(locator.lakeHouseNavigator.loadIntoLakeHouse.newLoadingTask
+                                .loadingTaskItem.caption);
+                        if (loadingTasks.length > 0) {
+                            return (await loadingTasks[0].getText()).includes(itemName);
+                        }
+                    }, constants.wait2seconds, "checkbox was not checked")
+                        .then(() => {
+                            return true;
+                        })
+                        .catch(() => {
+                            return false;
+                        });
+                }
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;

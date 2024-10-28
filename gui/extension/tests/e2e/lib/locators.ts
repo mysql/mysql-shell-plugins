@@ -105,9 +105,10 @@ export const notebook = {
             host: By.id("editorPaneHost"),
             lines: By.css(".view-overlays > div"),
             promptLine: By.css(".view-lines.monaco-mouse-cursor-text > div"),
+            editorPrompt: By.css(".view-lines.monaco-mouse-cursor-text .view-line"),
             sentence: By.css(".view-lines.monaco-mouse-cursor-text > div > span"),
             wordInSentence: By.css(".view-lines.monaco-mouse-cursor-text > div > span span"),
-            line: By.css("#contentHost .editorHost .view-line"),
+            line: By.css(".editorHost .view-line"),
             lineNumber: By.css(".margin-view-overlays .line-numbers"),
             currentLine: By.className("current-line"),
             statementStart: By.className("statementStart"),
@@ -159,34 +160,9 @@ export const notebook = {
                             icon: By.css(".iconHost .icon"),
                             contextMenu: {
                                 exists: By.css("#cellContextMenu .popup.visible"),
-                                capitalize: By.id("capitalizeMenuItem"),
-                                lowerCase: By.id("lowerCaseMenuItem"),
-                                upperCase: By.id("upperCaseMenuItem"),
-                                toggleForDeletion: By.id("deleteRowMenuItem"),
-                                copySingleRow: {
-                                    exists: By.id("copyRowSubmenu"),
-                                    subMenu: {
-                                        exists: By.css("#copyRowSubmenu .popup.visible"),
-                                        copyRow: By.id("copyRowMenuItem1"),
-                                        copyRowWithNames: By.id("copyRowMenuItem2"),
-                                        copyRowUnquoted: By.id("copyRowMenuItem3"),
-                                        copyRowWithNamesUnquoted: By.id("copyRowMenuItem4"),
-                                        copyRowWithNamesTabSeparated: By.id("copyRowMenuItem5"),
-                                        copyRowTabSeparated: By.id("copyRowMenuItem6"),
-                                    },
-                                },
-                                copyAllRows: {
-                                    exists: By.id("copyRowsSubmenu"),
-                                    subMenu: {
-                                        exists: By.css("#copyRowsSubmenu .popup.visible"),
-                                        copyAllRows: By.id("copyRowsMenuItem1"),
-                                        copyAllRowsWithNames: By.id("copyRowsMenuItem2"),
-                                        copyAllRowsUnquoted: By.id("copyRowsMenuItem3"),
-                                        copyAllRowsWithNamesUnquoted: By.id("copyRowsMenuItem4"),
-                                        copyAllRowsWithNamesTabSeparated: By.id("copyRowsMenuItem5"),
-                                        copyAllRowsTabSeparated: By.id("copyRowsMenuItem6"),
-                                    },
-                                },
+                                item: By.css(".menuItem > label"),
+                                copySingleRowSubMenu: By.css("#copyRowSubmenu .popup.visible"),
+                                copyAllRowsSubMenu: By.css("#copyRowsSubmenu .popup.visible"),
                                 setFieldToNull: By.id("setNullMenuItem"),
                                 copyField: By.id("copyFieldMenuItem"),
                                 copyFieldUnquoted: By.id("copyFieldUnquotedMenuItem"),
@@ -254,7 +230,7 @@ export const notebook = {
                 },
                 script: By.className("standaloneScriptHost"),
                 textOutput: By.css(".actionOutput span > span"),
-                cellContextMenu: {
+                /*cellContextMenu: {
                     exists: By.css("#cellContextMenu .popup.visible"),
                     capitalize: By.id("capitalizeMenuItem"),
                     lowerCase: By.id("lowerCaseMenuItem"),
@@ -287,7 +263,7 @@ export const notebook = {
                     setFieldToNull: By.id("setNullMenuItem"),
                     copyField: By.id("copyFieldMenuItem"),
                     copyFieldUnquoted: By.id("copyFieldUnquotedMenuItem"),
-                },
+                },*/
                 chat: {
                     aboutInfo: By.className("aboutResultPanel"),
                     isProcessingResult: By.className("chatResultInfo"),
@@ -456,8 +432,10 @@ export const mrsAuthenticationAppDialog = {
     defaultRoleList: By.id("defaultRoleNamePopup"),
     authVendorNameLabel: By.css("#authVendorName label"),
     defaultRoleNameLabel: By.css("#defaultRoleName label"),
+    options: By.id("options"),
     ok: By.id("ok"),
     cancel: By.id("cancel"),
+    tab: By.css(".tabItem > label"),
 };
 
 export const mrsUserDialog = {
@@ -589,9 +567,7 @@ export const dbConnectionOverview = {
         moreActions: By.id("tileMoreActionsAction"),
         moreActionsMenu: {
             exists: By.css("#tileActionMenu > div.popup.visible"),
-            editConnection: By.id("edit"),
-            duplicateConnection: By.id("duplicate"),
-            removeConnection: By.id("remove"),
+            item: By.css(".menuItem label"),
         },
         newNotebook: By.id("tileNewNotebookAction"),
         newScript: By.id("tileNewScriptAction"),

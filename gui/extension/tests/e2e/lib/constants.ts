@@ -76,7 +76,7 @@ export const commit = "Commit DB changes";
 export const autoCommit = "Auto commit DB changes";
 export const saveNotebook = "Save this Notebook";
 export const loadNotebook = "Replace this Notebook With Content from a File";
-export const reloadConnections = "Reload the connection list";
+export const reloadConnections = "Reload the Connection List";
 export const reloadOci = "Reload the OCI Profile list";
 export const createDBConnection = "Create New DB Connection";
 export const configureOci = "Configure the OCI Profile list";
@@ -156,9 +156,9 @@ export const startFileUpload = "Start File Upload";
 // RESULT GRID CONTEXT MENU
 export const resultGridContextMenu = {
     capitalizeText: "Capitalize Text",
-    convertTextToLowerCase: "Covert Text to Lower Case",
-    convertTextToUpperCase: "Covert Text to Upper Case",
-    toggleForDeletion: "Toggle Row Deletion Mark",
+    convertTextToLowerCase: "Convert Text to Lower Case",
+    convertTextToUpperCase: "Convert Text to Upper Case",
+    toggleForDeletion: "Delete Row (Mark/Unmark)",
     copySingleRow: "Copy Single Row",
     copySingleRowContextMenu: {
         copyRow: "Copy Row",
@@ -226,8 +226,8 @@ export const dropEvent = "Drop Event...";
 export const duplicateConnection = "Duplicate this DB Connection";
 export const deleteDBConnection = "Delete DB Connection";
 export const showSystemSchemas = "Show MySQL System Schemas";
-export const loadScriptFromDisk = "Load SQL Script from Disk";
-export const loadDumpFromDisk = "Load Dump from Disk";
+export const loadScriptFromDisk = "Load SQL Script from Disk...";
+export const loadDumpFromDisk = "Load Dump from Disk...";
 export const openShellConnection = "Open New MySQL Shell Console for this Connection";
 export const browseRESTDocs = "Browse the MySQL REST Service Documentation";
 export const configureREST = "Configure Instance for MySQL REST Service Support";
@@ -258,7 +258,7 @@ export const killRouters = "Kill Local MySQL Router Instances";
 export const editRESTService = "Edit REST Service...";
 export const setAsCurrentREST = "Set as Current REST Service";
 export const loadRESTSchemaFromJSON = "Load REST Schema From JSON File...";
-export const exportRestSdk = "Export REST Service SDK Files ...";
+export const exportRestSdk = "Export REST Service SDK Files...";
 export const addNewAuthApp = "Add New REST Authentication App";
 export const deleteRESTService = "Delete REST Service...";
 export const mrsServiceDocs = "MRS Service Documentation";
@@ -307,6 +307,7 @@ export const deleteAuthenticationApp = "Delete Authentication App";
 export const addRESTUser = "Add User";
 export const editRESTUser = "Edit User";
 export const deleteRESTUser = "Delete User";
+export const vendorOCIOAuth2 = "OCI OAuth2";
 
 export const checkNewTabAndWebView = "Check New Tab and WebView";
 export const checkNewTab = "Check New Tab";
@@ -386,13 +387,13 @@ export const dbObjectCtxMenu = new Map([
 ]);
 
 export const routinesCtxMenu = new Map([
-    [copyToClipboard, 1],
+    [copyToClipboard, 2],
     [copyToClipboardName, 0],
     [copyToClipboardStat, 1],
     [copyToClipboardStatDel, 2],
     [copyToClipboardDropStatDel, 3],
     [addDBObjToREST, 2],
-    [dropStoredRoutine, 3],
+    [dropStoredRoutine, 4],
 ]);
 
 export const eventsCtxMenu = new Map([
@@ -418,8 +419,8 @@ export const restServiceCtxMenu = new Map([
     [exportCreateRestServiceSt, 5],
     [copyCreateRestServiceSt, 6],
     [addNewAuthApp, 7],
-    [deleteRESTService, 8],
-    [mrsServiceDocs, 9],
+    [deleteRESTService, 10],
+    [mrsServiceDocs, 11],
 ]);
 
 export const restSchemaCtxMenu = new Map([

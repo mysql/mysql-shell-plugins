@@ -25,7 +25,7 @@
 
 import { ComponentChild } from "preact";
 
-import { IDictionary } from "../../app-logic/Types.js";
+import { IDictionary } from "../../app-logic/general-types.js";
 import { ComponentBase, IComponentProperties, IComponentState } from "../ui/Component/ComponentBase.js";
 
 /**

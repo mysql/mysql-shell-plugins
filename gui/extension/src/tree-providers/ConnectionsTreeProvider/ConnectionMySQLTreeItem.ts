@@ -23,31 +23,21 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import * as path from "path";
-
 import { IMySQLConnectionOptions } from "../../../../frontend/src/communication/MySQL.js";
-import { IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface/index.js";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 
 import { ConnectionTreeItem } from "./ConnectionTreeItem.js";
+import type { ICdmConnectionEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 
 export class ConnectionMySQLTreeItem extends ConnectionTreeItem {
-
     public override contextValue = "connectionMySQL";
 
-    public constructor(details: IConnectionDetails, backend: ShellInterfaceSqlEditor) {
-        super(details, backend);
-
-        let fileName = "connectionMysql.svg";
-        const optionsMySQL = details.options as IMySQLConnectionOptions;
+    public constructor(dataModelEntry: ICdmConnectionEntry) {
+        let iconName = "connectionMySQL.svg";
+        const optionsMySQL = dataModelEntry.details.options as IMySQLConnectionOptions;
         if (optionsMySQL["mysql-db-system-id"] !== undefined) {
-            fileName = "ociDbSystem.svg";
+            iconName = "ociDbSystem.svg";
         }
 
-        this.iconPath = {
-            light: path.join(__dirname, "..", "images", "light", fileName),
-            dark: path.join(__dirname, "..", "images", "dark", fileName),
-        };
+        super(dataModelEntry, iconName, true);
     }
-
 }

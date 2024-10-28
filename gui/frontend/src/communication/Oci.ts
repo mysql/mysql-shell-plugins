@@ -23,56 +23,43 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { models as coreModels } from "oci-core";
-import * as common from "oci-common";
-import { models as bastionModels } from "oci-bastion";
-import { models as mySQLModels } from "oci-mysql";
-import { models as identityModels } from "oci-identity";
-import { models as loadBalancerModels } from "oci-loadbalancer";
-import { models as objectstorageModels } from "oci-objectstorage";
+import {
+    type BastionSummary, type Bastion, type PortForwardingSessionTargetResourceDetails, type Session,
+    type SessionSummary,
+} from "../oci-typings/oci-bastion/lib/model/index.js";
 
-export type IAuthenticationDetails = common.AuthenticationDetailsProvider;
+import { Instance, Shape } from "../oci-typings/oci-core/lib/model/index.js";
+import { Compartment } from "../oci-typings/oci-identity/lib/model/index.js";
+import { DbSystem } from "../oci-typings/oci-mysql/lib/model/db-system.js";
+import { ShapeSummary } from "../oci-typings/oci-mysql/lib/model/shape-summary.js";
+import { BucketSummary, ListObjects, type ObjectSummary } from "../oci-typings/oci-objectstorage/lib/model/index.js";
 
-export type IComputeInstance = coreModels.Instance;
-export type ICompartment = identityModels.Compartment & {
+export { BastionLifecycleState } from "../oci-typings/oci-bastion/lib/model/bastion-lifecycle-state.js";
+export { LoadBalancer } from "../oci-typings/oci-loadbalancer/lib/model/load-balancer.js";
+export { DbSystem };
+
+// Re-export certain types from oci-typings with a leading I for consistency with the rest of the codebase.
+export type IComputeInstance = Instance;
+export type IComputeShape = Shape;
+export type IBastion = Bastion;
+export type IMySQLDbSystemShapeSummary = ShapeSummary;
+export type IPortForwardingSessionTargetResourceDetails = PortForwardingSessionTargetResourceDetails;
+export type IBastionSession = Session;
+
+export interface ICompartment extends Compartment {
     isCurrent: boolean;
-};
+}
 
-export type IBucketSummary = objectstorageModels.BucketSummary;
-export type IBucketListObjects = objectstorageModels.ListObjects;
-export type IBucketObjectSummary = objectstorageModels.ObjectSummary;
+export type IBucketSummary = BucketSummary;
+export type IBucketListObjects = ListObjects;
+export type IBucketObjectSummary = ObjectSummary;
 
-export type IComputeShape = coreModels.Shape;
-
-export type IBastionSession = bastionModels.Session;
-export type IBastionSummary = bastionModels.BastionSummary & {
+export interface IBastionSummary extends BastionSummary {
     isCurrent: boolean;
-    sessions: bastionModels.SessionSummary;
-};
+    sessions: SessionSummary;
+}
 
-export type IBastion = bastionModels.Bastion;
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export const BastionLifecycleState = bastionModels.BastionLifecycleState;
-
-export type IMySQLDbSystem = mySQLModels.DbSystem & {
+export interface IMySQLDbSystem extends DbSystem {
     isSupportedForHwCluster?: boolean;
     isSupportedForAnalyticsCluster?: boolean;
-};
-
-// eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace DBSystem {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    export const LifecycleState = mySQLModels.DbSystem.LifecycleState;
 }
-
-export type IMySQLDbSystemShapeSummary = mySQLModels.ShapeSummary;
-export type ILoadBalancer = loadBalancerModels.LoadBalancer;
-
-// eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace LoadBalancer {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    export const LifecycleState = loadBalancerModels.LoadBalancer.LifecycleState;
-}
-
-export type IPortForwardingSessionTargetResourceDetails = bastionModels.PortForwardingSessionTargetResourceDetails;

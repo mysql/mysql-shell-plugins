@@ -41,6 +41,8 @@ import {
     sendKeyPress,
     setupShellForTests,
 } from "../../../test-helpers.js";
+import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
+import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
 
 
 describe("MRS Schema dialog tests", () => {
@@ -52,6 +54,7 @@ describe("MRS Schema dialog tests", () => {
     let backend: ShellInterfaceSqlEditor;
 
     beforeAll(async () => {
+        registerUiLayer(uiLayerMock);
         launcher = await setupShellForTests(false, true, "DEBUG2");
 
         await recreateMrsData();

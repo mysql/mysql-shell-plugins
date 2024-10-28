@@ -33,7 +33,7 @@ import { editor as Monaco } from "monaco-editor/esm/vs/editor/editor.api.js";
 
 import { IComponentProperties, ComponentBase, IComponentState } from "../Component/ComponentBase.js";
 import { EditorLanguage } from "../../../supplement/index.js";
-import { MessageType } from "../../../app-logic/Types.js";
+import { MessageType } from "../../../app-logic/general-types.js";
 import { ThemeManager } from "../../Theming/ThemeManager.js";
 
 /** Semantically the same as ContentAlignment, but needs different values. */

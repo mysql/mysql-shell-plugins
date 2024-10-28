@@ -30,13 +30,13 @@ import closeButton from "../../../assets/images/close2.svg";
 import { ComponentChild } from "preact";
 
 import { appParameters } from "../../../supplement/Requisitions.js";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
-import { Container, Orientation, ContentAlignment, ContentWrap } from "../Container/Container.js";
+import { helpUrlMap } from "../../../supplement/index.js";
+import { Button } from "../Button/Button.js";
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import { Container, ContentAlignment, ContentWrap, Orientation } from "../Container/Container.js";
+import { HelpLinkList } from "../HelpLinkList/HelpLinkList.js";
 import { Icon } from "../Icon/Icon.js";
 import { Label, TextAlignment } from "../Label/Label.js";
-import { Button } from "../Button/Button.js";
-import { HelpLinkList } from "../HelpLinkList/HelpLinkList.js";
-import { helpUrlMap } from "../../../supplement/index.js";
 
 interface IFrontPageProperties extends IComponentProperties {
     showGreeting: boolean;

@@ -27,7 +27,9 @@ import { mount } from "enzyme";
 
 import { screen, waitFor } from "@testing-library/preact";
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../communication/MySQL.js";
-import { IDialogSection, IDialogValidations, IDialogValues } from "../../../../components/Dialogs/ValueEditDialog.js";
+import {
+    IDialogValidations, IDialogValues, type IDialogSection,
+} from "../../../../components/Dialogs/ValueEditDialog.js";
 import { ConnectionEditor } from "../../../../modules/db-editor/ConnectionEditor.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
@@ -37,6 +39,8 @@ import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js"
 import {
     DialogHelper, changeInputValue, getDbCredentials, nextRunLoop, setupShellForTests,
 } from "../../test-helpers.js";
+import { DBEditorContext, type DBEditorContextType } from "../../../../modules/db-editor/index.js";
+import { ConnectionDataModel } from "../../../../data-models/ConnectionDataModel.js";
 
 class TestConnectionEditor extends ConnectionEditor {
     public testValidateConnectionValues = (closing: boolean, values: IDialogValues,
@@ -45,6 +49,7 @@ class TestConnectionEditor extends ConnectionEditor {
     };
 
     public testGenerateEditorConfig = (details?: IConnectionDetails): IDialogValues => {
+        // @ts-ignore
         return this.generateEditorConfig(details);
     };
 }
@@ -56,6 +61,7 @@ describe("ConnectionEditor tests", (): void => {
     let dialogHelper: DialogHelper;
 
     const credentials = getDbCredentials();
+    const dataModel = new ConnectionDataModel();
 
     const options: IMySQLConnectionOptions = {
         scheme: MySQLConnectionScheme.MySQL,
@@ -95,7 +101,7 @@ describe("ConnectionEditor tests", (): void => {
 
     it("Test ConnectionEditor match snapshot", () => {
         const component = mount<ConnectionEditor>(
-            <ConnectionEditor connections={[]} onAddConnection={() => { }} onUpdateConnection={() => { }} />,
+            <ConnectionEditor onAddConnection={() => { }} onUpdateConnection={() => { }} />,
         );
 
         expect(component).toMatchSnapshot();
@@ -104,16 +110,22 @@ describe("ConnectionEditor tests", (): void => {
 
     it("Test ConnectionEditor set connection timeout", async () => {
         const component = mount<ConnectionEditor>(
-            <ConnectionEditor
-                connections={[testMySQLConnection]}
-                onAddConnection={() => { }}
-                onUpdateConnection={() => { }} />,
+            <DBEditorContext.Provider
+                value={{
+                    connectionsDataModel: dataModel,
+                } as DBEditorContextType}>
+
+                <ConnectionEditor
+                    onAddConnection={() => { }}
+                    onUpdateConnection={() => { }} />,
+            </DBEditorContext.Provider>,
         );
 
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        await component.instance().show("MySQL", false, testMySQLConnection);
+        const editor = component.find<ConnectionEditor>(ConnectionEditor);
+        await editor.instance().show("MySQL", false, testMySQLConnection);
 
         await waitFor(() => {
             expect(screen.getByText("Advanced")).toBeDefined();
@@ -143,17 +155,23 @@ describe("ConnectionEditor tests", (): void => {
     });
 
     it("Test ConnectionEditor updating connection", async () => {
-        const component = mount<ConnectionEditor>(
-            <ConnectionEditor
-                connections={[testMySQLConnection]}
-                onAddConnection={() => { }}
-                onUpdateConnection={() => { }} />,
+        const component = mount<TestConnectionEditor>(
+            <DBEditorContext.Provider
+                value={{
+                    connectionsDataModel: dataModel,
+                } as DBEditorContextType}>
+
+                <TestConnectionEditor
+                    onAddConnection={() => { }}
+                    onUpdateConnection={() => { }} />,
+            </DBEditorContext.Provider>,
         );
 
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
-        await component.instance().show("MySQL", false, testMySQLConnection);
+        const editor = component.find<TestConnectionEditor>(TestConnectionEditor);
+        await editor.instance().show("MySQL", false, testMySQLConnection);
 
         await waitFor(() => {
             expect(screen.getByText("Host Name or IP Address")).toBeDefined();
@@ -199,12 +217,17 @@ describe("ConnectionEditor tests", (): void => {
     });
 
     it("Test ConnectionEditor validateConnectionValues function when databaseType is not selected", () => {
-        const component = mount<TestConnectionEditor>(<TestConnectionEditor
-            connections={[testMySQLConnection]}
-            onAddConnection={() => { }}
-            onUpdateConnection={() => { }} />,
+        const component = mount<TestConnectionEditor>(
+            <DBEditorContext.Provider
+                value={{
+                    connectionsDataModel: dataModel,
+                } as DBEditorContextType}>
+
+                <TestConnectionEditor
+                    onAddConnection={() => { }}
+                    onUpdateConnection={() => { }} />,
+            </DBEditorContext.Provider>,
         );
-        const instance = component.instance();
 
         const values: IDialogValues = {
             sections: new Map([
@@ -230,7 +253,8 @@ describe("ConnectionEditor tests", (): void => {
             ]),
         };
 
-        const result = instance.testValidateConnectionValues(false, values);
+        const editor = component.find<TestConnectionEditor>(TestConnectionEditor);
+        const result = editor.instance().testValidateConnectionValues(false, values);
 
         expect(result.requiredContexts).toEqual([]);
         expect(result.messages).toEqual({ databaseType: "Select one of the database types for your connection" });
@@ -239,12 +263,17 @@ describe("ConnectionEditor tests", (): void => {
     });
 
     it("Test ConnectionEditor validateConnectionValues function when caption is empty", () => {
-        const component = mount<TestConnectionEditor>(<TestConnectionEditor
-            connections={[testMySQLConnection]}
-            onAddConnection={() => { }}
-            onUpdateConnection={() => { }} />,
+        const component = mount<TestConnectionEditor>(
+            <DBEditorContext.Provider
+                value={{
+                    connectionsDataModel: dataModel,
+                } as DBEditorContextType}>
+
+                <TestConnectionEditor
+                    onAddConnection={() => { }}
+                    onUpdateConnection={() => { }} />,
+            </DBEditorContext.Provider>,
         );
-        const instance = component.instance();
 
         const values: IDialogValues = {
             sections: new Map([
@@ -276,7 +305,8 @@ describe("ConnectionEditor tests", (): void => {
             ]),
         };
 
-        const result = instance.testValidateConnectionValues(true, values);
+        const editor = component.find<TestConnectionEditor>(TestConnectionEditor);
+        const result = editor.instance().testValidateConnectionValues(true, values);
 
         expect(result.requiredContexts).toEqual([]);
         expect(result.messages).toEqual({ caption: "The caption cannot be empty" });
@@ -285,12 +315,17 @@ describe("ConnectionEditor tests", (): void => {
     });
 
     it("Test ConnectionEditor validateConnectionValues function when dbFilePath is not specified for Sqlite", () => {
-        const component = mount<TestConnectionEditor>(<TestConnectionEditor
-            connections={[testMySQLConnection]}
-            onAddConnection={() => { }}
-            onUpdateConnection={() => { }} />,
+        const component = mount<TestConnectionEditor>(
+            <DBEditorContext.Provider
+                value={{
+                    connectionsDataModel: dataModel,
+                } as DBEditorContextType}>
+
+                <TestConnectionEditor
+                    onAddConnection={() => { }}
+                    onUpdateConnection={() => { }} />,
+            </DBEditorContext.Provider>,
         );
-        const instance = component.instance();
 
         const values: IDialogValues = {
             sections: new Map([
@@ -318,7 +353,8 @@ describe("ConnectionEditor tests", (): void => {
             ]),
         };
 
-        const result = instance.testValidateConnectionValues(true, values);
+        const editor = component.find<TestConnectionEditor>(TestConnectionEditor);
+        const result = editor.instance().testValidateConnectionValues(true, values);
 
         expect(result.requiredContexts).toEqual([]);
         expect(result.messages).toEqual({ dbFilePath: "Specify the path to an existing Sqlite DB file" });
@@ -327,12 +363,17 @@ describe("ConnectionEditor tests", (): void => {
     });
 
     it("Test ConnectionEditor validateConnectionValues function when hostName is not specified for MySQL", () => {
-        const component = mount<TestConnectionEditor>(<TestConnectionEditor
-            connections={[testMySQLConnection]}
-            onAddConnection={() => { }}
-            onUpdateConnection={() => { }} />,
+        const component = mount<TestConnectionEditor>(
+            <DBEditorContext.Provider
+                value={{
+                    connectionsDataModel: dataModel,
+                } as DBEditorContextType}>
+
+                <TestConnectionEditor
+                    onAddConnection={() => { }}
+                    onUpdateConnection={() => { }} />,
+            </DBEditorContext.Provider>,
         );
-        const instance = component.instance();
 
         const values: IDialogValues = {
             sections: new Map([
@@ -364,7 +405,8 @@ describe("ConnectionEditor tests", (): void => {
             ]),
         };
 
-        const result = instance.testValidateConnectionValues(true, values);
+        const editor = component.find<TestConnectionEditor>(TestConnectionEditor);
+        const result = editor.instance().testValidateConnectionValues(true, values);
 
         expect(result.requiredContexts).toEqual([]);
         expect(result.messages).toEqual({ hostName: "Specify a valid host name or IP address" });
@@ -373,12 +415,17 @@ describe("ConnectionEditor tests", (): void => {
     });
 
     it("Test ConnectionEditor validateConnectionValues function when userName is not specified for MySQL", () => {
-        const component = mount<TestConnectionEditor>(<TestConnectionEditor
-            connections={[testMySQLConnection]}
-            onAddConnection={() => { }}
-            onUpdateConnection={() => { }} />,
+        const component = mount<TestConnectionEditor>(
+            <DBEditorContext.Provider
+                value={{
+                    connectionsDataModel: dataModel,
+                } as DBEditorContextType}>
+
+                <TestConnectionEditor
+                    onAddConnection={() => { }}
+                    onUpdateConnection={() => { }} />,
+            </DBEditorContext.Provider>,
         );
-        const instance = component.instance();
 
         const values: IDialogValues = {
             sections: new Map([
@@ -410,7 +457,8 @@ describe("ConnectionEditor tests", (): void => {
             ]),
         };
 
-        const result = instance.testValidateConnectionValues(true, values);
+        const editor = component.find<TestConnectionEditor>(TestConnectionEditor);
+        const result = editor.instance().testValidateConnectionValues(true, values);
 
         expect(result.requiredContexts).toEqual([]);
         expect(result.messages).toEqual({ userName: "The user name must not be empty" });
@@ -419,12 +467,17 @@ describe("ConnectionEditor tests", (): void => {
     });
 
     it("Test ConnectionEditor validateConnectionValues function when port is not a valid integer for MySQL", () => {
-        const component = mount<TestConnectionEditor>(<TestConnectionEditor
-            connections={[testMySQLConnection]}
-            onAddConnection={() => { }}
-            onUpdateConnection={() => { }} />,
+        const component = mount<TestConnectionEditor>(
+            <DBEditorContext.Provider
+                value={{
+                    connectionsDataModel: dataModel,
+                } as DBEditorContextType}>
+
+                <TestConnectionEditor
+                    onAddConnection={() => { }}
+                    onUpdateConnection={() => { }} />,
+            </DBEditorContext.Provider>,
         );
-        const instance = component.instance();
 
         const values: IDialogValues = {
             sections: new Map([
@@ -456,7 +509,8 @@ describe("ConnectionEditor tests", (): void => {
             ]),
         };
 
-        const result = instance.testValidateConnectionValues(true, values);
+        const editor = component.find<TestConnectionEditor>(TestConnectionEditor);
+        const result = editor.instance().testValidateConnectionValues(true, values);
 
         expect(result.requiredContexts).toEqual([]);
         expect(result.messages).toEqual({ timeout: "The port must be a valid integer >= 0" });
@@ -465,20 +519,25 @@ describe("ConnectionEditor tests", (): void => {
     });
 
     it("Test ConnectionEditor generateEditorConfig function", () => {
-        const component = mount<TestConnectionEditor>(<TestConnectionEditor
-            connections={[testMySQLConnection]}
-            onAddConnection={() => { }}
-            onUpdateConnection={() => { }} />,
-        );
-        const instance = component.instance();
+        const component = mount<TestConnectionEditor>(
+            <DBEditorContext.Provider
+                value={{
+                    connectionsDataModel: dataModel,
+                } as DBEditorContextType}>
 
-        const result = instance.testGenerateEditorConfig(testMySQLConnection);
+                <TestConnectionEditor
+                    onAddConnection={() => { }}
+                    onUpdateConnection={() => { }} />,
+            </DBEditorContext.Provider>,
+        );
+
+        const editor = component.find<TestConnectionEditor>(TestConnectionEditor);
+        const result = editor.instance().testGenerateEditorConfig(testMySQLConnection);
 
         expect(result.sections.get("information")!.values.caption.value).toEqual(testMySQLConnection.caption);
         expect(result.sections.get("information")!.values.description.value).toEqual(testMySQLConnection.description);
 
         const options = testMySQLConnection.options as IMySQLConnectionOptions;
-
         expect(result.sections.get("mysqlDetails")!.values.hostName.value).toEqual(options.host);
         expect(result.sections.get("mysqlDetails")!.values.userName.value).toEqual(options.user);
 

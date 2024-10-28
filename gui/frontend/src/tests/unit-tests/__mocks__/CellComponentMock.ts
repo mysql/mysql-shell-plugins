@@ -35,7 +35,7 @@ import { RowComponentMock } from "./RowComponentMock.js";
 import { ColumnComponentMock } from "./ColumnComponentMock.js";
 
 
-export class MockCellComponent implements CellComponent {
+export class CellComponentMock implements CellComponent {
     public parent?: RowComponentMock;
     public getElement = jest.fn();
     public getTable = jest.fn();
@@ -52,7 +52,7 @@ export class MockCellComponent implements CellComponent {
     public data: IMrsObjectFieldTreeItem;
     public fieldType: string = "json";
     public row: RowComponentMock;
-    private value: unknown = "Animal";
+    public value: unknown = "Animal";
 
     public constructor(data?: IMrsObjectFieldTreeItem) {
         this.data = data || {

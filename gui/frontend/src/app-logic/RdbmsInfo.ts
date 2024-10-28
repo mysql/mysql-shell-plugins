@@ -26,7 +26,7 @@
 // This file contains RDBMS specific static information, which is collected by the specific RDBMS workers
 // in the parsing section, as they need to load this information for their tasks.
 
-import { IDBCharacterSet, IDBDataTypeDetails } from "./Types.js";
+import { IDBCharacterSet, IDBDataTypeDetails } from "./general-types.js";
 
 export const mysqlInfo = {
     maximumIdentifierLength: 64,

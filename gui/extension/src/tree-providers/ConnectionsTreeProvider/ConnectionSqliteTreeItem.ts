@@ -23,23 +23,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import * as path from "path";
-
-import { IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface/index.js";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { ConnectionTreeItem } from "./ConnectionTreeItem.js";
+import type { ICdmConnectionEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 
 export class ConnectionSqliteTreeItem extends ConnectionTreeItem {
-
     public override contextValue = "connectionSqlite";
 
-    public constructor(details: IConnectionDetails, backend: ShellInterfaceSqlEditor) {
-        super(details, backend);
-
-        this.iconPath = {
-            light: path.join(__dirname, "..", "images", "light", "connectionSqlite.svg"),
-            dark: path.join(__dirname, "..", "images", "dark", "connectionSqlite.svg"),
-        };
+    public constructor(dataModelEntry: ICdmConnectionEntry) {
+        super(dataModelEntry, "connectionSqlite.svg", true);
     }
-
 }

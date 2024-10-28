@@ -264,6 +264,34 @@ export class Os {
     };
 
     /**
+     * Selects and deletes the current line text
+     */
+    public static keyboardDeleteCurrentLine = async (): Promise<void> => {
+        if (Os.isMacOs()) {
+            await driver.actions()
+                .keyDown(Key.COMMAND)
+                .keyDown(Key.SHIFT)
+                .keyDown(Key.ARROW_LEFT)
+                .keyUp(Key.ARROW_LEFT)
+                .keyUp(Key.COMMAND)
+                .keyUp(Key.SHIFT)
+                .keyDown(Key.BACK_SPACE)
+                .keyUp(Key.BACK_SPACE)
+                .perform();
+        } else {
+            await driver.actions()
+                .keyDown(Key.SHIFT)
+                .keyDown(Key.END)
+                .keyUp(Key.END)
+                .keyUp(Key.SHIFT)
+                .keyDown(Key.BACK_SPACE)
+                .keyUp(Key.BACK_SPACE)
+                .perform();
+        }
+        await driver.sleep(300); // safety
+    };
+
+    /**
      * Presses CTRL+A
      * @param el The element to perform the action on
      * @returns A promise resolving when the command is executed

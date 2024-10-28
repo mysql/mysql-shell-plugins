@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { DialogResponseClosure, DialogType } from "../../../../app-logic/Types.js";
+import { DialogResponseClosure, DialogType } from "../../../../app-logic/general-types.js";
 import { ShellPromptResponseType } from "../../../../communication/Protocol.js";
 import { ShellPromptHandler } from "../../../../modules/common/ShellPromptHandler.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
@@ -450,4 +450,3 @@ describe("Shell Prompt Handler Tests", (): void => {
         expect(result).toBeTruthy();
     });
 });
-

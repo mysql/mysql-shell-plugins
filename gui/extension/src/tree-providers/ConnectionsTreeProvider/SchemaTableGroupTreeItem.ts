@@ -23,39 +23,37 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { SchemaItemGroupType } from "./SchemaIndex.js";
-import { ConnectionsTreeBaseItem } from "./ConnectionsTreeBaseItem.js";
-import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { ConnectionBaseTreeItem } from "./ConnectionBaseTreeItem.js";
+import {
+    CdmEntityType,
+    type CdmTableGroupMemberType, type ICdmTableGroupEntry,
+} from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 
-export class TableGroupTreeItem extends ConnectionsTreeBaseItem {
+export class SchemaTableGroupTreeItem<T extends CdmTableGroupMemberType>
+    extends ConnectionBaseTreeItem<ICdmTableGroupEntry<T>> {
 
     public override contextValue = `schemaTable${String(this.label)}GroupItem`;
 
-    public constructor(
-        schema: string,
-        public table: string,
-        backend: ShellInterfaceSqlEditor,
-        connectionId: number,
-        public groupType: SchemaItemGroupType) {
-        super(groupType, schema, backend, connectionId, TableGroupTreeItem.getIconName(groupType), true);
+    public constructor(dataModelEntry: ICdmTableGroupEntry<T>) {
+        super(dataModelEntry, SchemaTableGroupTreeItem.getIconName(dataModelEntry.subType), true);
     }
 
 
-    private static getIconName(label: string): string {
-        switch (label) {
-            case SchemaItemGroupType.Columns: {
+    private static getIconName(type: CdmTableGroupMemberType): string {
+        switch (type) {
+            case CdmEntityType.Column: {
                 return "schemaTableColumns.svg";
             }
 
-            case SchemaItemGroupType.Indexes: {
+            case CdmEntityType.Index: {
                 return "schemaTableIndexes.svg";
             }
 
-            case SchemaItemGroupType.ForeignKeys: {
+            case CdmEntityType.ForeignKey: {
                 return "schemaTableForeignKey.svg";
             }
 
-            case SchemaItemGroupType.Triggers: {
+            case CdmEntityType.Trigger: {
                 return "schemaTableTriggers.svg";
             }
 

@@ -26,50 +26,52 @@
 import mysqlIcon from "../../assets/images/connectionMysql.svg";
 import sqliteIcon from "../../assets/images/connectionSqlite.svg";
 
-import plusIcon from "../../assets/images/plus.svg";
-import editIcon from "../../assets/images/edit.svg";
 import cloneIcon from "../../assets/images/clone.svg";
+import editIcon from "../../assets/images/edit.svg";
+import plusIcon from "../../assets/images/plus.svg";
 
 import { ComponentChild, createRef } from "preact";
 import { Children } from "preact/compat";
 
 import { requisitions } from "../../supplement/Requisitions.js";
 
-import { MySQLConnectionScheme } from "../../communication/MySQL.js";
-import { Settings } from "../../supplement/Settings/Settings.js";
-import { IMySQLDbSystem } from "../../communication/index.js";
 import {
     DialogResponseClosure, DialogType, IDialogResponse, IDictionary, IServicePasswordRequest,
-} from "../../app-logic/Types.js";
-import { IToolbarItems } from "./index.js";
+} from "../../app-logic/general-types.js";
+import { MySQLConnectionScheme } from "../../communication/MySQL.js";
+import { IMySQLDbSystem } from "../../communication/index.js";
 import {
     BrowserTileType, IBrowserTileProperties, ITileActionOptions,
 } from "../../components/ui/BrowserTile/BrowserTile.js";
+import { Codicon } from "../../components/ui/Codicon.js";
 import {
-    IComponentProperties, ComponentBase, ComponentPlacement,
+    ComponentBase, ComponentPlacement, IComponentProperties,
 } from "../../components/ui/Component/ComponentBase.js";
 import { ConnectionTile, IConnectionTileProperties } from "../../components/ui/ConnectionTile/ConnectionTile.js";
-import { Container, Orientation, ContentWrap } from "../../components/ui/Container/Container.js";
+import { Container, ContentWrap, Orientation } from "../../components/ui/Container/Container.js";
 import { FrontPage } from "../../components/ui/FrontPage/FrontPage.js";
 import { Label } from "../../components/ui/Label/Label.js";
 import { Menu } from "../../components/ui/Menu/Menu.js";
-import { MenuItem, IMenuItemProperties } from "../../components/ui/Menu/MenuItem.js";
+import { IMenuItemProperties, MenuItem } from "../../components/ui/Menu/MenuItem.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
-import { IConnectionDetails, DBType } from "../../supplement/ShellInterface/index.js";
+import type { ConnectionDataModel, ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
+import { DBType, IConnectionDetails, type IShellSessionDetails } from "../../supplement/ShellInterface/index.js";
+import { uuid } from "../../utilities/helpers.js";
 import { ConnectionEditor } from "./ConnectionEditor.js";
+import { DBEditorContext, type DBEditorContextType, type IToolbarItems } from "./index.js";
 
 interface IConnectionBrowserProperties extends IComponentProperties {
-    connections: IConnectionDetails[];
     toolbarItems: IToolbarItems;
 
-    onAddConnection: (details: IConnectionDetails) => void;
-    onUpdateConnection: (details: IConnectionDetails) => void;
-    onDropConnection: (connectionId: number) => void;
-    onPushSavedConnection?: (details: IConnectionDetails) => void;
+    onAddConnection: (entry: ICdmConnectionEntry) => void;
+    onUpdateConnection: (entry: ICdmConnectionEntry) => void;
+    onRemoveConnection: (entry: ICdmConnectionEntry) => void;
 }
 
 export class ConnectionBrowser extends ComponentBase<IConnectionBrowserProperties> {
+    public static override contextType = DBEditorContext;
 
     private static dbTypeToIconMap = new Map<DBType, string>([
         [DBType.Sqlite, sqliteIcon],
@@ -80,13 +82,12 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     private actionMenuRef = createRef<Menu>();
     private hostRef = createRef<HTMLDivElement>();
 
-    private currentTileDetails?: IConnectionDetails; // Set during context menu invocation.
+    private currentDataModelEntry?: ICdmConnectionEntry; // Set during context menu invocation.
 
     public constructor(props: IConnectionBrowserProperties) {
         super(props);
 
-        this.addHandledProperties("connections", "toolbarItems", "onAddConnection", "onUpdateConnection",
-            "onDropConnection", "onPushSavedConnection");
+        this.addHandledProperties("connections", "toolbarItems", "onAddConnection", "onUpdateConnection");
     }
 
     public override componentDidMount(): void {
@@ -98,9 +99,20 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         requisitions.register("duplicateConnection", this.duplicateConnection);
         requisitions.register("acceptPassword", this.acceptPassword);
         requisitions.register("dialogResponse", this.dialogResponse);
+
+        const dataModel = this.dataModel;
+        if (dataModel) {
+            dataModel.subscribe(this.dataModelChanged);
+        }
     }
 
     public override componentWillUnmount(): void {
+
+        const dataModel = this.dataModel;
+        if (dataModel) {
+            dataModel.unsubscribe(this.dataModelChanged);
+        }
+
         requisitions.unregister("settingsChanged", this.handleSettingsChanged);
         requisitions.unregister("dbFileDropped", this.dbFileDropped);
         requisitions.unregister("addNewConnection", this.addNewConnection);
@@ -112,24 +124,26 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     }
 
     public render(): ComponentChild {
-        const { connections, toolbarItems, onAddConnection, onUpdateConnection } = this.props;
+        const { toolbarItems } = this.props;
 
         const className = this.getEffectiveClassNames(["connectionBrowser"]);
+        const connections = this.connections;
 
         const tiles = [];
         connections.forEach((connection) => {
             if (connection) {
                 tiles.push(
                     <ConnectionTile
-                        tileId={connection.id}
-                        key={connection.id}
-                        details={connection}
-                        caption={connection.caption}
-                        description={connection.description}
-                        icon={ConnectionBrowser.dbTypeToIconMap.get(connection.dbType)!}
+                        tileId={connection.details.id}
+                        key={connection.details.id}
+                        entry={connection}
+                        caption={connection.details.caption}
+                        description={connection.details.description}
+                        icon={ConnectionBrowser.dbTypeToIconMap.get(connection.details.dbType)!}
                         type={BrowserTileType.Open}
                         draggable
                         onAction={this.handleTileAction}
+
                     //onTileReorder={this.handleTileReorder}
                     />,
                 );
@@ -137,30 +151,34 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             }
         });
 
-        tiles.push(
-            <ConnectionTile
-                tileId={-1}
-                key={-1}
-                details={{
-                    id: -1,
-                    dbType: DBType.MySQL,
-                    useSSH: false,
-                    useMDS: false,
-                    caption: "New Connection",
-                    description: "Add a new database connection",
-                    options: {
-                        dbFile: "",
-                        dbName: "",
-                    },
-                }}
-                caption="New Connection"
-                description="Add a new database connection"
-                icon={plusIcon}
-                type={BrowserTileType.CreateNew}
-                onAction={this.handleTileAction}
-            //onTileReorder={this.handleTileReorder}
-            />,
-        );
+        const dataModel = this.dataModel;
+        if (dataModel) {
+            tiles.push(
+                <ConnectionTile
+                    tileId={-1}
+                    key={-1}
+                    entry={dataModel.createConnectionEntry({
+                        id: -1,
+                        dbType: DBType.MySQL,
+                        useSSH: false,
+                        useMHS: false,
+                        caption: "New Connection",
+                        description: "Add a new database connection",
+                        options: {
+                            dbFile: "",
+                            dbName: "",
+                        },
+                    })}
+                    caption="New Connection"
+                    description="Add a new database connection"
+                    icon={plusIcon}
+                    type={BrowserTileType.CreateNew}
+                    onAction={this.handleTileAction}
+
+                //onTileReorder={this.handleTileReorder}
+                />,
+            );
+        }
 
         // If toolbar items are given, render a toolbar with them.
         const toolbar = <Toolbar id="connectionOverviewToolbar" dropShadow={false} >
@@ -176,12 +194,11 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                 wrap={ContentWrap.NoWrap}
             >
                 {toolbar}
-                < ConnectionEditor
+                <ConnectionEditor
                     ref={this.editorRef}
                     id="connectionEditor"
-                    connections={connections}
-                    onAddConnection={onAddConnection}
-                    onUpdateConnection={onUpdateConnection}
+                    onAddConnection={this.handleAddConnection}
+                    onUpdateConnection={this.handleUpdateConnection}
                 />
                 <Menu
                     id="tileActionMenu"
@@ -189,21 +206,15 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleMenuItemClick}
                 >
-                    <MenuItem id="edit" caption="Edit Connection…" icon={editIcon} />
-                    <MenuItem id="duplicate" caption="Duplicate Connection…" icon={cloneIcon} />
-                    <MenuItem caption="-" />
-                    <MenuItem id="shareConnection" caption="Share Connection" icon={cloneIcon} disabled >
-                        <MenuItem id="shareWithUser" caption="With User..." icon={cloneIcon} />
-                        <MenuItem caption="-" />
-                        <MenuItem id="profile1" caption="Profile 1" icon={cloneIcon} />
-                        <MenuItem id="profile2" caption="Profile 2" icon={cloneIcon} />
-                        <MenuItem id="profile3" caption="Profile 3" icon={cloneIcon} />
-                    </MenuItem>
-                    <MenuItem id="copyConnection" caption="Copy Connection to Profile" icon={cloneIcon} disabled >
-                        <MenuItem id="profile1" caption="Profile 1" icon={cloneIcon} />
-                    </MenuItem>
-                    <MenuItem caption="-" />
-                    <MenuItem id="remove" caption="Remove Connection…" />
+                    <MenuItem command={{ title: "Edit Connection…", command: "edit" }} icon={editIcon} />
+                    <MenuItem command={{ title: "Duplicate Connection…", command: "duplicate" }} icon={cloneIcon} />
+                    <MenuItem command={{ title: "-", command: "" }} />
+                    <MenuItem command={{
+                        title: "Open New MySQL Shell Console for this Connection",
+                        command: "msg.newSessionUsingConnection",
+                    }} icon={Codicon.Terminal} />
+                    <MenuItem command={{ title: "-", command: "" }} />
+                    <MenuItem id="remove" command={{ title: "Remove Connection…", command: "remove" }} />
                 </Menu>
                 <FrontPage
                     showGreeting={Settings.get("dbEditor.connectionBrowser.showGreeting", true)}
@@ -236,8 +247,8 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         );
     }
 
-    private addNewConnection = (details: { mdsData?: IMySQLDbSystem; profileName?: String; }): Promise<boolean> => {
-        const options = details.mdsData as IDictionary;
+    private addNewConnection = (details: { mdsData?: IMySQLDbSystem; profileName?: string; }): Promise<boolean> => {
+        const options = details.mdsData as ITileActionOptions & { profileName?: string; };
         if (options) {
             options.profileName = details.profileName;
         }
@@ -247,9 +258,8 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     };
 
     private editConnection = (connectionId: number): Promise<boolean> => {
-        const { connections } = this.props;
-
-        const details = connections.find((candidate) => { return candidate.id === connectionId; });
+        const connections = this.connections;
+        const details = connections.find((candidate) => { return candidate.details.id === connectionId; });
 
         if (details) {
             this.doHandleTileAction("edit", details, undefined);
@@ -261,9 +271,9 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     };
 
     private removeConnection = (connectionId: number): Promise<boolean> => {
-        const { connections } = this.props;
+        const connections = this.connections;
 
-        const details = connections.find((candidate) => { return candidate.id === connectionId; });
+        const details = connections.find((candidate) => { return candidate.details.id === connectionId; });
         if (details) {
             this.doHandleTileAction("remove", details, undefined);
 
@@ -274,9 +284,9 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     };
 
     private duplicateConnection = (connectionId: number): Promise<boolean> => {
-        const { connections } = this.props;
+        const connections = this.connections;
 
-        const details = connections.find((candidate) => { return candidate.id === connectionId; });
+        const details = connections.find((candidate) => { return candidate.details.id === connectionId; });
         if (details) {
             this.doHandleTileAction("duplicate", details, undefined);
 
@@ -306,8 +316,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             this.hostRef.current.classList.remove("dropTarget");
         }
 
-        const { connections } = this.props;
-
+        const connections = this.connections;
         const caption = `New Connection ${connections.length}`;
         const description = "A new Database Connection";
 
@@ -317,7 +326,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             dbType: DBType.Sqlite,
             caption,
             description,
-            useMDS: false,
+            useMHS: false,
             useSSH: false,
             options: {
                 dbFile: fileName,
@@ -370,9 +379,10 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         (e.currentTarget as HTMLElement).classList.remove("dropTarget");
     };
 
-    private handleMenuItemClick = (_e: MouseEvent, props: IMenuItemProperties): boolean => {
+    private handleMenuItemClick = (props: IMenuItemProperties): boolean => {
         if (!props.children || Children.count(props.children) === 0) {
-            this.doHandleTileAction(props.id || "", this.currentTileDetails, {});
+            const command = props.command.command;
+            this.doHandleTileAction(command, this.currentDataModelEntry, {});
 
             return true;
         }
@@ -384,16 +394,16 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         options: unknown): void => {
 
         const tileProps = props as IConnectionTileProperties;
-        this.doHandleTileAction(action, tileProps?.details, options as IDictionary);
+        this.doHandleTileAction(action, tileProps?.entry, options as IDictionary);
     };
 
-    private doHandleTileAction = (action: string, details: IConnectionDetails | undefined,
+    private doHandleTileAction = (action: string, entry: ICdmConnectionEntry | undefined,
         options?: ITileActionOptions): void => {
-        const dbType = details?.dbType ?? DBType.MySQL;
+        const dbType = entry?.details.dbType ?? DBType.MySQL;
 
         switch (action) {
             case "menu": {
-                this.currentTileDetails = details;
+                this.currentDataModelEntry = entry;
                 if (options && options.target instanceof HTMLElement) {
                     const rect = options.target.getBoundingClientRect();
                     this.actionMenuRef.current?.open(rect, false);
@@ -402,7 +412,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             }
 
             case "edit": {
-                void this.editorRef.current?.show(dbType, false, details);
+                void this.editorRef.current?.show(dbType, false, entry?.details);
                 break;
             }
 
@@ -418,13 +428,14 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                         caption: options.displayName as string ?? "",
                         dbType: DBType.MySQL,
                         description: options.description as string ?? "",
-                        useMDS: true,
+                        useMHS: true,
                         useSSH: false,
                         options: {
                             /* eslint-disable @typescript-eslint/naming-convention */
                             "compartment-id": options.compartmentId,
                             "mysql-db-system-id": options.id,
                             "profile-name": options.profileName ?? "DEFAULT",
+
                             // Disable support for bastion to be stored in freeform tags for the time being
                             // "bastion-id": (options.freeformTags as IDictionary)?.bastionId ?? undefined,
                             host,
@@ -437,37 +448,48 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                 } else {
                     void this.editorRef.current?.show(dbType, true);
                 }
+
                 break;
             }
 
             case "duplicate": {
-                void this.editorRef.current?.show(dbType, true, details);
+                void this.editorRef.current?.show(dbType, true, entry?.details);
 
                 break;
             }
 
             case "remove": {
-                if (details) {
-                    this.confirmTileRemoval(details);
+                if (entry) {
+                    this.confirmTileRemoval(entry);
                 }
 
                 break;
             }
 
             case "open": {
-                if (details) {
+                if (entry) {
                     void requisitions.execute("openConnectionTab",
                         {
-                            details,
+                            connection: entry,
                             force: options?.newTab as boolean ?? false,
                             initialEditor: options?.editor as ("notebook" | "script"),
                         });
 
                     // Notify the wrapper, if there's one, in case it has to update UI for the changed page.
                     requisitions.executeRemote("selectConnectionTab",
-                        { connectionId: details?.id, page: "" });
+                        { connectionId: entry?.details.id });
                 }
 
+                break;
+            }
+
+            case "msg.newSessionUsingConnection": {
+                const details: IShellSessionDetails = {
+                    sessionId: uuid(),
+                    dbConnectionId: entry?.details.id,
+                    caption: entry?.caption,
+                };
+                void requisitions.execute("openSession", details);
                 break;
             }
 
@@ -477,18 +499,18 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         }
     };
 
-    private confirmTileRemoval = (connection: IConnectionDetails): void => {
+    private confirmTileRemoval = (entry: ICdmConnectionEntry): void => {
         setTimeout(() => {
             void requisitions.execute("showDialog", {
                 type: DialogType.Confirm,
                 id: "deleteConnection",
                 parameters: {
-                    prompt: `You are about to remove the connection "${connection.caption}" from the list.`,
+                    prompt: `You are about to remove the connection "${entry.details.caption}" from the list.`,
                     refuse: "Cancel",
                     accept: "Confirm",
                     default: "Cancel",
                 },
-                data: { connection },
+                data: { entry },
             });
         }, 0);
     };
@@ -544,13 +566,12 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         return false;
     };
 
-    private dialogResponse = (response: IDialogResponse): Promise<boolean> => {
+    private dialogResponse = async (response: IDialogResponse): Promise<boolean> => {
         if (response.id === "deleteConnection") {
-            const details = response.data?.connection as IConnectionDetails;
-            if (details && response.closure === DialogResponseClosure.Accept) {
-                const { onDropConnection } = this.props;
-
-                onDropConnection(details.id);
+            const entry = response.data?.entry as ICdmConnectionEntry;
+            if (entry && response.closure === DialogResponseClosure.Accept && this.dataModel) {
+                const { onRemoveConnection } = this.props;
+                onRemoveConnection(entry);
             }
 
             return Promise.resolve(true);
@@ -559,4 +580,37 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         return Promise.resolve(false);
     };
 
+    private handleAddConnection = (details: IConnectionDetails): void => {
+        const { onAddConnection } = this.props;
+
+        const model = this.dataModel;
+        if (model) {
+            onAddConnection(model.createConnectionEntry(details));
+        }
+    };
+
+    private handleUpdateConnection = (details: IConnectionDetails): void => {
+        const { onUpdateConnection } = this.props;
+
+        const model = this.dataModel;
+        if (model) {
+            const entry = model.findConnectionEntryById(details.id);
+            if (entry) {
+                onUpdateConnection(entry);
+                this.forceUpdate();
+            }
+        }
+    };
+
+    private get connections(): ICdmConnectionEntry[] {
+        return (this.context as DBEditorContextType)?.connectionsDataModel.connections ?? [];
+    }
+
+    private get dataModel(): ConnectionDataModel | undefined {
+        return (this.context as DBEditorContextType)?.connectionsDataModel;
+    }
+
+    private dataModelChanged = (): void => {
+        this.forceUpdate();
+    };
 }
