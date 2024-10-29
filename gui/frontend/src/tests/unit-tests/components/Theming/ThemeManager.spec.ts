@@ -84,6 +84,8 @@ describe("ThemeManager tests", () => {
         const theme = themeManager.parseHostTheme({
             css,
             themeClass,
+            themeName: "",
+            themeId: "",
         });
         const expected: IThemeObject = {
             name: themeClass,
@@ -210,4 +212,114 @@ describe("ThemeManager tests", () => {
         });
     });
 
+    describe("Test guessThemeType", () => {
+        it("Test light high contrast", () => {
+            expect(themeManager.guessThemeType({
+                name: "vscode-high-contrast-light",
+                type: "light",
+            })).toEqual("light");
+        });
+
+        it("Test dark high contrast", () => {
+            expect(themeManager.guessThemeType({
+                name: "vscode-high-contrast",
+                type: "light",
+            })).toEqual("dark");
+        });
+
+        it("Test dark", () => {
+            expect(themeManager.guessThemeType({
+                name: "foo",
+                type: "dark",
+            })).toEqual("dark");
+        });
+
+        it("Test light", () => {
+            expect(themeManager.guessThemeType({
+                name: "foo",
+                type: "light",
+            })).toEqual("light");
+        });
+    });
+
+    describe("Test processThemePipeline", () => {
+        it("Empty theme with default colors", () => {
+            const css = themeManager.generateCssWithDefaults({name: "test"}, "light");
+
+            // At least one default light color
+            expect(css).toEqual(expect.stringContaining(`--textLink-foreground: #000;`));
+
+            // At least one light app colors
+            expect(css).toEqual(expect.stringContaining(`--browserTile-border: #6CB9E0;`));
+
+            // At least one language color
+            expect(css).toEqual(expect.stringContaining(`--editorPrompt-primary-sql: #db8f00;`));
+        });
+
+        it("Theme overrides default color", () => {
+            const css = themeManager.generateCssWithDefaults({
+                name: "test",
+                colors: {
+                    "textLink.foreground": "#123",
+                },
+            }, "light");
+
+            expect(css).toEqual(expect.stringContaining(`--textLink-foreground: #123;`));
+        });
+
+        it("Fixed color is used if not present in the theme", () => {
+            const css = themeManager.generateCssWithDefaults({
+                name: "test",
+                colors: {
+                    "panel.background": "#234",
+                },
+            }, "dark");
+
+            expect(css).toEqual(expect.stringContaining(`--dropdown-background: #313131;`));
+
+            expect(css).toEqual(expect.stringContaining(`--panel-background: #234;`));
+            expect(css).toEqual(expect.stringContaining(`--statusBar-background: #234;`));
+        });
+
+        it("Fixed color is not used when present in the theme", () => {
+            const css = themeManager.generateCssWithDefaults({
+                name: "test",
+                colors: {
+                    "panel.background": "#234",
+                    "statusBar.background": "#567",
+                },
+            }, "dark");
+
+            expect(css).toEqual(expect.stringContaining(`--panel-background: #234;`));
+
+            // Not inferred from the panel.background
+            expect(css).toEqual(expect.stringContaining(`--statusBar-background: #567;`));
+        });
+
+        it("Color adjustment used theme variable", () => {
+            const css = themeManager.generateCssWithDefaults({
+                name: "test",
+                colors: {
+                    "editor.selectionBackground": "#345",
+                },
+            }, "dark");
+
+            expect(css).toEqual(expect.stringContaining(`--editor-selectionBackground: #345;`));
+            expect(css).toEqual(expect.stringContaining(`--selection-background: #345;`));
+        });
+
+        it("Color adjustment calculated", () => {
+            const css = themeManager.generateCssWithDefaults({
+                name: "test",
+                colors: {
+                    "editor.background": "#eee",
+                },
+            }, "dark");
+
+            expect(css).toEqual(expect.stringContaining(`--editor-background: #eee;`));
+
+            // "lightness": {"absolute": -4}
+            expect(css).toEqual(expect.stringContaining(`--editorZone-background: #e4e4e4;`));
+        });
+    });
 });

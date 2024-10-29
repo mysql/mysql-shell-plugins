@@ -36,7 +36,7 @@ import type {
     IMrsAuthAppData, IMrsContentSetData, IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsUserData,
 } from "../communication/ProtocolMrs.js";
 
-import { IThemeChangeData } from "../components/Theming/ThemeManager.js";
+import { IHostThemeData, IThemeChangeData } from "../components/Theming/ThemeManager.js";
 import { EntityType, ISchemaTreeEntry } from "../modules/db-editor/index.js";
 import { RequisitionPipeline } from "./RequisitionPipeline.js";
 import { DBType, IConnectionDetails, IShellSessionDetails } from "./ShellInterface/index.js";
@@ -581,7 +581,7 @@ export interface IRequestTypeMap {
 
     "dbFileDropped": (fileName: string) => Promise<boolean>;
 
-    "hostThemeChange": (data: { css: string; themeClass: string; }) => Promise<boolean>;
+    "hostThemeChange": (data: IHostThemeData) => Promise<boolean>;
 
     /** Shows the dialog to create or update an MRS service. */
     "showMrsServiceDialog": (data?: IMrsServiceData) => Promise<boolean>;

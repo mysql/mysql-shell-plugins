@@ -1,0 +1,4 @@
+{
+    "dropdown.listBackground": "$dropdown.background",
+    "statusBar.background": "$panel.background"
+}

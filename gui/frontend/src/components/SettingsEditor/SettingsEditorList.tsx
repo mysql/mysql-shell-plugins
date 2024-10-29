@@ -300,11 +300,9 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
                         const themeNames = ThemeManager.get.installedThemes;
                         themeNames.unshift("Auto");
                         data.parameters.choices = themeNames.map((theme: string) => {
-                            let description = "3rd party Theme";
+                            let description = "Built-in Theme";
                             if (theme === "Auto") {
                                 description = "Pseudo theme to match the current system theme";
-                            } else if (theme === "Dark Modern" || theme === "Light Modern") {
-                                description = "Built-in Theme";
                             }
 
                             return [theme, theme, description];

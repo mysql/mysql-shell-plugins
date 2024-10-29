@@ -23,6 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import fixedColors from "./assets/fixed-colors.json";
 import darkModern from "./assets/dark-modern-color-theme.json";
 import darkAppColors from "./assets/dark-app-colors.json";
 import lightModern from "./assets/light-modern-color-theme.json";
@@ -74,7 +75,7 @@ interface IFont {
     editorFontWeight?: string;
 }
 
-interface IHostThemeData { css: string; themeClass: string; }
+export interface IHostThemeData { css: string; themeClass: string; themeName: string; themeId: string; }
 
 /** This is the structure of a VS Code theme file. */
 export interface IThemeObject {
@@ -269,6 +270,13 @@ export class ThemeManager {
     }
 
     public guessThemeType(values: IThemeObject): ThemeType {
+        if (values.name === "vscode-high-contrast") {
+            return "dark";
+        }
+        if (values.name === "vscode-high-contrast-light") {
+            return "light";
+        }
+
         let type: ThemeType;
         if (values.type) {
             type = values.type === "dark" ? "dark" : "light";
@@ -294,12 +302,6 @@ export class ThemeManager {
     public loadThemeDetails(values: IThemeObject): string {
         const type = this.guessThemeType(values);
 
-        const themeHasColors = !!values.colors;
-        const appColors: IColors = type === "dark" ? darkAppColors : lightAppColors;
-        values.colors = themeHasColors
-            ? { ...languagesColors, ...appColors, ...values.colors }
-            : { ...languagesColors, ...appColors };
-
         // Note: the term "active" means a state where the application is the current front most one.
         //       Don't confuse that with the CSS "active" notation, which is used for elements on which the mouse is
         //       currently pressed (or a tap on mobile devices). For the latter we use the term "pressed" as in
@@ -307,27 +309,8 @@ export class ThemeManager {
         // Note: settings for a tab container are held in "editorGroup.*" and "editorGroupHeader.*" values.
         //       All "tab.*" values are meant for tab items.
         // Note: Dialogs + Popups use the "window.*" settings.
-        let css = ":root {\n";
-        if (!themeHasColors) {
-            // If no component colors are defined then copy over the ones from the default.
-            // This is independent of the consolidation flag, as it ensure we have a `colors` at all.
-            if (type === "dark") {
-                values.colors = { ...darkModern.colors };
-            } else {
-                values.colors = { ...lightModern.colors };
-            }
-        }
 
-        const adjustedColors = this.colorManipulator.getAdjustedColors(
-            values.colors, this.colorManipulator.colorAdjustments, type,
-        );
-        values.colors = { ...adjustedColors, ...values.colors };
-        const fontVariables = this.getFontVariables(values.font);
-
-        css += this.stylesToString(fontVariables);
-        css += this.stylesToString(values.colors);
-
-        css += "}\n";
+        const css = this.generateCssWithDefaults(values, type);
 
         const definition = this.themeDefinitions.get(values.name);
         if (definition) {
@@ -457,6 +440,21 @@ export class ThemeManager {
         return true;
     }
 
+    public generateCssWithDefaults(theme: IThemeObject, type: ThemeType): string {
+        const defaultColors = this.getDefaultColors(type);
+        const themeColors = this.getThemeColors(defaultColors, theme.colors, type);
+
+        const adjustedColors = this.colorManipulator.getAdjustedColors(
+            themeColors, this.colorManipulator.colorAdjustments, type,
+        );
+
+        const fixedColorsComputed = this.calculateFixedColors(themeColors, type);
+
+        theme.colors = this.combineColors(theme, defaultColors, adjustedColors, fixedColorsComputed);
+
+        return this.getThemeCss(theme);
+    }
+
     private setFont(theme: IThemeObject, property: string, value: string): void {
         if (!theme.font) {
             theme.font = {};
@@ -475,6 +473,60 @@ export class ThemeManager {
         } else if (property.match(/^editor-font-weight$/)) {
             theme.font.editorFontWeight = value;
         }
+    }
+
+    private getThemeCss(theme: IThemeObject): string {
+        let css = ":root {\n";
+
+        const fontVariables = this.getFontVariables(theme.font);
+
+        css += this.stylesToString(fontVariables);
+        css += this.stylesToString(theme.colors!);
+
+        css += "}\n";
+
+        return css;
+    }
+
+    private getAppColors(type: ThemeType): IColors {
+        return type === "dark" ? darkAppColors : lightAppColors;
+    }
+
+    private getThemeColors(defaultColors: IColors, themeColors: IColors | undefined, type: ThemeType): IColors {
+        let allColors = { ...languagesColors, ...this.getAppColors(type), ...defaultColors };
+        if (themeColors) {
+            allColors = { ...allColors, ...themeColors };
+        }
+
+        return allColors;
+    }
+
+    private getDefaultColors(type: ThemeType): IColors {
+        let colors: IColors;
+        if (type === "dark") {
+            colors = { ...darkModern.colors };
+        } else {
+            colors = { ...lightModern.colors };
+        }
+
+        return this.getThemeColors(colors, undefined, type);
+    }
+
+    private calculateFixedColors(themeColors: IColors, type: ThemeType): IColors {
+        const colors = this.getThemeColors({}, themeColors, type);
+
+        return this.colorManipulator.getAdjustedColors(colors, fixedColors, type);
+    }
+
+    private combineColors(theme: IThemeObject, defaultColors: IColors, adjustedColors: IColors,
+        fixedColorsComputed: IColors): IColors {
+        const colors = { ...defaultColors, ...fixedColorsComputed, ...adjustedColors };
+        const themeHasColors = !!theme.colors;
+        if (!themeHasColors) {
+            return colors;
+        }
+
+        return { ...colors, ...theme.colors };
     }
 
     /**
