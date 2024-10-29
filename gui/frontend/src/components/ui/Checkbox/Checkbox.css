@@ -54,7 +54,6 @@
 }
 
 .msg.checkbox:hover .checkMark {
-    background-color: var(--button-hoverBackground);
     transition: background-color 0.25s
 }
 

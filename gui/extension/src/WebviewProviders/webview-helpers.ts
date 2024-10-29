@@ -228,7 +228,9 @@ export const prepareWebviewContent = (panel: WebviewPanel, url: URL): void => {
                     command: "hostThemeChange",
                     data: {
                         css: document.documentElement.style.cssText,
-                        themeClass: document.body.getAttribute("data-vscode-theme-kind")
+                        themeClass: document.body.getAttribute("data-vscode-theme-kind"),
+                        themeName: document.body.getAttribute("data-vscode-theme-name"),
+                        themeId: document.body.getAttribute("data-vscode-theme-id")
                     }
                 }, "*");
             };
