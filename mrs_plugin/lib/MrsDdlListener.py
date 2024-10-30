@@ -1269,7 +1269,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_ddl_executor.revokeRestRole(self.mrs_object)
 
     # ------------------------------------------------------------------------------------------------------------------
-    # REVOKE REST privs
+    # REVOKE REST privileges
 
     def enterRevokeRestPrivilegeStatement(self, ctx):
         self.mrs_object = {

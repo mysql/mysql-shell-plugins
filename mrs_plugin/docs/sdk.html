@@ -289,30 +289,30 @@
                                                 Reference</a>
                                                 <ul>
                                                 <li><a
-                                                href="#mrs-services"
-                                                id="toc-mrs-services"><span
+                                                href="#rest-services"
+                                                id="toc-rest-services"><span
                                                 class="toc-section-number">8.1</span>
-                                                MRS Services</a></li>
+                                                REST Services</a></li>
                                                 <li><a
-                                                href="#mrs-schemas"
-                                                id="toc-mrs-schemas"><span
+                                                href="#rest-schemas"
+                                                id="toc-rest-schemas"><span
                                                 class="toc-section-number">8.2</span>
-                                                MRS Schemas</a></li>
+                                                REST Schemas</a></li>
                                                 <li><a
-                                                href="#mrs-tables"
-                                                id="toc-mrs-tables"><span
+                                                href="#rest-views"
+                                                id="toc-rest-views"><span
                                                 class="toc-section-number">8.3</span>
-                                                MRS Tables</a></li>
+                                                REST Views</a></li>
                                                 <li><a
-                                                href="#mrs-records"
-                                                id="toc-mrs-records"><span
+                                                href="#rest-documents"
+                                                id="toc-rest-documents"><span
                                                 class="toc-section-number">8.4</span>
-                                                MRS Records</a></li>
+                                                REST Documents</a></li>
                                                 <li><a
-                                                href="#mrs-functions"
-                                                id="toc-mrs-functions"><span
+                                                href="#rest-functions"
+                                                id="toc-rest-functions"><span
                                                 class="toc-section-number">8.5</span>
-                                                MRS Functions</a></li>
+                                                REST Functions</a></li>
                                                 </ul></li>
                                                 </ul>
                                             </div>
@@ -2112,18 +2112,18 @@ Reference
                 id="python-client-api-reference"><span
                 class="header-section-number">8</span> Python Client API
                 Reference</h1>
-                <h2 data-number="8.1" id="mrs-services"><span
-                class="header-section-number">8.1</span> MRS
+                <h2 data-number="8.1" id="rest-services"><span
+                class="header-section-number">8.1</span> REST
                 Services</h2>
                 <p>The MRS Python SDK exposes a type-safe programmable
                 interface for the MySQL REST Service that unifies, under
                 a set of contextual commands, the available HTTP
                 operations to access and use database objects (tables,
                 views and functions) exposed as REST resources.</p>
-                <p>The following MRS REST resources can be accessed from
-                a service namespace:</p>
+                <p>The following resources can be accessed from a
+                service namespace:</p>
                 <ul>
-                <li><a href="#mrs-schemas">Schemas</a></li>
+                <li><a href="#rest-schemas">REST Schemas</a></li>
                 </ul>
                 <p>The following commands can be accessed from a service
                 namespace:</p>
@@ -2214,35 +2214,36 @@ Reference
 <span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a><span class="co"># E.g., calling a function</span></span>
 <span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.hello_func(name<span class="op">=</span><span class="st">&quot;Rui&quot;</span>)</span>
 <span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; Hello, Rui!</span></span></code></pre></div>
-                <h2 data-number="8.2" id="mrs-schemas"><span
-                class="header-section-number">8.2</span> MRS
+                <h2 data-number="8.2" id="rest-schemas"><span
+                class="header-section-number">8.2</span> REST
                 Schemas</h2>
                 <p>In the Python SDK, database objects such as tables
                 and functions are grouped under namespaces that
                 correspond to their schema. Applications can access and
                 use those database objects via the API exposed by each
                 one.</p>
-                <p>The following MRS REST resources can be accessed from
-                the corresponding schema namespace:</p>
+                <p>The following REST resources can be accessed from the
+                corresponding schema namespace:</p>
                 <ul>
-                <li><a href="#mrs-tables">Tables</a></li>
-                <li><a href="#mrs-records">Records</a></li>
-                <li><a href="#mrs-functions">Functions</a></li>
+                <li><a href="#rest-views">REST Views</a></li>
+                <li><a href="#rest-documents">REST Documents</a></li>
+                <li><a href="#rest-functions">REST Functions</a></li>
                 </ul>
-                <h2 data-number="8.3" id="mrs-tables"><span
-                class="header-section-number">8.3</span> MRS Tables</h2>
+                <h2 data-number="8.3" id="rest-views"><span
+                class="header-section-number">8.3</span> REST Views</h2>
                 <h3 data-number="8.3.1" id="create"><span
                 class="header-section-number">8.3.1</span> create</h3>
-                <p><code>create</code> is used to insert a record in a
-                given table. The record is represented as a typed
-                dictionary object whose fields, or keys, should comply
-                with the interface exposed by the type definition
-                <code>INew${obj_class_name}</code> where
-                <code>${obj_class_name}</code> is a variable which value
-                depends on the <em>service, schema and table</em> names
-                themselves.</p>
+                <p><code>create</code> is used to insert a record (a
+                REST document) into the database. The REST document is
+                represented as a typed dictionary object whose fields,
+                or keys, should comply with the interface exposed by the
+                type definition <code>INew${obj_class_name}</code> where
+                <code>${obj_class_name}</code> is a variable containing
+                a string which is a fully-qualified name composed by the
+                names of the <em>REST Service</em>, <em>REST Schema</em>
+                and <em>REST View</em> themselves.</p>
                 <blockquote>
-                <p>To insert multiple records, see <a
+                <p>To insert multiple documents, see <a
                 href="#create_many">create_many</a>.</p>
                 </blockquote>
                 <h4 data-number="8.3.1.1" id="options-create"><span
@@ -2276,9 +2277,10 @@ Reference
                 <h4 data-number="8.3.1.2" id="return-type-create"><span
                 class="header-section-number">8.3.1.2</span> Return Type
                 (create)</h4>
-                <p>An MRS dataclass object representing the record that
-                was inserted. For more details about MRS dataclass
-                objects, see <a href="#mrs-records">MRS Records</a>.</p>
+                <p>A REST document data class object representing the
+                record that was inserted. For more details about REST
+                documents, check the <a href="#rest-documents">REST
+                Documents</a> section.</p>
                 <h4 data-number="8.3.1.3" id="example-create"><span
                 class="header-section-number">8.3.1.3</span> Example
                 (create)</h4>
@@ -2306,10 +2308,11 @@ Reference
                 class="header-section-number">8.3.2</span>
                 create_many</h3>
                 <p><code>create_many</code> is used to insert one or
-                more records in a given table. A record is represented
-                as a typed dictionary object whose fields, or keys,
-                should comply with the interface exposed by the type
-                definition <code>INew${obj_class_name}</code> where
+                more records (REST documents) into the database. A
+                record is represented as a typed dictionary object whose
+                fields, or keys, should comply with the interface
+                exposed by the type definition
+                <code>INew${obj_class_name}</code> where
                 <code>${obj_class_name}</code> is a variable which value
                 depends on the <em>service, schema and table</em> names
                 themselves.</p>
@@ -2352,9 +2355,10 @@ Reference
                 id="return-type-create_many"><span
                 class="header-section-number">8.3.2.2</span> Return Type
                 (create_many)</h4>
-                <p>A list of MRS dataclass objects of each record that
-                was inserted. For more details about MRS dataclass
-                objects, see <a href="#mrs-records">MRS Records</a>.</p>
+                <p>A list of REST document data class objects
+                representing each record that was inserted. For more
+                details about REST documents, check the <a
+                href="#rest-documents">REST Documents</a> section.</p>
                 <h4 data-number="8.3.2.3" id="example-create_many"><span
                 class="header-section-number">8.3.2.3</span> Example
                 (create_many)</h4>
@@ -2401,15 +2405,15 @@ Reference
                 class="header-section-number">8.3.3</span>
                 find_first</h3>
                 <p><code>find_first</code> is used to query the first
-                record that matches a given optional filter. It returns
-                <code>None</code> if no record is found.</p>
+                REST document that matches a given optional filter. It
+                returns <code>None</code> if no document is found.</p>
                 <blockquote>
                 <p>To raise an exception if there are no matches, use <a
                 href="#find_first_or_throw">find_first_or_throw</a>
                 instead.</p>
                 </blockquote>
                 <blockquote>
-                <p>To find multiple records, see <a
+                <p>To find multiple REST documents, see <a
                 href="#find_many">find_many</a>.</p>
                 </blockquote>
                 <h4 data-number="8.3.3.1" id="options-find_first"><span
@@ -2436,7 +2440,7 @@ Reference
                 <td>dict or list</td>
                 <td>No</td>
                 <td>Specifies which properties to include or exclude on
-                the returned record - works as a <em>field
+                the returned document - works as a <em>field
                 filter</em></td>
                 </tr>
                 <tr class="even">
@@ -2444,21 +2448,21 @@ Reference
                 <td>dict</td>
                 <td>No</td>
                 <td>Applies filtering conditions based on specific
-                fields - works as a <em>record filter</em></td>
+                fields - works as a <em>document filter</em></td>
                 </tr>
                 <tr class="odd">
                 <td>skip</td>
                 <td>int</td>
                 <td>No</td>
-                <td>Specifies how many records to skip before returning
-                one of the matches</td>
+                <td>Specifies how many documents to skip before
+                returning one of the matches</td>
                 </tr>
                 <tr class="even">
                 <td>order_by</td>
                 <td>dict</td>
                 <td>No</td>
                 <td>Lets you customize the order (<code>ASC</code> or
-                <code>DESC</code>) in which the records are returned
+                <code>DESC</code>) in which the documents are returned
                 based on specific fields</td>
                 </tr>
                 <tr class="odd">
@@ -2489,10 +2493,11 @@ Reference
                 id="return-type-find_first"><span
                 class="header-section-number">8.3.3.2</span> Return Type
                 (find_first)</h4>
-                <p>If there is a match, an MRS dataclass object meeting
-                the filter conditions, otherwise <code>None</code> is
-                returned. For more details about MRS dataclass objects,
-                see <a href="#mrs-records">MRS Records</a>.</p>
+                <p>If there is a match, a REST document data class
+                object meeting the filter conditions, otherwise
+                <code>None</code> is returned. For more details about
+                REST documents, check the <a href="#rest-documents">REST
+                Documents</a> section.</p>
                 <h4 data-number="8.3.3.3" id="example-find_first"><span
                 class="header-section-number">8.3.3.3</span> Example
                 (find_first)</h4>
@@ -2547,7 +2552,7 @@ Reference
 <span id="cb49-18"><a href="#cb49-18" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;lte&quot;</span>: <span class="dv">3</span>}}</span>
 <span id="cb49-19"><a href="#cb49-19" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb49-20"><a href="#cb49-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Leads to a match when the field is not NULL.</span></span>
-<span id="cb49-21"><a href="#cb49-21" aria-hidden="true" tabindex="-1"></a><span class="co"># In this case, we would get records where the</span></span>
+<span id="cb49-21"><a href="#cb49-21" aria-hidden="true" tabindex="-1"></a><span class="co"># In this case, we would get documents where the</span></span>
 <span id="cb49-22"><a href="#cb49-22" aria-hidden="true" tabindex="-1"></a><span class="co"># field `last_update` is not NULL.</span></span>
 <span id="cb49-23"><a href="#cb49-23" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;last_updated&quot;</span>: {<span class="st">&quot;not&quot;</span>: <span class="va">None</span>}}</span>
 <span id="cb49-24"><a href="#cb49-24" aria-hidden="true" tabindex="-1"></a></span>
@@ -2663,18 +2668,19 @@ Reference
                 <h3 data-number="8.3.4" id="find_first_or_throw"><span
                 class="header-section-number">8.3.4</span>
                 find_first_or_throw</h3>
-                <p><code>find_first_or_throw</code> is used to query the
-                first record that matches a given optional filter in the
-                same way as <a href="#find_first">find_first</a> does.
-                However, if the query does not find a record, it raises
-                a <code>RecordNotFoundError</code> exception.</p>
+                <p><code>find_first_or_throw</code> is used to retrieve
+                the first REST document that matches a given optional
+                filter in the same way as <a
+                href="#find_first">find_first</a> does. However, if the
+                query does not find a document, it raises a
+                <code>MrsDocumentNotFoundError</code> exception.</p>
                 <blockquote>
                 <p>To not raise an exception and get <code>None</code>
                 if there are no matches, use <a
                 href="#find_first">find_first</a> instead.</p>
                 </blockquote>
                 <blockquote>
-                <p>To find multiple records, see <a
+                <p>To find multiple REST documents, see <a
                 href="#find_many">find_many</a>.</p>
                 </blockquote>
                 <h4 data-number="8.3.4.1"
@@ -2689,11 +2695,12 @@ Reference
                 id="return-type-find_first_or_throw"><span
                 class="header-section-number">8.3.4.2</span> Return Type
                 (find_first_or_throw)</h4>
-                <p>If there is a match, an MRS dataclass object meeting
-                the filter conditions is returned, otherwise an
-                exception <code>RecordNotFoundError</code> is raised.
-                For more details about MRS dataclass objects, see <a
-                href="#mrs-records">MRS Records</a>.</p>
+                <p>If there is a match, a REST document data class
+                object meeting the filter conditions is returned,
+                otherwise an exception
+                <code>MrsDocumentNotFoundError</code> is raised. For
+                more details about REST documents, check the <a
+                href="#rest-documents">REST Documents</a> section.</p>
                 <h4 data-number="8.3.4.3"
                 id="example-find_first_or_throw"><span
                 class="header-section-number">8.3.4.3</span> Example
@@ -2702,7 +2709,7 @@ Reference
                 now you should account for a possible exception:</p>
                 <div class="sourceCode" id="cb55"><pre
                 class="sourceCode python"><code class="sourceCode python"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService, RecordNotFoundError</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService, MrsDocumentNotFoundError</span>
 <span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
 <span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a></span>
@@ -2711,7 +2718,7 @@ Reference
 <span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>        select<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: <span class="va">False</span>},</span>
 <span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">ED</span><span class="sc">%%</span><span class="st">&quot;</span>}},</span>
 <span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> RecordNotFoundError:</span>
+<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> MrsDocumentNotFoundError:</span>
 <span id="cb55-12"><a href="#cb55-12" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="st">&quot;Ups, no matches found&quot;</span>)</span></code></pre></div>
                 <p>See <a href="#example-find_first">Example
                 (find_first)</a> for additional usage options.</p>
@@ -2719,12 +2726,12 @@ Reference
                 class="header-section-number">8.3.5</span>
                 find_unique</h3>
                 <p><code>find_unique</code> is used to query a single,
-                uniquely identified record by:</p>
+                uniquely identified REST document by:</p>
                 <ul>
                 <li>Primary key column(s)</li>
                 <li>Unique column(s)</li>
                 </ul>
-                <p>It returns <code>None</code> if no record is
+                <p>It returns <code>None</code> if no document is
                 found.</p>
                 <blockquote>
                 <p>To raise an exception if there are no matches, use <a
@@ -2755,7 +2762,7 @@ Reference
                 <td>dict or list</td>
                 <td>No</td>
                 <td>Specifies which properties to include or exclude on
-                the returned record - works as a <em>field
+                the returned document - works as a <em>field
                 filter</em></td>
                 </tr>
                 <tr class="even">
@@ -2763,7 +2770,7 @@ Reference
                 <td>dict</td>
                 <td>Yes</td>
                 <td>Applies filtering conditions based on specific
-                fields (must be unique) - works as a <em>record
+                fields (must be unique) - works as a <em>document
                 filter</em></td>
                 </tr>
                 <tr class="odd">
@@ -2779,10 +2786,11 @@ Reference
                 id="return-type-find_unique"><span
                 class="header-section-number">8.3.5.2</span> Return Type
                 (find_unique)</h4>
-                <p>If there is a match, an MRS dataclass object meeting
-                the filter conditions, otherwise <code>None</code> is
-                returned. For more details about MRS dataclass objects,
-                see <a href="#mrs-records">MRS Records</a>.</p>
+                <p>If there is a match, a REST document data class
+                object meeting the filter conditions, otherwise
+                <code>None</code> is returned. For more details about
+                REST documents, check the <a href="#rest-documents">REST
+                Documents</a> section.</p>
                 <h4 data-number="8.3.5.3" id="example-find_unique"><span
                 class="header-section-number">8.3.5.3</span> Example
                 (find_unique)</h4>
@@ -2806,13 +2814,13 @@ Reference
                 class="header-section-number">8.3.6</span>
                 find_unique_or_throw</h3>
                 <p><code>find_unique_or_throw</code> is used to query a
-                single, uniquely identified record by:</p>
+                single, uniquely identified REST document by:</p>
                 <ul>
                 <li>Primary key column(s)</li>
                 <li>Unique column(s)</li>
                 </ul>
-                <p>If no record was found matching the given filter
-                conditions, <code>RecordNotFoundError</code> is
+                <p>If no document was found matching the given filter
+                conditions, <code>MrsDocumentNotFoundError</code> is
                 raised.</p>
                 <blockquote>
                 <p>To not raise an exception and get <code>None</code>
@@ -2832,18 +2840,18 @@ Reference
                 id="return-type-find_unique_or_throw"><span
                 class="header-section-number">8.3.6.2</span> Return Type
                 (find_unique_or_throw)</h4>
-                <p>If there is a match, an MRS dataclass object meeting
-                the filter conditions, otherwise
-                <code>RecordNotFoundError</code> is raised. For more
-                details about MRS dataclass objects, see <a
-                href="#mrs-records">MRS Records</a>.</p>
+                <p>If there is a match, a REST document data class
+                object meeting the filter conditions, otherwise
+                <code>MrsDocumentNotFoundError</code> is raised. For
+                more details about REST documents, check the <a
+                href="#rest-documents">REST Documents</a> section.</p>
                 <h4 data-number="8.3.6.3"
                 id="example-find_unique_or_throw"><span
                 class="header-section-number">8.3.6.3</span> Example
                 (find_unique_or_throw)</h4>
                 <div class="sourceCode" id="cb57"><pre
                 class="sourceCode python"><code class="sourceCode python"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
-<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService, RecordNotFoundError</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService, MrsDocumentNotFoundError</span>
 <span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
 <span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a></span>
@@ -2852,7 +2860,7 @@ Reference
 <span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a>    actor: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_unique_or_throw(</span>
 <span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: aid}, select<span class="op">=</span>[<span class="st">&quot;last_update&quot;</span>], read_own_writes<span class="op">=</span><span class="va">False</span></span>
 <span id="cb57-10"><a href="#cb57-10" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> RecordNotFoundError:</span>
+<span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> MrsDocumentNotFoundError:</span>
 <span id="cb57-12"><a href="#cb57-12" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="st">&quot;Ups, no matches found&quot;</span>)</span></code></pre></div>
                 <p>See <a href="#example-find_first">Example
                 (find_first)</a> for additional usage options.</p>
@@ -2860,10 +2868,10 @@ Reference
                 class="header-section-number">8.3.7</span>
                 find_many</h3>
                 <p><code>find_many</code> is used to query a subset of
-                records in one or more pages, and optionally, those that
-                match a given filter.</p>
+                REST documents in one or more pages, and optionally,
+                those that match a given filter.</p>
                 <blockquote>
-                <p>To find all records see <a
+                <p>To retrieve all documents see <a
                 href="#find_all">find_all</a>.</p>
                 </blockquote>
                 <h4 data-number="8.3.7.1" id="options-find_many"><span
@@ -2890,7 +2898,7 @@ Reference
                 <td>dict or list</td>
                 <td>No</td>
                 <td>Specifies which properties to include or exclude on
-                the returned record - works as a <em>field
+                the returned document - works as a <em>field
                 filter</em></td>
                 </tr>
                 <tr class="even">
@@ -2898,21 +2906,21 @@ Reference
                 <td>dict</td>
                 <td>No</td>
                 <td>Applies filtering conditions based on specific
-                fields - works as a <em>record filter</em></td>
+                fields - works as a <em>document filter</em></td>
                 </tr>
                 <tr class="odd">
                 <td>skip</td>
                 <td>int</td>
                 <td>No</td>
-                <td>Specifies how many records to skip before returning
-                one of the matches</td>
+                <td>Specifies how many documents to skip before
+                returning one of the matches</td>
                 </tr>
                 <tr class="even">
                 <td>order_by</td>
                 <td>dict</td>
                 <td>No</td>
                 <td>Lets you customize the order (<code>ASC</code> or
-                <code>DESC</code>) in which the records are returned
+                <code>DESC</code>) in which the documents are returned
                 based on specific fields</td>
                 </tr>
                 <tr class="odd">
@@ -2935,7 +2943,7 @@ Reference
                 <td>take</td>
                 <td>int</td>
                 <td>No</td>
-                <td>Maximum number of records to return</td>
+                <td>Maximum number of documents to return</td>
                 </tr>
                 <tr class="even">
                 <td>iterator</td>
@@ -2960,10 +2968,10 @@ Reference
                 id="return-type-find_many"><span
                 class="header-section-number">8.3.7.2</span> Return Type
                 (find_many)</h4>
-                <p>A list of MRS dataclass objects representing the
-                records that match the filter. For more details about
-                MRS dataclass objects, see <a href="#mrs-records">MRS
-                Records</a>.</p>
+                <p>A list of REST document data class objects
+                representing the records that match the filter. For more
+                details about REST documents, check the <a
+                href="#rest-documents">REST Documents</a> section.</p>
                 <h4 data-number="8.3.7.3" id="example-find_many"><span
                 class="header-section-number">8.3.7.3</span> Example
                 (find_many)</h4>
@@ -2997,10 +3005,11 @@ Reference
                 (find_first)</a> for additional usage options.</p>
                 <h3 data-number="8.3.8" id="find_all"><span
                 class="header-section-number">8.3.8</span> find_all</h3>
-                <p><code>find_all</code> is used to query every record,
-                and optionally, all those that match a given filter.</p>
+                <p><code>find_all</code> is used to retrieve every MRS
+                document, and optionally, all those that match a given
+                filter.</p>
                 <blockquote>
-                <p>To get a paginated subset of records, see <a
+                <p>To get a paginated subset of documents, see <a
                 href="#find_many">find_many</a>.</p>
                 </blockquote>
                 <h4 data-number="8.3.8.1" id="options-find_all"><span
@@ -3027,7 +3036,7 @@ Reference
                 <td>dict or list</td>
                 <td>No</td>
                 <td>Specifies which properties to include or exclude on
-                the returned record - works as a <em>field
+                the returned document - works as a <em>field
                 filter</em></td>
                 </tr>
                 <tr class="even">
@@ -3035,21 +3044,21 @@ Reference
                 <td>dict</td>
                 <td>No</td>
                 <td>Applies filtering conditions based on specific
-                fields - works as a <em>record filter</em></td>
+                fields - works as a <em>document filter</em></td>
                 </tr>
                 <tr class="odd">
                 <td>skip</td>
                 <td>int</td>
                 <td>No</td>
-                <td>Specifies how many records to skip before returning
-                one of the matches</td>
+                <td>Specifies how many documents to skip before
+                returning one of the matches</td>
                 </tr>
                 <tr class="even">
                 <td>order_by</td>
                 <td>dict</td>
                 <td>No</td>
                 <td>Lets you customize the order (<code>ASC</code> or
-                <code>DESC</code>) in which the records are returned
+                <code>DESC</code>) in which the documents are returned
                 based on specific fields</td>
                 </tr>
                 <tr class="odd">
@@ -3087,10 +3096,10 @@ Reference
                 id="return-type-find_all"><span
                 class="header-section-number">8.3.8.2</span> Return Type
                 (find_all)</h4>
-                <p>A list of MRS dataclass objects representing the
-                records that match the filter. For more details about
-                MRS dataclass objects, see <a href="#mrs-records">MRS
-                Records</a>.</p>
+                <p>A list of REST document data class objects
+                representing the records that match the filter. For more
+                details about REST documents, check the <a
+                href="#rest-documents">REST Documents</a> section.</p>
                 <h4 data-number="8.3.8.3" id="example-find_all"><span
                 class="header-section-number">8.3.8.3</span> Example
                 (find_all)</h4>
@@ -3110,7 +3119,7 @@ Reference
 <span id="cb59-13"><a href="#cb59-13" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f&quot;</span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> of </span><span class="sc">{</span><span class="bu">len</span>(data)<span class="sc">}</span><span class="ss">: actor_id=</span><span class="sc">{</span>item[<span class="st">&quot;actor_id&quot;</span>]<span class="sc">}</span><span class="ss">&quot;</span>)</span>
 <span id="cb59-14"><a href="#cb59-14" aria-hidden="true" tabindex="-1"></a>        time.sleep(<span class="fl">0.1</span>)</span>
 <span id="cb59-15"><a href="#cb59-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb59-16"><a href="#cb59-16" aria-hidden="true" tabindex="-1"></a><span class="co"># get all records that first name matches &#39;PENELOPE&#39;</span></span>
+<span id="cb59-16"><a href="#cb59-16" aria-hidden="true" tabindex="-1"></a><span class="co"># get all documents that first name matches &#39;PENELOPE&#39;</span></span>
 <span id="cb59-17"><a href="#cb59-17" aria-hidden="true" tabindex="-1"></a>actors: <span class="bu">list</span>[Actor] <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_all(</span>
 <span id="cb59-18"><a href="#cb59-18" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;PENELOPE&quot;</span>}, progress<span class="op">=</span>my_progress</span>
 <span id="cb59-19"><a href="#cb59-19" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
@@ -3119,13 +3128,13 @@ Reference
                 <h3 data-number="8.3.9" id="delete"><span
                 class="header-section-number">8.3.9</span> delete</h3>
                 <p><code>delete</code> is used to delete a single,
-                uniquely identified record by:</p>
+                uniquely identified REST document by:</p>
                 <ul>
                 <li>Primary key column(s)</li>
                 <li>Unique column(s)</li>
                 </ul>
                 <blockquote>
-                <p>To delete multiple records, see <a
+                <p>To delete multiple documents, see <a
                 href="#delete_many">delete_many</a>.</p>
                 </blockquote>
                 <h4 data-number="8.3.9.1" id="options-delete"><span
@@ -3152,7 +3161,7 @@ Reference
                 <td>dict</td>
                 <td>Yes</td>
                 <td>Applies filtering conditions based on specific
-                fields (must be unique) - works as a <em>record
+                fields (must be unique) - works as a <em>document
                 filter</em></td>
                 </tr>
                 <tr class="even">
@@ -3167,7 +3176,7 @@ Reference
                 <h4 data-number="8.3.9.2" id="return-type-delete"><span
                 class="header-section-number">8.3.9.2</span> Return Type
                 (delete)</h4>
-                <p><code>True</code> if the record was deleted
+                <p><code>True</code> if the document was deleted
                 successfully or <code>False</code> otherwise.</p>
                 <h4 data-number="8.3.9.3" id="example-delete"><span
                 class="header-section-number">8.3.9.3</span> Example
@@ -3185,13 +3194,13 @@ Reference
 <span id="cb60-10"><a href="#cb60-10" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> ans <span class="kw">is</span> <span class="va">False</span>:</span>
 <span id="cb60-11"><a href="#cb60-11" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="ss">f&quot;Actor not deleted - actor_id=</span><span class="sc">{</span>aid<span class="sc">}</span><span class="ss"> not found&quot;</span>)</span>
 <span id="cb60-12"><a href="#cb60-12" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
-<span id="cb60-13"><a href="#cb60-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;Actor record with ID=</span><span class="sc">{</span>aid<span class="sc">}</span><span class="ss"> was deleted&quot;</span>)</span></code></pre></div>
+<span id="cb60-13"><a href="#cb60-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;Actor document with ID=</span><span class="sc">{</span>aid<span class="sc">}</span><span class="ss"> was deleted&quot;</span>)</span></code></pre></div>
                 <h3 data-number="8.3.10" id="delete_many"><span
                 class="header-section-number">8.3.10</span>
                 delete_many</h3>
-                <p><code>delete_many</code> is used to delete all
-                records that match a given filter. To delete a single
-                record, see <a href="#delete">delete</a>.</p>
+                <p><code>delete_many</code> is used to delete all REST
+                documents that match a given filter. To delete a single
+                document, see <a href="#delete">delete</a>.</p>
                 <h4 data-number="8.3.10.1"
                 id="options-delete_many"><span
                 class="header-section-number">8.3.10.1</span> Options
@@ -3217,7 +3226,7 @@ Reference
                 <td>dict</td>
                 <td>Yes</td>
                 <td>Applies filtering conditions based on specific
-                fields - works as a <em>record filter</em></td>
+                fields - works as a <em>document filter</em></td>
                 </tr>
                 <tr class="even">
                 <td>read_own_writes</td>
@@ -3233,7 +3242,7 @@ Reference
                 class="header-section-number">8.3.10.2</span> Return
                 Type (delete_many)</h4>
                 <p>An integer indicating the number of deleted
-                records.</p>
+                documents.</p>
                 <h4 data-number="8.3.10.3"
                 id="example-delete_many"><span
                 class="header-section-number">8.3.10.3</span> Example
@@ -3253,10 +3262,10 @@ Reference
 <span id="cb61-9"><a href="#cb61-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 3</span></span></code></pre></div>
                 <h3 data-number="8.3.11" id="update"><span
                 class="header-section-number">8.3.11</span> update</h3>
-                <p><code>update</code> is used to update a record with a
-                given identifier or primary key.</p>
+                <p><code>update</code> is used to update a REST document
+                with a given identifier or primary key.</p>
                 <blockquote>
-                <p>To update multiple records, see <a
+                <p>To update multiple documents, see <a
                 href="#update_many">update_many</a>.</p>
                 </blockquote>
                 <h4 data-number="8.3.11.1" id="options-update"><span
@@ -3290,9 +3299,10 @@ Reference
                 <h4 data-number="8.3.11.2" id="return-type-update"><span
                 class="header-section-number">8.3.11.2</span> Return
                 Type (update)</h4>
-                <p>An MRS dataclass object representing the up-to-date
-                record. For more details about MRS dataclass objects,
-                see <a href="#mrs-records">MRS Records</a>.</p>
+                <p>A REST document data class object representing the
+                up-to-date record. For more details about REST
+                documents, check the <a href="#rest-documents">REST
+                Documents</a> section.</p>
                 <h4 data-number="8.3.11.3" id="example-update"><span
                 class="header-section-number">8.3.11.3</span> Example
                 (update)</h4>
@@ -3324,10 +3334,10 @@ Reference
                 <h3 data-number="8.3.12" id="update_many"><span
                 class="header-section-number">8.3.12</span>
                 update_many</h3>
-                <p><code>update_many</code> is used to update all
-                records with matching identifiers or primary keys.</p>
+                <p><code>update_many</code> is used to update all REST
+                documents with matching identifiers or primary keys.</p>
                 <blockquote>
-                <p>To update a single record, see <a
+                <p>To update a single document, see <a
                 href="#update">update</a>.</p>
                 </blockquote>
                 <h4 data-number="8.3.12.1"
@@ -3356,7 +3366,7 @@ Reference
                 <td>Yes</td>
                 <td>A list of set of fields and corresponding values to
                 update. The identifier or primary key must be included
-                for each “set of fields” (record)</td>
+                for each “set of fields” (document)</td>
                 </tr>
                 </tbody>
                 </table>
@@ -3364,9 +3374,10 @@ Reference
                 id="return-type-update_many"><span
                 class="header-section-number">8.3.12.2</span> Return
                 Type (update_many)</h4>
-                <p>A list of MRS dataclass objects representing the
-                up-to-date records. For more details about MRS dataclass
-                objects, see <a href="#mrs-records">MRS Records</a>.</p>
+                <p>A list of REST document data class objects
+                representing the up-to-date records. For more details
+                about REST documents, check the <a
+                href="#rest-documents">REST Documents</a> section.</p>
                 <h4 data-number="8.3.12.3"
                 id="example-update_many"><span
                 class="header-section-number">8.3.12.3</span> Example
@@ -3410,38 +3421,38 @@ Reference
 <span id="cb63-36"><a href="#cb63-36" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb63-37"><a href="#cb63-37" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actors_updated[<span class="dv">1</span>].first_name <span class="op">==</span> <span class="st">&quot;Ma&quot;</span></span>
 <span id="cb63-38"><a href="#cb63-38" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actors_updated[<span class="dv">1</span>].last_name <span class="op">==</span> <span class="st">&quot;Yeung&quot;</span></span></code></pre></div>
-                <h2 data-number="8.4" id="mrs-records"><span
-                class="header-section-number">8.4</span> MRS
-                Records</h2>
-                <p>An <em>MRS dataclass object</em> behaves as a <a
+                <h2 data-number="8.4" id="rest-documents"><span
+                class="header-section-number">8.4</span> REST
+                Documents</h2>
+                <p>A <em>REST document</em> behaves like a <a
                 href="https://docs.python.org/3/library/dataclasses.html">Python
-                dataclass</a> instance, and implements an extended
-                interface which includes the <code>save</code> and
+                data class</a> instance, and implements an extended
+                interface which includes the <code>upsert</code> and
                 <code>delete</code> methods.</p>
-                <h3 data-number="8.4.1" id="save"><span
-                class="header-section-number">8.4.1</span> save</h3>
-                <p><code>save</code> creates or updates the record
-                represented by the dataclass instance.</p>
+                <h3 data-number="8.4.1" id="upsert"><span
+                class="header-section-number">8.4.1</span> upsert</h3>
+                <p><code>upsert</code> creates or updates the REST
+                document represented by the data class instance.</p>
                 <blockquote>
                 <p>If the specified primary key already exists, an
                 <em>update</em> happens, otherwise a
                 <em>create</em>.</p>
                 </blockquote>
-                <p>After completing the operation, the dataclass
+                <p>After completing the operation, the data class
                 instance fields are updated in-place.</p>
-                <h4 data-number="8.4.1.1" id="options-save"><span
+                <h4 data-number="8.4.1.1" id="options-upsert"><span
                 class="header-section-number">8.4.1.1</span> Options
-                (save)</h4>
+                (upsert)</h4>
                 <p>No options are implemented because the data required
                 to complete the operation is assumed to be already
                 included in the data class instance itself.</p>
-                <h4 data-number="8.4.1.2" id="return-type-save"><span
+                <h4 data-number="8.4.1.2" id="return-type-upsert"><span
                 class="header-section-number">8.4.1.2</span> Return Type
-                (save)</h4>
+                (upsert)</h4>
                 <p><code>None</code>.</p>
-                <h4 data-number="8.4.1.3" id="example-save"><span
+                <h4 data-number="8.4.1.3" id="example-upsert"><span
                 class="header-section-number">8.4.1.3</span> Example
-                (save)</h4>
+                (upsert)</h4>
                 <p>Showcasing a <em>create</em>.</p>
                 <div class="sourceCode" id="cb64"><pre
                 class="sourceCode python"><code class="sourceCode python"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
@@ -3458,7 +3469,7 @@ Reference
 <span id="cb64-12"><a href="#cb64-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;BROWN&quot;</span></span>
 <span id="cb64-13"><a href="#cb64-13" aria-hidden="true" tabindex="-1"></a>    },</span>
 <span id="cb64-14"><a href="#cb64-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb64-15"><a href="#cb64-15" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> actor.save()</span>
+<span id="cb64-15"><a href="#cb64-15" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> actor.upsert()</span>
 <span id="cb64-16"><a href="#cb64-16" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb64-17"><a href="#cb64-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actor)</span>
 <span id="cb64-18"><a href="#cb64-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Actor(actor_id=6753, first_name=&#39;CHARLY&#39;, last_name=&#39;BROWN&#39;, last_update=&#39;2024-06-04 10:14:33.000000&#39;)</span></span></code></pre></div>
@@ -3472,7 +3483,7 @@ Reference
 <span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: <span class="dv">3</span>}</span>
 <span id="cb65-7"><a href="#cb65-7" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb65-8"><a href="#cb65-8" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> actor <span class="kw">is</span> <span class="va">None</span>:</span>
-<span id="cb65-9"><a href="#cb65-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;Ups, Invalid record ID&quot;</span>)</span>
+<span id="cb65-9"><a href="#cb65-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;Ups, Invalid document ID&quot;</span>)</span>
 <span id="cb65-10"><a href="#cb65-10" aria-hidden="true" tabindex="-1"></a>    sys.exit()</span>
 <span id="cb65-11"><a href="#cb65-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;Before:&quot;</span>, actor)</span>
 <span id="cb65-12"><a href="#cb65-12" aria-hidden="true" tabindex="-1"></a></span>
@@ -3480,33 +3491,33 @@ Reference
 <span id="cb65-14"><a href="#cb65-14" aria-hidden="true" tabindex="-1"></a>actor.last_name <span class="op">=</span> <span class="st">&quot;CHASE&quot;</span></span>
 <span id="cb65-15"><a href="#cb65-15" aria-hidden="true" tabindex="-1"></a>actor.last_update <span class="op">=</span> <span class="bu">str</span>(datetime.now())</span>
 <span id="cb65-16"><a href="#cb65-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-17"><a href="#cb65-17" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> actor.save()</span>
+<span id="cb65-17"><a href="#cb65-17" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> actor.upsert()</span>
 <span id="cb65-18"><a href="#cb65-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb65-19"><a href="#cb65-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actor)</span>
 <span id="cb65-20"><a href="#cb65-20" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb65-21"><a href="#cb65-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Before: Actor(actor_id=3, first_name=&#39;ED&#39;, last_name=&#39;SMITH&#39;, last_update=&#39;2023-04-13 15:11:22.000000&#39;)</span></span>
 <span id="cb65-22"><a href="#cb65-22" aria-hidden="true" tabindex="-1"></a><span class="co"># After: Actor(actor_id=3, first_name=&#39;RODOLFO&#39;, last_name=&#39;CHASE&#39;, last_update=&#39;2024-06-04 10:14:33.000000&#39;)</span></span></code></pre></div>
-                <h3 data-number="8.4.2" id="delete-record"><span
+                <h3 data-number="8.4.2" id="delete-document"><span
                 class="header-section-number">8.4.2</span> delete
-                (record)</h3>
+                (document)</h3>
                 <p><code>delete</code> deletes the resource represented
                 by the data class instance.</p>
                 <h4 data-number="8.4.2.1"
-                id="options-delete---record"><span
+                id="options-delete---document"><span
                 class="header-section-number">8.4.2.1</span> Options
-                (delete - record)</h4>
+                (delete - document)</h4>
                 <p>No options are implemented because the data required
                 to complete the operation is assumed to be already
                 included in the data class instance itself.</p>
                 <h4 data-number="8.4.2.2"
-                id="return-type-delete---record"><span
+                id="return-type-delete---document"><span
                 class="header-section-number">8.4.2.2</span> Return Type
-                (delete - record)</h4>
+                (delete - document)</h4>
                 <p><code>None</code>.</p>
                 <h4 data-number="8.4.2.3"
-                id="example-delete---record"><span
+                id="example-delete---document"><span
                 class="header-section-number">8.4.2.3</span> Example
-                (delete - record)</h4>
+                (delete - document)</h4>
                 <div class="sourceCode" id="cb66"><pre
                 class="sourceCode python"><code class="sourceCode python"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
 <span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -3516,7 +3527,7 @@ Reference
 <span id="cb66-6"><a href="#cb66-6" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: <span class="dv">3</span>}</span>
 <span id="cb66-7"><a href="#cb66-7" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb66-8"><a href="#cb66-8" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> actor <span class="kw">is</span> <span class="va">None</span>:</span>
-<span id="cb66-9"><a href="#cb66-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;Ups, no record found&quot;</span>)</span>
+<span id="cb66-9"><a href="#cb66-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;Ups, no document found&quot;</span>)</span>
 <span id="cb66-10"><a href="#cb66-10" aria-hidden="true" tabindex="-1"></a>    sys.exit()</span>
 <span id="cb66-11"><a href="#cb66-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb66-12"><a href="#cb66-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actor)</span>
@@ -3529,8 +3540,8 @@ Reference
 <span id="cb66-19"><a href="#cb66-19" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb66-20"><a href="#cb66-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Actor(actor_id=3, first_name=&#39;ED&#39;, last_name=&#39;SMITH&#39;, last_update=&#39;2023-04-13 15:11:22.000000&#39;)</span></span>
 <span id="cb66-21"><a href="#cb66-21" aria-hidden="true" tabindex="-1"></a><span class="co"># deleted? True</span></span></code></pre></div>
-                <h2 data-number="8.5" id="mrs-functions"><span
-                class="header-section-number">8.5</span> MRS
+                <h2 data-number="8.5" id="rest-functions"><span
+                class="header-section-number">8.5</span> REST
                 Functions</h2>
                 <h3 data-number="8.5.1" id="options-function"><span
                 class="header-section-number">8.5.1</span> Options
@@ -3562,7 +3573,7 @@ Reference
                 <h3 data-number="8.5.3" id="example-function"><span
                 class="header-section-number">8.5.3</span> Example
                 (function)</h3>
-                <p>Calling an MRS function in the Python SDK is exactly
+                <p>Calling a REST function in the Python SDK is exactly
                 like calling a local Python function.</p>
                 <div class="sourceCode" id="cb67"><pre
                 class="sourceCode python"><code class="sourceCode python"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
