@@ -125,25 +125,25 @@ Several OAuth2 services from 3rd-party vendors are supported by MRS; for example
 
 Access to a given REST resource can have several levels of restrictions when using MRS:
 
-- Public access - no authorization is needed to access the REST resource and its data
-- Full access - after authentication the user has full access to all data of the REST resource
-- Limited access - after authentication the user has only access to a subset of the data of the REST resource
+* Public access - no authorization is needed to access the REST resource and its data
+* Full access - after authentication the user has full access to all data of the REST resource
+* Limited access - after authentication the user has only access to a subset of the data of the REST resource
 
 MRS has built-in support for several authorization models. These authorization models define which data of a given REST resource that end users can see and manipulate:
 
-- User-ownership based - users can see their own data
-- Privilege based, managed using roles
-- User-hierarchy based
-- Group based
-- Group-hierarchy based
+* User-ownership based - users can see their own data
+* Privilege based, managed using roles
+* User-hierarchy based
+* Group based
+* Group-hierarchy based
 
 If the use case of a given project matches one of the offered authorization models, then a custom authorization does not need to be implemented.
 
 From an endpoint's perspective, access to REST resources can be controlled at the following levels:
 
-- Service
-- Schema
-- Object
+* Service
+* Schema
+* Object
 
 That is, if a user has read access to a schema, then they will have read access to all objects in that schema of a service.
 
@@ -155,29 +155,44 @@ A MRS role encapsulates a set of privileges for REST endpoints which can be gran
 
 For example, in a simple blog application that has an endpoint for `/myService/blog/post`, we could have 3 roles:
 
-- `reader`, who can only read posts;
-- `poster`, who can create and update posts, besides reading them and
-- `editor`, which has the same privileges as a `poster`, but can also delete them
+* `reader`, who can only read posts;
+* `poster`, who can create and update posts, besides reading them and
+* `editor`, which has the same privileges as a `poster`, but can also delete them
 
-The following snippet creates these 3 roles and grants them to the `demouser@MRS` user.
+The following snippet creates these 3 roles and grants them to three different user.
 
 ```sql
-USE REST SERVICE /myService;
+# This example assumes a MySQL database schema "blog" and a schema table "post" has been created before.
+CREATE SCHEMA IF NOT EXISTS blog;
+CREATE TABLE IF NOT EXISTS blog.post(id INT PRIMARY KEY AUTO_INCREMENT, message TEXT);
+
+CREATE REST SERVICE /myTestService;
+USE REST SERVICE /myTestService;
+
+CREATE REST SCHEMA /blog FROM blog;
+CREATE REST VIEW /post ON SCHEMA /blog AS blog.post;
 
 CREATE REST ROLE "reader";
-
 GRANT REST READ ON SCHEMA /blog OBJECT /post TO "reader";
 
 CREATE REST ROLE "poster" EXTENDS "reader";
-
 GRANT REST CREATE, UPDATE ON SCHEMA /blog OBJECT /post TO "poster";
 
 CREATE REST ROLE "editor" EXTENDS "poster";
-
 GRANT REST DELETE ON SCHEMA /blog OBJECT /post TO "editor";
 
 SHOW REST ROLES;
 
-GRANT REST ROLE "poster" TO demouser@MRS;
-```
+CREATE REST AUTH APP "TestAuthApp" VENDOR MRS;
 
+CREATE REST USER "ulf"@"TestAuthApp" IDENTIFIED BY "********";
+GRANT REST ROLE "reader" TO "ulf"@"TestAuthApp";
+
+CREATE REST USER "alfredo"@"TestAuthApp" IDENTIFIED BY "********";
+GRANT REST ROLE "poster" TO "alfredo"@"TestAuthApp";
+
+CREATE REST USER "mike"@"TestAuthApp" IDENTIFIED BY "********";
+GRANT REST ROLE "editor" TO "mike"@"TestAuthApp";
+
+# Now, these three users can login with the specified password via MRS authentication.
+```

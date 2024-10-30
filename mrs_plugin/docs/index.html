@@ -2642,23 +2642,39 @@ router_id=16</code></pre>
                 <p>The following snippet creates these 3 roles and
                 grants them to the <code>demouser@MRS</code> user.</p>
                 <div class="sourceCode" id="cb38"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myService;</span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;reader&quot;</span>;</span>
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a># This example assumes a MySQL <span class="kw">database</span> <span class="kw">schema</span> <span class="ot">&quot;blog&quot;</span> <span class="kw">and</span> a <span class="kw">schema</span> <span class="kw">table</span> <span class="ot">&quot;post&quot;</span> has been created <span class="kw">before</span>.</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">SCHEMA</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> blog;</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> blog.post(<span class="kw">id</span> <span class="dt">int</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span> AUTO_INCREMENT, message TEXT);</span>
 <span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">READ</span> <span class="kw">ON</span> <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="dt">OBJECT</span> <span class="op">/</span>post <span class="kw">TO</span> <span class="ot">&quot;reader&quot;</span>;</span>
-<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;poster&quot;</span> <span class="kw">EXTENDS</span> <span class="ot">&quot;reader&quot;</span>;</span>
-<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">CREATE</span>, <span class="kw">UPDATE</span> <span class="kw">ON</span> <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="dt">OBJECT</span> <span class="op">/</span>post <span class="kw">TO</span> <span class="ot">&quot;poster&quot;</span>;</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST SERVICE <span class="op">/</span>myTestService;</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myTestService;</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="kw">FROM</span> blog;</span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>post <span class="kw">ON</span> <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="kw">AS</span> blog.post;</span>
 <span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;editor&quot;</span> <span class="kw">EXTENDS</span> <span class="ot">&quot;poster&quot;</span>;</span>
-<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">DELETE</span> <span class="kw">ON</span> <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="dt">OBJECT</span> <span class="op">/</span>post <span class="kw">TO</span> <span class="ot">&quot;editor&quot;</span>;</span>
-<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a>SHOW REST <span class="kw">ROLES</span>;</span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;reader&quot;</span>;</span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">READ</span> <span class="kw">ON</span> <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="dt">OBJECT</span> <span class="op">/</span>post <span class="kw">TO</span> <span class="ot">&quot;reader&quot;</span>;</span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;poster&quot;</span> <span class="kw">EXTENDS</span> <span class="ot">&quot;reader&quot;</span>;</span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">CREATE</span>, <span class="kw">UPDATE</span> <span class="kw">ON</span> <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="dt">OBJECT</span> <span class="op">/</span>post <span class="kw">TO</span> <span class="ot">&quot;poster&quot;</span>;</span>
 <span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;poster&quot;</span> <span class="kw">TO</span> demouser@MRS;</span></code></pre></div>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;editor&quot;</span> <span class="kw">EXTENDS</span> <span class="ot">&quot;poster&quot;</span>;</span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">DELETE</span> <span class="kw">ON</span> <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="dt">OBJECT</span> <span class="op">/</span>post <span class="kw">TO</span> <span class="ot">&quot;editor&quot;</span>;</span>
+<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a>SHOW REST <span class="kw">ROLES</span>;</span>
+<span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-22"><a href="#cb38-22" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST AUTH APP <span class="ot">&quot;TestAuthApp&quot;</span> VENDOR MRS;</span>
+<span id="cb38-23"><a href="#cb38-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-24"><a href="#cb38-24" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="fu">USER</span> <span class="ot">&quot;ulf&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span> <span class="kw">IDENTIFIED</span> <span class="kw">BY</span> <span class="ot">&quot;********&quot;</span>;</span>
+<span id="cb38-25"><a href="#cb38-25" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;reader&quot;</span> <span class="kw">TO</span> <span class="ot">&quot;ulf&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span>;</span>
+<span id="cb38-26"><a href="#cb38-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-27"><a href="#cb38-27" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="fu">USER</span> <span class="ot">&quot;alfredo&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span> <span class="kw">IDENTIFIED</span> <span class="kw">BY</span> <span class="ot">&quot;********&quot;</span>;</span>
+<span id="cb38-28"><a href="#cb38-28" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;poster&quot;</span> <span class="kw">TO</span> <span class="ot">&quot;alfredo&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span>;</span>
+<span id="cb38-29"><a href="#cb38-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-30"><a href="#cb38-30" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="fu">USER</span> <span class="ot">&quot;mike&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span> <span class="kw">IDENTIFIED</span> <span class="kw">BY</span> <span class="ot">&quot;********&quot;</span>;</span>
+<span id="cb38-31"><a href="#cb38-31" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;editor&quot;</span> <span class="kw">TO</span> <span class="ot">&quot;mike&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span>;</span>
+<span id="cb38-32"><a href="#cb38-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-33"><a href="#cb38-33" aria-hidden="true" tabindex="-1"></a># Now, these three users can login <span class="kw">with</span> <span class="kw">the</span> specified <span class="kw">password</span> via MRS authentication.</span></code></pre></div>
                 <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify

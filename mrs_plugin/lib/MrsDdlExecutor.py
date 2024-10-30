@@ -968,9 +968,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         name = mrs_object.get("name")
         authAppName = mrs_object.get("authAppName")
         password = mrs_object.get("password")
-        full_path = self.getFullServicePath(
-            mrs_object=mrs_object, request_path=f':"{name}"@"{authAppName}"'
-        )
+        full_path = f':"{name}"@"{authAppName}"'
         app_options = mrs_object.get("app_options", {})
         options = mrs_object.get("options", {})
         email = options.pop("email", None) if options else None
@@ -1729,10 +1727,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
         name = mrs_object.get("name")
 
-        full_path = self.getFullServicePath(
-            mrs_object=mrs_object, request_path=f":{name}"
-        )
-
         with lib.core.MrsDbTransaction(self.session):
             try:
                 service_id = self.get_given_or_current_service_id(mrs_object)
@@ -1742,7 +1736,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 )
                 if auth_app is None:
                     raise Exception(
-                        f"The given REST AUTH APP `{full_path}` could not be found."
+                        f"The given REST AUTH APP `{name}` could not be found."
                     )
 
                 lib.auth_apps.delete_auth_app(
@@ -1756,7 +1750,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         "statementIndex": len(self.results) + 1,
                         "line": mrs_object.get("line"),
                         "type": "success",
-                        "message": f"REST AUTH APP `{full_path}` dropped successfully.",
+                        "message": f"REST AUTH APP `{name}` dropped successfully.",
                         "operation": self.current_operation,
                         "id": lib.core.convert_id_to_string(auth_app["id"]),
                         "executionTime": timer.elapsed(),
@@ -1768,7 +1762,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         "statementIndex": len(self.results) + 1,
                         "line": mrs_object.get("line"),
                         "type": "error",
-                        "message": f"Failed to drop the REST AUTH APP `{full_path}`. {e}",
+                        "message": f"Failed to drop the REST AUTH APP `{name}`. {e}",
                         "operation": self.current_operation,
                     }
                 )
@@ -1780,9 +1774,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
         name = mrs_object.get("name")
         authAppName = mrs_object.get("authAppName")
-        full_path = self.getFullServicePath(
-            mrs_object=mrs_object, request_path=f':"{name}"@"{authAppName}"'
-        )
+        full_path = f':"{name}"@"{authAppName}"'
 
         with lib.core.MrsDbTransaction(self.session):
             try:
@@ -1868,13 +1860,13 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
     def grantRestPrivileges(self, mrs_object: dict):
         try:
-            return self.grantRestPrivilegesx(mrs_object)
+            return self.grantRestPrivilegesX(mrs_object)
         except:
             import traceback
 
             traceback.print_exc()
 
-    def grantRestPrivilegesx(self, mrs_object: dict):
+    def grantRestPrivilegesX(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
 

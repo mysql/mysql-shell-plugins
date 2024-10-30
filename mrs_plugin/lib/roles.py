@@ -39,9 +39,9 @@ k_role_query = """
             ON s.url_host_id = h.id"""
 
 k_privilege_query = """
-    SELECT p.id, p.role_id, r.caption as role_name, p.crud_operations, 
+    SELECT p.id, p.role_id, r.caption as role_name, p.crud_operations,
         p.service_id, CONCAT(h.name, svc.url_context_root) AS full_service_path,
-        p.db_schema_id, s.request_path as schema_path, 
+        p.db_schema_id, s.request_path as schema_path,
         p.db_object_id, o.request_path as object_path
         FROM `mysql_rest_service_metadata`.mrs_privilege p
         JOIN `mysql_rest_service_metadata`.mrs_role r ON p.role_id = r.id
@@ -52,9 +52,9 @@ k_privilege_query = """
     """
 
 k_privilege_query_3_0_1 = """
-    SELECT p.id, p.role_id, r.caption as role_name, p.crud_operations, 
+    SELECT p.id, p.role_id, r.caption as role_name, p.crud_operations,
         CONCAT(h.name, p.service_path) AS full_service_path,
-        p.schema_path as schema_path, 
+        p.schema_path as schema_path,
         p.object_path as object_path
         FROM `mysql_rest_service_metadata`.mrs_privilege p
         JOIN `mysql_rest_service_metadata`.mrs_role r ON p.role_id = r.id
@@ -169,7 +169,14 @@ def add_role(
         options,
     ]
 
-    core.MrsDbExec(sql, params).exec(session)
+    try:
+        core.MrsDbExec(sql, params).exec(session)
+    except Exception as e:
+        if str(e).startswith("MySQL Error (1062)"):
+            raise Exception(
+                f"DUPLICATION ERROR: The REST role `{caption}` has already been defined for the given service. "
+                "Use the SHOW REST ROLES; command to display all existing roles.")
+        raise
 
     return id
 
@@ -180,7 +187,14 @@ def delete_role(session, role_id):
     WHERE id = ?
     """
 
-    core.MrsDbExec(sql, [role_id]).exec(session)
+    try:
+        core.MrsDbExec(sql, [role_id]).exec(session)
+    except Exception as e:
+        if str(e).startswith("MySQL Error (1451)"):
+            raise Exception(
+                "REFERENCE ERROR: This role is referenced by other roles. Please drop those roles first. "
+                "Use the SHOW REST ROLES; command to display all existing roles.")
+        raise
 
 
 def get_role_privileges(session, role_id=None):

@@ -618,9 +618,10 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                             if (status.serviceBeingUpgraded) {
                                 void window.showInformationMessage(
                                     "The MySQL REST Service is currently being updated. Please refresh the list of " +
-                                    "DB Connections after the update has been completed.");
+                                    "DB Connections after the update has been completed for check the error log at " +
+                                    "~/.mysqlsh-gui/plugin_data/mrs_plugin/mrs_metadata_schema_update_log.txt");
 
-                                return;
+                                continue;
                             }
 
 

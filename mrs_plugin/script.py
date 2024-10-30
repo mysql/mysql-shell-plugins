@@ -143,7 +143,8 @@ def mrs_sql_handler(session, sql):
         return mysqlsh.globals.shell.create_result(shell_results)
     except Exception as e:
         # Suppress traceback information to have the shell only print the relevant exception
-        e.with_traceback(None)
+        if mysqlsh.globals.shell.options.logLevel <= 5:
+            e.with_traceback(None)
         raise
 
 
