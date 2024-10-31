@@ -628,9 +628,23 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
             # If there are no typed result sets for a Procedure, all the result sets will be generic instances of JsonObject
             if object_is_routine(db_obj, of_type={"PROCEDURE"}) and len(objects) == 1:
                 required_datatypes.add("JsonObject")
-                obj_interfaces += generate_union(obj_meta_interface, ["JsonObject"], sdk_language)
+                if sdk_language != "Python":
+                    obj_interfaces += generate_union(
+                        obj_meta_interface, ["JsonObject"], sdk_language
+                    )
+                else:
+                    obj_interfaces += generate_union(
+                        obj_meta_interface,
+                        ["MrsProcedureResultSet[str, JsonObject, JsonObject]"],
+                        sdk_language,
+                    )
             elif object_is_routine(db_obj, of_type={"PROCEDURE"}):
-                interface_list = [f"ITagged{name}" for name in obj_meta_interfaces]
+                if sdk_language != "Python":
+                    # TypeScript tagged unions inherit from JsonObject
+                    required_datatypes.add("JsonObject")
+                    interface_list = [f"ITagged{name}" for name in obj_meta_interfaces]
+                else:
+                    interface_list = [f"MrsProcedureResultSet[I{name}Type, I{name}, ITagged{name}]" for name in obj_meta_interfaces]
                 obj_interfaces += generate_union(obj_meta_interface, interface_list, sdk_language)
 
             # Names by default are formatted in `camelCase`. A different
@@ -1425,7 +1439,8 @@ def generate_interfaces(
         if len(interface_fields) > 0:
             # Result sets are non-deterministic and there is no way to know if a column value can be NULL.
             # Thus, we must assume that is always the case.
-            required_datatypes.add("MaybeNull")
+            if sdk_language == "TypeScript":
+                required_datatypes.add("MaybeNull")
 
             result_fields = {
                 "type": generate_literal_type([class_name], sdk_language),
@@ -1436,16 +1451,30 @@ def generate_interfaces(
                     name=f"Tagged{class_name}",
                     fields=result_fields,
                     sdk_language=sdk_language,
-                    parents=["JsonObject"],
+                    parents=(
+                        ["JsonObject"] if sdk_language == "TypeScript" else []
+                    ),  # TypeScript tagged unions inherit from JsonObject
                 )
             )
+
+            # The Python SDK uses a generic dataclass for the tagged union of result set types.
+            # The generic dataclass needs to know the possible values of the "type" field.
+            if sdk_language == "Python":
+                obj_interfaces.append(
+                    generate_enum(
+                        name=f"{class_name}Type",
+                        values=[class_name],
+                        sdk_language=sdk_language,
+                    )
+                )
 
     else: # kind = "PARAMETERS"
         if len(param_interface_fields) > 0:
             # Parameters are "optional" in a way that they can be NULL at the SQL level.
-            required_datatypes.add("MaybeNull")
+            if sdk_language == "TypeScript":
+                required_datatypes.add("MaybeNull")
 
-        # Type definition for the set of IN Parameters.
+        # Type definition for the set of IN/INOUT Parameters.
         obj_interfaces.append(
             generate_type_declaration(
                 name=f"{class_name}",
@@ -1457,7 +1486,7 @@ def generate_interfaces(
             )
         )
 
-        # Type definition for the set of INOUT/OUT Parameters.
+        # Type definition for the set of OUT/INOUT Parameters.
         obj_interfaces.append(
             generate_type_declaration(
                 name=f"{class_name}Out",

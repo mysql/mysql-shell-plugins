@@ -40,6 +40,11 @@ from .mrs_base_classes import (
     # --- importFunctionCallOnlyStart
     MrsBaseObjectFunctionCall,
     # --- importFunctionCallOnlyEnd
+    # --- importProcedureCallOnlyStart
+    MrsProcedureResultSet,
+    MrsBaseObjectProcedureCall,
+    IMrsProcedureResponse,
+    # --- importProcedureCallOnlyEnd
     Filterable,
     HighOrderOperator,
     IMrsResourceDetails,
@@ -77,6 +82,26 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
         )
         return await request.submit()
     # --- crudFunctionCallOnlyEnd
+
+    # --- crudProcedureCallOnlyStart
+    async def __call__(
+        self,
+        **parameters: Unpack[I${obj_param_interface}]
+    ) -> IMrsProcedureResponse[
+            I${obj_param_interface}Out,
+            ${obj_meta_interface},
+        ]:
+        request = MrsBaseObjectProcedureCall[
+            I${obj_param_interface},
+            I${obj_param_interface}Out,
+            ${obj_meta_interface},
+        ](
+            schema=self._schema,
+            request_path=self._request_path,
+            parameters=parameters
+        )
+        return await request.submit()
+    # --- crudProcedureCallOnlyEnd
 
     # --- crudCreateOnlyStart
     async def create(self, data: INew${obj_class_name}) -> I${obj_class_name}:

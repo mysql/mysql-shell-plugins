@@ -313,6 +313,11 @@
                                                 id="toc-rest-functions"><span
                                                 class="toc-section-number">8.5</span>
                                                 REST Functions</a></li>
+                                                <li><a
+                                                href="#rest-procedures"
+                                                id="toc-rest-procedures"><span
+                                                class="toc-section-number">8.6</span>
+                                                REST Procedures</a></li>
                                                 </ul></li>
                                                 </ul>
                                             </div>
@@ -2228,6 +2233,7 @@ Reference
                 <li><a href="#rest-views">REST Views</a></li>
                 <li><a href="#rest-documents">REST Documents</a></li>
                 <li><a href="#rest-functions">REST Functions</a></li>
+                <li><a href="#rest-procedures">REST Procedures</a></li>
                 </ul>
                 <h2 data-number="8.3" id="rest-views"><span
                 class="header-section-number">8.3</span> REST Views</h2>
@@ -3605,6 +3611,157 @@ Reference
 <span id="cb68-12"><a href="#cb68-12" aria-hidden="true" tabindex="-1"></a>mysql<span class="op">&gt;</span> <span class="kw">CREATE</span> <span class="kw">FUNCTION</span> my_birthday_func ()</span>
 <span id="cb68-13"><a href="#cb68-13" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> RETURNS DATETIME DETERMINISTIC</span>
 <span id="cb68-14"><a href="#cb68-14" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="kw">RETURN</span> CURDATE();</span></code></pre></div>
+                <h2 data-number="8.6" id="rest-procedures"><span
+                class="header-section-number">8.6</span> REST
+                Procedures</h2>
+                <h3 data-number="8.6.1" id="options-procedure"><span
+                class="header-section-number">8.6.1</span> Options
+                (procedure)</h3>
+                <p>The input arguments and respective types accepted and
+                expected by <code>&lt;proc_name&gt;(...)</code> depend
+                on the MySQL procedure declaration (specifically,
+                <code>IN</code> and <code>INOUT</code> parameters). See
+                <a href="#examples-procedure">Example (procedure)</a>
+                for an example.</p>
+                <p>Input parameters aren’t mandatory, meaning you are
+                free to not provide them.</p>
+                <p>In case of being provided, input parameters can also
+                be assigned a null value when calling the procedure, in
+                other words, you can set any parameters to
+                <code>None</code>.</p>
+                <h3 data-number="8.6.2" id="return-type-procedure"><span
+                class="header-section-number">8.6.2</span> Return Type
+                (procedure)</h3>
+                <p>The Python data type returned by
+                <code>&lt;proc_name&gt;(...)</code> is a REST document
+                data class object. For more details about REST
+                documents, check the <a href="#rest-documents">REST
+                Documents</a> section.</p>
+                <p>This data class object includes the following
+                attributes:</p>
+                <ul>
+                <li><p><code>out_parameters</code>: Dictionary with
+                fields for each <code>OUT</code>/<code>INOUT</code>
+                parameter declared as part of the MySQL procedure that
+                produces an actual value. If a parameter is not used to
+                return a value, the field will not be present in the
+                dictionary.</p></li>
+                <li><p><code>result_sets</code>: List of result set
+                types generated when executing one or more SELECT
+                statements as part of the procedure body. Each result
+                set type can include one or more items.</p></li>
+                </ul>
+                <p>See <a href="#examples-procedure">Example
+                (procedure)</a> for an example.</p>
+                <h3 data-number="8.6.3" id="example-procedure"><span
+                class="header-section-number">8.6.3</span> Example
+                (procedure)</h3>
+                <p>Consider the following dummy procedures:</p>
+                <div class="sourceCode" id="cb69"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Assuming the database `mrs_tests` exists</span></span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- You can use the MySQL Client console to run this script</span></span>
+<span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a>DELIMITER <span class="op">//</span></span>
+<span id="cb69-5"><a href="#cb69-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-6"><a href="#cb69-6" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">PROCEDURE</span> mrs_tests.mirror_proc (INOUT channel <span class="dt">CHAR</span>(<span class="dv">4</span>))</span>
+<span id="cb69-7"><a href="#cb69-7" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb69-8"><a href="#cb69-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="kw">REVERSE</span>(channel) <span class="kw">INTO</span> channel;</span>
+<span id="cb69-9"><a href="#cb69-9" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span><span class="op">//</span></span>
+<span id="cb69-10"><a href="#cb69-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-11"><a href="#cb69-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-12"><a href="#cb69-12" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">PROCEDURE</span> mrs_tests.twice_proc (<span class="kw">IN</span> <span class="dt">number</span> <span class="dt">INT</span>, <span class="kw">OUT</span> number_twice <span class="dt">INT</span>)</span>
+<span id="cb69-13"><a href="#cb69-13" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb69-14"><a href="#cb69-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="dt">number</span><span class="op">*</span><span class="dv">2</span> <span class="kw">INTO</span> number_twice;</span>
+<span id="cb69-15"><a href="#cb69-15" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span><span class="op">//</span></span>
+<span id="cb69-16"><a href="#cb69-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-17"><a href="#cb69-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-18"><a href="#cb69-18" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">PROCEDURE</span> mrs_tests.sample_proc(</span>
+<span id="cb69-19"><a href="#cb69-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">IN</span> arg1 <span class="dt">CHAR</span>(<span class="dv">5</span>), INOUT arg2 <span class="dt">CHAR</span>(<span class="dv">5</span>), <span class="kw">OUT</span> arg3 <span class="dt">FLOAT</span></span>
+<span id="cb69-20"><a href="#cb69-20" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb69-21"><a href="#cb69-21" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb69-22"><a href="#cb69-22" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="ot">&quot;foo&quot;</span> <span class="kw">as</span> name, <span class="dv">42</span> <span class="kw">as</span> age;</span>
+<span id="cb69-23"><a href="#cb69-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="ot">&quot;bar&quot;</span> <span class="kw">as</span> something;</span>
+<span id="cb69-24"><a href="#cb69-24" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span><span class="op">//</span></span>
+<span id="cb69-25"><a href="#cb69-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-26"><a href="#cb69-26" aria-hidden="true" tabindex="-1"></a>DELIMITER ;</span></code></pre></div>
+                <p>Calling a REST procedure in the Python SDK is exactly
+                like calling a local Python function.</p>
+                <div class="sourceCode" id="cb70"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
+<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-5"><a href="#cb70-5" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.mirror_proc(channel<span class="op">=</span><span class="st">&quot;roma&quot;</span>)</span>
+<span id="cb70-6"><a href="#cb70-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(procedure_result)</span>
+<span id="cb70-7"><a href="#cb70-7" aria-hidden="true" tabindex="-1"></a><span class="co"># IMrsProcedureResponse(</span></span>
+<span id="cb70-8"><a href="#cb70-8" aria-hidden="true" tabindex="-1"></a><span class="co">#     result_sets=[],</span></span>
+<span id="cb70-9"><a href="#cb70-9" aria-hidden="true" tabindex="-1"></a><span class="co">#     out_parameters={&quot;channel&quot;: &quot;amor&quot;}</span></span>
+<span id="cb70-10"><a href="#cb70-10" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span>
+<span id="cb70-11"><a href="#cb70-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-12"><a href="#cb70-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-13"><a href="#cb70-13" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.twice_proc(number<span class="op">=</span><span class="dv">13</span>)</span>
+<span id="cb70-14"><a href="#cb70-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(procedure_result)</span>
+<span id="cb70-15"><a href="#cb70-15" aria-hidden="true" tabindex="-1"></a><span class="co"># IMrsProcedureResponse(</span></span>
+<span id="cb70-16"><a href="#cb70-16" aria-hidden="true" tabindex="-1"></a><span class="co">#     result_sets=[],</span></span>
+<span id="cb70-17"><a href="#cb70-17" aria-hidden="true" tabindex="-1"></a><span class="co">#     out_parameters={&quot;number_twice&quot;: 26}</span></span>
+<span id="cb70-18"><a href="#cb70-18" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span>
+<span id="cb70-19"><a href="#cb70-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-20"><a href="#cb70-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-21"><a href="#cb70-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Note how `arg1` is not provided, and `arg2` is set to null.</span></span>
+<span id="cb70-22"><a href="#cb70-22" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.sample_proc(arg2<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb70-23"><a href="#cb70-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(procedure_result)</span>
+<span id="cb70-24"><a href="#cb70-24" aria-hidden="true" tabindex="-1"></a><span class="co"># IMrsProcedureResponse(</span></span>
+<span id="cb70-25"><a href="#cb70-25" aria-hidden="true" tabindex="-1"></a><span class="co">#     result_sets=[</span></span>
+<span id="cb70-26"><a href="#cb70-26" aria-hidden="true" tabindex="-1"></a><span class="co">#         MrsProcedureResultSet(</span></span>
+<span id="cb70-27"><a href="#cb70-27" aria-hidden="true" tabindex="-1"></a><span class="co">#             type=&quot;items0&quot;,</span></span>
+<span id="cb70-28"><a href="#cb70-28" aria-hidden="true" tabindex="-1"></a><span class="co">#             items=[{&quot;name&quot;: &quot;foo&quot;, &quot;age&quot;: 42}],</span></span>
+<span id="cb70-29"><a href="#cb70-29" aria-hidden="true" tabindex="-1"></a><span class="co">#         ),</span></span>
+<span id="cb70-30"><a href="#cb70-30" aria-hidden="true" tabindex="-1"></a><span class="co">#         MrsProcedureResultSet(</span></span>
+<span id="cb70-31"><a href="#cb70-31" aria-hidden="true" tabindex="-1"></a><span class="co">#             type=&quot;items1&quot;,</span></span>
+<span id="cb70-32"><a href="#cb70-32" aria-hidden="true" tabindex="-1"></a><span class="co">#             items=[{&quot;something&quot;: &quot;bar&quot;}],</span></span>
+<span id="cb70-33"><a href="#cb70-33" aria-hidden="true" tabindex="-1"></a><span class="co">#         ),</span></span>
+<span id="cb70-34"><a href="#cb70-34" aria-hidden="true" tabindex="-1"></a><span class="co">#     ],</span></span>
+<span id="cb70-35"><a href="#cb70-35" aria-hidden="true" tabindex="-1"></a><span class="co">#     out_parameters={&#39;arg2&#39;: None, &#39;arg3&#39;: None}</span></span>
+<span id="cb70-36"><a href="#cb70-36" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span></code></pre></div>
+                <p>The first two procedures do not generate result sets,
+                however the third one does. By omission, result sets are
+                untyped meaning generic type names are used for the
+                result sets.</p>
+                <p>If you want a typed result set, meaning you wish to
+                specify a type, you can do so at the MRS procedure level
+                via the MySQL Shell:</p>
+                <div class="sourceCode" id="cb71"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">PROCEDURE</span> <span class="op">/</span>sampleProc</span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>mrsTests</span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">AS</span> mrs_tests.sample_proc</span>
+<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a>    RESULT IMyServiceMrsTestsSampleProcResultSet1 {</span>
+<span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a>        name: name @DATATYPE(<span class="ot">&quot;CHAR(3)&quot;</span>),</span>
+<span id="cb71-6"><a href="#cb71-6" aria-hidden="true" tabindex="-1"></a>        age: age @DATATYPE(<span class="ot">&quot;TINYINT&quot;</span>)</span>
+<span id="cb71-7"><a href="#cb71-7" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb71-8"><a href="#cb71-8" aria-hidden="true" tabindex="-1"></a>    RESULT IMyServiceMrsTestsSampleProcResultSet2 {</span>
+<span id="cb71-9"><a href="#cb71-9" aria-hidden="true" tabindex="-1"></a>        something: something @DATATYPE(<span class="ot">&quot;CHAR(3)&quot;</span>)</span>
+<span id="cb71-10"><a href="#cb71-10" aria-hidden="true" tabindex="-1"></a>    };</span></code></pre></div>
+                <p>Calling the REST procedure again from the Python SDK
+                leads to:</p>
+                <div class="sourceCode" id="cb72"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb72-5"><a href="#cb72-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb72-6"><a href="#cb72-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Note how `arg1` is not provided, and `arg2` is set to null.</span></span>
+<span id="cb72-7"><a href="#cb72-7" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.sample_proc(arg2<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb72-8"><a href="#cb72-8" aria-hidden="true" tabindex="-1"></a><span class="co"># print(procedure_result.result_sets)</span></span>
+<span id="cb72-9"><a href="#cb72-9" aria-hidden="true" tabindex="-1"></a><span class="co"># [</span></span>
+<span id="cb72-10"><a href="#cb72-10" aria-hidden="true" tabindex="-1"></a><span class="co">#     MrsProcedureResultSet(</span></span>
+<span id="cb72-11"><a href="#cb72-11" aria-hidden="true" tabindex="-1"></a><span class="co">#         type=&quot;IMyServiceMrsTestsSampleProcResultSet1&quot;,</span></span>
+<span id="cb72-12"><a href="#cb72-12" aria-hidden="true" tabindex="-1"></a><span class="co">#         items=[{&quot;name&quot;: &quot;foo&quot;, &quot;age&quot;: 42}],</span></span>
+<span id="cb72-13"><a href="#cb72-13" aria-hidden="true" tabindex="-1"></a><span class="co">#     ),</span></span>
+<span id="cb72-14"><a href="#cb72-14" aria-hidden="true" tabindex="-1"></a><span class="co">#     MrsProcedureResultSet(</span></span>
+<span id="cb72-15"><a href="#cb72-15" aria-hidden="true" tabindex="-1"></a><span class="co">#         type=&quot;IMyServiceMrsTestsSampleProcResultSet2&quot;,</span></span>
+<span id="cb72-16"><a href="#cb72-16" aria-hidden="true" tabindex="-1"></a><span class="co">#         items=[{&quot;something&quot;: &quot;bar&quot;}],</span></span>
+<span id="cb72-17"><a href="#cb72-17" aria-hidden="true" tabindex="-1"></a><span class="co">#     ),</span></span>
+<span id="cb72-18"><a href="#cb72-18" aria-hidden="true" tabindex="-1"></a><span class="co"># ],</span></span></code></pre></div>
                 <p>Copyright (c) 2022, 2024, Oracle and/or its
                 affiliates.</p>
             </div>

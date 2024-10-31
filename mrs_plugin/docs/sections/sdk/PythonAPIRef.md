@@ -88,6 +88,7 @@ The following REST resources can be accessed from the corresponding schema names
 * [REST Views](#rest-views)
 * [REST Documents](#rest-documents)
 * [REST Functions](#rest-functions)
+* [REST Procedures](#rest-procedures)
 
 
 
@@ -967,4 +968,144 @@ mysql> CREATE FUNCTION sum_func (a INT, b INT)
 mysql> CREATE FUNCTION my_birthday_func ()
 > RETURNS DATETIME DETERMINISTIC
 > RETURN CURDATE();
+```
+
+
+## REST Procedures
+
+### Options (procedure)
+
+The input arguments and respective types accepted and expected by `<proc_name>(...)` depend on the MySQL procedure declaration (specifically, `IN` and `INOUT` parameters). See [Example (procedure)](#examples-procedure) for an example.
+
+Input parameters aren't mandatory, meaning you are free to not provide them.
+
+In case of being provided, input parameters can also be assigned a null value when calling the procedure, in other words, you can set any parameters to `None`.
+
+
+### Return Type (procedure)
+
+The Python data type returned by `<proc_name>(...)` is a REST document data class object. For more details about REST documents, check the [REST Documents](#rest-documents) section.
+
+This data class object includes the following attributes:
+
+* `out_parameters`: Dictionary with fields for each  `OUT`/`INOUT`  parameter declared as part of the MySQL procedure that produces an actual value. If a parameter is not used to return a value, the field will not be present in the dictionary.
+
+* `result_sets`: List of result set types generated when executing one or more SELECT statements as part of the procedure body. Each result set type can include one or more items.
+
+
+See [Example (procedure)](#examples-procedure) for an example.
+
+
+### Example (procedure)
+
+Consider the following dummy procedures:
+
+```sql
+-- Assuming the database `mrs_tests` exists
+-- You can use the MySQL Client console to run this script
+
+DELIMITER //
+
+CREATE PROCEDURE mrs_tests.mirror_proc (INOUT channel CHAR(4))
+BEGIN
+    SELECT REVERSE(channel) INTO channel;
+END//
+
+
+CREATE PROCEDURE mrs_tests.twice_proc (IN number INT, OUT number_twice INT)
+BEGIN
+    SELECT number*2 INTO number_twice;
+END//
+
+
+CREATE PROCEDURE mrs_tests.sample_proc(
+    IN arg1 CHAR(5), INOUT arg2 CHAR(5), OUT arg3 FLOAT
+)
+BEGIN
+    SELECT "foo" as name, 42 as age;
+    SELECT "bar" as something;
+END//
+
+DELIMITER ;
+```
+
+Calling a REST procedure in the Python SDK is exactly like calling a local Python function.
+
+```python
+from sdk.python import MyService
+
+my_service = MyService()
+
+procedure_result = await my_service.mrs_tests.mirror_proc(channel="roma")
+print(procedure_result)
+# IMrsProcedureResponse(
+#     result_sets=[],
+#     out_parameters={"channel": "amor"}
+# )
+
+
+procedure_result = await my_service.mrs_tests.twice_proc(number=13)
+print(procedure_result)
+# IMrsProcedureResponse(
+#     result_sets=[],
+#     out_parameters={"number_twice": 26}
+# )
+
+
+# Note how `arg1` is not provided, and `arg2` is set to null.
+procedure_result = await my_service.mrs_tests.sample_proc(arg2=None)
+print(procedure_result)
+# IMrsProcedureResponse(
+#     result_sets=[
+#         MrsProcedureResultSet(
+#             type="items0",
+#             items=[{"name": "foo", "age": 42}],
+#         ),
+#         MrsProcedureResultSet(
+#             type="items1",
+#             items=[{"something": "bar"}],
+#         ),
+#     ],
+#     out_parameters={'arg2': None, 'arg3': None}
+# )
+```
+
+The first two procedures do not generate result sets, however the third one does. By omission, result sets are untyped meaning generic type names are used for the result sets.
+
+If you want a typed result set, meaning you wish to specify a type, you can do so at the MRS procedure level via the MySQL Shell:
+
+```sql
+CREATE OR REPLACE REST PROCEDURE /sampleProc
+    ON SERVICE /myService SCHEMA /mrsTests
+    AS mrs_tests.sample_proc
+    RESULT IMyServiceMrsTestsSampleProcResultSet1 {
+        name: name @DATATYPE("CHAR(3)"),
+        age: age @DATATYPE("TINYINT")
+    }
+    RESULT IMyServiceMrsTestsSampleProcResultSet2 {
+        something: something @DATATYPE("CHAR(3)")
+    };
+```
+
+Calling the REST procedure again from the Python SDK leads to:
+
+```python
+from sdk.python import MyService
+
+my_service = MyService()
+
+
+# Note how `arg1` is not provided, and `arg2` is set to null.
+procedure_result = await my_service.mrs_tests.sample_proc(arg2=None)
+# print(procedure_result.result_sets)
+# [
+#     MrsProcedureResultSet(
+#         type="IMyServiceMrsTestsSampleProcResultSet1",
+#         items=[{"name": "foo", "age": 42}],
+#     ),
+#     MrsProcedureResultSet(
+#         type="IMyServiceMrsTestsSampleProcResultSet2",
+#         items=[{"something": "bar"}],
+#     ),
+# ],
 ```
