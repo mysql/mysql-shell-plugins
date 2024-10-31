@@ -5252,6 +5252,7 @@ identifierKeywordsUnambiguous:
         | AT_UPDATE_SYMBOL
         | AT_DELETE_SYMBOL
         | AT_NODELETE_SYMBOL
+        | AT_KEY_SYMBOL
     )
 ;
 
@@ -6554,6 +6555,7 @@ graphQlPair:
         | AT_NOFILTERING_SYMBOL
         | AT_ROWOWNERSHIP_SYMBOL
         | AT_UNNEST_SYMBOL
+        | AT_KEY_SYMBOL
         | AT_DATATYPE_SYMBOL OPEN_PAR_SYMBOL graphQlDatatypeValue CLOSE_PAR_SYMBOL
         | graphQlCrudOptions
     )? graphQlObj?

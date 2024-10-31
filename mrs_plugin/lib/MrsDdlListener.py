@@ -680,6 +680,8 @@ class MrsDdlListener(MRSListener):
                             current_object["row_ownership_field_id"] = field.get(
                                 "id", None
                             )
+                        if ctx.AT_KEY_SYMBOL() is not None:
+                            db_column["is_primary"] = True
                         if ctx.AT_DATATYPE_SYMBOL() is not None:
                             db_column["datatype"] = lib.core.unquote(
                                 ctx.graphQlDatatypeValue().getText().lower()

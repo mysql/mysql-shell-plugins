@@ -2017,8 +2017,7 @@ router_id=16</code></pre>
                 Table</figcaption>
                 </figure>
                 <p>This leads to the following result.</p>
-                <div class="sourceCode" id="cb31"><pre
-                class="sourceCode js"><code class="sourceCode javascript"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
+                <pre><code>GET /myService/sakila/city/1</code></pre>
                 <div class="sourceCode" id="cb32"><pre
                 class="sourceCode json"><code class="sourceCode json"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
@@ -2057,8 +2056,7 @@ router_id=16</code></pre>
                 Table</figcaption>
                 </figure>
                 <p>This leads to the following result.</p>
-                <div class="sourceCode" id="cb33"><pre
-                class="sourceCode js"><code class="sourceCode javascript"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
+                <pre><code>GET /myService/sakila/city/1</code></pre>
                 <div class="sourceCode" id="cb34"><pre
                 class="sourceCode json"><code class="sourceCode json"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
@@ -2095,8 +2093,7 @@ router_id=16</code></pre>
                 Table</figcaption>
                 </figure>
                 <p>This leads to the same result as the query above.</p>
-                <div class="sourceCode" id="cb35"><pre
-                class="sourceCode js"><code class="sourceCode javascript"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span></code></pre></div>
+                <pre><code>GET /myService/sakila/city/1</code></pre>
                 <div class="sourceCode" id="cb36"><pre
                 class="sourceCode json"><code class="sourceCode json"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
@@ -2114,6 +2111,89 @@ router_id=16</code></pre>
 <span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;48889BABCBBA1491D25DFE0D7A270FA3FDF8A16DA8E44E42C61759DE1F0D6E35&quot;</span></span>
 <span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
 <span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <h3 data-number="6.3.5"
+                id="rest-view-object-identifiers"><span
+                class="header-section-number">6.3.5</span> REST View
+                Object Identifiers</h3>
+                <p>When a REST View maps to a database table, the
+                primary key(s) specified for that table constitute the
+                identifier of the corresponding REST Documents. If a
+                table has a composite primary key, the identifier is a
+                comma-separated string with the values of each column
+                that composes the primary key.</p>
+                <div class="sourceCode" id="cb37"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> sakila.my_table (id1 <span class="dt">INT</span>, id2 <span class="dt">INT</span>, name <span class="dt">VARCHAR</span>(<span class="dv">3</span>), <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (id1, id2));</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> sakila.my_table <span class="kw">VALUES</span> (<span class="dv">1</span>, <span class="dv">1</span>, <span class="ot">&quot;foo&quot;</span>);</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>myTable</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">AS</span> `sakila`.`my_table` @UPDATE;</span></code></pre></div>
+                <p>Retrieving the specific REST document can be done as
+                follows:</p>
+                <pre><code>GET /myService/sakila/myTable/1,1</code></pre>
+                <div class="sourceCode" id="cb39"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id1&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id2&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/myTable/1,1&quot;</span></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;foo&quot;</span><span class="fu">,</span></span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;48819BABCBBA1491DBBDFE0D7A270FA3FDF8A16DA8E44E42C61759DE1F0D6A38&quot;</span></span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <p>Updating a specific REST document can be done as
+                follows:</p>
+                <pre><code>PUT /myService/sakila/myTable/1,1
+{
+    &quot;id1&quot;: 1,
+    &quot;id2&quot;: 2,
+    &quot;name&quot;: &quot;bar&quot;
+}</code></pre>
+                <div class="sourceCode" id="cb41"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id1&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id2&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span><span class="er"> </span><span class="ot">[</span></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;/myService/sakila/myTable/1,1&quot;</span></span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;bar&quot;</span><span class="fu">,</span></span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span><span class="er"> </span><span class="fu">{</span></span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;etag&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;48819BABCBBA1491DBBDFE0D7A270FA3FDF8A16DA8E44E4AA62559DE1F0D6A42&quot;</span></span>
+<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <p>However, if a database table does not have any
+                primary key, it is no longer possible to access or
+                modify specific documents using the corresponding REST
+                View. The same problem occurs for a database view, where
+                there is no concept of a primary key. In both cases, the
+                REST View requires an explicit mapping between its
+                fields and the underlying database table columns that
+                can/must be used as identifiers. In the former, it
+                should be a direct mapping between one or more REST View
+                fields and the corresponding table columns. In the
+                latter, the mapping must exist for <strong>ALL</strong>
+                primary key columns of every table used by the database
+                view, which must also be included in the result set
+                produced by that view.</p>
+                <p>For these specific scenarios, users can manually
+                specify the REST View fields that map to their
+                corresponding document identifiers.</p>
+                <div class="sourceCode" id="cb42"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> sakila.my_table (id1 <span class="dt">INT</span>, id2 <span class="dt">INT</span>, name <span class="dt">VARCHAR</span>(<span class="dv">3</span>));</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>myTable</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="kw">AS</span> `sakila`.`my_table` @UPDATE {</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>    id1: id1 @KEY,</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>    id2: id2 @KEY,</span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>    name: name</span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>};</span></code></pre></div>
                 <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -2244,29 +2324,29 @@ router_id=16</code></pre>
                 domain that generates the request. This is done to work
                 around Cross-origin resource sharing (CORS) checks of
                 web browsers during development time.</p>
-                <div class="sourceCode" id="cb37"><pre
-                class="sourceCode json"><code class="sourceCode json"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Credentials&quot;</span><span class="fu">:</span> <span class="st">&quot;true&quot;</span><span class="fu">,</span></span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Headers&quot;</span><span class="fu">:</span> <span class="st">&quot;Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token&quot;</span><span class="fu">,</span></span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Methods&quot;</span><span class="fu">:</span> <span class="st">&quot;GET, POST, PUT, DELETE, OPTIONS&quot;</span></span>
-<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;http&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;allowedOrigin&quot;</span><span class="fu">:</span> <span class="st">&quot;auto&quot;</span></span>
-<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;logging&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;exceptions&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
-<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
-<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">},</span></span>
-<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;response&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
-<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb37-20"><a href="#cb37-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;returnInternalErrorDetails&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb37-22"><a href="#cb37-22" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <div class="sourceCode" id="cb43"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Credentials&quot;</span><span class="fu">:</span> <span class="st">&quot;true&quot;</span><span class="fu">,</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Headers&quot;</span><span class="fu">:</span> <span class="st">&quot;Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token&quot;</span><span class="fu">,</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Methods&quot;</span><span class="fu">:</span> <span class="st">&quot;GET, POST, PUT, DELETE, OPTIONS&quot;</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;http&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;allowedOrigin&quot;</span><span class="fu">:</span> <span class="st">&quot;auto&quot;</span></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;logging&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;exceptions&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">},</span></span>
+<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;response&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb43-18"><a href="#cb43-18" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb43-20"><a href="#cb43-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb43-21"><a href="#cb43-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;returnInternalErrorDetails&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb43-22"><a href="#cb43-22" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
                 <p>When deploying a REST service in production, the
                 following settings need to be changed:</p>
                 <ol type="1">
@@ -2649,40 +2729,40 @@ router_id=16</code></pre>
                 </ul>
                 <p>The following snippet creates these 3 roles and
                 grants them to three different user.</p>
-                <div class="sourceCode" id="cb38"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a># This example assumes a MySQL <span class="kw">database</span> <span class="kw">schema</span> <span class="ot">&quot;blog&quot;</span> <span class="kw">and</span> a <span class="kw">schema</span> <span class="kw">table</span> <span class="ot">&quot;post&quot;</span> has been created <span class="kw">before</span>.</span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">SCHEMA</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> blog;</span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> blog.post(<span class="kw">id</span> <span class="dt">INT</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span> AUTO_INCREMENT, message TEXT);</span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST SERVICE <span class="op">/</span>myTestService;</span>
-<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myTestService;</span>
-<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="kw">FROM</span> blog;</span>
-<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>post <span class="kw">ON</span> <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="kw">AS</span> blog.post;</span>
-<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;reader&quot;</span>;</span>
-<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">READ</span> <span class="kw">ON</span> <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="dt">OBJECT</span> <span class="op">/</span>post <span class="kw">TO</span> <span class="ot">&quot;reader&quot;</span>;</span>
-<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;poster&quot;</span> <span class="kw">EXTENDS</span> <span class="ot">&quot;reader&quot;</span>;</span>
-<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">CREATE</span>, <span class="kw">UPDATE</span> <span class="kw">ON</span> <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="dt">OBJECT</span> <span class="op">/</span>post <span class="kw">TO</span> <span class="ot">&quot;poster&quot;</span>;</span>
-<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;editor&quot;</span> <span class="kw">EXTENDS</span> <span class="ot">&quot;poster&quot;</span>;</span>
-<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">DELETE</span> <span class="kw">ON</span> <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="dt">OBJECT</span> <span class="op">/</span>post <span class="kw">TO</span> <span class="ot">&quot;editor&quot;</span>;</span>
-<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a>SHOW REST <span class="kw">ROLES</span>;</span>
-<span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-22"><a href="#cb38-22" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST AUTH APP <span class="ot">&quot;TestAuthApp&quot;</span> VENDOR MRS;</span>
-<span id="cb38-23"><a href="#cb38-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-24"><a href="#cb38-24" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="fu">USER</span> <span class="ot">&quot;ulf&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span> <span class="kw">IDENTIFIED</span> <span class="kw">BY</span> <span class="ot">&quot;********&quot;</span>;</span>
-<span id="cb38-25"><a href="#cb38-25" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;reader&quot;</span> <span class="kw">TO</span> <span class="ot">&quot;ulf&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span>;</span>
-<span id="cb38-26"><a href="#cb38-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-27"><a href="#cb38-27" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="fu">USER</span> <span class="ot">&quot;alfredo&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span> <span class="kw">IDENTIFIED</span> <span class="kw">BY</span> <span class="ot">&quot;********&quot;</span>;</span>
-<span id="cb38-28"><a href="#cb38-28" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;poster&quot;</span> <span class="kw">TO</span> <span class="ot">&quot;alfredo&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span>;</span>
-<span id="cb38-29"><a href="#cb38-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-30"><a href="#cb38-30" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="fu">USER</span> <span class="ot">&quot;mike&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span> <span class="kw">IDENTIFIED</span> <span class="kw">BY</span> <span class="ot">&quot;********&quot;</span>;</span>
-<span id="cb38-31"><a href="#cb38-31" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;editor&quot;</span> <span class="kw">TO</span> <span class="ot">&quot;mike&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span>;</span>
-<span id="cb38-32"><a href="#cb38-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-33"><a href="#cb38-33" aria-hidden="true" tabindex="-1"></a># Now, these three users can login <span class="kw">with</span> <span class="kw">the</span> specified <span class="kw">password</span> via MRS authentication.</span></code></pre></div>
+                <div class="sourceCode" id="cb44"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a># This example assumes a MySQL <span class="kw">database</span> <span class="kw">schema</span> <span class="ot">&quot;blog&quot;</span> <span class="kw">and</span> a <span class="kw">schema</span> <span class="kw">table</span> <span class="ot">&quot;post&quot;</span> has been created <span class="kw">before</span>.</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">SCHEMA</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> blog;</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> blog.post(<span class="kw">id</span> <span class="dt">INT</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span> AUTO_INCREMENT, message TEXT);</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST SERVICE <span class="op">/</span>myTestService;</span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myTestService;</span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="kw">FROM</span> blog;</span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>post <span class="kw">ON</span> <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="kw">AS</span> blog.post;</span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;reader&quot;</span>;</span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">READ</span> <span class="kw">ON</span> <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="dt">OBJECT</span> <span class="op">/</span>post <span class="kw">TO</span> <span class="ot">&quot;reader&quot;</span>;</span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;poster&quot;</span> <span class="kw">EXTENDS</span> <span class="ot">&quot;reader&quot;</span>;</span>
+<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">CREATE</span>, <span class="kw">UPDATE</span> <span class="kw">ON</span> <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="dt">OBJECT</span> <span class="op">/</span>post <span class="kw">TO</span> <span class="ot">&quot;poster&quot;</span>;</span>
+<span id="cb44-16"><a href="#cb44-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-17"><a href="#cb44-17" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;editor&quot;</span> <span class="kw">EXTENDS</span> <span class="ot">&quot;poster&quot;</span>;</span>
+<span id="cb44-18"><a href="#cb44-18" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">DELETE</span> <span class="kw">ON</span> <span class="kw">SCHEMA</span> <span class="op">/</span>blog <span class="dt">OBJECT</span> <span class="op">/</span>post <span class="kw">TO</span> <span class="ot">&quot;editor&quot;</span>;</span>
+<span id="cb44-19"><a href="#cb44-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-20"><a href="#cb44-20" aria-hidden="true" tabindex="-1"></a>SHOW REST <span class="kw">ROLES</span>;</span>
+<span id="cb44-21"><a href="#cb44-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-22"><a href="#cb44-22" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST AUTH APP <span class="ot">&quot;TestAuthApp&quot;</span> VENDOR MRS;</span>
+<span id="cb44-23"><a href="#cb44-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-24"><a href="#cb44-24" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="fu">USER</span> <span class="ot">&quot;ulf&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span> <span class="kw">IDENTIFIED</span> <span class="kw">BY</span> <span class="ot">&quot;********&quot;</span>;</span>
+<span id="cb44-25"><a href="#cb44-25" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;reader&quot;</span> <span class="kw">TO</span> <span class="ot">&quot;ulf&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span>;</span>
+<span id="cb44-26"><a href="#cb44-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-27"><a href="#cb44-27" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="fu">USER</span> <span class="ot">&quot;alfredo&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span> <span class="kw">IDENTIFIED</span> <span class="kw">BY</span> <span class="ot">&quot;********&quot;</span>;</span>
+<span id="cb44-28"><a href="#cb44-28" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;poster&quot;</span> <span class="kw">TO</span> <span class="ot">&quot;alfredo&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span>;</span>
+<span id="cb44-29"><a href="#cb44-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-30"><a href="#cb44-30" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="fu">USER</span> <span class="ot">&quot;mike&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span> <span class="kw">IDENTIFIED</span> <span class="kw">BY</span> <span class="ot">&quot;********&quot;</span>;</span>
+<span id="cb44-31"><a href="#cb44-31" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;editor&quot;</span> <span class="kw">TO</span> <span class="ot">&quot;mike&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span>;</span>
+<span id="cb44-32"><a href="#cb44-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-33"><a href="#cb44-33" aria-hidden="true" tabindex="-1"></a># Now, these three users can login <span class="kw">with</span> <span class="kw">the</span> specified <span class="kw">password</span> via MRS authentication.</span></code></pre></div>
                 <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify

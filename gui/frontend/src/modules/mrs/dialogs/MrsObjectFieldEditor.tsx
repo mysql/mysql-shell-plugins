@@ -49,6 +49,7 @@ import inIcon from "../../../assets/images/in.svg";
 import outIcon from "../../../assets/images/out.svg";
 import inOutIcon from "../../../assets/images/inOut.svg";
 import closeIcon from "../../../assets/images/close2.svg";
+import keyIcon from "../../../assets/images/isKey.svg";
 
 import { ComponentChild, createRef, render } from "preact";
 import {
@@ -68,6 +69,7 @@ import { Container, ContentAlignment, Orientation } from "../../../components/ui
 import { CheckState, Checkbox } from "../../../components/ui/Checkbox/Checkbox.js";
 import {
     IMrsDbObjectData, IMrsObject, IMrsObjectFieldWithReference, IMrsObjectReference,
+    IMrsTableColumn,
 } from "../../../communication/ProtocolMrs.js";
 import { uuidBinary16Base64 } from "../../../utilities/helpers.js";
 import {
@@ -146,6 +148,7 @@ enum ActionIconName {
     CheckAll,
     CheckNone,
     Delete,
+    IncludeInKey,
 }
 
 export class MrsObjectFieldEditor extends ValueEditCustom<
@@ -179,6 +182,12 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 }
             }
             if (node.type === MrsObjectFieldTreeEntryType.Field) {
+                // Merge local state.
+                node.field.dbColumn = {
+                    ...node.field.dbColumn,
+                    ...node.field.storedDbColumn as IMrsTableColumn,
+                };
+
                 // Ensure not to add unnested fields twice
                 if (!fieldList.includes(node.field)) {
                     fieldList.push(node.field);
@@ -235,6 +244,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         if (field.allowSorting) { s += ` @SORTABLE`; }
                         if (!field.allowFiltering) { s += ` @NOFILTERING`; }
                         if (field.id === currentObject?.rowOwnershipFieldId) { s += ` @ROWOWNERSHIP`; }
+                        if (field.dbColumn?.isPrimary) { s += ` @KEY`; }
                         if (addDataType && field.dbColumn && field.dbColumn.datatype) {
                             s += ` @DATATYPE("${field.dbColumn.datatype}")`;
                         }
@@ -874,6 +884,10 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                                 data.dbObject.objectType !== MrsDbObjectType.Function &&
                                 data.dbObject.objectType !== MrsDbObjectType.Script) &&
                                 <>
+                                    <Icon className={cellData.field.storedDbColumn?.isPrimary
+                                        ? "selected" : "notSelected"} src={keyIcon} width={16} height={16}
+                                        onClick={() => { this.handleIconClick(cell, ActionIconName.IncludeInKey); }}
+                                        data-tooltip="Include field in object composite key" />
                                     <Icon className={cellData.field.allowSorting
                                         ? "selected" : "notSelected"} src={allowSortingIcon} width={16} height={16}
                                         onClick={() => { this.handleIconClick(cell, ActionIconName.Sorting); }}
@@ -2410,6 +2424,12 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         data.currentTreeItems = data.currentTreeItems.filter((item) => {
                             return item.field.id !== treeItem.field.id;
                         });
+                    }
+                    break;
+                }
+                case ActionIconName.IncludeInKey: {
+                    if (treeItem.field.storedDbColumn !== undefined) {
+                        treeItem.field.storedDbColumn.isPrimary = !treeItem.field.storedDbColumn.isPrimary;
                     }
                     break;
                 }
