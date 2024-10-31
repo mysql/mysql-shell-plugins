@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under the terms of the
  * GNU General Public License, version 2.0, as published by the Free Software Foundation.
- * 
+ *
  * This program is designed to work with certain software (including but not limited to OpenSSL)
  * that is licensed under separate terms, as designated in a particular file or component or in
  * included license documentation. The authors of MySQL hereby grant you an additional permission to
@@ -11,7 +11,7 @@
  * included with MySQL. This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License, version 2.0, for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with this program; if
  * not, write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA
@@ -19,24 +19,24 @@
 
 /*
  // TODO:
- 
+
  - fix so that grammar is compatible to MySQL grammar
- 
+
  - inconsistent whether quotes are required or optional
- 
+
  - fix what's an identifier and what's a string, fix quoting
- 
+
  - support for NO_BACKSLASH_ESCAPES and ANSI_QUOTES
- 
+
  - in MySQL user and role can be quoted as root@MRS and `root`@`MRS` too
- 
+
  - metadata is case sensitive... very inconvenient for SHOW and GRANT commands. also unlikely that
  allowing usernames and auth_apps by case only is a good idea
- 
+
  - should be COMMENT 'xxx' instead of COMMENTS 'xxx'
- 
+
  - errors should include an error code
- 
+
  - ON|FROM SERVICE vs ON SERVICE inconsistencies
  */
 
@@ -902,6 +902,7 @@ graphQlPair:
         | AT_NOFILTERING_SYMBOL
         | AT_ROWOWNERSHIP_SYMBOL
         | AT_UNNEST_SYMBOL
+        | AT_KEY_SYMBOL
         | AT_DATATYPE_SYMBOL OPEN_PAR_SYMBOL graphQlDatatypeValue CLOSE_PAR_SYMBOL
         | graphQlCrudOptions
     )? graphQlObj?

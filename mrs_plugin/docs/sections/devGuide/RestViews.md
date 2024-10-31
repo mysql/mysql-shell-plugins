@@ -191,8 +191,8 @@ By enabling a referenced table, the columns of that table are included as a nest
 
 This leads to the following result.
 
-```js
-myService.sakila.city.findFirst();
+```
+GET /myService/sakila/city/1
 ```
 
 ```json
@@ -226,8 +226,8 @@ If the columns of the referenced table should be added to the level above, the `
 
 This leads to the following result.
 
-```js
-myService.sakila.city.findFirst();
+```
+GET /myService/sakila/city/1
 ```
 
 ```json
@@ -257,8 +257,8 @@ Instead of having all columns unnested and disabling all columns that are not wa
 
 This leads to the same result as the query above.
 
-```js
-myService.sakila.city.findFirst();
+```
+GET /myService/sakila/city/1
 ```
 
 ```json
@@ -278,4 +278,82 @@ myService.sakila.city.findFirst();
         "etag": "48889BABCBBA1491D25DFE0D7A270FA3FDF8A16DA8E44E42C61759DE1F0D6E35"
     }
 }
+```
+
+### REST View Object Identifiers
+
+When a REST View maps to a database table, the primary key(s) specified for that table constitute the identifier of the corresponding REST Documents. If a table has a composite primary key, the identifier is a comma-separated string with the values of each column that composes the primary key.
+
+```sql
+CREATE TABLE IF NOT EXISTS sakila.my_table (id1 INT, id2 INT, name VARCHAR(3), PRIMARY KEY (id1, id2));
+INSERT INTO sakila.my_table VALUES (1, 1, "foo");
+
+CREATE OR REPLACE REST VIEW /myTable
+    AS `sakila`.`my_table` @UPDATE;
+```
+
+Retrieving the specific REST document can be done as follows:
+
+```
+GET /myService/sakila/myTable/1,1
+```
+
+```json
+{
+    "id1": 1,
+    "id2": 1,
+    "links": [
+        {
+            "rel": "self",
+            "href": "/myService/sakila/myTable/1,1"
+        }
+    ],
+    "name": "foo",
+    "_metadata": {
+        "etag": "48819BABCBBA1491DBBDFE0D7A270FA3FDF8A16DA8E44E42C61759DE1F0D6A38"
+    }
+}
+```
+
+Updating a specific REST document can be done as follows:
+
+```
+PUT /myService/sakila/myTable/1,1
+{
+    "id1": 1,
+    "id2": 2,
+    "name": "bar"
+}
+```
+
+```json
+{
+    "id1": 1,
+    "id2": 1,
+    "links": [
+        {
+            "rel": "self",
+            "href": "/myService/sakila/myTable/1,1"
+        }
+    ],
+    "name": "bar",
+    "_metadata": {
+        "etag": "48819BABCBBA1491DBBDFE0D7A270FA3FDF8A16DA8E44E4AA62559DE1F0D6A42"
+    }
+}
+```
+
+However, if a database table does not have any primary key, it is no longer possible to access or modify specific documents using the corresponding REST View. The same problem occurs for a database view, where there is no concept of a primary key. In both cases, the REST View requires an explicit mapping between its fields and the underlying database table columns that can/must be used as identifiers. In the former, it should be a direct mapping between one or more REST View fields and the corresponding table columns. In the latter, the mapping must exist for **ALL** primary key columns of every table used by the database view, which must also be included in the result set produced by that view.
+
+For these specific scenarios, users can manually specify the REST View fields that map to their corresponding document identifiers.
+
+```sql
+CREATE TABLE IF NOT EXISTS sakila.my_table (id1 INT, id2 INT, name VARCHAR(3));
+
+CREATE OR REPLACE REST VIEW /myTable
+AS `sakila`.`my_table` @UPDATE {
+    id1: id1 @KEY,
+    id2: id2 @KEY,
+    name: name
+};
 ```

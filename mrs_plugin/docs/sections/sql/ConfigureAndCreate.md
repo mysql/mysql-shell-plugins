@@ -882,6 +882,7 @@ graphQlPair:
         | AT_NOFILTERING
         | AT_ROWOWNERSHIP
         | AT_UNNEST
+        | AT_KEY
         | AT_DATATYPE OPEN_PAR graphQlDatatypeValue CLOSE_PAR
         | graphQlCrudOptions
     )? graphQlObj?

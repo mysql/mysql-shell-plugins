@@ -4,11 +4,12 @@
 
 ### Additions
 
-- 
+-
 
 ### Fixes
 
 - BUG#37259058: Python SDK: fails to compare string column with 'Hello world!'
+- BUG#37211618 Unable to access individual REST documents originating from a SQL VIEW
 
 ## Changes in 1.17.1+9.1.0
 
