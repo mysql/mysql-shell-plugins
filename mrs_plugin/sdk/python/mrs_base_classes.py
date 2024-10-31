@@ -104,12 +104,9 @@ class MrsDocument(ABC):
 
     def __dir__(self) -> Iterable[str]:
         """Hypermedia-related fields should be hidden."""
-        return [key for key in super().__dir__() if key not in MrsDocument._reserved_keys]
-
-    @classmethod
-    @abstractmethod
-    def get_primary_key_name(cls) -> Optional[str]:
-        """Get primary key name."""
+        return [
+            key for key in super().__dir__() if key not in MrsDocument._reserved_keys
+        ]
 
 
 class UndefinedDataClassField:
@@ -192,8 +189,16 @@ NestedField = TypeVar("NestedField", bound=Optional[str])
 ProgressCallback: TypeAlias = Callable[[list[Data]], None]
 Order: TypeAlias = Literal["ASC", "DESC"]
 
-FuncParameters = TypeVar("FuncParameters", bound=Mapping)
-FuncResult = TypeVar("FuncResult", bound=str | int | float | bool)
+IMrsRoutineResponse = TypeVar("IMrsRoutineResponse", bound=Any)
+IMrsRoutineInParameters = TypeVar("IMrsRoutineInParameters", bound=Mapping)
+IMrsProcedureOutParameters = TypeVar("IMrsProcedureOutParameters", bound=Mapping)
+IMrsProcedureResultSet = TypeVar("IMrsProcedureResultSet", bound=object)
+ResultSetType = TypeVar("ResultSetType", bound=str)
+ResultSetItem = TypeVar("ResultSetItem", bound=Mapping)
+ResultSetDetails = TypeVar("ResultSetDetails", bound=Mapping)
+IMrsFunctionResult = TypeVar(
+    "IMrsFunctionResult", bound=str | int | float | bool | JsonValue
+)
 
 AuthAppName = TypeVar("AuthAppName", bound=Optional[str])
 
@@ -205,11 +210,16 @@ class MrsResourceLink(TypedDict):
     href: str
 
 
-class MrsResourceMetadata(TypedDict, total=False):
+class MrsTransactionalMetadata(TypedDict, total=False):
+    """Metadata associated with transactions."""
+
+    gtid: str
+
+
+class MrsResourceMetadata(MrsTransactionalMetadata, total=False):
     """Available keys for the `_metadata` field."""
 
     etag: str
-    gtid: str
 
 
 class IMrsResourceDetails(TypedDict):
@@ -237,10 +247,64 @@ class IMrsDeleteResponse(TypedDict, total=False):
     _metadata: MrsResourceMetadata
 
 
-class IMrsFunctionResponse(Generic[FuncResult], TypedDict):
-    "Response got by invoking/calling a MySQL function."
+class IMrsFunctionResponse(Generic[IMrsFunctionResult], TypedDict):
+    """Response got by invoking/calling a MySQL function."""
 
-    result: FuncResult
+    result: IMrsFunctionResult
+    _metadata: NotRequired[MrsTransactionalMetadata]
+
+
+class IMrsProcedureResponseDetails(
+    Generic[IMrsProcedureOutParameters, IMrsProcedureResultSet], TypedDict
+):
+    result_sets: list[IMrsProcedureResultSet]
+    out_parameters: IMrsProcedureOutParameters
+    _metadata: NotRequired[MrsTransactionalMetadata]
+
+
+@dataclass(init=False, repr=True)
+class IMrsProcedureResponse(
+    Generic[IMrsProcedureOutParameters, IMrsProcedureResultSet], MrsDocument
+):
+
+    result_sets: list[IMrsProcedureResultSet]
+    out_parameters: IMrsProcedureOutParameters
+
+    def __init__(
+        self,
+        data: IMrsProcedureResponseDetails[
+            IMrsProcedureOutParameters, IMrsProcedureResultSet
+        ],
+    ) -> None:
+        """Procedure response dataclass."""
+        self.result_sets = [
+            cast(
+                IMrsProcedureResultSet,
+                MrsProcedureResultSet[str, Any, Any](result_set),
+            )
+            for result_set in data["result_sets"]
+        ]
+        self.out_parameters = data["out_parameters"]
+
+        for key in MrsDocument._reserved_keys:
+            self.__dict__.update({key: data.get(key)})
+
+
+@dataclass(init=False, repr=True)
+class MrsProcedureResultSet(
+    Generic[ResultSetType, ResultSetItem, ResultSetDetails], MrsDocument
+):
+
+    type: ResultSetType
+    items: list[ResultSetItem]
+
+    def __init__(self, data: ResultSetDetails) -> None:
+        """Procedure result-set response dataclass."""
+        self.type = data["type"]
+        self.items = data["items"]
+
+        for key in MrsDocument._reserved_keys:
+            self.__dict__.update({key: data.get(key)})
 
 
 class AuthenticateOptions(Generic[AuthAppName], TypedDict):
@@ -315,6 +379,16 @@ IntField: TypeAlias = (
     | GteOperator[int]
     | LtOperator[int]
     | LteOperator[int]
+    | NotOperator
+)
+FloatField: TypeAlias = (
+    float
+    | EqOperator[float]
+    | NeqOperator[float]
+    | GtOperator[float]
+    | GteOperator[float]
+    | LtOperator[float]
+    | LteOperator[float]
     | NotOperator
 )
 DatetimeField: TypeAlias = (
@@ -730,34 +804,43 @@ class MrsBaseObject:
         self._has_more: bool = True
 
 
-class MrsBaseObjectFunctionCall(Generic[FuncParameters, FuncResult]):
-    """Implements the core logic utilized by the `__call__*` implemented
-    by MySQL function objects."""
+# This class cannot be instantiated as it defines an abstract interface.
+class MrsBaseObjectRoutineCall(
+    Generic[IMrsRoutineInParameters, IMrsRoutineResponse], ABC
+):
+    """Implements the core logic utilized by function and procedure objects."""
 
     def __init__(
-        self, schema: MrsBaseSchema, request_path: str, parameters: FuncParameters
+        self,
+        schema: MrsBaseSchema,
+        request_path: str,
+        parameters: IMrsRoutineInParameters,
     ) -> None:
         """Constructor.
 
-        During this stage, query options are save in the inner
+        During this stage, query options are saved in the inner
         state of this instance.
 
         Args:
             schema: instance of the corresponding MRS schema
             request_path: the base endpoint to the resource (function).
-            parameters: dictionary representing function's parameters.
+            parameters: dictionary representing the input parameters of the routine.
         """
         self._schema: MrsBaseSchema = schema
         self._request_path: str = request_path
-        self._params: FuncParameters = parameters
+        self._params: IMrsRoutineInParameters = parameters
 
-    async def submit(self) -> FuncResult:
+    # Unlike Java abstract methods, Python abstract methods may have an implementation.
+    # This implementation can be called via the super() mechanism from the class that
+    # overrides it. See https://docs.python.org/3/library/abc.html#abc.abstractmethod.
+    @abstractmethod
+    async def submit(self) -> IMrsRoutineResponse:
         """Submit the request to the Router to invoke the corresponding
-        MySQL function.
+        MySQL routine.
 
-        Returns:
-            A value which type complies with the corresponding MySQL
-            function declaration.
+        Reurns:
+            A dictionary, but the specific type definition shall be
+            determined by the subclass itself.
         """
         headers = {}
         access_token = self._schema._service._session.get("access_token")
@@ -775,9 +858,68 @@ class MrsBaseObjectFunctionCall(Generic[FuncParameters, FuncResult]):
         data = await asyncio.to_thread(urlopen, req, context=context)
 
         response = cast(
-            IMrsFunctionResponse[FuncResult],
+            IMrsRoutineResponse,
             json.loads(data.read(), object_hook=MrsJSONDataDecoder.convert_keys),
         )
+
+        # Track the latest GTID
+        try:
+            self._schema._service._session["gtid"] = response["_metadata"]["gtid"]
+        except KeyError:
+            pass
+
+        return response
+
+
+class MrsBaseObjectProcedureCall(
+    Generic[
+        IMrsRoutineInParameters,
+        IMrsProcedureOutParameters,
+        IMrsProcedureResultSet,
+    ],
+    MrsBaseObjectRoutineCall[
+        IMrsRoutineInParameters,
+        IMrsProcedureResponseDetails[
+            IMrsProcedureOutParameters, IMrsProcedureResultSet
+        ],
+    ],
+):
+    """Implements the core logic utilized by procedure objects."""
+
+    async def submit(  # type: ignore[override]
+        self,
+    ) -> IMrsProcedureResponse[IMrsProcedureOutParameters, IMrsProcedureResultSet]:
+        """Submit the request to the Router to invoke the corresponding
+        MySQL procedure.
+
+        Reurns:
+            A dictionary which typing construct complies with the corresponding MySQL
+            procedure output interface declaration itself.
+        """
+        response = await super().submit()
+
+        return IMrsProcedureResponse[
+            IMrsProcedureOutParameters, IMrsProcedureResultSet
+        ](response)
+
+
+class MrsBaseObjectFunctionCall(
+    Generic[IMrsRoutineInParameters, IMrsFunctionResult],
+    MrsBaseObjectRoutineCall[
+        IMrsRoutineInParameters, IMrsFunctionResponse[IMrsFunctionResult]
+    ],
+):
+    """Implements the core logic utilized by function objects."""
+
+    async def submit(self) -> IMrsFunctionResult:  # type: ignore[override]
+        """Submit the request to the Router to invoke the corresponding
+        MySQL function.
+
+        Reurns:
+            A value which type complies with the corresponding MySQL
+            function declaration.
+        """
+        response = await super().submit()
 
         return response["result"]
 

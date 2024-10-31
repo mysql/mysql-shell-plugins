@@ -32,9 +32,9 @@ from typing import (
     Optional,
     TypeAlias,
     TypedDict,
+    Union,
     cast,
 )
-from unittest import mock
 from unittest.mock import MagicMock
 from urllib.parse import quote, urlencode
 from urllib.request import HTTPError
@@ -58,12 +58,14 @@ from ..mrs_base_classes import (
     MrsBaseObjectCreate,
     MrsBaseObjectDelete,
     MrsBaseObjectFunctionCall,
+    MrsBaseObjectProcedureCall,
     MrsBaseObjectQuery,
     MrsBaseObjectUpdate,
     MrsBaseSchema,
     MrsBaseService,
     MrsJSONDataDecoder,
     MrsJSONDataEncoder,
+    MrsProcedureResultSet,
     MrsQueryEncoder,
     MrsDocument,
     MrsDocumentNotFoundError,
@@ -71,6 +73,7 @@ from ..mrs_base_classes import (
     StringField,
     UndefinedDataClassField,
     UndefinedField,
+    JsonObject,
 )
 
 ####################################################################################
@@ -284,6 +287,73 @@ class SumFuncFuncParameters(TypedDict, total=False):
 
 class MyBirthdayFuncFuncParameters(TypedDict, total=False):
     pass
+
+
+class MirrorProcParams(TypedDict, total=False):
+    channel: str
+
+
+class MirrorProcParamsOut(TypedDict, total=False):
+    channel: str
+
+
+MirrorProcResultSet: TypeAlias = MrsProcedureResultSet[str, JsonObject, JsonObject]
+
+
+class TwiceProcParams(TypedDict, total=False):
+    number: Optional[int]
+
+
+class TwiceProcParamsOut(TypedDict, total=False):
+    number_twice: Optional[int]
+
+
+TwiceProcResultSet: TypeAlias = MrsProcedureResultSet[str, JsonObject, JsonObject]
+
+
+class SampleProcParams(TypedDict, total=False):
+    arg1: Optional[str]
+    arg2: Optional[str]
+
+
+class SampleProcParamsOut(TypedDict, total=False):
+    arg2: Optional[str]
+    arg3: Optional[float]
+
+
+SampleProcResultSet1Type: TypeAlias = Literal["SampleProcResultSet1"]
+
+
+class SampleProcResultSet1(TypedDict, total=False):
+    name: Optional[str]
+    age: Optional[int]
+
+
+class TaggedSampleProcResultSet1(TypedDict):
+    type: Literal["SampleProcResultSet1",]
+    items: list[SampleProcResultSet1]
+
+
+SampleProcResultSet2Type: TypeAlias = Literal["SampleProcResultSet2"]
+
+
+class SampleProcResultSet2(TypedDict, total=False):
+    something: Optional[str]
+
+
+class TaggedSampleProcResultSet2(TypedDict):
+    type: Literal["SampleProcResultSet2",]
+    items: list[SampleProcResultSet2]
+
+
+SampleProcResultSet: TypeAlias = Union[
+    MrsProcedureResultSet[
+        SampleProcResultSet1Type, SampleProcResultSet1, TaggedSampleProcResultSet1
+    ],
+    MrsProcedureResultSet[
+        SampleProcResultSet2Type, SampleProcResultSet2, TaggedSampleProcResultSet2
+    ],
+]
 
 
 IMyServiceAuthApp: TypeAlias = Literal["MRS",]
@@ -503,11 +573,9 @@ async def test_gtid_track_and_sync(
     filter includes a `$asof` operator with the tracked GTID for READ and
     DELETE HTTP requests.
 
-    * when DELETE response include gtid in metadata, the latest GTID is updated.
+    * when DELETE, CREATE and UPDATE response include gtid in metadata, the latest GTID is updated.
 
-    * when CREATE response include gtid in metadata, the latest GTID is updated.
-
-    * when UPDATE response include gtid in metadata, the latest GTID is updated.
+    * when FUNCTION and PROCEDURES responses include the gtid metadata, the latest GTID is updated.
     """
     # dummy data
     data_create: ActorData = {"first_name": "Shigeru", "last_name": "Miyamoto"}
@@ -527,7 +595,13 @@ async def test_gtid_track_and_sync(
         )
     )
 
-    for cls_ in (MrsBaseObjectCreate, MrsBaseObjectUpdate, MrsBaseObjectDelete):
+    for cls_ in (
+        MrsBaseObjectCreate,
+        MrsBaseObjectUpdate,
+        MrsBaseObjectDelete,
+        MrsBaseObjectFunctionCall,
+        MrsBaseObjectProcedureCall,
+    ):
         # set latest GTID
         schema._service._session["gtid"] = gtid_epoch_0
 
@@ -536,10 +610,12 @@ async def test_gtid_track_and_sync(
             | MrsBaseObjectCreate
             | MrsBaseObjectUpdate
             | MrsBaseObjectDelete
+            | MrsBaseObjectFunctionCall
+            | MrsBaseObjectProcedureCall
         )
 
         # ------------------------------- GTID Tracking -------------------------------
-        # Checking CREATE/UPDATE/DELETE HTTP requests
+        # Checking CREATE/UPDATE/DELETE/FUNCTION/PROCEDURE HTTP requests
         if cls_ == MrsBaseObjectCreate:
             request_path = f"{schema._request_path}/actor"
             request = MrsBaseObjectCreate[ActorData, ActorDetails](
@@ -557,8 +633,43 @@ async def test_gtid_track_and_sync(
                 request_path=request_path,
                 options=cast(DeleteOptions, query),
             )
+        elif cls_ == MrsBaseObjectFunctionCall:
+            request_path = f"{schema._request_path}/SumFunc"
+            request = MrsBaseObjectFunctionCall[SumFuncFuncParameters, int](
+                schema=schema,
+                request_path=request_path,
+                parameters=cast(SumFuncFuncParameters, {"a": 2, "b": 3}),
+            )
+        elif cls_ == MrsBaseObjectProcedureCall:
+            request_path = f"{schema._request_path}/TwiceProc"
+            request = MrsBaseObjectProcedureCall[
+                TwiceProcParams, TwiceProcParamsOut, TwiceProcResultSet
+            ](
+                schema=schema,
+                request_path=request_path,
+                parameters=cast(TwiceProcParams, {"number": 13}),
+            )
 
-        mock_urlopen.return_value = urlopen_simulator(urlopen_read=fictional_response)
+        # expand the fictional response of function and procedure mrs-base objects
+        if cls_ == MrsBaseObjectProcedureCall:
+            mock_urlopen.return_value = urlopen_simulator(
+                urlopen_read={
+                    **fictional_response,
+                    **{"result_sets": [], "out_parameters": {"number_twice": 26}},
+                }
+            )
+        elif cls_ == MrsBaseObjectFunctionCall:
+            mock_urlopen.return_value = urlopen_simulator(
+                urlopen_read={
+                    **fictional_response,
+                    **{"result": 5},
+                }
+            )
+        else:
+            mock_urlopen.return_value = urlopen_simulator(
+                urlopen_read=fictional_response
+            )
+
         mock_create_default_context.return_value = ssl.create_default_context()
 
         _ = await request.submit()
@@ -937,6 +1048,101 @@ async def test_function_call_submit(
         method="PUT",
     )
     assert mock_urlopen.call_count == 2
+
+
+####################################################################################
+#                      Test "submit" Method (procedure-call's backbone)
+####################################################################################
+@pytest.mark.parametrize(
+    "proc_name, parameters, urlopen_read, in_interface, out_interface, result_sets_interface",
+    [
+        (
+            "TwiceProc",  # p(number) -> 2*number
+            {"number": 13},
+            {"result_sets": [], "out_parameters": {"number_twice": 26}},
+            TwiceProcParams,
+            TwiceProcParamsOut,
+            TwiceProcResultSet,
+        ),
+        (
+            "MirrorProc",  # p(string) -> reversed string
+            {"channel": "roma"},
+            {"result_sets": [], "out_parameters": {"channel": "amor"}},
+            MirrorProcParams,
+            MirrorProcParamsOut,
+            MirrorProcResultSet,
+        ),
+        (
+            "SampleProc",
+            {"arg1": "", "arg2": "foo"},
+            {
+                "result_sets": [
+                    {
+                        "type": "SampleProcResultSet1",
+                        "items": [{"name": "foo", "age": 42}],
+                        "_metadata": {
+                            "columns": [
+                                {"name": "name", "type": "VARCHAR(3)"},
+                                {"name": "age", "type": "BIGINT"},
+                            ]
+                        },
+                    },
+                    {
+                        "type": "SampleProcResultSet2",
+                        "items": [{"something": "bar"}],
+                        "_metadata": {
+                            "columns": [{"name": "something", "type": "VARCHAR(3)"}]
+                        },
+                    },
+                ],
+                "out_parameters": {"arg2": "foo", "arg3": None},
+            },
+            SampleProcParams,
+            SampleProcParamsOut,
+            SampleProcResultSet,
+        ),
+    ],
+)
+async def test_procedure_call_submit(
+    mock_urlopen: MagicMock,
+    urlopen_simulator: MagicMock,
+    mock_create_default_context: MagicMock,
+    proc_name: str,
+    parameters: dict,
+    urlopen_read: dict,
+    in_interface: TypeAlias,
+    out_interface: TypeAlias,
+    result_sets_interface: TypeAlias,
+    mock_request_class: MagicMock,
+    schema: MrsBaseSchema,
+):
+    """Check `MrsBaseObjectProcedureCall.submit()`."""
+    request_path = f"{schema._request_path}/{proc_name}"
+    request = MrsBaseObjectProcedureCall[
+        in_interface, out_interface, result_sets_interface
+    ](
+        schema=schema,
+        request_path=request_path,
+        parameters=cast(in_interface, parameters),
+    )
+
+    mock_urlopen.return_value = urlopen_simulator(urlopen_read=urlopen_read)
+    mock_create_default_context.return_value = ssl.create_default_context()
+
+    procedure_result = await request.submit()
+
+    assert procedure_result.out_parameters == urlopen_read["out_parameters"]
+    assert procedure_result.result_sets == [
+        MrsProcedureResultSet(result_set) for result_set in urlopen_read["result_sets"]
+    ]
+
+    mock_request_class.assert_called_once_with(
+        url=request_path,
+        headers={},
+        data=json.dumps(obj=parameters, cls=MrsJSONDataEncoder).encode(),
+        method="PUT",
+    )
+    mock_urlopen.assert_called_once()
 
 
 ####################################################################################
