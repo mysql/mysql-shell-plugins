@@ -23,7 +23,7 @@ import {
     MrsBaseObjectCreate,
     // --- importCreateOnlyEnd
     // --- importProcedureCallOnlyStart
-    IMrsProcedureResponse,
+    IMrsProcedureResult,
     MrsBaseObjectProcedureCall,
     // --- importProcedureCallOnlyEnd
     // --- importFunctionCallOnlyStart
@@ -189,7 +189,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     // --- crudDeleteOnlyEnd
 
     // --- crudProcedureCallOnlyStart
-    public call = async (${obj_name}Params?: I${obj_param_interface}): Promise<IMrsProcedureResponse<I${obj_param_interface}Out, ${obj_meta_interface}>> => {
+    public call = async (${obj_name}Params?: I${obj_param_interface}): Promise<IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>> => {
         const request = new MrsBaseObjectProcedureCall<I${obj_param_interface}, I${obj_param_interface}Out, ${obj_meta_interface}>(
             this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}Params);
         const response = await request.fetch();

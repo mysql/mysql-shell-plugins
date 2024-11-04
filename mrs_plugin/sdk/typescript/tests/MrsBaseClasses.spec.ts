@@ -27,8 +27,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
     IFindManyOptions, IFindUniqueOptions, JsonValue, MrsBaseObjectQuery, MrsBaseSchema, MrsBaseService,
     MrsResourceObject, MrsBaseObjectCreate, IFindFirstOptions, IMrsResourceCollectionData, MrsBaseObjectDelete,
-    MrsBaseObjectUpdate, IMrsDeleteResult, IMrsFunctionResponse, MrsBaseObjectFunctionCall, IMrsProcedureResponse,
-    MrsBaseObjectProcedureCall,
+    MrsBaseObjectUpdate, IMrsDeleteResult, IMrsFunctionJsonResponse, MrsBaseObjectFunctionCall,
+    IMrsProcedureJsonResponse, MrsBaseObjectProcedureCall, JsonObject,
 } from "../MrsBaseClasses";
 
 // fixtures
@@ -991,9 +991,61 @@ describe("MRS SDK API", () => {
     });
 
     describe("when calling a function", () => {
+        describe("transactional metadata", () => {
+            beforeEach(() => {
+                const response: IMrsFunctionJsonResponse<string> = { result: "foo", _metadata: { gtid: "bar" } };
+                createFetchMock(JSON.stringify(response));
+            });
+
+            it("are not part of the JSON representation of the function result",
+                async () => {
+                const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", { name: "foo" });
+                const result = await query.fetch();
+
+                expect(JSON.stringify(result)).toEqual('{"result":"foo"}');
+            });
+
+            it("are not enumerable in the function result", async () => {
+                const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", { name: "foo" });
+                const result = await query.fetch();
+
+                expect(Object.keys(result)).toEqual(["result"]);
+            });
+
+            it("are not iterable in the function result", async () => {
+                const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", { name: "foo" });
+                const result = await query.fetch();
+
+                expect("_metadata" in result).toBeFalsy();
+            });
+
+            it("are not writable in the function result", async () => {
+                const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", { name: "foo" });
+                const result = await query.fetch();
+                // eslint-disable-next-line no-underscore-dangle
+                expect(() => { result._metadata = { gtid: "qux" }; })
+                    .toThrowError('The "_metadata" property cannot be changed.');
+            });
+
+            it("are not removable from the function result", async () => {
+                const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", { name: "foo" });
+                const result = await query.fetch();
+                // eslint-disable-next-line no-underscore-dangle
+                expect(() => { delete result._metadata; }).toThrowError('The "_metadata" property cannot be deleted.');
+            });
+
+            it("are directly accessible in the function result",
+                    async () => {
+                const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", { name: "foo" });
+                const result = await query.fetch();
+                // eslint-disable-next-line no-underscore-dangle
+                expect(result._metadata?.gtid).toEqual("bar");
+            });
+        });
+
         describe("if the server does not send back a GTID", () => {
             beforeEach(async () => {
-                const response: IMrsFunctionResponse<string> = { result: "foo" };
+                const response: IMrsFunctionJsonResponse<string> = { result: "foo" };
                 createFetchMock(JSON.stringify(response));
 
                 const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", { name: "foo" });
@@ -1024,7 +1076,7 @@ describe("MRS SDK API", () => {
 
         describe("if the server sends back a GTID", () => {
             beforeEach(async () => {
-                const response: IMrsFunctionResponse<string> = {
+                const response: IMrsFunctionJsonResponse<string> = {
                     result: "foo",
                     _metadata: {
                         gtid: "ABC",
@@ -1089,9 +1141,97 @@ describe("MRS SDK API", () => {
     });
 
     describe("when calling a procedure", () => {
+        describe("transactional and column metadata", () => {
+            beforeEach(() => {
+                const response: IMrsProcedureJsonResponse<{ name: string }, {}> = {
+                    resultSets: [{
+                        type: "IMrsProcedureResultSet1",
+                        items: [{
+                            name: "foobar",
+                        }],
+                        _metadata: {
+                            columns: [{
+                                name: "qux",
+                                type: "VARCHAR(3)",
+                            }],
+                        },
+                    }],
+                    _metadata: {
+                        gtid: "baz",
+                    },
+                };
+                createFetchMock(JSON.stringify(response));
+            });
+
+            it("are not part of the JSON representation of the function result",
+                async () => {
+                const query = new MrsBaseObjectProcedureCall<{ firstName: string, lastName: string }, { name: string },
+                    JsonObject>(schema, "/baz", { firstName: "foo", lastName: "bar" });
+                const result = await query.fetch();
+
+                expect(JSON.stringify(result))
+                    .toEqual('{"resultSets":[{"type":"IMrsProcedureResultSet1","items":[{"name":"foobar"}]}]}');
+            });
+
+            it("are not enumerable in the function result", async () => {
+                const query = new MrsBaseObjectProcedureCall<{ firstName: string, lastName: string }, { name: string },
+                    JsonObject>(schema, "/baz", { firstName: "foo", lastName: "bar" });
+                const result = await query.fetch();
+
+                expect(Object.keys(result)).toEqual(["resultSets"]);
+                expect(Object.keys(result.resultSets[0])).toEqual(["type", "items"]);
+            });
+
+            it("are not iterable in the function result", async () => {
+                const query = new MrsBaseObjectProcedureCall<{ firstName: string, lastName: string }, { name: string },
+                    JsonObject>(schema, "/baz", { firstName: "foo", lastName: "bar" });
+                const result = await query.fetch();
+
+                expect("_metadata" in result).toBeFalsy();
+                expect("_metadata" in result.resultSets[0]).toBeFalsy();
+            });
+
+            it("are not writable in the function result", async () => {
+                const query = new MrsBaseObjectProcedureCall<{ firstName: string, lastName: string }, { name: string },
+                    JsonObject>(schema, "/baz", { firstName: "foo", lastName: "bar" });
+                const result = await query.fetch();
+                // eslint-disable-next-line no-underscore-dangle
+                expect(() => { result._metadata = { gtid: "qux" }; })
+                    .toThrowError('The "_metadata" property cannot be changed.');
+                // eslint-disable-next-line no-underscore-dangle
+                expect(() => { result.resultSets[0]._metadata = { gtid: "qux" }; })
+                    .toThrowError('The "_metadata" property cannot be changed.');
+            });
+
+            it("are not removable from the function result", async () => {
+                const query = new MrsBaseObjectProcedureCall<{ firstName: string, lastName: string }, { name: string },
+                    JsonObject>(schema, "/baz", { firstName: "foo", lastName: "bar" });
+                const result = await query.fetch();
+                // eslint-disable-next-line no-underscore-dangle
+                expect(() => { delete result._metadata; })
+                    .toThrowError('The "_metadata" property cannot be deleted.');
+                // eslint-disable-next-line no-underscore-dangle
+                expect(() => { delete result.resultSets[0]._metadata; })
+                    .toThrowError('The "_metadata" property cannot be deleted.');
+            });
+
+            it("are directly accessible in the function result",
+                    async () => {
+                const query = new MrsBaseObjectProcedureCall<{ firstName: string, lastName: string }, { name: string },
+                    JsonObject>(schema, "/baz", { firstName: "foo", lastName: "bar" });
+                const result = await query.fetch();
+                // eslint-disable-next-line no-underscore-dangle
+                expect(result._metadata?.gtid).toEqual("baz");
+                // eslint-disable-next-line no-underscore-dangle
+                expect(result.resultSets[0]._metadata).toBeTypeOf("object");
+                // eslint-disable-next-line no-underscore-dangle
+                expect(result.resultSets[0]._metadata).toHaveProperty("columns", [{name: "qux", type: "VARCHAR(3)"}]);
+            });
+        });
+
         describe("if the server does not send back a GTID", () => {
             beforeEach(async () => {
-                const response: IMrsProcedureResponse<{ name: string }, {}> = {
+                const response: IMrsProcedureJsonResponse<{ name: string }, {}> = {
                     outParams: {
                         name: "foobar",
                     },
@@ -1100,7 +1240,7 @@ describe("MRS SDK API", () => {
                 createFetchMock(JSON.stringify(response));
 
                 const query = new MrsBaseObjectProcedureCall<{ firstName: string, lastName: string }, { name: string },
-                    {}>(schema, "/baz", { firstName: "foo", lastName: "bar" });
+                    JsonObject>(schema, "/baz", { firstName: "foo", lastName: "bar" });
                 await query.fetch();
             });
 
@@ -1128,7 +1268,7 @@ describe("MRS SDK API", () => {
 
         describe("if the server sends back a GTID", () => {
             beforeEach(async () => {
-                const response: IMrsProcedureResponse<{ name: string }, {}> = {
+                const response: IMrsProcedureJsonResponse<{ name: string }, {}> = {
                     outParams: {
                         name: "foobar",
                     },
@@ -1140,7 +1280,7 @@ describe("MRS SDK API", () => {
                 createFetchMock(JSON.stringify(response));
 
                 const query = new MrsBaseObjectProcedureCall<{ firstName: string, lastName: string }, { name: string },
-                    {}>(schema, "/baz", { firstName: "foo", lastName: "bar" });
+                    JsonObject>(schema, "/baz", { firstName: "foo", lastName: "bar" });
                 await query.fetch();
             });
 
