@@ -490,35 +490,21 @@ export interface IMrsLink {
     href: string,
 }
 
-export interface IMrsProcedureResultColumn {
-    name: string;
-    type: string;
-}
-
-export interface IMrsProcedureResultColumns {
-    columns: IMrsProcedureResultColumn[];
-}
-
-export interface IMrsProcedureResult {
-    type: string;
-    items: JsonObject;
-    _metadata: IMrsProcedureResultColumn[];
-}
-
-export interface IMrsProcedureResultList<C> {
-    items: C[],
-}
-
 type IMrsCommonRoutineResponse = {
     _metadata?: IMrsTransactionalMetadata;
 } & JsonObject;
 
-export type IMrsProcedureResponse<OutParams, ResultSet> = {
-    outParams?: OutParams;
+export type IMrsProcedureJsonResponse<OutParams, ResultSet> = {
+    outParameters?: OutParams;
     resultSets: ResultSet[]
 } & IMrsCommonRoutineResponse;
 
-export type IMrsFunctionResponse<C> = {
+export interface IMrsProcedureResult<OutParams, ResultSet> {
+    outParameters?: OutParams;
+    resultSets: ResultSet[]
+}
+
+export type IMrsFunctionJsonResponse<C> = {
     result: C;
 } & IMrsCommonRoutineResponse;
 
@@ -1358,8 +1344,8 @@ class MrsBaseObjectCall<Input, Output extends IMrsCommonRoutineResponse> {
     }
 }
 
-export class MrsBaseObjectProcedureCall<InParams, OutParams, ResultSet>
-    extends MrsBaseObjectCall<InParams, IMrsProcedureResponse<OutParams, ResultSet>> {
+export class MrsBaseObjectProcedureCall<InParams, OutParams, ResultSet extends JsonObject>
+    extends MrsBaseObjectCall<InParams, IMrsProcedureJsonResponse<OutParams, ResultSet>> {
     public constructor(
         protected override schema: MrsBaseSchema,
         protected override requestPath: string,
@@ -1367,12 +1353,19 @@ export class MrsBaseObjectProcedureCall<InParams, OutParams, ResultSet>
         super(schema, requestPath, params);
     }
 
-    public override async fetch(): Promise<IMrsProcedureResponse<OutParams, ResultSet>> {
-        return super.fetch();
+    public override async fetch(): Promise<IMrsProcedureJsonResponse<OutParams, ResultSet>> {
+        const response = await super.fetch();
+
+        response.resultSets = response.resultSets.map((resultSet) => {
+            return (new MrsSimplifiedObjectResponse(resultSet)).getInstance();
+        });
+
+        return response;
     }
 }
 
-export class MrsBaseObjectFunctionCall<Input, Output> extends MrsBaseObjectCall<Input, IMrsFunctionResponse<Output>> {
+export class MrsBaseObjectFunctionCall<Input, Output>
+    extends MrsBaseObjectCall<Input, IMrsFunctionJsonResponse<Output>> {
     public constructor(
         protected override schema: MrsBaseSchema,
         protected override requestPath: string,
@@ -1380,7 +1373,7 @@ export class MrsBaseObjectFunctionCall<Input, Output> extends MrsBaseObjectCall<
         super(schema, requestPath, params);
     }
 
-    public override async fetch(): Promise<IMrsFunctionResponse<Output>> {
+    public override async fetch(): Promise<IMrsFunctionJsonResponse<Output>> {
         return super.fetch();
     }
 }

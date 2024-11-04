@@ -500,6 +500,29 @@ class I{name}Cursors(TypedDict, total=False):
 
     assert got == want
 
+    # PROCEDUREs
+    got, _ = generate_interfaces(
+        db_obj={"object_type":"PROCEDURE"},
+        obj={"kind":"RESULT"},
+        fields=fields,
+        class_name="Foo",
+        db_object_crud_ops=["PROCEDURECALL"],
+        sdk_language="TypeScript",
+    )
+
+    want = """export interface IFoo {
+    bar?: string,
+}
+
+export type ITaggedFoo = {
+    type: "Foo",
+    items: IFoo[],
+} & JsonObject;
+
+"""
+
+    assert got == want
+
 
 def test_generate_field_enum():
     field_enum = generate_field_enum("Foo")

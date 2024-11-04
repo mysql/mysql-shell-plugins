@@ -1436,6 +1436,7 @@ def generate_interfaces(
                     name=f"Tagged{class_name}",
                     fields=result_fields,
                     sdk_language=sdk_language,
+                    parents=["JsonObject"],
                 )
             )
 
