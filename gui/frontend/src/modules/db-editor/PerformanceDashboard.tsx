@@ -198,7 +198,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                 series: new Map(),
             },
             mleEnabled: false,
-            activeTabId: 'serverTab',
+            activeTabId: "serverTab",
         };
 
         // Get the initial values to allow computing changes on each query step.
@@ -211,7 +211,8 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         });
     }
 
-    public static override getDerivedStateFromProps(newProps: IPerformanceDashboardProperties, state: IPerformanceDashboardState): IPerformanceDashboardState {
+    public static override getDerivedStateFromProps(newProps: IPerformanceDashboardProperties,
+        state: IPerformanceDashboardState): IPerformanceDashboardState {
         const { graphData } = newProps;
 
         if (graphData.series.size === 0) {
@@ -361,7 +362,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                 id: "serverTab",
                 caption: "Server Performance",
                 tooltip: "MySQL Server Performance",
-                content:
+                content: (
                     <Grid
                         id="dashboardGrid"
                         columns={["33%", "33%", "33%"]}
@@ -372,24 +373,27 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                         {this.renderNetworkStatus(1)}
                         {this.renderMySQLStatus(2)}
                         {this.renderInnoDBStatus(3)}
-                    </Grid>,
+                    </Grid>
+                ),
             },
             {
                 id: "mleTab",
                 caption: "MLE Performance",
                 tooltip: "MLE Performance",
-                content: 
+                content: (
                     <Grid
-                    id="dashboardGrid"
-                    columns={["33%", "33%", "33%"]}
-                    equalHeight={false}
-                    columnGap={12}
-                    rowGap={30}
+                        id="dashboardGrid"
+                        columns={["33%", "33%", "33%"]}
+                        equalHeight={false}
+                        columnGap={12}
+                        rowGap={30}
                     >
                         {this.renderMleStatus(1)}
-                    </Grid>,
-            }
-        ]
+                    </Grid>
+                ),
+            },
+        ];
+
         return <Container
                 className={className}
                 orientation={Orientation.TopDown}
@@ -401,7 +405,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                     selectedId={activeTabId}
                     onSelectTab={this.handleSelectTab}
                 />
-            </Container>
+            </Container>;
     }
 
     private handleSelectTab = (id: string): void => {
@@ -993,7 +997,10 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
 
         const mleHeapUsageData = graphData.series.get("mleHeapUsageData") ?? [];
 
-        const values = [{ name: "Heap usage", value: mleMemoryUsedPie }, { name: "Unused heap", value: 1 - mleMemoryUsedPie }];
+        const values = [
+            { name: "Heap usage", value: mleMemoryUsedPie },
+            { name: "Unused heap", value: 1 - mleMemoryUsedPie },
+        ];
 
         const heapUsageGraphOptions: IGraphOptions = {
             viewport: { left: 0, top: 0, width: 400, height: 300 },
@@ -1018,7 +1025,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
             timestamp,
         ];
 
-        let yDomain = this.findYDomainValues(mleHeapUsageData, 0);
+        const yDomain = this.findYDomainValues(mleHeapUsageData, 0);
 
         const mleHeapUtilizationGraphOptions: IGraphOptions = {
             viewport: { left: 0, top: 0, width: 400, height: 300 },
@@ -1031,7 +1038,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                     marginLeft: 80,
                     xDomain,
                     yDomain,
-                    yFormat: this.formatValuetoPercentage,
+                    yFormat: this.formatValueToPercentage,
                     curve: "Linear",
                     yTickCount: 6,
                     tooltip: this.mleHeapUsageTooltip,
@@ -1051,32 +1058,57 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
             >
                 <Icon className="sectionIcon" src={innodb} />
                 <Label>MLE Status</Label>
-                <Label>
-                    Overview of the MLE Component.
-                </Label>
+                <Label>Overview of the MLE Component.</Label>
             </GridCell>,
-            <GridCell orientation={Orientation.TopDown} style={{ gridColumn, gridRow: 2 }}>
+            <GridCell
+                orientation={Orientation.TopDown}
+                style={{ gridColumn, gridRow: 2 }}
+            >
                 <Grid columns={1} rowGap={12} equalHeight={true}>
-                    <GridCell orientation={Orientation.TopDown} columnSpan={2} style={{ padding: "0 25%" }}>
-                        <Label className="pieTitle" style={{ padding: "5% 0" }}>Heap Usage vs Unused heap</Label>
+                    <GridCell
+                        orientation={Orientation.TopDown}
+                        columnSpan={2}
+                        style={{ padding: "0 25%" }}
+                    >
+                        <Label className="pieTitle" style={{ padding: "5% 0" }}>
+                        Heap Usage vs Unused heap
+                        </Label>
                         <GraphHost
-                            id="heapUsageGraph"
-                            options={heapUsageGraphOptions}
+                        id="heapUsageGraph"
+                        options={heapUsageGraphOptions}
                         />
-                    </GridCell>,
-                    <GridCell orientation={Orientation.TopDown} style={{ gridRow: 2 }}>
-                        {this.renderNameValuePair("MLE status", `${mleStatus}`, MarkerType.None, "MLE status")}
-                        {this.renderNameValuePair("MLE max heap size", `${formatBytes(mleMemoryMax)}`, MarkerType.None, "MLE max heap size")}
+                    </GridCell>
+                    <GridCell
+                        orientation={Orientation.TopDown}
+                        style={{ gridRow: 2 }}
+                    >
+                        {this.renderNameValuePair(
+                        "MLE status",
+                        `${mleStatus}`,
+                        MarkerType.None,
+                        "MLE status",
+                        )}
+                        {this.renderNameValuePair(
+                        "MLE max heap size",
+                        `${formatBytes(mleMemoryMax)}`,
+                        MarkerType.None,
+                        "MLE max heap size",
+                        )}
                     </GridCell>
                 </Grid>
             </GridCell>,
-            <GridCell orientation={Orientation.TopDown} style={{ gridColumn, gridRow: 3}}>
+            <GridCell
+                orientation={Orientation.TopDown}
+                style={{ gridColumn, gridRow: 3 }}
+            >
                 <Label className="subTitle">MLE Heap utilization</Label>
-                <GraphHost
-                    options={mleHeapUtilizationGraphOptions}
-                />
-                {this.renderNameValuePair("Current Heap Usage", this.formatValuetoPercentage(mleMemoryUsed),
-                    MarkerType.None, "Current Heap Usage")}
+                <GraphHost options={mleHeapUtilizationGraphOptions} />
+                {this.renderNameValuePair(
+                "Current Heap Usage",
+                this.formatValueToPercentage(mleMemoryUsed),
+                MarkerType.None,
+                "Current Heap Usage",
+                )}
             </GridCell>,
         );
 
@@ -1130,21 +1162,24 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                 try {
                     if(mleMemoryMax && mleMemoryMax.rows) {
                         const mleMemoryMaxValue = mleMemoryMax.rows as Array<[[number]]>;
-                        variables.push(['mle_memory_max', mleMemoryMaxValue[0][0].toString()]);
+                        variables.push([
+                          "mle_memory_max",
+                          mleMemoryMaxValue[0][0].toString(),
+                        ]);
                         this.setState({ mleEnabled: true });
                     }
-                    variables.forEach(variable => {
-                        if(variable[0] === 'mle_memory_used'){
-                            const value = Number(variable[1]);
-                            if(value > 100) {
-                                variable[1] = '100';
-                            }
+                    variables.forEach((variable) => {
+                      if (variable[0] === "mle_memory_used") {
+                        const value = Number(variable[1]);
+                        if (value > 100) {
+                          variable[1] = "100";
                         }
-                    })
+                      }
+                    });
                 }
                 catch(_) {
-                    this.setState({ mleEnabled: false });
-                };
+                  this.setState({ mleEnabled: false });
+                }
 
                 if (this.hasPSAccess) {
                     const data = await backend.execute(`SELECT STORAGE_ENGINES->>'$."InnoDB"."LSN"' - ` +
@@ -1396,8 +1431,8 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         return `${formatBytes(domainValue.valueOf())}/s`;
     };
 
-    private formatValuetoPercentage = (value: d3.NumberValue, unit='%'): string => {
-        return `${value}${unit}`;
+    private formatValueToPercentage = (value: d3.NumberValue): string => {
+        return `${Number(value)}%`;
     };
 
     /**
@@ -1532,7 +1567,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                 const timestamp = datum.xValue instanceof Date ? datum.xValue.getTime() : datum.xValue;
                 const diff = currentTimestamp - timestamp;
 
-                return `${this.formatTimeDifference(diff)}\n${this.formatValuetoPercentage(datum.yValue)}`;
+                return `${this.formatTimeDifference(diff)}\n${this.formatValueToPercentage(datum.yValue)}`;
             },
             position: { left: 200, top: 20 },
         };
