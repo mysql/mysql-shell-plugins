@@ -1,42 +1,10 @@
-# MySQL Shell for VS Code 1.16.5+9.1.0 Preview
+# MySQL Shell for VS Code 1.16.5+9.1.0
 
-This extension enables interactive editing and execution of SQL for MySQL Databases and the HeatWave Service. It integrates the MySQL Shell directly into VS Code development workflows.
+The MySQL Shell for VS Code extension integrates the powerful feature set of MySQL Shell - an advanced MySQL client for developers and DBAs - directly into VS Code.
 
-__IMPORTANT: Please note that this is a PREVIEW release which is not meant to be used in production.__
+It provides a modern notebook interface to interactively work with and execute SQL against MySQL databases and the HeatWave service, as well as a traditional SQL script-based workflow.
 
 ![MySQL Shell For VS Code Screenshot](images/screenshots/MySQLShellForVSCodeMain.jpg)
-
-## Community Preview Release
-
-Thanks for your interest in our new Visual Studio Code extension. We created this preview release especially for the MySQL Community to showcase our latest project for MySQL developers. We aim to deliver the best possible integration of MySQL support inside the Visual Studio Code environment.
-
-To reach our goal, we need your help. Please help to test our extension and report any bugs you find, so we can get the project closer to production quality in less time. We would also like to hear about your feature requests to make our extension more complete and cover your needs.
-
-To file a bug report, select the following menu item or go to [bugs.mysql.com](https://bugs.mysql.com/report.php?category=Shell%20VSCode%20Extension).
-
-![File a Bug](images/screenshots/MySQLShellForVSCodeFileBug.gif)
-
-## Supported Platforms
-
-| OS      | Version/Dependency | Architecture |
-|---------|--------------------|--------------|
-| macOS   | 14 and higher      | arm64, x64   |
-| Windows | 11 and higher      | x64          |
-| Linux   | glibc 2.28         | arm64, x64   |
-
-### Tested Linux Distributions
-
-| Linux Distribution  | Releases          |
-|---------------------|-------------------|
-| Debian              | 12                |
-| Ubuntu              | 22.04, 24.04      |
-| Ubuntu-WSL2         | 22.04             |
-| Kubuntu             | 22.04, 24.04      |
-| Oracle Linux/RedHat | 7, 8, 9           |
-| Fedora              | 40                |
-| Raspberry Pi OS     | January 28th 2022 |
-
-If you have successfully tested the extension on other Linux distributions, please let us know by filing a [bugs report](https://bugs.mysql.com/report.php?category=Shell%20VSCode%20Extension).
 
 ## Tutorials
 
@@ -101,5 +69,33 @@ Takes SQL embedded in your source files and runs it inside the DB Editor. Update
   - Execute any selected SQL commands from SQL files
   - Execute multi-line SQL blocks from Python files
     - Update original Python files with changes made in DB Editor
+
+## How to report a bug
+
+To file a bug report, select the following menu item or go to [bugs.mysql.com](https://bugs.mysql.com/report.php?category=Shell%20VSCode%20Extension).
+
+![File a Bug](images/screenshots/MySQLShellForVSCodeFileBug.gif)
+
+## Supported Platforms
+
+| OS      | Version/Dependency | Architecture |
+|---------|--------------------|--------------|
+| macOS   | 14 and higher      | arm64, x64   |
+| Windows | 11 and higher      | x64          |
+| Linux   | glibc 2.28         | arm64, x64   |
+
+### Tested Linux Distributions
+
+| Linux Distribution  | Releases          |
+|---------------------|-------------------|
+| Debian              | 12                |
+| Ubuntu              | 22.04, 24.04      |
+| Ubuntu-WSL2         | 22.04             |
+| Kubuntu             | 22.04, 24.04      |
+| Oracle Linux/RedHat | 7, 8, 9           |
+| Fedora              | 40                |
+| Raspberry Pi OS     | January 28th 2022 |
+
+If you have successfully tested the extension on other Linux distributions, please let us know by filing a [bugs report](https://bugs.mysql.com/report.php?category=Shell%20VSCode%20Extension).
 
 Copyright &copy; 2022, 2024, Oracle and/or its affiliates.
