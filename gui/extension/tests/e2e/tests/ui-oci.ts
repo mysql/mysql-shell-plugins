@@ -507,7 +507,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const treeLocalConn = await dbTreeSection.tree.getElement(localConn.caption);
             await new EditorView().closeAllEditors();
             await driver.executeScript("arguments[0].click()",
-                await dbTreeSection.tree.getActionButton(treeLocalConn, constants.openNewConnection));
+                await dbTreeSection.tree.getActionButton(treeLocalConn, constants.openNewConnectionUsingNotebook));
             const notebook = new E2ENotebook();
             await driver.wait(notebook.untilIsOpened(localConn),
                 constants.wait25seconds, "MDS Connection was not opened");

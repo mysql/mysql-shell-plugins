@@ -363,6 +363,22 @@
                 }
             },
             {
+                "command": "msg.openConnectionNotebook",
+                "title": "Open New Connection using Notebook",
+                "icon": {
+                    "dark": "images/dark/runNotebook.svg",
+                    "light": "images/light/runNotebook.svg"
+                }
+            },
+            {
+                "command": "msg.openConnectionSqlScript",
+                "title": "Open New Connection using SQL Script",
+                "icon": {
+                    "dark": "images/dark/runScript.svg",
+                    "light": "images/light/runScript.svg"
+                }
+            },
+            {
                 "command": "msg.openConnectionNewTab",
                 "title": "Open New Database Connection on New Tab",
                 "icon": {
@@ -1189,7 +1205,12 @@
                     "group": "inline"
                 },
                 {
-                    "command": "msg.openConnection",
+                    "command": "msg.openConnectionNotebook",
+                    "when": "view == msg.connections && viewItem =~ /^connection.*/",
+                    "group": "inline"
+                },
+                {
+                    "command": "msg.openConnectionSqlScript",
                     "when": "view == msg.connections && viewItem =~ /^connection.*/",
                     "group": "inline"
                 },
