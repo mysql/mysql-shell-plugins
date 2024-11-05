@@ -1,17 +1,26 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.16.5+9.1.0
+## Changes in 1.17.0+9.1.0
 
 ### Additions
 
+- Removed PREVIEW overlay on extension icon indicating GA release
+- Change database connection view to include separate overlay icons for opening the connection with either a DB Notebook or DB Script.
+- Added menu item to open SQL files directly from VS Code's explorer.
+- Changed layout of DB Connection Editor and add a new option to set the default editor for the connection.
+- Added MRS Script support and updated MRS metadata schema to 3.0.3.
+- Added history of executed statement on DB Notebooks.
 - Added MLE performance status in the admin section for a connection
 - Updated MySQL Shell to 9.1.0
 
 ### Fixes
 
+- Fixed editing of result sets when multiple result tabs are open.
+- Improved theme handling.
+- Fixed scrolling behavior of DB Notebooks.
+- Fixed broken message display while opening a DB Connection.
 - BUG#36893025 Directive `importReadOnly` doesn't import read-resources when at least one table object has no READ permissions
 - BUG#37154650 Unexpected error whist using a REST VIEW in invoker security context
--
 
 ## Changes in 1.16.4+9.0.1
 
