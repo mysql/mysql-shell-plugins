@@ -345,7 +345,6 @@ export class E2ECodeEditor {
             await driver.executeScript("arguments[0].click()", button);
         }
         const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
-        console.log(`[DEBUG] expecting id '${id}' for cmd ${cmd}`);
         const commandResult = new CommandResult(this, cmd, id);
         await commandResult.loadResult();
 

@@ -816,7 +816,7 @@ describe("HeatWave Chat", () => {
 
             expect(documentTitles).toContain(cookbookFile);
         } catch (e) {
-            await Misc.storeScreenShot("beforeAll_HeatWave_Chat");
+            testFailed = true;
             throw e;
         }
     });

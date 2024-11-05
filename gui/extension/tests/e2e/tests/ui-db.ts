@@ -917,9 +917,9 @@ describe("DATABASE CONNECTIONS", () => {
 
             await mysqlAdministration.performanceDashboard.loadServerPerformance();
             expect(mysqlAdministration.performanceDashboard.networkStatus.incomingNetworkTrafficGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.networkStatus.incomingData).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.networkStatus.incomingData).to.match(/(\d+) (KB|B)\/s/);
             expect(mysqlAdministration.performanceDashboard.networkStatus.outgoingNetworkTrafficGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.networkStatus.outgoingData).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.networkStatus.outgoingData).to.match(/(\d+) (KB|B)\/s/);
             expect(mysqlAdministration.performanceDashboard.mysqlStatus.tableCacheGraph).to.exist;
             expect(mysqlAdministration.performanceDashboard.mysqlStatus.threadsGraph).to.exist;
             expect(mysqlAdministration.performanceDashboard.mysqlStatus.openObjectsGraph).to.exist;
@@ -942,12 +942,12 @@ describe("DATABASE CONNECTIONS", () => {
             expect(mysqlAdministration.performanceDashboard.innoDBStatus.writeRequests).to.match(/(\d+) pages\/s/);
             expect(mysqlAdministration.performanceDashboard.innoDBStatus.diskReads).to.match(/(\d+) #\/s/);
             expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBDiskWritesGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.logDataWritten).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.logDataWritten).to.match(/(\d+) (KB|B)\/s/);
             expect(mysqlAdministration.performanceDashboard.innoDBStatus.logWrites).to.match(/(\d+) #\/s/);
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.writing).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.writing).to.match(/(\d+) (KB|B)\/s/);
             expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBDiskReadsGraph).to.exist;
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.bufferWrites).to.match(/(\d+) B\/s/);
-            expect(mysqlAdministration.performanceDashboard.innoDBStatus.reading).to.match(/(\d+) B\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.bufferWrites).to.match(/(\d+) (KB|B)\/s/);
+            expect(mysqlAdministration.performanceDashboard.innoDBStatus.reading).to.match(/(\d+) (KB|B)\/s/);
 
             await (await mysqlAdministration.performanceDashboard.getTab(constants.perfDashMLETab)).click();
             await mysqlAdministration.performanceDashboard.loadMLEPerformance();

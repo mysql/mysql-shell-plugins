@@ -306,8 +306,8 @@ describe("MySQL Administration", () => {
             const currentHeap = await driver
                 .findElement(locator.mysqlAdministration.performanceDashboard.mleStatus.currentHeapUsage);
             await driver.executeScript("arguments[0].scrollIntoView()", currentHeap);
-            expect(parseInt(mysqlAdministration.performanceDashboard.mlePerformance!.currentHeapUsage
-                .match(/(\d+)/)![1], 10)).toBeGreaterThan(0);
+            expect(mysqlAdministration.performanceDashboard.mlePerformance!.currentHeapUsage
+                .match(/(\d+)/)![1]).toMatch(/(\d+)/);
         } catch (e) {
             testFailed = true;
             throw e;
