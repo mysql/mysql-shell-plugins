@@ -95,6 +95,7 @@ export class Misc {
             }
         });
     };
+
     /**
      * Returns the background color of the page
      * @param driver The webdriver

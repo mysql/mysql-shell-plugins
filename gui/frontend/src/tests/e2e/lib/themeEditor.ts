@@ -23,10 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Key, WebElement, WebDriver, error } from "selenium-webdriver";
 import * as locator from "../lib/locators.js";
 import { driver } from "../lib/driver.js";
-import * as constants from "../lib/constants.js";
 
 export class ThemeEditor {
 
@@ -38,6 +36,7 @@ export class ThemeEditor {
     public static selectAppColorTheme = async (theme: string): Promise<void> => {
         await driver.findElement(locator.themeEditorPage.themeSelectorArea.selector).click();
         const dropDownList = await driver.findElement(locator.themeEditorPage.themeSelectorArea.selectorList);
-        await dropDownList.findElement(locator.searchById(theme)).click();
+        const selectorTheme = await dropDownList.findElement(locator.searchById(theme));
+        await driver.executeScript("arguments[0].click()", selectorTheme);
     };
 }

@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { WebElement, until, Condition } from "selenium-webdriver";
+import { WebElement, until, Condition, error } from "selenium-webdriver";
 import { driver } from "./driver.js";
 import * as locator from "./locators.js";
 import * as constants from "./constants.js";
@@ -61,19 +61,31 @@ export class E2ENotificationsCenter {
      * @returns A promise resolving with the notifications center's notifications
      */
     public getNotifications = async (): Promise<interfaces.INotification[]> => {
-        const notifications = await this.self?.findElements(locator.notificationsCenter.notificationsList.item.exists);
         const iNotifications: interfaces.INotification[] = [];
 
-        for (const notification of notifications!) {
-            const type = await notification.findElement(locator.notificationsCenter.notificationsList.item.type);
-            iNotifications.push({
-                id: await notification.getAttribute("id"),
-                type: (await type.getAttribute("class")).match(/codicon-(.*)/)![1],
-                message: await (await notification
-                    .findElement(locator.notificationsCenter.notificationsList.item.message)).getText(),
-                webElement: notification,
-            });
-        }
+        await driver.wait(async () => {
+            try {
+                const notifications = await this.self
+                    ?.findElements(locator.notificationsCenter.notificationsList.item.exists);
+                for (const notification of notifications!) {
+                    const type = await notification
+                        .findElement(locator.notificationsCenter.notificationsList.item.type);
+                    iNotifications.push({
+                        id: await notification.getAttribute("id"),
+                        type: (await type.getAttribute("class")).match(/codicon-(.*)/)![1],
+                        message: await (await notification
+                            .findElement(locator.notificationsCenter.notificationsList.item.message)).getText(),
+                        webElement: notification,
+                    });
+                }
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, "");
 
         return iNotifications;
     };
