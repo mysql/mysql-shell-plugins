@@ -566,6 +566,48 @@ export class DBEditorCommandHandler {
             }
         }));
 
+        host.context.subscriptions.push(commands.registerCommand("msg.openScriptWithConnection", async (uri?: Uri) => {
+            if (!uri) {
+                return;
+            }
+
+            const connection = await host.determineConnection(DBType.MySQL, true);
+            if (connection) {
+                const stat = await workspace.fs.stat(uri);
+
+                if (stat.size >= 10000000) {
+                    await window.showInformationMessage(`The file "${uri.fsPath}" ` +
+                        `is too large to edit it in a web view. Instead use the VS Code built-in editor.`);
+                } else {
+                    const content = (await workspace.fs.readFile(uri)).toString();
+                    const provider = this.#host.currentProvider;
+
+                    if (provider) {
+                        // We load only sql and mysql scripts here.
+                        const language: EditorLanguage = "mysql";
+                        const name = basename(uri.fsPath);
+
+                        const request: IScriptRequest = {
+                            scriptId: uuid(),
+                            name,
+                            content,
+                            language,
+                        };
+
+                        let scripts = this.#openScripts.get(provider);
+                        if (!scripts) {
+                            scripts = new Map();
+                            this.#openScripts.set(provider, scripts);
+                        }
+                        scripts.set(request.scriptId, uri);
+
+                        const details = connection.treeItem.details;
+                        void provider.editScript(String(details.id), request);
+                    }
+                }
+            }
+        }));
+
         context.subscriptions.push(commands.registerCommand("msg.mds.createConnectionViaBastionService",
             (item?: OciDbSystemTreeItem) => {
                 if (item) {

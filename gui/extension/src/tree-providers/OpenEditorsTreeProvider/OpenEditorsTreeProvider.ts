@@ -404,7 +404,6 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<IOpenEditor
             if (itemToSelect.caption !== "DB Connection Overview") {
                 provider.caption = details.connectionCaption;
             }
-            this.#selectCallback(itemToSelect);
         } else {
             const entry = this.#openProviders.get(provider);
             if (!entry) {

@@ -95,62 +95,6 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
           />
         </Divider>
         <Button
-          data-tooltip="Format current block or script"
-          imageOnly={true}
-          key="editorFormatButton"
-          requestType="editorFormat"
-        >
-          <div
-            className="msg button imageOnly"
-            data-tooltip="Format current block or script"
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            role="button"
-            style={
-              {
-                "flexDirection": undefined,
-              }
-            }
-            tabIndex={0}
-          >
-            <Icon
-              data-tooltip="inherit"
-              disabled={false}
-              src="toolbar-format.svg"
-            >
-              <div
-                className="msg icon"
-                data-tooltip="inherit"
-                style={
-                  {
-                    "WebkitMaskImage": "url("toolbar-format.svg")",
-                    "backgroundColor": undefined,
-                    "height": undefined,
-                    "maskImage": "url("toolbar-format.svg")",
-                    "width": undefined,
-                  }
-                }
-              />
-            </Icon>
-          </div>
-        </Button>
-        <Divider
-          key="formatDivider"
-          thickness={1}
-          vertical={true}
-        >
-          <div
-            className="msg divider vertical"
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            style={
-              {
-                "--thickness": "1px",
-              }
-            }
-          />
-        </Divider>
-        <Button
           data-tooltip="Find"
           imageOnly={true}
           key="editorFindButton"
@@ -474,62 +418,6 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
           />
         </Divider>
         <Button
-          data-tooltip="Format current block or script"
-          imageOnly={true}
-          key="editorFormatButton"
-          requestType="editorFormat"
-        >
-          <div
-            className="msg button imageOnly"
-            data-tooltip="Format current block or script"
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            role="button"
-            style={
-              {
-                "flexDirection": undefined,
-              }
-            }
-            tabIndex={0}
-          >
-            <Icon
-              data-tooltip="inherit"
-              disabled={false}
-              src="toolbar-format.svg"
-            >
-              <div
-                className="msg icon"
-                data-tooltip="inherit"
-                style={
-                  {
-                    "WebkitMaskImage": "url("toolbar-format.svg")",
-                    "backgroundColor": undefined,
-                    "height": undefined,
-                    "maskImage": "url("toolbar-format.svg")",
-                    "width": undefined,
-                  }
-                }
-              />
-            </Icon>
-          </div>
-        </Button>
-        <Divider
-          key="formatDivider"
-          thickness={1}
-          vertical={true}
-        >
-          <div
-            className="msg divider vertical"
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            style={
-              {
-                "--thickness": "1px",
-              }
-            }
-          />
-        </Divider>
-        <Button
           data-tooltip="Find"
           imageOnly={true}
           key="editorFindButton"
@@ -738,62 +626,6 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation language=msg 1
           </div>
         </Button>
         <Divider
-          thickness={1}
-          vertical={true}
-        >
-          <div
-            className="msg divider vertical"
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-            style={
-              {
-                "--thickness": "1px",
-              }
-            }
-          />
-        </Divider>
-        <Button
-          data-tooltip="Format current block or script"
-          imageOnly={true}
-          key="editorFormatButton"
-          requestType="editorFormat"
-        >
-          <div
-            className="msg button imageOnly"
-            data-tooltip="Format current block or script"
-            onClick={[Function]}
-            onMouseDown={[Function]}
-            role="button"
-            style={
-              {
-                "flexDirection": undefined,
-              }
-            }
-            tabIndex={0}
-          >
-            <Icon
-              data-tooltip="inherit"
-              disabled={false}
-              src="toolbar-format.svg"
-            >
-              <div
-                className="msg icon"
-                data-tooltip="inherit"
-                style={
-                  {
-                    "WebkitMaskImage": "url("toolbar-format.svg")",
-                    "backgroundColor": undefined,
-                    "height": undefined,
-                    "maskImage": "url("toolbar-format.svg")",
-                    "width": undefined,
-                  }
-                }
-              />
-            </Icon>
-          </div>
-        </Button>
-        <Divider
-          key="formatDivider"
           thickness={1}
           vertical={true}
         >

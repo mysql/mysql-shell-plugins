@@ -33,7 +33,6 @@ import executeCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret.
 import executeHeatWaveCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret_heatwave.svg";
 import executeHeatWaveIcon from "../../assets/images/toolbar/toolbar-execute_heatwave.svg";
 import executePrintTextIcon from "../../assets/images/toolbar/toolbar-execute_print_text.svg";
-import formatIcon from "../../assets/images/toolbar/toolbar-format.svg";
 import rollbackIcon from "../../assets/images/toolbar/toolbar-rollback.svg";
 import searchIcon from "../../assets/images/toolbar/toolbar-search.svg";
 import showHiddenActiveIcon from "../../assets/images/toolbar/toolbar-show_hidden-active.svg";
@@ -355,6 +354,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
 
         const editorItems = toolbarItems.editor.slice();
         editorItems.push(
+            /* We have no formatting yet.
             <Button
                 key="editorFormatButton"
                 data-tooltip="Format current block or script"
@@ -363,7 +363,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
             >
                 <Icon src={formatIcon} data-tooltip="inherit" />
             </Button>,
-            <Divider key="formatDivider" vertical={true} thickness={1} />,
+            <Divider key="formatDivider" vertical={true} thickness={1} />,*/
             <Button
                 key="editorFindButton"
                 data-tooltip="Find"

@@ -190,7 +190,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
             </Button>,
             <Button
                 key="editorLoadNotebookButton"
-                data-tooltip="Replace this Notebook With Content from a file"
+                data-tooltip="Replace this Notebook With Content from a File"
                 requestType="editorLoadNotebook"
                 imageOnly={true}
             >
