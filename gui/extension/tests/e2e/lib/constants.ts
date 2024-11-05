@@ -75,7 +75,7 @@ export const rollback = "Rollback DB changes";
 export const commit = "Commit DB changes";
 export const autoCommit = "Auto commit DB changes";
 export const saveNotebook = "Save this Notebook";
-export const loadNotebook = "Replace this Notebook With Content from a file";
+export const loadNotebook = "Replace this Notebook With Content from a File";
 export const reloadConnections = "Reload the connection list";
 export const reloadOci = "Reload the OCI Profile list";
 export const createDBConnection = "Create New DB Connection";
@@ -496,4 +496,3 @@ export const ociComputeInstanceCtxMenu = new Map([
 ]);
 
 export const restServiceMetadataSchema = "mysql_rest_service_metadata";
-

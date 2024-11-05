@@ -592,6 +592,10 @@
                 "title": "Open the Notebook with connection..."
             },
             {
+                "command": "msg.openScriptWithConnection",
+                "title": "Open with MySQL Shell..."
+            },
+            {
                 "command": "msg.closeEditor",
                 "title": "Close Editor",
                 "icon": {
@@ -1072,6 +1076,11 @@
                 {
                     "when": "resourceLangId == mysql-notebook",
                     "command": "msg.openNotebookWithConnection",
+                    "group": "1_msg@1"
+                },
+                {
+                    "when": "resourceLangId == mysql || resourceLangId == sql",
+                    "command": "msg.openScriptWithConnection",
                     "group": "1_msg@1"
                 },
                 {

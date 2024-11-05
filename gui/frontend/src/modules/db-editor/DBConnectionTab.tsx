@@ -216,7 +216,7 @@ interface IDBConnectionTabState extends IComponentState {
 
     backend?: ShellInterfaceSqlEditor;
 
-    // Set to true if a notebook has been loaded the app is embedded, emulating so a one editor-only mode.
+    /** Set to true if a notebook has been loaded the app is embedded, emulating so a one editor-only mode. */
     standaloneMode: boolean;
 
     genAiStatus?: IMdsChatStatus;
