@@ -41,7 +41,7 @@ import {
 
 import { ExtensionHost } from "./ExtensionHost.js";
 import { webSession } from "../../frontend/src/supplement/WebSession.js";
-import { setupInitialWelcomeWebview } from "./WebviewProviders/WelcomeWebviewProvider.js";
+import { checkVcRuntime, setupInitialWelcomeWebview } from "./WebviewProviders/WelcomeWebviewProvider.js";
 import { waitFor } from "../../frontend/src/utilities/helpers.js";
 import { MessageScheduler } from "../../frontend/src/communication/MessageScheduler.js";
 
@@ -288,9 +288,10 @@ export const activate = (context: ExtensionContext): void => {
     const lastRunVersion = context.globalState.get("MySQLShellLastRunVersion");
     if (!lastRunVersion || lastRunVersion === "" || lastRunVersion !== currentVersion) {
         void context.globalState.update("MySQLShellLastRunVersion", currentVersion);
+        const osName = platform();
 
         // Reset extended attributes on macOS
-        if (platform() === "darwin") {
+        if (osName === "darwin") {
             const shellDir = join(context.extensionPath, "shell");
             if (existsSync(shellDir)) {
                 // cSpell:ignore xattr
@@ -301,6 +302,29 @@ export const activate = (context: ExtensionContext): void => {
                 // cSpell:ignore xattr
                 void childProcess.execSync(`xattr -rc ${routerDir}`);
             }
+        } else if (osName === "win32") {
+            const promptForVcUpdate = () => {
+                // cSpell:ignore redist msvc
+                void window.showErrorMessage(
+                    "The Microsoft Visual C++ Redistributable needs to be updated and VS Code needs to be " +
+                    "restarted. Do you want to open the Microsoft download page?",
+                    "Open Download Page", "Cancel").then((answer) => {
+                        if (answer !== "Cancel") {
+                            void env.openExternal(Uri.parse(
+                                "https://learn.microsoft.com/en-us/cpp/windows/" +
+                                "latest-supported-vc-redist?view=msvc-170"));
+                        }
+                    });
+            };
+
+            checkVcRuntime().then((result: boolean) => {
+                if (!result) {
+                    promptForVcUpdate();
+                }
+            }).catch((reason) => {
+                printChannelOutput(String(reason), true);
+                promptForVcUpdate();
+            });
         }
     }
 

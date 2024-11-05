@@ -408,7 +408,7 @@ const getWelcomeWebviewContent = (rootPath: Uri, showVCRuntimePrompt: boolean): 
                             nextBtn.value = "Next >";
                             currentPage = vcRuntimePage + 1;
                         } else {
-                            const errorMessage = "VC++ runtime library installation not detected.";
+                            const errorMessage = "VC++ runtime library installation not detected or it is too old.";
                             document.getElementById("checkError").innerHTML = errorMessage;
 
                             showPage(vcRuntimePage);
@@ -454,7 +454,7 @@ const getWelcomeWebviewContent = (rootPath: Uri, showVCRuntimePrompt: boolean): 
  *
  * @returns true, if the VC++ runtimes are installed, otherwise false
  */
-const checkVcRuntime = (): Promise<boolean> => {
+export const checkVcRuntime = (): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         if (platform() === "win32") {
             // cSpell:ignore HKLM Runtimes promisified
@@ -467,8 +467,20 @@ const checkVcRuntime = (): Promise<boolean> => {
                 for (const key in items) {
                     const item = items[key];
                     if (item.exists) {
-                        cRuntimeInstalled = true;
-                        break;
+                        if ("Version" in item.values) {
+                            const versionStr = item.values.Version.value.toString();
+                            if (versionStr.length > 6) {
+                                try {
+                                    const version = parseFloat(versionStr.substring(1, 6));
+                                    if (version >= 14.38) {
+                                        cRuntimeInstalled = true;
+                                        break;
+                                    }
+                                } catch {
+                                    // Ignore
+                                }
+                            }
+                        }
                     }
                 }
 
