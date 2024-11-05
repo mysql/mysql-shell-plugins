@@ -563,7 +563,8 @@ describe("NOTEBOOKS", () => {
 
                 await dbTreeSection.focus();
                 const treeGlobalConn = await dbTreeSection.tree.getElement(globalConn.caption);
-                await (await dbTreeSection.tree.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
+                await (await dbTreeSection.tree.getActionButton(treeGlobalConn,
+                    constants.openNewConnectionUsingNotebook)).click();
                 await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
             } catch (e) {
                 await Misc.processFailure(this);

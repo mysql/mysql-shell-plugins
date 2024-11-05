@@ -897,7 +897,8 @@ EXAMPLES
     };
 
     private showPage = async (
-        data: { module: string; page: string; suppressAbout?: boolean; noEditor?: boolean; }): Promise<boolean> => {
+        data: { module: string; page: string; suppressAbout?: boolean; noEditor?: boolean;
+            editor?: InitialEditor; }): Promise<boolean> => {
         if (data.module === DBEditorModuleId) {
             const { connectionsLoaded, connections, editorTabs, selectedPage } = this.state;
 
@@ -910,7 +911,7 @@ EXAMPLES
                 } else if (connectionsLoaded) {
                     if (connection) {
                         return this.addConnectionTab(connection, false, data.suppressAbout ?? false,
-                            data.noEditor ? "none" : "default");
+                            data.noEditor ? "none" : (data.editor ?? "default"));
                     }
                 }
 

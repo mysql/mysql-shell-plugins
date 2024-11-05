@@ -28,7 +28,7 @@ import { readFile, writeFile } from "fs/promises";
 import { commands, OpenDialogOptions, SaveDialogOptions, Uri, window } from "vscode";
 
 import {
-    IEditorExtendedExecutionOptions, IMrsDbObjectEditRequest, IOpenDialogOptions, IOpenFileDialogResult,
+    IEditorExtendedExecutionOptions, IMrsDbObjectEditRequest, InitialEditor, IOpenDialogOptions, IOpenFileDialogResult,
     IRequestTypeMap, IRequisitionCallbackValues, ISaveDialogOptions, requisitions,
 } from "../../../frontend/src/supplement/Requisitions.js";
 
@@ -52,13 +52,14 @@ export class DBConnectionViewProvider extends WebviewProvider {
      * Shows the given module page.
      *
      * @param page The page to show.
+     * @param editor The initial editor to show.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public show(page: string): Promise<boolean> {
+    public show(page: string, editor?: InitialEditor): Promise<boolean> {
         return this.runCommand("job", [
             { requestType: "showModule", parameter: DBEditorModuleId },
-            { requestType: "showPage", parameter: { module: DBEditorModuleId, page } },
+            { requestType: "showPage", parameter: { module: DBEditorModuleId, page, editor } },
         ], "newConnection");
     }
 

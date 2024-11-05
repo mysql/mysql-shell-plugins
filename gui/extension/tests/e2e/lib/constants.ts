@@ -216,6 +216,7 @@ export const connectToExternalShell = "Connect to External MySQL Shell Process";
 export const relaunchWelcomeWizard = "Relaunch Welcome Wizard";
 export const resetExtension = "Reset MySQL Shell for VS Code Extension";
 export const dropStoredRoutine = "Drop Stored Routine...";
+export const openNewConnectionUsingNotebook = "Open New Connection using Notebook";
 export const openNewConnection = "Open New Database Connection";
 export const connectToDB = "Connect to Database";
 export const connectToDBNewTab = "Connect to Database on New Tab";

@@ -458,7 +458,7 @@ describe("Database Connections - headless off", () => {
 
     it("Copy, cut paste into the DB Connection dialog", async () => {
         try {
-            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+            await DatabaseConnectionOverview.moreActions(globalConn.caption!, constants.editConnection);
             const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
                 constants.wait5seconds, "Connection dialog was not displayed");
             const hostNameInput = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.hostname);
@@ -482,7 +482,7 @@ describe("Database Connections - headless off", () => {
             expect(await descriptionInput.getAttribute("value")).toBe("");
             const schemaInput = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.defaultSchema);
             await Os.keyboardPaste(schemaInput);
-            expect(await schemaInput.getAttribute("value")).toBe(valueToCut);
+            expect(await schemaInput.getAttribute("value")).toContain(valueToCut);
             await conDialog.findElement(locator.dbConnectionDialog.cancel).click();
         } catch (e) {
             testFailed = true;

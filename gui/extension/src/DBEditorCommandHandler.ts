@@ -29,7 +29,7 @@ import { basename } from "path";
 import { commands, ConfigurationTarget, TextEditor, Uri, window, workspace } from "vscode";
 
 import {
-    ICodeBlockExecutionOptions, IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
+    ICodeBlockExecutionOptions, InitialEditor, IRequestListEntry, IRequestTypeMap, IWebviewProvider, requisitions,
 } from "../../frontend/src/supplement/Requisitions.js";
 
 import { ScriptTreeItem } from "./tree-providers/ScriptTreeItem.js";
@@ -148,7 +148,7 @@ export class DBEditorCommandHandler {
             this.connectionsProvider.refreshMrsRouters();
         }));
 
-        context.subscriptions.push(commands.registerCommand("msg.openConnection", (entry?: ICdmConnectionEntry) => {
+        const openConnection = (entry?: ICdmConnectionEntry, editor?: InitialEditor) => {
             if (entry) {
                 // "Open connection" acts differently, depending on whether the same connection is already open or not.
                 let provider;
@@ -158,8 +158,22 @@ export class DBEditorCommandHandler {
                     provider = this.#host.currentProvider;
                 }
 
-                void provider?.show(String(entry.treeItem.details.id));
+                void provider?.show(String(entry.treeItem.details.id), editor);
             }
+        };
+
+        context.subscriptions.push(commands.registerCommand("msg.openConnection", (entry?: ICdmConnectionEntry) => {
+            openConnection(entry);
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.openConnectionNotebook",
+            (entry?: ICdmConnectionEntry) => {
+                openConnection(entry, "notebook");
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.openConnectionSqlScript",
+            (entry?: ICdmConnectionEntry) => {
+                openConnection(entry, "script");
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.openConnectionNewTab",

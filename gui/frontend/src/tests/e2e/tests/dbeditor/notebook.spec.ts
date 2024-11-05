@@ -194,7 +194,7 @@ describe("Notebook", () => {
     it("Context Menu - Execute", async () => {
         try {
             let result = await notebook.codeEditor
-                .executeWithContextMenu("select * from actor limit 1", "Execute Block");
+                .executeWithContextMenu("select * from actor limit 1; ", "Execute Block", true);
             expect(result.toolbar!.status).toMatch(/OK, (\d+) record retrieved/);
             expect(await notebook.codeEditor.hasNewPrompt()).toBe(false);
             await notebook.codeEditor.clean();

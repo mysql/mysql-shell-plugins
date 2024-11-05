@@ -107,7 +107,8 @@ describe("OPEN EDITORS", () => {
 
         await dbTreeSection.focus();
         const treeLocalConn = await dbTreeSection.tree.getElement(globalConn.caption);
-        await (await dbTreeSection.tree.getActionButton(treeLocalConn, constants.openNewConnection)).click();
+        await (await dbTreeSection.tree.getActionButton(treeLocalConn,
+            constants.openNewConnectionUsingNotebook)).click();
         await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait15seconds);
         const treeOEGlobalConn = await openEditorsTreeSection.tree.getElement(globalConn.caption);
         const newMySQLScript = await openEditorsTreeSection.tree.getActionButton(treeOEGlobalConn,

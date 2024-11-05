@@ -896,7 +896,7 @@ describe("DATABASE CONNECTIONS", () => {
         it("Performance Dashboard - MLE Enabled", async () => {
 
             let host = await dbTreeSection.tree.getElement(globalConn.caption);
-            await (await dbTreeSection.tree.getActionButton(host, constants.openNewConnection)).click();
+            await (await dbTreeSection.tree.getActionButton(host, constants.openNewConnectionUsingNotebook)).click();
             let notebook = new E2ENotebook();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
             await notebook.codeEditor.loadCommandResults();
@@ -958,7 +958,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(mysqlAdministration.performanceDashboard.mlePerformance.currentHeapUsage).to.equals("0%");
 
             host = await dbTreeSection.tree.getElement(globalConn.caption);
-            await (await dbTreeSection.tree.getActionButton(host, constants.openNewConnection)).click();
+            await (await dbTreeSection.tree.getActionButton(host, constants.openNewConnectionUsingNotebook)).click();
             notebook = new E2ENotebook();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
             await notebook.codeEditor.loadCommandResults();
@@ -1332,7 +1332,8 @@ describe("DATABASE CONNECTIONS", () => {
                 .getElement((globalConn.basic as interfaces.IConnBasicMySQL).schema);
             await dbTreeSection.tree.openContextMenuAndSelect(treeSchema, constants.setCurrentDBSchema, undefined);
             await driver.wait(dbTreeSection.tree.untilIsDefault("sakila", "schema"), constants.wait5seconds);
-            await (await dbTreeSection.tree.getActionButton(treeGlobalConn, constants.openNewConnection)).click();
+            await (await dbTreeSection.tree.getActionButton(treeGlobalConn,
+                constants.openNewConnectionUsingNotebook)).click();
             await Workbench.openEditor(globalConn.caption);
             const notebook = new E2ENotebook();
             await notebook.codeEditor.create();
