@@ -267,7 +267,6 @@ export class E2ETests {
                 `--password=${process.env.DBROOTPASSWORD}`,
                 `--sandbox-dir=${this.mysqlSandboxDir}`,
             ]);
-
             console.log(`[OK] MySQL Sandbox instance deployed successfully on port ${this.mysqlPort}`);
         } else {
             console.log(`[OK] Using existing MySQL Server running on port ${cliArguments.mysqlPort}`);

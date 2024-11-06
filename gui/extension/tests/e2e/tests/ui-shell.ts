@@ -193,7 +193,7 @@ describe("MYSQL SHELL CONSOLES", () => {
             let result = await shellConsole.codeEditor.execute(cmd, true);
             expect(result.text, errors.queryResultError("ClassicSession",
                 result.text)).to.match(/ClassicSession/);
-            cmd = `mysqlx.getSession('${username}:${password}@${hostname}:33060/${schema}')`;
+            cmd = `mysqlx.getSession('${username}:${password}@${hostname}:${port}0/${schema}')`;
             result = await shellConsole.codeEditor.execute(cmd, true);
             expect(result.text, errors.queryResultError("Session",
                 result.text)).to.match(/Session/);
@@ -214,19 +214,19 @@ describe("MYSQL SHELL CONSOLES", () => {
                     "Shell Console was not loaded");
 
                 await shellConsole.codeEditor.loadCommandResults();
-                let uri = `\\c ${username}:${password}@${hostname}:33060/${schema}`;
+                let uri = `\\c ${username}:${password}@${hostname}:${port}0/${schema}`;
                 const result = await shellConsole.codeEditor.execute(uri);
-                uri = `Creating a session to '${username}@${hostname}:33060/${schema}'`;
+                uri = `Creating a session to '${username}@${hostname}:${port}0/${schema}'`;
                 expect(result.text, errors.queryResultError(uri,
                     result.text)).to.match(new RegExp(uri));
-                uri = `Connection to server ${hostname} at port 33060,`;
+                uri = `Connection to server ${hostname} at port ${port}0,`;
                 uri += ` using the X protocol`;
                 const server = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.server),
                     constants.wait5seconds);
                 const schemaEl = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schema),
                     constants.wait5seconds);
                 await driver.wait(until.elementTextContains(server,
-                    `${hostname}:33060`),
+                    `${hostname}:${port}0`),
                     constants.wait5seconds, `Server tab does not contain '${hostname}:${port}'`);
                 await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
                     constants.wait5seconds, `Schema tab does not contain '${schema}'`);

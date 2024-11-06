@@ -303,6 +303,7 @@ export class Misc {
                     user: process.env.DBUSERNAME1,
                     password: process.env.DBPASSWORD1,
                     database: schema,
+                    port: parseInt(process.env.MYSQL_PORT, 10),
                 });
 
                 await mysqlConnection.connect();
