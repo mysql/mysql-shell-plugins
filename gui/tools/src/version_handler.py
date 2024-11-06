@@ -90,7 +90,7 @@ def update_plugin_version(path, version):
             lines[index] = f'VERSION = "{version}"\n'
             break
 
-    with(open(path, 'w')) as file:
+    with (open(path, 'w')) as file:
         file.write(''.join(lines))
 
 
@@ -102,9 +102,9 @@ def update_readme_version(e_version, s_version):
     with open(VSCODE_EXTENSION_README_PATH) as file:
         lines = file.readlines()
 
-    lines[0] = f'# MySQL Shell for VS Code {e_version}+{s_version} Preview\n'
+    lines[0] = f'# MySQL Shell for VS Code {e_version}+{s_version}\n'
 
-    with(open(VSCODE_EXTENSION_README_PATH, 'w')) as file:
+    with (open(VSCODE_EXTENSION_README_PATH, 'w')) as file:
         file.write(''.join(lines))
 
 
@@ -133,7 +133,7 @@ def update_changelog_version(e_version, s_version):
     for line in new_lines:
         lines.insert(2, line)
 
-    with(open(VSCODE_EXTENSION_CHANGELOG_PATH, 'w')) as file:
+    with (open(VSCODE_EXTENSION_CHANGELOG_PATH, 'w')) as file:
         file.write(''.join(lines))
 
 
