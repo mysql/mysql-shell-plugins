@@ -334,6 +334,12 @@
                                                 class="toc-section-number">9.1</span>
                                                 MRS Notes
                                                 Examples</a></li>
+                                                <li><a
+                                                href="#mrs-scripts-example"
+                                                id="toc-mrs-scripts-example"><span
+                                                class="toc-section-number">9.2</span>
+                                                MRS Scripts
+                                                Example</a></li>
                                                 </ul></li>
                                                 </ul>
                                             </div>
@@ -368,8 +374,10 @@ Developer's Guide
                 Schemas and Objects to a REST Service</a></li>
                 <li><a href="#mrs-examples">MRS Examples</a>
                 <ul>
-                <li><a href="#mrs-notes-examples">MRS Notes
-                Examples</a></li>
+                <li><a href="#mrs-notes-example">MRS Notes
+                Example</a></li>
+                <li><a href="#mrs-scripts-example">MRS Scripts
+                Example</a></li>
                 </ul></li>
                 </ul>
                 <hr />
@@ -2640,11 +2648,11 @@ router_id=16</code></pre>
                 as a <code>poster</code>, but can also delete them</li>
                 </ul>
                 <p>The following snippet creates these 3 roles and
-                grants them to the <code>demouser@MRS</code> user.</p>
+                grants them to three different user.</p>
                 <div class="sourceCode" id="cb38"><pre
                 class="sourceCode sql"><code class="sourceCode sql"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a># This example assumes a MySQL <span class="kw">database</span> <span class="kw">schema</span> <span class="ot">&quot;blog&quot;</span> <span class="kw">and</span> a <span class="kw">schema</span> <span class="kw">table</span> <span class="ot">&quot;post&quot;</span> has been created <span class="kw">before</span>.</span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">SCHEMA</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> blog;</span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> blog.post(<span class="kw">id</span> <span class="dt">int</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span> AUTO_INCREMENT, message TEXT);</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="cf">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> blog.post(<span class="kw">id</span> <span class="dt">INT</span> <span class="kw">PRIMARY</span> <span class="kw">KEY</span> AUTO_INCREMENT, message TEXT);</span>
 <span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST SERVICE <span class="op">/</span>myTestService;</span>
 <span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myTestService;</span>
@@ -2702,10 +2710,12 @@ router_id=16</code></pre>
                 <p>The MRS Shell Plugin ships with a set of example
                 projects that showcase the possibilities of the MySQL
                 REST Service.</p>
-                <p>They are implemented as simple <a
+                <p>The MRS Notes example implements as simple <a
                 href="https://en.wikipedia.org/wiki/Progressive_web_app">Progressive
                 Web Apps (PWA)</a> to showcase the features offered by
                 MRS.</p>
+                <p>The MRS Scripts example includes a set of examples
+                that showcase server side rendering of HTML pages.</p>
                 <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -2790,17 +2800,21 @@ router_id=16</code></pre>
                 id="deploying-the-typescript-example"><span
                 class="header-section-number">9.1.2.1</span> Deploying
                 the TypeScript Example</h4>
-                <p>The MrsNotesTS project implements a full TypeScript
-                demo app that allows sharing of notes between users.</p>
+                <p>The MrsNotes project implements a TypeScript demo app
+                that allows to create, manipulate and share notes
+                between users.</p>
                 <ol type="1">
                 <li>If you have not done so in the previous section,
                 save the following project to disk and open it with VS
                 Code <code>VSCodeProject:examples/mrs_notes</code></li>
                 <li>After the project folder has been opened in VS Code,
-                set the focus to the TERMINAL tab and enter
+                navigate to the <code>NPM SCRIPTS</code> View in the
+                sidebar and right-click on <code>package.json</code> to
+                select <code>Run Install</code>. Alternatively, set the
+                focus to the TERMINAL tab and enter
                 <code>npm install</code> to install the required node
                 modules</li>
-                <li>In the NPM Script View, run the
+                <li>In the <code>NPM SCRIPTS</code> View, run the
                 <code>package.json/build</code> command that will create
                 a folder called <code>dist</code> that contains all
                 files needed for deployment.</li>
@@ -2808,13 +2822,13 @@ router_id=16</code></pre>
                 Folders view and select
                 <code>Upload Folder to MySQL REST Service</code> from
                 the popup menu.</li>
-                <li>In the MRS Static Content Set dialog set the
+                <li>In the REST Content Set dialog set the
                 <code>Request Path</code> the app should be using,
-                e.g. <code>/app</code> and click <code>Upload</code> to
+                e.g. <code>/app</code> and click <code>OK</code> to
                 upload the files to the MRS service.</li>
                 <li>Open a web browser and access the full path
                 specified in the previous step to open the app,
-                e.g. <code>https://localhost:8443/myService/app/index.html</code></li>
+                e.g. <code>https://localhost:8444/myService/app/index.html</code></li>
                 </ol>
                 <h4 data-number="9.1.2.2"
                 id="deploying-the-javascript-example"><span
@@ -2909,6 +2923,94 @@ router_id=16</code></pre>
                 <li>note_delete … a STORED PROCEDURE to delete a shared
                 note</li>
                 </ul>
+                <!-- Copyright (c) 2024, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is designed to work with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have either included with
+                the program or referenced in the documentation.
+
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h2 data-number="9.2" id="mrs-scripts-example"><span
+                class="header-section-number">9.2</span> MRS Scripts
+                Example</h2>
+                <p>The MRS Scripts Example project implements a set of
+                simple MRS scripts, including two examples of how to
+                perform Server Side Rendering with MRS.</p>
+                <h3 data-number="9.2.1"
+                id="mrs-scripts-example-quick-guide"><span
+                class="header-section-number">9.2.1</span> MRS Scripts
+                Example Quick Guide</h3>
+                <p>To quickly get the MRS Notes Examples working, please
+                feel free to follow this guide. If you want to learn
+                more about the examples, please continue reading the
+                chapters below.</p>
+                <p>The following steps need to be taken to setup, build
+                and deploy the MRS Scripts Example project on the MySQL
+                REST Service.</p>
+                <ol type="1">
+                <li>Save the MRS Notes Example project to disk and open
+                it with VS Code
+                <code>VSCodeProject:examples/mrs_scripts</code></li>
+                <li><a
+                href="#configuring-mysql-rest-service">Configure</a> the
+                MySQL REST Service.</li>
+                <li>Create a new MRS service
+                (e.g. <code>/myService</code>).</li>
+                <li>Ensure a bootstrapped MySQL Router instance is
+                running (if not, start it).</li>
+                <li>Build and deploy the MRS Scripts by following the
+                steps below.</li>
+                </ol>
+                <h4 data-number="9.2.1.1"
+                id="deploying-the-mrs-script-examples"><span
+                class="header-section-number">9.2.1.1</span> Deploying
+                the MRS Script Examples</h4>
+                <p>The MRS Script Examples are written in TypeScript and
+                need to be built before they can be uploaded to MRS.
+                Please follow these steps to deploy the examples.</p>
+                <ol type="1">
+                <li>If you have not done so in the previous section,
+                save the following project to disk and open it with VS
+                Code
+                <code>VSCodeProject:examples/mrs_scripts</code></li>
+                <li>After the project folder has been opened in VS Code,
+                navigate to the <code>NPM SCRIPTS</code> View in the
+                sidebar and right-click on <code>package.json</code> to
+                select <code>Run Install</code>. Alternatively, set the
+                focus to the TERMINAL tab and enter
+                <code>npm install</code> to install the required node
+                modules</li>
+                <li>In the <code>NPM SCRIPTS</code> View, run the
+                <code>package.json/build</code> command that will create
+                a folder called <code>build</code> that contains all
+                files needed for deployment.</li>
+                <li>Right click on the background below the last file in
+                the Folders view and select
+                <code>Upload Folder to MySQL REST Service</code> from
+                the popup menu.</li>
+                <li>In the REST Content Set dialog make sure that the
+                <code>Enable MRS Scripts</code> checkbox is checked and
+                click <code>OK</code> to upload the files to the MRS
+                service.</li>
+                <li>Open a web browser and access the full path
+                specified in the previous step to open the app,
+                e.g. <code>https://localhost:8444/myService/testScripts/preactTestPage.html</code></li>
+                </ol>
                 <p>Copyright (c) 2022, 2024, Oracle and/or its
                 affiliates.</p>
             </div>
