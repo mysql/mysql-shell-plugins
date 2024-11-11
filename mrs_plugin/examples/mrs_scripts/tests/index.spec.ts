@@ -23,12 +23,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { SqlError, describe, it } from "../mrs/mrs.mjs";
-import { mrsTestScripts } from "../src/MrsTestScripts.mjs";
+import { SqlError, describe, it } from "../mrs/mrs.js";
+import { MrsScriptModule } from "../src/MrsScriptModule.js";
 
-describe("MRS Script Example - MRS script tests", async () => {
+describe("MRS Script tests", async () => {
+
     await it("helloWorld", async () => {
-        const greeting = await mrsTestScripts.helloWorld();
+        const greeting = await MrsScriptModule.helloWorld();
         if (greeting !== "Hello world!") {
             throw Error("The returned greeting was not expected.");
         }
@@ -38,7 +39,7 @@ describe("MRS Script Example - MRS script tests", async () => {
         const now = new Date();
         const age = now.getFullYear() - 1975;
 
-        const data = await mrsTestScripts.getTestData("Mike", "Mr.", age);
+        const data = await MrsScriptModule.getTestData("Mike", "Mr.", age);
         if (data.at(0)?.birthYear !== 1975) {
             throw Error("The birthYear was not calculated correctly.");
         }
@@ -50,7 +51,7 @@ describe("MRS Script Example - MRS script tests", async () => {
         // Push mock results so runSql() will return them instead of actually querying the database
         session.pushRunSqlResults([{ "name": userName }]);
 
-        const result = await mrsTestScripts.helloUser("0x12345678");
+        const result = await MrsScriptModule.helloUser("0x12345678");
         if (result.greeting !== `Hello ${userName}!`) {
             throw Error("The greeting was not composed correctly.");
         }
@@ -61,7 +62,7 @@ describe("MRS Script Example - MRS script tests", async () => {
         const versionResult = { "major": 3, "minor": 0, "patch": 0 };
         session.pushRunSqlResults([versionResult], [versionResult]);
 
-        const versions = await mrsTestScripts.getMrsVersions();
+        const versions = await MrsScriptModule.getMrsVersions();
         if (versions.metadata.major !== versionResult.major
             || versions.metadata.minor !== versionResult.minor
             || versions.metadata.patch !== versionResult.patch
@@ -72,7 +73,7 @@ describe("MRS Script Example - MRS script tests", async () => {
         // Omit the result for the user schema version to check if an SqlError is thrown
         session.pushRunSqlResults([{ "major": 3, "minor": 0, "patch": 0 }]);
         try {
-            await mrsTestScripts.getMrsVersions();
+            await MrsScriptModule.getMrsVersions();
         } catch (error) {
             if (!(error instanceof SqlError)) {
                 throw new Error("No SqlError thrown.");
@@ -81,7 +82,15 @@ describe("MRS Script Example - MRS script tests", async () => {
     });
 
     await it("renderTestPage", async () => {
-        const pageContent = await mrsTestScripts.renderTestPage();
+        const pageContent = await MrsScriptModule.renderTestPage();
+
+        if (!pageContent.startsWith("<!DOCTYPE html>")) {
+            throw new Error("Content page not rendered correctly.");
+        }
+    });
+
+    await it("renderPreactTestPage", async () => {
+        const pageContent = await MrsScriptModule.renderPreactTestPage();
 
         if (!pageContent.startsWith("<!DOCTYPE html>")) {
             throw new Error("Content page not rendered correctly.");

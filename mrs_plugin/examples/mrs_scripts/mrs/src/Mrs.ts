@@ -23,85 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/// <reference types="./mrs.d.ts" />
-
-/**
- * A JSON object contains keys which are strings and values in a specific range of primitives.
- */
-export type JsonObject = { [Key in string]: JsonValue } & { [Key in string]?: JsonValue | undefined };
-
-/**
- * A JSON array is just a list of valid JSON values.
- * Since ReadonlyArray is a first-class type in TypeScript, it needs to be accounted for.
- */
-type JsonArray = JsonValue[] | readonly JsonValue[];
-
-/**
- * JSON supports a set of primitives that includes strings, numbers, booleans and null.
- */
-type JsonPrimitive = string | number | boolean | null;
-
-/**
- * JSON supports a set of values that includes specific primitive types, other JSON object definitions
- * and arrays of these.
- */
-export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
-
-/**
- * Columns can be assigned "NOT NULL" constraints, which can be enforced by the client type.
- * However, columns without that constraint should allow "null" assignments.
- */
-export type MaybeNull<T> = T | null;
-
-export interface IDictionary {
-    [key: string]: unknown;
-}
-
-export class SqlError extends Error {
-    constructor(msg: string) {
-        super(msg);
-    }
-};
-
-export const hash64 = (str: string, seed = 0) => {
-    let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
-    for (let i = 0, ch; i < str.length; i++) {
-        ch = str.charCodeAt(i);
-        h1 = Math.imul(h1 ^ ch, 2654435761);
-        h2 = Math.imul(h2 ^ ch, 1597334677);
-    }
-    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
-    h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
-    h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-
-    return 4294967296 * (2097151 & h2) + (h1 >>> 0);
-};
-
-export const describe = async (name: string, tests: () => Promise<void>): Promise<void> => {
-    // Initialize global session with a mock session
-    globalThis.session = new MockSession();
-    globalThis.contentSetPath = ".";
-
-    const title = `Starting tests for ${name}`;
-    print(`${title}\n${"=".repeat(title.length)}`);
-
-    tests();
-};
-
-export const it = async (name: string, test: () => Promise<void>): Promise<void> => {
-    let testSuccess = true;
-    print(`Running test: ${name}`);
-
-    try {
-        await test();
-    } catch (error) {
-        print(`Test failed throwing exception ${String(error)}`);
-        testSuccess = false;
-    }
-
-    print(`Test result: ${testSuccess ? "\x1b[32mSUCCESS\x1b[0m" : "\x1b[31mFAILURE\x1b[0m"}\n${"-".repeat(20)}`);
-};
+/// <reference types="./../mrs.d.ts" />
 
 export enum MrsScriptFunctionType {
     BeforeCreate = "BeforeCreate",
@@ -129,6 +51,7 @@ export interface IMrsSchemaProperties {
     options?: IDictionary;
     metadata?: IDictionary;
     type?: IMrsSchemaType;
+    outputFilePath?: string;
 }
 
 export interface IMrsMethodProperties {
@@ -291,43 +214,4 @@ export class Mrs {
             return target;
         }
     }
-}
-
-export interface IMrsResultSet {
-    rows: IDictionary[];
-}
-
-class Session {
-}
-
-export class MockSession extends Session {
-    static #instance: MockSession;
-    #runSqlTestBuffer: IDictionary[][] = [];
-
-    public constructor() {
-        super();
-        // Make the Session a singleton
-        if (MockSession.#instance) {
-            return MockSession.#instance;
-        }
-
-        MockSession.#instance = this;
-    }
-
-    public pushRunSqlResults(...res: IDictionary[][]): void {
-        for (let r of res) {
-            this.#runSqlTestBuffer.push(r);
-        }
-    };
-
-    public async runSql (sql: string, params?: unknown): Promise<IMrsResultSet> {
-        return new Promise((resolve, reject) => {
-            const res = this.#runSqlTestBuffer.shift();
-            if (res) {
-                resolve({ rows: res });
-            } else {
-                throw new SqlError("No result available.");
-            }
-        });
-    };
 }

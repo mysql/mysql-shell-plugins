@@ -261,6 +261,9 @@ def add_content_set(session, service_id, request_path, requires_auth=False, comm
 
     core.Validations.request_path(request_path, session=session)
 
+    if ignore_list is None:
+        ignore_list = "*node_modules/*, */.*"
+
     contains_mrs_scripts = False
     if options is not None:
         contains_mrs_scripts = options.get("contains_mrs_scripts", False)
@@ -1114,7 +1117,7 @@ def get_mrs_script_property(properties, name, default=None):
 
 
 def print_gui_message(type, msg):
-    print(f"{type}: {msg}")
+    print(f"{type.upper()}: {msg}")
 
 
 def map_ts_type_to_database_type(type: str):
@@ -1222,10 +1225,6 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
     if len(static_content_folders) > 0:
         script_def["static_content_folders"] = static_content_folders
 
-    if send_gui_message is not None:
-        send_gui_message(
-            "info", f"{language=}, {build_folder= }")
-
     if language == "TypeScript" and build_folder is None:
         script_def["errors"].append({
             "kind": "BuildError",
@@ -1238,18 +1237,29 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
 
     script_module_files = []
     for script_module in script_def["script_modules"]:
+        properties = script_module["properties"]
+
         # Add script_module_files information for this module
-        file_to_load = "/" + build_folder + \
-            script_module["file_info"]["relative_file_name"]
-        if language == "TypeScript":
-            file_to_load = file_to_load.replace(".mts", ".mjs")
+        outputFilePath = get_mrs_script_property(properties, "outputFilePath")
+        # If an explicit outputFilePath has been given, ensure that / are used and the path starts with /
+        if outputFilePath is not None:
+            file_to_load = outputFilePath
+            if file_to_load.count("\\") > 0 and file_to_load.count("/") == 0:
+                file_to_load = file_to_load.replace("\\", "/")
+            if not file_to_load.startswith("/"):
+                file_to_load = "/" + file_to_load
+        else:
+            # Otherwise, use /<build_folder>/<file_name>
+            file_to_load = "/" + build_folder + "/" + \
+                script_module["file_info"]["file_name"]
+            if language == "TypeScript":
+                file_to_load = file_to_load.replace(".mts", ".mjs").replace(".ts", ".js")
         script_module_files.append({
             "file_info": script_module["file_info"],
             "file_to_load": file_to_load,
             "class_name": script_module["class_name"],
         })
 
-        properties = script_module["properties"]
         request_path = get_mrs_script_property(
             properties, "requestPath", "/" + script_module["class_name"])
 

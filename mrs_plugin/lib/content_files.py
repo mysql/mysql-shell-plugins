@@ -27,7 +27,6 @@ import re
 import pathlib
 import datetime
 
-
 def sizeof_fmt(num, suffix="B"):
     for unit in ["", "K", "M", "G", "T", "P", "E", "Z"]:
         if abs(num) < 1024.0:
@@ -164,19 +163,7 @@ def get_content_files(session, content_set_id: bytes, include_enable_state: bool
 
 def add_content_dir(session, content_set_id, content_dir, requires_auth, ignore_list, send_gui_message=None):
     file_list = []
-    ignore_patterns = []
-    full_ignore_pattern = None
-
-    if ignore_list:
-        for pattern in ignore_list.split(","):
-            if pattern.strip().startswith("*"):
-                pattern = f".{pattern}"
-            ignore_patterns.append(
-                pattern.strip().replace("?", ".").replace("\\", "/"))
-
-    if len(ignore_patterns) > 0:
-        full_ignore_pattern = re.compile(
-            "(" + ")|(".join(ignore_patterns) + ")")
+    full_ignore_pattern = content_sets.convert_ignore_list_to_regex_pattern(ignore_list)
 
     content_dir = os.path.expanduser(content_dir)
 

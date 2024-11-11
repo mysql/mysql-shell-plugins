@@ -10,7 +10,8 @@
         "plugin:@typescript-eslint/recommended",
         "plugin:@typescript-eslint/recommended-requiring-type-checking",
         "plugin:jsx-a11y/recommended",
-        "plugin:jsdoc/recommended"
+        "plugin:jsdoc/recommended",
+        "plugin:react/recommended"
     ],
     "ignorePatterns": [
         "**/generated/*"
@@ -29,7 +30,8 @@
         "jsx-a11y",
         "jsdoc",
         "prefer-arrow",
-        "eslint-plugin-import"
+        "eslint-plugin-import",
+        "react"
     ],
     "rules": {
         // Some base rules must be disabled as they return wrong results.

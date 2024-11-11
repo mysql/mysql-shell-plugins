@@ -28,7 +28,8 @@
 // Required to enable support for decorators
 (Symbol.metadata as any) ??= Symbol("Symbol.metadata");
 
-import { Mrs } from "../mrs/mrs.mjs";
+import { Mrs, SqlError } from "../mrs/mrs.js";
+import { renderTestPage } from "./pages/preactTestPage.js";
 
 export interface IMrsGreeting {
     greeting: string;
@@ -61,8 +62,9 @@ export interface IMrsSchemaVersions {
 export @Mrs.module({
     comments: "This REST module contains several test scripts.",
     requestPath: "/testScripts",
+    outputFilePath: "build/MrsScriptModule.js"
 })
-class mrsTestScripts {
+class MrsScriptModule {
 
     @Mrs.script({
         requestPath: "/helloWorld",
@@ -151,22 +153,34 @@ class mrsTestScripts {
         requestPath: "/testPage.html",
         format: "MEDIA",
         mediaType: "text/html",
+        requiresAuth: false,
     })
     public static async renderTestPage(): Promise<string> {
-        const header = `<!DOCTYPE html><html lang="en">\n<head><meta charset="utf-8"><title>Test Page</title>` +
-            `<link rel="stylesheet" href="${contentSetPath}/static/testPage.css"></head>\n`;
-        let body = `<body><div class="appListing">\n`;
-
+        let app = "";
         for (let i = 1; i < 12; i++) {
-            body +=
+            app +=
                 `<div class="appTile">\n` +
                 `    <div class="appIcon"><span>${i}</span></div>\n` +
                 `    <div class="appTitle">App ${i}</div>\n` +
                 `</div>\n`;
         }
 
-        body += "</div></body>";
+        return '<!DOCTYPE html><html lang="en">\n<head><meta charset="utf-8"><title>Test Page</title>' +
+            `<link rel="stylesheet" href="${contentSetPath}/static/testPage.css"></head>\n` +
+            `<body><div class="appListing">\n${app}</div></body></html>`;
+    }
 
-        return header + body + `</html>`;
+    @Mrs.script({
+        requestPath: "/preactTestPage.html",
+        format: "MEDIA",
+        mediaType: "text/html",
+        requiresAuth: false,
+    })
+    public static async renderPreactTestPage(): Promise<string> {
+        const app = renderTestPage("MRS Script User");
+
+        return '<!DOCTYPE html><html lang="en">\n<head><meta charset="utf-8"><title>Test Page</title>' +
+            `<link rel="stylesheet" href="${contentSetPath}/static/testPage.css"></head>\n` +
+            `<body><div id="root">\n${app}</div></body></html>`;
     }
 }
