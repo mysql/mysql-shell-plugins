@@ -25,6 +25,10 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 The MRS Shell Plugin ships with a set of example projects that showcase the possibilities of the MySQL REST Service.
 
-They are implemented as simple [Progressive Web Apps (PWA)](https://en.wikipedia.org/wiki/Progressive_web_app) to showcase the features offered by MRS.
+The MRS Notes example implements as simple [Progressive Web Apps (PWA)](https://en.wikipedia.org/wiki/Progressive_web_app) to showcase the features offered by MRS.
+
+The MRS Scripts example includes a set of examples that showcase server side rendering of HTML pages.
 
 !include mrs_notes/readme.md
+
+!include mrs_scripts/readme.md

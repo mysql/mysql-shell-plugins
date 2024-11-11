@@ -12,7 +12,8 @@ __Chapter Overview__
 - [Adding REST Services](#adding-rest-services)
 - [Adding Schemas and Objects to a REST Service](#adding-schemas-and-objects-to-a-rest-service)
 - [MRS Examples](#mrs-examples)
-  - [MRS Notes Examples](#mrs-notes-examples)
+  - [MRS Notes Example](#mrs-notes-example)
+  - [MRS Scripts Example](#mrs-scripts-example)
 
 ---
 
