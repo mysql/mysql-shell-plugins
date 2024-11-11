@@ -754,7 +754,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     options=options,
                     enabled=mrs_object.get("enabled", 1),
                     content_dir=mrs_object.get("directory_file_path"),
-                    ignore_list=mrs_object.get("file_ignore_list", ""),
+                    ignore_list=mrs_object.get("file_ignore_list", None),
                 )
 
                 self.results.append(

@@ -4,12 +4,17 @@
   "publisher": "Oracle",
   "type": "module",
   "scripts": {
-    "build": "tsc --project .",
-    "run-tests-debug": "js --inspect ./build/tests/index.spec.mjs",
-    "run-tests": "clear && js --dap --dap.Suspend=false ./build/tests/index.spec.mjs"
+    "build": "rm -rf build && rollup -c",
+    "run-tests-debug": "rm -rf build && rollup -c rollup.config.tests.mjs && clear && js --inspect ./build/index.spec.js",
+    "run-tests": "rm -rf build && rollup -c rollup.config.tests.mjs && js --dap --dap.Suspend=false ./build/index.spec.js"
   },
-  "dependencies": {},
+  "dependencies": {
+    "preact-render-to-string": "^6.5.11"
+  },
   "devDependencies": {
-    "typescript": "5.5.3"
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-typescript": "^12.1.1",
+    "rollup": "^4.25.0",
+    "tslib": "^2.8.1"
   }
 }

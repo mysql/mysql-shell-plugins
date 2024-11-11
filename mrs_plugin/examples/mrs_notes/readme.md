@@ -55,14 +55,14 @@ The following steps need to be taken to setup, build and deploy the MRS Notes ex
 
 #### Deploying the TypeScript Example
 
-The MrsNotesTS project implements a full TypeScript demo app that allows sharing of notes between users.
+The MrsNotes project implements a TypeScript demo app that allows to create, manipulate and share notes between users.
 
 1. If you have not done so in the previous section, save the following project to disk and open it with VS Code `VSCodeProject:examples/mrs_notes`
-2. After the project folder has been opened in VS Code, set the focus to the TERMINAL tab and enter `npm install` to install the required node modules
-3. In the NPM Script View, run the `package.json/build` command that will create a folder called `dist` that contains all files needed for deployment.
+2. After the project folder has been opened in VS Code, navigate to the `NPM SCRIPTS` View in the sidebar and right-click on `package.json` to select `Run Install`. Alternatively, set the focus to the TERMINAL tab and enter `npm install` to install the required node modules
+3. In the `NPM SCRIPTS` View, run the `package.json/build` command that will create a folder called `dist` that contains all files needed for deployment.
 4. Right click on the `dist` folder in the Folders view and select `Upload Folder to MySQL REST Service` from the popup menu.
-5. In the MRS Static Content Set dialog set the `Request Path` the app should be using, e.g. `/app` and click `Upload` to upload the files to the MRS service.
-6. Open a web browser and access the full path specified in the previous step to open the app, e.g. `https://localhost:8443/myService/app/index.html`
+5. In the REST Content Set dialog set the `Request Path` the app should be using, e.g. `/app` and click `OK` to upload the files to the MRS service.
+6. Open a web browser and access the full path specified in the previous step to open the app, e.g. `https://localhost:8444/myService/app/index.html`
 
 #### Deploying the JavaScript Example
 
