@@ -131,7 +131,7 @@ export class ThemeManager {
     #useHostTheme = false;
 
     private constructor() {
-        const themes = [
+        let themes = [
             darkModern,
             darkAbyss,
             darkHc,
@@ -151,6 +151,13 @@ export class ThemeManager {
             lightSolarized,
             lightVs,
         ];
+        if (appParameters.embedded) {
+            themes = [
+                darkModern,
+                lightModern,
+            ];
+        }
+
         themes.forEach((th) => {
             this.loadThemeDetails(th);
         });
