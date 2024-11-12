@@ -894,7 +894,8 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
             }
 
-            result.push(this.renderDialogValueGroup(i, group, sectionId, relatedValues));
+            const wrap = !section.expand;
+            result.push(this.renderDialogValueGroup(i, group, sectionId, relatedValues, wrap));
         }
 
         return result;
@@ -907,11 +908,12 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
      * @param group The list of elements in the group.
      * @param sectionId The name/id of the section which is currently being rendered.
      * @param relatedValues A map with dialog value names and values that are taken from a relational value.
+     * @param wrap Whether we use div.control-wrap in form controls.
      *
      * @returns The rendered node.
      */
     private renderDialogValueGroup = (index: number, group: IDialogValuePair[], sectionId: string,
-        relatedValues: IRelatedValues): ComponentChild => {
+        relatedValues: IRelatedValues, wrap: boolean): ComponentChild => {
 
         const { validations } = this.state;
 
@@ -966,6 +968,15 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             labelCaption = "\u00A0"; // &nbsp; to vertically align the description with the type drop down.
         }
 
+        let renderedEdits = (
+            <div className="control-wrap">
+                {edits}
+            </div>
+        );
+        if (!wrap) {
+            renderedEdits = <>{edits}</>;
+        }
+
         result.push(
             <GridCell
                 key={`valueCell${index}`}
@@ -976,9 +987,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                 rowSpan={groupVerticalSpan}
             >
                 {contentCount > 0 && <Label className="valueTitle" caption={labelCaption} />}
-                {contentCount > 0 && <div className="control-wrap">
-                    {edits}
-                </div>}
+                {contentCount > 0 && renderedEdits}
                 {errors.map((value: string, errorIndex: number) => {
                     return (
                         <Message
