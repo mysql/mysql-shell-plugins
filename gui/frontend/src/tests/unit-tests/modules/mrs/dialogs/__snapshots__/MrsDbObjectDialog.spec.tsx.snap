@@ -280,102 +280,98 @@ exports[`MRS Db Object dialog tests Show MRS DB Object Dialog (snapshot) and esc
                      
                   </label>
                   <div
-                    class="control-wrap"
+                    class="msg container fixedScrollbar mrsObjectFieldEditor"
+                    style="flex-direction: column;"
                   >
                     <div
-                      class="msg container fixedScrollbar mrsObjectFieldEditor"
-                      style="flex-direction: column;"
+                      class="msg container fixedScrollbar settings"
+                      style="flex-direction: row; align-items: flex-start;"
                     >
                       <div
-                        class="msg container fixedScrollbar settings"
-                        style="flex-direction: row; align-items: flex-start;"
+                        class="msg container fixedScrollbar settingsMain"
+                        style="flex-direction: row; align-items: center;"
                       >
                         <div
-                          class="msg container fixedScrollbar settingsMain"
+                          class="msg container fixedScrollbar labelWithInput"
                           style="flex-direction: row; align-items: center;"
                         >
-                          <div
-                            class="msg container fixedScrollbar labelWithInput"
-                            style="flex-direction: row; align-items: center;"
+                          <label
+                            class="msg label"
+                            data-tooltip="expand"
                           >
-                            <label
-                              class="msg label"
-                              data-tooltip="expand"
-                            >
-                              DB Object:
-                            </label>
-                            <input
-                              class="msg input"
-                              id="dbObject"
-                              spellcheck="true"
-                              type="text"
-                            />
-                          </div>
-                        </div>
-                        <div
-                          class="msg container fixedScrollbar settingsRight"
-                          style="flex-direction: row-reverse; align-items: center;"
-                        >
-                          <div
-                            class="msg button imageOnly sqlCopyBtn"
-                            data-tooltip="Copy SQL to Clipboard"
-                            role="button"
-                            tabindex="0"
-                          >
-                            <div
-                              class="msg icon codicon codicon-copy"
-                              data-tooltip="inherit"
-                            />
-                          </div>
-                          <div
-                            class="msg button imageOnly sqlPreviewBtn"
-                            data-tooltip="Toggle MRS SQL Preview"
-                            role="button"
-                            tabindex="0"
-                          >
-                            <div
-                              class="msg icon codicon codicon-search"
-                              data-tooltip="inherit"
-                            />
-                            <label
-                              class="msg label"
-                              data-tooltip="inherit"
-                            >
-                              SQL Preview
-                            </label>
-                          </div>
-                          <div
-                            class="divider"
-                          />
-                          <div
-                            class="msg container fixedScrollbar labelWithInput"
-                            style="flex-direction: row; align-items: center;"
-                          >
-                            <div
-                              class="msg container fixedScrollbar dropdown"
-                              data-tooltip="Select a SDK language to display the specific interface names and datatypes"
-                              id="sdkLanguage"
-                              placeholder="SDK Language"
-                              style="flex-direction: row; align-items: center;"
-                              tabindex="0"
-                            >
-                              <label
-                                class="msg label placeholder"
-                                data-tooltip="inherit"
-                              >
-                                SDK Language
-                              </label>
-                            </div>
-                          </div>
-                          <div
-                            class="divider"
+                            DB Object:
+                          </label>
+                          <input
+                            class="msg input"
+                            id="dbObject"
+                            spellcheck="true"
+                            type="text"
                           />
                         </div>
                       </div>
                       <div
-                        class="msg treeGrid mrsObjectTreeGrid"
-                      />
+                        class="msg container fixedScrollbar settingsRight"
+                        style="flex-direction: row-reverse; align-items: center;"
+                      >
+                        <div
+                          class="msg button imageOnly sqlCopyBtn"
+                          data-tooltip="Copy SQL to Clipboard"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <div
+                            class="msg icon codicon codicon-copy"
+                            data-tooltip="inherit"
+                          />
+                        </div>
+                        <div
+                          class="msg button imageOnly sqlPreviewBtn"
+                          data-tooltip="Toggle MRS SQL Preview"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <div
+                            class="msg icon codicon codicon-search"
+                            data-tooltip="inherit"
+                          />
+                          <label
+                            class="msg label"
+                            data-tooltip="inherit"
+                          >
+                            SQL Preview
+                          </label>
+                        </div>
+                        <div
+                          class="divider"
+                        />
+                        <div
+                          class="msg container fixedScrollbar labelWithInput"
+                          style="flex-direction: row; align-items: center;"
+                        >
+                          <div
+                            class="msg container fixedScrollbar dropdown"
+                            data-tooltip="Select a SDK language to display the specific interface names and datatypes"
+                            id="sdkLanguage"
+                            placeholder="SDK Language"
+                            style="flex-direction: row; align-items: center;"
+                            tabindex="0"
+                          >
+                            <label
+                              class="msg label placeholder"
+                              data-tooltip="inherit"
+                            >
+                              SDK Language
+                            </label>
+                          </div>
+                        </div>
+                        <div
+                          class="divider"
+                        />
+                      </div>
                     </div>
+                    <div
+                      class="msg treeGrid mrsObjectTreeGrid"
+                    />
                   </div>
                 </div>
               </div>
