@@ -63,26 +63,22 @@ exports[`MRS User dialog tests Show MRS User Dialog (snapshot) and escape 1`] = 
             User Name
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="name"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              The name of the user
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="name"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The name of the user
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -95,26 +91,22 @@ exports[`MRS User dialog tests Show MRS User Dialog (snapshot) and escape 1`] = 
             User Password
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="authString"
-                spellcheck="true"
-                type="password"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              The password of the user
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="authString"
+              spellcheck="true"
+              type="password"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The password of the user
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -127,27 +119,23 @@ exports[`MRS User dialog tests Show MRS User Dialog (snapshot) and escape 1`] = 
             Authentication App
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="authApp"
-                readonly=""
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              The authentication app
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="authApp"
+              readonly=""
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The authentication app
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -160,26 +148,22 @@ exports[`MRS User dialog tests Show MRS User Dialog (snapshot) and escape 1`] = 
             Email
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="email"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              The email of the user
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="email"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The email of the user
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -192,29 +176,25 @@ exports[`MRS User dialog tests Show MRS User Dialog (snapshot) and escape 1`] = 
             Assigned Roles
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar tagInput dropdown multiSelect"
+            id="roles"
+            style="flex-direction: row; flex-wrap: wrap;"
+            tabindex="0"
           >
-            <div
-              class="msg container fixedScrollbar tagInput dropdown multiSelect"
-              id="roles"
-              style="flex-direction: row; flex-wrap: wrap;"
-              tabindex="0"
-            >
-              <label
-                class="msg label tag"
-                data-tooltip="expand"
-                draggable="true"
-              >
-                Full Access
-              </label>
-            </div>
             <label
-              class="msg label cellDescription"
+              class="msg label tag"
               data-tooltip="expand"
+              draggable="true"
             >
-              Roles assign DB Object privileges to the user.
+              Full Access
             </label>
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Roles assign DB Object privileges to the user.
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -226,30 +206,26 @@ exports[`MRS User dialog tests Show MRS User Dialog (snapshot) and escape 1`] = 
           >
              
           </label>
-          <div
-            class="control-wrap"
+          <label
+            class="msg label description"
+            data-tooltip="expand"
+          />
+          <label
+            class="msg checkbox checked valueEditor"
+            id="loginPermitted"
+            tabindex="0"
           >
-            <label
-              class="msg label description"
-              data-tooltip="expand"
+            <span
+              class="checkMark"
             />
-            <label
-              class="msg checkbox checked valueEditor"
-              id="loginPermitted"
-              tabindex="0"
-            >
-              <span
-                class="checkMark"
-              />
-              Permit Login
-            </label>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              Allow user to log in
-            </label>
-          </div>
+            Permit Login
+          </label>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Allow user to log in
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -262,26 +238,22 @@ exports[`MRS User dialog tests Show MRS User Dialog (snapshot) and escape 1`] = 
             User Options
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <textarea
-                class="msg input valueEditor"
-                id="appOptions"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              Additional options in JSON format
-            </label>
+            <textarea
+              class="msg input valueEditor"
+              id="appOptions"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Additional options in JSON format
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -294,26 +266,22 @@ exports[`MRS User dialog tests Show MRS User Dialog (snapshot) and escape 1`] = 
             Vendor User Id
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="vendorUserId"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              Set by OAuth2 vendors
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="vendorUserId"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Set by OAuth2 vendors
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -326,26 +294,22 @@ exports[`MRS User dialog tests Show MRS User Dialog (snapshot) and escape 1`] = 
             Mapped User Id
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="mappedUserId"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              Optional id for sync-ing
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="mappedUserId"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            Optional id for sync-ing
+          </label>
         </div>
       </div>
     </div>

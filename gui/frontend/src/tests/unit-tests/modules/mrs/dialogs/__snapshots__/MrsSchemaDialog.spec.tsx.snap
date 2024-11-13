@@ -63,29 +63,25 @@ exports[`MRS Schema dialog tests Show MRS Schema Dialog (snapshot) and escape 1`
             REST Service Path
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
+            id="service"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
           >
-            <div
-              class="msg container fixedScrollbar dropdown valueEditor"
-              data-tooltip="inherit"
-              id="service"
-              style="flex-direction: row; align-items: center;"
-              tabindex="0"
-            >
-              <label
-                class="msg label ellipsis"
-                data-tooltip="expand"
-              >
-                /myService
-              </label>
-            </div>
             <label
-              class="msg label cellDescription"
+              class="msg label ellipsis"
               data-tooltip="expand"
             >
-              The path of the REST Service this REST Schema belongs to.
+              /myService
             </label>
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The path of the REST Service this REST Schema belongs to.
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -98,26 +94,22 @@ exports[`MRS Schema dialog tests Show MRS Schema Dialog (snapshot) and escape 1`
             REST Schema Path
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="requestPath"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              The request path to access the schema, has to start with / and needs to be unique.
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="requestPath"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The request path to access the schema, has to start with / and needs to be unique.
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -129,30 +121,26 @@ exports[`MRS Schema dialog tests Show MRS Schema Dialog (snapshot) and escape 1`
           >
             REST Schema Flags
           </label>
-          <div
-            class="control-wrap"
+          <label
+            class="msg checkbox checked valueEditor"
+            id="enabled"
+            tabindex="0"
           >
-            <label
-              class="msg checkbox checked valueEditor"
-              id="enabled"
-              tabindex="0"
-            >
-              <span
-                class="checkMark"
-              />
-              Enabled
-            </label>
-            <label
-              class="msg checkbox unchecked valueEditor"
-              id="requiresAuth"
-              tabindex="0"
-            >
-              <span
-                class="checkMark"
-              />
-              Requires Auth
-            </label>
-          </div>
+            <span
+              class="checkMark"
+            />
+            Enabled
+          </label>
+          <label
+            class="msg checkbox unchecked valueEditor"
+            id="requiresAuth"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Requires Auth
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -228,26 +216,22 @@ exports[`MRS Schema dialog tests Show MRS Schema Dialog (snapshot) and escape 1`
                     Database Schema Name
                   </label>
                   <div
-                    class="control-wrap"
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
                   >
-                    <div
-                      class="msg container fixedScrollbar inputWithProgress"
-                      style="flex-direction: row;"
-                    >
-                      <input
-                        class="msg input valueEditor"
-                        id="dbSchemaName"
-                        spellcheck="true"
-                        type="text"
-                      />
-                    </div>
-                    <label
-                      class="msg label cellDescription"
-                      data-tooltip="expand"
-                    >
-                      The name of the corresponding database schema.
-                    </label>
+                    <input
+                      class="msg input valueEditor"
+                      id="dbSchemaName"
+                      spellcheck="true"
+                      type="text"
+                    />
                   </div>
+                  <label
+                    class="msg label cellDescription"
+                    data-tooltip="expand"
+                  >
+                    The name of the corresponding database schema.
+                  </label>
                 </div>
                 <div
                   class="msg container fixedScrollbar gridCell"
@@ -260,19 +244,15 @@ exports[`MRS Schema dialog tests Show MRS Schema Dialog (snapshot) and escape 1`
                     Items per Page
                   </label>
                   <div
-                    class="control-wrap"
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
                   >
-                    <div
-                      class="msg container fixedScrollbar inputWithProgress"
-                      style="flex-direction: row;"
-                    >
-                      <input
-                        class="msg input valueEditor"
-                        id="itemsPerPage"
-                        spellcheck="true"
-                        type="text"
-                      />
-                    </div>
+                    <input
+                      class="msg input valueEditor"
+                      id="itemsPerPage"
+                      spellcheck="true"
+                      type="text"
+                    />
                   </div>
                 </div>
                 <div
@@ -286,26 +266,22 @@ exports[`MRS Schema dialog tests Show MRS Schema Dialog (snapshot) and escape 1`
                     Comments
                   </label>
                   <div
-                    class="control-wrap"
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
                   >
-                    <div
-                      class="msg container fixedScrollbar inputWithProgress"
-                      style="flex-direction: row;"
-                    >
-                      <input
-                        class="msg input valueEditor"
-                        id="comments"
-                        spellcheck="true"
-                        type="text"
-                      />
-                    </div>
-                    <label
-                      class="msg label cellDescription"
-                      data-tooltip="expand"
-                    >
-                      Comments to describe this REST Schema.
-                    </label>
+                    <input
+                      class="msg input valueEditor"
+                      id="comments"
+                      spellcheck="true"
+                      type="text"
+                    />
                   </div>
+                  <label
+                    class="msg label cellDescription"
+                    data-tooltip="expand"
+                  >
+                    Comments to describe this REST Schema.
+                  </label>
                 </div>
               </div>
             </div>

@@ -52,30 +52,26 @@ exports[`MRS Db Object dialog tests Show MRS DB Object Dialog (snapshot) and esc
             REST Service Path
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar dropdown disabled valueEditor"
+            data-tooltip="inherit"
+            disabled="true"
+            id="service"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
           >
-            <div
-              class="msg container fixedScrollbar dropdown disabled valueEditor"
-              data-tooltip="inherit"
-              disabled="true"
-              id="service"
-              style="flex-direction: row; align-items: center;"
-              tabindex="0"
-            >
-              <label
-                class="msg label ellipsis"
-                data-tooltip="expand"
-              >
-                /myService
-              </label>
-            </div>
             <label
-              class="msg label cellDescription"
+              class="msg label ellipsis"
               data-tooltip="expand"
             >
-              The path of the REST Service
+              /myService
             </label>
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The path of the REST Service
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -88,30 +84,26 @@ exports[`MRS Db Object dialog tests Show MRS DB Object Dialog (snapshot) and esc
             REST Schema Path
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar dropdown disabled valueEditor"
+            data-tooltip="inherit"
+            disabled="true"
+            id="schema"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
           >
-            <div
-              class="msg container fixedScrollbar dropdown disabled valueEditor"
-              data-tooltip="inherit"
-              disabled="true"
-              id="schema"
-              style="flex-direction: row; align-items: center;"
-              tabindex="0"
-            >
-              <label
-                class="msg label ellipsis"
-                data-tooltip="expand"
-              >
-                /mrs-test
-              </label>
-            </div>
             <label
-              class="msg label cellDescription"
+              class="msg label ellipsis"
               data-tooltip="expand"
             >
-              The path of the REST Schema
+              /mrs-test
             </label>
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The path of the REST Schema
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -124,26 +116,22 @@ exports[`MRS Db Object dialog tests Show MRS DB Object Dialog (snapshot) and esc
             REST Object Path
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="requestPath"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              The path, has to starts with /
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="requestPath"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The path, has to starts with /
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -155,30 +143,26 @@ exports[`MRS Db Object dialog tests Show MRS DB Object Dialog (snapshot) and esc
           >
             MRS Object Flags
           </label>
-          <div
-            class="control-wrap"
+          <label
+            class="msg checkbox checked valueEditor"
+            id="enabled"
+            tabindex="0"
           >
-            <label
-              class="msg checkbox checked valueEditor"
-              id="enabled"
-              tabindex="0"
-            >
-              <span
-                class="checkMark"
-              />
-              Enabled
-            </label>
-            <label
-              class="msg checkbox unchecked valueEditor"
-              id="requiresAuth"
-              tabindex="0"
-            >
-              <span
-                class="checkMark"
-              />
-              Requires Auth
-            </label>
-          </div>
+            <span
+              class="checkMark"
+            />
+            Enabled
+          </label>
+          <label
+            class="msg checkbox unchecked valueEditor"
+            id="requiresAuth"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Requires Auth
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"

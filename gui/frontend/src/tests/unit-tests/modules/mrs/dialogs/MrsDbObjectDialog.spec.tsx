@@ -176,24 +176,24 @@ describe("MRS Db Object dialog tests", () => {
 
             //  cell 1
             expect(gridCells[0].children[0].textContent).toBe("Result Format");
-            expect(gridCells[0].children[1].children[0].firstElementChild?.textContent).toBe("FEED");
+            expect(gridCells[0].children[1].firstElementChild?.textContent).toBe("FEED");
 
             // cell 2
             expect(gridCells[1].children[0].textContent).toBe("Items per Page");
-            expect(gridCells[1].children[1].children[0].firstElementChild?.textContent).toBe("");
+            expect(gridCells[1].children[1].firstElementChild?.textContent).toBe("");
 
             // cell 3
-            expect(gridCells[2].children[0].textContent).toBe("Comments");//
-            const commentsInput = gridCells[2].children[1].children[0].firstElementChild as HTMLInputElement;
+            expect(gridCells[2].children[0].textContent).toBe("Comments");
+            const commentsInput = gridCells[2].children[1].firstElementChild as HTMLInputElement;
             expect(commentsInput?.value).toBe("<this is a comment>");
 
             // cell 4
             expect(gridCells[3].children[0].textContent).toBe("Media Type");
-            expect(gridCells[3].children[1].children[0].firstElementChild?.textContent).toBe("");
+            expect(gridCells[3].children[1].firstElementChild?.textContent).toBe("");
 
             // cell 5
             expect(gridCells[4].children[0].textContent).toBe("Automatically Detect Media Type");
-            expect(gridCells[4].children[1].children[0].textContent).toBe("Automatically Detect Media Type");
+            expect(gridCells[4].children[1].textContent).toBe("Automatically Detect Media Type");
         }
 
         //  authorization tab
@@ -210,7 +210,7 @@ describe("MRS Db Object dialog tests", () => {
 
             //  cell 1
             expect(gridCells[0].children[0].textContent).toBe("Custom Stored Procedure used for Authorization");
-            expect(gridCells[0].children[1].children[0].firstElementChild?.textContent).toBe("");
+            expect(gridCells[0].children[1].firstElementChild?.textContent).toBe("");
         }
 
         //  opions tab
@@ -227,15 +227,15 @@ describe("MRS Db Object dialog tests", () => {
 
             //  cell 1
             expect(gridCells[0].children[0].textContent).toBe("Options");
-            let element = gridCells[0].children[1].children[0].firstElementChild as HTMLInputElement;
+            let element = gridCells[0].children[1].firstElementChild as HTMLInputElement;
             expect(element?.value).toBe("");
-            expect(gridCells[0].children[1].children[1].textContent).toBe("Additional options in JSON format");
+            expect(gridCells[0].children[2].textContent).toBe("Additional options in JSON format");
 
             //  cell 2
             expect(gridCells[1].children[0].textContent).toBe("Metadata");
-            element = gridCells[1].children[1].children[0].firstElementChild as HTMLInputElement;
+            element = gridCells[1].children[1].firstElementChild as HTMLInputElement;
             expect(element?.value).toBe("null");
-            expect(gridCells[1].children[1].children[1].textContent).toBe("Metadata settings in JSON format");
+            expect(gridCells[1].children[2].textContent).toBe("Metadata settings in JSON format");
         }
 
         await dialogHelper.clickCancel();

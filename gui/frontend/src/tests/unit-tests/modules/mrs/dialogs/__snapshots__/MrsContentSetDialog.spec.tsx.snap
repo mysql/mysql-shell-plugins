@@ -63,26 +63,22 @@ exports[`MRS Content Set dialog tests Show MRS Content Set Dialog (snapshot) and
             Request Path
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="requestPath"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              The request path to access the content, has to start with /
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="requestPath"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The request path to access the content, has to start with /
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -95,29 +91,25 @@ exports[`MRS Content Set dialog tests Show MRS Content Set Dialog (snapshot) and
             REST Service Path
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
+            id="service"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
           >
-            <div
-              class="msg container fixedScrollbar dropdown valueEditor"
-              data-tooltip="inherit"
-              id="service"
-              style="flex-direction: row; align-items: center;"
-              tabindex="0"
-            >
-              <label
-                class="msg label ellipsis"
-                data-tooltip="expand"
-              >
-                /myService
-              </label>
-            </div>
             <label
-              class="msg label cellDescription"
+              class="msg label ellipsis"
               data-tooltip="expand"
             >
-              The MRS Service to hold the content
+              /myService
             </label>
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The MRS Service to hold the content
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -129,30 +121,26 @@ exports[`MRS Content Set dialog tests Show MRS Content Set Dialog (snapshot) and
           >
             MRS Object Flags
           </label>
-          <div
-            class="control-wrap"
+          <label
+            class="msg checkbox checked valueEditor"
+            id="enabled"
+            tabindex="0"
           >
-            <label
-              class="msg checkbox checked valueEditor"
-              id="enabled"
-              tabindex="0"
-            >
-              <span
-                class="checkMark"
-              />
-              Enabled
-            </label>
-            <label
-              class="msg checkbox unchecked valueEditor"
-              id="requiresAuth"
-              tabindex="0"
-            >
-              <span
-                class="checkMark"
-              />
-              Requires Auth
-            </label>
-          </div>
+            <span
+              class="checkMark"
+            />
+            Enabled
+          </label>
+          <label
+            class="msg checkbox unchecked valueEditor"
+            id="requiresAuth"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Requires Auth
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -165,26 +153,22 @@ exports[`MRS Content Set dialog tests Show MRS Content Set Dialog (snapshot) and
             Folder to upload
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar fileSelector valueEditor"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar fileSelector valueEditor"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input"
-                id="directory"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              The folder that should be uploaded, including all its files and sub-folders
-            </label>
+            <input
+              class="msg input"
+              id="directory"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The folder that should be uploaded, including all its files and sub-folders
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -197,26 +181,22 @@ exports[`MRS Content Set dialog tests Show MRS Content Set Dialog (snapshot) and
             Files to ignore
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="ignoreList"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              A list of files to ignore, use * and ? as wildcards
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="ignoreList"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            A list of files to ignore, use * and ? as wildcards
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -292,26 +272,29 @@ exports[`MRS Content Set dialog tests Show MRS Content Set Dialog (snapshot) and
                     Comments
                   </label>
                   <div
-                    class="control-wrap"
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
                   >
-                    <div
-                      class="msg container fixedScrollbar inputWithProgress"
-                      style="flex-direction: row;"
-                    >
-                      <textarea
-                        class="msg input valueEditor"
-                        id="comments"
-                        rows="3"
-                        spellcheck="true"
-                        type="text"
-                      />
-                    </div>
+                    <textarea
+                      class="msg input valueEditor"
+                      id="comments"
+                      rows="3"
+                      spellcheck="true"
+                      type="text"
+                    />
                   </div>
                 </div>
                 <div
                   class="msg container fixedScrollbar gridCell"
                   style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-                />
+                >
+                  <label
+                    class="msg label valueTitle"
+                    data-tooltip="expand"
+                  >
+                    MRS Scripts
+                  </label>
+                </div>
               </div>
             </div>
           </div>

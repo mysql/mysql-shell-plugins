@@ -200,21 +200,17 @@
     overflow-x: hidden;
 }
 
-.msg.dialog.valueEditDialog .control-wrap div {
+.msg.dialog.valueEditDialog .msg.button.valueEditor, .msg.dialog.valueEditDialog .msg.input.valueEditor {
     margin-top: 0;
     margin-bottom: 0;
 }
 
-.msg.dialog.valueEditDialog .control-wrap .input {
+.msg.dialog.valueEditDialog .msg.input.valueEditor {
     padding-top: 3px;
     padding-bottom: 3px;
     font-size: var(--msg-standard-font-size);
 }
 
-.msg.dialog.valueEditDialog .control-wrap label {
-    padding-bottom: 1px;
-}
-
-.msg.dialog.valueEditDialog .control-wrap .valueEditor.button {
+.msg.dialog.valueEditDialog .msg.button.valueEditor {
     height: 24px;
 }
