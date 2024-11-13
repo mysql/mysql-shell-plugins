@@ -1230,14 +1230,43 @@ async def test_select_with_mapper_for_exclusion(
 #                               Test "where" Option
 ####################################################################################
 @pytest.mark.parametrize(
-    "query",
-    [{"where": {"an_int": 10}}],
+    "query, expected_q_url",
+    [
+        ({"where": {"an_int": 10}}, "q=%7B%22anInt%22%3A10%7D"),
+        (
+            {"where": {"last_name": "This is a   test "}},
+            "q=%7B%22lastName%22%3A%22This%20is%20a%20%20%20test%20%22%7D",
+        ),
+        (
+            {"where": {"first_name": "I am MySQL"}},
+            "q=%7B%22firstName%22%3A%22I%20am%20MySQL%22%7D",
+        ),
+        (
+            {"where": {"last_name": ". * ;;; @11dk"}},
+            "q=%7B%22lastName%22%3A%22.%20%2A%20%3B%3B%3B%20%4011dk%22%7D",
+        ),
+        (
+            {
+                "where": {
+                    "OR": [
+                        {"first_name": "Hello Word!"},
+                        {"first_name": "I am MySQL"},
+                        {"first_name": "A B c D E f G"},
+                    ]
+                }
+            },
+            "q=%7B%22%24or%22%3A%5B%7B%22firstName%22%3A%22Hello%20Word%21%22"
+            "%7D%2C%7B%22firstName%22%3A%22I%20am%20MySQL%22%7D%2C%7B%22"
+            "firstName%22%3A%22A%20B%20c%20D%20E%20f%20G%22%7D%5D%7D",
+        ),
+    ],
 )
 async def test_where_field_is_equal_with_implicit_filter(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
     query: dict[str, Any],
+    expected_q_url: str,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -1266,20 +1295,52 @@ async def test_where_field_is_equal_with_implicit_filter(
             urlopen_simulator=urlopen_simulator,
             mock_create_default_context=mock_create_default_context,
             request=request,
-            expected_url=f"{request_path}?q=%7B%22anInt%22%3A10%7D",
+            expected_url=f"{request_path}?{expected_q_url}",
             mock_request_class=mock_request_class,
         )
 
 
 @pytest.mark.parametrize(
-    "query",
-    [{"where": {"an_int": {"equals": 10}}}],
+    "query, expected_q_url",
+    [
+        (
+            {"where": {"an_int": {"equals": 10}}},
+            "q=%7B%22anInt%22%3A%7B%22%24eq%22%3A10%7D%7D",
+        ),
+        (
+            {"where": {"last_name": {"equals": "This is a   test "}}},
+            "q=%7B%22lastName%22%3A%7B%22%24eq%22%3A%22This%20is%20a%20%20%20test%20%22%7D%7D",
+        ),
+        (
+            {"where": {"first_name": {"equals": "I am MySQL"}}},
+            "q=%7B%22firstName%22%3A%7B%22%24eq%22%3A%22I%20am%20MySQL%22%7D%7D",
+        ),
+        (
+            {"where": {"last_name": {"equals": ". * ;;; @11dk"}}},
+            "q=%7B%22lastName%22%3A%7B%22%24eq%22%3A%22.%20%2A%20%3B%3B%3B%20%4011dk%22%7D%7D",
+        ),
+        (
+            {
+                "where": {
+                    "OR": [
+                        {"first_name": {"equals": "Hello Word!"}},
+                        {"first_name": {"equals": "I am MySQL"}},
+                        {"first_name": {"equals": "A B c D E f G"}},
+                    ]
+                }
+            },
+            "q=%7B%22%24or%22%3A%5B%7B%22firstName%22%3A%7B%22%24eq%22%3A%22Hello%20Word"
+            "%21%22%7D%7D%2C%7B%22firstName%22%3A%7B%22%24eq%22%3A%22I%20am%20MySQL%22%7D"
+            "%7D%2C%7B%22firstName%22%3A%7B%22%24eq%22%3A%22A%20B%20c%20D%20E%20f%20G%22%7D%7D%5D%7D",
+        ),
+    ],
 )
 async def test_where_field_is_equal_with_explicit_filter(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
     query: dict[str, Any],
+    expected_q_url: str,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -1308,7 +1369,7 @@ async def test_where_field_is_equal_with_explicit_filter(
             urlopen_simulator=urlopen_simulator,
             mock_create_default_context=mock_create_default_context,
             request=request,
-            expected_url=f"{request_path}?q=%7B%22anInt%22%3A%7B%22%24eq%22%3A10%7D%7D",
+            expected_url=f"{request_path}?{expected_q_url}",
             mock_request_class=mock_request_class,
         )
 
