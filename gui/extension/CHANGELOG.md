@@ -8,7 +8,7 @@
 
 ### Fixes
 
-- 
+- BUG#37259058: Python SDK: fails to compare string column with 'Hello world!'
 
 ## Changes in 1.17.1+9.1.0
 

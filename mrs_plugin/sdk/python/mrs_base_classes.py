@@ -1052,7 +1052,7 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
         if self.offset and self.cursor is None:
             query["offset"] = self.offset
 
-        querystring = urlencode(query)
+        querystring = urlencode(query, quote_via=quote)
         url = f"{self.request_path}?{querystring}"
         headers = {}
         access_token = self._schema._service._session.get("access_token")
@@ -1339,7 +1339,7 @@ class MrsBaseObjectDelete(Generic[Filterable]):
             query["q"] = json.dumps(
                 obj=self._where, cls=MrsQueryEncoder, separators=(",", ":")
             )
-            querystring = urlencode(query)
+            querystring = urlencode(query, quote_via=quote)
             url = f"{self._request_path}?{querystring}"
         else:
             url = self._request_path
@@ -1425,7 +1425,7 @@ class MrsAuthenticate(Generic[AuthAppName]):
         query = [("app", cast(str, self._app_name))]
 
         req = Request(
-            url=f"{self._request_path}?{urlencode(query)}",
+            url=f"{self._request_path}?{urlencode(query, quote_via=quote)}",
             data=json.dumps({"user": self._user, "nonce": nonce}).encode(),
             method="POST",
         )

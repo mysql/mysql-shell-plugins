@@ -316,9 +316,9 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
     # --- crudDeleteOnlyStart
     async def delete_many(
         self,
-        **options: Unpack[DeleteOptions[I${obj_class_name}Filterable]],
+        **options: Unpack[DeleteOptions[I${obj_class_name}Filterable[I${obj_class_name}Filterable]]],
     ) -> int:
-        request = MrsBaseObjectDelete[I${obj_class_name}Filterable](
+        request = MrsBaseObjectDelete[I${obj_class_name}Filterable[I${obj_class_name}Filterable]](
             schema=self._schema,
             request_path=self._request_path,
             options=options,
