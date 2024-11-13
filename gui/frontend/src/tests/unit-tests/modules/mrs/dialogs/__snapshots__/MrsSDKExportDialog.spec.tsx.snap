@@ -63,26 +63,22 @@ exports[`MRS SDK Export dialog tests Show MRS SDK Export Dialog (snapshot) and e
             REST Service URL
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="serviceUrl"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              The URL to access the REST Service
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="serviceUrl"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The URL to access the REST Service
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -95,29 +91,25 @@ exports[`MRS SDK Export dialog tests Show MRS SDK Export Dialog (snapshot) and e
             SDK Client API Language
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
+            id="sdkLanguage"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
           >
-            <div
-              class="msg container fixedScrollbar dropdown valueEditor"
-              data-tooltip="inherit"
-              id="sdkLanguage"
-              style="flex-direction: row; align-items: center;"
-              tabindex="0"
-            >
-              <label
-                class="msg label ellipsis"
-                data-tooltip="expand"
-              >
-                TypeScript
-              </label>
-            </div>
             <label
-              class="msg label cellDescription"
+              class="msg label ellipsis"
               data-tooltip="expand"
             >
-              The development language that should be used for generation
+              TypeScript
             </label>
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The development language that should be used for generation
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -130,22 +122,18 @@ exports[`MRS SDK Export dialog tests Show MRS SDK Export Dialog (snapshot) and e
             Include AppBaseClass
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
+            id="addAppBaseClass"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          />
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
           >
-            <div
-              class="msg container fixedScrollbar dropdown valueEditor"
-              data-tooltip="inherit"
-              id="addAppBaseClass"
-              style="flex-direction: row; align-items: center;"
-              tabindex="0"
-            />
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              Add an application BaseClass with core MRS functionality.
-            </label>
-          </div>
+            Add an application BaseClass with core MRS functionality.
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -158,27 +146,23 @@ exports[`MRS SDK Export dialog tests Show MRS SDK Export Dialog (snapshot) and e
             SDK File Header
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <textarea
-                class="msg input valueEditor"
-                id="header"
-                rows="4"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              The header that should be applied to the generated SDK files.
-            </label>
+            <textarea
+              class="msg input valueEditor"
+              id="header"
+              rows="4"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The header that should be applied to the generated SDK files.
+          </label>
         </div>
       </div>
     </div>
@@ -280,26 +264,22 @@ exports[`MRS SDK Export dialog tests Show MRS SDK Export Dialog and cancel 1`] =
             REST Service URL
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="serviceUrl"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              The URL to access the REST Service
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="serviceUrl"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The URL to access the REST Service
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -312,29 +292,25 @@ exports[`MRS SDK Export dialog tests Show MRS SDK Export Dialog and cancel 1`] =
             SDK Client API Language
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
+            id="sdkLanguage"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
           >
-            <div
-              class="msg container fixedScrollbar dropdown valueEditor"
-              data-tooltip="inherit"
-              id="sdkLanguage"
-              style="flex-direction: row; align-items: center;"
-              tabindex="0"
-            >
-              <label
-                class="msg label ellipsis"
-                data-tooltip="expand"
-              >
-                TypeScript
-              </label>
-            </div>
             <label
-              class="msg label cellDescription"
+              class="msg label ellipsis"
               data-tooltip="expand"
             >
-              The development language that should be used for generation
+              TypeScript
             </label>
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The development language that should be used for generation
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -347,22 +323,18 @@ exports[`MRS SDK Export dialog tests Show MRS SDK Export Dialog and cancel 1`] =
             Include AppBaseClass
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
+            id="addAppBaseClass"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          />
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
           >
-            <div
-              class="msg container fixedScrollbar dropdown valueEditor"
-              data-tooltip="inherit"
-              id="addAppBaseClass"
-              style="flex-direction: row; align-items: center;"
-              tabindex="0"
-            />
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              Add an application BaseClass with core MRS functionality.
-            </label>
-          </div>
+            Add an application BaseClass with core MRS functionality.
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -375,27 +347,23 @@ exports[`MRS SDK Export dialog tests Show MRS SDK Export Dialog and cancel 1`] =
             SDK File Header
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <textarea
-                class="msg input valueEditor"
-                id="header"
-                rows="4"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              The header that should be applied to the generated SDK files.
-            </label>
+            <textarea
+              class="msg input valueEditor"
+              id="header"
+              rows="4"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The header that should be applied to the generated SDK files.
+          </label>
         </div>
       </div>
     </div>

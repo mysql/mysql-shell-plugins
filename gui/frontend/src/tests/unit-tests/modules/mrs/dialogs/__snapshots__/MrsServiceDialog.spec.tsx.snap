@@ -63,26 +63,22 @@ exports[`MRS Service dialog tests Show MRS Service Dialog (snapshot) and escape 
             REST Service Path
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="servicePath"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              The URL context root of this service, has to start with / and needs to be unique.
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="servicePath"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The URL context root of this service, has to start with / and needs to be unique.
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -95,26 +91,22 @@ exports[`MRS Service dialog tests Show MRS Service Dialog (snapshot) and escape 
             REST Service Name
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="name"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              The descriptive name of the REST service.
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="name"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The descriptive name of the REST service.
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -126,40 +118,36 @@ exports[`MRS Service dialog tests Show MRS Service Dialog (snapshot) and escape 
           >
             REST Service Flags
           </label>
-          <div
-            class="control-wrap"
+          <label
+            class="msg checkbox checked valueEditor"
+            id="enabled"
+            tabindex="0"
           >
-            <label
-              class="msg checkbox checked valueEditor"
-              id="enabled"
-              tabindex="0"
-            >
-              <span
-                class="checkMark"
-              />
-              Enabled
-            </label>
-            <label
-              class="msg checkbox checked valueEditor"
-              id="makeDefault"
-              tabindex="0"
-            >
-              <span
-                class="checkMark"
-              />
-              Default
-            </label>
-            <label
-              class="msg checkbox unchecked valueEditor"
-              id="published"
-              tabindex="0"
-            >
-              <span
-                class="checkMark"
-              />
-              Published
-            </label>
-          </div>
+            <span
+              class="checkMark"
+            />
+            Enabled
+          </label>
+          <label
+            class="msg checkbox checked valueEditor"
+            id="makeDefault"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Default
+          </label>
+          <label
+            class="msg checkbox unchecked valueEditor"
+            id="published"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Published
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -248,26 +236,22 @@ exports[`MRS Service dialog tests Show MRS Service Dialog (snapshot) and escape 
                     Create MRS Admin User
                   </label>
                   <div
-                    class="control-wrap"
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
                   >
-                    <div
-                      class="msg container fixedScrollbar inputWithProgress"
-                      style="flex-direction: row;"
-                    >
-                      <input
-                        class="msg input valueEditor"
-                        id="mrsAdminUser"
-                        spellcheck="true"
-                        type="text"
-                      />
-                    </div>
-                    <label
-                      class="msg label cellDescription"
-                      data-tooltip="expand"
-                    >
-                      If a user name is given, a MRS Auth App will be created and the user will be added.
-                    </label>
+                    <input
+                      class="msg input valueEditor"
+                      id="mrsAdminUser"
+                      spellcheck="true"
+                      type="text"
+                    />
                   </div>
+                  <label
+                    class="msg label cellDescription"
+                    data-tooltip="expand"
+                  >
+                    If a user name is given, a MRS Auth App will be created and the user will be added.
+                  </label>
                 </div>
                 <div
                   class="msg container fixedScrollbar gridCell"
@@ -280,26 +264,22 @@ exports[`MRS Service dialog tests Show MRS Service Dialog (snapshot) and escape 
                     MRS Admin User Password
                   </label>
                   <div
-                    class="control-wrap"
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
                   >
-                    <div
-                      class="msg container fixedScrollbar inputWithProgress"
-                      style="flex-direction: row;"
-                    >
-                      <input
-                        class="msg input valueEditor"
-                        id="mrsAdminUserPassword"
-                        spellcheck="true"
-                        type="password"
-                      />
-                    </div>
-                    <label
-                      class="msg label cellDescription"
-                      data-tooltip="expand"
-                    >
-                      The password of the MRS Admin User.
-                    </label>
+                    <input
+                      class="msg input valueEditor"
+                      id="mrsAdminUserPassword"
+                      spellcheck="true"
+                      type="password"
+                    />
                   </div>
+                  <label
+                    class="msg label cellDescription"
+                    data-tooltip="expand"
+                  >
+                    The password of the MRS Admin User.
+                  </label>
                 </div>
                 <div
                   class="msg container fixedScrollbar gridCell"
@@ -312,27 +292,23 @@ exports[`MRS Service dialog tests Show MRS Service Dialog (snapshot) and escape 
                     Comments
                   </label>
                   <div
-                    class="control-wrap"
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
                   >
-                    <div
-                      class="msg container fixedScrollbar inputWithProgress"
-                      style="flex-direction: row;"
-                    >
-                      <textarea
-                        class="msg input valueEditor"
-                        id="comments"
-                        rows="3"
-                        spellcheck="true"
-                        type="text"
-                      />
-                    </div>
-                    <label
-                      class="msg label cellDescription"
-                      data-tooltip="expand"
-                    >
-                      Comments to describe this REST Service.
-                    </label>
+                    <textarea
+                      class="msg input valueEditor"
+                      id="comments"
+                      rows="3"
+                      spellcheck="true"
+                      type="text"
+                    />
                   </div>
+                  <label
+                    class="msg label cellDescription"
+                    data-tooltip="expand"
+                  >
+                    Comments to describe this REST Service.
+                  </label>
                 </div>
                 <div
                   class="msg container fixedScrollbar gridCell"
@@ -345,27 +321,23 @@ exports[`MRS Service dialog tests Show MRS Service Dialog (snapshot) and escape 
                     Host Name Filter
                   </label>
                   <div
-                    class="control-wrap"
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
                   >
-                    <div
-                      class="msg container fixedScrollbar inputWithProgress"
-                      style="flex-direction: row;"
-                    >
-                      <input
-                        class="msg input valueEditor"
-                        id="hostName"
-                        placeholder="<Host Name Filter:Port>"
-                        spellcheck="true"
-                        type="text"
-                      />
-                    </div>
-                    <label
-                      class="msg label cellDescription"
-                      data-tooltip="expand"
-                    >
-                      If specified, the REST service will only be made available to requests for this specific host.
-                    </label>
+                    <input
+                      class="msg input valueEditor"
+                      id="hostName"
+                      placeholder="<Host Name Filter:Port>"
+                      spellcheck="true"
+                      type="text"
+                    />
                   </div>
+                  <label
+                    class="msg label cellDescription"
+                    data-tooltip="expand"
+                  >
+                    If specified, the REST service will only be made available to requests for this specific host.
+                  </label>
                 </div>
               </div>
             </div>

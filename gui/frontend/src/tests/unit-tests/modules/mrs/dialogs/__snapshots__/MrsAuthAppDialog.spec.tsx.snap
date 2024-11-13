@@ -63,29 +63,25 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
             Vendor
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
+            id="authVendorName"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
           >
-            <div
-              class="msg container fixedScrollbar dropdown valueEditor"
-              data-tooltip="inherit"
-              id="authVendorName"
-              style="flex-direction: row; align-items: center;"
-              tabindex="0"
-            >
-              <label
-                class="msg label ellipsis"
-                data-tooltip="expand"
-              >
-                
-              </label>
-            </div>
             <label
-              class="msg label cellDescription"
+              class="msg label ellipsis"
               data-tooltip="expand"
             >
-              The authentication vendor
+              
             </label>
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The authentication vendor
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -98,26 +94,22 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
             Name
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="name"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              The name of the authentication app
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="name"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The name of the authentication app
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -130,26 +122,22 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
             Description
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="description"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              A short description of the app
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="description"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            A short description of the app
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -162,26 +150,22 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
             Access Token
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="accessToken"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              The OAuth2 access token for this app as defined by the vendor
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="accessToken"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The OAuth2 access token for this app as defined by the vendor
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -194,26 +178,22 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
             App ID
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="appId"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              The OAuth2 App ID for this app as defined by the vendor
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="appId"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The OAuth2 App ID for this app as defined by the vendor
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -226,26 +206,22 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
             Custom URL
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="url"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              A custom OAuth2 service URL
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="url"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            A custom OAuth2 service URL
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -258,26 +234,22 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
             Custom URL for Access Token
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
           >
-            <div
-              class="msg container fixedScrollbar inputWithProgress"
-              style="flex-direction: row;"
-            >
-              <input
-                class="msg input valueEditor"
-                id="urlDirectAuth"
-                spellcheck="true"
-                type="text"
-              />
-            </div>
-            <label
-              class="msg label cellDescription"
-              data-tooltip="expand"
-            >
-              A custom URL for exchanging the Access Token
-            </label>
+            <input
+              class="msg input valueEditor"
+              id="urlDirectAuth"
+              spellcheck="true"
+              type="text"
+            />
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            A custom URL for exchanging the Access Token
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -290,29 +262,25 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
             Default Role
           </label>
           <div
-            class="control-wrap"
+            class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
+            id="defaultRoleName"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
           >
-            <div
-              class="msg container fixedScrollbar dropdown valueEditor"
-              data-tooltip="inherit"
-              id="defaultRoleName"
-              style="flex-direction: row; align-items: center;"
-              tabindex="0"
-            >
-              <label
-                class="msg label ellipsis"
-                data-tooltip="expand"
-              >
-                Full Access
-              </label>
-            </div>
             <label
-              class="msg label cellDescription"
+              class="msg label ellipsis"
               data-tooltip="expand"
             >
-              The default role for users
+              Full Access
             </label>
           </div>
+          <label
+            class="msg label cellDescription"
+            data-tooltip="expand"
+          >
+            The default role for users
+          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
@@ -324,30 +292,26 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
           >
             Flags
           </label>
-          <div
-            class="control-wrap"
+          <label
+            class="msg checkbox checked valueEditor"
+            id="enabled"
+            tabindex="0"
           >
-            <label
-              class="msg checkbox checked valueEditor"
-              id="enabled"
-              tabindex="0"
-            >
-              <span
-                class="checkMark"
-              />
-              Enabled
-            </label>
-            <label
-              class="msg checkbox unchecked valueEditor"
-              id="limitToRegisteredUsers"
-              tabindex="0"
-            >
-              <span
-                class="checkMark"
-              />
-              Limit to registered users
-            </label>
-          </div>
+            <span
+              class="checkMark"
+            />
+            Enabled
+          </label>
+          <label
+            class="msg checkbox unchecked valueEditor"
+            id="limitToRegisteredUsers"
+            tabindex="0"
+          >
+            <span
+              class="checkMark"
+            />
+            Limit to registered users
+          </label>
         </div>
       </div>
     </div>

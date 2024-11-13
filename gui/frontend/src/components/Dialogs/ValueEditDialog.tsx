@@ -894,8 +894,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
             }
 
-            const wrap = !section.expand;
-            result.push(this.renderDialogValueGroup(i, group, sectionId, relatedValues, wrap));
+            result.push(this.renderDialogValueGroup(i, group, sectionId, relatedValues));
         }
 
         return result;
@@ -908,12 +907,11 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
      * @param group The list of elements in the group.
      * @param sectionId The name/id of the section which is currently being rendered.
      * @param relatedValues A map with dialog value names and values that are taken from a relational value.
-     * @param wrap Whether we use div.control-wrap in form controls.
      *
      * @returns The rendered node.
      */
     private renderDialogValueGroup = (index: number, group: IDialogValuePair[], sectionId: string,
-        relatedValues: IRelatedValues, wrap: boolean): ComponentChild => {
+        relatedValues: IRelatedValues): ComponentChild => {
 
         const { validations } = this.state;
 
@@ -963,18 +961,9 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
         let mainAlignment = ContentAlignment.Start;
         let labelCaption = caption;
-        if (!labelCaption || !labelCaption.trim()) {
+        if (!labelCaption?.trim()) {
             mainAlignment = ContentAlignment.Center;
             labelCaption = "\u00A0"; // &nbsp; to vertically align the description with the type drop down.
-        }
-
-        let renderedEdits = (
-            <div className="control-wrap">
-                {edits}
-            </div>
-        );
-        if (!wrap) {
-            renderedEdits = <>{edits}</>;
         }
 
         result.push(
@@ -986,8 +975,8 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                 columnSpan={groupHorizontalSpan}
                 rowSpan={groupVerticalSpan}
             >
-                {contentCount > 0 && <Label className="valueTitle" caption={labelCaption} />}
-                {contentCount > 0 && renderedEdits}
+                {labelCaption && <Label className="valueTitle" caption={labelCaption} />}
+                {contentCount > 0 && edits}
                 {errors.map((value: string, errorIndex: number) => {
                     return (
                         <Message
