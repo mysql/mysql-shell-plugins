@@ -107,7 +107,7 @@ class MrsScriptModule {
     public static async helloUser(userId: string): Promise<IMrsTimedGreeting> {
         const now = new Date();
 
-        const userName: string = (await session.runSql(
+        const userName: string = (await getSession().runSql(
             "SELECT name FROM mysql_rest_service_metadata.mrs_user WHERE id = ?", [userId])
         ).rows.at(0)?.["name"] as string;
         if (userName === undefined) {
@@ -128,7 +128,7 @@ class MrsScriptModule {
         let versions: IMrsVersion[] = [];
 
         for (const view of ["schema_version", "mrs_user_schema_version"]) {
-            const rows = (await session.runSql(`SELECT major, minor, patch FROM mysql_rest_service_metadata.${view}`)).rows;
+            const rows = (await getSession().runSql(`SELECT major, minor, patch FROM mysql_rest_service_metadata.${view}`)).rows;
             if (rows?.length > 0) {
                 const row = rows[0];
 

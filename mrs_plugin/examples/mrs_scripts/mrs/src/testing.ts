@@ -23,11 +23,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { MockSession } from "./MockSession.js"
+import { getSession } from "./MockSession.js"
 
 export const describe = async (name: string, tests: () => Promise<void>): Promise<void> => {
     // Initialize global session with a mock session
-    globalThis.session = new MockSession();
+    globalThis.getSession = getSession;
     globalThis.contentSetPath = ".";
 
     const title = `Starting tests for ${name}`;

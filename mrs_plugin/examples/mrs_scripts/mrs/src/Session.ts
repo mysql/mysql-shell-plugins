@@ -24,4 +24,11 @@
  */
 
 export class Session {
+    public pushRunSqlResults(...res: IDictionary[][]): void {}
+
+    public runSql(sql: string, params?: unknown): Promise<IMrsResultSet> {
+        return new Promise((resolve, reject) => {
+            resolve({ rows: [] });
+        });
+    };
 }
