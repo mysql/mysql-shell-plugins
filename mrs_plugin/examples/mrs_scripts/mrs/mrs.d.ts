@@ -42,5 +42,5 @@ declare class Session {
     public runSql(sql: string, params?: unknown): Promise<IMrsResultSet>;
 }
 
-declare var session: Session;
+declare function getSession(readOnly?: boolean): Session;
 declare var contentSetPath: string;

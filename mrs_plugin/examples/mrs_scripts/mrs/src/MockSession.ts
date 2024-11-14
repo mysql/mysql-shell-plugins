@@ -57,3 +57,7 @@ export class MockSession extends Session {
         });
     };
 }
+
+export function getSession(readOnly?: boolean): MockSession {
+    return new MockSession();
+};

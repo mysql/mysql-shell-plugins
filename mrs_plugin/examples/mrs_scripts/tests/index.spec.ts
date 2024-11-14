@@ -49,7 +49,7 @@ describe("MRS Script tests", async () => {
         const userName = "Mike";
 
         // Push mock results so runSql() will return them instead of actually querying the database
-        session.pushRunSqlResults([{ "name": userName }]);
+        getSession().pushRunSqlResults([{ "name": userName }]);
 
         const result = await MrsScriptModule.helloUser("0x12345678");
         if (result.greeting !== `Hello ${userName}!`) {
@@ -60,7 +60,7 @@ describe("MRS Script tests", async () => {
     await it("getMrsVersions", async () => {
         // Push two versions (3.0.0) for both metadata schema version and user schema version as mock results
         const versionResult = { "major": 3, "minor": 0, "patch": 0 };
-        session.pushRunSqlResults([versionResult], [versionResult]);
+        getSession().pushRunSqlResults([versionResult], [versionResult]);
 
         const versions = await MrsScriptModule.getMrsVersions();
         if (versions.metadata.major !== versionResult.major
@@ -71,7 +71,7 @@ describe("MRS Script tests", async () => {
         }
 
         // Omit the result for the user schema version to check if an SqlError is thrown
-        session.pushRunSqlResults([{ "major": 3, "minor": 0, "patch": 0 }]);
+        getSession().pushRunSqlResults([{ "major": 3, "minor": 0, "patch": 0 }]);
         try {
             await MrsScriptModule.getMrsVersions();
         } catch (error) {
