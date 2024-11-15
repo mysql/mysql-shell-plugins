@@ -1422,7 +1422,7 @@ class MrsAuthenticate(Generic[AuthAppName]):
     def _nonce() -> str:
         return "".join(["%02x" % random.randint(0, 255) for i in range(10)])
 
-    async def _submit_mrs_based(self) -> IMrsTokenBasedAuthenticationResponse:
+    async def _submit_mrs_native(self) -> IMrsTokenBasedAuthenticationResponse:
         """Implements MRS-based authentication.
 
         The router supports MRS-based authentication via the
@@ -1551,8 +1551,8 @@ class MrsAuthenticate(Generic[AuthAppName]):
         requested authentication option) service session variables are
         updated in-place.
         """
-        if self._vendor_id == "30000000000000000000000000000000":
-            self._service._session["access_token"] = (await self._submit_mrs_based())[
+        if self._vendor_id == "0x30000000000000000000000000000000":
+            self._service._session["access_token"] = (await self._submit_mrs_native())[
                 "access_token"
             ]
         else:

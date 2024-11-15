@@ -10,6 +10,10 @@ import {
     MrsBaseSchema,
     // --- importRequiredDatatypesOnlyStart
     // --- importRequiredDatatypesOnlyEnd
+    // --- importAuthenticateOnlyStart
+    MrsAuthenticate,
+    IAuthenticateOptions,
+    // --- importAuthenticateOnlyEnd
     // --- importReadOnlyStart
     IFindAllOptions,
     IFindFirstOptions,
@@ -288,18 +292,38 @@ export class ${service_class_name} extends MrsBaseService {
         ${service_class_name}.url(serviceUrl);
     };
 
-    public static authenticate = (username?: string, authApp = "MRS"): void => {
+    public static authenticate = ({ username, authApp }:
+    Partial<IAuthenticateOptions<I${service_class_name}AuthApp>>): Promise<void> => {
         mrsAuthenticate("${service_url}", "${service_auth_path}", authApp, username);
-    };
-
-    public authenticate = (username?: string, authApp = "MRS"): void => {
-        ${service_class_name}.authenticate(username, authApp);
     };
 
     public setAsCurrent = () => {
         mrsSetCurrentService("${service_id}");
     };
     // --- MySQL Shell for VS Code Extension Only --- End
+
+    // --- serviceAuthenticateStart
+    // --- MySQL Shell for VS Code Extension Only --- Begin
+    public async authenticate(options?: Partial<Omit<IAuthenticateOptions<I${service_class_name}AuthApp>,
+    "password">>): Promise<void>;
+    // --- MySQL Shell for VS Code Extension Only --- End
+    public async authenticate(options: IAuthenticateOptions<I${service_class_name}AuthApp>): Promise<void> {
+        const { username, password, authApp } = options ?? {};
+        // --- MySQL Shell for VS Code Extension Only --- Begin
+        if (typeof ${service_class_name}.authenticate === "function") {
+            return ${service_class_name}.authenticate({ username, authApp });
+        }
+        // --- MySQL Shell for VS Code Extension Only --- End
+
+        const { vendorId } = AUTH_APPS.find((app) => {
+            return app.name === authApp;
+        });
+        const request = new MrsAuthenticate(this.session, authApp, vendorId, username, password);
+        const _ = await request.submit();
+
+        return;
+    }
+    // --- serviceAuthenticateEnd
 }
 
 // --- MySQL Shell for VS Code Extension Only --- Begin

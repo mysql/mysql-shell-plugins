@@ -905,3 +905,28 @@ def test_object_is_routine():
         object_is_routine({"object_type": "PROCEDURE"}, of_type={"FUNCTION", "SCRIPT"})
         == False
     )
+
+
+def test_apply_language_convention():
+    value = apply_language_convention(value="foo", primitive="class")
+    assert value == "Foo"
+
+    value = apply_language_convention(value="fooBar", primitive="class")
+    assert value == "FooBar"
+
+    value = apply_language_convention(value="foo_bar", primitive="class")
+    assert value == "FooBar"
+
+    value = apply_language_convention(value="foo")
+    assert value == "foo"
+
+    value = apply_language_convention(value="Foo")
+    assert value == "Foo"
+
+    value = apply_language_convention(value="fooBar", sdk_language="Python")
+    assert value == "foo_bar"
+
+    value = apply_language_convention(value="FooBar", sdk_language="Python")
+    assert value == "foo_bar"
+
+

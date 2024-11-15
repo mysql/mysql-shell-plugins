@@ -23,6 +23,46 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 # TypeScript Client API Reference
 
+## authenticate
+
+`authenticate` is used to authenticate in a given service using a given authentication app.
+
+## Options (authenticate)
+
+| Name | Type | Required | Description
+|---|---|---|---|
+| username | string | Yes | Username in the scope of the authentication app. |
+| password | string | No | Password in the scope of the authentication app. |
+| authApp  | string | Yes | Name of the authentication app. |
+
+## Return Type (authenticate)
+
+Nothing (void).
+
+## Reference (authenticate)
+
+```TypeScript
+async function authenticate (IAuthenticateOptions): Promise<void> {
+    // ...
+}
+
+interface IAuthenticateOptions {
+    username: string
+    password: string
+    authApp: string
+}
+```
+
+## Example (authenticate)
+
+```TypeScript
+import { MyService } from './myService.mrs.sdk/myService';
+
+const myService = new MyService();
+
+myService.authenticate({ username: 'foo', password: 'bar', authApp: 'baz' });
+```
+
 ## create
 
 `create` is used to insert a record in a given table. The record is represented as a plain TypeScript/JavaScript object or, alternatively, as an instance of a particular class that encapsulates the data required to create a new record. To insert multiple records, see `createMany`[#createmany].

@@ -706,7 +706,7 @@ async def test_gtid_track_and_sync(
 
 
 ####################################################################################
-#               Test "submit_mrs_based" Method (authenticate*'s backbone)
+#               Test "submit_mrs_native" Method (authenticate*'s backbone)
 ####################################################################################
 @pytest.mark.parametrize(
     "options, vendor_id, nonce, fictional_payload, client_proof",
@@ -717,7 +717,7 @@ async def test_gtid_track_and_sync(
                 "user": "furbo",
                 "password": "s3cr3t",
             },
-            "30000000000000000000000000000000",
+            "0x30000000000000000000000000000000",
             "419eebd0e8722f4c77a9",
             {
                 "session": "2024-08-22 13:06:45-3",
@@ -734,7 +734,7 @@ async def test_gtid_track_and_sync(
         ),
     ],
 )
-async def test_authenticate_submit_mrs_based(
+async def test_authenticate_submit_mrs_native(
     mock_urlopen: MagicMock,
     mock_request_class: MagicMock,
     urlopen_simulator: MagicMock,
@@ -822,7 +822,7 @@ async def test_authenticate_submit_mrs_based(
                 "user": "furbo",
                 "password": "s3cr3t",
             },
-            "31000000000000000000000000000000",
+            "0x31000000000000000000000000000000",
             {
                 "access_token": "85888969",
             },

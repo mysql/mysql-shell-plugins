@@ -78,7 +78,7 @@ export class MrsAuthDialog extends ComponentBase<{}, IMrsAuthDialogState> {
     }
 
     public render(): ComponentChild {
-        const { request, userName, password, error, authAppList, authenticating } = this.state;
+        const { request, userName, password, error, authAppList = [], authenticating } = this.state;
 
         if (!request) {
             return null;
@@ -89,8 +89,9 @@ export class MrsAuthDialog extends ComponentBase<{}, IMrsAuthDialogState> {
 
         // Get payload
         const payload: IMrsAuthRequestPayload = request.payload as IMrsAuthRequestPayload;
+        const prefilledAuthApp = payload.authApp ?? authAppList[0]?.name;
 
-        const authAppItems = authAppList?.map((item: IMrsAuthApp, itemIndex: number) => {
+        const authAppItems = authAppList.map((item: IMrsAuthApp, itemIndex: number) => {
             return <DropdownItem
                 caption={item.name}
                 key={itemIndex}
@@ -119,19 +120,19 @@ export class MrsAuthDialog extends ComponentBase<{}, IMrsAuthDialogState> {
                         </>
                     }
                     {
-                        payload.authApp && <>
+                        <>
                             <GridCell className="left" crossAlignment={ContentAlignment.Center}>Sign in with:</GridCell>
                             <GridCell className="right" crossAlignment={ContentAlignment.Center}>
                                 <Dropdown
                                     id="authAppDropdown"
                                     key="authAppDropdown"
                                     className="authApp loginControl"
-                                    selection={payload.authApp}
+                                    selection={prefilledAuthApp}
                                     optional={false}
                                     onSelect={this.selectAuthApp}
                                 >
                                     {
-                                        (!authAppList && payload.authApp) &&
+                                        (!authAppList.length && payload.authApp) &&
                                         <DropdownItem
                                             caption={payload.authApp}
                                             key={payload.authApp}
@@ -207,7 +208,7 @@ export class MrsAuthDialog extends ComponentBase<{}, IMrsAuthDialogState> {
 
     private requestPassword = (values: IServicePasswordRequest): Promise<boolean> => {
         return new Promise((resolve) => {
-            this.setState({ request: values }, () => {
+            this.setState({ request: values, userName: values.user }, () => {
                 // Fetch the AuthApp list
                 this.getAuthApps().then((authApps) => {
                     this.setState({ authAppList: authApps, error: undefined, errorCode: undefined });
@@ -274,7 +275,7 @@ export class MrsAuthDialog extends ComponentBase<{}, IMrsAuthDialogState> {
     };
 
     private doAuthenticate = async (): Promise<boolean> => {
-        const { request, userName, password } = this.state;
+        const { authAppList = [], request, userName, password } = this.state;
 
         // Get payload
         const payload: IMrsAuthRequestPayload = request?.payload as IMrsAuthRequestPayload;
@@ -284,8 +285,22 @@ export class MrsAuthDialog extends ComponentBase<{}, IMrsAuthDialogState> {
 
             this.setState({ authenticating: true });
             try {
-                await mrsService.session.verifyUserName(payload.authApp, userName);
-                this.loginResult = await mrsService.session.verifyPassword(password);
+                const authApp = authAppList.find((app) => {
+                    return app.name === payload.authApp;
+                });
+
+                if (authApp !== undefined && authApp.vendorId === "0x31000000000000000000000000000000") {
+                    // MySQL Internal Auth
+                    this.loginResult = await mrsService.session.verifyCredentials({
+                        username: userName,
+                        password,
+                        authApp: payload.authApp,
+                    });
+                } else {
+                    // MRS Native Auth
+                    await mrsService.session.sendClientFirst(payload.authApp, userName);
+                    this.loginResult = await mrsService.session.sendClientFinal(password);
+                }
             } finally {
                 this.setState({ authenticating: false });
             }
