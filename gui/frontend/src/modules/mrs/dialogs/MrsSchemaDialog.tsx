@@ -29,13 +29,14 @@ import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableV
 import {
     IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations,
 } from "../../../components/Dialogs/ValueEditDialog.js";
+import { getEnabledState } from "../mrsUtils.js";
 
 export interface IMrsSchemaDialogData extends IDictionary {
     dbSchemaName: string;
     serviceId: string;
     requestPath: string;
     requiresAuth: boolean;
-    enabled: boolean;
+    enabled: number;
     itemsPerPage: number;
     comments: string;
     options: string;
@@ -89,9 +90,13 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                         result.messages.options = "Please provide a valid JSON object.";
                     }
                 }
-                if (optionsSection.values.metadata.value) {
+            }
+
+            const metadataSection = values.sections.get("metadataSection");
+            if (metadataSection) {
+                if (metadataSection.values.metadata.value) {
                     try {
-                        JSON.parse(optionsSection.values.metadata.value as string);
+                        JSON.parse(metadataSection.values.metadata.value as string);
                     } catch (e) {
                         result.messages.metadata = "Please provide a valid JSON object.";
                     }
@@ -149,15 +154,19 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                     ],
                 },
                 enabled: {
-                    type: "boolean",
-                    caption: "Enabled",
+                    type: "choice",
+                    caption: "Access",
+                    choices: ["Access DISABLED", "Access ENABLED", "PRIVATE Access Only"],
                     horizontalSpan: 2,
-                    value: (request.values?.enabled ?? true) as boolean,
-                    options: [CommonDialogValueOption.Grouped],
+                    value: request.values?.enabled === 2 ? "PRIVATE Access Only" :
+                        request.values?.enabled === 1 ? "Access ENABLED" : "Access DISABLED",
+                    options: [
+                        CommonDialogValueOption.Grouped,
+                    ],
                 },
                 requiresAuth: {
                     type: "boolean",
-                    caption: "Requires Auth",
+                    caption: "Auth. Required",
                     horizontalSpan: 2,
                     value: (request.values?.requiresAuth ?? true) as boolean,
                     options: [CommonDialogValueOption.Grouped],
@@ -205,6 +214,13 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                     multiLineCount: 8,
                     description: "Additional options in JSON format",
                 },
+            },
+        };
+
+        const metadataSection: IDialogSection = {
+            caption: "Metadata",
+            groupName: "group1",
+            values: {
                 metadata: {
                     type: "text",
                     caption: "Metadata:",
@@ -223,6 +239,7 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                 ["mainSection", mainSection],
                 ["settingsSection", settingsSection],
                 ["optionsSection", optionsSection],
+                ["metadataSection", metadataSection],
             ]),
         };
     }
@@ -231,7 +248,8 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
         const mainSection = dialogValues.sections.get("mainSection");
         const settingsSection = dialogValues.sections.get("settingsSection");
         const optionsSection = dialogValues.sections.get("optionsSection");
-        if (mainSection && settingsSection && optionsSection) {
+        const metadataSection = dialogValues.sections.get("metadataSection");
+        if (mainSection && settingsSection && optionsSection && metadataSection) {
             const values: IMrsSchemaDialogData = {
                 dbSchemaName: settingsSection.values.dbSchemaName.value as string,
                 serviceId: services.find((service) => {
@@ -239,11 +257,11 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                 })?.id ?? "",
                 requestPath: mainSection.values.requestPath.value as string,
                 requiresAuth: mainSection.values.requiresAuth.value as boolean,
-                enabled: mainSection.values.enabled.value as boolean,
+                enabled: getEnabledState(mainSection.values.enabled.value as string),
                 itemsPerPage: settingsSection.values.itemsPerPage.value as number,
                 comments: settingsSection.values.comments.value as string,
                 options: optionsSection.values.options.value as string,
-                metadata: optionsSection.values.metadata.value as string,
+                metadata: metadataSection.values.metadata.value as string,
             };
 
             return values;

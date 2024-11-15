@@ -410,8 +410,8 @@ export class ShellInterfaceMrs {
         });
     }
 
-    public async addSchema(serviceId: string, schemaName: string, requestPath: string, requiresAuth: boolean,
-        options: IShellDictionary | null,
+    public async addSchema(serviceId: string, schemaName: string, enabled: number, requestPath: string,
+        requiresAuth: boolean, options: IShellDictionary | null,
         itemsPerPage: number | null, comments?: string, metadata?: IShellDictionary): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddSchema,
@@ -421,7 +421,7 @@ export class ShellInterfaceMrs {
                     schemaName,
                     requestPath,
                     requiresAuth,
-                    enabled: true,
+                    enabled,
                     itemsPerPage,
                     comments,
                     options,
@@ -435,7 +435,7 @@ export class ShellInterfaceMrs {
     }
 
     public async updateSchema(schemaId: string, serviceId: string, schemaName: string, requestPath: string,
-        requiresAuth: boolean, enabled: boolean, itemsPerPage: number | null, comments: string,
+        requiresAuth: boolean, enabled: number, itemsPerPage: number | null, comments: string,
         options: IShellDictionary | null, metadata?: IShellDictionary): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsUpdateSchema,
@@ -460,7 +460,7 @@ export class ShellInterfaceMrs {
     }
 
     public async addDbObject(dbObjectName: string, dbObjectType: MrsDbObjectType,
-        autoAddSchema: boolean, requestPath: string, enabled: boolean,
+        autoAddSchema: boolean, requestPath: string, enabled: number,
         crudOperationFormat: string, requiresAuth: boolean,
         autoDetectMediaType: boolean,
         options: IShellDictionary | null,
@@ -546,7 +546,7 @@ export class ShellInterfaceMrs {
     public async addContentSet(contentDir: string, requestPath: string,
         requiresAuth: boolean, options: IShellDictionary | null,
         serviceId?: string, comments?: string,
-        enabled?: boolean, replaceExisting?: boolean,
+        enabled?: number, replaceExisting?: boolean,
         ignoreList?: string,
         callback?: DataCallback<ShellAPIMrs.MrsAddContentSet>): Promise<IMrsAddContentSetData> {
         const response = await MessageScheduler.get.sendRequest({

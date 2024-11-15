@@ -42,6 +42,14 @@ def cutLastComma(fields):
     return fields[:-1]
 
 
+def getEnabledStatusCaption(enabledState):
+    if enabledState == 2:
+        return "PRIVATE"
+    if enabledState == 1 or enabledState is True:
+        return "ENABLED"
+    return "DISABLED"
+
+
 def walk(fields, parent_id=None, level=1, add_data_type=False, current_object=None):
     result = ""
     filtered_fields = list(
@@ -2310,7 +2318,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 result.append(
                     {
                         "REST SERVICE Path": service.get("full_service_path"),
-                        "enabled": (service.get("enabled") == 1),
+                        "enabled": getEnabledStatusCaption(service.get("enabled")),
                         "current": (service.get("id") == self.current_service_id),
                     }
                 )
@@ -2352,7 +2360,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 result.append(
                     {
                         "REST schema path": schema.get("request_path"),
-                        "enabled": schema.get("enabled") == 1,
+                        "enabled": getEnabledStatusCaption(schema.get("enabled")),
                     }
                 )
 
@@ -2394,7 +2402,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 result.append(
                     {
                         "REST DB Object": item.get("request_path"),
-                        "enabled": item.get("enabled") == 1,
+                        "enabled": getEnabledStatusCaption(item.get("enabled")),
                     }
                 )
 
@@ -2435,7 +2443,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 result.append(
                     {
                         "REST CONTENT SET path": content_set.get("request_path"),
-                        "enabled": content_set.get("enabled") == 1,
+                        "enabled": getEnabledStatusCaption(content_set.get("enabled")),
                     }
                 )
 
@@ -2482,7 +2490,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         "REST AUTH APP name": auth_app.get("name"),
                         "vendor": auth_app.get("auth_vendor"),
                         "comments": auth_app.get("description"),
-                        "enabled": auth_app.get("enabled") == 1,
+                        "enabled": getEnabledStatusCaption(auth_app.get("enabled")),
                     }
                 )
 
@@ -2782,7 +2790,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             stmt = f'CREATE OR REPLACE REST SCHEMA {schema.get("request_path")} ON SERVICE {service.get("host_ctx")}\n'
             stmt += f'    FROM `{schema.get("name")}`\n'
 
-            if schema.get("enabled") != 1:
+            if schema.get("enabled") == 2:
+                stmt += "    PRIVATE\n"
+            elif schema.get("enabled") != 1:
                 stmt += "    DISABLED\n"
 
             stmt += self.formatJsonSetting("OPTIONS", schema.get("options"))
@@ -2918,7 +2928,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     if children:
                         stmt += f" {{\n{children}\n    }}\n"
 
-            if db_object["enabled"] is False or db_object["enabled"] == 0:
+            if db_object["enabled"] == 2:
+                stmt += "    PRIVATE\n"
+            elif db_object["enabled"] is False or db_object["enabled"] == 0:
                 stmt += "    DISABLED\n"
 
             if db_object["requires_auth"] is True or db_object["requires_auth"] == 1:
@@ -2983,7 +2995,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 + f"    ON SERVICE {service.get('full_service_path')}\n"
             )
 
-            if mrs_object["enabled"] is False or mrs_object["enabled"] == 0:
+            if mrs_object["enabled"] == 2:
+                stmt += "    PRIVATE\n"
+            elif mrs_object["enabled"] is False or mrs_object["enabled"] == 0:
                 stmt += "    DISABLED\n"
 
             if mrs_object["comments"]:
@@ -3039,7 +3053,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 + f"    ON SERVICE {service.get('full_service_path')} CONTENT SET {content_set['request_path']}\n"
             )
 
-            if content_file["enabled"] is False or content_file["enabled"] == 0:
+            if content_file["enabled"] == 2:
+                stmt += "    PRIVATE\n"
+            elif content_file["enabled"] is False or content_file["enabled"] == 0:
                 stmt += "    DISABLED\n"
 
             stmt += self.formatJsonSetting("OPTIONS", content_file.get("options"))

@@ -213,8 +213,19 @@ export class RestObjectDialog {
             await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.requestPath, restObject.restObjectPath);
         }
 
-        if (restObject.enabled !== undefined) {
-            await DialogHelper.setCheckboxValue("enabled", restObject.enabled);
+        if (restObject.accessControl !== undefined) {
+            const inAccessControl = await dialog.findElement(locator.mrsDbObjectDialog.accessControl.exists);
+            await inAccessControl.click();
+            const popup = await driver.wait(until
+                .elementLocated(locator.mrsDbObjectDialog.accessControl.selectList.exists),
+                constants.wait5seconds, "Access control drop down list was not found");
+            if (restObject.accessControl === constants.accessControlEnabled) {
+                await popup.findElement(locator.mrsDbObjectDialog.accessControl.selectList.enabled).click();
+            } else if (restObject.accessControl === constants.accessControlDisabled) {
+                await popup.findElement(locator.mrsDbObjectDialog.accessControl.selectList.disabled).click();
+            } else {
+                await popup.findElement(locator.mrsDbObjectDialog.accessControl.selectList.private).click();
+            }
         }
 
         if (restObject.requiresAuth !== undefined) {
@@ -383,9 +394,18 @@ export class RestObjectDialog {
             },
         };
 
-        restObject.enabled = await DialogHelper.getCheckBoxValue("enabled");
-        restObject.requiresAuth = await DialogHelper.getCheckBoxValue("requiresAuth");
+        const accessControlValue = (await (await dialog.findElement(locator.mrsDbObjectDialog.accessControl.exists)
+            .findElement(locator.htmlTag.label)).getText()).toLowerCase();
 
+        if (accessControlValue.includes(constants.accessControlEnabled)) {
+            restObject.accessControl = constants.accessControlEnabled;
+        } else if (accessControlValue.includes(constants.accessControlDisabled)) {
+            restObject.accessControl = constants.accessControlDisabled;
+        } else {
+            restObject.accessControl = constants.accessControlPrivate;
+        }
+
+        restObject.requiresAuth = await DialogHelper.getCheckBoxValue("requiresAuth");
         const inColumns = await driver.wait(until.elementsLocated(locator.mrsDbObjectDialog.jsonDuality.dbObjJsonField),
             constants.wait5seconds);
         const restColumns: interfaces.IRestObjectColumn[] = [];

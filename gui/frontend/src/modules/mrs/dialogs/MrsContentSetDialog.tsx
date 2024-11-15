@@ -32,12 +32,13 @@ import {
 } from "../../../components/Dialogs/ValueEditDialog.js";
 import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { StatusBar } from "../../../components/ui/Statusbar/Statusbar.js";
+import { getEnabledState } from "../mrsUtils.js";
 
 export interface IMrsContentSetDialogData extends IDictionary {
     serviceId: string;
     requestPath: string;
     requiresAuth: boolean;
-    enabled: boolean;
+    enabled: number;
     comments: string;
     options: string;
     directory: string;
@@ -191,7 +192,7 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
                 },
                 flags: {
                     type: "description",
-                    caption: "MRS Object Flags",
+                    caption: "Access Control",
                     horizontalSpan: 2,
                     options: [
                         CommonDialogValueOption.Grouped,
@@ -199,17 +200,19 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
                     ],
                 },
                 enabled: {
-                    type: "boolean",
-                    caption: "Enabled",
+                    type: "choice",
+                    caption: "Access",
+                    choices: ["Access DISABLED", "Access ENABLED", "PRIVATE Access Only"],
                     horizontalSpan: 2,
-                    value: (request.values?.enabled ?? true) as boolean,
+                    value: request.values?.enabled === 2 ? "PRIVATE Access Only" :
+                        request.values?.enabled === 1 ? "Access ENABLED" : "Access DISABLED",
                     options: [
                         CommonDialogValueOption.Grouped,
                     ],
                 },
                 requiresAuth: {
                     type: "boolean",
-                    caption: "Requires Auth",
+                    caption: "Auth. Required",
                     horizontalSpan: 2,
                     value: (request.values?.requiresAuth ?? true) as boolean,
                     options: [
@@ -493,7 +496,7 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
                 })?.id ?? "",
                 requestPath: mainSection.values.requestPath.value as string,
                 requiresAuth: mainSection.values.requiresAuth.value as boolean,
-                enabled: mainSection.values.enabled.value as boolean,
+                enabled: getEnabledState(mainSection.values.enabled.value as string),
                 comments: settingsSection.values.comments.value as string,
                 options: newOptions,
                 directory: mainSection.values.directory.value as string,

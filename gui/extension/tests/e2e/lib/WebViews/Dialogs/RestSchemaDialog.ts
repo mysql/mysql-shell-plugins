@@ -68,8 +68,19 @@ export class RestSchemaDialog {
             await DialogHelper.setFieldText(dialog, locator.mrsSchemaDialog.requestPath, restSchema.restSchemaPath);
         }
 
-        if (restSchema.enabled !== undefined) {
-            await DialogHelper.setCheckboxValue("enabled", restSchema.enabled);
+        if (restSchema.accessControl !== undefined) {
+            const inAccessControl = await dialog.findElement(locator.mrsDbObjectDialog.accessControl.exists);
+            await inAccessControl.click();
+            const popup = await driver.wait(until
+                .elementLocated(locator.mrsSchemaDialog.accessControl.selectList.exists),
+                constants.wait5seconds, "Access control drop down list was not found");
+            if (restSchema.accessControl === constants.accessControlEnabled) {
+                await popup.findElement(locator.mrsSchemaDialog.accessControl.selectList.enabled).click();
+            } else if (restSchema.accessControl === constants.accessControlDisabled) {
+                await popup.findElement(locator.mrsSchemaDialog.accessControl.selectList.disabled).click();
+            } else {
+                await popup.findElement(locator.mrsSchemaDialog.accessControl.selectList.private).click();
+            }
         }
 
         if (restSchema.requiresAuth !== undefined) {
@@ -125,7 +136,17 @@ export class RestSchemaDialog {
             restSchemaPath: await DialogHelper.getFieldValue(dialog, locator.mrsSchemaDialog.requestPath),
         };
 
-        restSchema.enabled = await DialogHelper.getCheckBoxValue("enabled");
+        const accessControlValue = (await (await dialog.findElement(locator.mrsSchemaDialog.accessControl.exists)
+            .findElement(locator.htmlTag.label)).getText()).toLowerCase();
+
+        if (accessControlValue.includes(constants.accessControlEnabled)) {
+            restSchema.accessControl = constants.accessControlEnabled;
+        } else if (accessControlValue.includes(constants.accessControlDisabled)) {
+            restSchema.accessControl = constants.accessControlDisabled;
+        } else {
+            restSchema.accessControl = constants.accessControlPrivate;
+        }
+
         restSchema.requiresAuth = await DialogHelper.getCheckBoxValue("requiresAuth");
 
         // Settings

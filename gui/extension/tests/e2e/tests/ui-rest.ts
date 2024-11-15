@@ -219,6 +219,7 @@ describe("MySQL REST Service", () => {
         const globalService: interfaces.IRestService = {
             servicePath: `/service1`,
             enabled: true,
+            published: true,
             default: false,
             settings: {
                 mrsAdminUser: "testUser",
@@ -271,7 +272,7 @@ describe("MySQL REST Service", () => {
 
         const sakilaRestSchema: interfaces.IRestSchema = {
             restSchemaPath: `/sakila`,
-            enabled: true,
+            accessControl: constants.accessControlEnabled,
             requiresAuth: false,
             settings: {
                 schemaName: "sakila",
@@ -282,7 +283,7 @@ describe("MySQL REST Service", () => {
 
         const worldRestSchema: interfaces.IRestSchema = {
             restSchemaPath: `/world_x_cst`,
-            enabled: true,
+            accessControl: constants.accessControlEnabled,
             requiresAuth: false,
             settings: {
                 schemaName: "world_x_cst",
@@ -337,7 +338,6 @@ describe("MySQL REST Service", () => {
 
         before(async function () {
             try {
-
                 globalService.settings.hostNameFilter = `localhost:${routerPort}`;
                 sakilaRestSchema.restServicePath = globalService.settings.hostNameFilter;
                 sakilaRestSchema.restServicePath += globalService.servicePath;
@@ -464,7 +464,7 @@ describe("MySQL REST Service", () => {
             const editedSchema = {
                 restServicePath: `${globalService.settings.hostNameFilter}${globalService.servicePath}`,
                 restSchemaPath: `/schemaEdited`,
-                enabled: false,
+                accessControl: constants.accessControlDisabled,
                 requiresAuth: true,
                 settings: {
                     schemaName: "schemaEdited",
@@ -558,7 +558,7 @@ describe("MySQL REST Service", () => {
                 restServicePath: `${globalService.settings.hostNameFilter}${globalService.servicePath}`,
                 restSchemaPath: sakilaRestSchema.restSchemaPath,
                 restObjectPath: `/editedObject`,
-                enabled: false,
+                accessControl: constants.accessControlDisabled,
                 requiresAuth: true,
                 jsonRelDuality: {
                     dbObject: "abc",
@@ -748,7 +748,9 @@ describe("MySQL REST Service", () => {
             let treeRandomService = await dbTreeSection.tree.getElement(
                 `${globalService.settings.hostNameFilter}${globalService.servicePath}`);
             await dbTreeSection.tree.openContextMenuAndSelect(treeRandomService, constants.addNewAuthApp);
+            await Workbench.toggleSideBar(false);
             await AuthenticationAppDialog.set(restAuthenticationApp);
+            await Workbench.toggleSideBar(true);
             await driver.wait(Workbench.untilNotificationExists("The MRS Authentication App has been added"),
                 constants.wait5seconds);
             treeRandomService = await dbTreeSection.tree.getElement(
@@ -799,13 +801,17 @@ describe("MySQL REST Service", () => {
                 limitToRegisteredUsers: false,
             };
 
+            await Workbench.toggleSideBar(false);
             await AuthenticationAppDialog.set(editedApp);
+            await Workbench.toggleSideBar(true);
             await driver.wait(Workbench.untilNotificationExists("The MRS Authentication App has been updated"),
                 constants.wait5seconds);
             treeAuthApp = await dbTreeSection.tree.getElement(
                 `${editedApp.name} (${editedApp.vendor})`);
             await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp, constants.editAuthenticationApp);
+            await Workbench.toggleSideBar(false);
             const authApp = await AuthenticationAppDialog.get();
+            await Workbench.toggleSideBar(true);
             expect(editedApp).to.deep.equal(authApp);
             restAuthenticationApp = editedApp;
 
@@ -898,6 +904,7 @@ describe("MySQL REST Service", () => {
 
         const crudService: interfaces.IRestService = {
             servicePath: `/crudService`,
+            published: true,
             enabled: true,
             settings: {
                 hostNameFilter: "",
@@ -906,7 +913,7 @@ describe("MySQL REST Service", () => {
 
         const crudSchema: interfaces.IRestSchema = {
             restSchemaPath: `/sakila`,
-            enabled: true,
+            accessControl: constants.accessControlEnabled,
             requiresAuth: false,
             settings: {
                 schemaName: "sakila",
@@ -977,6 +984,8 @@ describe("MySQL REST Service", () => {
                 treeMySQLRestService = await dbTreeSection.tree.getElement(constants.mysqlRestService);
                 await dbTreeSection.tree.openContextMenuAndSelect(treeMySQLRestService, constants.startRouter);
                 await driver.wait(dbTreeSection.tree.untilRouterIsActive(), constants.wait20seconds);
+                console.log("Using router service:");
+                console.log(crudService);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -1003,7 +1012,14 @@ describe("MySQL REST Service", () => {
             }
         });
 
+        afterEach(async function () {
+            if (this.currentTest.state === "failed") {
+                await Misc.processFailure(this);
+            }
+        });
+
         it("Get schema metadata", async () => {
+            console.log(`fetching: ${baseUrl}/metadata-catalog`);
             response = await fetch(`${baseUrl}/metadata-catalog`);
             const data = await response.json();
             expect(response.ok, `response should be OK`).to.be.true;
@@ -1011,6 +1027,7 @@ describe("MySQL REST Service", () => {
         });
 
         it("Get object metadata", async () => {
+            console.log(`fetching: ${baseUrl}/metadata-catalog${crudObject.restObjectPath}`);
             response = await fetch(`${baseUrl}/metadata-catalog${crudObject.restObjectPath}`);
             const data = await response.json();
             expect(response.ok, `response should be OK`).to.be.true;
@@ -1019,6 +1036,7 @@ describe("MySQL REST Service", () => {
         });
 
         it("Get object data", async () => {
+            console.log(`fetching: ${baseUrl}${crudObject.restObjectPath}`);
             response = await fetch(`${baseUrl}${crudObject.restObjectPath}`);
             const data = await response.json();
             expect(response.ok, `response should be OK`).to.be.true;
@@ -1029,7 +1047,10 @@ describe("MySQL REST Service", () => {
             response = await fetch(`${baseUrl}${crudObject.restObjectPath}`, {
                 method: "post",
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                body: JSON.stringify({ firstName: "Doctor", lastName: "Testing", lastUpdate: "2023-01-01 00:02:00" }),
+                body: JSON.stringify({
+                    firstName: "Doctor", lastName: "Testing",
+                    lastUpdate: "2023-01-01 00:02:00",
+                }),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 headers: { "Content-Type": "application/json" },
             });

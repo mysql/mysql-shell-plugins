@@ -273,7 +273,9 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         const addOptions = (dbObject: IMrsDbObjectData) => {
             let s = "";
 
-            if (!dbObject.enabled) {
+            if (dbObject.enabled === 2) {
+                s += "\n    PRIVATE";
+            } else if (!dbObject.enabled) {
                 s += "\n    DISABLED";
             }
             if (dbObject.requiresAuth) {

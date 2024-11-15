@@ -53,7 +53,7 @@ export interface IMrsContentFileData {
     contentSetId: string;
     requestPath: string;
     requiresAuth: boolean;
-    enabled: boolean;
+    enabled: number;
     size: number;
     contentSetRequestPath: string;
     hostCtx: string;

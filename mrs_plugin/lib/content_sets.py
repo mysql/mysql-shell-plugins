@@ -256,7 +256,7 @@ def get_content_set_count(session, service_id: bytes):
     return res[0]
 
 
-def add_content_set(session, service_id, request_path, requires_auth=False, comments="", options=None, enabled=True,
+def add_content_set(session, service_id, request_path, requires_auth=False, comments="", options=None, enabled=1,
                     content_dir=None, send_gui_message=None, service=None, ignore_list=None):
 
     core.Validations.request_path(request_path, session=session)
@@ -1475,6 +1475,23 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
         sets={"options": options},
         where=["id=?"]
     ).exec(session, [content_set_id])
+
+    # Update content files, make all files private that are not in static folders
+    where = []
+    params = [content_set_id]
+    for folder in static_content_folders:
+        if not folder.startswith("/"):
+            folder = "/" + folder
+        folder += "%"
+        where.append(f"request_path LIKE ?")
+        params.append(folder)
+
+    core.update(
+        table="content_file",
+        sets={"enabled": 2},
+        where=["content_set_id=?",
+               "NOT (" + " OR ".join(where) + ")"]
+    ).exec(session, params)
 
     return script_def
 

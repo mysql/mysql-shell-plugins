@@ -51,6 +51,7 @@ export class RestServiceDialog {
         await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.servicePath, restService.servicePath);
         await DialogHelper.setCheckboxValue("makeDefault", restService.default);
         await DialogHelper.setCheckboxValue("enabled", restService.enabled);
+        await DialogHelper.setCheckboxValue("published", restService.published ?? true);
 
         // Settings
         if (restService.settings) {

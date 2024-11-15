@@ -180,7 +180,7 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
         requires_auth (bool): Whether authentication is required to access
             the content
         comments (str): Comments about the content
-        enabled (bool): Whether to enable the content set after all files are uploaded
+        enabled (int): Whether to enable the content set after all files are uploaded
         options (dict): The options as JSON string
         replace_existing (bool): Whether to replace a content set that uses the same request_path
         ignore_list (str): List of files and directories to ignore, separated by comma
@@ -248,7 +248,7 @@ def add_content_set(service_id=None, content_dir=None, **kwargs):
                     lib.core.delete(table="content_set",
                                     where="id=?").exec(session, [content_set.get("id")])
 
-            # Create the content_set, ensure it is created as "not enabled"
+            # Create the content_set
             content_set_id, files_added = lib.content_sets.add_content_set(
                 session, service.get("id"),
                 request_path,

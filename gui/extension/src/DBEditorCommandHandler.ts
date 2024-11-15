@@ -915,7 +915,7 @@ export class DBEditorCommandHandler {
                     "Yes", "No");
                 if (answer === "Yes") {
                     dbObject.dbSchemaId = await backend.mrs.addSchema(service.id,
-                        item.schema, `/${convertSnakeToCamelCase(item.schema)}`, false, null, null, undefined);
+                        item.schema, 1, `/${convertSnakeToCamelCase(item.schema)}`, false, null, null, undefined);
 
                     void commands.executeCommand("msg.refreshConnections");
                     showMessageWithTimeout(`The MRS schema ${item.schema} has been added successfully.`, 5000);

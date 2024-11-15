@@ -43,8 +43,12 @@ export class MrsContentSetTreeItem extends MrsTreeBaseItem {
 
     private static getIconName = (value: IMrsContentSetData): string => {
         let iconName = value.contentType === "SCRIPTS" ? "mrsContentSetScripts" : "mrsContentSet";
-        if (value.enabled !== 1) {
+        if (value.enabled === 0) {
             iconName += "Disabled";
+        } else if (value.enabled === 2) {
+            iconName += "Private";
+        } else if (value.requiresAuth === 1) {
+            iconName += "Locked";
         }
 
         return iconName + ".svg";

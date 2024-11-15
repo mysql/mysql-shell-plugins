@@ -102,7 +102,7 @@ def add_db_object(**kwargs):
         auto_add_schema (bool): If the schema should be added as well if it
             does not exist yet
         request_path (str): The request_path
-        enabled (bool): Whether the db object is enabled
+        enabled (int): Whether the db object is enabled
         crud_operation_format (str): The format to use for the CRUD operation
         requires_auth (bool): Whether authentication is required to access
             the schema
@@ -719,7 +719,7 @@ def update_db_object(**kwargs):
     Allowed options for value:
         name (str): The new name to apply to the database object
         db_schema_id (str): The id of the schema to update in the database object
-        enabled (bool): If the database object is enabled or not
+        enabled (int): If the database object is enabled or not
         crud_operation_format (str): The format to use for the CRUD operation
         requires_auth (bool): Whether authentication is required to access
             the database object

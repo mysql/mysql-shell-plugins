@@ -420,6 +420,15 @@ export const mrsSchemaDialog = {
     serviceList: By.id("servicePopup"),
     serviceLabel: By.css("#service label"),
     requestPath: By.id("requestPath"),
+    accessControl: {
+        exists: By.id("enabled"),
+        selectList: {
+            exists: By.css("#enabledPopup .popup.visible"),
+            disabled: By.id("Access DISABLED"),
+            enabled: By.id("Access ENABLED"),
+            private: By.id("PRIVATE Access Only"),
+        },
+    },
     settings: {
         dbSchemaName: By.id("dbSchemaName"),
         itemsPerPage: By.id("itemsPerPage"),
@@ -472,6 +481,15 @@ export const mrsDbObjectDialog = {
     exists: By.id("mrsDbObjectDialog"),
     service: By.id("service"),
     schema: By.id("schema"),
+    accessControl: {
+        exists: By.id("enabled"),
+        selectList: {
+            exists: By.css("#enabledPopup .popup.visible"),
+            disabled: By.id("Access DISABLED"),
+            enabled: By.id("Access ENABLED"),
+            private: By.id("PRIVATE Access Only"),
+        },
+    },
     requestPath: By.id("requestPath"),
     serviceLabel: By.css("#service label"),
     schemaLabel: By.css("#schema label"),

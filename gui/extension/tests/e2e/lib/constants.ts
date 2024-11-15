@@ -317,6 +317,10 @@ export const checkDialog = "Check Dialog";
 export const checkWebView = "Check WebView";
 export const checkTerminal = "Check terminal";
 
+export const accessControlEnabled = "enabled";
+export const accessControlDisabled = "disabled";
+export const accessControlPrivate = "private";
+
 // REST COLUMN OPTIONS
 export const rowOwnership = "Set as row ownership field";
 export const allowSorting = "Allow sorting operations using this field";

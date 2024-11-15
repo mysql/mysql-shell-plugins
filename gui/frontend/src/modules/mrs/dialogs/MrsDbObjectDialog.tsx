@@ -36,6 +36,7 @@ import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/Shel
 import { convertToPascalCase } from "../../../utilities/string-helpers.js";
 import { IMrsObjectFieldEditorData, MrsObjectFieldEditor } from "./MrsObjectFieldEditor.js";
 import { MrsDbObjectType } from "../types.js";
+import { getEnabledState } from "../mrsUtils.js";
 
 export class MrsDbObjectDialog extends AwaitableValueEditDialog {
     private requestValue!: IMrsDbObjectData;
@@ -203,25 +204,27 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                 },
                 flags: {
                     type: "description",
-                    caption: "MRS Object Flags",
-                    horizontalSpan: 2,
+                    caption: "Access Control",
+                    horizontalSpan: 1,
                     options: [
                         CommonDialogValueOption.Grouped,
                         CommonDialogValueOption.NewGroup,
                     ],
                 },
                 enabled: {
-                    type: "boolean",
-                    caption: "Enabled",
+                    type: "choice",
+                    caption: "Access",
+                    choices: ["Access DISABLED", "Access ENABLED", "PRIVATE Access Only"],
                     horizontalSpan: 2,
-                    value: (request.values?.enabled ?? true) as boolean,
+                    value: request.values?.enabled === 2 ? "PRIVATE Access Only" :
+                        request.values?.enabled === 1 ? "Access ENABLED" : "Access DISABLED",
                     options: [
                         CommonDialogValueOption.Grouped,
                     ],
                 },
                 requiresAuth: {
                     type: "boolean",
-                    caption: "Requires Auth",
+                    caption: "Auth. Required",
                     horizontalSpan: 2,
                     value: (request.values?.requiresAuth ?? true) as boolean,
                     options: [
@@ -377,7 +380,7 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
             })?.id;
             values.requestPath = mainSection.values.requestPath.value as string;
             values.requiresAuth = mainSection.values.requiresAuth.value as boolean;
-            values.enabled = mainSection.values.enabled.value as boolean;
+            values.enabled = getEnabledState(mainSection.values.enabled.value as string);
 
             // settingsSection
             values.itemsPerPage = settingsSection.values.itemsPerPage.value as number;
@@ -425,12 +428,12 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
         const optionsSection = this.dialogValues?.sections.get("optionsSection");
         if (mainSection) {
             this.requestValue.requestPath = mainSection.values.requestPath.value as string;
-            this.requestValue.enabled = + (mainSection.values.enabled.value as boolean);
+            this.requestValue.enabled = getEnabledState(mainSection.values.enabled.value as string);
             this.requestValue.requiresAuth = + (mainSection.values.requiresAuth.value as boolean);
         }
         if (optionsSection) {
             this.requestValue.metadata = optionsSection.values.metadata.value as string === ""
-            ? undefined : JSON.parse(optionsSection.values.metadata.value as string);
+                ? undefined : JSON.parse(optionsSection.values.metadata.value as string);
         }
 
         return this.requestValue;

@@ -234,7 +234,7 @@ def get_schema(session, schema_id: bytes = None, service_id: bytes = None,
 
 
 def add_schema(session, schema_name, service_id: bytes = None, request_path=None, requires_auth=None,
-               enabled=True, items_per_page=None, comments=None, options=None, metadata=None,
+               enabled=1, items_per_page=None, comments=None, options=None, metadata=None,
                schema_type="DATABASE_SCHEMA", internal=False, schema_id=None):
     """Add a schema to the given MRS service
 
@@ -244,7 +244,7 @@ def add_schema(session, schema_name, service_id: bytes = None, request_path=None
         request_path (str): The request_path
         requires_auth (bool): Whether authentication is required to access
             the schema
-        enabled (bool): The enabled state
+        enabled (int): The enabled state
         items_per_page (int): The number of items returned per page
         comments (str): Comments for the schema
         options (dict): The options for the schema
@@ -297,7 +297,7 @@ def add_schema(session, schema_name, service_id: bytes = None, request_path=None
         "name": schema_name,
         "request_path": request_path,
         "requires_auth": int(requires_auth),
-        "enabled": int(enabled),
+        "enabled": enabled,
         "items_per_page": items_per_page,
         "comments": comments,
         "options": core.convert_json(options) if options else None,

@@ -141,18 +141,22 @@ exports[`MRS Db Object dialog tests Show MRS DB Object Dialog (snapshot) and esc
             class="msg label valueTitle"
             data-tooltip="expand"
           >
-            MRS Object Flags
+            Access Control
           </label>
-          <label
-            class="msg checkbox checked valueEditor"
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
             id="enabled"
+            style="flex-direction: row; align-items: center;"
             tabindex="0"
           >
-            <span
-              class="checkMark"
-            />
-            Enabled
-          </label>
+            <label
+              class="msg label ellipsis"
+              data-tooltip="expand"
+            >
+              Access ENABLED
+            </label>
+          </div>
           <label
             class="msg checkbox unchecked valueEditor"
             id="requiresAuth"
@@ -161,7 +165,7 @@ exports[`MRS Db Object dialog tests Show MRS DB Object Dialog (snapshot) and esc
             <span
               class="checkMark"
             />
-            Requires Auth
+            Auth. Required
           </label>
         </div>
         <div
