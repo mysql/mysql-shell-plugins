@@ -38,7 +38,7 @@ export class ConnectionMySQLTreeItem extends ConnectionTreeItem {
     public constructor(details: IConnectionDetails, backend: ShellInterfaceSqlEditor) {
         super(details, backend);
 
-        let fileName = "connectionMySQL.svg";
+        let fileName = "connectionMysql.svg";
         const optionsMySQL = details.options as IMySQLConnectionOptions;
         if (optionsMySQL["mysql-db-system-id"] !== undefined) {
             fileName = "ociDbSystem.svg";
