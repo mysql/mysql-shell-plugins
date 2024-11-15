@@ -108,7 +108,7 @@ export const mrsSetServiceUrl = (serviceUrl: string): void => {
 };
 
 export const mrsAuthenticate = (serviceUrl: string, authPath: string, authApp?: string, userName?: string): void => {
-    print("Staring MRS authentication ...");
+    print("Starting MRS authentication ...");
 
     currentWorker.postMessage?.({
         taskId: currentWorker.currentTaskId,

@@ -155,7 +155,7 @@ export class MrsBaseSession {
             // Check if the current session has expired
             if (response.status === 401) {
                 /* this.setState({ restarting: true });
-                window.alert("Your current session expired. You will be logged in again.");
+                globalThis.alert("Your current session expired. You will be logged in again.");
 
                 void this.startLogin(authApp); */
                 throw new Error(`Not authenticated. Please authenticate first before accessing the ` +
@@ -194,7 +194,58 @@ export class MrsBaseSession {
         }
     };
 
-    public readonly verifyUserName = async (authApp: string, userName: string): Promise<void> => {
+    public readonly verifyCredentials = async ({ username, password = "", authApp }: {
+        username: string, password: string, authApp: string }): Promise<IMrsLoginResult> => {
+        if (authApp !== undefined) {
+            try {
+                const response = await this.doFetch({
+                    input: `${this.authPath}/login`,
+                    method: "POST",
+                    body: {
+                        username,
+                        password,
+                        authApp,
+                        sessionType: "bearer",
+                    },
+                }, undefined, undefined, undefined, false);
+
+                if (!response.ok) {
+                    this.accessToken = undefined;
+
+                    return {
+                        authApp,
+                        errorCode: response.status,
+                        errorMessage: (response.status === 401)
+                            ? "The sign in failed. Please check your username and password."
+                            : `The sign in failed. Error code: ${String(response.status)}`,
+                    };
+                } else {
+                    const result = await response.json();
+
+                    this.accessToken = String(result.accessToken);
+
+                    return {
+                        authApp,
+                        jwt: this.accessToken,
+                    };
+                }
+            } catch (e) {
+                return {
+                    authApp,
+                    errorCode: 2,
+                    errorMessage: `The sign in failed. Server Error: ${String(e)}`,
+                };
+            }
+        } else {
+            return {
+                authApp,
+                errorCode: 1,
+                errorMessage: `No authentication app selected.`,
+            };
+        }
+    };
+
+    public readonly sendClientFirst = async (authApp: string, userName: string): Promise<void> => {
         this.authApp = authApp;
 
         const nonce = this.hex(crypto.getRandomValues(new Uint8Array(10)));
@@ -222,7 +273,7 @@ export class MrsBaseSession {
         };
     };
 
-    public readonly verifyPassword = async (password: string): Promise<IMrsLoginResult> => {
+    public readonly sendClientFinal = async (password: string): Promise<IMrsLoginResult> => {
         const { challenge, clientFirst, serverFirst, clientFinal } = this.loginState;
 
         if (password !== undefined && password !== "" && this.authApp !== undefined &&
@@ -287,7 +338,7 @@ export class MrsBaseSession {
     };
 
     private readonly buildServerFirst = (challenge: IAuthChallenge): string => {
-        const b64Salt = window.btoa(String.fromCharCode.apply(null, Array.from(challenge.salt)));
+        const b64Salt = globalThis.btoa(String.fromCharCode.apply(null, Array.from(challenge.salt)));
 
         return `r=${challenge.nonce},s=${b64Salt},i=${String(challenge.iterations)}`;
     };
@@ -307,9 +358,9 @@ export class MrsBaseSession {
     };
 
     private readonly calculateHmac = async (secret: BufferSource, data: BufferSource): Promise<Uint8Array> => {
-        const key = await window.crypto.subtle.importKey(
+        const key = await globalThis.crypto.subtle.importKey(
             "raw", secret, { name: "HMAC", hash: { name: "SHA-256" } }, true, ["sign", "verify"]);
-        const signature = await window.crypto.subtle.sign("HMAC", key, data);
+        const signature = await globalThis.crypto.subtle.sign("HMAC", key, data);
 
         return new Uint8Array(signature);
     };
@@ -726,9 +777,23 @@ export type Cursor<EligibleFields> = {
     [Key in keyof EligibleFields]: EligibleFields[Key]
 };
 
+// authenticate() API
+
+/**
+ * Options available to authenticate in a REST service.
+ */
+export interface IAuthenticateOptions<AuthApp> {
+    authApp: AuthApp;
+    password?: string;
+    username: string;
+}
+
 // create*() API
 
-// For now, to create a record we only need to specify the details of that specific record.
+/**
+ * Options available to create a new REST document
+ * For now, to create a record we only need to specify the details of that specific document.
+ */
 export interface ICreateOptions<Type> {
     data: Type;
 }
@@ -1378,4 +1443,42 @@ export class MrsBaseObjectFunctionCall<Input, Output>
     public override async fetch(): Promise<IMrsFunctionJsonResponse<Output>> {
         return super.fetch();
     }
+}
+
+export class MrsAuthenticate {
+    private static mrsVendorId: string = "0x30000000000000000000000000000000";
+
+    public constructor(
+        private readonly session: MrsBaseSession,
+        private readonly authApp: string,
+        private readonly vendorId: string,
+        private readonly username: string,
+        private readonly password: string = "") {
+    }
+
+    public submit = async (): Promise<IMrsLoginResult> => {
+        if (this.vendorId === MrsAuthenticate.mrsVendorId) {
+            return this.authenticateUsingMrsNative();
+        }
+
+        return this.authenticateUsingMysqlInternal();
+    };
+
+    private authenticateUsingMrsNative = async (): Promise<IMrsLoginResult> => {
+        // SCRAM
+        await this.session.sendClientFirst(this.authApp, this.username);
+        const authenticationResponse = await this.session.sendClientFinal(this.password);
+
+        return authenticationResponse;
+    };
+
+    private authenticateUsingMysqlInternal = async (): Promise<IMrsLoginResult> => {
+        const authenticationResponse = await this.session.verifyCredentials({
+            username: this.username,
+            password: this.password,
+            authApp: this.authApp,
+        });
+
+        return authenticationResponse;
+    };
 }

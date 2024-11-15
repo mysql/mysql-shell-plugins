@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Optional, Set
+from typing import Literal, Optional, Set
 from mrs_plugin import lib
 from pathlib import Path
 import os
@@ -312,10 +312,15 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
         session=session,
         service_url=service_url)
 
-    template = code.get("template")
-    requires_auth = code.get("requires_auth")
+    auth_apps = lib.auth_apps.get_auth_apps(
+        service_id=service.get("id"), session=session, include_enable_state=True
+    )
 
-    # if no db object requires auth, the authentication command should not be generated for this service
+    template = code.get("template")
+    requires_auth = code.get("requires_auth") or len(auth_apps) > 0
+
+    # if no db object requires auth and there are no authentication apps enabled for the service,
+    # the SDK authentication command should not be generated
     delimiter = language_comment_delimiter(sdk_language)
     auth_loops = re.finditer(
         pattern=(
@@ -340,13 +345,16 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
         # TODO: include apps from all vendors.
         # For now, only include MRS and MySQL-Internal vendor auth apps
         supported_vendors = {
-            "30000000000000000000000000000000", # MRS
-            "31000000000000000000000000000000" # MySQL Internal
+            "30000000000000000000000000000000", # MRS Native
+            "31000000000000000000000000000000"  # MySQL Internal
         }
+
         service_auth_apps = [
             {
                 "name": auth_app.get("name"),
-                "vendor_id": auth_app.get("auth_vendor_id").hex(),
+                apply_language_convention(
+                    value="vendor_id", sdk_language=sdk_language
+                ): f"0x{auth_app.get("auth_vendor_id").hex()}",
             }
             for auth_app in lib.auth_apps.get_auth_apps(
                 session=session, service_id=service_id, include_enable_state=True
@@ -354,11 +362,9 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
             if auth_app.get("auth_vendor_id").hex() in supported_vendors
         ]
 
-        service_class_name = lib.core.convert_path_to_pascal_case(service.get("url_context_root"))
-        if sdk_language != "TypeScript":
-            # Until the authentication workflow is updated on TypeScript, we should not generate the constant.
-            service_level_constants += generate_sequence_constant(name="AUTH_APPS", values=service_auth_apps,
-                                                                sdk_language=sdk_language)
+        service_class_name = apply_language_convention(value=service.get("url_context_root"), primitive="class")
+        service_level_constants += generate_sequence_constant(name="AUTH_APPS", values=service_auth_apps,
+                                                            sdk_language=sdk_language)
 
         if len(service_auth_apps) > 0:
             service_level_type_definitions += generate_enum(
@@ -384,8 +390,13 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
     mapping = {
         "service_level_constants": service_level_constants,
         "service_level_type_definitions": service_level_type_definitions,
-        "service_name": lib.core.convert_path_to_camel_case(service.get("url_context_root")),
-        "service_class_name": lib.core.convert_path_to_pascal_case(service.get("url_context_root")),
+        "service_name": apply_language_convention(
+            value=service.get("url_context_root"),
+            sdk_language=sdk_language,
+        ),
+        "service_class_name": apply_language_convention(
+            value=service.get("url_context_root"), primitive="class"
+        ),
         "service_url": service_url,
         "service_auth_path": service.get("auth_path"),
         "service_id": lib.core.convert_id_to_string(service_id),
@@ -402,9 +413,6 @@ def substitute_schemas_in_template(service, template, sdk_language, session, ser
         f"^[^\\S\r\n]*?{delimiter} --- schemaLoopStart\n\\s*(^[\\S\\s]*?)^\\s*?{delimiter} --- schemaLoopEnd\n", template, flags=re.DOTALL | re.MULTILINE)
 
     schemas = lib.schemas.query_schemas(session, service_id=service.get("id"))
-
-    service_class_name = lib.core.convert_path_to_pascal_case(
-        service.get("url_context_root"))
 
     enabled_crud_ops = set()
     required_datatypes = set()
@@ -438,17 +446,15 @@ def substitute_schemas_in_template(service, template, sdk_language, session, ser
             else:
                 schema_template_with_obj_filled = schema_template
 
-            # Todo: Handle SDK Options
-            name = lib.core.convert_path_to_camel_case(schema.get("name"))
-            if sdk_language == "Python":
-                name = lib.core.convert_to_snake_case(name)
-
-            class_name = service_class_name + \
-                lib.core.convert_path_to_pascal_case(
-                    schema.get("request_path"))
             mapping = {
-                "schema_name": name,
-                "schema_class_name": class_name,
+                "schema_name": apply_language_convention(
+                    value=schema.get("name"),
+                    sdk_language=sdk_language,
+                ),
+                "schema_class_name": apply_language_convention(
+                    value=f"{service.get("url_context_root")}{schema.get("request_path")}",
+                    primitive="class",
+                ),
                 "schema_request_path": schema.get("request_path"),
                 "schema_id": lib.core.convert_id_to_string(schema.get("id")),
             }
@@ -480,22 +486,47 @@ def language_comment_delimiter(sdk_language):
         return "#"
 
 
-def substitute_objects_in_template(service, schema, template, sdk_language, session, service_url):
+def apply_language_convention(
+    value: str,
+    primitive: Literal["variable", "class"] = "variable",
+    sdk_language: Literal["TypeScript", "Python"] = "TypeScript",
+) -> str:
+    if primitive == "class":
+        return lib.core.convert_path_to_pascal_case(value)
+    if sdk_language == "TypeScript":
+        return lib.core.convert_path_to_camel_case(value)
+    if sdk_language == "Python":
+        return lib.core.convert_to_snake_case(value)
+    return value
+
+
+def substitute_objects_in_template(
+    service, schema, template, sdk_language, session, service_url
+):
     delimiter = language_comment_delimiter(sdk_language)
     object_loops = re.finditer(
         f"^[^\\S\r\n]*?{delimiter} --- objectLoopStart\n\\s*(^[\\S\\s]*?)^\\s*?{delimiter} --- objectLoopEnd\n",
-        template, flags=re.DOTALL | re.MULTILINE)
+        template,
+        flags=re.DOTALL | re.MULTILINE,
+    )
 
-    db_objs = lib.db_objects.query_db_objects(
-        session, schema_id=schema.get("id"))
+    db_objs = lib.db_objects.query_db_objects(session, schema_id=schema.get("id"))
 
-    service_class_name = lib.core.convert_path_to_pascal_case(
-        service.get("url_context_root"))
-    schema_class_name = lib.core.convert_path_to_pascal_case(
-        schema.get("request_path"))
+    schema_class_name = apply_language_convention(
+        value=f"{service.get("url_context_root")}{schema.get("request_path")}",
+        primitive="class",
+    )
 
-    crud_ops = ["Create", "Read", "Update",
-                "Delete", "DeleteUnique", "ProcedureCall", "ReadUnique", "FunctionCall"]
+    crud_ops = [
+        "Create",
+        "Read",
+        "Update",
+        "Delete",
+        "DeleteUnique",
+        "ProcedureCall",
+        "ReadUnique",
+        "FunctionCall",
+    ]
 
     enabled_crud_ops = set()
     required_datatypes = set()
@@ -504,11 +535,13 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
     for loop in object_loops:
         filled_temp = ""
         for db_obj in db_objs:
-            # Todo: Handle SDK Options
-            name = lib.core.convert_path_to_camel_case(
-                db_obj.get("request_path"))
-            default_class_name = (service_class_name + schema_class_name +
-                                  lib.core.convert_path_to_pascal_case(db_obj.get("request_path")))
+            name = apply_language_convention(
+                value=db_obj.get("request_path"), sdk_language=sdk_language
+            )
+            default_class_name = apply_language_convention(
+                value=f"{schema_class_name}{db_obj.get("request_path")}",
+                primitive="class",
+            )
 
             obj_interfaces = ""
             obj_param_interface = "I" + default_class_name + "Params"
@@ -651,34 +684,31 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                     interface_list = [f"MrsProcedureResultSet[I{name}Type, I{name}, ITagged{name}]" for name in obj_meta_interfaces]
                 obj_interfaces += generate_union(obj_meta_interface, interface_list, sdk_language)
 
-            # Names by default are formatted in `camelCase`. A different
-            # convention may apply for other SDK languages.
-            if sdk_language == "Python":
-                # It's OK if strings or dictionary keys are in `camelCase`,
-                # but class attributes and variables should be in `snake_case`.
-                name = lib.core.convert_to_snake_case(name)
-
             # Define the mappings
             mapping = {
                 "obj_id": lib.core.convert_id_to_string(db_obj.get("id")),
-                "obj_name": name,
+                "obj_name": apply_language_convention(
+                    value=db_obj.get("name"), sdk_language=sdk_language
+                ),
                 "obj_class_name": class_name,
                 "obj_param_interface": obj_param_interface,
                 "obj_meta_interface": obj_meta_interface,
                 "obj_request_path": db_obj.get("request_path"),
-                "schema_class_name": service_class_name + schema_class_name,
+                "schema_class_name": schema_class_name,
                 "schema_request_path": schema.get("request_path"),
-                "obj_full_request_path":
-                    service.get(
-                        "url_context_root") + schema.get("request_path") + db_obj.get("request_path"),
+                "obj_full_request_path": service.get("url_context_root")
+                + schema.get("request_path")
+                + db_obj.get("request_path"),
                 "obj_type": db_obj.get("object_type"),
                 "obj_interfaces": obj_interfaces,
                 "obj_getters_setters": getters_setters,
                 "obj_pk_list": ", ".join(obj_pk_list),
                 "obj_quoted_pk_list": ", ".join(obj_quoted_pk_list),
                 "obj_string_pk_list": ", ".join(obj_string_pk_list),
-                "obj_string_args_where_pk_list": ", ".join(obj_string_args_where_pk_list),
-                "obj_function_result_datatype": obj_function_result_datatype
+                "obj_string_args_where_pk_list": ", ".join(
+                    obj_string_args_where_pk_list
+                ),
+                "obj_function_result_datatype": obj_function_result_datatype,
             }
 
             # Loop over all CRUD operations and filter the sections that are not applicable for the specific object
@@ -817,7 +847,8 @@ def get_interface_datatype(
             return client_datatype
 
         return maybe_null(client_datatype, sdk_language)
-    return f'I{class_name}{reference_class_name_postfix}{lib.core.convert_path_to_pascal_case(field.get("name"))}'
+    class_name_postfix = apply_language_convention(value=field.get("name"), primitive="class")
+    return f"I{class_name}{reference_class_name_postfix}{class_name_postfix}"
 
 
 def datatype_is_primitive(client_datatype, sdk_language):
@@ -1025,6 +1056,7 @@ def generate_type_declaration(
 def generate_type_declaration_field(
     name, value, sdk_language, non_mandatory=False
 ):
+    name = apply_language_convention(value=name, sdk_language=sdk_language)
     indent = " " * 4
 
     if sdk_language == "TypeScript":
@@ -1034,12 +1066,11 @@ def generate_type_declaration_field(
         return f"{field_name_part}: {value},\n"
 
     if sdk_language == "Python":
-        name_in_convention = lib.core.convert_to_snake_case(name)
         if isinstance(value, list):
             hint = f"NotRequired[list[{value[0]}]]" if non_mandatory is True else f"list[{value[0]}]"
         else:
             hint = f"NotRequired[{value}]" if non_mandatory is True else f"{value}"
-        return f'{indent}{name_in_convention}: {hint}\n'
+        return f'{indent}{name}: {hint}\n'
 
 
 def generate_data_class(
@@ -1048,12 +1079,16 @@ def generate_data_class(
     sdk_language,
     db_object_crud_ops: list[str],
     obj_endpoint: Optional[str] = None,
-    obj_primary_key: Optional[str] = None
+    obj_primary_key: Optional[str] = None,
 ):
     if sdk_language == "TypeScript":
         return generate_type_declaration(
-            name=name, fields=fields, sdk_language=sdk_language, non_mandatory_fields=set(fields)
+            name=name,
+            fields=fields,
+            sdk_language=sdk_language,
+            non_mandatory_fields=set(fields),
         )
+
     if sdk_language == "Python":
         field_type_block = [
             (
@@ -1063,8 +1098,11 @@ def generate_data_class(
             for name, value in fields.items()
         ]
         assignment_block = [
-            f'{" " * 8}self.{lib.core.convert_to_snake_case(field)} = data.get("{lib.core.convert_to_snake_case(field)}", UndefinedField)\n'
-            for field in fields
+            f'{" " * 8}self.{field} = data.get("{field}", UndefinedField)\n'
+            for field in [
+                apply_language_convention(value=field, sdk_language=sdk_language)
+                for field in fields
+            ]
         ]
 
         create_snippet = ""
@@ -1086,18 +1124,18 @@ def generate_data_class(
                 update_snippet=update_snippet,
             )
         if "DELETE" in db_object_crud_ops and obj_primary_key is not None:
-            delete_method = SDK_PYTHON_DATACLASS_TEMPLATE_DELETE.format(
-                name=name
-            )
+            delete_method = SDK_PYTHON_DATACLASS_TEMPLATE_DELETE.format(name=name)
             if upsert_method:
-                delete_method = " "*4 + delete_method.lstrip()
+                delete_method = " " * 4 + delete_method.lstrip()
 
         return SDK_PYTHON_DATACLASS_TEMPLATE.format(
             name=name,
             join_field_block="".join(field_type_block).rstrip(),
             obj_endpoint=obj_endpoint,
             join_assignment_block="".join(assignment_block).rstrip(),
-            primary_key_name=(None if obj_primary_key is None else f'"{obj_primary_key}"'),
+            primary_key_name=(
+                None if obj_primary_key is None else f'"{obj_primary_key}"'
+            ),
             upsert_method=upsert_method,
             delete_method=delete_method,
         ) + ("" if upsert_method or delete_method else "\n\n")
@@ -1105,9 +1143,12 @@ def generate_data_class(
 
 def generate_field_enum(name, fields=None, sdk_language="TypeScript"):
     if sdk_language == "TypeScript":
+        # In TypeScript the field enum can be obtained using keyof on the original object type declaration, so there is
+        # no need for an additional type declaration.
         return ""
     if sdk_language == "Python":
         if not fields or len(fields) == 0:
+            # To avoid conditional logic in the template, we can generate a placeholder declaration regardless.
             return generate_type_declaration_placeholder(f"{name}Field", sdk_language)
 
         fields_in_case = [lib.core.convert_to_snake_case(field) for field in fields]

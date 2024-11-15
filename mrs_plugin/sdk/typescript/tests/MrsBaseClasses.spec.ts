@@ -28,7 +28,7 @@ import {
     IFindManyOptions, IFindUniqueOptions, JsonValue, MrsBaseObjectQuery, MrsBaseSchema, MrsBaseService,
     MrsResourceObject, MrsBaseObjectCreate, IFindFirstOptions, IMrsResourceCollectionData, MrsBaseObjectDelete,
     MrsBaseObjectUpdate, IMrsDeleteResult, IMrsFunctionJsonResponse, MrsBaseObjectFunctionCall,
-    IMrsProcedureJsonResponse, MrsBaseObjectProcedureCall, JsonObject,
+    IMrsProcedureJsonResponse, MrsBaseObjectProcedureCall, JsonObject, MrsAuthenticate,
 } from "../MrsBaseClasses";
 
 // fixtures
@@ -55,8 +55,13 @@ interface ITableMetadata3 {
 const service: MrsBaseService = new MrsBaseService("/foo");
 const schema: MrsBaseSchema = { requestPath: "/bar", service };
 
-const createFetchMock = (response: string = "{}") => {
-    vi.stubGlobal("fetch", vi.fn(() => {
+const createFetchMock = ({ matchBody, matchUrl, response = "{}" }: {
+    matchBody?: string, matchUrl?: string, response: string } = { response: "{}" }): void => {
+    vi.stubGlobal("fetch", vi.fn((url, { body }) => {
+        if ((matchUrl !== undefined && matchUrl !== url) || (matchBody !== undefined && matchBody !== body)) {
+            return Promise.resolve({ ok: false });
+        }
+
         return Promise.resolve({
             ok: true,
             json: (): JsonValue => {
@@ -71,7 +76,7 @@ describe("MRS SDK API", () => {
         vi.restoreAllMocks();
     });
 
-    describe("when retrieving resources", () => {
+    describe("when accessing REST objects", () => {
         it("selects fields to include in the result set using the field names", async () => {
             const options: IFindManyOptions<ITableMetadata1, unknown, unknown> = {
                 select: ["str", "json", "oneToMany.oneToOne.str"],
@@ -319,10 +324,10 @@ describe("MRS SDK API", () => {
                 }],
             };
 
-            createFetchMock(JSON.stringify(collectionResponse));
+            createFetchMock({ response: JSON.stringify(collectionResponse) });
         });
 
-        it("hypermedia options are not part of the JSON representation of an application resource instance",
+        it("metadata are not part of the JSON representation of an application resource instance",
                 async () => {
             const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
             const collection = await query.fetch();
@@ -334,7 +339,7 @@ describe("MRS SDK API", () => {
             expect(JSON.stringify(resource)).toEqual('{"id":1,"str":"qux"}');
         });
 
-        it("hypermedia options are not enumerable in an application resource instance", async () => {
+        it("metadata are not enumerable in an application resource instance", async () => {
             const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
             const collection = await query.fetch();
 
@@ -345,7 +350,7 @@ describe("MRS SDK API", () => {
             expect(Object.keys(resource)).toEqual(["id", "str"]);
         });
 
-        it("hypermedia options are not iterable in an application resource instance", async () => {
+        it("metadata are not iterable in an application resource instance", async () => {
             const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
             const collection = await query.fetch();
 
@@ -362,7 +367,7 @@ describe("MRS SDK API", () => {
             expect("links" in resource).toBeFalsy();
         });
 
-        it("hypermedia options are not writable in an application resource instance", async () => {
+        it("metadata are not writable in an application resource instance", async () => {
             const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
             const collection = await query.fetch();
 
@@ -379,7 +384,7 @@ describe("MRS SDK API", () => {
             expect(() => { resource.links = []; }).toThrowError('The "links" property cannot be changed');
         });
 
-        it("hypermedia options are not removable from an application resource instance", async () => {
+        it("metadata are not removable from an application resource instance", async () => {
             const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
             const collection = await query.fetch() as Omit<IMrsResourceCollectionData<ITableMetadata1>,
                 "count" | "hasMore" | "limit" | "offset" | "links">;
@@ -396,7 +401,7 @@ describe("MRS SDK API", () => {
             expect(() => { delete resource.links; }).toThrowError('The "links" property cannot be deleted');
         });
 
-        it("hypermedia and database object fields are directly accessible in an application resource instance",
+        it("metadata and database object fields are directly accessible in an application resource instance",
                 async () => {
             const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
             const collection = await query.fetch();
@@ -501,23 +506,59 @@ describe("MRS SDK API", () => {
                 q: '{"id":{"$gt":10},"$orderby":{"id":"ASC","num":"ASC"},"num":{"$gt":20}}' });
             expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
+
+        describe("that require authentication", () => {
+            const username = "qux";
+            const password = "quux";
+            const authApp = "corge";
+
+            describe("after authenticating using a MySQL Internal auth app", () => {
+                const vendorId = "0x31000000000000000000000000000000";
+
+                beforeEach(async () => {
+                    createFetchMock({
+                        matchUrl: "/foo/authentication/login",
+                        matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
+                        response: JSON.stringify({ accessToken: "ABC" }),
+                    });
+
+                    const request = new MrsAuthenticate(schema.service.session, authApp, vendorId, username, password);
+                    await request.submit();
+
+                    createFetchMock();
+                });
+
+                it("includes the appropriate access token in the request", async () => {
+                    const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+
+                    await query.fetch();
+
+                    expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
+                        headers: {
+                            // eslint-disable-next-line
+                            "Authorization": "Bearer ABC"
+                        },
+                    }));
+                });
+            });
+        });
     });
 
-    describe("when creating a resource", () => {
-        beforeEach(() => {
-            const singleResourceResponse: MrsResourceObject<ITableMetadata1> = {
-                id: 1,
-                str: "qux",
-                _metadata: {
-                    etag: "XYZ",
-                },
-                links: [{
-                    href: "http://localhost:8444/foo/bar/baz/1",
-                    rel: "self",
-                }],
-            };
+    describe("when creating a REST document", () => {
+        const response: MrsResourceObject<ITableMetadata1> = {
+            id: 1,
+            str: "qux",
+            _metadata: {
+                etag: "XYZ",
+            },
+            links: [{
+                href: "http://localhost:8444/foo/bar/baz/1",
+                rel: "self",
+            }],
+        };
 
-            createFetchMock(JSON.stringify(singleResourceResponse));
+        beforeEach(() => {
+            createFetchMock({ response: JSON.stringify(response) });
         });
 
         it("encodes the resource as a JSON string in the request body", async () => {
@@ -531,7 +572,7 @@ describe("MRS SDK API", () => {
             }));
         });
 
-        it("hypermedia properties are not part of the JSON representation of an application resource instance",
+        it("metadata are not part of the JSON representation of an application resource instance",
                 async () => {
             const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1,
                 str: "qux" } });
@@ -540,7 +581,7 @@ describe("MRS SDK API", () => {
             expect(JSON.stringify(res)).toEqual('{"id":1,"str":"qux"}');
         });
 
-        it("hypermedia properties are not enumerable in an application resource instance", async () => {
+        it("metadata are not enumerable in an application resource instance", async () => {
             const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1,
                 str: "qux" } });
             const res = await query.fetch();
@@ -548,7 +589,7 @@ describe("MRS SDK API", () => {
             expect(Object.keys(res)).toEqual(["id", "str"]);
         });
 
-        it("hypermedia properties are not iterable in an application resource instance", async () => {
+        it("metadata are not iterable in an application resource instance", async () => {
             const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1,
                 str: "qux" } });
             const res = await query.fetch();
@@ -557,7 +598,7 @@ describe("MRS SDK API", () => {
             expect("links" in res).toBeFalsy();
         });
 
-        it("hypermedia properties are not writable in an application resource instance", async () => {
+        it("metadata are not writable in an application resource instance", async () => {
             const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1,
                 str: "qux" } });
             const res = await query.fetch();
@@ -568,7 +609,7 @@ describe("MRS SDK API", () => {
             expect(() => { res.links = []; }).toThrowError('The "links" property cannot be changed.');
         });
 
-        it("hypermedia properties are not removable from an application resource instance", async () => {
+        it("metadata are not removable from an application resource instance", async () => {
             const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1,
                 str: "qux" } });
             const res = await query.fetch() as Omit<MrsResourceObject<ITableMetadata1>, "_metadata" | "links">;
@@ -578,7 +619,7 @@ describe("MRS SDK API", () => {
             expect(() => { delete res.links; }).toThrowError('The "links" property cannot be deleted.');
         });
 
-        it("hypermedia and database object fields are directly accessible in an application resource instance",
+        it("metadata and database object fields are directly accessible in an application resource instance",
                 async () => {
             const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1,
                 str: "qux" } });
@@ -635,7 +676,7 @@ describe("MRS SDK API", () => {
                     }],
                 };
 
-                createFetchMock(JSON.stringify(response));
+                createFetchMock({ response: JSON.stringify(response) });
 
                 const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: {
                     str: "qux" }});
@@ -691,26 +732,62 @@ describe("MRS SDK API", () => {
                 expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
             });
         });
+
+        describe("in a REST object that requires authentication", () => {
+            const username = "qux";
+            const password = "quux";
+            const authApp = "corge";
+
+            describe("after authenticating using a MySQL Internal auth app", () => {
+                const vendorId = "0x31000000000000000000000000000000";
+
+                beforeEach(async () => {
+                    createFetchMock({
+                        matchUrl: "/foo/authentication/login",
+                        matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
+                        response: JSON.stringify({ accessToken: "ABC" }),
+                    });
+
+                    const request = new MrsAuthenticate(schema.service.session, authApp, vendorId, username, password);
+                    await request.submit();
+
+                    createFetchMock({ response: JSON.stringify(response) });
+                });
+
+                it("includes the appropriate access token in the request", async () => {
+                    const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: {
+                        str: "foobar" } });
+                    await query.fetch();
+
+                    expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
+                        headers: {
+                            // eslint-disable-next-line
+                            "Authorization": "Bearer ABC"
+                        },
+                    }));
+                });
+            });
+        });
     });
 
     describe("when updating a resource", () => {
-        beforeEach(() => {
-            const response: MrsResourceObject<ITableMetadata1> = {
-                id: 1,
-                str: "qux",
-                _metadata: {
-                    etag: "XYZ",
-                },
-                links: [{
-                    href: "http://localhost:8444/foo/bar/baz/1",
-                    rel: "self",
-                }],
-            };
+        const response: MrsResourceObject<ITableMetadata1> = {
+            id: 1,
+            str: "qux",
+            _metadata: {
+                etag: "XYZ",
+            },
+            links: [{
+                href: "http://localhost:8444/foo/bar/baz/1",
+                rel: "self",
+            }],
+        };
 
-            createFetchMock(JSON.stringify(response));
+        beforeEach(() => {
+            createFetchMock({ response: JSON.stringify(response) });
         });
 
-        it("hypermedia properties are not part of the JSON representation of an application resource instance",
+        it("metadata are not part of the JSON representation of an application resource instance",
                 async () => {
             const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
                 { data: { id: 1, str: "qux" } }, ["id"]);
@@ -719,7 +796,7 @@ describe("MRS SDK API", () => {
             expect(JSON.stringify(res)).toEqual('{"id":1,"str":"qux"}');
         });
 
-        it("hypermedia properties are not enumerable in an application resource instance", async () => {
+        it("metadata are not enumerable in an application resource instance", async () => {
             const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
                 { data: { id: 1, str: "qux" } }, ["id"]);
             const res = await query.fetch();
@@ -727,7 +804,7 @@ describe("MRS SDK API", () => {
             expect(Object.keys(res)).toEqual(["id", "str"]);
         });
 
-        it("hypermedia properties are not iterable in an application resource instance", async () => {
+        it("metadata are not iterable in an application resource instance", async () => {
             const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
                 { data: { id: 1, str: "qux" } }, ["id"]);
             const res = await query.fetch();
@@ -736,7 +813,7 @@ describe("MRS SDK API", () => {
             expect("links" in res).toBeFalsy();
         });
 
-        it("hypermedia properties are not writable in an application resource instance", async () => {
+        it("metadata are not writable in an application resource instance", async () => {
             const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
                 { data: { id: 1, str: "qux" } }, ["id"]);
             const res = await query.fetch();
@@ -747,7 +824,7 @@ describe("MRS SDK API", () => {
             expect(() => { res.links = []; }).toThrowError('The "links" property cannot be changed.');
         });
 
-        it("hypermedia properties are not removable from an application resource instance", async () => {
+        it("metadata are not removable from an application resource instance", async () => {
             const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
                 { data: { id: 1, str: "qux" } }, ["id"]);
             const res = await query.fetch() as Omit<MrsResourceObject<ITableMetadata1>, "_metadata" | "links">;
@@ -757,7 +834,7 @@ describe("MRS SDK API", () => {
             expect(() => { delete res.links; }).toThrowError('The "links" property cannot be deleted.');
         });
 
-        it("hypermedia and database object fields are directly accessible in an application resource instance",
+        it("metadata and database object fields are directly accessible in an application resource instance",
                 async () => {
                     const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
                         { data: { id: 1, str: "qux" } }, ["id"]);
@@ -814,7 +891,7 @@ describe("MRS SDK API", () => {
                     }],
                 };
 
-                createFetchMock(JSON.stringify(response));
+                createFetchMock({ response: JSON.stringify(response) });
 
                 const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz", {
                     data: { id:1, str: "qux" } }, ["id"]);
@@ -870,9 +947,51 @@ describe("MRS SDK API", () => {
                 expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
             });
         });
+
+        describe("of a REST object that requires authentication", () => {
+            const username = "qux";
+            const password = "quux";
+            const authApp = "corge";
+
+            describe("after authenticating using a MySQL Internal auth app", () => {
+                const vendorId = "0x31000000000000000000000000000000";
+
+                beforeEach(async () => {
+                    createFetchMock({
+                        matchUrl: "/foo/authentication/login",
+                        matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
+                        response: JSON.stringify({ accessToken: "ABC" }),
+                    });
+
+                    const request = new MrsAuthenticate(schema.service.session, authApp, vendorId, username, password);
+                    await request.submit();
+
+                    createFetchMock({ response: JSON.stringify(response) });
+                });
+
+                it("includes the appropriate access token in the request", async () => {
+                    const data: ITableMetadata1 = { id: 1, str: "qux" };
+                    const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz", {
+                        data }, ["id"]);
+                    await query.fetch();
+
+                    expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz/${data.id}`, expect.objectContaining({
+                        body: JSON.stringify(data),
+                        headers: {
+                            // eslint-disable-next-line
+                            "Authorization": "Bearer ABC",
+                        },
+                    }));
+                });
+            });
+        });
     });
 
-    describe("when deleting resources", () => {
+    describe("when deleting REST documents", () => {
+        beforeEach(() => {
+            createFetchMock();
+        });
+
         it("removes all records where a given field is NULL", async () => {
             const query = new MrsBaseObjectDelete<{ maybe: number | null }>(schema, "/baz", { where: { maybe: null }});
             await query.fetch();
@@ -896,8 +1015,6 @@ describe("MRS SDK API", () => {
 
         describe("when the server does not send back a GTID", () => {
             beforeEach(async () => {
-                createFetchMock();
-
                 const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 }});
                 await query.fetch();
             });
@@ -933,7 +1050,7 @@ describe("MRS SDK API", () => {
                     },
                 };
 
-                createFetchMock(JSON.stringify(response));
+                createFetchMock({ response: JSON.stringify(response) });
 
                 const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 }});
                 await query.fetch();
@@ -988,13 +1105,66 @@ describe("MRS SDK API", () => {
                 expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
             });
         });
+
+        describe("of a REST object that requires authentication", () => {
+            const username = "qux";
+            const password = "quux";
+            const authApp = "corge";
+
+            describe("after authenticating using a MySQL Internal auth app", () => {
+                const vendorId = "0x31000000000000000000000000000000";
+
+                beforeEach(async () => {
+                    createFetchMock({
+                        matchUrl: "/foo/authentication/login",
+                        matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
+                        response: JSON.stringify({ accessToken: "ABC" }),
+                    });
+
+                    const request = new MrsAuthenticate(schema.service.session, authApp, vendorId, username, password);
+                    await request.submit();
+
+                    createFetchMock();
+                });
+
+                it("includes the appropriate access token in the request", async () => {
+                    const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 } });
+                    await query.fetch();
+
+                    const searchParams = new URLSearchParams({ q: '{"id":1}' });
+                    expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`,
+                        expect.objectContaining({
+                            headers: {
+                                // eslint-disable-next-line
+                                "Authorization": "Bearer ABC",
+                            },
+                        }));
+                });
+            });
+        });
     });
 
-    describe("when calling a function", () => {
+    describe("when calling a REST function", () => {
+        beforeEach(() => {
+            createFetchMock();
+        });
+
+        it.only("sets the appropriate input parameters", async () => {
+            interface IInputParameters { name: string }
+            const args: IInputParameters = { name: "foobar" };
+            const query = new MrsBaseObjectFunctionCall<IInputParameters, string>(schema, "/baz", args);
+            await query.fetch();
+
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
+                method: "PUT",
+                body: JSON.stringify(args),
+            }));
+        });
+
         describe("transactional metadata", () => {
             beforeEach(() => {
                 const response: IMrsFunctionJsonResponse<string> = { result: "foo", _metadata: { gtid: "bar" } };
-                createFetchMock(JSON.stringify(response));
+                createFetchMock({ response: JSON.stringify(response) });
             });
 
             it("are not part of the JSON representation of the function result",
@@ -1046,7 +1216,7 @@ describe("MRS SDK API", () => {
         describe("if the server does not send back a GTID", () => {
             beforeEach(async () => {
                 const response: IMrsFunctionJsonResponse<string> = { result: "foo" };
-                createFetchMock(JSON.stringify(response));
+                createFetchMock({ response: JSON.stringify(response) });
 
                 const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", { name: "foo" });
                 await query.fetch();
@@ -1083,7 +1253,7 @@ describe("MRS SDK API", () => {
                     },
                 };
 
-                createFetchMock(JSON.stringify(response));
+                createFetchMock({ response: JSON.stringify(response) });
 
                 const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", { name: "foo" });
                 await query.fetch();
@@ -1138,9 +1308,67 @@ describe("MRS SDK API", () => {
                 expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
             });
         });
+
+        describe("that requires authentication", () => {
+            const username = "qux";
+            const password = "quux";
+            const authApp = "corge";
+
+            describe("after authenticating using a MySQL Internal auth app", () => {
+                const vendorId = "0x31000000000000000000000000000000";
+
+                beforeEach(async () => {
+                    createFetchMock({
+                        matchUrl: "/foo/authentication/login",
+                        matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
+                        response: JSON.stringify({ accessToken: "ABC" }),
+                    });
+
+                    const request = new MrsAuthenticate(schema.service.session, authApp, vendorId, username, password);
+                    await request.submit();
+
+                    createFetchMock();
+                });
+
+                it("includes the appropriate access token in the request", async () => {
+                    const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", {
+                        name: "foo" });
+                    await query.fetch();
+
+                    expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
+                        headers: {
+                            // eslint-disable-next-line
+                            "Authorization": "Bearer ABC",
+                        },
+                    }));
+                });
+            });
+        });
     });
 
-    describe("when calling a procedure", () => {
+    describe("when calling a REST procedure", () => {
+        const response: IMrsProcedureJsonResponse<unknown, unknown> = {
+            resultSets: [],
+        };
+
+        beforeEach(() => {
+            createFetchMock({ response: JSON.stringify(response) });
+        });
+
+        it("sets the appropriate input parameters", async () => {
+            interface IInputParameters { firstName: string, lastName: string }
+            const args: IInputParameters = { firstName: "foo", lastName: "bar" };
+            const query = new MrsBaseObjectProcedureCall<IInputParameters, { name: string },
+                JsonObject>(schema, "/baz", args);
+
+            await query.fetch();
+
+            expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
+                method: "PUT",
+                body: JSON.stringify(args),
+            }));
+        });
+
         describe("transactional and column metadata", () => {
             beforeEach(() => {
                 const response: IMrsProcedureJsonResponse<{ name: string }, {}> = {
@@ -1160,7 +1388,8 @@ describe("MRS SDK API", () => {
                         gtid: "baz",
                     },
                 };
-                createFetchMock(JSON.stringify(response));
+
+                createFetchMock({ response: JSON.stringify(response) });
             });
 
             it("are not part of the JSON representation of the function result",
@@ -1231,14 +1460,6 @@ describe("MRS SDK API", () => {
 
         describe("if the server does not send back a GTID", () => {
             beforeEach(async () => {
-                const response: IMrsProcedureJsonResponse<{ name: string }, {}> = {
-                    outParams: {
-                        name: "foobar",
-                    },
-                    resultSets: [],
-                };
-                createFetchMock(JSON.stringify(response));
-
                 const query = new MrsBaseObjectProcedureCall<{ firstName: string, lastName: string }, { name: string },
                     JsonObject>(schema, "/baz", { firstName: "foo", lastName: "bar" });
                 await query.fetch();
@@ -1269,15 +1490,13 @@ describe("MRS SDK API", () => {
         describe("if the server sends back a GTID", () => {
             beforeEach(async () => {
                 const response: IMrsProcedureJsonResponse<{ name: string }, {}> = {
-                    outParams: {
-                        name: "foobar",
-                    },
                     resultSets: [],
                     _metadata: {
                         gtid: "ABC",
                     },
                 };
-                createFetchMock(JSON.stringify(response));
+
+                createFetchMock({ response: JSON.stringify(response)} );
 
                 const query = new MrsBaseObjectProcedureCall<{ firstName: string, lastName: string }, { name: string },
                     JsonObject>(schema, "/baz", { firstName: "foo", lastName: "bar" });
@@ -1331,6 +1550,42 @@ describe("MRS SDK API", () => {
                 // first call is on beforeEach
                 expect(fetch).toHaveBeenNthCalledWith(2, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
                 expect(fetch).toHaveBeenNthCalledWith(3, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
+            });
+        });
+
+        describe("that requires authentication", () => {
+            const username = "qux";
+            const password = "quux";
+            const authApp = "corge";
+
+            describe("after authenticating using a MySQL Internal auth app", () => {
+                const vendorId = "0x31000000000000000000000000000000";
+
+                beforeEach(async () => {
+                    createFetchMock({
+                        matchUrl: "/foo/authentication/login",
+                        matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
+                        response: JSON.stringify({ accessToken: "ABC" }),
+                    });
+
+                    const request = new MrsAuthenticate(schema.service.session, authApp, vendorId, username, password);
+                    await request.submit();
+
+                    createFetchMock({ response: JSON.stringify(response) });
+                });
+
+                it("includes the appropriate access token in the request", async () => {
+                    const query = new MrsBaseObjectProcedureCall<{ firstName: string, lastName: string }, {
+                        name: string }, JsonObject>(schema, "/baz", { firstName: "foo", lastName: "bar" });
+                    await query.fetch();
+
+                    expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
+                        headers: {
+                            // eslint-disable-next-line
+                            "Authorization": "Bearer ABC",
+                        },
+                    }));
+                });
             });
         });
     });
