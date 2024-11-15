@@ -165,7 +165,7 @@ export interface IRestService {
 export interface IRestSchema {
     restServicePath?: string;
     restSchemaPath?: string;
-    enabled?: boolean;
+    accessControl?: string;
     requiresAuth?: boolean;
     settings?: IRestSchemaSettings;
     options?: string;
@@ -181,7 +181,7 @@ export interface IRestObject {
     restServicePath?: string;
     restSchemaPath?: string;
     restObjectPath?: string;
-    enabled?: boolean;
+    accessControl?: string;
     requiresAuth?: boolean;
     jsonRelDuality?: IRestObjectJsonDual;
     settings?: IRestObjectSettings;

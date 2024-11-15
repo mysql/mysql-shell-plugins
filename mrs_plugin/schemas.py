@@ -215,7 +215,7 @@ def add_schema(**kwargs):
         request_path (str): The request_path
         requires_auth (bool): Whether authentication is required to access
             the schema
-        enabled (bool): The enabled state
+        enabled (int): The enabled state
         items_per_page (int): The number of items returned per page
         comments (str): Comments for the schema
         options (dict): The options for the schema
@@ -232,7 +232,7 @@ def add_schema(**kwargs):
     schema_name = kwargs.get("schema_name")
     request_path = kwargs.get("request_path")
     requires_auth = kwargs.get("requires_auth")
-    enabled = kwargs.get("enabled", True)
+    enabled = kwargs.get("enabled", 1)
     items_per_page = kwargs.get("items_per_page")
     comments = kwargs.get("comments")
     options = kwargs.get("options")
@@ -602,7 +602,7 @@ def update_schema(**kwargs):
         request_path (str): The request_path
         requires_auth (bool): Whether authentication is required to access
             the schema
-        enabled (bool): The enabled state
+        enabled (int): The enabled state
         items_per_page (int): The number of items returned per page
         comments (str): Comments for the schema
         options (dict): The options for the schema

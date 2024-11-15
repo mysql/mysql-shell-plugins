@@ -26,7 +26,7 @@
 .msg.dialog.valueEditDialog {
     padding: 0;
     color: var(--foreground);
-    min-width: 750px;
+    min-width: 760px;
 }
 
 .msg.dialog.valueEditDialog.autoResize {
@@ -46,7 +46,7 @@
 }
 
 .msg.dialog.valueEditDialog > .content {
-    padding: 16px 54px 30px 54px;
+    padding: 8px 32px 16px 32px;
 }
 
 .msg.dialog.valueEditDialog .sectionTitle {

@@ -17,7 +17,7 @@
         "unit-tests:mrs": "npm run unit-tests:run -- -c=unit-tests-mrs.jest.config.ts --watchAll=false --runInBand",
         "coverage:report": "istanbul-merge --out coverage/coverage-final.json coverage/coverage-generic/coverage-final.json coverage/coverage-mrs/coverage-final.json && nyc report",
         "unit-tests": "npm run unit-tests:generic && npm run unit-tests:mrs && npm run coverage:report",
-        "update-snapshots": "node --no-compilation-cache --expose-gc --max_old_space_size=4096 node_modules/.bin/jest -c=unit-tests.jest.config.ts --no-coverage  --watchAll=false -u",
+        "update-snapshots": "clear && node --no-compilation-cache --expose-gc --max_old_space_size=4096 node_modules/.bin/jest -c=unit-tests.jest.config.ts --no-coverage  --watchAll=false -u",
         "e2e-tests-setup-and-run": "mysqlsh --py -f src/tests/e2e/setup_local_env_and_run.py",
         "e2e-tests-run": "jest -c e2e.jest.config.ts",
         "e2e-tests-report": "node src/tests/e2e/postActions.mjs"

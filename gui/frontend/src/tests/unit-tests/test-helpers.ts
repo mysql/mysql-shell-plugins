@@ -844,7 +844,7 @@ export const createBackend = async (): Promise<ShellInterfaceSqlEditor> => {
 export interface IRecreateMrsDataResult {
     service: IMrsServiceData,
     authApp: IMrsAuthAppData,
-};
+}
 
 export const recreateMrsData = async (): Promise<IRecreateMrsDataResult> => {
     const backend = await createBackend();
@@ -874,10 +874,10 @@ export const recreateMrsData = async (): Promise<IRecreateMrsDataResult> => {
         defaultRoleId: "0x31000000000000000000000000000000",
     }, []);
     const authApp = await backend.mrs.getAuthApp(authAppId.authAppId);
-    const schemaId = await backend.mrs.addSchema(service.id, "MRS_TEST", "/mrs-test", false, null, null);
+    const schemaId = await backend.mrs.addSchema(service.id, "MRS_TEST", 1, "/mrs-test", false, null, null);
 
     let newDbObjectId = uuidBinary16Base64();
-    const dbObjectResult = await backend.mrs.addDbObject("actor", MrsDbObjectType.Table, false, "/actor", true,
+    const dbObjectResult = await backend.mrs.addDbObject("actor", MrsDbObjectType.Table, false, "/actor", 1,
         "FEED", false, false, null, null, schemaId,
         undefined, "<this is a comment>", undefined, undefined, null,
         [
@@ -958,7 +958,7 @@ export const recreateMrsData = async (): Promise<IRecreateMrsDataResult> => {
 
     newDbObjectId = uuidBinary16Base64();
     await backend.mrs.addDbObject("actor_count",
-        MrsDbObjectType.Procedure, false, "/actor_count", true,
+        MrsDbObjectType.Procedure, false, "/actor_count", 1,
         "FEED", false, false, null, null, schemaId,
         undefined, "<this is a comment>", undefined, undefined, null,
         [

@@ -25,6 +25,7 @@
 
 import { IMrsContentFileData } from "../../../../frontend/src/communication/ProtocolMrs.js";
 import { ShellInterfaceSqlEditor } from "../../../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { formatBytes } from "../../../../frontend/src/utilities/string-helpers.js";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
 export class MrsContentFileTreeItem extends MrsTreeBaseItem {
@@ -35,8 +36,12 @@ export class MrsContentFileTreeItem extends MrsTreeBaseItem {
         public value: IMrsContentFileData,
         backend: ShellInterfaceSqlEditor,
         connectionId: number) {
-        super(label, backend, connectionId, value.enabled
-            ? "mrsContentFile.svg"
-            : "mrsContentFileDisabled.svg", false);
+        super(label, backend, connectionId, value.enabled === 2 ? "mrsContentFilePrivate.svg" :
+            value.enabled === 1 ? "mrsContentFile.svg" : "mrsContentFileDisabled.svg", false);
+
+        this.description = formatBytes(value.size);
+        this.tooltip = value.requestPath + "\nAccess: " + (value.enabled === 2 ? "PRIVATE" :
+            value.enabled === 1 ? "ENABLED" : "DISABLED") + "\nAuthentication: " +
+            (!value.requiresAuth && "NOT ") + "REQUIRED";
     }
 }

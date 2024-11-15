@@ -41,7 +41,7 @@ import { SchemaMySQLTreeItem } from "./SchemaMySQLTreeItem.js";
 import { IDictionary } from "../../../../frontend/src/app-logic/Types.js";
 import { ShellInterface } from "../../../../frontend/src/supplement/ShellInterface/ShellInterface.js";
 import { uuid } from "../../../../frontend/src/utilities/helpers.js";
-import { compareVersionStrings, formatBytes } from "../../../../frontend/src/utilities/string-helpers.js";
+import { compareVersionStrings } from "../../../../frontend/src/utilities/string-helpers.js";
 import { showStatusText } from "../../extension.js";
 import { showMessageWithTimeout } from "../../utilities.js";
 import { openSqlEditorConnection } from "../../utilitiesShellGui.js";
@@ -1089,7 +1089,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<Connections
                 return {
                     parent: entry,
                     type: "mrsContentFile",
-                    treeItem: new MrsContentFileTreeItem(`${value.requestPath} (${formatBytes(value.size)})`, value,
+                    treeItem: new MrsContentFileTreeItem(`${value.requestPath}`, value,
                         item.backend, item.connectionId),
                 };
             });

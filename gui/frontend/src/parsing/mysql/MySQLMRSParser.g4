@@ -5197,6 +5197,7 @@ identifierKeywordsUnambiguous:
         | ENABLED_SYMBOL
         | PUBLISHED_SYMBOL
         | DISABLED_SYMBOL
+        | PRIVATE_SYMBOL
         | UNPUBLISHED_SYMBOL
         | PROTOCOL_SYMBOL
         | HTTP_SYMBOL
@@ -5773,6 +5774,12 @@ enabledDisabled:
     | DISABLED_SYMBOL
 ;
 
+enabledDisabledPrivate:
+    ENABLED_SYMBOL
+    | DISABLED_SYMBOL
+    | PRIVATE_SYMBOL
+;
+
 quotedTextOrDefault: (quotedText | DEFAULT_SYMBOL)
 ;
 
@@ -5899,7 +5906,7 @@ createRestSchemaStatement:
 ;
 
 restSchemaOptions: (
-        enabledDisabled
+        enabledDisabledPrivate
         | authenticationRequired
         | itemsPerPage
         | jsonOptions
@@ -5918,7 +5925,7 @@ createRestViewStatement:
 ;
 
 restObjectOptions: (
-        enabledDisabled
+        enabledDisabledPrivate
         | authenticationRequired
         | itemsPerPage
         | jsonOptions
@@ -5984,7 +5991,7 @@ directoryFilePath:
 ;
 
 restContentSetOptions: (
-        enabledDisabled
+        enabledDisabledPrivate
         | authenticationRequired
         | jsonOptions
         | comments
@@ -6014,7 +6021,7 @@ createRestContentFileStatement:
 ;
 
 restContentFileOptions: (
-        enabledDisabled
+        enabledDisabledPrivate
         | authenticationRequired
         | jsonOptions
     )+
@@ -6061,7 +6068,9 @@ defaultRole:
 
 createRestUserStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL
-        authAppName (IDENTIFIED_SYMBOL BY_SYMBOL userPassword)? userOptions?
+        authAppName (
+        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
+    )? (IDENTIFIED_SYMBOL BY_SYMBOL userPassword)? userOptions?
 ;
 
 userName:
@@ -6175,7 +6184,7 @@ alterRestContentSetStatement:
 alterRestUserStatement:
     ALTER_SYMBOL REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL authAppName (
         ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
-    )? ( IDENTIFIED_SYMBOL BY_SYMBOL userPassword )? userOptions?
+     )? ( IDENTIFIED_SYMBOL BY_SYMBOL userPassword )? userOptions?
 ;
 
 // DROP statements ==========================================================

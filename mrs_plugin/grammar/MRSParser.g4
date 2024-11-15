@@ -120,6 +120,12 @@ enabledDisabled:
     | DISABLED_SYMBOL
 ;
 
+enabledDisabledPrivate:
+    ENABLED_SYMBOL
+    | DISABLED_SYMBOL
+    | PRIVATE_SYMBOL
+;
+
 quotedTextOrDefault: (quotedText | DEFAULT_SYMBOL)
 ;
 
@@ -246,7 +252,7 @@ createRestSchemaStatement:
 ;
 
 restSchemaOptions: (
-        enabledDisabled
+        enabledDisabledPrivate
         | authenticationRequired
         | itemsPerPage
         | jsonOptions
@@ -265,7 +271,7 @@ createRestViewStatement:
 ;
 
 restObjectOptions: (
-        enabledDisabled
+        enabledDisabledPrivate
         | authenticationRequired
         | itemsPerPage
         | jsonOptions
@@ -331,7 +337,7 @@ directoryFilePath:
 ;
 
 restContentSetOptions: (
-        enabledDisabled
+        enabledDisabledPrivate
         | authenticationRequired
         | jsonOptions
         | comments
@@ -361,7 +367,7 @@ createRestContentFileStatement:
 ;
 
 restContentFileOptions: (
-        enabledDisabled
+        enabledDisabledPrivate
         | authenticationRequired
         | jsonOptions
     )+

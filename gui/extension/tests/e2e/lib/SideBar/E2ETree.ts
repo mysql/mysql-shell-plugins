@@ -452,7 +452,7 @@ export class E2ETree {
                     await driver.actions()
                         .move({ origin: element })
                         .press(Button.RIGHT)
-                        .pause(500)
+                        .pause(150)
                         .perform();
                     if (Array.isArray(ctxMenuItem)) {
                         for (const item of ctxMenuItem) {

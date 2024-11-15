@@ -65,7 +65,7 @@ interface IMrsEditObjectData extends IDictionary {
     name: string,
     requestPath: string,
     requiresAuth: boolean,
-    enabled: boolean,
+    enabled: number,
     itemsPerPage: number,
     comments: string,
     objectType: MrsDbObjectType,
@@ -330,7 +330,7 @@ export class MrsHub extends ComponentBase {
                     dbSchemaName: schema?.name ?? schemaName,
                     requestPath: schema?.requestPath ?? `/${convertSnakeToCamelCase(schemaName ?? "schema")}`,
                     requiresAuth: schema?.requiresAuth === 1,
-                    enabled: !schema || schema.enabled === 1,
+                    enabled: !schema ? 1 : schema.enabled,
                     itemsPerPage: schema?.itemsPerPage,
                     comments: schema?.comments ?? "",
                     options: schema?.options ? JSON.stringify(schema?.options, undefined, 4) : "",
@@ -358,7 +358,7 @@ export class MrsHub extends ComponentBase {
             if (!schema) {
                 try {
                     await backend.mrs.addSchema(
-                        serviceId, dbSchemaName, requestPath, requiresAuth, options,
+                        serviceId, dbSchemaName, enabled, requestPath, requiresAuth, options,
                         itemsPerPage, comments, metadata);
 
                     void requisitions.executeRemote("refreshConnections", undefined);
@@ -437,7 +437,7 @@ export class MrsHub extends ComponentBase {
                 name: dbObject.name,
                 requestPath: dbObject.requestPath,
                 requiresAuth: dbObject.requiresAuth === 1,
-                enabled: dbObject.enabled === 1,
+                enabled: dbObject.enabled,
                 itemsPerPage: dbObject.itemsPerPage,
                 comments: dbObject.comments ?? "",
                 objectType: dbObject.objectType,
@@ -610,7 +610,7 @@ export class MrsHub extends ComponentBase {
                     serviceId: contentSet?.serviceId,
                     requestPath: contentSet?.requestPath ?? requestPath,
                     requiresAuth: contentSet?.requiresAuth === 1,
-                    enabled: !contentSet || contentSet.enabled === 1,
+                    enabled: !contentSet ? 1 : contentSet.enabled,
                     comments: contentSet?.comments ?? "",
                     options: contentSet?.options ? JSON.stringify(contentSet?.options) : "",
                     payload: {

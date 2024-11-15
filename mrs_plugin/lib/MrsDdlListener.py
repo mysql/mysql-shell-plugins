@@ -94,6 +94,14 @@ class MrsDdlListener(MRSListener):
         if ctx.UNPUBLISHED_SYMBOL() is not None:
             self.mrs_object["published"] = False
 
+    def enterEnabledDisabledPrivate(self, ctx):
+        if ctx.ENABLED_SYMBOL() is not None:
+            self.mrs_object["enabled"] = True
+        elif ctx.DISABLED_SYMBOL() is not None:
+            self.mrs_object["enabled"] = False
+        elif ctx.PRIVATE_SYMBOL() is not None:
+            self.mrs_object["enabled"] = 2
+
     def enterAuthenticationRequired(self, ctx):
         # If the NOT keyword is present in (AUTHENTICATION NOT? REQUIRED)?
         # authentication is not required

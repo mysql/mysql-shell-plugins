@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;fill:white;">
+    <g id="mrsContentFileLocked">
+        <path d="M9,1L9,2L4,2L4,14L13,14L13,8L14,8L14,14L13,15L4,15L3,14L3,2L4,1L9,1Z"/>
+        <g transform="matrix(0.60154,0,0,0.582877,8.17998,-1.16575)">
+            <path d="M3,8L3.933,7.144L11.933,7.144L13,8L13,13L12,14L4,14L3,13L3,8ZM4.655,8.851L4.672,12.309L11.338,12.318L11.337,8.877L4.655,8.851ZM11.317,7.144L11.33,5.009C11.33,3.363 9.646,2 8,2C6.354,2 4.673,3.373 4.673,5.018L4.684,7.144L6.36,7.144L6.322,5.514C6.322,4.417 6.898,3.744 7.995,3.744C9.092,3.744 9.673,4.425 9.673,5.523L9.686,7.144L11.317,7.144Z" style="fill:rgb(233,156,0);fill-rule:nonzero;"/>
+        </g>
+    </g>
+</svg>

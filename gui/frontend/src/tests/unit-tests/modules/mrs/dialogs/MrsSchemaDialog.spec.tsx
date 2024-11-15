@@ -117,7 +117,8 @@ describe("MRS Schema dialog tests", () => {
         let portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(0);
 
-        backend.mrs.addSchema = (serviceId: string, schemaName: string, requestPath: string, requiresAuth: boolean,
+        backend.mrs.addSchema = (serviceId: string, schemaName: string, enabled: number,
+            requestPath: string, requiresAuth: boolean,
             options: IShellDictionary | null,
             itemsPerPage: number | null, comments?: string): Promise<string> => {
             expect(serviceId).not.toBeNull();

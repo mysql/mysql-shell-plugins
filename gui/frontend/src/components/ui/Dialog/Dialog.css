@@ -97,9 +97,9 @@
 
 .msg.dialog > .footer {
     flex: 0 0 40px;
-    padding: 8px 16px;
+    padding: 12px 20px;
     border-top: 1px solid;
-    border-color: color-mix(in srgb, var(--window-inactiveBorder) 10%, var(--window-background));
+    border-color: color-mix(in srgb, var(--window-inactiveBorder) 20%, var(--window-background));
     background-color: var(--window-footerBackground)
 }
 

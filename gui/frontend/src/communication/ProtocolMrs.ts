@@ -523,7 +523,7 @@ export interface IShellMrsAddSchemaKwargs {
     /** Whether authentication is required to access the schema */
     requiresAuth?: boolean;
     /** The enabled state */
-    enabled?: boolean;
+    enabled?: number;
     /** The number of items returned per page */
     itemsPerPage: number | null;
     /** Comments for the schema */
@@ -670,7 +670,7 @@ export interface IShellMrsUpdateSchemaKwargsValue {
     /** Whether authentication is required to access the schema */
     requiresAuth?: boolean;
     /** The enabled state */
-    enabled?: boolean;
+    enabled?: number;
     /** The number of items returned per page */
     itemsPerPage: number | null;
     /** Comments for the schema */
@@ -812,7 +812,7 @@ export interface IShellMrsAddDbObjectKwargs {
     /** The request_path */
     requestPath?: string;
     /** Whether the db object is enabled */
-    enabled?: boolean;
+    enabled?: number;
     /** The format to use for the CRUD operation */
     crudOperationFormat?: string;
     /** Whether authentication is required to access the schema */
@@ -913,7 +913,7 @@ export interface IShellMrsUpdateDbObjectKwargsValue {
     /** The id of the schema to update in the database object */
     dbSchemaId?: string;
     /** If the database object is enabled or not */
-    enabled?: boolean;
+    enabled?: number;
     /** The format to use for the CRUD operation */
     crudOperationFormat?: string;
     /** Whether authentication is required to access the database object */
@@ -1008,7 +1008,7 @@ export interface IShellMrsAddContentSetKwargs {
     /** Comments about the content */
     comments?: string;
     /** Whether to enable the content set after all files are uploaded */
-    enabled?: boolean;
+    enabled?: number;
     /** The options as JSON string */
     options: IShellDictionary | null;
     /** Whether to replace a content set that uses the same request_path */
@@ -1504,7 +1504,7 @@ export interface IMrsContentFileData {
     contentSetId: string;
     requestPath: string;
     requiresAuth: boolean;
-    enabled: boolean;
+    enabled: number;
     size: number;
     contentSetRequestPath: string;
     hostCtx: string;

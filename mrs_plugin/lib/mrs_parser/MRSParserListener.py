@@ -35,6 +35,15 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#enabledDisabledPrivate.
+    def enterEnabledDisabledPrivate(self, ctx:MRSParser.EnabledDisabledPrivateContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#enabledDisabledPrivate.
+    def exitEnabledDisabledPrivate(self, ctx:MRSParser.EnabledDisabledPrivateContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#quotedTextOrDefault.
     def enterQuotedTextOrDefault(self, ctx:MRSParser.QuotedTextOrDefaultContext):
         pass

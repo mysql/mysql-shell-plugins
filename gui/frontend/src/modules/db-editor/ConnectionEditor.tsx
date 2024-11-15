@@ -53,9 +53,6 @@ import { filterInt, basename } from "../../utilities/string-helpers.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 
 const editorHeading = "Database Connection Configuration";
-const editorDescription = [
-    "Please enter the database connection data.",
-];
 
 interface ILiveUpdateField {
     value: string;
@@ -244,7 +241,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     {
                         contexts,
                         title: editorHeading,
-                        description: editorDescription,
                     },
                     {
                         createNew: newConnection,
@@ -1110,7 +1106,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             {
                 contexts,
                 title: editorHeading,
-                description: editorDescription,
             },
             {
                 createNew: newConnection,
@@ -1306,7 +1301,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 {
                     contexts,
                     title: editorHeading,
-                    description: editorDescription,
                 },
                 {
                     createNew: !(details.id > 0),

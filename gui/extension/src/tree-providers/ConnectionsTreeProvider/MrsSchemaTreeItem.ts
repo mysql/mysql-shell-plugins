@@ -42,8 +42,10 @@ export class MrsSchemaTreeItem extends MrsTreeBaseItem {
 
     private static getIconName = (value: IMrsSchemaData): string => {
         let iconName = value.schemaType === "SCRIPT_MODULE" ? "mrsSchemaModule" : "mrsSchema";
-        if (value.enabled !== 1) {
+        if (value.enabled === 0) {
             iconName += "Disabled";
+        } else if (value.enabled === 2) {
+            iconName += "Private";
         } else if (value.requiresAuth) {
             iconName += "Locked";
         }
