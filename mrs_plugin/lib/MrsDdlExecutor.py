@@ -937,7 +937,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     description=mrs_object.get("comments"),
                     url=mrs_object.get("url"),
                     url_direct_auth=mrs_object.get("url_direct_auth"),
-                    access_token=mrs_object.get("access_token"),
+                    access_token=mrs_object.get("app_secret"),
                     app_id=mrs_object.get("app_id"),
                     limit_to_reg_users=mrs_object.get("limit_to_registered_users", 1),
                     default_role_id=default_role_id,

@@ -232,6 +232,7 @@ export class ShellInterfaceMrs {
                     limitToRegisteredUsers: authApp.limitToRegisteredUsers,
                     registeredUsers: registerUsers,
                     defaultRoleId: authApp.defaultRoleId,
+                    options: authApp.options,
                     moduleSessionId: this.moduleSessionId,
                 },
             },

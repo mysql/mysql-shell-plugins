@@ -81,6 +81,10 @@ GRANTS_SYMBOL:         G R A N T S;
 FOR_SYMBOL:            F O R;
 LEVEL_SYMBOL:          L E V E L;
 ANY_SYMBOL:            A N Y;
+CLIENT_SYMBOL:         C L I E N T;
+URL_SYMBOL:            U R L;
+NAME_SYMBOL:           N A M E;
+DO_SYMBOL:             D O;
 
 // Used for auto merging this grammar and the standard MySQL grammar.
 /* START OF MERGE PART */
@@ -121,6 +125,8 @@ FILES_SYMBOL:       F I L E S;
 AUTH_SYMBOL:        A U T H;
 APPS_SYMBOL:        A P P S;
 APP_SYMBOL:         A P P;
+ID_SYMBOL:          I D;
+SECRET_SYMBOL:      S E C R E T;
 VENDOR_SYMBOL:      V E N D O R;
 MRS_SYMBOL:         M R S;
 MYSQL_SYMBOL:       M Y S Q L;

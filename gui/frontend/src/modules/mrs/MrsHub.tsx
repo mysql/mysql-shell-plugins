@@ -771,6 +771,8 @@ export class MrsHub extends ComponentBase {
                 enabled: authApp?.enabled ?? true,
                 limitToRegisteredUsers: authApp?.limitToRegisteredUsers,
                 defaultRoleId: defaultRole,
+                options: (authApp?.options !== undefined && authApp?.options !== null)
+                    ? JSON.stringify(authApp.options, undefined, 4) : undefined,
             },
         };
 
@@ -788,6 +790,7 @@ export class MrsHub extends ComponentBase {
             return data.defaultRoleName === role.caption;
         })?.id ?? null;
 
+        const options = (data.options !== undefined) ? JSON.parse(data.options) : undefined;
 
         if (authApp) {
             try {
@@ -802,6 +805,7 @@ export class MrsHub extends ComponentBase {
                     enabled: data.enabled,
                     limitToRegisteredUsers: data.limitToRegisteredUsers,
                     defaultRoleId,
+                    options,
                 });
 
                 void requisitions.executeRemote("refreshConnections", undefined);
@@ -825,6 +829,7 @@ export class MrsHub extends ComponentBase {
                         enabled: data.enabled,
                         limitToRegisteredUsers: data.limitToRegisteredUsers,
                         defaultRoleId,
+                        options,
                     }, []);
                 }
 

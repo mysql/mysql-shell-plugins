@@ -120,6 +120,7 @@ export interface IMrsAuthAppData {
     enabled: boolean;
     limitToRegisteredUsers: boolean;
     defaultRoleId: string | null;
+    options?: IShellDictionary;
 }
 
 export interface IMrsAuthVendorData {

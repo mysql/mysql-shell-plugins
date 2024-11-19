@@ -27,7 +27,8 @@ import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app
 import { IMrsAuthAppData, IMrsAuthVendorData, IMrsRoleData } from "../../../communication/ProtocolMrs.js";
 import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog.js";
 import {
-    CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues,
+    CommonDialogValueOption, DialogValueType, IDialogSection, IDialogValidations, IDialogValues,
+    ValueEditDialog,
 } from "../../../components/Dialogs/ValueEditDialog.js";
 
 export interface IMrsAuthenticationAppDialogData extends IDictionary {
@@ -41,6 +42,7 @@ export interface IMrsAuthenticationAppDialogData extends IDictionary {
     enabled: boolean;
     limitToRegisteredUsers: boolean;
     defaultRoleName: string;
+    options: string;
 }
 
 export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
@@ -51,9 +53,16 @@ export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
     public override async show(request: IDialogRequest): Promise<IDictionary | DialogResponseClosure> {
         const authVendors = request.parameters?.authVendors as IMrsAuthVendorData[];
         const roles = request.parameters?.roles as IMrsRoleData[];
+        const appData = (request.values as unknown) as IMrsAuthAppData;
+
+        const contexts = [];
+        if (appData.authVendorName && appData.authVendorName !== "MRS" && appData.authVendorName !== "MySQL Internal") {
+            contexts.push("oAuth");
+        }
 
         const dialogValues = this.dialogValues(request, authVendors, roles);
-        const result = await this.doShow(() => { return dialogValues; }, { title: "MySQL REST Authentication App" });
+        const result = await this.doShow(() => { return dialogValues; },
+            { title: "MySQL REST Authentication App", contexts });
 
         if (result.closure === DialogResponseClosure.Accept) {
             return this.processResults(result.values);
@@ -78,10 +87,32 @@ export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
                 if (!mainSection.values.name.value) {
                     result.messages.name = "The name must not be empty.";
                 }
+
+                if (mainSection.values.authVendorName.value !== "MRS" &&
+                    mainSection.values.authVendorName.value !== "MySQL Internal") {
+                        const oAuthSection = values.sections.get("oAuthSection");
+                        if (!oAuthSection?.values.appId.value) {
+                            result.messages.appId = "The App ID must not be empty for OAuth2 auth apps.";
+                        }
+                        if (!oAuthSection?.values.accessToken.value) {
+                            result.messages.accessToken = "The App Secret must not be empty for OAuth2 auth apps.";
+                        }
+                }
+            }
+
+            const optionsSection = values.sections.get("optionsSection");
+            if (optionsSection) {
+                if (optionsSection.values.options.value) {
+                    try {
+                        JSON.parse(optionsSection.values.options.value as string);
+                    } catch (e) {
+                        result.messages.options = "Please provide a valid JSON object.";
+                    }
+                }
             }
         } else if (mainSection) {
             if (mainSection.values.name.value as string === "" || mainSection.values.name.value === undefined) {
-                mainSection.values.name.value = mainSection.values.authVendorName.value as string;
+                mainSection.values.name.value = (mainSection.values.authVendorName.value as string).replace(/\s/g, "");
             }
         }
 
@@ -97,47 +128,69 @@ export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
                 authVendorName: {
                     type: "choice",
                     caption: "Vendor",
-                    choices: authVendors ? [""].concat(authVendors.map((authVendor) => {
+                    choices: authVendors ? authVendors.map((authVendor) => {
                         return authVendor.name;
-                    })) : [],
+                    }) : [],
                     value: appData.authVendorName,
                     description: "The authentication vendor",
+                    horizontalSpan: 2,
+                    onChange: (value: DialogValueType, dialog: ValueEditDialog): void => {
+                        if (value as string === "MRS" || value as string === "MySQL Internal") {
+                            dialog.updateActiveContexts({remove: ["oAuth"]});
+                        } else {
+                            dialog.updateActiveContexts({add: ["oAuth"]});
+                        }
+                    },
                 },
                 name: {
                     type: "text",
                     caption: "Name",
                     value: appData.name,
                     description: "The name of the authentication app",
+                    horizontalSpan: 3,
                 },
+                flags: {
+                    type: "description",
+                    caption: "Flags",
+                    options: [
+                        CommonDialogValueOption.Grouped,
+                        CommonDialogValueOption.NewGroup,
+                    ],
+                    horizontalSpan: 3,
+                },
+                enabled: {
+                    type: "boolean",
+                    caption: "Enabled",
+                    value: appData.enabled,
+                    options: [
+                        CommonDialogValueOption.Grouped,
+                    ],
+                    horizontalSpan: 3,
+                },
+                limitToRegisteredUsers: {
+                    type: "boolean",
+                    caption: "Limit to registered users",
+                    value: appData.limitToRegisteredUsers,
+                    options: [
+                        CommonDialogValueOption.Grouped,
+                    ],
+                    horizontalSpan: 3,
+                },
+            },
+        };
+
+        const settingsSection: IDialogSection = {
+            caption: "Settings",
+            groupName: "group1",
+            values: {
                 description: {
                     type: "text",
                     caption: "Description",
                     value: appData.description,
                     description: "A short description of the app",
-                },
-                accessToken: {
-                    type: "text",
-                    caption: "Access Token",
-                    value: appData.accessToken,
-                    description: "The OAuth2 access token for this app as defined by the vendor",
-                },
-                appId: {
-                    type: "text",
-                    caption: "App ID",
-                    value: appData.appId,
-                    description: "The OAuth2 App ID for this app as defined by the vendor",
-                },
-                url: {
-                    type: "text",
-                    caption: "Custom URL",
-                    value: appData.url,
-                    description: "A custom OAuth2 service URL",
-                },
-                urlDirectAuth: {
-                    type: "text",
-                    caption: "Custom URL for Access Token",
-                    value: appData.urlDirectAuth,
-                    description: "A custom URL for exchanging the Access Token",
+                    horizontalSpan: 5,
+                    multiLine: true,
+                    multiLineCount: 8,
                 },
                 defaultRoleName: {
                     type: "choice",
@@ -148,30 +201,59 @@ export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
                     value: appData.defaultRoleId ?? "",
                     description: "The default role for users",
                     optional: true,
+                    horizontalSpan: 3,
                 },
-                flags: {
-                    type: "description",
-                    caption: "Flags",
-                    options: [
-                        CommonDialogValueOption.Grouped,
-                        CommonDialogValueOption.NewGroup,
-                    ],
+            },
+        };
+
+        const oAuthSection: IDialogSection = {
+            contexts: ["oAuth"],
+            caption: "OAuth2 Settings",
+            groupName: "group1",
+            values: {
+                appId: {
+                    type: "text",
+                    caption: "App ID",
+                    value: appData.appId,
+                    description: "The OAuth2 App ID/Client ID for this app as defined by the vendor",
+                    horizontalSpan: 4,
                 },
-                enabled: {
-                    type: "boolean",
-                    caption: "Enabled",
-                    value: appData.enabled,
-                    options: [
-                        CommonDialogValueOption.Grouped,
-                    ],
+                accessToken: {
+                    type: "text",
+                    caption: "App Secret",
+                    value: appData.accessToken,
+                    description: "The OAuth2 App Secret/Client Secret for this app as defined by the vendor",
+                    horizontalSpan: 4,
                 },
-                limitToRegisteredUsers: {
-                    type: "boolean",
-                    caption: "Limit to registered users",
-                    value: appData.limitToRegisteredUsers,
-                    options: [
-                        CommonDialogValueOption.Grouped,
-                    ],
+                url: {
+                    type: "text",
+                    caption: "Custom URL",
+                    value: appData.url,
+                    description: "A custom OAuth2 service URL",
+                    horizontalSpan: 8,
+                },
+                urlDirectAuth: {
+                    type: "text",
+                    caption: "Custom URL for Access Token",
+                    value: appData.urlDirectAuth,
+                    description: "A custom URL for exchanging the Access Token",
+                    horizontalSpan: 8,
+                },
+            },
+        };
+
+        const optionsSection: IDialogSection = {
+            caption: "Options",
+            groupName: "group1",
+            values: {
+                options: {
+                    type: "text",
+                    caption: "Options",
+                    value: request.values?.options as string,
+                    horizontalSpan: 8,
+                    multiLine: true,
+                    multiLineCount: 8,
+                    description: "Additional options in JSON format",
                 },
             },
         };
@@ -180,25 +262,32 @@ export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
             id: "mainSection",
             sections: new Map<string, IDialogSection>([
                 ["mainSection", mainSection],
+                ["oAuthSection", oAuthSection],
+                ["settingsSection", settingsSection],
+                ["optionsSection", optionsSection],
             ]),
         };
     }
 
     private processResults = (dialogValues: IDialogValues): IDictionary => {
         const mainSection = dialogValues.sections.get("mainSection");
+        const settingsSection = dialogValues.sections.get("settingsSection");
+        const oAuthSection = dialogValues.sections.get("oAuthSection");
+        const optionsSection = dialogValues.sections.get("optionsSection");
 
-        if (mainSection) {
+        if (mainSection && settingsSection && oAuthSection && optionsSection) {
             const values: IMrsAuthenticationAppDialogData = {
                 authVendorName: mainSection.values.authVendorName.value as string,
                 name: mainSection.values.name.value as string,
-                description: mainSection.values.description.value as string,
-                accessToken: mainSection.values.accessToken.value as string,
-                appId: mainSection.values.appId.value as string,
-                url: mainSection.values.url.value as string,
-                urlDirectAuth: mainSection.values.urlDirectAuth.value as string,
                 enabled: mainSection.values.enabled.value as boolean,
                 limitToRegisteredUsers: mainSection.values.limitToRegisteredUsers.value as boolean,
-                defaultRoleName: mainSection.values.defaultRoleName.value as string,
+                description: settingsSection.values.description.value as string,
+                defaultRoleName: settingsSection.values.defaultRoleName.value as string,
+                accessToken: oAuthSection.values.accessToken.value as string,
+                appId: oAuthSection.values.appId.value as string,
+                url: oAuthSection.values.url.value as string,
+                urlDirectAuth: oAuthSection.values.urlDirectAuth.value as string,
+                options: optionsSection.values.options.value as string,
             };
 
             return values;
