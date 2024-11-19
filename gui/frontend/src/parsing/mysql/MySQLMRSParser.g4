@@ -5220,6 +5220,8 @@ identifierKeywordsUnambiguous:
         | AUTH_SYMBOL
         | APPS_SYMBOL
         | APP_SYMBOL
+        | ID_SYMBOL
+        | SECRET_SYMBOL
         | VENDOR_SYMBOL
         | MRS_SYMBOL
         | MYSQL_SYMBOL
@@ -5730,6 +5732,7 @@ mrsStatement:
     | alterRestProcedureStatement
     | alterRestFunctionStatement
     | alterRestContentSetStatement
+    | alterRestAuthAppStatement
     | alterRestUserStatement
     | dropRestServiceStatement
     | dropRestSchemaStatement
@@ -6051,17 +6054,32 @@ restAuthAppOptions: (
         | comments
         | allowNewUsersToRegister
         | defaultRole
+        | appId
+        | appSecret
+        | url
     )+
 ;
 
 allowNewUsersToRegister:
-    ALLOW_SYMBOL NEW_SYMBOL USERS_SYMBOL (
+    (DO_SYMBOL NOT_SYMBOL)? ALLOW_SYMBOL NEW_SYMBOL USERS_SYMBOL (
         TO_SYMBOL REGISTER_SYMBOL
     )?
 ;
 
 defaultRole:
     DEFAULT_SYMBOL ROLE_SYMBOL quotedText
+;
+
+appId:
+    (APP_SYMBOL | CLIENT_SYMBOL) ID_SYMBOL quotedText
+;
+
+appSecret:
+    (APP_SYMBOL | CLIENT_SYMBOL) SECRET_SYMBOL quotedText
+;
+
+url:
+    URL_SYMBOL quotedText
 ;
 
 // - CREATE REST USER -------------------------------------------------------
@@ -6177,6 +6195,21 @@ alterRestContentSetStatement:
     )? (
         NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newContentSetRequestPath
     )? restContentSetOptions?
+;
+
+// - ALTER REST AUTH APP ----------------------------------------------------
+
+alterRestAuthAppStatement:
+    ALTER_SYMBOL REST_SYMBOL (
+        AUTH_SYMBOL
+        | AUTHENTICATION_SYMBOL
+    ) APP_SYMBOL authAppName (
+        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
+    )? (NEW_SYMBOL NAME_SYMBOL newAuthAppName)? restAuthAppOptions?
+;
+
+newAuthAppName:
+    quotedText
 ;
 
 // - ALTER REST USER -------------------------------------------------------
@@ -6623,6 +6656,11 @@ graphQlAllowedKeyword:
     | USERS_SYMBOL
     | REGISTER_SYMBOL
     | CLASS_SYMBOL
+    | ID_SYMBOL
+    | NAME_SYMBOL
+    | DO_SYMBOL
+    | URL_SYMBOL
+    | CLIENT_SYMBOL
 ;
 
 graphQlPairKey:

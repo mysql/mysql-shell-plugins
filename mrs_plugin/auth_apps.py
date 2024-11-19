@@ -69,6 +69,8 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
         limit_to_registered_users (bool): Limit access to registered users
         registered_users (list): List of registered users
         default_role_id (str): The default role to be assigned to new users
+        enabled (int): Whether the Auth App is enabled
+        options (dict): Additional options
         session (object): The database session to use
 
     Returns:
@@ -90,6 +92,9 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
 
     limit_to_reg_users = kwargs.get("limit_to_registered_users")
     registered_users = kwargs.get("registered_users")
+
+    enabled = kwargs.get("enabled", 1)
+    options = kwargs.get("options")
 
     interactive = lib.core.get_interactive_default()
 
@@ -169,7 +174,7 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
             # Create the auth_app
             auth_app_id = lib.auth_apps.add_auth_app(session, service["id"], auth_vendor_id,
                 app_name, description, url, url_direct_auth, access_token, app_id,
-                limit_to_reg_users, default_role_id)
+                limit_to_reg_users, default_role_id, enabled, options)
 
             # Create the registered_users if specified
             if registered_users and len(registered_users) > 0:
@@ -295,6 +300,7 @@ def update_auth_app(**kwargs):
         enabled (bool): Set if it's enabled or not
         limit_to_registered_users (bool): Set if limited to registered users
         default_role_id (str): The new default role id
+        options (dict): Additional options
 
     Returns:
         A dict with content_set_id and number_of_files_uploaded

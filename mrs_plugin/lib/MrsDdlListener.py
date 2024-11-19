@@ -167,6 +167,29 @@ class MrsDdlListener(MRSListener):
             ctx.quotedText().getText()
         )
 
+    def enterAllowNewUsersToRegister(self, ctx):
+        self.mrs_object["limit_to_registered_users"] = not ctx.NOT_SYMBOL() is None
+
+    def enterDefaultRole(self, ctx):
+        self.mrs_object["default_role"] = get_text_without_quotes(
+            ctx.quotedText().getText()
+        )
+
+    def enterAppId(self, ctx):
+        self.mrs_object["app_id"] = get_text_without_quotes(
+            ctx.quotedText().getText()
+        )
+
+    def enterAppSecret(self, ctx):
+        self.mrs_object["app_secret"] = get_text_without_quotes(
+            ctx.quotedText().getText()
+        )
+
+    def enterUrl(self, ctx):
+        self.mrs_object["url"] = get_text_without_quotes(
+            ctx.quotedText().getText()
+        )
+
     # ==================================================================================================================
     # CREATE REST statements
 
@@ -1161,23 +1184,12 @@ class MrsDdlListener(MRSListener):
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
             "name": get_text_without_quotes(ctx.authAppName().getText()),
             "vendor": (
-                ctx.vendorName().getText()
+                get_text_without_quotes(ctx.vendorName().getText())
                 if ctx.vendorName() is not None
                 else ("MySQL Internal" if ctx.MYSQL_SYMBOL() is not None else "MRS")
             ),
             "limit_to_registered_users": True,
         }
-
-        if ctx.restAuthAppOptions() is not None:
-            if ctx.restAuthAppOptions().allowNewUsersToRegister() is not None:
-                self.mrs_object["limit_to_registered_users"] = False
-            if (
-                ctx.restAuthAppOptions().defaultRole() is not None
-                and len(ctx.restAuthAppOptions().defaultRole()) > 0
-            ):
-                self.mrs_object["default_role"] = get_text_without_quotes(
-                    ctx.restAuthAppOptions().defaultRole()[0].quotedText().getText()
-                )
 
     def exitCreateRestAuthAppStatement(self, ctx):
         self.mrs_ddl_executor.createRestAuthApp(self.mrs_object)
@@ -1520,6 +1532,22 @@ class MrsDdlListener(MRSListener):
 
     def exitAlterRestContentSetStatement(self, ctx):
         self.mrs_ddl_executor.alterRestContentSet(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # ALTER REST AUTH APP
+
+    def enterAlterRestAuthAppStatement(self, ctx):
+        self.mrs_object = {
+            "line": ctx.start.line,
+            "current_operation": "ALTER AUTH APP",
+            "auth_app_name": get_text_without_quotes(ctx.authAppName().getText()),
+        }
+
+        if ctx.newAuthAppName() is not None:
+            self.mrs_object["new_auth_app_name"] = get_text_without_quotes(ctx.newAuthAppName().getText())
+
+    def exitAlterRestAuthAppStatement(self, ctx):
+        self.mrs_ddl_executor.alterRestAuthApp(self.mrs_object)
 
     # ------------------------------------------------------------------------------------------------------------------
     # ALTER REST USER

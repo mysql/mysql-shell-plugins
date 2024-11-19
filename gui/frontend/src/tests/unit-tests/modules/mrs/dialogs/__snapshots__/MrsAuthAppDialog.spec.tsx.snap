@@ -54,7 +54,7 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
         >
           <label
             class="msg label valueTitle"
@@ -68,14 +68,7 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
             id="authVendorName"
             style="flex-direction: row; align-items: center;"
             tabindex="0"
-          >
-            <label
-              class="msg label ellipsis"
-              data-tooltip="expand"
-            >
-              
-            </label>
-          </div>
+          />
           <label
             class="msg label cellDescription"
             data-tooltip="expand"
@@ -85,7 +78,7 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
         >
           <label
             class="msg label valueTitle"
@@ -113,178 +106,7 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Description
-          </label>
-          <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <input
-              class="msg input valueEditor"
-              id="description"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
-          <label
-            class="msg label cellDescription"
-            data-tooltip="expand"
-          >
-            A short description of the app
-          </label>
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Access Token
-          </label>
-          <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <input
-              class="msg input valueEditor"
-              id="accessToken"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
-          <label
-            class="msg label cellDescription"
-            data-tooltip="expand"
-          >
-            The OAuth2 access token for this app as defined by the vendor
-          </label>
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            App ID
-          </label>
-          <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <input
-              class="msg input valueEditor"
-              id="appId"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
-          <label
-            class="msg label cellDescription"
-            data-tooltip="expand"
-          >
-            The OAuth2 App ID for this app as defined by the vendor
-          </label>
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Custom URL
-          </label>
-          <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <input
-              class="msg input valueEditor"
-              id="url"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
-          <label
-            class="msg label cellDescription"
-            data-tooltip="expand"
-          >
-            A custom OAuth2 service URL
-          </label>
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Custom URL for Access Token
-          </label>
-          <div
-            class="msg container fixedScrollbar inputWithProgress"
-            style="flex-direction: row;"
-          >
-            <input
-              class="msg input valueEditor"
-              id="urlDirectAuth"
-              spellcheck="true"
-              type="text"
-            />
-          </div>
-          <label
-            class="msg label cellDescription"
-            data-tooltip="expand"
-          >
-            A custom URL for exchanging the Access Token
-          </label>
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Default Role
-          </label>
-          <div
-            class="msg container fixedScrollbar dropdown valueEditor"
-            data-tooltip="inherit"
-            id="defaultRoleName"
-            style="flex-direction: row; align-items: center;"
-            tabindex="0"
-          >
-            <label
-              class="msg label ellipsis"
-              data-tooltip="expand"
-            >
-              Full Access
-            </label>
-          </div>
-          <label
-            class="msg label cellDescription"
-            data-tooltip="expand"
-          >
-            The default role for users
-          </label>
-        </div>
-        <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
         >
           <label
             class="msg label valueTitle"
@@ -312,6 +134,146 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
             />
             Limit to registered users
           </label>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: row; grid-column: span 8;"
+        >
+          <div
+            class="msg container fixedScrollbar tabview top"
+            style="flex-direction: column; --tabItem-border-width: 0px; --content-separator-width: 0px;"
+          >
+            <div
+              class="msg container tabAreaContainer"
+              style="flex-direction: row;"
+            >
+              <div
+                class="scrollable"
+              >
+                <div
+                  class="msg container tabArea stretched"
+                  style="flex-direction: row;"
+                >
+                  <div
+                    class="msg button tabItem selected"
+                    id="page0"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Settings
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page1"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      OAuth2 Settings
+                    </label>
+                  </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page2"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Options
+                    </label>
+                  </div>
+                </div>
+                <div
+                  class="scrollbar"
+                >
+                  <div
+                    class="slider"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="msg container fixedScrollbar content"
+              style="flex-direction: column;"
+            >
+              <div
+                class="msg grid"
+                style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+              >
+                <div
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
+                >
+                  <label
+                    class="msg label valueTitle"
+                    data-tooltip="expand"
+                  >
+                    Description
+                  </label>
+                  <div
+                    class="msg container fixedScrollbar inputWithProgress"
+                    style="flex-direction: row;"
+                  >
+                    <textarea
+                      class="msg input valueEditor"
+                      id="description"
+                      rows="8"
+                      spellcheck="true"
+                      type="text"
+                    />
+                  </div>
+                  <label
+                    class="msg label cellDescription"
+                    data-tooltip="expand"
+                  >
+                    A short description of the app
+                  </label>
+                </div>
+                <div
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 3;"
+                >
+                  <label
+                    class="msg label valueTitle"
+                    data-tooltip="expand"
+                  >
+                    Default Role
+                  </label>
+                  <div
+                    class="msg container fixedScrollbar dropdown valueEditor"
+                    data-tooltip="inherit"
+                    id="defaultRoleName"
+                    style="flex-direction: row; align-items: center;"
+                    tabindex="0"
+                  >
+                    <label
+                      class="msg label ellipsis"
+                      data-tooltip="expand"
+                    >
+                      Full Access
+                    </label>
+                  </div>
+                  <label
+                    class="msg label cellDescription"
+                    data-tooltip="expand"
+                  >
+                    The default role for users
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

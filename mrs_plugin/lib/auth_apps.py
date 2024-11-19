@@ -192,7 +192,7 @@ def get_auth_apps(session, service_id: bytes, include_enable_state=None):
                 SELECT a.id, a.auth_vendor_id, a.name,
                     a.description, a.url, a.url_direct_auth, a.access_token, a.app_id, a.enabled,
                     a.limit_to_registered_users, a.default_role_id,
-                    v.name as auth_vendor
+                    v.name as auth_vendor, a.options
                 FROM `mysql_rest_service_metadata`.`auth_app` a
                     LEFT OUTER JOIN `mysql_rest_service_metadata`.`service_has_auth_app` sa
                         ON sa.auth_app_id = a.id
@@ -210,7 +210,7 @@ def get_auth_apps(session, service_id: bytes, include_enable_state=None):
 
 
 def add_auth_app(session, service_id, auth_vendor_id, app_name, description, url, url_direct_auth,
-                 access_token, app_id, limit_to_reg_users, default_role_id, enabled=True):
+                 access_token, app_id, limit_to_reg_users, default_role_id, enabled=True, options=None):
 
     with core.MrsDbSession(exception_handler=core.print_exception, session=session) as session:
         # Get current version of metadata schema
@@ -223,7 +223,7 @@ def add_auth_app(session, service_id, auth_vendor_id, app_name, description, url
                 "id", "auth_vendor_id", "service_id", "name", "description", "url",
                 "url_direct_auth", "access_token", "app_id", "enabled",
                 "limit_to_registered_users",
-                "default_role_id"
+                "default_role_id",
             ]).exec(session, [
                 auth_app_id,
                 auth_vendor_id,
@@ -243,7 +243,8 @@ def add_auth_app(session, service_id, auth_vendor_id, app_name, description, url
                 "id", "auth_vendor_id", "name", "description", "url",
                 "url_direct_auth", "access_token", "app_id", "enabled",
                 "limit_to_registered_users",
-                "default_role_id"
+                "default_role_id",
+                "options"
             ]).exec(session, [
                 auth_app_id,
                 auth_vendor_id,
@@ -255,7 +256,8 @@ def add_auth_app(session, service_id, auth_vendor_id, app_name, description, url
                 app_id,
                 int(enabled),
                 int(limit_to_reg_users) if limit_to_reg_users else 0,
-                default_role_id
+                default_role_id,
+                options
             ])
 
             core.insert(table="service_has_auth_app", values=[

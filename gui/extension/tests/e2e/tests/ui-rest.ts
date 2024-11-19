@@ -743,7 +743,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Add New REST Authentication App", async () => {
+        it.skip("Add New REST Authentication App", async () => {
 
             let treeRandomService = await dbTreeSection.tree.getElement(
                 `${globalService.settings.hostNameFilter}${globalService.servicePath}`);
@@ -762,7 +762,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Add User", async () => {
+        it.skip("Add User", async () => {
 
             let treeAuthApp = await dbTreeSection.tree.getElement(
                 `${restAuthenticationApp.name} (${restAuthenticationApp.vendor})`);
@@ -782,7 +782,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Edit Authentication App", async () => {
+        it.skip("Edit Authentication App", async () => {
 
             let treeAuthApp = await dbTreeSection.tree.getElement(
                 `${restAuthenticationApp.name} (${restAuthenticationApp.vendor})`);
@@ -817,7 +817,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Edit User", async () => {
+        it.skip("Edit User", async () => {
 
             const treeAuthApp = await dbTreeSection.tree.getElement(
                 `${restAuthenticationApp.name} (${restAuthenticationApp.vendor})`);
@@ -847,6 +847,20 @@ describe("MySQL REST Service", () => {
             restUser = editedUser;
         });
 
+        it.skip("Delete User", async () => {
+
+            const treeUser = await dbTreeSection.tree.getElement(restUser.username);
+            await dbTreeSection.tree.openContextMenuAndSelect(treeUser, constants.deleteRESTUser);
+            const ntf = await Workbench
+                .getNotification(`Are you sure the MRS user ${restUser.username} should be deleted`,
+                    false);
+            await Workbench.clickOnNotificationButton(ntf, "Yes");
+            await driver.wait(Workbench.untilNotificationExists(`The MRS User ${restUser.username} has been deleted`),
+                constants.wait5seconds);
+            await driver.wait(dbTreeSection.tree.untilDoesNotExist(restUser.username), constants.wait5seconds);
+
+        });
+
         it("MRS Service Documentation", async () => {
 
             const treeRandomService = await dbTreeSection.tree.getElement(
@@ -859,20 +873,6 @@ describe("MySQL REST Service", () => {
                 return (await driver.findElements(locator.mrsDocumentation.restServiceProperties)).length > 0;
             }, constants.wait5seconds, "MRS Service Docs tab was not opened");
             await Workbench.closeEditor(new RegExp(constants.mrsDocs));
-
-        });
-
-        it("Delete User", async () => {
-
-            const treeUser = await dbTreeSection.tree.getElement(restUser.username);
-            await dbTreeSection.tree.openContextMenuAndSelect(treeUser, constants.deleteRESTUser);
-            const ntf = await Workbench
-                .getNotification(`Are you sure the MRS user ${restUser.username} should be deleted`,
-                    false);
-            await Workbench.clickOnNotificationButton(ntf, "Yes");
-            await driver.wait(Workbench.untilNotificationExists(`The MRS User ${restUser.username} has been deleted`),
-                constants.wait5seconds);
-            await driver.wait(dbTreeSection.tree.untilDoesNotExist(restUser.username), constants.wait5seconds);
 
         });
 

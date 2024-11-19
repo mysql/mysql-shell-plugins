@@ -119,7 +119,39 @@ This authentication method is suitable for applications that are not exposed pub
 
 ### OAuth2 Authentication
 
-Several OAuth2 services from 3rd-party vendors are supported by MRS; for example, sign in with FaceBook, Twitter, and Google. In order for a MRS service to authenticate against those vendors, one needs to be registered as a developer with those vendors and a vendor specific authentication apps need to be created. Then the OAuth2 specific settings - like access_token and app_id - need to be configured on the MRS side.
+Several OAuth2 services from 3rd-party vendors are supported by MRS; for example, sign in with FaceBook and Google. In order for a MRS service to authenticate against those vendors, one needs to be registered as a developer with those vendors and a vendor specific authentication apps need to be created. Then the OAuth2 specific settings - like APP ID and APP SECRET - need to be configured on the MRS side.
+
+#### Configuring OCI OAuth2
+
+After logging into the OCI web console, select `Identity & Security` and then `Domains` from the `Navigation Menu` or directly go to [cloud.oracle.com/identity/domains](https://cloud.oracle.com/identity/domains).
+
+Select the root compartment in the `List scope` and click on the `Default` domain.
+
+##### Looking Up the URL Option
+
+After the `Default` domain has been opened, take note of the `Domain URL` on the `Domain information` tab. This URL needs to be provided when creating the REST authentication app.
+
+##### Creating an OCI OAuth2 Integrated Application
+
+Click on the `Integrated applications` link on the left hand side, then click the `Add application` button at the top.
+
+1. Select `Confidential Application` and confirm by clicking `Launch workflow` button.
+2. Set a `Name` and `Description` for your REST application and press `Next`.
+3. Choose `Configure this application as a resource server now`.
+   * Set the `Primary audience` to `MySQL-REST-Service`.
+4. Choose `Configure this application as a client now`
+   * In the `Authorization` section, check the `Client credentials` and `Authorization code` checkboxes.
+   * Enter the correct `Redirect URL` using the format `https://<router-ip>/<rest-service>/authentication/login`.
+   * Ensure the `Client type` is set to `Confidential`.
+   * In the `Allowed operations` sections check the `Introspect` checkbox.
+   * Turn the `Bypass consent` on.
+   * Set `Client IP address` to `Anywhere`.
+   * Set `Authorized resourced` to `All`.
+5. Select to `Skip` the `Web tier policy` and press `Finish`.
+
+You will be taken to your new `Integrated Application`. In the `OAuth configuration / General Information` section the `Client ID` and the `Client secret` are show. These need to be provided when creating the REST authentication app.
+
+Please see the [CREATE REST AUTH APP](sql.html#create-rest-auth-app) section how to create a REST authentication app using the `"OCI OAuth2"` vendor next.
 
 ## Authorization Management
 

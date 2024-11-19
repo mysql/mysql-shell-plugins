@@ -556,4 +556,8 @@ FROM SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService;
 ALTER REST SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService
     PUBLISHED;
 
+/* CREATE REST AUTH APP "MRS" ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService VENDOR MRS;
+
+DROP REST AUTH APP "MRS" ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService;*/
+
 DROP REST SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService;

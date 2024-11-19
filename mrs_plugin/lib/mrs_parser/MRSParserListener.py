@@ -449,6 +449,33 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#appId.
+    def enterAppId(self, ctx:MRSParser.AppIdContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#appId.
+    def exitAppId(self, ctx:MRSParser.AppIdContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#appSecret.
+    def enterAppSecret(self, ctx:MRSParser.AppSecretContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#appSecret.
+    def exitAppSecret(self, ctx:MRSParser.AppSecretContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#url.
+    def enterUrl(self, ctx:MRSParser.UrlContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#url.
+    def exitUrl(self, ctx:MRSParser.UrlContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#createRestUserStatement.
     def enterCreateRestUserStatement(self, ctx:MRSParser.CreateRestUserStatementContext):
         pass
@@ -599,6 +626,24 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#alterRestContentSetStatement.
     def exitAlterRestContentSetStatement(self, ctx:MRSParser.AlterRestContentSetStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#alterRestAuthAppStatement.
+    def enterAlterRestAuthAppStatement(self, ctx:MRSParser.AlterRestAuthAppStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#alterRestAuthAppStatement.
+    def exitAlterRestAuthAppStatement(self, ctx:MRSParser.AlterRestAuthAppStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#newAuthAppName.
+    def enterNewAuthAppName(self, ctx:MRSParser.NewAuthAppNameContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#newAuthAppName.
+    def exitNewAuthAppName(self, ctx:MRSParser.NewAuthAppNameContext):
         pass
 
 

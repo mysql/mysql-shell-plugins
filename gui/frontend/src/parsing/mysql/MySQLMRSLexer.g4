@@ -1106,6 +1106,8 @@ FILES_SYMBOL:       F I L E S;
 AUTH_SYMBOL:        A U T H;
 APPS_SYMBOL:        A P P S;
 APP_SYMBOL:         A P P;
+ID_SYMBOL:          I D;
+SECRET_SYMBOL:      S E C R E T;
 VENDOR_SYMBOL:      V E N D O R;
 MRS_SYMBOL:         M R S;
 MYSQL_SYMBOL:       M Y S Q L;

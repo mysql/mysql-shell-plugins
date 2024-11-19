@@ -2660,13 +2660,87 @@ router_id=16</code></pre>
                 class="header-section-number">8.2.3</span> OAuth2
                 Authentication</h3>
                 <p>Several OAuth2 services from 3rd-party vendors are
-                supported by MRS; for example, sign in with FaceBook,
-                Twitter, and Google. In order for a MRS service to
-                authenticate against those vendors, one needs to be
-                registered as a developer with those vendors and a
-                vendor specific authentication apps need to be created.
-                Then the OAuth2 specific settings - like access_token
-                and app_id - need to be configured on the MRS side.</p>
+                supported by MRS; for example, sign in with FaceBook and
+                Google. In order for a MRS service to authenticate
+                against those vendors, one needs to be registered as a
+                developer with those vendors and a vendor specific
+                authentication apps need to be created. Then the OAuth2
+                specific settings - like APP ID and APP SECRET - need to
+                be configured on the MRS side.</p>
+                <h4 data-number="8.2.3.1"
+                id="configuring-oci-oauth2"><span
+                class="header-section-number">8.2.3.1</span> Configuring
+                OCI OAuth2</h4>
+                <p>After logging into the OCI web console, select
+                <code>Identity &amp; Security</code> and then
+                <code>Domains</code> from the
+                <code>Navigation Menu</code> or directly go to <a
+                href="https://cloud.oracle.com/identity/domains">cloud.oracle.com/identity/domains</a>.</p>
+                <p>Select the root compartment in the
+                <code>List scope</code> and click on the
+                <code>Default</code> domain.</p>
+                <h5 data-number="8.2.3.1.1"
+                id="looking-up-the-url-option"><span
+                class="header-section-number">8.2.3.1.1</span> Looking
+                Up the URL Option</h5>
+                <p>After the <code>Default</code> domain has been
+                opened, take note of the <code>Domain URL</code> on the
+                <code>Domain information</code> tab. This URL needs to
+                be provided when creating the REST authentication
+                app.</p>
+                <h5 data-number="8.2.3.1.2"
+                id="creating-an-oci-oauth2-integrated-application"><span
+                class="header-section-number">8.2.3.1.2</span> Creating
+                an OCI OAuth2 Integrated Application</h5>
+                <p>Click on the <code>Integrated applications</code>
+                link on the left hand side, then click the
+                <code>Add application</code> button at the top.</p>
+                <ol type="1">
+                <li>Select <code>Confidential Application</code> and
+                confirm by clicking <code>Launch workflow</code>
+                button.</li>
+                <li>Set a <code>Name</code> and <code>Description</code>
+                for your REST application and press
+                <code>Next</code>.</li>
+                <li>Choose
+                <code>Configure this application as a resource server now</code>.
+                <ul>
+                <li>Set the <code>Primary audience</code> to
+                <code>MySQL-REST-Service</code>.</li>
+                </ul></li>
+                <li>Choose
+                <code>Configure this application as a client now</code>
+                <ul>
+                <li>In the <code>Authorization</code> section, check the
+                <code>Client credentials</code> and
+                <code>Authorization code</code> checkboxes.</li>
+                <li>Enter the correct <code>Redirect URL</code> using
+                the format
+                <code>https://&lt;router-ip&gt;/&lt;rest-service&gt;/authentication/login</code>.</li>
+                <li>Ensure the <code>Client type</code> is set to
+                <code>Confidential</code>.</li>
+                <li>In the <code>Allowed operations</code> sections
+                check the <code>Introspect</code> checkbox.</li>
+                <li>Turn the <code>Bypass consent</code> on.</li>
+                <li>Set <code>Client IP address</code> to
+                <code>Anywhere</code>.</li>
+                <li>Set <code>Authorized resourced</code> to
+                <code>All</code>.</li>
+                </ul></li>
+                <li>Select to <code>Skip</code> the
+                <code>Web tier policy</code> and press
+                <code>Finish</code>.</li>
+                </ol>
+                <p>You will be taken to your new
+                <code>Integrated Application</code>. In the
+                <code>OAuth configuration / General Information</code>
+                section the <code>Client ID</code> and the
+                <code>Client secret</code> are show. These need to be
+                provided when creating the REST authentication app.</p>
+                <p>Please see the <a
+                href="sql.html#create-rest-auth-app">CREATE REST AUTH
+                APP</a> section how to create a REST authentication app
+                using the <code>"OCI OAuth2"</code> vendor next.</p>
                 <h2 data-number="8.3"
                 id="authorization-management"><span
                 class="header-section-number">8.3</span> Authorization

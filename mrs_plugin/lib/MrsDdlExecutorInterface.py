@@ -73,6 +73,9 @@ class MrsDdlExecutorInterface:
     def alterRestSchema(self, mrs_object: dict):
         raise NotImplementedError()
 
+    def alterRestAuthApp(self, mrs_object: dict):
+        raise NotImplementedError()
+
     def dropRestService(self, mrs_object: dict):
         raise NotImplementedError()
 

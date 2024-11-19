@@ -742,6 +742,10 @@ export interface IShellMrsAddAuthenticationAppKwargs {
     registeredUsers?: unknown[];
     /** The default role to be assigned to new users */
     defaultRoleId: string | null;
+    /** Whether the Auth App is enabled */
+    enabled?: number;
+    /** Additional options */
+    options?: IShellDictionary;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -783,6 +787,8 @@ export interface IShellMrsUpdateAuthenticationAppKwargsValue {
     limitToRegisteredUsers?: boolean;
     /** The new default role id */
     defaultRoleId: string | null;
+    /** Additional options */
+    options?: IShellDictionary;
 }
 
 export interface IShellMrsUpdateAuthenticationAppKwargs {
@@ -1571,6 +1577,7 @@ export interface IMrsAuthAppData {
     enabled: boolean;
     limitToRegisteredUsers: boolean;
     defaultRoleId: string | null;
+    options?: IShellDictionary;
 }
 
 export interface IMrsAuthVendorData {
