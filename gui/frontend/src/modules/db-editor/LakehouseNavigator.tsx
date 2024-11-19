@@ -137,7 +137,7 @@ export interface ILakehouseNavigatorSavedState extends ILakehouseNavigatorState 
     lakehouseTasksHash?: string;
 }
 
-interface ILakehouseTable {
+export interface ILakehouseTable {
     id: string;
     schemaName: string;
     tableName: string;
@@ -185,7 +185,7 @@ export interface ILakehouseTask {
     languageId?: string;
 }
 
-enum ObjectStorageTreeItemType {
+export enum ObjectStorageTreeItemType {
     Placeholder,
     Compartment,
     Bucket,
