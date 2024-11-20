@@ -369,11 +369,11 @@ class ${service_class_name}(MrsBaseService):
         ]
 
         request = MrsAuthenticate[I${service_class_name}AuthApp](
+            service=self,
             request_path=f"{self._service_url}{self._auth_path}",
             vendor_id=vendor_ids[0],
             **options,
         )
 
-        response = await request.submit()
-        self._session["access_token"] = response["access_token"]
+        await request.submit()
     # --- serviceAuthenticateEnd

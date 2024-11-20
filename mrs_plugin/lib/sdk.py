@@ -337,6 +337,12 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
     # Auth App infrastructure should only be generated if the service contains a
     # db object that requires authentication
     if requires_auth:
+        # TODO: include apps from all vendors.
+        # For now, only include MRS and MySQL-Internal vendor auth apps
+        supported_vendors = {
+            "30000000000000000000000000000000", # MRS
+            "31000000000000000000000000000000" # MySQL Internal
+        }
         service_auth_apps = [
             {
                 "name": auth_app.get("name"),
@@ -345,9 +351,7 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
             for auth_app in lib.auth_apps.get_auth_apps(
                 session=session, service_id=service_id, include_enable_state=True
             )
-            # Todo: include apps from all vendors
-            # for now, only include MRS vendor (0x30000000000000000000000000000000) auth apps
-            if auth_app.get("auth_vendor_id").hex() == "30000000000000000000000000000000"
+            if auth_app.get("auth_vendor_id").hex() in supported_vendors
         ]
 
         service_class_name = lib.core.convert_path_to_pascal_case(service.get("url_context_root"))
