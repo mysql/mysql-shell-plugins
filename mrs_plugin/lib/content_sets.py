@@ -1129,6 +1129,14 @@ def map_ts_type_to_database_type(type: str):
         case "boolean":
             return "bit(1)"
 
+    return "json"
+
+
+def map_ts_type_to_interface(type: str):
+    match type.lower():
+        case "string" | "number" | "boolean":
+            return None
+
     return type
 
 
@@ -1337,6 +1345,10 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
                 }
                 if param.get("default", None) is not None:
                     object_field["db_column"]["default"] = param["default"]
+                # Store interface name
+                type_interface = map_ts_type_to_interface(param["type"])
+                if type_interface is not None:
+                    object_field["db_column"]["interface"] = type_interface
 
                 object_fields.append(object_field)
                 pos += 1
@@ -1377,6 +1389,11 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
                     "no_check": False,
                     "no_update": False,
                 }
+                # Store interface name
+                type_interface = map_ts_type_to_interface(return_type)
+                if type_interface is not None:
+                    object_field["db_column"]["interface"] = type_interface
+
                 object_fields.append(object_field)
             else:
                 add_object_fields_from_interface(
@@ -1512,6 +1529,11 @@ def add_object_fields_from_interface(
         }
         if parent_reference_id is not None:
             object_field["parent_reference_id"] = parent_reference_id
+
+        # Store interface name
+        type_interface = map_ts_type_to_interface(field_type)
+        if type_interface is not None:
+            object_field["db_column"]["interface"] = type_interface
 
         if is_simple_typescript_type(field_type):
             object_fields.append(object_field)
