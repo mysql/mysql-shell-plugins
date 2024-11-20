@@ -1188,14 +1188,13 @@ class MrsDdlListener(MRSListener):
             "name": get_text_without_quotes(ctx.userName().getText()),
             "authAppName": get_text_without_quotes(ctx.authAppName().getText()),
             "password": unquoted_node_text_or_none(ctx.userPassword()),
-            "account_locked": False,
         }
 
     def exitCreateRestUserStatement(self, ctx):
         self.mrs_ddl_executor.createRestUser(self.mrs_object)
 
     def enterAccountLock(self, ctx):
-        self.mrs_object["account_locked"] = ctx.LOCK_SYMBOL() is not None
+        self.mrs_object["login_permitted"] = ctx.LOCK_SYMBOL() is None
 
     # ------------------------------------------------------------------------------------------------------------------
     # CREATE REST ROLE
@@ -1521,10 +1520,9 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "ALTER USER",
-            "name": get_text_without_quotes(ctx.userName().getText()),
-            "authAppName": get_text_without_quotes(ctx.authAppName().getText()),
-            "password": get_text_without_quotes(ctx.userPassword().getText()),
-            "account_locked": ctx.LOCK_SYMBOL() is not None,
+            "name": unquoted_node_text_or_none(ctx.userName()),
+            "authAppName": unquoted_node_text_or_none(ctx.authAppName()),
+            "password": unquoted_node_text_or_none(ctx.userPassword()),
         }
 
     def exitAlterRestUserStatement(self, ctx):
