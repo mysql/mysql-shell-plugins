@@ -57,6 +57,10 @@
 .msg.debugger .toolbar .button > :not(.codicon).icon {
     padding-left: 8px;
     width: 20px;
+    background-color: var(--titleBar-inactiveForeground);
+}
+
+.msg.debugger .toolbar .button:hover > :not(.codicon).icon {
     background-color: var(--button-foreground);
 }
 
@@ -70,6 +74,11 @@
 .msg.debugger .toolbar .button {
     margin: 0;
     min-width: 0;
+    color: var(--titleBar-inactiveForeground);
+}
+
+.msg.debugger .toolbar .button:hover {
+    color: var(--button-foreground);
 }
 
 .msg.debugger .toolbar .button > .label {
