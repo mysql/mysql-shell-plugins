@@ -444,7 +444,7 @@ async def validate_url(
         the used payload is `{"_metadata": {"etag": "foo"}}`.
     """
     if expected_header is None:
-        expected_header = {}
+        expected_header = {"Accept": "application/json"}
     if fictional_response_from_router is None:
         fictional_response_from_router = {"_metadata": {"etag": "foo"}}
 
@@ -706,10 +706,10 @@ async def test_gtid_track_and_sync(
 
 
 ####################################################################################
-#                      Test "submit" Method (authenticate*'s backbone)
+#               Test "submit_mrs_based" Method (authenticate*'s backbone)
 ####################################################################################
 @pytest.mark.parametrize(
-    "options, vendor_id, nonce, challenge, client_proof",
+    "options, vendor_id, nonce, fictional_payload, client_proof",
     [
         (
             {
@@ -726,6 +726,7 @@ async def test_gtid_track_and_sync(
                 "salt": list(
                     b"c_\xa5nC\xe9e\x06%.\xce\xe7\xc8\xe1\xdd\x1e\xa8v\xa7\xba"
                 ),
+                "access_token": "123456789",
             },
             tuple(
                 b"8\x16\xa5\x8d\xf4]\xad\x16\xfb\x9a\xf5I\xa82\xed\x03c\xc0\x8c\xf1\xff\x1e\xd7\x12\xa2\xdf\xee.S(\xa4\xa3"
@@ -733,7 +734,7 @@ async def test_gtid_track_and_sync(
         ),
     ],
 )
-async def test_authenticate_submit(
+async def test_authenticate_submit_mrs_based(
     mock_urlopen: MagicMock,
     mock_request_class: MagicMock,
     urlopen_simulator: MagicMock,
@@ -742,7 +743,7 @@ async def test_authenticate_submit(
     options: AuthenticateOptions[IMyServiceAuthApp],
     vendor_id: str,
     nonce: str,
-    challenge: dict[str, Any],
+    fictional_payload: dict[str, Any],
     client_proof: bytes,
     schema: MrsBaseSchema,
 ):
@@ -750,18 +751,22 @@ async def test_authenticate_submit(
     request_path = f"{schema._service._service_url}{schema._service._auth_path}"
 
     request = MrsAuthenticate[IMyServiceAuthApp](
+        service=schema._service,
         request_path=request_path,
         vendor_id=vendor_id,
         **options,
     )
 
     # mocking
-    mock_urlopen.return_value = urlopen_simulator(urlopen_read=challenge)
+    mock_urlopen.return_value = urlopen_simulator(urlopen_read=fictional_payload)
     mock_create_default_context.return_value = ssl.create_default_context()
     mock_authenticate_nonce.return_value = nonce
 
     # do auth
-    _ = await request.submit()
+    await request.submit()
+
+    # check the access token is updated
+    assert schema._service._session["access_token"] == fictional_payload["access_token"]
 
     # check two requests happened
     assert mock_request_class.call_count == 2
@@ -770,6 +775,7 @@ async def test_authenticate_submit(
     query = [("app", cast(str, options["app_name"]))]
     mock_request_class.assert_any_call(
         url=f"{request_path}?{urlencode(query)}",
+        headers={"Accept": "application/json"},
         data=json.dumps({"user": options["user"], "nonce": nonce}).encode(),
         method="POST",
     )
@@ -778,18 +784,19 @@ async def test_authenticate_submit(
     query.extend(
         [
             ("sessionType", "bearer"),
-            ("session", challenge.get("session", "")),
+            ("session", fictional_payload.get("session", "")),
         ]
     )
     data = json.dumps(
         {
             "clientProof": client_proof,
-            "nonce": challenge["nonce"],
+            "nonce": fictional_payload["nonce"],
             "state": "response",
         }
     ).encode()
     mock_request_class.assert_called_with(
         url=f"{request_path}?{urlencode(query, quote_via=quote)}",
+        headers={"Accept": "application/json"},
         data=data,
         method="POST",
     )
@@ -800,7 +807,82 @@ async def test_authenticate_submit(
     )
     with pytest.raises(HTTPError, match="Bad response"):
         # do auth
-        _ = await request.submit()
+        await request.submit()
+
+
+####################################################################################
+#               Test "submit_mysql_internal" Method (authenticate*'s backbone)
+####################################################################################
+@pytest.mark.parametrize(
+    "options, vendor_id, fictional_payload",
+    [
+        (
+            {
+                "app_name": "MySQL Internal",
+                "user": "furbo",
+                "password": "s3cr3t",
+            },
+            "31000000000000000000000000000000",
+            {
+                "access_token": "85888969",
+            },
+        ),
+    ],
+)
+async def test_authenticate_submit_mysql_internal(
+    mock_urlopen: MagicMock,
+    mock_request_class: MagicMock,
+    urlopen_simulator: MagicMock,
+    mock_create_default_context: MagicMock,
+    options: AuthenticateOptions[IMyServiceAuthApp],
+    vendor_id: str,
+    fictional_payload: dict[str, Any],
+    schema: MrsBaseSchema,
+):
+    """Check `MrsAuthenticate.submit()`."""
+    request_path = f"{schema._service._service_url}{schema._service._auth_path}"
+
+    request = MrsAuthenticate[IMyServiceAuthApp](
+        service=schema._service,
+        request_path=request_path,
+        vendor_id=vendor_id,
+        **options,
+    )
+
+    # mocking
+    mock_urlopen.return_value = urlopen_simulator(urlopen_read=fictional_payload)
+    mock_create_default_context.return_value = ssl.create_default_context()
+
+    # do auth
+    await request.submit()
+
+    # check the access token is updated
+    assert schema._service._session["access_token"] == fictional_payload["access_token"]
+
+    # check one request happened
+    assert mock_request_class.call_count == 1
+
+    # check that request is issued as expected
+    data_auth = {
+        "username": options["user"],
+        "password": options["password"],
+        "authApp": options["app_name"],
+        "sessionType": "bearer",
+    }
+    mock_request_class.assert_called_with(
+        url=f"{request_path}",
+        headers={"Accept": "application/json"},
+        data=json.dumps(data_auth).encode(),
+        method="POST",
+    )
+
+    # check an error is raised when response isn't `OK`
+    mock_urlopen.return_value = urlopen_simulator(
+        urlopen_read={"foo": "bar"}, status=400, msg="Bad response"
+    )
+    with pytest.raises(HTTPError, match="Bad response"):
+        # do auth
+        await request.submit()
 
 
 ####################################################################################
@@ -843,7 +925,7 @@ async def test_create_submit(
 
     mock_request_class.assert_called_once_with(
         url=request_path,
-        headers={},
+        headers={"Accept": "application/json"},
         data=json.dumps(obj=data, cls=MrsJSONDataEncoder).encode(),
         method="POST",
     )
@@ -867,7 +949,7 @@ async def test_create_submit(
 
     mock_request_class.assert_called_with(
         url=request_path,
-        headers={"Authorization": "Bearer foo"},
+        headers={"Accept": "application/json", "Authorization": "Bearer foo"},
         data=json.dumps(obj=data, cls=MrsJSONDataEncoder).encode(),
         method="POST",
     )
@@ -933,7 +1015,7 @@ async def test_update_submit(
 
     mock_request_class.assert_called_once_with(
         url=request_path,
-        headers={"If-Match": data.__dict__["_metadata"]["etag"]},
+        headers={"Accept": "application/json", "If-Match": data.__dict__["_metadata"]["etag"]},
         data=json.dumps(obj=asdict(data), cls=MrsJSONDataEncoder).encode(),
         method="PUT",
     )
@@ -960,6 +1042,7 @@ async def test_update_submit(
     mock_request_class.assert_called_with(
         url=request_path,
         headers={
+            "Accept": "application/json",
             "If-Match": data.__dict__["_metadata"]["etag"],
             "Authorization": "Bearer foo",
         },
@@ -1026,7 +1109,7 @@ async def test_function_call_submit(
 
     mock_request_class.assert_called_once_with(
         url=request_path,
-        headers={},
+        headers={"Accept": "application/json"},
         data=json.dumps(obj=parameters, cls=MrsJSONDataEncoder).encode(),
         method="PUT",
     )
@@ -1043,7 +1126,7 @@ async def test_function_call_submit(
 
     mock_request_class.assert_called_with(
         url=request_path,
-        headers={"Authorization": "Bearer foo"},
+        headers={"Accept": "application/json", "Authorization": "Bearer foo"},
         data=json.dumps(obj=parameters, cls=MrsJSONDataEncoder).encode(),
         method="PUT",
     )
@@ -1138,7 +1221,7 @@ async def test_procedure_call_submit(
 
     mock_request_class.assert_called_once_with(
         url=request_path,
-        headers={},
+        headers={"Accept": "application/json"},
         data=json.dumps(obj=parameters, cls=MrsJSONDataEncoder).encode(),
         method="PUT",
     )

@@ -52,6 +52,7 @@ The following commands can be accessed from a service namespace:
 The following authentication application names are supported:
 
 * *MRS*
+* *MySQL Internal*
 
 #### Return Type (authenticate)
 

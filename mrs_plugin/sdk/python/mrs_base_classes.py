@@ -318,7 +318,7 @@ class MrsBaseSession(TypedDict, total=False):
     gtid: Optional[str]
 
 
-class IMrsAuthenticationAccessTokenResponse(TypedDict):
+class IMrsTokenBasedAuthenticationResponse(TypedDict):
     access_token: str
 
 
@@ -842,11 +842,11 @@ class MrsBaseObjectRoutineCall(
             A dictionary, but the specific type definition shall be
             determined by the subclass itself.
         """
-        headers = {}
+        headers = {"Accept": "application/json"}
         access_token = self._schema._service._session.get("access_token")
 
         if access_token:
-            headers = {"Authorization": f"Bearer {access_token}"}
+            headers["Authorization"] = f"Bearer {access_token}"
 
         req = Request(
             url=self._request_path,
@@ -1054,11 +1054,12 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
 
         querystring = urlencode(query, quote_via=quote)
         url = f"{self.request_path}?{querystring}"
-        headers = {}
+
+        headers = {"Accept": "application/json"}
         access_token = self._schema._service._session.get("access_token")
 
         if access_token:
-            headers = {"Authorization": f"Bearer {access_token}"}
+            headers["Authorization"] = f"Bearer {access_token}"
 
         req = Request(
             url=url,
@@ -1188,11 +1189,11 @@ class MrsBaseObjectCreate(Generic[Data, DataDetails]):
                 last_update: str
             ```
         """
-        headers = {}
+        headers = {"Accept": "application/json"}
         access_token = self._schema._service._session.get("access_token")
 
         if access_token:
-            headers.update({"Authorization": f"Bearer {access_token}"})
+            headers["Authorization"] = f"Bearer {access_token}"
 
         req = Request(
             url=self._request_path,
@@ -1264,11 +1265,11 @@ class MrsBaseObjectUpdate(Generic[DataClass, DataDetails]):
             # include metadata information as part of the data payload.
             etag = ""
 
-        headers = {"If-Match": etag}
+        headers = {"Accept": "application/json", "If-Match": etag}
         access_token = self._schema._service._session.get("access_token")
 
         if access_token:
-            headers.update({"Authorization": f"Bearer {access_token}"})
+            headers["Authorization"] = f"Bearer {access_token}"
 
         req = Request(
             url=self._request_path,
@@ -1344,11 +1345,11 @@ class MrsBaseObjectDelete(Generic[Filterable]):
         else:
             url = self._request_path
 
-        headers = {}
+        headers = {"Accept": "application/json"}
         access_token = self._schema._service._session.get("access_token")
 
         if access_token:
-            headers = {"Authorization": f"Bearer {access_token}"}
+            headers["Authorization"] = f"Bearer {access_token}"
 
         req = Request(
             url=url,
@@ -1376,12 +1377,14 @@ class MrsBaseObjectDelete(Generic[Filterable]):
 class MrsAuthenticate(Generic[AuthAppName]):
     def __init__(
         self,
+        service: MrsBaseService,
         request_path: str,
         vendor_id: str,
         app_name: AuthAppName,
         user: str,
         password: str = "",
     ) -> None:
+        self._service: MrsBaseService = service
         self._request_path: str = request_path
         self._vendor_id: str = vendor_id
         self._app_name: AuthAppName = app_name
@@ -1419,13 +1422,19 @@ class MrsAuthenticate(Generic[AuthAppName]):
     def _nonce() -> str:
         return "".join(["%02x" % random.randint(0, 255) for i in range(10)])
 
-    async def submit(self) -> IMrsAuthenticationAccessTokenResponse:
+    async def _submit_mrs_based(self) -> IMrsTokenBasedAuthenticationResponse:
+        """Implements MRS-based authentication.
+
+        The router supports MRS-based authentication via the
+        `Bearer HTTP authentication method - used over HTTPS (SSL)`.
+        """
         nonce = MrsAuthenticate._nonce()
         ssl_context = ssl.create_default_context()
         query = [("app", cast(str, self._app_name))]
 
         req = Request(
             url=f"{self._request_path}?{urlencode(query, quote_via=quote)}",
+            headers={"Accept": "application/json"},
             data=json.dumps({"user": self._user, "nonce": nonce}).encode(),
             method="POST",
         )
@@ -1476,6 +1485,7 @@ class MrsAuthenticate(Generic[AuthAppName]):
 
         req = Request(
             url=f"{self._request_path}?{urlencode(query, quote_via=quote)}",
+            headers={"Accept": "application/json"},
             data=data,
             method="POST",
         )
@@ -1492,6 +1502,60 @@ class MrsAuthenticate(Generic[AuthAppName]):
             )
 
         return cast(
-            IMrsAuthenticationAccessTokenResponse,
+            IMrsTokenBasedAuthenticationResponse,
             json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys),
         )
+
+    async def _submit_mysql_internal(self) -> IMrsTokenBasedAuthenticationResponse:
+        """Implements the MySQL Internal Authentication Mechanism.
+
+        The router supports MySQL Internal authentication via the
+        `Bearer HTTP authentication method - used over HTTPS (SSL)`.
+        """
+        data_auth = {
+            "username": self._user,
+            "password": self._password,
+            "authApp": self._app_name,
+            "sessionType": "bearer",
+        }
+
+        req = Request(
+            url=self._request_path,
+            headers={"Accept": "application/json"},
+            data=json.dumps(data_auth).encode(),
+            method="POST",
+        )
+
+        response = await asyncio.to_thread(
+            urlopen, req, context=ssl.create_default_context()
+        )
+
+        if response.status != 200:
+            raise HTTPError(
+                url=response.url,
+                code=response.status,
+                msg=response.msg,
+                hdrs=response.headers,
+                fp=None,
+            )
+
+        return cast(
+            IMrsTokenBasedAuthenticationResponse,
+            json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys),
+        )
+
+    async def submit(self) -> None:
+        """Authenticate user to access protected REST resources.
+
+        This method returns nothing, however the relevant (based on the
+        requested authentication option) service session variables are
+        updated in-place.
+        """
+        if self._vendor_id == "30000000000000000000000000000000":
+            self._service._session["access_token"] = (await self._submit_mrs_based())[
+                "access_token"
+            ]
+        else:
+            self._service._session["access_token"] = (
+                await self._submit_mysql_internal()
+            )["access_token"]
