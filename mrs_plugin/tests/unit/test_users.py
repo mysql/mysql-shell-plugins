@@ -365,3 +365,88 @@ def test_user_roles(phone_book, table_contents):
                 "options": None,
             },
         ]
+
+
+def test_user_sql(phone_book):
+    session = phone_book["session"]
+
+    import json
+
+    session.run_sql("""CREATE REST USER "boss"@"MRS Auth App" IDENTIFIED BY "secret" ACCOUNT LOCK OPTIONS {
+                                          "email": "boss@example.com",
+                                          "vendor_user_id": "vendor",
+                                          "mapped_user_id": "vendorboss123"
+                    } APP OPTIONS {"myoption": 12345};""")
+    user = lib.users.get_user(session=session, user_name="boss", auth_app_name="MRS Auth App", service_id=phone_book["service_id"])
+    assert user is not None
+    assert user["email"] == "boss@example.com"
+    assert not user["login_permitted"], "locked"
+    assert user["vendor_user_id"] == "vendor"
+    assert user["mapped_user_id"] == "vendorboss123"
+    assert json.dumps(user["app_options"]) == '{"myoption": 12345}'
+
+    session.run_sql('ALTER REST USER "boss"@"MRS Auth App" IDENTIFIED BY "5678";')
+    user = lib.users.get_user(session=session, user_name="boss", auth_app_name="MRS Auth App", service_id=phone_book["service_id"])
+    assert user is not None
+    assert user["email"] == "boss@example.com"
+    assert not user["login_permitted"], "locked"
+    assert user["vendor_user_id"] == "vendor"
+    assert user["mapped_user_id"] == "vendorboss123"
+    assert json.dumps(user["app_options"]) == '{"myoption": 12345}'
+
+    session.run_sql("""ALTER REST USER "boss"@"MRS Auth App" OPTIONS {
+                    "email": "boss@example2.com",
+                    "vendor_user_id": "vendor2",
+                    "mapped_user_id": "vendor123"
+                    } APP OPTIONS {
+                    "anything": [32]
+                    };""")
+    user = lib.users.get_user(session=session, user_name="boss", auth_app_name="MRS Auth App", service_id=phone_book["service_id"])
+    assert user is not None
+    assert user["email"] == "boss@example2.com"
+    assert not user["login_permitted"], "locked"
+    assert user["vendor_user_id"] == "vendor2"
+    assert user["mapped_user_id"] == "vendor123"
+    assert json.dumps(user["app_options"]) == '{"anything": [32]}'
+
+    session.run_sql('ALTER REST USER "boss"@"MRS Auth App" ACCOUNT UNLOCK;')
+    user = lib.users.get_user(session=session, user_name="boss", auth_app_name="MRS Auth App", service_id=phone_book["service_id"])
+    assert user is not None
+    assert user["login_permitted"], "locked"
+
+
+def test_user_sql_service(phone_book):
+    session = phone_book["session"]
+
+    script = [
+        "CREATE REST SERVICE localhost/one",
+        "CREATE REST SERVICE localhost/two",
+        'create rest auth app "app" on service localhost/one vendor MySQL comments "svc1"',
+        'create rest auth app "app" on service localhost/two vendor MySQL comments "svc2"',
+        'CREATE REST USER "usr"@"app" on service localhost/one options {"email": "one"}',
+        'CREATE REST USER "usr"@"app" on service localhost/two options {"email": "two"}',
+    ]
+    for sql in script:
+        try:
+            session.run_sql(sql)
+        except:
+            print(sql)
+            raise
+
+    id_one = lib.services.get_service(session=session, url_host_name="localhost", url_context_root="/one")["id"]
+    id_two = lib.services.get_service(session=session, url_host_name="localhost",url_context_root="/two")["id"]
+
+    user = lib.users.get_user(session=session, user_name="usr", auth_app_name="app", service_id=id_one)
+    assert user["email"] == "one"
+    user = lib.users.get_user(session=session, user_name="usr", auth_app_name="app", service_id=id_two)
+    assert user["email"] == "two"
+
+    session.run_sql('ALTER REST USER "usr"@"app" on service localhost/one options {"email": "ONE"}')
+    session.run_sql('ALTER REST USER "usr"@"app" on service localhost/two options {"email": "TWO"}')
+    user = lib.users.get_user(session=session, user_name="usr", auth_app_name="app", service_id=id_one)
+    assert user["email"] == "ONE"
+    user = lib.users.get_user(session=session, user_name="usr", auth_app_name="app", service_id=id_two)
+    assert user["email"] == "TWO"
+
+    session.run_sql("drop rest service localhost/one")
+    session.run_sql("drop rest service localhost/two")

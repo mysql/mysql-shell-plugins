@@ -262,7 +262,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
         # Prefer the given service if specified
         url_context_root = mrs_object.get("url_context_root")
-
         if url_context_root is not None:
             if not allow_wildcards or not lib.core.contains_wildcards(url_context_root):
                 url_host_name = mrs_object.get("url_host_name", "")
@@ -969,12 +968,15 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         authAppName = mrs_object.get("authAppName")
         password = mrs_object.get("password")
         full_path = f':"{name}"@"{authAppName}"'
-        app_options = mrs_object.get("app_options", {})
-        options = mrs_object.get("options", {})
+        app_options = mrs_object.get("app_options", None)
+        options = mrs_object.get("options", None)
+        if options:
+            options = json.loads(options)
+
         email = options.pop("email", None) if options else None
         vendor_user_id = options.pop("vendor_user_id", None) if options else None
         mapped_user_id = options.pop("mapped_user_id", None) if options else None
-        login_permitted = not mrs_object.get("account_locked", False)
+        login_permitted = mrs_object.get("login_permitted", True)
 
         with lib.core.MrsDbTransaction(self.session):
             try:
@@ -1443,6 +1445,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 self.results.append(
                     {
                         "statementIndex": len(self.results) + 1,
+                        "line": mrs_object.get("line"),
                         "type": "success",
                         "affectedItemsCount": 1,
                         "operation": self.current_operation,
@@ -1454,12 +1457,102 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 self.results.append(
                     {
                         "statementIndex": len(self.results) + 1,
+                        "line": mrs_object.get("line"),
                         "type": "error",
                         "message": f"Failed to update the REST content set `{full_path}`. {e}",
                         "operation": self.current_operation,
                     }
                 )
                 raise
+
+    def alterRestUser(self, mrs_object: dict):
+        timer = Timer()
+        self.current_operation = mrs_object.pop("current_operation")
+
+        name = mrs_object.get("name")
+        authAppName = mrs_object.get("authAppName")
+        password = mrs_object.get("password")
+        full_path = f':"{name}"@"{authAppName}"'
+        app_options = mrs_object.get("app_options", None)
+        options = mrs_object.get("options", None)
+        if options:
+            options = json.loads(options)
+
+        email = options.pop("email", None) if options else None
+        vendor_user_id = options.pop("vendor_user_id", None) if options else None
+        mapped_user_id = options.pop("mapped_user_id", None) if options else None
+        login_permitted = mrs_object.get("login_permitted", None)
+
+        with lib.core.MrsDbTransaction(self.session):
+            try:
+                if password == "":
+                    raise Exception("The password must not be empty.")
+
+                service_id = self.get_given_or_current_service_id(mrs_object)
+
+                auth_app = lib.auth_apps.get_auth_app(
+                    service_id=service_id, name=authAppName, session=self.session
+                )
+                if auth_app is None:
+                    raise Exception(
+                        f"The given REST AUTH APP for {full_path} was not found."
+                    )
+
+                user = lib.users.get_user(
+                    self.session,
+                    user_name=name,
+                    auth_app_id=auth_app["id"]
+                )
+                if not user:
+                    raise Exception(f'Invalid REST user "{name}"@"{authAppName}"')
+                user_id = user['id']
+
+                changes = {}
+                if login_permitted is not None:
+                    changes["login_permitted"] = int(login_permitted)
+                if email is not None:
+                    changes["email"] = email
+                if password is not None:
+                    changes["auth_string"] = password
+                    changes["auth_app_id"] = user["auth_app_id"]
+                if app_options is not None:
+                    changes["app_options"] = app_options
+                if mapped_user_id is not None:
+                    changes["mapped_user_id"] = mapped_user_id
+                if vendor_user_id is not None:
+                    changes["vendor_user_id"] = vendor_user_id
+
+                lib.users.update_user(
+                    session=self.session,
+                    user_id=user_id,
+                    value=changes
+                )
+
+                self.results.append(
+                    {
+                        "statementIndex": len(self.results) + 1,
+                        "line": mrs_object.get("line"),
+                        "type": "success",
+                        "affectedItemsCount": 1,
+                        "operation": self.current_operation,
+                        "id": lib.core.convert_id_to_string(user_id),
+                        "executionTime": timer.elapsed(),
+                    }
+                )
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self.results.append(
+                    {
+                        "statementIndex": len(self.results) + 1,
+                        "line": mrs_object.get("line"),
+                        "type": "error",
+                        "message": f"Failed to update the REST USER `{full_path}`. {e}",
+                        "operation": self.current_operation,
+                    }
+                )
+                raise
+
 
     def dropRestService(self, mrs_object: dict):
         timer = Timer()

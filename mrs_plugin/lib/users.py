@@ -120,6 +120,10 @@ def get_users(
             wheres.append("sa.service_id = ?")
             params.append(service_id)
 
+    if user_id:
+        wheres.append("user.id = ?")
+        params.append(user_id)
+
     if user_name:
         wheres.append("user.name = ?")
         params.append(user_name)
@@ -146,6 +150,9 @@ def get_user(
     auth_app_name=None,
     mask_password=True,
 ):
+    if not user_id and not service_id and not auth_app_id:
+        raise ValueError("One of user_id or service_id or auth_app_id is required")
+    
     result = get_users(
         session,
         user_id=user_id,
@@ -157,6 +164,7 @@ def get_user(
     )
     if not result:
         return None
+    assert len(result)==1
     return result[0]
 
 
