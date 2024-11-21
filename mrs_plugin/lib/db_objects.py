@@ -646,7 +646,9 @@ def set_object_fields_with_references(session, db_object_id, obj):
 
 
 def calculate_crud_operations(db_object_type, objects=None):
-    if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION" or db_object_type == "SCRIPT":
+    if db_object_type == "SCRIPT":
+        return ["CREATE", "READ", "UPDATE"]
+    if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION":
         return ["UPDATE"]
 
     if objects is None:
