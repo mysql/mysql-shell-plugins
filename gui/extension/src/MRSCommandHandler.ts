@@ -1376,7 +1376,7 @@ export class MRSCommandHandler {
                         `${routerBootstrapPath} ${connString} --mrs --directory "${routerConfigDir}" ` +
                         `"--conf-set-option=http_server.ssl_cert=${path.join(certDir, "server.crt")}" ` +
                         `"--conf-set-option=http_server.ssl_key=${path.join(certDir, "server.key")}" ` +
-                        `--conf-set-option=logger.level=DEBUG --conf-set-option=logger.sinks=consolelog ` +
+                        `--conf-set-option=logger.level=INFO --conf-set-option=logger.sinks=consolelog ` +
                         `--conf-base-port=${basePort.toString()} ` +
                         `--conf-set-option=http_server.port=${httpPort.toString()}`;
                     // Add --mrs-developer option to set the development user for this router instance
