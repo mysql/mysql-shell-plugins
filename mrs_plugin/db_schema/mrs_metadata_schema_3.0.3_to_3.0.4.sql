@@ -118,6 +118,33 @@ SELECT f.* FROM (
     ) AS f
 ORDER BY f.position;
 
+ALTER SQL SECURITY INVOKER VIEW `router_services` AS
+SELECT r.id AS router_id, r.router_name, r.address, r.attributes->>'$.developer' AS router_developer,
+    s.id as service_id, h.name AS service_url_host_name,
+    s.url_context_root AS service_url_context_root,
+    CONCAT(h.name, s.url_context_root) AS service_host_ctx,
+    s.published, s.in_development,
+    (SELECT GROUP_CONCAT(IF(item REGEXP '^[A-Za-z0-9_]+$', item, QUOTE(item)) ORDER BY item)
+        FROM JSON_TABLE(
+        s.in_development->>'$.developers', '$[*]' COLUMNS (item text path '$')
+    ) AS jt) AS sorted_developers
+FROM `mysql_rest_service_metadata`.`service` s
+    LEFT JOIN `mysql_rest_service_metadata`.`url_host` h
+        ON s.url_host_id = h.id
+    JOIN `mysql_rest_service_metadata`.`router` r
+WHERE
+    (enabled = 1)
+    AND (
+    ((published = 1) AND (NOT EXISTS (select s2.id from `mysql_rest_service_metadata`.`service` s2 where s.url_host_id=s2.url_host_id AND s.url_context_root=s2.url_context_root
+        AND JSON_OVERLAPS(r.attributes->'$.developer', s2.in_development->>'$.developers'))))
+    OR
+    ((published = 0) AND (s.id IN (select s2.id from `mysql_rest_service_metadata`.`service` s2 where s.url_host_id=s2.url_host_id AND s.url_context_root=s2.url_context_root
+        AND JSON_OVERLAPS(r.attributes->'$.developer', s2.in_development->>'$.developers'))))
+    OR
+    ((published = 0) AND (r.options->'$.developer' IS NOT NULL
+        OR r.attributes->'$.developer' IS NOT NULL) AND s.in_development IS NULL)
+    );
+
 -- -----------------------------------------------------
 -- Set the version VIEWs to the correct version
 
