@@ -921,10 +921,33 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                                 selection={task?.languageId === undefined ? "en" : task.languageId}
                                 onSelect={this.handleLanguageSelection}>
                                 <DropdownItem caption="English" id="en" />
-                                <DropdownItem caption="French" id="fr" />
                                 <DropdownItem caption="German" id="de" />
+                                <DropdownItem caption="French" id="fr" />
                                 <DropdownItem caption="Spanish" id="es" />
                                 <DropdownItem caption="Portuguese" id="pt" />
+                                <DropdownItem caption="Italian" id="it" />
+                                <DropdownItem caption="Dutch" id="nl" />
+                                <DropdownItem caption="Czech" id="cs" />
+                                <DropdownItem caption="Polish" id="pl" />
+                                <DropdownItem caption="Persian" id="fa" />
+                                <DropdownItem caption="Hindi" id="hi" />
+                                <DropdownItem caption="Bengali" id="bn" />
+                                <DropdownItem caption="Urdu" id="ur" />
+                                <DropdownItem caption="Brazilian Portuguese" id="pt-BR" />
+                                <DropdownItem caption="Chinese" id="zh" />
+                                <DropdownItem caption="Arabic" id="ar" />
+                                <DropdownItem caption="Hebrew" id="he" />
+                                <DropdownItem caption="Tibetan" id="bo" />
+                                <DropdownItem caption="Turkish" id="tr" />
+                                <DropdownItem caption="Japanese" id="ja" />
+                                <DropdownItem caption="Korean" id="ko" />
+                                <DropdownItem caption="Vietnamese" id="vi" />
+                                <DropdownItem caption="Khmer" id="km" />
+                                <DropdownItem caption="Thai" id="th" />
+                                <DropdownItem caption="Lao" id="lo" />
+                                <DropdownItem caption="Indonesian" id="id" />
+                                <DropdownItem caption="Malay" id="ms" />
+                                <DropdownItem caption="Tagalog" id="tl" />
                             </Dropdown>
                         </Container>}
                 </Container>
@@ -3008,7 +3031,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     if (error === 0) {
                         void requisitions.execute("showInfo", "The files have been uploaded successfully.");
                     } else {
-                        const message = `${error} error${error > 1 ? "s" : ""} ocurred during upload. ` +
+                        const message = `${error} error${error > 1 ? "s" : ""} occurred during upload. ` +
                             "Please check the file list.";
                         void requisitions.execute("showError", message);
                     }

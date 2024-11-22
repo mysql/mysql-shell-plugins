@@ -402,10 +402,33 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
                                                 selection={savedState.options?.modelOptions?.language ?? "en"}
                                                 onSelect={this.handleModelLanguageChange}>
                                                 <DropdownItem caption="English" id="en" />
-                                                <DropdownItem caption="French" id="fr" />
                                                 <DropdownItem caption="German" id="de" />
+                                                <DropdownItem caption="French" id="fr" />
                                                 <DropdownItem caption="Spanish" id="es" />
                                                 <DropdownItem caption="Portuguese" id="pt" />
+                                                <DropdownItem caption="Italian" id="it" />
+                                                <DropdownItem caption="Dutch" id="nl" />
+                                                <DropdownItem caption="Czech" id="cs" />
+                                                <DropdownItem caption="Polish" id="pl" />
+                                                <DropdownItem caption="Persian" id="fa" />
+                                                <DropdownItem caption="Hindi" id="hi" />
+                                                <DropdownItem caption="Bengali" id="bn" />
+                                                <DropdownItem caption="Urdu" id="ur" />
+                                                <DropdownItem caption="Brazilian Portuguese" id="pt-BR" />
+                                                <DropdownItem caption="Chinese" id="zh" />
+                                                <DropdownItem caption="Arabic" id="ar" />
+                                                <DropdownItem caption="Hebrew" id="he" />
+                                                <DropdownItem caption="Tibetan" id="bo" />
+                                                <DropdownItem caption="Turkish" id="tr" />
+                                                <DropdownItem caption="Japanese" id="ja" />
+                                                <DropdownItem caption="Korean" id="ko" />
+                                                <DropdownItem caption="Vietnamese" id="vi" />
+                                                <DropdownItem caption="Khmer" id="km" />
+                                                <DropdownItem caption="Thai" id="th" />
+                                                <DropdownItem caption="Lao" id="lo" />
+                                                <DropdownItem caption="Indonesian" id="id" />
+                                                <DropdownItem caption="Malay" id="ms" />
+                                                <DropdownItem caption="Tagalog" id="tl" />
                                             </Dropdown>
                                         </Container>}
                                 </Container>,

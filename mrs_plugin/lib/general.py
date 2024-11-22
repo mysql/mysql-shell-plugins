@@ -25,7 +25,7 @@ from mrs_plugin import lib
 import json
 
 # Define plugin version
-VERSION = "1.17.2"
+VERSION = "1.18.0"
 
 DB_VERSION = [3, 0, 4]
 REQUIRED_ROUTER_VERSION = [8, 1, 0]
