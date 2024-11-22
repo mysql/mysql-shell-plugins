@@ -1412,36 +1412,7 @@ export class MRSCommandHandler {
                     "Do you want to download and install the MySQL Router now?",
                     "Yes", "No");
                 if (answer === "Yes") {
-                    const labsUrl = "https://downloads.mysql.com/snapshots/pb/mysql-8.2.0-labs-mrs7-preview-release/";
-                    let fileUrl: string;
-
-                    switch (os.platform()) {
-                        case "darwin": {
-                            switch (os.arch()) {
-                                case "arm":
-                                case "arm64": {
-                                    fileUrl = `${labsUrl}mysql-router-8.2.0-labs-mrs-7-macos13-arm64.dmg`;
-                                    break;
-                                }
-                                default: {
-                                    fileUrl = `${labsUrl}mysql-router-8.2.0-labs-mrs-7-macos13-x86_64.dmg`;
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-                        case "win32": {
-                            fileUrl = `${labsUrl}mysql-router-8.2.0-labs-mrs-7-winx64.msi`;
-                            break;
-                        }
-                        default: {
-                            // Default to generic URL
-                            fileUrl = "https://labs.mysql.com";
-                            break;
-                        }
-                    }
-
-                    await env.openExternal(Uri.parse(fileUrl));
+                    await env.openExternal(Uri.parse("https://labs.mysql.com"));
 
                     await window.showInformationMessage(
                         "After installing MySQL Router, VS Code needs to be restarted to read " +

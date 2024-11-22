@@ -1,15 +1,23 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.17.2+9.1.0
+## Changes in 1.18.0+9.1.0
 
 ### Additions
 
--
+- Added support for MRS SQL commands ALTER REST AUTH APP, ALTER REST USER
+- Added support for OAuth2 settings on MRS SQL commands CREATE REST AUTH APP
+- Added support for MRS private state
+- Added support for MRS MySQL Internal auth mechanism to Client SDK
+- Added support to manually set MRS data mapping view keys for schema views
+- Added support for more HeatWave GenAI languages
 
 ### Fixes
 
 - BUG#37259058: Python SDK: fails to compare string column with 'Hello world!'
 - BUG#37211618 Unable to access individual REST documents originating from a SQL VIEW
+- Fixed wrong scrollbar color on Linux when using dark themes
+- Changed MRS Router bootstrap log level to INFO
+- Fixed MRS REST object dialog layout
 
 ## Changes in 1.17.1+9.1.0
 
