@@ -516,7 +516,7 @@ createRestSchemaStatement:
 ;
 
 restSchemaOptions: (
-        enabledDisabled
+        enabledDisabledPrivate
         | authenticationRequired
         | itemsPerPage
         | jsonOptions
@@ -544,17 +544,20 @@ CREATE OR REPLACE REST SCHEMA /sakila ON SERVICE /myService
 
 ### Enabling or Disabling a REST Schema at Creation Time
 
-The `enabledDisabled` option specifies whether the REST schema should be enabled or disabled what it is created.
+The `enabledDisabledPrivate` option specifies whether the REST schema should be enabled, disabled or private when it is created.
+
+Setting a schema to private disables public access via HTTPS but keeps the schema available for private access from MRS scripts.
 
 ```antlr
-enabledDisabled:
-    ENABLED
-    | DISABLED
+enabledDisabledPrivate:
+    ENABLED_SYMBOL
+    | DISABLED_SYMBOL
+    | PRIVATE_SYMBOL
 ;
 ```
 
-enabledDisabled ::=
-![enabledDisabled](../../images/sql/enabledDisabled.svg "enabledDisabled")
+enabledDisabledPrivate ::=
+![enabledDisabledPrivate](../../images/sql/enabledDisabledPrivate.svg "enabledDisabledPrivate")
 
 ### Requiring Authentication for REST Schema Access
 
@@ -652,7 +655,7 @@ serviceSchemaSelector:
 ;
 
 restObjectOptions: (
-        enabledDisabled
+        enabledDisabledPrivate
         | authenticationRequired
         | itemsPerPage
         | jsonOptions
@@ -773,17 +776,20 @@ You define a REST data mapping view against a set of tables related by primary k
 
 ### Enabling or Disabling a REST View at Creation Time
 
-The `enabledDisabled` option specifies whether the REST data mapping view should be enabled or disabled when it is created.
+The `enabledDisabledPrivate` option specifies whether the REST data mapping view should be enabled, disabled or private when it is created.
+
+Setting a REST data mapping view to private disables public access via HTTPS but keeps the schema available for private access from MRS scripts.
 
 ```antlr
-enabledDisabled:
-    ENABLED
-    | DISABLED
+enabledDisabledPrivate:
+    ENABLED_SYMBOL
+    | DISABLED_SYMBOL
+    | PRIVATE_SYMBOL
 ;
 ```
 
-enabledDisabled ::=
-![enabledDisabled](../../images/sql/enabledDisabled.svg "enabledDisabled")
+enabledDisabledPrivate ::=
+![enabledDisabledPrivate](../../images/sql/enabledDisabledPrivate.svg "enabledDisabledPrivate")
 
 ### Requiring Authentication for REST Views
 
@@ -928,7 +934,6 @@ The following additional options can be configured for a view in a JSON object t
 
 - `cache_ttl` enables caching for GET requests. Specifies the number of seconds to keep the response in the cache, after which it will be discarded until a new request comes in or when the cache fills up.
 
-
 ## CREATE REST PROCEDURE
 
 The `CREATE REST PROCEDURE` statement is used to add REST endpoints for database schema stored procedures. It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-view) as defined for REST data mapping views to describe the REST procedure's parameters and result sets. Please make sure to study the [corresponding section](#defining-the-graphql-definition-for-a-rest-view).
@@ -948,7 +953,7 @@ serviceSchemaSelector:
 ;
 
 restObjectOptions: (
-        enabledDisabled
+        enabledDisabledPrivate
         | authenticationRequired
         | itemsPerPage
         | jsonOptions
@@ -989,7 +994,6 @@ The following additional options can be configured for a view in a JSON object t
 
 - `cache_ttl` enables caching for GET or PUT requests. Specifies the number of seconds to keep the response in the cache, after which it will be discarded until a new request comes in or when the cache fills up.
 
-
 ## CREATE REST FUNCTION
 
 The `CREATE REST FUNCTION` statement is used to add REST endpoints for database schema stored function. It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-view) as defined for REST data mapping views to describe the REST functions's parameters and result. Please make sure to study the [corresponding section](#defining-the-graphql-definition-for-a-rest-view).
@@ -1009,7 +1013,7 @@ serviceSchemaSelector:
 ;
 
 restObjectOptions: (
-        enabledDisabled
+        enabledDisabledPrivate
         | authenticationRequired
         | itemsPerPage
         | jsonOptions
@@ -1065,7 +1069,7 @@ createRestContentSetStatement:
 ;
 
 restContentSetOptions: (
-        enabledDisabled
+        enabledDisabledPrivate
         | authenticationRequired
         | jsonOptions
         | comments
