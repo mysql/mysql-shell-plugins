@@ -77,7 +77,7 @@ alterRestSchemaStatement:
 ;
 
 restSchemaOptions: (
-        enabledDisabled
+        enabledDisabledPrivate
         | authenticationRequired
         | itemsPerPage
         | jsonOptions
@@ -127,7 +127,7 @@ serviceSchemaSelector:
 ;
 
 restObjectOptions: (
-        enabledDisabled
+        enabledDisabledPrivate
         | authenticationRequired
         | itemsPerPage
         | jsonOptions
@@ -184,7 +184,7 @@ serviceSchemaSelector:
 ;
 
 restObjectOptions: (
-        enabledDisabled
+        enabledDisabledPrivate
         | authenticationRequired
         | itemsPerPage
         | jsonOptions
@@ -228,7 +228,7 @@ serviceSchemaSelector:
 ;
 
 restObjectOptions: (
-        enabledDisabled
+        enabledDisabledPrivate
         | authenticationRequired
         | itemsPerPage
         | jsonOptions
@@ -250,6 +250,24 @@ serviceSchemaSelector ::=
 restObjectOptions ::=
 ![restObjectOptions](../../images/sql/restObjectOptions.svg "restObjectOptions")
 
+## ALTER REST CONTENT SET
+
+The `ALTER REST CONTENT SET` statement is used to alter REST content sets.
+
+**_SYNTAX_**
+
+```antlr
+alterRestContentSetStatement:
+    ALTER_SYMBOL REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath (
+        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
+    )? (
+        NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newContentSetRequestPath
+    )? restContentSetOptions?
+;
+```
+
+alterRestContentSetStatement ::=
+![alterRestContentSetStatement](../../images/sql/alterRestContentSetStatement.svg "alterRestContentSetStatement")
 
 ## ALTER REST USER
 
@@ -263,6 +281,7 @@ alterRestUserStatement:
         ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
     )? (IDENTIFIED_SYMBOL BY_SYMBOL userPassword)? userOptions?
 ;
-
 ```
 
+createRestUserStatement ::=
+![createRestUserStatement](../../images/sql/createRestUserStatement.svg "createRestUserStatement")
