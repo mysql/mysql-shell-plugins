@@ -338,7 +338,7 @@ class ${schema_class_name}(MrsBaseSchema):
         # --- objectLoopStart
         self.${obj_name} = ${obj_class_name}DatabaseObject(
             schema=self,
-            request_path=f"{self._request_path}/{MrsJSONDataEncoder.snake_to_camel('${obj_name}')}",
+            request_path=f"{self._request_path}${obj_request_path}",
         )
         # --- objectLoopEnd
 # --- schemaLoopEnd

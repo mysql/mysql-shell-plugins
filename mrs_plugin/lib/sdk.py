@@ -600,8 +600,8 @@ def substitute_objects_in_template(service, schema, template, sdk_language, sess
                     class_name,
                     sdk_language,
                     db_object_crud_ops,
-                    obj_endpoint=f"{service_url}{schema.get('request_path')}/{name}"
-                    )
+                    obj_endpoint=f"{service_url}{schema.get('request_path')}{db_obj.get("request_path")}",
+                )
 
                 required_datatypes.update(required_obj_datatypes)
 
