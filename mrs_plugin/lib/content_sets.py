@@ -36,6 +36,7 @@ import ssl
 import shutil
 
 OPENAPI_UI_URL = "http://github.com/swagger-api/swagger-ui/archive/refs/tags/v5.17.14.zip"
+OPENAPI_DARK_CSS_URL = "https://github.com/Amoenus/SwaggerDark/releases/download/v1.0.0/SwaggerDark.css"
 
 # The regex below require that all comments and strings have been blanked before
 
@@ -1261,7 +1262,8 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
             file_to_load = "/" + build_folder + "/" + \
                 script_module["file_info"]["file_name"]
             if language == "TypeScript":
-                file_to_load = file_to_load.replace(".mts", ".mjs").replace(".ts", ".js")
+                file_to_load = file_to_load.replace(
+                    ".mts", ".mjs").replace(".ts", ".js")
         script_module_files.append({
             "file_info": script_module["file_info"],
             "file_to_load": file_to_load,
@@ -1635,6 +1637,14 @@ def prepare_open_api_ui(service, request_path, send_gui_message=None) -> str:
         with open(swagger_ui_zip_path, 'wb') as zip_disk_file:
             zip_disk_file.write(zip_web_file.read())
 
+    # Download Dark CSS
+    if send_gui_message is not None:
+        send_gui_message("info", "Downloading dark CSS file ...")
+    swagger_ui_dark_css_path = os.path.join(temp_dir, "swagger-ui-dark.css")
+    with urlopen(OPENAPI_DARK_CSS_URL) as dark_css_web_file:
+        with open(swagger_ui_dark_css_path, 'wb') as dark_css_disk_file:
+            dark_css_disk_file.write(dark_css_web_file.read())
+
     # Extract zip
     if send_gui_message is not None:
         send_gui_message("info", "Extracting package ...")
@@ -1666,9 +1676,28 @@ def prepare_open_api_ui(service, request_path, send_gui_message=None) -> str:
         r"(url: \".*?\")",
         f'url: "{service["url_context_root"]}/open-api-catalog/"')
 
+    # Add dark css
+    with open(swagger_ui_dark_css_path, 'r') as file1:
+        with open(os.path.join(swagger_ui_path, "index.css"), 'a') as file2:
+            shutil.copyfileobj(file1, file2)
+            file2.write("\n#swagger-ui {\npadding-top: 20px;\n}\n")
+            # Authorize Btn
+            file2.write("\n.swagger-ui .scheme-container {\nposition: absolute;\nright: 0px;\ntop: 0px;\n"
+                "height: 58px;\npadding: 10px 0px;\nbackground: unset;\nbox-shadow: unset;\n}\n")
+            file2.write(
+                "\n.swagger-ui .btn.authorize span {\npadding: 4px 10px 0 0;\n}\n")
+            # Explore Area
+            file2.write("\n.swagger-ui .topbar {\nbackground-color: unset;\npadding: 10px 0;\n"
+                "position: absolute;\ntop: 0px;\nright: 170px;\nwidth: 300px;\nfont-size: 0.75em;\n}\n")
+            file2.write("\n.swagger-ui .topbar .download-url-wrapper .download-url-button {\n"
+                "padding: 3px 10px 0px 10px;\nfont-size: 1.2em;\n}\n")
+            file2.write("\n.swagger-ui .topbar .wrapper {\npadding: 0;\n}\n")
+    # Delete dark css file
+    pathlib.Path.unlink(swagger_ui_dark_css_path)
+
     # Patch UI to redirect to MRS authentication
     redirect_url = f'/?service={service["url_context_root"]
-                                }&redirectUrl={service["url_context_root"]+request_path}/'
+                                }&redirectUrl={service["url_context_root"]+request_path}/index.html'
     authorize_btn_on_click = f'()=>{{window.location.href="{redirect_url}";}}'
     update_file_content_via_regex(
         os.path.join(swagger_ui_path, "swagger-ui-bundle.js"),
