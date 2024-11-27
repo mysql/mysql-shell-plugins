@@ -805,7 +805,8 @@ export class MRSCommandHandler {
                                     },
                                     {
                                         requestType: "showMrsContentSetDialog", parameter: {
-                                            directory: "open-api-ui",
+                                            directory: "$open-api-ui$",
+                                            requestPath: "/openApi-Ui",
                                         },
                                     },
                                 ], "newConnection");

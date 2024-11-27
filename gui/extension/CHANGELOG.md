@@ -4,11 +4,11 @@
 
 ### Additions
 
-- 
+- Added dark theme to MRS OpenAPI UI and improved layout
 
 ### Fixes
 
-- 
+-
 
 ## Changes in 1.18.0+9.1.0
 

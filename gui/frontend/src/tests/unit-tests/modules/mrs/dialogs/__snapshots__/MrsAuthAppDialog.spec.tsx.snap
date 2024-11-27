@@ -177,19 +177,6 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
                       class="msg label"
                       data-tooltip="inherit"
                     >
-                      OAuth2 Settings
-                    </label>
-                  </div>
-                  <div
-                    class="msg button tabItem"
-                    id="page2"
-                    role="button"
-                    tabindex="-1"
-                  >
-                    <label
-                      class="msg label"
-                      data-tooltip="inherit"
-                    >
                       Options
                     </label>
                   </div>

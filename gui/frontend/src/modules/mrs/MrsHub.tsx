@@ -560,12 +560,13 @@ export class MrsHub extends ComponentBase {
      * @param backend The interface for sending the requests.
      * @param directory The directory to upload as content set
      * @param contentSet If not assigned then a new schema must be created otherwise this contains the existing values.
+     * @param requestPath The requestPath to use for the content set
      *
      * @returns A promise resolving when the dialog was closed. Always resolves to true to indicate the request
      *          was handled.
      */
     public showMrsContentSetDialog = async (backend: ShellInterfaceSqlEditor, directory?: string,
-        contentSet?: IMrsContentSetData): Promise<boolean> => {
+        contentSet?: IMrsContentSetData, requestPath?: string): Promise<boolean> => {
 
         try {
             const services = await backend.mrs.listServices();
@@ -573,8 +574,8 @@ export class MrsHub extends ComponentBase {
                 ? "Adjust the MRS Static Content Set Configuration"
                 : "Enter Configuration Values for the New MRS Static Content Set";
 
-            let requestPath = contentSet?.requestPath;
-            if (!requestPath) {
+            let newRequestPath = contentSet?.requestPath ?? requestPath;
+            if (!newRequestPath) {
                 if (directory) {
                     const getOneBeforeLastFolder = () => {
                         const lastSlash = directory.lastIndexOf("/");
@@ -585,18 +586,18 @@ export class MrsHub extends ComponentBase {
                     // If the given directory path ends with common build folder names, pick the folder before
                     if (directory.endsWith("/build") || directory.endsWith("/output") ||
                         directory.endsWith("/out") || directory.endsWith("/web")) {
-                        requestPath = getOneBeforeLastFolder();
+                        newRequestPath = getOneBeforeLastFolder();
                     } else {
-                        requestPath = directory.substring(directory.lastIndexOf("/"));
+                        newRequestPath = directory.substring(directory.lastIndexOf("/"));
                     }
 
-                    requestPath = convertSnakeToCamelCase(requestPath) + "Content";
+                    newRequestPath = convertSnakeToCamelCase(newRequestPath) + "Content";
 
-                    if (!requestPath.startsWith("/")) {
-                        requestPath = "/" + requestPath;
+                    if (!newRequestPath.startsWith("/")) {
+                        newRequestPath = "/" + newRequestPath;
                     }
                 } else {
-                    requestPath = "/content";
+                    newRequestPath = "/content";
                 }
             }
 
@@ -608,7 +609,7 @@ export class MrsHub extends ComponentBase {
                 values: {
                     directory,
                     serviceId: contentSet?.serviceId,
-                    requestPath: contentSet?.requestPath ?? requestPath,
+                    requestPath: contentSet?.requestPath ?? newRequestPath,
                     requiresAuth: contentSet?.requiresAuth === 1,
                     enabled: !contentSet ? 1 : contentSet.enabled,
                     comments: contentSet?.comments ?? "",
@@ -628,7 +629,7 @@ export class MrsHub extends ComponentBase {
 
             const data = result as IMrsContentSetDialogData;
             const serviceId = data.serviceId;
-            requestPath = data.requestPath;
+            newRequestPath = data.requestPath;
             const requiresAuth = data.requiresAuth;
             const comments = data.comments;
             const enabled = data.enabled;
@@ -638,17 +639,17 @@ export class MrsHub extends ComponentBase {
             // Check if the request path is valid for this service and does not overlap with other services
             let requestPathValid = false;
             try {
-                requestPathValid = await backend.mrs.getServiceRequestPathAvailability(serviceId, requestPath);
+                requestPathValid = await backend.mrs.getServiceRequestPathAvailability(serviceId, newRequestPath);
                 if (!requestPathValid) {
                     // Check if the request path is taken by another content set.
-                    const existingContentSets = await backend.mrs.listContentSets(serviceId, requestPath);
+                    const existingContentSets = await backend.mrs.listContentSets(serviceId, newRequestPath);
                     if (existingContentSets.length > 0) {
                         const response = await DialogHost.showDialog({
                             id: "mrsContentSetPathConfirmation",
                             type: DialogType.Confirm,
                             title: "Confirmation",
                             parameters: {
-                                prompt: `The request path ${requestPath} is already used by another ` +
+                                prompt: `The request path ${newRequestPath} is already used by another ` +
                                     "static content set. Do you want to replace the existing one?",
                                 accept: "Yes",
                                 refuse: "No",
@@ -662,7 +663,8 @@ export class MrsHub extends ComponentBase {
                             void requisitions.execute("showInfo", "Cancelled the upload.");
                         }
                     } else {
-                        void requisitions.execute("showError", `The request path ${requestPath} is already used on ` +
+                        void requisitions.execute(
+                            "showError", `The request path ${newRequestPath} is already used on ` +
                             `this service.`);
                     }
                 }
@@ -679,7 +681,7 @@ export class MrsHub extends ComponentBase {
 
                     try {
                         let addedContentSet: IMrsAddContentSetData = {};
-                        void await backend.mrs.addContentSet(data.directory, requestPath,
+                        void await backend.mrs.addContentSet(data.directory, newRequestPath,
                             requiresAuth, options, serviceId, comments, enabled, true, ignoreList, (data) => {
                                 if (data.result.info) {
                                     StatusBar.setStatusBarMessage("$(loading~spin) " + data.result.info);
