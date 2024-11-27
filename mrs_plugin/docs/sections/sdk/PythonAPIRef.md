@@ -193,7 +193,7 @@ The `actor_id` and `last_update` columns from the `sakila` table on the sample [
 
 ### find_first
 
-`find_first` is used to query the first REST document that matches a given optional filter. It returns `None` if no document is found.
+`find_first` is used to query the first REST document (**in no specific order**) that matches a given optional filter. It returns `None` if no document is found.
 
 > To raise an exception if there are no matches, use [find_first_or_throw](#find_first_or_throw) instead.
 

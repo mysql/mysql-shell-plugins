@@ -9,6 +9,7 @@
 ### Fixes
 
 - BUG#37081659 SDK save() gives Bad Request - camel2snake and reverse
+- BUG#37263610 find_first() is not the /first/...
 -
 
 ## Changes in 1.18.0+9.1.0

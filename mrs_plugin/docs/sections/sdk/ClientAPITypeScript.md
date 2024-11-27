@@ -124,7 +124,7 @@ myService.mrsNotes.note.createMany({ data: [note1, note2] });
 
 ## findFirst
 
-`findFirst` is used to query the first record that matches a given optional filter.
+`findFirst` is used to query the first record (**in no specific order**) that matches a given optional filter.
 
 ### Options (findFirst)
 
