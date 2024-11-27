@@ -280,7 +280,7 @@ def add_content_set(session, service_id, request_path, requires_auth=False, comm
     # update the content_dir to point to the temporary directory holding it
     open_api_ui = False
     if content_dir is not None:
-        if content_dir.lower() == "open-api-ui":
+        if content_dir.lower() == "$open-api-ui$":
             open_api_ui = True
             content_dir = prepare_open_api_ui(
                 service=service, request_path=request_path, send_gui_message=send_gui_message)
@@ -1694,6 +1694,22 @@ def prepare_open_api_ui(service, request_path, send_gui_message=None) -> str:
             file2.write("\n.swagger-ui .topbar .wrapper {\npadding: 0;\n}\n")
     # Delete dark css file
     pathlib.Path.unlink(swagger_ui_dark_css_path)
+
+    # Replace the favicon
+    favicon_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "..", "docs", "images")
+    shutil.copyfile(
+        os.path.join(favicon_path, "favicon-16x16.png"),
+        os.path.join(swagger_ui_path, "favicon-16x16.png"))
+    shutil.copyfile(
+        os.path.join(favicon_path, "favicon-32x32.png"),
+        os.path.join(swagger_ui_path, "favicon-32x32.png"))
+
+    # Change Title
+    update_file_content_via_regex(
+        os.path.join(swagger_ui_path, "index.html"),
+        r'Swagger UI',
+        f'{service["name"]} - OpenAPI UI')
 
     # Patch UI to redirect to MRS authentication
     redirect_url = f'/?service={service["url_context_root"]

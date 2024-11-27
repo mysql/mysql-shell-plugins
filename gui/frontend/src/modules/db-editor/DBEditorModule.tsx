@@ -1171,7 +1171,7 @@ EXAMPLES
                 const state = this.connectionState.get(selectedPage);
                 if (state) {
                     return this.mrsHubRef.current.showMrsContentSetDialog(state.backend, request.directory,
-                        request.contentSet);
+                        request.contentSet, request.requestPath);
                 }
             }
         }

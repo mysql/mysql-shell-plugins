@@ -144,7 +144,7 @@ describe("MRS AuthApp dialog tests", () => {
         await dialogHelper.clickOk();
         dialogHelper.verifyErrors(["The vendor name must not be empty."]);
 
-        await dialogHelper.setComboBoxItem("authVendorName", 3);
+        await dialogHelper.setComboBoxItem("authVendorName", 0);
         await dialogHelper.clickOk();
         dialogHelper.verifyErrors();
 

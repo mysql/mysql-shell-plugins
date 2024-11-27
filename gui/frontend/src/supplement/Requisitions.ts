@@ -353,6 +353,7 @@ export interface IMrsSchemaEditRequest extends IDictionary {
 export interface IMrsContentSetEditRequest extends IDictionary {
     directory?: string;
     contentSet?: IMrsContentSetData;
+    requestPath?: string;
 }
 
 export interface IMrsAuthAppEditRequest extends IDictionary {
