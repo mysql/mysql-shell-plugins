@@ -864,13 +864,6 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     orientation={Orientation.LeftToRight}
                     crossAlignment={ContentAlignment.Center}
                 >
-                    <Icon className={
-                        (cellData.field.id === mrsObject?.rowOwnershipFieldId ||
-                            cellData.field.id === mrsObjectReference?.rowOwnershipFieldId)
-                            ? "selected" : "notSelected"}
-                        src={rowOwnershipIcon} width={16} height={16}
-                        onClick={() => { this.handleIconClick(cell, ActionIconName.Ownership); }}
-                        data-tooltip="Set as row ownership field" />
                     {showFieldActionIcons &&
                         <>
                             {(cellData.parent === undefined || cellData.field.objectReference === undefined) &&
