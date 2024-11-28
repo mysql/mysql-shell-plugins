@@ -259,14 +259,8 @@ exports[`MRS Db Object dialog tests Show MRS DB Object Dialog (snapshot) and esc
               >
                 <div
                   class="msg container fixedScrollbar gridCell"
-                  style="flex-direction: column; justify-content: center; align-items: stretch; grid-column: span 8;"
+                  style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 8;"
                 >
-                  <label
-                    class="msg label valueTitle"
-                    data-tooltip="expand"
-                  >
-                     
-                  </label>
                   <div
                     class="msg container fixedScrollbar mrsObjectFieldEditor"
                     style="flex-direction: column;"

@@ -198,14 +198,9 @@ exports[`MRS User dialog tests Show MRS User Dialog (snapshot) and escape 1`] = 
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: center; align-items: stretch; grid-column: span 2;"
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 2;"
         >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-             
-          </label>
+          
           <label
             class="msg label description"
             data-tooltip="expand"

@@ -960,10 +960,9 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         const contentCount = Children.count(edits);
 
         let mainAlignment = ContentAlignment.Start;
-        let labelCaption = caption;
-        if (!labelCaption?.trim()) {
-            mainAlignment = ContentAlignment.Center;
-            labelCaption = "\u00A0"; // &nbsp; to vertically align the description with the type drop down.
+        const labelCaption = caption?.trim();
+        if (!labelCaption) {
+            mainAlignment = ContentAlignment.End; // Aligns to the bottom if there is no label.
         }
 
         result.push(
