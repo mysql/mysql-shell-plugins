@@ -599,14 +599,8 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
       >
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: center; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 4;"
         >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-             
-          </label>
           <div
             class="msg container fixedScrollbar inputWithProgress"
             style="flex-direction: row;"
@@ -1189,14 +1183,8 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: center; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 4;"
         >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-             
-          </label>
           <div
             class="msg treeGrid checkList"
             id="listMe"
@@ -1204,14 +1192,8 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: center; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 4;"
         >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-             
-          </label>
           <div
             class="msg container fixedScrollbar matrixContainer"
             style="flex-direction: row;"
@@ -1256,14 +1238,8 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: center; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 4;"
         >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-             
-          </label>
           <div
             class="msg grid upDown valueEditor"
             id="upDown"
@@ -1694,14 +1670,8 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: center; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 4;"
         >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-             
-          </label>
           <div
             class="msg treeGrid checkList"
             id="listMe"
@@ -1709,14 +1679,8 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: center; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 4;"
         >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-             
-          </label>
           <div
             class="msg container fixedScrollbar matrixContainer"
             style="flex-direction: row;"
@@ -1761,14 +1725,8 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: center; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 4;"
         >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-             
-          </label>
           <div
             class="msg grid upDown valueEditor"
             id="upDown"
