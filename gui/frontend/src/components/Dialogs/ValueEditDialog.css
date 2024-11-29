@@ -133,7 +133,7 @@
     /* Make sure images are not stretched/scaled. */
 }
 
-.msg.dialog.valueEditDialog .tabview > .content {
+.msg.dialog.valueEditDialog .tabview > .tabContent {
     padding: 16px;
 }
 

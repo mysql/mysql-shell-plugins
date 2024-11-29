@@ -923,7 +923,8 @@ def field_can_be_cursor(field):
     id_generation = db_column_info.get("id_generation")
     datatype = db_column_info.get("datatype")
 
-    if id_generation is not None and id_generation.startswith("auto_inc") or datatype.startswith("timestamp"):
+    if ((id_generation is not None and id_generation.startswith("auto_inc")) or
+        (datatype is not None and datatype.startswith("timestamp"))):
         return True
 
     return False
