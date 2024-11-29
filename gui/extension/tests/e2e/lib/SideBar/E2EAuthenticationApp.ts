@@ -23,6 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { error } from "vscode-extension-tester";
 import * as constants from "../constants";
 import * as interfaces from "../interfaces";
 import { Workbench } from "../Workbench";
@@ -96,7 +97,18 @@ export class E2EAuthenticationApp {
         const parentService = await dbTreeSection.tree.getElement(this.parentService.treeName);
         await dbTreeSection.tree.openContextMenuAndSelect(parentService, constants.addNewAuthApp);
         await Workbench.toggleSideBar(false);
-        const newApp = await AuthenticationAppDialog.set(this);
+        const newApp = await AuthenticationAppDialog.set(this)
+            .catch(async (e) => {
+                if (e instanceof error.TimeoutError) {
+                    await Workbench.toggleSideBar(true);
+                    await dbTreeSection.tree.openContextMenuAndSelect(parentService, constants.addNewAuthApp);
+                    await Workbench.toggleSideBar(false);
+
+                    return AuthenticationAppDialog.set(this);
+                } else {
+                    throw e;
+                }
+            });
         await Workbench.toggleSideBar(true);
 
         if (!newApp.treeName || newApp.treeName.includes("undefined")) {
@@ -117,7 +129,18 @@ export class E2EAuthenticationApp {
         const treeAuthApp = await dbTreeSection.tree.getElement(this.treeName);
         await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp, constants.editAuthenticationApp);
         await Workbench.toggleSideBar(false);
-        const editedAuthApp = await AuthenticationAppDialog.set(newData);
+        const editedAuthApp = await AuthenticationAppDialog.set(newData)
+            .catch(async (e) => {
+                if (e instanceof error.TimeoutError) {
+                    await Workbench.toggleSideBar(true);
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp, constants.editAuthenticationApp);
+                    await Workbench.toggleSideBar(false);
+
+                    return AuthenticationAppDialog.set(newData);
+                } else {
+                    throw e;
+                }
+            });
         await Workbench.toggleSideBar(true);
         const previousApp = this.name;
         this.set(editedAuthApp);
@@ -136,7 +159,16 @@ export class E2EAuthenticationApp {
         await dbTreeSection.tree.expandElement([this.parentService.treeName]);
         const treeAuthApp = await dbTreeSection.tree.getElement(this.treeName);
         await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp, constants.addRESTUser);
-        const user = await RestUserDialog.set(userData);
+        const user = await RestUserDialog.set(userData)
+            .catch(async (e) => {
+                if (e instanceof error.TimeoutError) {
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp, constants.addRESTUser);
+
+                    return RestUserDialog.set(userData);
+                } else {
+                    throw e;
+                }
+            });
         this.users.push(new E2ERestUser(this, user));
     };
 
@@ -150,7 +182,18 @@ export class E2EAuthenticationApp {
         const element = await dbTreeSection.tree.getElement(this.treeName);
         await dbTreeSection.tree.openContextMenuAndSelect(element, constants.editAuthenticationApp);
         await Workbench.toggleSideBar(false);
-        const authApp = await AuthenticationAppDialog.get();
+        const authApp = await AuthenticationAppDialog.get()
+            .catch(async (e) => {
+                if (e instanceof error.TimeoutError) {
+                    await Workbench.toggleSideBar(true);
+                    await dbTreeSection.tree.openContextMenuAndSelect(element, constants.editAuthenticationApp);
+                    await Workbench.toggleSideBar(false);
+
+                    return AuthenticationAppDialog.get();
+                } else {
+                    throw e;
+                }
+            });
         await Workbench.toggleSideBar(true);
 
         return authApp;

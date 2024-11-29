@@ -101,48 +101,29 @@ export class E2ECodeEditor {
 
     /**
      * Verifies if a word in the last query in the editor is identified as keyword
+     * @param line The line of the command
      * @returns A condition resolving to true when a keyword is found, false otherwise
      */
-    public untilKeywordExists = (): Condition<boolean> => {
+    public untilKeywordExists = (line: string): Condition<boolean | undefined> => {
         return new Condition("for keyword to be displayed on last editor line", async () => {
-            //const keywords = ["mtk17", "mtk36", "mtk10", "mtk11", "mtk56"];
-            let exists = false;
+            try {
+                const notebookLines = await driver.findElements(locator.notebook.codeEditor.editor.editorPrompt);
+                const lastLine = notebookLines[notebookLines.length - 1];
+                const words = await lastLine.findElement(locator.htmlTag.span).findElements(locator.htmlTag.span);
 
-            await driver.wait(async () => {
-                try {
-                    const notebookLines = await driver.findElements(locator.notebook.codeEditor.editor.editorPrompt);
-                    const lastLine = notebookLines[notebookLines.length - 1];
-                    const words = await lastLine.findElement(locator.htmlTag.span).findElements(locator.htmlTag.span);
+                const firstSpanText = (await words[0].getText()).replace(/&nbsp;/g, " ");
+                const firstSpanClass = await words[0].getAttribute("class");
 
-                    for (const word of words) {
-                        const wordText = await word.getText();
-                        const wordClass = await word.getAttribute("class");
-
-                        if (wordText !== "" && wordClass !== "") {
-                            console.log(`word: ${wordText} (class: ${wordClass})`);
-                            if (wordClass !== "mtk9") {
-                                console.log("is keyword!!! ---------");
-                                exists = true;
-                            }
-                            /*for (const keywordRef of keywords) {
-                                if (wordClass.includes(keywordRef)) {
-                                    exists = true;
-                                }
-                            }*/
-                        } else {
-                            exists = true; // empty line
-                        }
-                    }
-
+                if (firstSpanClass.includes("mtk56") && firstSpanText === line) {
+                    return false;
+                } else {
                     return true;
-                } catch (e) {
-                    if (!(e instanceof error.StaleElementReferenceError)) {
-                        throw e;
-                    }
                 }
-            }, constants.wait5seconds, `Could not check if keyword exists on the last line of the editor`);
-
-            return exists;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
         });
     };
 
@@ -150,16 +131,20 @@ export class E2ECodeEditor {
      * Writes a command on the editor
      *
      * @param cmd The command
-     * @param slowWriting True if the command should be written with a delay between each character
+     * @param ignoreKeywords True to ignore and wait for keywords to be highlighted
      * @returns A promise resolving when the command is written
      */
-    public write = async (cmd: string, slowWriting?: boolean): Promise<void> => {
+    public write = async (cmd: string, ignoreKeywords = false): Promise<void> => {
+
+        const lines = cmd.split("\n").map((el) => {
+            return el.trim();
+        }).filter((item) => {
+            return item;
+        });
+
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
-
-        let startIndex: number;
-        const lines = cmd.split("\n");
 
         await driver.wait(async () => {
             try {
@@ -172,52 +157,34 @@ export class E2ECodeEditor {
                         constants.wait2seconds, "Current line was not found"),
                 );
 
-                if (!startIndex) {
-                    startIndex = 0;
-                }
+                const maxRetries = 2;
+                let retryNumber = 0;
 
-                if (slowWriting) {
-                    for (let i = startIndex; i <= lines.length - 1; i++) {
-                        lines[i] = lines[i].trim();
-                        const letters = lines[i].split("");
-                        for (const letter of letters) {
-                            await textArea.sendKeys(letter);
-                            await driver.sleep(10);
-                        }
+                for (let i = 0; i <= lines.length - 1; i++) {
+                    await textArea.sendKeys(lines[i]);
 
+                    if (!ignoreKeywords) {
                         try {
-                            await driver.wait(this.untilKeywordExists(), constants.wait3seconds);
+                            await driver.wait(this.untilKeywordExists(lines[i]), constants.wait3seconds);
                         } catch (e) {
-                            console.log(e);
-                            console.log("--keyword check fail!--");
-                            startIndex = i;
-                            await Os.keyboardDeleteCurrentLine();
-
-                            return false;
-                        }
-
-                        if (i !== lines.length - 1 && lines.length > 1) {
-                            await this.setNewLine();
+                            if (retryNumber <= maxRetries) {
+                                await Os.keyboardDeleteLine(lines[i]);
+                                i--; // repeat the line writing
+                                retryNumber++;
+                                continue;
+                            } else {
+                                throw new Error(`Could not write line '${lines[i]}' (repeated 3 times)`);
+                            }
                         }
                     }
-                } else {
-                    for (let i = 0; i <= lines.length - 1; i++) {
-                        await textArea.sendKeys(lines[i].trim());
-                        try {
-                            await driver.wait(this.untilKeywordExists(), constants.wait3seconds);
-                        } catch (e) {
-                            console.log(e);
-                            console.log("--keyword check fail!--");
-                            startIndex = i;
-                            await Os.keyboardDeleteCurrentLine();
 
-                            return false;
-                        }
+                    await this.closeSuggestionWidget();
 
-                        if (i !== lines.length - 1 && lines.length > 1) {
-                            await this.setNewLine();
-                        }
+                    if (i !== lines.length - 1 && lines.length > 1) {
+                        await this.setNewLine();
                     }
+
+                    retryNumber = 0;
                 }
 
                 return true;
@@ -225,20 +192,10 @@ export class E2ECodeEditor {
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 } else {
-                    console.log(e);
-                    await Os.keyboardDeleteCurrentLine();
+                    await this.clean();
                 }
             }
-        }, constants.wait10seconds, `Could not write text on the code editor (StaleElementReferenceError)`);
-
-        await driver.wait(until.elementLocated(locator.suggestWidget.exists), constants.wait150MilliSeconds)
-            .then(async () => {
-                const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-                await textArea.sendKeys(Key.ESCAPE);
-            })
-            .catch(() => {
-                // continue
-            });
+        }, constants.wait15seconds, `Could not write text on the code editor (StaleElementReferenceError)`);
     };
 
     /**
@@ -278,17 +235,20 @@ export class E2ECodeEditor {
      * Executes a command on the editor
      *
      * @param cmd The command
-     * @param slowWriting True if the command should be written with a delay between each character
      * @param searchOnExistingId Verify the result on this result id
+     * @param ignoreKeywords True to ignore the keywords
      * @returns A promise resolving when the command is executed
      */
-    public execute = async (cmd: string, slowWriting = false,
-        searchOnExistingId?: string): Promise<interfaces.ICommandResult> => {
+    public execute = async (
+        cmd: string,
+        searchOnExistingId?: string,
+        ignoreKeywords = false): Promise<interfaces.ICommandResult> => {
+
         if (this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'languageSwitch()'");
         }
 
-        await this.write(cmd, slowWriting);
+        await this.write(cmd, ignoreKeywords);
         await this.exec();
 
         let commandResult: CommandResult;
@@ -312,11 +272,10 @@ export class E2ECodeEditor {
      *
      * @param cmd The command
      * @param button The button to click, to trigger the execution
-     * @param slowWriting True if the command should be written with a delay between each character
      * @param searchOnExistingId Verify the result on this result id
      * @returns A promise resolving when the command is executed
      */
-    public executeWithButton = async (cmd: string, button: string, slowWriting = false, searchOnExistingId?: string):
+    public executeWithButton = async (cmd: string, button: string, searchOnExistingId?: string):
         Promise<interfaces.ICommandResult> => {
 
         if (this.isSpecialCmd(cmd)) {
@@ -327,7 +286,7 @@ export class E2ECodeEditor {
             throw new Error("Please use the function 'this.findCmdAndExecute()'");
         }
 
-        await this.write(cmd, slowWriting);
+        await this.write(cmd);
         await (await this.parent.toolbar.getButton(button)).click();
         const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
         const commandResult = new CommandResult(this, cmd, id);
@@ -342,18 +301,19 @@ export class E2ECodeEditor {
      *
      * @param cmd The command
      * @param item The context menu item to click, to trigger the execution
-     * @param slowWriting True if the command should be written with a delay between each character
      * @param searchOnExistingId Verify the result on this result id
      * @returns A promise resolving when the command is executed
      */
-    public executeWithContextMenu = async (cmd: string, item: string, slowWriting = false, searchOnExistingId?:
-        string): Promise<interfaces.ICommandResult> => {
+    public executeWithContextMenu = async (
+        cmd: string,
+        item: string,
+        searchOnExistingId?: string): Promise<interfaces.ICommandResult> => {
 
         if (this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.languageSwitch()'");
         }
 
-        await this.write(cmd, slowWriting);
+        await this.write(cmd);
         await this.clickContextItem(item);
         const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
         const commandResult = new CommandResult(this, cmd, id);
@@ -368,18 +328,20 @@ export class E2ECodeEditor {
      *
      * @param cmd The command
      * @param dbConnection The DB Connection to use
-     * @param slowWriting True if the command should be written with a delay between each character
      * @param searchOnExistingId Verify the result on this result id
      * @returns A promise resolving when the command is executed
      */
-    public executeExpectingCredentials = async (cmd: string, dbConnection: interfaces.IDBConnection,
-        slowWriting = false, searchOnExistingId?: string): Promise<interfaces.ICommandResult> => {
+    public executeExpectingCredentials = async (
+        cmd: string,
+        dbConnection: interfaces.IDBConnection,
+        searchOnExistingId?: string,
+    ): Promise<interfaces.ICommandResult> => {
 
         if (this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.languageSwitch()'");
         }
 
-        await this.write(cmd, slowWriting);
+        await this.write(cmd);
         await this.exec();
         await PasswordDialog.setCredentials(dbConnection);
         const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
@@ -447,17 +409,16 @@ export class E2ECodeEditor {
      * Executes a language switch on the editor (sql, python, typescript or javascript)
      *
      * @param cmd The command to change the language
-     * @param slowWriting True if the command should be written with a delay between each character
      * @param searchOnExistingId Verify the result on this result id
      * @returns A promise resolving when the command is executed
      */
-    public languageSwitch = async (cmd: string, slowWriting = false, searchOnExistingId?:
+    public languageSwitch = async (cmd: string, searchOnExistingId?:
         string | undefined): Promise<interfaces.ICommandResult> => {
         if (!this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.execute() or others'");
         }
 
-        await this.write(cmd, slowWriting);
+        await this.write(cmd);
         await this.exec();
 
         if (this.parent instanceof E2EShellConsole) {
@@ -777,5 +738,32 @@ export class E2ECodeEditor {
         }
 
         return resultId;
+    };
+
+    /**
+     * Closes the suggestion widget if exists
+     */
+    private closeSuggestionWidget = async (): Promise<void> => {
+        const suggestionsWidget = await driver.wait(until.elementLocated(locator.suggestWidget.exists),
+            constants.wait150MilliSeconds).catch(() => {
+                // continue
+            });
+
+        if (suggestionsWidget) {
+            await driver.wait(async () => {
+                try {
+                    await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.ESCAPE);
+                    const className = await suggestionsWidget.getAttribute("class");
+
+                    return !className.includes("visible");
+                } catch (e) {
+                    if (e instanceof error.StaleElementReferenceError) {
+                        return true;
+                    } else {
+                        throw e;
+                    }
+                }
+            }, constants.wait3seconds, "Suggestion widget was not closed");
+        }
     };
 }

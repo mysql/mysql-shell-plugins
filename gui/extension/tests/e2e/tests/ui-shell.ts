@@ -161,13 +161,13 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         it("Connect using shell global variable", async () => {
 
-            let result = await shellConsole.codeEditor.execute("shell.status()", true);
+            let result = await shellConsole.codeEditor.execute("shell.status()");
             expect(result.text,
                 errors.queryResultError("MySQL Shell version (\\d+).(\\d+).(\\d+)",
                     result.text)).to.match(/MySQL Shell version (\d+).(\d+).(\d+)/);
 
             let uri = `shell.connect('${username}:${password}@${hostname}:${port}0/${schema}')`;
-            result = await shellConsole.codeEditor.execute(uri, true);
+            result = await shellConsole.codeEditor.execute(uri);
             uri = `Creating a session to '${username}@${hostname}:${port}0/${schema}'`;
             expect(result.text, errors.queryResultError(uri,
                 result.text)).to.match(new RegExp(uri));
@@ -190,11 +190,11 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Connect using mysql mysqlx global variable", async () => {
 
             let cmd = `mysql.getClassicSession('${username}:${password}@${hostname}:${port}/${schema}')`;
-            let result = await shellConsole.codeEditor.execute(cmd, true);
+            let result = await shellConsole.codeEditor.execute(cmd);
             expect(result.text, errors.queryResultError("ClassicSession",
                 result.text)).to.match(/ClassicSession/);
             cmd = `mysqlx.getSession('${username}:${password}@${hostname}:${port}0/${schema}')`;
-            result = await shellConsole.codeEditor.execute(cmd, true);
+            result = await shellConsole.codeEditor.execute(cmd);
             expect(result.text, errors.queryResultError("Session",
                 result.text)).to.match(/Session/);
 
@@ -284,10 +284,10 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             await driver.wait(until.elementLocated(locator.shellConsole.editor),
                 constants.wait10seconds, "Console was not loaded");
-            let result = await shellConsole.codeEditor.languageSwitch("\\py ", true);
+            let result = await shellConsole.codeEditor.languageSwitch("\\py");
             expect(result.text, errors.queryResultError("Python",
                 result.text)).to.match(/Python/);
-            result = await shellConsole.codeEditor.languageSwitch("\\js ", true);
+            result = await shellConsole.codeEditor.languageSwitch("\\js");
             expect(result.text, errors.queryResultError("JavaScript",
                 result.text)).to.match(/JavaScript/);
 
@@ -330,7 +330,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Check query result content", async () => {
 
             await shellConsole.codeEditor.languageSwitch("\\sql ");
-            let result = await shellConsole.codeEditor.execute("SHOW DATABASES;", true);
+            let result = await shellConsole.codeEditor.execute("SHOW DATABASES;");
             expect(await result.grid.content.getAttribute("innerHTML"), errors.queryDataSetError("sakila"))
                 .to.match(/sakila/);
 

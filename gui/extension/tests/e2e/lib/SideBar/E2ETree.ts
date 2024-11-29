@@ -401,7 +401,7 @@ export class E2ETree {
             const activeTab = await editorView.getActiveTab();
 
             return await activeTab?.getTitle() === constants.dbDefaultEditor;
-        }, 3000, `${constants.dbDefaultEditor} tab is not selected`);
+        }, constants.wait3seconds, `${constants.dbDefaultEditor} tab is not selected`);
 
         await Misc.switchToFrame();
         const dialog = await driver.wait(until.elementLocated(locator.confirmDialog.exists),
@@ -425,7 +425,9 @@ export class E2ETree {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
+
         const treeSection = await this.accordionSection.getWebElement();
+
         if (!(await treeSection.isExpanded())) {
             await treeSection.expand();
         }

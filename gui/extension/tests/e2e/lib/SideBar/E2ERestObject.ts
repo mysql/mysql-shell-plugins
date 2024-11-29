@@ -23,6 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { error } from "vscode-extension-tester";
 import * as constants from "../constants";
 import * as interfaces from "../interfaces";
 import { E2EAccordionSection } from "./E2EAccordionSection";
@@ -86,7 +87,16 @@ export class E2ERestObject {
 
         const treeTable = await dbTreeSection.tree.getElement(this.dataMapping.dbObject);
         await dbTreeSection.tree.openContextMenuAndSelect(treeTable, constants.addDBObjToREST);
-        const restObject = await RestObjectDialog.set(this);
+        const restObject = await RestObjectDialog.set(this)
+            .catch(async (e) => {
+                if (e instanceof error.TimeoutError) {
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeTable, constants.addDBObjToREST);
+
+                    return RestObjectDialog.set(this);
+                } else {
+                    throw e;
+                }
+            });
 
         if (!restObject.treeName || restObject.treeName.includes("undefined")) {
             restObject.treeName = `/${restObject.dataMapping?.dbObject} (${restObject.dataMapping?.dbObject})`;
@@ -110,7 +120,16 @@ export class E2ERestObject {
         await dbTreeSection.tree.expandElement(tree);
         const treeTable = await dbTreeSection.tree.getElement(this.treeName);
         await dbTreeSection.tree.openContextMenuAndSelect(treeTable, constants.editRESTObj);
-        const editedObject = await RestObjectDialog.set(newData);
+        const editedObject = await RestObjectDialog.set(newData)
+            .catch(async (e) => {
+                if (e instanceof error.TimeoutError) {
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeTable, constants.editRESTObj);
+
+                    return RestObjectDialog.set(newData);
+                } else {
+                    throw e;
+                }
+            });
         const previousObject = this.dataMapping.dbObject;
         this.set(editedObject);
         const index = this.parentSchema.restObjects.findIndex((item: interfaces.IRestObject) => {
@@ -134,7 +153,19 @@ export class E2ERestObject {
         await dbTreeSection.tree.openContextMenuAndSelect(await dbTreeSection
             .tree.getElement(this.treeName), constants.editRESTObj);
 
-        return RestObjectDialog.get();
+        const object = RestObjectDialog.get()
+            .catch(async (e) => {
+                if (e instanceof error.TimeoutError) {
+                    await dbTreeSection.tree.openContextMenuAndSelect(await dbTreeSection
+                        .tree.getElement(this.treeName), constants.editRESTObj);
+
+                    return RestObjectDialog.get();
+                } else {
+                    throw e;
+                }
+            });
+
+        return object;
     };
 
     /**

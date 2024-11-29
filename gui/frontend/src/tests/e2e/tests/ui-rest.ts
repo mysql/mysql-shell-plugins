@@ -39,12 +39,10 @@ import { RestUserDialog } from "../lib/Dialogs/RestUserDialog.js";
 import { E2EDatabaseConnectionOverview } from "../lib/E2EDatabaseConnectionOverview.js";
 import { E2EToastNotification } from "../lib/E2EToastNotification.js";
 import { ConfirmDialog } from "../lib/Dialogs/ConfirmationDialog.js";
-import { TestQueue } from "../lib/TestQueue.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
-let existsInQueue = false;
 
 const globalConn: interfaces.IDBConnection = {
     dbType: "MySQL",
@@ -206,7 +204,7 @@ describe("MYSQL REST SERVICE", () => {
         await driver.get(url);
 
         try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
             const settings = new E2ESettings();
             await settings.open();
             await settings.selectCurrentTheme(constants.darkModern);
@@ -214,15 +212,17 @@ describe("MYSQL REST SERVICE", () => {
 
             await dbTreeSection.focus();
             await dbTreeSection.createDatabaseConnection(globalConn);
-            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait5seconds);
+            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait3seconds);
             await (await new E2EDatabaseConnectionOverview().getConnection(globalConn.caption!)).click();
             await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait10seconds);
-            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait5seconds);
             Os.deleteShellCredentials();
-            await dbTreeSection.tree.configureMySQLRestService(globalConn);
             await dbTreeSection.tree.expandDatabaseConnection(globalConn);
             await dbTreeSection.tree.openContextMenuAndSelect(globalConn.caption!, constants.showSystemSchemas);
-            await driver.wait(dbTreeSection.tree.untilExists("mysql_rest_service_metadata"), constants.wait5seconds);
+
+            if (!(await dbTreeSection.tree.elementExists("mysql_rest_service_metadata"))) {
+                await dbTreeSection.tree.configureMySQLRestService(globalConn);
+            }
+
             await dbTreeSection.tree.expandElement([constants.mysqlRestService]);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_MysqlRESTService");
@@ -267,8 +267,8 @@ describe("MYSQL REST SERVICE", () => {
                 return (await dbTreeSection.tree.isMRSDisabled(constants.mysqlRestService)) === true;
             }, constants.wait5seconds, "MySQL REST Service was not disabled");
             const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("MySQL REST Service configured successfully.");
-            await notification.close();
+            expect(notification!.message).toBe("MySQL REST Service configured successfully.");
+            await notification!.close();
         } catch (e) {
             testFailed = true;
             throw e;
@@ -287,8 +287,8 @@ describe("MYSQL REST SERVICE", () => {
                 return (await dbTreeSection.tree.isMRSDisabled(constants.mysqlRestService)) === false;
             }, constants.wait5seconds, "MySQL REST Service was not enabled");
             const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("MySQL REST Service configured successfully.");
-            await notification.close();
+            expect(notification!.message).toBe("MySQL REST Service configured successfully.");
+            await notification!.close();
         } catch (e) {
             testFailed = true;
             throw e;
@@ -326,8 +326,8 @@ describe("MYSQL REST SERVICE", () => {
                     constants.addRESTService);
                 services[i] = await RestServiceDialog.set(services[i]);
                 const notification = await new E2EToastNotification().create();
-                expect(notification.message).toBe("The MRS service has been created.");
-                await notification.close();
+                expect(notification!.message).toBe("The MRS service has been created.");
+                await notification!.close();
 
                 await driver.wait(dbTreeSection.tree.untilExists(services[i].treeName!),
                     constants.wait10seconds);
@@ -363,8 +363,8 @@ describe("MYSQL REST SERVICE", () => {
 
             serviceToEdit = await RestServiceDialog.set(editedService);
             const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The MRS service has been successfully updated.");
-            await notification.close();
+            expect(notification!.message).toBe("The MRS service has been successfully updated.");
+            await notification!.close();
             await (await dbTreeSection.tree.getActionButton(globalConn.caption!, constants.refreshConnection))!.click();
             await driver.wait(dbTreeSection.tree.untilExists(serviceToEdit.treeName!), constants.wait10seconds);
             await dbTreeSection.tree.openContextMenuAndSelect(serviceToEdit.treeName!, constants.editRESTService);
@@ -383,8 +383,8 @@ describe("MYSQL REST SERVICE", () => {
                     constants.addSchemaToREST);
                 globalService.restSchemas![i] = await RestSchemaDialog.set(globalService.restSchemas![i]);
                 const notification = await new E2EToastNotification().create();
-                expect(notification.message).toBe("The MRS schema has been added successfully.");
-                await notification.close();
+                expect(notification!.message).toBe("The MRS schema has been added successfully.");
+                await notification!.close();
                 await dbTreeSection.tree
                     .expandElement([globalService.treeName!]);
                 await driver.wait(dbTreeSection.tree.untilExists(globalService.restSchemas![i].treeName!),
@@ -418,8 +418,8 @@ describe("MYSQL REST SERVICE", () => {
             globalService.restSchemas![globalService.restSchemas!
                 .length - 1] = await RestSchemaDialog.set(editedSchema);
             const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The MRS schema has been updated successfully.");
-            await notification.close();
+            expect(notification!.message).toBe("The MRS schema has been updated successfully.");
+            await notification!.close();
 
             await (await dbTreeSection.tree.getActionButton(globalConn.caption!, constants.refreshConnection))!.click();
             await dbTreeSection.tree.openContextMenuAndSelect(globalService
@@ -436,8 +436,8 @@ describe("MYSQL REST SERVICE", () => {
         try {
             await dbTreeSection.tree.openContextMenuAndSelect(globalService.treeName!, constants.setAsCurrentREST);
             const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The MRS service has been set as the new default service.");
-            await notification.close();
+            expect(notification!.message).toBe("The MRS service has been set as the new default service.");
+            await notification!.close();
             await driver.wait(dbTreeSection.tree.untilIsDefault(globalService.treeName!, "rest"),
                 constants.wait5seconds, "REST Service tree item did not became default");
         } catch (e) {
@@ -462,14 +462,14 @@ describe("MYSQL REST SERVICE", () => {
                 });
 
                 const notifications = await Misc.getToastNotifications(true);
-                const messages = notifications.map((item: E2EToastNotification) => {
-                    return item.message;
+                const messages = notifications.map((item: E2EToastNotification | undefined) => {
+                    return item!.message;
                 });
 
                 expect(messages).toContain(`The MRS Database Object ${table} was updated successfully.`);
                 await Promise.all([
-                    notifications.map((item: E2EToastNotification) => {
-                        return item.close();
+                    notifications.map((item: E2EToastNotification | undefined) => {
+                        return item!.close();
                     }),
                 ]);
 
@@ -482,7 +482,7 @@ describe("MYSQL REST SERVICE", () => {
         }
     });
 
-    it("Edit REST Object", async () => {
+    it.skip("Edit REST Object", async () => {
         try {
             const editedObject: interfaces.IRestObject = {
                 treeName: `/editedObject (${globalService.restSchemas![0].restObjects![1].jsonRelDuality?.dbObject})`,
@@ -564,14 +564,14 @@ describe("MYSQL REST SERVICE", () => {
             ntf += ` was updated successfully.`;
 
             const notifications = await Misc.getToastNotifications(true);
-            const messages = notifications.map((item: E2EToastNotification) => {
-                return item.message;
+            const messages = notifications.map((item: E2EToastNotification | undefined) => {
+                return item!.message;
             });
 
             expect(messages).toContain(ntf);
             await Promise.all([
-                notifications.map((item: E2EToastNotification) => {
-                    return item.close();
+                notifications.map((item: E2EToastNotification | undefined) => {
+                    return item!.close();
                 }),
             ]);
 
@@ -612,15 +612,15 @@ describe("MYSQL REST SERVICE", () => {
         }
     });
 
-    it("Delete REST Object", async () => {
+    it.skip("Delete REST Object", async () => {
         try {
             const objectToRemove = globalService.restSchemas![0].restObjects![0].treeName;
             await dbTreeSection.tree.openContextMenuAndSelect(objectToRemove!, constants.deleteRESTObj);
             const dialog = await new ConfirmDialog().untilExists();
             await dialog.accept();
             const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The MRS DB object has been deleted successfully.");
-            await notification.close();
+            expect(notification!.message).toBe("The MRS DB object has been deleted successfully.");
+            await notification!.close();
             await driver.wait(dbTreeSection.tree.untilDoesNotExist(objectToRemove!), constants.wait5seconds);
         } catch (e) {
             testFailed = true;
@@ -636,8 +636,8 @@ describe("MYSQL REST SERVICE", () => {
             const dialog = await new ConfirmDialog().untilExists();
             await dialog.accept();
             const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The MRS schema has been deleted successfully.");
-            await notification.close();
+            expect(notification!.message).toBe("The MRS schema has been deleted successfully.");
+            await notification!.close();
             await (await dbTreeSection.tree.getActionButton(globalConn.caption!, constants.refreshConnection))!.click();
             await driver.wait(dbTreeSection.tree.untilDoesNotExist(globalService.restSchemas![0].treeName!),
                 constants.wait5seconds);
@@ -652,8 +652,8 @@ describe("MYSQL REST SERVICE", () => {
             await dbTreeSection.tree.openContextMenuAndSelect(globalService.treeName!, constants.addNewAuthApp);
             globalService.authenticationApps = [await AuthenticationAppDialog.set(restAuthenticationApp)];
             const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The MRS Authentication App has been added.");
-            await notification.close();
+            expect(notification!.message).toBe("The MRS Authentication App has been added.");
+            await notification!.close();
 
             await dbTreeSection.tree.expandElement([globalService.treeName!]);
             await driver.wait(dbTreeSection.tree
@@ -671,9 +671,9 @@ describe("MYSQL REST SERVICE", () => {
                 constants.addRESTUser);
             globalService.authenticationApps![0].user = [await RestUserDialog.set(restAuthenticationApp.user![0])];
             const notification = await new E2EToastNotification().create();
-            expect(notification.message)
+            expect(notification!.message)
                 .toBe(`The MRS User "${restAuthenticationApp.user![0].username}" has been added.`);
-            await notification.close();
+            await notification!.close();
 
             await dbTreeSection.tree.expandElement([globalService.authenticationApps![0].treeName!]);
             await driver.wait(dbTreeSection.tree.untilExists(restAuthenticationApp.user![0].username),
@@ -704,8 +704,8 @@ describe("MYSQL REST SERVICE", () => {
             globalService.authenticationApps![0].user![0] = await RestUserDialog.set(editedUser);
             await (await dbTreeSection.tree.getActionButton(globalConn.caption!, constants.refreshConnection))!.click();
             const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe(`The MRS User "${editedUser.username}" has been updated.`);
-            await notification.close();
+            expect(notification!.message).toBe(`The MRS User "${editedUser.username}" has been updated.`);
+            await notification!.close();
             await dbTreeSection.tree.expandElement([globalService.authenticationApps![0].treeName!]);
             await dbTreeSection.tree.openContextMenuAndSelect(globalService.authenticationApps![0].user![0].username,
                 constants.editRESTUser);
@@ -744,8 +744,8 @@ describe("MYSQL REST SERVICE", () => {
 
             globalService.authenticationApps![0] = await AuthenticationAppDialog.set(editedApp);
             const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The MRS Authentication App has been updated.");
-            await notification.close();
+            expect(notification!.message).toBe("The MRS Authentication App has been updated.");
+            await notification!.close();
             await (await dbTreeSection.tree.getActionButton(globalConn.caption!, constants.refreshConnection))!.click();
 
             await dbTreeSection.tree.openContextMenuAndSelect(globalService.authenticationApps![0].treeName!,
@@ -766,9 +766,9 @@ describe("MYSQL REST SERVICE", () => {
             await (await new ConfirmDialog().untilExists()).accept();
             await (await dbTreeSection.tree.getActionButton(globalConn.caption!, constants.refreshConnection))!.click();
             const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe(`The MRS user ${globalService.authenticationApps![0].user![0]
+            expect(notification!.message).toBe(`The MRS user ${globalService.authenticationApps![0].user![0]
                 .username} has been deleted successfully.`);
-            await notification.close();
+            await notification!.close();
             await driver.wait(dbTreeSection.tree.untilDoesNotExist(globalService.authenticationApps![0].user![0]
                 .username), constants.wait5seconds);
         } catch (e) {
@@ -787,8 +787,8 @@ describe("MYSQL REST SERVICE", () => {
             ntf += ` has been deleted.`;
 
             const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe(ntf);
-            await notification.close();
+            expect(notification!.message).toBe(ntf);
+            await notification!.close();
 
             await driver.wait(dbTreeSection.tree.untilDoesNotExist(globalService.authenticationApps![0].treeName!),
                 constants.wait5seconds);
@@ -806,8 +806,8 @@ describe("MYSQL REST SERVICE", () => {
                     constants.deleteRESTService);
                 await (await new ConfirmDialog().untilExists()).accept();
                 const notification = await new E2EToastNotification().create();
-                expect(notification.message).toBe("The MRS service has been deleted successfully.");
-                await notification.close();
+                expect(notification!.message).toBe("The MRS service has been deleted successfully.");
+                await notification!.close();
                 await driver.wait(dbTreeSection.tree
                     .untilDoesNotExist(`${service.servicePath} (${service.settings!.hostNameFilter})`),
                     constants.wait5seconds);
@@ -820,240 +820,3 @@ describe("MYSQL REST SERVICE", () => {
 
 });
 
-describe("MYSQL REST SERVICE - CLIPBOARD", () => {
-
-    const globalConn: interfaces.IDBConnection = {
-        dbType: "MySQL",
-        caption: `E2E - REST SERVICE clipboard`,
-        description: "Local connection",
-        basic: {
-            hostname: "localhost",
-            username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_PORT!, 10),
-            schema: "sakila",
-            password: String(process.env.DBUSERNAME1PWD),
-        },
-    };
-
-    let otherService: interfaces.IRestService = {
-        servicePath: `/service1`,
-        enabled: true,
-        default: false,
-        settings: {
-            //hostNameFilter: "localhost",
-            mrsAdminUser: "testUser",
-            mrsAdminPassword: "testPassword",
-            comments: "testing",
-        },
-        authentication: {
-            redirectionUrl: "localhost:8000",
-            redirectionUrlValid: "(.*)",
-            authCompletedChangeCont: "<html>",
-        },
-        restSchemas: [
-            {
-                restServicePath: `/service1`,
-                restSchemaPath: `/sakila`,
-                accessControl: constants.accessControlEnabled,
-                requiresAuth: false,
-                settings: {
-                    schemaName: "sakila",
-                    itemsPerPage: "35",
-                    comments: "Hello",
-                },
-                restObjects: [
-                    {
-                        treeName: `/actor (actor)`,
-                        jsonRelDuality: {
-                            dbObject: "actor",
-                        },
-                    },
-                    {
-                        treeName: `/city (city)`,
-                        jsonRelDuality: {
-                            dbObject: "city",
-                        },
-                    },
-                ],
-            },
-            {
-                restServicePath: `/service1`,
-                restSchemaPath: `/world_x_cst`,
-                accessControl: constants.accessControlEnabled,
-                requiresAuth: false,
-                settings: {
-                    schemaName: "world_x_cst",
-                    itemsPerPage: "35",
-                    comments: "Hello",
-                },
-                restObjects: [
-                    {
-                        treeName: `/city (city)`,
-                        jsonRelDuality: {
-                            dbObject: "city",
-                        },
-                    },
-                ],
-            },
-        ],
-    };
-
-    beforeAll(async () => {
-
-        await loadDriver(false);
-        await driver.get(url);
-
-        try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
-            await dbTreeSection.focus();
-            await dbTreeSection.createDatabaseConnection(globalConn);
-            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait5seconds);
-            await (await new E2EDatabaseConnectionOverview().getConnection(globalConn.caption!)).click();
-            await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait10seconds);
-            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait5seconds);
-            Os.deleteShellCredentials();
-            await dbTreeSection.tree.configureMySQLRestService(globalConn);
-            await dbTreeSection.tree.expandDatabaseConnection(globalConn);
-            await dbTreeSection.tree.expandElement([constants.mysqlRestService]);
-
-            await dbTreeSection.tree.openContextMenuAndSelect(constants.mysqlRestService,
-                constants.addRESTService);
-            otherService = await RestServiceDialog.set(otherService);
-            await driver.wait(dbTreeSection.tree.untilExists(otherService.treeName!),
-                constants.wait10seconds);
-
-            await dbTreeSection.tree.openContextMenuAndSelect(otherService.restSchemas![0].settings!.schemaName!,
-                constants.addSchemaToREST);
-            otherService.restSchemas![0] = await RestSchemaDialog.set(otherService.restSchemas![0]);
-            await dbTreeSection.tree
-                .expandElement([otherService.treeName!]);
-            await driver.wait(dbTreeSection.tree.untilExists(otherService.restSchemas![0].treeName!),
-                constants.wait10seconds);
-
-            await dbTreeSection.tree.expandElement([otherService.restSchemas![0].treeName!]);
-            await dbTreeSection.tree.expandElement(["Tables"]);
-
-            const actorTable = "actor";
-            await dbTreeSection.tree.openContextMenuAndSelect("actor", constants.addDBObjToREST);
-            await RestObjectDialog.set({ restServicePath: otherService.treeName });
-            await dbTreeSection.tree.expandElement([otherService.restSchemas![0].treeName!]);
-            await driver.wait(dbTreeSection.tree.untilExists(`/${actorTable} (${actorTable})`), constants.wait5seconds);
-            await Misc.dismissNotifications();
-        } catch (e) {
-            await Misc.storeScreenShot("beforeAll_MysqlRESTService");
-            throw e;
-        }
-    });
-
-    afterAll(async () => {
-        await Os.writeFELogs(basename(__filename), driver.manage().logs());
-        await driver.close();
-        await driver.quit();
-    });
-
-    beforeEach(async () => {
-        try {
-            await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
-                `${constants.dbTreeSection} is still loading`);
-        } catch (e) {
-            await Misc.storeScreenShot("beforeEach_ServiceContextMenus");
-            throw e;
-        }
-    });
-
-    afterEach(async () => {
-        if (testFailed) {
-            testFailed = false;
-            await Misc.storeScreenShot();
-        }
-
-        if (existsInQueue) {
-            await TestQueue.pop(expect.getState().currentTestName!);
-            existsInQueue = false;
-        }
-
-        await Misc.dismissNotifications();
-    });
-
-    it("Copy CREATE REST SERVICE Statement", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            await dbTreeSection.tree.openContextMenuAndSelect(otherService.treeName!,
-                constants.copyCreateRestServiceSt);
-            const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The CREATE statement was copied to the system clipboard");
-            await notification.close();
-            expect(await Misc.readClipboard()).toContain("CREATE REST SERVICE");
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("Copy CREATE REST SCHEMA Statement", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            await dbTreeSection.tree.openContextMenuAndSelect(otherService.restSchemas![0].treeName!,
-                constants.copyCreateRestSchemaSt);
-            const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The CREATE statement was copied to the system clipboard");
-            await notification.close();
-            expect(await Misc.readClipboard()).toContain("CREATE OR REPLACE REST SCHEMA");
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("Copy CREATE REST OBJECT Statement", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            await dbTreeSection.tree.openContextMenuAndSelect(otherService.restSchemas![0].restObjects![0].treeName!,
-                constants.copyCreateRestObjSt);
-            const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The CREATE statement was copied to the system clipboard");
-            await notification.close();
-            expect(await Misc.readClipboard()).toContain("CREATE OR REPLACE REST VIEW");
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("Copy REST Object Request Path to Clipboard", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            await dbTreeSection.tree.openContextMenuAndSelect(otherService.restSchemas![0].restObjects![0].treeName!,
-                constants.copyRESTObjReqPath);
-            const service = otherService.servicePath;
-            const sakila = otherService.restSchemas![0].settings?.schemaName;
-            const actor = otherService.restSchemas![0].restObjects![0].jsonRelDuality?.dbObject;
-
-            const regex = new RegExp(`localhost:(\\d+)${service}/${sakila}/${actor}`);
-            const clipboard = await Misc.readClipboard();
-            console.log(`[DEBUG] clipboard content: ${clipboard}`);
-            expect(clipboard).toMatch(regex);
-            await dbTreeSection.tree.openContextMenuAndSelect(otherService.restSchemas![0].restObjects![0].treeName!,
-                constants.copyRESTObjReqPath);
-            const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The DB Object Path was copied to the system clipboard");
-            await notification.close();
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-});

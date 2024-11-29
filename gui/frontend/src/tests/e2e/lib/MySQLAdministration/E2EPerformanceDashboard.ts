@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { WebElement, until } from "selenium-webdriver";
+import { Condition, WebElement, until } from "selenium-webdriver";
 import * as locator from "../locators.js";
 import { driver } from "../../lib/driver.js";
 import * as constants from "../constants.js";
@@ -248,6 +248,17 @@ export class E2EPerformanceDashboard {
         } else {
             throw new Error(`Unknown tab ${tabName}`);
         }
+    };
+
+    /**
+     * Verifies if the tab exists
+     * @param tabName The tab name
+     * @returns A condition resolving to true if the tab exists, false otherwise
+     */
+    public untilTabExists = (tabName: string): Condition<boolean> => {
+        return new Condition(`for tab ${tabName} to exist`, async () => {
+            return this.tabExists(tabName);
+        });
     };
 
     /**

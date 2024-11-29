@@ -64,6 +64,8 @@ export const ociMaxLevel = 5;
 export const openEditorsMaxLevel = 5;
 export const tasksMaxLevel = 1;
 
+export const darkModern = "Dark Modern";
+
 // BUTTONS
 export const execFullBlockSql = "Execute the selection or everything in the current block and create a new block";
 export const execFullBlockJs = "Execute everything in the current block and create a new block";

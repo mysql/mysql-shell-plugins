@@ -23,6 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { error } from "vscode-extension-tester";
 import * as constants from "../constants";
 import * as interfaces from "../interfaces";
 import { E2EAccordionSection } from "./E2EAccordionSection";
@@ -87,7 +88,16 @@ export class E2ERestUser implements interfaces.IRestUser {
         const treeUser = await dbTreeSection.tree.getElement(this.username);
         await dbTreeSection.tree.openContextMenuAndSelect(treeUser, constants.editRESTUser);
         const previousUser = this.username;
-        const editedUser = await RestUserDialog.set(newUser);
+        const editedUser = await RestUserDialog.set(newUser)
+            .catch(async (e) => {
+                if (e instanceof error.TimeoutError) {
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeUser, constants.editRESTUser);
+
+                    return RestUserDialog.set(newUser);
+                } else {
+                    throw e;
+                }
+            });
         const index = this.parentAuthApp.users.findIndex((item: interfaces.IRestUser) => {
             return item.username === previousUser;
         });
@@ -111,7 +121,19 @@ export class E2ERestUser implements interfaces.IRestUser {
         await dbTreeSection.tree.openContextMenuAndSelect(await dbTreeSection
             .tree.getElement(this.username), constants.editRESTUser);
 
-        return RestUserDialog.get();
+        const user = RestUserDialog.get()
+            .catch(async (e) => {
+                if (e instanceof error.TimeoutError) {
+                    await dbTreeSection.tree.openContextMenuAndSelect(await dbTreeSection
+                        .tree.getElement(this.username), constants.editRESTUser);
+
+                    return RestUserDialog.get();
+                } else {
+                    throw e;
+                }
+            });
+
+        return user;
     };
 
 

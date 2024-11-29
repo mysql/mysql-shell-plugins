@@ -48,38 +48,48 @@ export class E2EToastNotification implements interfaces.INotification {
      * @param timeout The time to wait for a notification to be displayed, default is 5 seconds
      * @returns The notification
      */
-    public create = async (id?: string, timeout = constants.wait5seconds): Promise<E2EToastNotification> => {
+    public create = async (id?: string, timeout = constants.wait3seconds):
+        Promise<E2EToastNotification | undefined> => {
 
         let notification: WebElement | undefined;
 
-        if (id) {
-            notification = await driver.findElement(locator.toastNotification.existsById(id));
-        } else {
-            notification = await driver.wait(until.elementLocated(locator.toastNotification.exists), timeout,
-                "Could not find any notification");
-        }
-
-        this.id = await notification.getAttribute("id");
-
-        this.webElement = notification;
-
-        if ((await this.webElement.findElements(locator.toastNotification.error)).length > 0) {
-            this.type = "error";
-        } else if ((await this.webElement.findElements(locator.toastNotification.info)).length > 0) {
-            this.type = "info";
-        } else {
-            throw new Error("Could not find the notification type");
-        }
-
         await driver.wait(async () => {
-            const msg = await (await notification.findElement(locator.toastNotification.message)).getText();
+            try {
+                if (id) {
+                    notification = await driver.findElement(locator.toastNotification.existsById(id));
+                } else {
+                    notification = await driver.wait(until.elementLocated(locator.toastNotification.exists), timeout,
+                        "Could not find any notification");
+                }
 
-            if (msg !== "") {
-                this.message = msg;
+                this.id = await notification.getAttribute("id");
+                this.webElement = notification;
+
+                if ((await this.webElement.findElements(locator.toastNotification.error)).length > 0) {
+                    this.type = "error";
+                } else if ((await this.webElement.findElements(locator.toastNotification.info)).length > 0) {
+                    this.type = "info";
+                } else {
+                    throw new Error("Could not find the notification type");
+                }
+
+                await driver.wait(async () => {
+                    const msg = await (await notification!.findElement(locator.toastNotification.message)).getText();
+
+                    if (msg !== "") {
+                        this.message = msg;
+
+                        return true;
+                    }
+                }, constants.wait2seconds, "The notification message is empty");
 
                 return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
             }
-        }, constants.wait5seconds, "The notification message is empty");
+        }, constants.wait5seconds, "Could not create the notification");
 
         return this;
     };
@@ -102,7 +112,6 @@ export class E2EToastNotification implements interfaces.INotification {
                 }
             }
         }, constants.wait3seconds, `Could not close notification '${notificationMessage}'`);
-
     };
 
     /**

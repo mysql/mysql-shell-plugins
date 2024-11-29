@@ -23,7 +23,7 @@
 
 import { By } from "selenium-webdriver";
 
-export const pageIsLoaded = By.id("title");
+export const pageIsLoaded = By.id("dbEditorSideBar");
 
 export const searchById = (id: string): By => {
     return By.id(id);

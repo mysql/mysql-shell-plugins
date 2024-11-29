@@ -197,9 +197,8 @@ describe("NOTEBOOKS", () => {
                     FROM
                     sakila.actor LIMIT 1 $$
 
+                    select 1 $$`;
 
-                    select 1 $$
-                `;
 
             const result = await notebook.codeEditor.executeWithButton(query, constants.execFullBlockSql);
             expect(result.toolbar.status).to.match(/OK/);
@@ -248,7 +247,7 @@ describe("NOTEBOOKS", () => {
 
         it("Switch between search tabs", async () => {
             const result = await notebook.codeEditor
-                .execute("select * from sakila.actor limit 1; select * from sakila.address limit 1;", true);
+                .execute("select * from sakila.actor limit 1; select * from sakila.address limit 1;");
             expect(result.toolbar.status).to.match(/OK/);
             expect(result.tabs.length).to.equals(2);
             expect(result.tabs[0].name).to.equals("Result #1");
@@ -355,8 +354,8 @@ describe("NOTEBOOKS", () => {
 
         it("Execute code on different prompt languages", async () => {
             try {
-                const query = "select * from sakila.actor limit 1";
-                const jsCmd = "Math.random()";
+                const query = "select * from sakila.actor limit 1;";
+                const jsCmd = "Math.random();";
                 const result1 = await notebook.codeEditor.execute(query);
                 const block1 = result1.id;
                 expect(result1.toolbar.status).to.match(/OK/);
@@ -374,7 +373,7 @@ describe("NOTEBOOKS", () => {
         });
 
         it("Multi-line comments", async () => {
-            await notebook.codeEditor.languageSwitch("\\sql ", true);
+            await notebook.codeEditor.languageSwitch("\\sql ");
             const result1 = await notebook.codeEditor.execute("select version();");
             expect(result1.toolbar.status).to.match(/1 record retrieved/);
             const cell = result1.grid.content
@@ -386,10 +385,10 @@ describe("NOTEBOOKS", () => {
             digits[1].length === 1 ? serverVer += "0" + digits[1] : serverVer += digits[1];
             digits[2].length === 1 ? serverVer += "0" + digits[2] : serverVer += digits[2];
 
-            const result2 = await notebook.codeEditor.execute(`/*!${serverVer} select * from sakila.actor;*/`, true);
+            const result2 = await notebook.codeEditor.execute(`/*!${serverVer} select * from sakila.actor;*/`);
             expect(result2.toolbar.status).to.match(/OK, (\d+) records retrieved/);
             const higherServer = parseInt(serverVer, 10) + 1;
-            const result3 = await notebook.codeEditor.execute(`/*!${higherServer} select * from sakila.actor;*/`, true);
+            const result3 = await notebook.codeEditor.execute(`/*!${higherServer} select * from sakila.actor;*/`);
             expect(result3.text).to.match(/OK, 0 records retrieved/);
         });
 
@@ -419,7 +418,7 @@ describe("NOTEBOOKS", () => {
 
         it("Pie Graph based on DB table", async () => {
 
-            await notebook.codeEditor.languageSwitch("\\ts ", true);
+            await notebook.codeEditor.languageSwitch("\\ts ");
             const result = await notebook.codeEditor.execute(
                 `const res = await runSql("SELECT Name, Capital FROM world_x_cst.country limit 10");
                 const options: IGraphOptions = {series:[{type: "bar", yLabel: "Actors", data: res as IJsonGraphData}]};
@@ -436,7 +435,7 @@ describe("NOTEBOOKS", () => {
 
         it("Autocomplete context menu", async () => {
 
-            await notebook.codeEditor.languageSwitch("\\sql ", true);
+            await notebook.codeEditor.languageSwitch("\\sql ");
             await notebook.codeEditor.write("select sak", true);
             await notebook.codeEditor.openSuggestionMenu();
             let els = await notebook.codeEditor.getAutoCompleteMenuItems();
@@ -530,7 +529,7 @@ describe("NOTEBOOKS", () => {
             await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
             await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("\\about ");
+            const result = await notebook.codeEditor.execute("\\about");
             await result.copyToClipboard();
             await notebook.codeEditor.clean();
             const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
@@ -747,7 +746,7 @@ describe("NOTEBOOKS", () => {
             await hwProfileEditor.selectModel(constants.modelMistral);
             await notebook.codeEditor.languageSwitch("\\chat");
             await notebook.codeEditor.loadCommandResults();
-            const result = await notebook.codeEditor.execute(query);
+            const result = await notebook.codeEditor.execute(query, undefined, true);
             expect(result.chat.length).to.be.greaterThan(0);
 
             const history = await hwProfileEditor.getHistory();

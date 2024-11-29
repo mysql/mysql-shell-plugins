@@ -52,7 +52,7 @@ describe("TOKEN VERIFICATION", () => {
         await driver.get(url);
 
         try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_TOKEN_VERIFICATION");
             throw e;
@@ -80,7 +80,7 @@ describe("TOKEN VERIFICATION", () => {
             expect(driver.wait(until.elementsLocated(locator.pageIsLoading), constants.wait5seconds,
                 "Blank page was not displayed")).toBeDefined();
 
-            const notification = await new E2EToastNotification().create();
+            const notification = (await new E2EToastNotification().create())!;
             expect(notification.type).toBe("error");
 
             let regex = "Could not establish a connection to the backend.";
@@ -104,7 +104,7 @@ describe("TOKEN VERIFICATION", () => {
             expect(driver.wait(until.elementsLocated(locator.adminPage.headingText), constants.wait5seconds,
                 "Login page was not displayed")).toBeDefined();
 
-            const notification = await new E2EToastNotification().create();
+            const notification = (await new E2EToastNotification().create())!;
             expect(notification.type).toBe("error");
 
             let regex = "Could not establish a connection to the backend.";
@@ -131,11 +131,7 @@ describe("LOGIN", () => {
         await loadDriver(true);
         await driver.get(String(process.env.SHELL_UI_MU_HOSTNAME));
 
-        await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded")
-            .catch(async (e) => {
-                await Misc.storeScreenShot("beforeAll_Login");
-                throw e;
-            });
+        await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
     });
 
     afterEach(async () => {
@@ -202,9 +198,11 @@ describe("NOTIFICATIONS", () => {
         await driver.get(url);
 
         try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
             await dbTreeSection.focus();
             await dbTreeSection.createDatabaseConnection(localConn);
+            await driver.navigate().refresh();
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
             await driver.wait(dbTreeSection.tree.untilExists(localConn.caption!), constants.wait5seconds);
             await dbTreeSection.tree.expandDatabaseConnection(localConn);
         } catch (e) {
@@ -232,7 +230,7 @@ describe("NOTIFICATIONS", () => {
             await dbTreeSection.tree
                 .openContextMenuAndSelect((localConn.basic as interfaces.IConnBasicMySQL)
                     .schema!, [constants.copyToClipboard.exists, constants.copyToClipboard.name]);
-            const notification = await new E2EToastNotification().create();
+            const notification = (await new E2EToastNotification().create())!;
             expect(notification.message).toBe("The name was copied to the system clipboard");
             expect(notification.type).toBe("info");
             const statusBar = new E2EStatusBar();
@@ -251,12 +249,14 @@ describe("NOTIFICATIONS", () => {
 
         try {
             const connectionOverview = new E2EDatabaseConnectionOverview();
-            await connectionOverview.moreActions(localConn.caption!, constants.editConnection);
-            await DatabaseConnectionDialog.clearPassword();
-            await connectionOverview.moreActions(localConn.caption!, constants.editConnection);
-            await DatabaseConnectionDialog.clearPassword(); // it will trigger an error notification
+            await driver.wait(async () => {
+                await connectionOverview.moreActions(localConn.caption!, constants.editConnection);
+                await DatabaseConnectionDialog.clearPassword();
 
-            const notification = await new E2EToastNotification().create();
+                return (await Misc.getToastNotifications()).length > 0;
+            }, constants.wait10seconds, "Could not trigger an error notification");
+
+            const notification = (await new E2EToastNotification().create())!;
             expect(notification.type).toBe("error");
             expect(notification.message).toContain("Clear Password Error");
             const statusBar = new E2EStatusBar();
@@ -290,7 +290,7 @@ describe("NOTIFICATIONS", () => {
                         return true;
                     } else if (notifications.length === prevNotifications.length) {
                         if (notifications.length > 0) {
-                            return (notifications[0].id !== prevNotifications[0].id);
+                            return (notifications[0]!.id !== prevNotifications[0]!.id);
                         }
                     }
                 }, constants.wait10seconds, `Number of notifications did not changed`);
@@ -385,7 +385,7 @@ describe("NOTIFICATIONS", () => {
             await DatabaseConnectionDialog.clearPassword();
             await connectionOverview.moreActions(localConn.caption!, constants.editConnection);
             await DatabaseConnectionDialog.clearPassword(); // it will trigger an error notification
-            const notification = await new E2EToastNotification().create();
+            const notification = (await new E2EToastNotification().create())!;
             expect(notification.type).toBe("error");
             expect(notification.message).toContain("Error");
             notificationsCenter = await new E2ENotificationsCenter().open();

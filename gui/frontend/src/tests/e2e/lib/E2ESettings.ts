@@ -74,7 +74,7 @@ export class E2ESettings {
                 .click();
 
             const notification = await new E2EToastNotification().create();
-            await notification.close();
+            await notification!.close();
 
             await driver.wait(async () => {
                 const currentThemeValue = await driver
