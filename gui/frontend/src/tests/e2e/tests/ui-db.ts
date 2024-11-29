@@ -44,31 +44,29 @@ import { E2EMySQLAdministration } from "../lib/MySQLAdministration/E2EMySQLAdmin
 import { driver, loadDriver } from "../lib/driver.js";
 import { E2ETabContainer } from "../lib/E2ETabContainer.js";
 import { E2EToastNotification } from "../lib/E2EToastNotification.js";
-import { TestQueue } from "../lib/TestQueue.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
-let existsInQueue = false;
 const testView = `test_view`;
 const testEvent = "test_event";
 const testProcedure = "test_procedure";
 const testFunction = "test_function";
 
-const globalConn: interfaces.IDBConnection = {
-    dbType: "MySQL",
-    caption: `E2E - DATABASE CONNECTIONS`,
-    description: "Local connection",
-    basic: {
-        hostname: "localhost",
-        username: String(process.env.DBUSERNAME1),
-        port: parseInt(process.env.MYSQL_PORT!, 10),
-        schema: "sakila",
-        password: String(process.env.DBUSERNAME1PWD),
-    },
-};
-
 describe("DATABASE CONNECTIONS", () => {
+
+    const globalConn: interfaces.IDBConnection = {
+        dbType: "MySQL",
+        caption: `E2E - DATABASE CONNECTIONS`,
+        description: "Local connection",
+        basic: {
+            hostname: "localhost",
+            username: String(process.env.DBUSERNAME1),
+            port: parseInt(process.env.MYSQL_PORT!, 10),
+            schema: "sakila",
+            password: String(process.env.DBUSERNAME1PWD),
+        },
+    };
 
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
 
@@ -78,7 +76,7 @@ describe("DATABASE CONNECTIONS", () => {
         await driver.get(url);
 
         try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
             const settings = new E2ESettings();
             await settings.open();
             await settings.selectCurrentTheme(constants.darkModern);
@@ -111,7 +109,7 @@ describe("DATABASE CONNECTIONS", () => {
         it("Create new DB Connection", async () => {
             try {
                 await dbTreeSection.createDatabaseConnection(globalConn);
-                await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait5seconds);
+                await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait2seconds);
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -253,7 +251,7 @@ describe("DATABASE CONNECTIONS", () => {
                 }
 
                 const dbPath = join(process.cwd(), "src", "tests", "e2e",
-                    `port_800${String(shellServers.get(basename(__filename)))}`,
+                    `port_${String(shellServers.get(basename(__filename)))}`,
                     "plugin_data", "gui_plugin", "mysqlsh_gui_backend.sqlite3");
 
                 if (!existsSync(dbPath)) {
@@ -273,8 +271,8 @@ describe("DATABASE CONNECTIONS", () => {
                 const notebook = new E2ENotebook();
                 await driver.wait(notebook.untilIsOpened(sqliteConn), constants.wait15seconds);
                 await notebook.codeEditor.loadCommandResults();
-                const result = await notebook.codeEditor.executeWithButton("SELECT * FROM main.db_connection",
-                    constants.execFullBlockSql, true);
+                const result = await notebook.codeEditor.executeWithButton("SELECT * FROM main.db_connection;",
+                    constants.execFullBlockSql);
                 expect(result.toolbar!.status).toMatch(/OK/);
             } catch (e) {
                 testFailed = true;
@@ -301,9 +299,8 @@ describe("DATABASE CONNECTIONS", () => {
                 await driver.executeScript("arguments[0].click();", dbConn);
                 const notebook = new E2ENotebook();
                 await driver.wait(notebook.untilIsOpened(sslConn), constants.wait15seconds);
-                const query =
-                    `select * from performance_schema.session_status where variable_name in
-                ("ssl_cipher") and variable_value like "%TLS%" `;
+                const query = `select * from performance_schema.session_status
+                where variable_name in ("ssl_cipher") and variable_value like "%TLS%";`;
 
                 await notebook.codeEditor.create();
                 const result = await notebook.codeEditor.execute(query);
@@ -545,7 +542,8 @@ describe("DATABASE CONNECTIONS", () => {
                     constants.wait5seconds, "confirm dialog was not found");
 
                 await dialog.findElement(locator.confirmDialog.accept).click();
-                await new E2EToolbar().editorSelector.selectEditor(/DB Connection Overview/); // TO REMOVE
+                await driver.navigate().refresh();
+                await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
                 expect(await dbConnectionOverview.existsConnection(connectionToRemove.caption!)).toBe(false);
             } catch (e) {
                 testFailed = true;
@@ -813,9 +811,12 @@ describe("DATABASE CONNECTIONS", () => {
                 await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn),
                     constants.wait15seconds);
                 expect((await toolbar.editorSelector.getCurrentEditor()).label).toBe(constants.performanceDashboard);
-                expect(await mysqlAdministration.performanceDashboard.tabExists(constants.perfDashServerTab))
-                    .toBe(true);
-                expect(await mysqlAdministration.performanceDashboard.tabExists(constants.perfDashMLETab)).toBe(true);
+                await driver.wait(mysqlAdministration.performanceDashboard.untilTabExists(constants.perfDashServerTab),
+                    constants.wait3seconds);
+
+                await driver.wait(mysqlAdministration.performanceDashboard.untilTabExists(constants.perfDashMLETab),
+                    constants.wait3seconds);
+
                 expect(await mysqlAdministration.performanceDashboard.tabIsSelected(constants.perfDashServerTab))
                     .toBe(true);
 
@@ -997,11 +998,11 @@ describe("DATABASE CONNECTIONS", () => {
                     await uploadToObjectStorage.objectStorageBrowser.checkItem("upload");
                     await uploadToObjectStorage.startFileUpload();
                     const notification = await new E2EToastNotification().create(undefined, constants.wait10seconds);
-                    expect(notification.message).toBe("The files have been uploaded successfully.");
-                    await notification.close();
+                    expect(notification!.message).toBe("The files have been uploaded successfully.");
+                    await notification!.close();
                     await uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
                     await driver.wait(uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
-                        constants.wait10seconds);
+                        constants.wait20seconds);
                     expect(await uploadToObjectStorage.objectStorageBrowser.existsItem(fileToUpload)).toBe(true);
                 } catch (e) {
                     await Misc.storeScreenShot();
@@ -1060,7 +1061,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                     const latestTask = await lakehouseTables.getLatestTask();
                     await driver.wait(lakehouseTables.untilLakeHouseTaskIsCompleted(latestTask!.id!),
-                        constants.wait10seconds);
+                        constants.wait20seconds);
                     expect(latestTask!.name).toBe(`Loading ${newTask.name}`);
                     expect(latestTask!.hasProgressBar).toBe(false);
                     expect(latestTask!.status).toBe("COMPLETED");
@@ -1105,11 +1106,6 @@ describe("DATABASE CONNECTIONS", () => {
             if (testFailed) {
                 testFailed = false;
                 await Misc.storeScreenShot();
-            }
-
-            if (existsInQueue) {
-                await TestQueue.pop(expect.getState().currentTestName!);
-                existsInQueue = false;
             }
         });
 
@@ -1411,236 +1407,3 @@ describe("DATABASE CONNECTIONS", () => {
 
 });
 
-describe("DATABASE CONNECTIONS - CLIPBOARD", () => {
-
-    const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
-    let testFailed = false;
-
-    beforeAll(async () => {
-
-        await loadDriver(false);
-        await driver.get(url);
-
-        try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
-            const settings = new E2ESettings();
-            await settings.open();
-            await settings.selectCurrentTheme(constants.darkModern);
-            await settings.close();
-
-            await dbTreeSection.focus();
-
-            if (!await dbTreeSection.tree.elementExists(globalConn.caption!)) {
-                await dbTreeSection.createDatabaseConnection(globalConn);
-                await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait5seconds);
-            }
-
-            await dbTreeSection.tree.expandDatabaseConnection(globalConn);
-            await dbTreeSection.tree.expandElement([(globalConn.basic as interfaces.IConnBasicMySQL).schema!]);
-            await dbTreeSection.tree.expandElement(["Tables"]);
-            await dbTreeSection.tree.expandElement(["Views"]);
-            await dbTreeSection.tree.expandElement(["Functions"]);
-            await dbTreeSection.tree.expandElement(["Procedures"]);
-            await dbTreeSection.tree.expandElement(["Events"]);
-
-        } catch (e) {
-            await Misc.storeScreenShot("beforeAll_DATABASE_CONNECTIONS");
-            throw e;
-        }
-
-    });
-
-    afterAll(async () => {
-        await Os.writeFELogs(basename(__filename), driver.manage().logs());
-        await driver.close();
-        await driver.quit();
-    });
-
-    afterEach(async () => {
-        if (testFailed) {
-            testFailed = false;
-            await Misc.storeScreenShot();
-        }
-
-        if (existsInQueue) {
-            await TestQueue.pop(expect.getState().currentTestName!);
-            existsInQueue = false;
-        }
-    });
-
-    it("Copy paste and cut paste into the DB Connection dialog", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
-            const conDialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
-                constants.wait5seconds, "Connection dialog was not displayed");
-            const hostNameInput = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.hostname);
-            const valueToCopy = await hostNameInput.getAttribute("value");
-            await driver.wait(async () => {
-                await Os.keyboardSelectAll(hostNameInput);
-                await Os.keyboardCopy(hostNameInput);
-                const usernameInput = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.username);
-                await Os.keyboardPaste(usernameInput);
-
-                return (await usernameInput.getAttribute("value")).includes(valueToCopy);
-            }, constants.wait15seconds, `Could not copy paste ${valueToCopy} to user name field`);
-
-            expect(await hostNameInput.getAttribute("value")).toBe(valueToCopy);
-            const descriptionInput = await conDialog.findElement(locator.dbConnectionDialog.description);
-            await DialogHelper.clearInputField(descriptionInput);
-            await descriptionInput.sendKeys("testing");
-            const valueToCut = await descriptionInput.getAttribute("value");
-            await Os.keyboardSelectAll(descriptionInput);
-            await Os.keyboardCut(descriptionInput);
-            expect(await descriptionInput.getAttribute("value")).toBe("");
-            const schemaInput = await conDialog.findElement(locator.dbConnectionDialog.mysql.basic.defaultSchema);
-            await Os.keyboardPaste(schemaInput);
-            expect(await schemaInput.getAttribute("value")).toContain(valueToCut);
-            await conDialog.findElement(locator.dbConnectionDialog.cancel).click();
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("Schema - Copy to Clipboard", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            await dbTreeSection.tree
-                .openContextMenuAndSelect((globalConn.basic as interfaces.IConnBasicMySQL)
-                    .schema!, [constants.copyToClipboard.exists, constants.copyToClipboard.name]);
-            let notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The name was copied to the system clipboard");
-            await notification.close();
-            expect(await Misc.readClipboard()).toBe((globalConn.basic as interfaces.IConnBasicMySQL).schema);
-
-            await dbTreeSection.tree
-                .openContextMenuAndSelect((globalConn.basic as interfaces.IConnBasicMySQL)
-                    .schema!, [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
-            notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The CREATE statement was copied to the system clipboard");
-            await notification.close();
-            expect(await Misc.readClipboard()).toContain("CREATE DATABASE");
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("Table - Copy to Clipboard", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            await dbTreeSection.tree.openContextMenuAndSelect("actor",
-                [constants.copyToClipboard.exists, constants.copyToClipboard.name]);
-            let notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The name was copied to the system clipboard");
-            await notification.close();
-            expect(await Misc.readClipboard()).toBe("actor");
-
-            await dbTreeSection.tree.openContextMenuAndSelect("actor",
-                [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
-            notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The CREATE statement was copied to the system clipboard");
-            await notification.close();
-            expect(await Misc.readClipboard()).toContain("CREATE TABLE");
-            await dbTreeSection.tree.collapseElement("Tables");
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("View - Copy to Clipboard", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            await dbTreeSection.tree.openContextMenuAndSelect(testView,
-                [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
-            const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The CREATE statement was copied to the system clipboard");
-            await notification.close();
-            expect(await Misc.readClipboard()).toContain("AS select");
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("Functions - Copy to Clipboard", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            await dbTreeSection.tree.expandElement(["Functions"]);
-            await dbTreeSection.tree.openContextMenuAndSelect(testFunction,
-                [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
-            const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The CREATE statement was copied to the system clipboard");
-            await notification.close();
-            expect(await Misc.readClipboard()).toMatch(/CREATE.*FUNCTION/);
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("Events - Copy to Clipboard", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            await dbTreeSection.tree.expandElement(["Events"]);
-            await dbTreeSection.tree.openContextMenuAndSelect(testEvent,
-                [constants.copyToClipboard.exists, constants.copyToClipboard.name]);
-
-            let notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The name was copied to the system clipboard");
-            await notification.close();
-            expect(await Misc.readClipboard()).toBe(testEvent);
-
-            await dbTreeSection.tree.openContextMenuAndSelect(testEvent,
-                [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
-
-            notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The CREATE statement was copied to the system clipboard");
-            await notification.close();
-            expect(await Misc.readClipboard()).toMatch(/CREATE.*EVENT/);
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("Procedures - Copy to Clipboard", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            await dbTreeSection.tree.expandElement(["Procedures"]);
-            await dbTreeSection.tree.openContextMenuAndSelect(testProcedure,
-                [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
-            const notification = await new E2EToastNotification().create();
-            expect(notification.message).toBe("The CREATE statement was copied to the system clipboard");
-            await notification.close();
-            expect(await Misc.readClipboard()).toMatch(/CREATE.*PROCEDURE/);
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-});

@@ -23,6 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { error } from "vscode-extension-tester";
 import * as constants from "../constants";
 import * as interfaces from "../interfaces";
 import { Workbench } from "../Workbench";
@@ -84,7 +85,16 @@ export class E2ERestService {
         const treeMySQLRestService = await dbTreeSection.tree.getElement(constants.mysqlRestService);
         await treeMySQLRestService.expand();
         await dbTreeSection.tree.openContextMenuAndSelect(treeMySQLRestService, constants.addRESTService);
-        await RestServiceDialog.set(this);
+        await RestServiceDialog.set(this)
+            .catch(async (e) => {
+                if (e instanceof error.TimeoutError) {
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeMySQLRestService, constants.addRESTService);
+
+                    return RestServiceDialog.set(this);
+                } else {
+                    throw e;
+                }
+            });
 
         if (this.settings && this.settings.mrsAdminUser) {
             const newApp = new E2EAuthenticationApp(this, {
@@ -117,7 +127,17 @@ export class E2ERestService {
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
         await dbTreeSection.tree.openContextMenuAndSelect(await dbTreeSection
             .tree.getElement(this.treeName), constants.editRESTService);
-        const editedRestService = await RestServiceDialog.set(restService);
+        const editedRestService = await RestServiceDialog.set(restService)
+            .catch(async (e) => {
+                if (e instanceof error.TimeoutError) {
+                    await dbTreeSection.tree.openContextMenuAndSelect(await dbTreeSection
+                        .tree.getElement(this.treeName), constants.editRESTService);
+
+                    return RestServiceDialog.set(restService);
+                } else {
+                    throw e;
+                }
+            });
         this.set(editedRestService);
     };
 
@@ -130,7 +150,19 @@ export class E2ERestService {
         await dbTreeSection.tree.openContextMenuAndSelect(await dbTreeSection
             .tree.getElement(this.treeName), constants.editRESTService);
 
-        return RestServiceDialog.get();
+        const service = RestServiceDialog.get()
+            .catch(async (e) => {
+                if (e instanceof error.TimeoutError) {
+                    await dbTreeSection.tree.openContextMenuAndSelect(await dbTreeSection
+                        .tree.getElement(this.treeName), constants.editRESTService);
+
+                    return RestServiceDialog.get();
+                } else {
+                    throw e;
+                }
+            });
+
+        return service;
     };
 
     /**
@@ -167,7 +199,18 @@ export class E2ERestService {
         const thisService = await dbTreeSection.tree.getElement(this.treeName);
         await dbTreeSection.tree.openContextMenuAndSelect(thisService, constants.addNewAuthApp);
         await Workbench.toggleSideBar(false);
-        const authApp = await AuthenticationAppDialog.set(data);
+        const authApp = await AuthenticationAppDialog.set(data)
+            .catch(async (e) => {
+                if (e instanceof error.TimeoutError) {
+                    await Workbench.toggleSideBar(true);
+                    await dbTreeSection.tree.openContextMenuAndSelect(thisService, constants.addNewAuthApp);
+                    await Workbench.toggleSideBar(false);
+
+                    return AuthenticationAppDialog.set(data);
+                } else {
+                    throw e;
+                }
+            });
         await Workbench.toggleSideBar(true);
         this.authenticationApps.push(new E2EAuthenticationApp(this, authApp));
     };

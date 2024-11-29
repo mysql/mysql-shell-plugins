@@ -32,14 +32,16 @@ import { IOciProfileConfig } from "./interfaces.js";
 
 export const feLog = "fe.log";
 export const shellServers = new Map([
-    ["ui-db.ts", 0],
-    ["ui-notebook.ts", 1],
-    ["ui-oci.ts", 2],
-    ["ui-open-editors.ts", 0],
-    ["ui-rest.ts", 1],
-    ["ui-result-grids.ts", 2],
-    ["ui-shell.ts", 0],
-    ["ui-misc.ts", 1],
+    ["ui-db.ts", 8000],
+    ["ui-misc.ts", 8001],
+    ["ui-notebook.ts", 8002],
+    ["ui-oci.ts", 8003],
+    ["ui-open-editors.ts", 8004],
+    ["ui-rest.ts", 8005],
+    ["ui-result-grids.ts", 8006],
+    ["ui-shell.ts", 8007],
+    ["ui-misc.ts", 8008],
+    ["ui-clipboard.ts", 8009],
 ]);
 
 export class Misc {
@@ -55,7 +57,7 @@ export class Misc {
 
         if (process.env.MAX_WORKERS) {
             const port = shellServers.get(filename);
-            url += `:800${String(port)}/?token=${String(process.env.TOKEN)}`;
+            url += `:${String(port)}/?token=${String(process.env.TOKEN)}`;
         } else {
             url += `:${String(process.env.HOSTNAME_PORT)}/?token=${String(process.env.TOKEN)}`;
         }
@@ -187,9 +189,9 @@ export class Misc {
      * @param wait True to wait for notifications to be displayed, false otherwise
      *  @returns A promise resolving with the notifications
      */
-    public static getToastNotifications = async (wait = false): Promise<E2EToastNotification[]> => {
+    public static getToastNotifications = async (wait = false): Promise<Array<E2EToastNotification | undefined>> => {
 
-        const toastNotifications: E2EToastNotification[] = [];
+        const toastNotifications: Array<E2EToastNotification | undefined> = [];
 
         await driver.wait(async () => {
             try {
@@ -211,7 +213,7 @@ export class Misc {
                     }
                 }
             }
-        }, constants.wait5seconds, "Could not find any notifications");
+        }, constants.wait2seconds, "Could not find any notifications");
 
         return toastNotifications;
     };
@@ -226,14 +228,14 @@ export class Misc {
 
             if (ignoreErrors) {
                 for (const notification of notifications) {
-                    await notification.close();
+                    await notification!.close();
                 }
             } else {
                 for (const notification of notifications) {
-                    if (notification.type !== "error") {
-                        await notification.close();
+                    if (notification!.type !== "error") {
+                        await notification!.close();
                     } else {
-                        throw new Error(`Notification error: ${notification.message}`);
+                        throw new Error(`Notification error: ${notification!.message}`);
                     }
                 }
             }
@@ -251,40 +253,6 @@ export class Misc {
             .elementLocated(locator.fileSelect),
             constants.wait5seconds, "Could not find the input file box")
             .sendKeys(path);
-    };
-
-    /**
-     * Reads and returns the content of the clipboard
-     * @returns A promise revolved with the clipboard content
-     */
-    public static readClipboard = async (): Promise<string | undefined> => {
-        let clipboard: string | undefined;
-
-        await driver.wait(async () => {
-            try {
-                clipboard = await driver.executeScript("return await navigator.clipboard.readText()");
-
-                return true;
-            } catch (e) {
-                console.log(e);
-                if (!(e instanceof error.JavascriptError)) {
-                    throw e;
-                }
-            }
-        }, constants.wait3seconds, "Could not read the system clipboard");
-
-        return clipboard;
-    };
-
-    /**
-     * Writes text to the clipboard
-     * @param text The text to write
-     */
-    public static writeToClipboard = async (text: string): Promise<void> => {
-        const type = "text/plain";
-        const blob = new Blob([text], { type });
-        const data = [new ClipboardItem({ [type]: blob })];
-        await navigator.clipboard.write(data);
     };
 
     /**
@@ -317,4 +285,5 @@ export class Misc {
 
         return ociConfig;
     };
+
 }

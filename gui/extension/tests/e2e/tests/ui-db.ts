@@ -407,7 +407,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
             const query =
                 `select * from performance_schema.session_status where variable_name in
-                ("ssl_cipher") and variable_value like "%TLS%" `;
+                ("ssl_cipher") and variable_value like "%TLS%";`;
 
             await notebook.codeEditor.create();
             const result = await notebook.codeEditor.execute(query);
@@ -970,8 +970,8 @@ describe("DATABASE CONNECTIONS", () => {
                     $$
                     let x = Math.pow(arg1, arg2)
                     return x
-                    $$; 
-                `;
+                    $$;`;
+
 
             result = await notebook.codeEditor.executeWithButton(jsFunction, constants.execFullBlockSql);
             expect(result.text).to.match(/OK/);
@@ -1095,7 +1095,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await (await uploadToObjectStorage.getFilesForUploadButton(constants.startFileUpload)).click();
                 await uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
                 await driver.wait(uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
-                    constants.wait10seconds);
+                    constants.wait20seconds);
                 expect(await uploadToObjectStorage.objectStorageBrowser.existsItem(fileToUpload)).to.be.true;
                 await driver.wait(Workbench.untilNotificationExists("The files have been uploaded successfully"),
                     constants.wait20seconds);

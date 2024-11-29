@@ -55,7 +55,7 @@ export class CommandResultToolbar implements interfaces.ICommandResultToolbar {
         await driver.wait(async () => {
             status = await this.result!.context!.findElement(toolbarLocator.status.text);
 
-            return (await status.getText()) !== "";
+            return (await status.getAttribute("innerHTML")) !== "";
         }, constants.wait5seconds, `The status is empty for cmd ${this.result!.command}`);
 
         this.status = await status!.getText();

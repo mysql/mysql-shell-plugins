@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { WebElement, until, Condition } from "selenium-webdriver";
+import { WebElement, until, Condition, error } from "selenium-webdriver";
 import { driver } from "../../lib/driver.js";
 import * as locator from "../locators.js";
 import * as interfaces from "../interfaces.js";
@@ -102,26 +102,37 @@ export class E2EHeatWaveProfileEditor {
      * @returns A promise resolving when the model is selected
      */
     public selectModel = async (model: string): Promise<void> => {
-        const modelLocator = locator.notebook.codeEditor.editor.result.chatOptions.model;
-        await driver.findElement(modelLocator.selectList).click();
-        await driver.wait(until.elementLocated(modelLocator.list), constants.wait5seconds,
-            "The model list was not displayed");
+        await driver.wait(async () => {
+            try {
+                const modelLocator = locator.notebook.codeEditor.editor.result.chatOptions.model;
+                await driver.findElement(modelLocator.selectList).click();
+                await driver.wait(until.elementLocated(modelLocator.list), constants.wait5seconds,
+                    "The model list was not displayed");
 
-        switch (model) {
+                switch (model) {
 
-            case constants.modelLlama2: {
-                await driver.findElement(modelLocator.item.llama2).click();
-                break;
+                    case constants.modelLlama2: {
+                        await driver.findElement(modelLocator.item.llama2).click();
+                        break;
+                    }
+
+                    case constants.modelMistral: {
+                        await driver.findElement(modelLocator.item.mistral).click();
+                        break;
+                    }
+
+                    default: {
+                        throw new Error(`Unknown model ${model}`);
+                    }
+                }
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
             }
+        }, constants.wait5seconds);
 
-            case constants.modelMistral: {
-                await driver.findElement(modelLocator.item.mistral).click();
-                break;
-            }
-
-            default: {
-                throw new Error(`Unknown model ${model}`);
-            }
-        }
     };
 }

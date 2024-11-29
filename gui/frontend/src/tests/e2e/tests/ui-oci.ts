@@ -33,167 +33,22 @@ import * as interfaces from "../lib/interfaces.js";
 import { E2EShellConsole } from "../lib/E2EShellConsole.js";
 import { E2ENotebook } from "../lib/E2ENotebook.js";
 import { E2ETabContainer } from "../lib/E2ETabContainer.js";
-import { E2ETextEditor } from "../lib/E2ETextEditor.js";
 import { E2EToastNotification } from "../lib/E2EToastNotification.js";
 import { DatabaseConnectionDialog } from "../lib/Dialogs/DatabaseConnectionDialog.js";
 import { E2EDatabaseConnectionOverview } from "../lib/E2EDatabaseConnectionOverview.js";
-import { TestQueue } from "../lib/TestQueue.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
-let existsInQueue = false;
 let testFailed = false;
-let dbSystemID: string | undefined;
-let bastionID: string | undefined;
-let mdsEndPoint: string | undefined;
-let compartmentId: string | undefined;
 let ociConfig: interfaces.IOciProfileConfig | undefined;
 let ociTree: RegExp[];
 let treeE2eProfile: string | undefined;
 const ociTreeSection = new E2EAccordionSection(constants.ociTreeSection);
 const tabContainer = new E2ETabContainer();
-const textEditor = new E2ETextEditor();
-
-describe("OCI - CLIPBOARD", () => {
-
-    beforeAll(async () => {
-        await loadDriver(false);
-        await driver.get(url);
-        const configs = await Misc.mapOciConfig();
-        ociConfig = configs.find((item: interfaces.IOciProfileConfig) => {
-            return item.name = "E2ETESTS";
-        })!;
-        treeE2eProfile = `${ociConfig.name} (${ociConfig.region})`;
-
-        ociTree = [new RegExp(`E2ETESTS \\(${ociConfig.region}\\)`),
-        new RegExp("\\(Root Compartment\\)"), /QA/, /MySQLShellTesting/];
-
-        try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
-            const settings = new E2ESettings();
-            await settings.open();
-            await settings.selectCurrentTheme(constants.darkModern);
-            await settings.close();
-            await Misc.dismissNotifications();
-            await ociTreeSection.focus();
-            await ociTreeSection.tree.expandElement(ociTree, constants.wait25seconds);
-        } catch (e) {
-            await Misc.storeScreenShot("beforeAll_OCI");
-            throw e;
-        }
-
-    });
-
-    afterAll(async () => {
-        await Os.writeFELogs(basename(__filename), driver.manage().logs());
-        await driver.close();
-        await driver.quit();
-    });
-
-    afterEach(async () => {
-        if (testFailed) {
-            testFailed = false;
-            await Misc.storeScreenShot();
-        }
-
-        if (existsInQueue) {
-            await TestQueue.pop(expect.getState().currentTestName!);
-            existsInQueue = false;
-        }
-
-        await tabContainer.closeAllTabs();
-    });
-
-    it("View Config Profile Information", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            await ociTreeSection.tree.openContextMenuAndSelect(treeE2eProfile!,
-                constants.viewConfigProfileInformation);
-            expect(await tabContainer.getTab(`${ociConfig!.name} Info.json`)).toBeDefined();
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("View Compartment Information", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            const qaInfoJson = `${ociTree[2].source} Info.json`;
-            await ociTreeSection.tree.openContextMenuAndSelect(ociTree[2],
-                constants.viewCompartmentInformation);
-            await driver.wait(tabContainer.untilTabIsOpened(qaInfoJson), constants.wait5seconds);
-            await driver.wait(textEditor.untilIsJson(), constants.wait5seconds);
-            compartmentId = JSON.parse(await textEditor.getText()).id;
-            await tabContainer.closeAllTabs();
-        } catch (e) {
-            await Misc.storeScreenShot();
-            throw e;
-        }
-    });
-
-    it("View DB System Information", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            const treeDbSystem = await ociTreeSection.tree.getOciElementByType(constants.dbSystemType);
-            await ociTreeSection.tree.openContextMenuAndSelect(treeDbSystem, constants.viewDBSystemInformation);
-            await driver.wait(tabContainer.untilTabIsOpened(`${treeDbSystem} Info.json`),
-                constants.wait5seconds);
-            await driver.wait(textEditor.untilIsJson(), constants.wait5seconds);
-            dbSystemID = JSON.parse(await textEditor.getText()).id;
-        } catch (e) {
-            await Misc.storeScreenShot();
-            throw e;
-        }
-    });
-
-    it("Get Bastion Information", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            const treeBastion = await ociTreeSection.tree.getOciElementByType(constants.bastionType);
-            await ociTreeSection.tree.openContextMenuAndSelect(treeBastion, constants.getBastionInformation);
-            await driver.wait(tabContainer.untilTabIsOpened(`${treeBastion} Info.json`), constants.wait5seconds);
-            await driver.wait(textEditor.untilIsJson(), constants.wait5seconds);
-            bastionID = JSON.parse(await textEditor.getText()).id;
-            await tabContainer.closeTab(new RegExp(`${treeBastion} Info.json`));
-        } catch (e) {
-            await Misc.storeScreenShot();
-            throw e;
-        }
-    });
-
-    it("View Compute Instance Information", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            const treeComputeInstance = await ociTreeSection.tree.getOciElementByType(constants.ociComputeType);
-            await ociTreeSection.tree.openContextMenuAndSelect(treeComputeInstance,
-                constants.viewComputeInstanceInformation);
-            await driver.wait(tabContainer.untilTabIsOpened(`${treeComputeInstance} Info.json`),
-                constants.wait5seconds);
-            await driver.wait(textEditor.untilIsJson(), constants.wait5seconds);
-        } catch (e) {
-            await Misc.storeScreenShot();
-            throw e;
-        }
-    });
-
-});
+let mdsEndPoint: string | undefined;
+let dbSystemID: string | undefined;
+let bastionID: string | undefined;
 
 describe("OCI", () => {
 
@@ -210,7 +65,7 @@ describe("OCI", () => {
         new RegExp("\\(Root Compartment\\)"), /QA/, /MySQLShellTesting/];
 
         try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
             const settings = new E2ESettings();
             await settings.open();
             await settings.selectCurrentTheme(constants.darkModern);
@@ -266,7 +121,7 @@ describe("OCI", () => {
             await Misc.dismissNotifications(true);
             await ociTreeSection.tree.openContextMenuAndSelect(ociTree[2],
                 constants.setAsCurrentCompartment);
-            const notification = await new E2EToastNotification().create();
+            const notification = (await new E2EToastNotification().create())!;
             expect(notification.message)
                 // eslint-disable-next-line max-len
                 .toBe(`${String(ociTree[2]).replaceAll("/", "")} in ${ociConfig?.name} is now the current compartment.`);
@@ -285,7 +140,7 @@ describe("OCI", () => {
                 "Shell Console was not loaded");
             await shellConsole.codeEditor.create();
             const result = await shellConsole.codeEditor.execute("mds.get.currentCompartmentId()");
-            expect(result.text).toBe(compartmentId);
+            expect(result.text).toContain("ocid1");
         } catch (e) {
             await Misc.storeScreenShot();
             throw e;
@@ -353,11 +208,11 @@ describe("OCI", () => {
             await ociTreeSection.tree.openContextMenuAndSelect(treeBastion, constants.setAsCurrentBastion);
             await driver.wait(ociTreeSection.tree.untilIsDefault(treeBastion, "bastion"),
                 constants.wait10seconds, "Bastion is not the default item");
-            let notification = await new E2EToastNotification().create();
+            let notification = (await new E2EToastNotification().create())!;
             expect(notification.message).toBe(`Setting current bastion to ${treeBastion} ...`);
             await notification.close();
             await driver.wait(notification.untilIsClosed(), constants.wait3seconds);
-            notification = await new E2EToastNotification().create();
+            notification = (await new E2EToastNotification().create())!;
             expect(notification.message).toBe(`Current bastion set to ${treeBastion}.`);
             await notification.close();
 

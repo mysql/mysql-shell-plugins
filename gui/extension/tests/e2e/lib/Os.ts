@@ -33,6 +33,7 @@ import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
 import clipboard from "clipboardy";
 import * as constants from "./constants";
 import { driver, Misc } from "./Misc";
+import * as locators from "./locators";
 
 /**
  * This class aggregates the functions that perform operating system related operations
@@ -265,30 +266,16 @@ export class Os {
 
     /**
      * Selects and deletes the current line text
+     * @param line The line to delete
      */
-    public static keyboardDeleteCurrentLine = async (): Promise<void> => {
-        if (Os.isMacOs()) {
-            await driver.actions()
-                .keyDown(Key.COMMAND)
-                .keyDown(Key.SHIFT)
-                .keyDown(Key.ARROW_LEFT)
-                .keyUp(Key.ARROW_LEFT)
-                .keyUp(Key.COMMAND)
-                .keyUp(Key.SHIFT)
-                .keyDown(Key.BACK_SPACE)
-                .keyUp(Key.BACK_SPACE)
-                .perform();
-        } else {
-            await driver.actions()
-                .keyDown(Key.SHIFT)
-                .keyDown(Key.END)
-                .keyUp(Key.END)
-                .keyUp(Key.SHIFT)
-                .keyDown(Key.BACK_SPACE)
-                .keyUp(Key.BACK_SPACE)
-                .perform();
+    public static keyboardDeleteLine = async (line: string): Promise<void> => {
+        const textArea = await driver.findElement(locators.notebook.codeEditor.textArea);
+        const letters = line.split("");
+
+        for (let i = 0; i <= letters.length + 3; i++) {
+            await textArea.sendKeys(Key.BACK_SPACE);
+            await driver.sleep(50);
         }
-        await driver.sleep(300); // safety
     };
 
     /**

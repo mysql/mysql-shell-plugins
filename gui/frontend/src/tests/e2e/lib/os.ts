@@ -27,9 +27,9 @@ import { spawnSync } from "child_process";
 import { appendFile, readFile, writeFile } from "fs/promises";
 import { platform } from "os";
 import { join } from "path";
-import { Logs, logging, WebElement, Key } from "selenium-webdriver";
+import { Logs, logging, WebElement, Key, error } from "selenium-webdriver";
 import * as constants from "./constants.js";
-
+import * as locators from "./locators.js";
 import { driver } from "../lib/driver.js";
 
 export const feLog = "fe.log";
@@ -88,7 +88,7 @@ export class Os {
      * @returns A promise revolved with the clipboard content
      */
     public static readClipboard = async (): Promise<string> => {
-        return driver.executeScript("return await navigator.clipboard.readText()");
+        return driver.executeScript("window.focus(); return await navigator.clipboard.readText()");
     };
 
     /**
@@ -97,25 +97,42 @@ export class Os {
      * - Removes hours, minutes and seconds (useful for clipboard content coming from result grids)
      * @returns A promise resolving with the clipboard content as a string or array of string, if there are line breaks
      */
-    public static getClipboardContent = async (): Promise<string | string[]> => {
-        const clipboardData = (await this.readClipboard()).split("\n").filter((item) => { return item; });
-        const replacers = [/\n/, / (\d+):(\d+):(\d+)/];
+    public static getClipboardContent = async (): Promise<string | string[] | undefined> => {
+        let content: string[] | string | undefined;
 
-        if (clipboardData.length > 1) {
-            for (let i = 0; i <= clipboardData.length - 1; i++) {
-                for (const replacer of replacers) {
-                    clipboardData[i] = clipboardData[i].replace(replacer, "").trim();
+        await driver.wait(async () => {
+            try {
+                const clipboardData = (await this.readClipboard()).split("\n").filter((item) => { return item; });
+                const replacers = [/\n/, / (\d+):(\d+):(\d+)/];
+
+                if (clipboardData.length > 1) {
+                    for (let i = 0; i <= clipboardData.length - 1; i++) {
+                        for (const replacer of replacers) {
+                            clipboardData[i] = clipboardData[i].replace(replacer, "").trim();
+                        }
+                    }
+
+                    content = clipboardData;
+
+                    return true;
+                } else {
+                    for (const replacer of replacers) {
+                        clipboardData[0] = clipboardData[0].replace(replacer, "").trim();
+                    }
+
+                    content = clipboardData;[0];
+
+                    return true;
+                }
+            } catch (e) {
+                console.log(e);
+                if (!(e instanceof error.JavascriptError)) {
+                    throw e;
                 }
             }
+        }, constants.wait3seconds);
 
-            return clipboardData;
-        } else {
-            for (const replacer of replacers) {
-                clipboardData[0] = clipboardData[0].replace(replacer, "").trim();
-            }
-
-            return clipboardData[0];
-        }
+        return content;
     };
 
     /**
@@ -198,28 +215,15 @@ export class Os {
 
     /**
      * Selects and deletes the current line text
+     * @param line The line to delete
      */
-    public static keyboardDeleteCurrentLine = async (): Promise<void> => {
-        if (Os.isMacOs()) {
-            await driver.actions()
-                .keyDown(Key.COMMAND)
-                .keyDown(Key.SHIFT)
-                .keyDown(Key.ARROW_LEFT)
-                .keyUp(Key.ARROW_LEFT)
-                .keyUp(Key.COMMAND)
-                .keyUp(Key.SHIFT)
-                .keyDown(Key.BACK_SPACE)
-                .keyUp(Key.BACK_SPACE)
-                .perform();
-        } else {
-            await driver.actions()
-                .keyDown(Key.SHIFT)
-                .keyDown(Key.END)
-                .keyUp(Key.END)
-                .keyUp(Key.SHIFT)
-                .keyDown(Key.BACK_SPACE)
-                .keyUp(Key.BACK_SPACE)
-                .perform();
+    public static keyboardDeleteLine = async (line: string): Promise<void> => {
+        const textArea = await driver.findElement(locators.notebook.codeEditor.textArea);
+        const letters = line.split("");
+
+        for (let i = 0; i <= letters.length + 3; i++) {
+            await textArea.sendKeys(Key.BACK_SPACE);
+            await driver.sleep(50);
         }
     };
 

@@ -791,4 +791,15 @@ export class Workbench {
             }
         });
     };
+
+    /**
+     * Sets the workbench color theme
+     * @param theme The color theme
+     */
+    public static setColorTheme = async (theme: string): Promise<void> => {
+        const settingsEditor = await new extWorkbench().openSettings();
+        const setting = await settingsEditor.findSetting("Color Theme", "Workbench");
+        await setting.setValue(theme);
+        await Workbench.closeEditor(/Settings/);
+    };
 }

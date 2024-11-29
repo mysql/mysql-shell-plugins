@@ -32,6 +32,7 @@ import { E2EAccordionSection } from "./E2EAccordionSection";
 import { E2ERestService } from "./E2ERestService";
 import { RestSchemaDialog } from "../WebViews/Dialogs/RestSchemaDialog";
 import { E2ERestObject } from "./E2ERestObject";
+import { error } from "vscode-extension-tester";
 
 /**
  * This class represents the tree within an accordion section and its related functions
@@ -81,7 +82,16 @@ export class E2ERestSchema {
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
         const treeSchema = await dbTreeSection.tree.getElement(this.settings.schemaName);
         await dbTreeSection.tree.openContextMenuAndSelect(treeSchema, constants.addSchemaToREST);
-        const restSchema = await RestSchemaDialog.set(this);
+        const restSchema = await RestSchemaDialog.set(this)
+            .catch(async (e) => {
+                if (e instanceof error.TimeoutError) {
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeSchema, constants.addSchemaToREST);
+
+                    return RestSchemaDialog.set(this);
+                } else {
+                    throw e;
+                }
+            });
 
         if (!restSchema.treeName || restSchema.treeName.includes("undefined")) {
             restSchema.treeName = `/${restSchema.settings.schemaName} (${restSchema.settings.schemaName})`;
@@ -103,7 +113,16 @@ export class E2ERestSchema {
         const thisSchema = await dbTreeSection.tree.getElement(this.treeName);
         await dbTreeSection.tree.openContextMenuAndSelect(thisSchema, constants.editRESTSchema);
         const previousSchema = this.settings.schemaName;
-        const editedSchema = await RestSchemaDialog.set(newData);
+        const editedSchema = await RestSchemaDialog.set(newData).catch(async (e) => {
+            if (e instanceof error.TimeoutError) {
+                await dbTreeSection.tree.openContextMenuAndSelect(thisSchema, constants.editRESTSchema);
+                const editedSchema = await RestSchemaDialog.set(newData);
+
+                return editedSchema;
+            } else {
+                throw e;
+            }
+        });
         this.set(editedSchema);
         const index = this.parentService.restSchemas.findIndex((item: interfaces.IRestSchema) => {
             return item.settings.schemaName === previousSchema;
@@ -122,7 +141,19 @@ export class E2ERestSchema {
         await dbTreeSection.tree.openContextMenuAndSelect(await dbTreeSection
             .tree.getElement(this.treeName), constants.editRESTSchema);
 
-        return RestSchemaDialog.get();
+        const schema = RestSchemaDialog.get()
+            .catch(async (e) => {
+                if (e instanceof error.TimeoutError) {
+                    await dbTreeSection.tree.openContextMenuAndSelect(await dbTreeSection
+                        .tree.getElement(this.treeName), constants.editRESTSchema);
+
+                    return RestSchemaDialog.get();
+                } else {
+                    throw e;
+                }
+            });
+
+        return schema;
     };
 
     /**

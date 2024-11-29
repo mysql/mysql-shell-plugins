@@ -45,7 +45,7 @@ export class RestSchemaDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsSchemaDialog.exists),
-            constants.wait20seconds, "MRS Schema dialog was not displayed");
+            constants.wait5seconds, "MRS Schema dialog was not displayed");
 
         if (restSchema) {
 

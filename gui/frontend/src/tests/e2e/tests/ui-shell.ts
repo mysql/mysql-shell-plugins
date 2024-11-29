@@ -69,7 +69,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         await driver.get(url);
 
         try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
             const settings = new E2ESettings();
             await settings.open();
             await settings.selectCurrentTheme(constants.darkModern);
@@ -170,10 +170,10 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         it("Connect using shell global variable", async () => {
             try {
-                let result = await shellConsole.codeEditor.execute("shell.status()", true);
+                let result = await shellConsole.codeEditor.execute("shell.status()");
                 expect(result.text).toMatch(/MySQL Shell version (\d+).(\d+).(\d+)/);
                 let uri = `shell.connect('${username}:${password}@${hostname}:${port}0/${schema}')`;
-                result = await shellConsole.codeEditor.execute(uri, true);
+                result = await shellConsole.codeEditor.execute(uri);
                 uri = `Creating a session to '${username}@${hostname}:${port}0/${schema}'`;
                 expect(result.text).toMatch(new RegExp(uri));
                 expect(result.text).toMatch(/Server version: (\d+).(\d+).(\d+)/);
@@ -197,10 +197,10 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Connect using mysql mysqlx global variable", async () => {
             try {
                 let cmd = `mysql.getClassicSession('${username}:${password}@${hostname}:${port}/${schema}')`;
-                let result = await shellConsole.codeEditor.execute(cmd, true);
+                let result = await shellConsole.codeEditor.execute(cmd);
                 expect(result.text).toMatch(/ClassicSession/);
                 cmd = `mysqlx.getSession('${username}:${password}@${hostname}:${port}0/${schema}')`;
-                result = await shellConsole.codeEditor.execute(cmd, true);
+                result = await shellConsole.codeEditor.execute(cmd);
                 expect(result.text).toMatch(/Session/);
             } catch (e) {
                 testFailed = true;
@@ -285,7 +285,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                     expect(result.text).toMatch(reg);
                 }
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_Sessions");
+                testFailed = true;
                 throw e;
             }
         });
@@ -294,12 +294,12 @@ describe("MYSQL SHELL CONSOLES", () => {
             try {
                 await driver.wait(until.elementLocated(locator.shellConsole.editor),
                     constants.wait10seconds, "Console was not loaded");
-                let result = await shellConsole.codeEditor.languageSwitch("\\py ", true);
+                let result = await shellConsole.codeEditor.languageSwitch("\\py ");
                 expect(result!.text).toMatch(/Python/);
-                result = await shellConsole.codeEditor.languageSwitch("\\js ", true);
+                result = await shellConsole.codeEditor.languageSwitch("\\js ");
                 expect(result!.text).toMatch(/JavaScript/);
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_Sessions");
+                testFailed = true;
                 throw e;
             }
         });
@@ -309,14 +309,14 @@ describe("MYSQL SHELL CONSOLES", () => {
                 const result = await shellConsole.codeEditor.execute("db.actor.select().limit(1)");
                 expect(await result.grid!.content!.getAttribute("innerHTML")).toMatch(/PENELOPE/);
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_Sessions");
+                testFailed = true;
                 throw e;
             }
         });
 
         it("Using util global variable", async () => {
             try {
-                const result = await shellConsole.codeEditor.execute('util.exportTable("actor", "test.txt")');
+                const result = await shellConsole.codeEditor.execute('util.exportTable("actor","test.txt")');
                 expect(result.text).toMatch(/Running data dump using 1 thread/);
                 const matches = [
                     /Total duration: (\d+)(\d+):(\d+)(\d+):(\d+)(\d+)s/,
@@ -329,7 +329,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                     expect(result.text).toMatch(match);
                 }
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_Sessions");
+                testFailed = true;
                 throw e;
             }
         });
@@ -340,18 +340,18 @@ describe("MYSQL SHELL CONSOLES", () => {
                 const result = await shellConsole.codeEditor.execute("db.countryinfo.find()");
                 expect(result.json).toMatch(/Yugoslavia/);
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_Sessions");
+                testFailed = true;
                 throw e;
             }
         });
 
         it("Check query result content", async () => {
             try {
-                await shellConsole.codeEditor.languageSwitch("\\sql ");
-                let result = await shellConsole.codeEditor.execute("SHOW DATABASES;", true);
+                await shellConsole.codeEditor.languageSwitch("\\sql");
+                let result = await shellConsole.codeEditor.execute("SHOW DATABASES;");
                 expect(await result.grid!.content!.getAttribute("innerHTML")).toMatch(/sakila/);
                 expect(await result.grid!.content!.getAttribute("innerHTML")).toMatch(/mysql/);
-                await shellConsole.codeEditor.languageSwitch("\\js ");
+                await shellConsole.codeEditor.languageSwitch("\\js");
                 result = await shellConsole.codeEditor.execute(`shell.options.resultFormat="json/raw" `);
                 expect(result.text).toMatch(/json\/raw/);
                 result = await shellConsole.codeEditor.execute(`shell.options.showColumnTypeInfo=false `);
@@ -367,7 +367,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                 result = await shellConsole.codeEditor.execute("db.category.select().limit(1)");
                 expect(await result.grid!.content!.getAttribute("innerHTML")).toMatch(/Action/);
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_Sessions");
+                testFailed = true;
                 throw e;
             }
         });

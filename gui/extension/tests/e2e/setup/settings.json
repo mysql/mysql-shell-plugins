@@ -3,5 +3,6 @@
     "terminal.integrated.sendKeybindingsToShell": true,
     "window.dialogStyle": "custom",
     "msg.debugLog.level": "DEBUG2",
-    "terminal.integrated.gpuAcceleration": "off"
+    "terminal.integrated.gpuAcceleration": "off",
+    "workbench.colorTheme": "Dark Modern"
 }

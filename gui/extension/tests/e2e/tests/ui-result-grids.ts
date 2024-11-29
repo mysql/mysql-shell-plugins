@@ -1309,7 +1309,6 @@ describe("RESULT GRIDS", () => {
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_ints where id = 1;",
-                    undefined,
                     (parseInt(notebook.codeEditor.resultIds[notebook.codeEditor.resultIds.length - 1],
                         10) - 2) as unknown as string);
             expect(result.toolbar.status).to.match(/OK/);

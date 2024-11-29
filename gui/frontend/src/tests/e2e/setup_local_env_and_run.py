@@ -272,7 +272,14 @@ def main() -> None:
             task_utils.BEServer(executor.environment, 8000),
             task_utils.BEServer(executor.environment, 8001),
             task_utils.BEServer(executor.environment, 8002),
-            task_utils.BEServer(executor.environment, 8005, True),
+            task_utils.BEServer(executor.environment, 8003),
+            task_utils.BEServer(executor.environment, 8004),
+            task_utils.BEServer(executor.environment, 8005),
+            task_utils.BEServer(executor.environment, 8006),
+            task_utils.BEServer(executor.environment, 8007),
+            task_utils.BEServer(executor.environment, 8008),
+            task_utils.BEServer(executor.environment, 8009),
+            task_utils.BEServer(executor.environment, 8010, True),
         ]
 
         executor.add_task(SetEnvironmentVariablesTask(

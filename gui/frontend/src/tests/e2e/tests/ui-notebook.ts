@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { join, basename } from "path";
+import { basename } from "path";
 import * as fs from "fs/promises";
 import { Condition, Key, until, error } from "selenium-webdriver";
 import { driver, loadDriver } from "../lib/driver.js";
@@ -38,13 +38,10 @@ import * as locator from "../lib/locators.js";
 import { E2ECodeEditorWidget } from "../lib/E2ECodeEditorWidget.js";
 import { E2EHeatWaveProfileEditor } from "../lib/MySQLAdministration/E2EHeatWaveProfileEditor.js";
 import { E2ETabContainer } from "../lib/E2ETabContainer.js";
-import { TestQueue } from "../lib/TestQueue.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
-let existsInQueue = false;
-let testFailed = false;
 
 describe("NOTEBOOKS", () => {
 
@@ -69,7 +66,7 @@ describe("NOTEBOOKS", () => {
         await driver.get(url);
 
         try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
             const settings = new E2ESettings();
             await settings.open();
             await settings.selectCurrentTheme(constants.darkModern);
@@ -77,7 +74,7 @@ describe("NOTEBOOKS", () => {
 
             await dbTreeSection.focus();
             await dbTreeSection.createDatabaseConnection(globalConn);
-            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait5seconds);
+            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait3seconds);
             await (await dbTreeSection.tree.getActionButton(globalConn.caption!,
                 constants.openNewDatabaseConnectionOnNewTab))!.click();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
@@ -256,7 +253,7 @@ describe("NOTEBOOKS", () => {
         it("Switch between search tabs", async () => {
             try {
                 const result = await notebook.codeEditor
-                    .execute("select * from sakila.actor limit 1; select * from sakila.address limit 1;", true);
+                    .execute("select * from sakila.actor limit 1; select * from sakila.address limit 1;");
                 expect(result.toolbar!.status).toMatch(/OK/);
                 expect(result.tabs!.length).toBe(2);
                 expect(result.tabs![0].name).toBe("Result #1");
@@ -345,7 +342,7 @@ describe("NOTEBOOKS", () => {
 
         it("Connection toolbar buttons - Find and Replace", async () => {
             try {
-                await notebook.codeEditor.write(`import from xpto xpto xpto`);
+                await notebook.codeEditor.write(`import from xpto xpto xpto`, true);
                 const widget = await new E2ECodeEditorWidget(notebook).open();
                 await widget.setTextToFind("xpto");
                 await widget.toggleFinderReplace(true);
@@ -400,7 +397,7 @@ describe("NOTEBOOKS", () => {
 
         it("Multi-line comments", async () => {
             try {
-                await notebook.codeEditor.languageSwitch("\\sql ", true);
+                await notebook.codeEditor.languageSwitch("\\sql ");
                 const result1 = await notebook.codeEditor.execute("select version();");
                 expect(result1.toolbar!.status).toMatch(/1 record retrieved/);
                 const cell = result1.grid!.content!
@@ -412,12 +409,10 @@ describe("NOTEBOOKS", () => {
                 digits[1].length === 1 ? serverVer += "0" + digits[1] : serverVer += digits[1];
                 digits[2].length === 1 ? serverVer += "0" + digits[2] : serverVer += digits[2];
 
-                const result2 = await notebook.codeEditor.execute(`/*!${serverVer} select * from sakila.actor;*/`,
-                    true);
+                const result2 = await notebook.codeEditor.execute(`/*!${serverVer} select * from sakila.actor;*/`);
                 expect(result2.toolbar!.status).toMatch(/OK, (\d+) records retrieved/);
                 const higherServer = parseInt(serverVer, 10) + 1;
-                const result3 = await notebook.codeEditor.execute(`/*!${higherServer} select * from sakila.actor;*/`,
-                    true);
+                const result3 = await notebook.codeEditor.execute(`/*!${higherServer} select * from sakila.actor;*/`);
                 expect(result3.text).toMatch(/OK, 0 records retrieved/);
             } catch (e) {
                 testFailed = true;
@@ -450,7 +445,7 @@ describe("NOTEBOOKS", () => {
 
         it("Pie Graph based on DB table", async () => {
             try {
-                await notebook.codeEditor.languageSwitch("\\ts ", true);
+                await notebook.codeEditor.languageSwitch("\\ts ");
                 const result = await notebook.codeEditor.execute(
                     `const res = await runSql("SELECT Name, Capital FROM world_x_cst.country limit 10");
                 const options: IGraphOptions = {series:[{type: "bar", yLabel: "Actors", data: res as IJsonGraphData}]};
@@ -471,7 +466,7 @@ describe("NOTEBOOKS", () => {
 
         it("Autocomplete context menu", async () => {
             try {
-                await notebook.codeEditor.languageSwitch("\\sql ", true);
+                await notebook.codeEditor.languageSwitch("\\sql ");
                 await notebook.codeEditor.write("select sak", true);
                 await notebook.codeEditor.openSuggestionMenu();
                 let els = await notebook.codeEditor.getAutoCompleteMenuItems();
@@ -592,7 +587,7 @@ describe("NOTEBOOKS", () => {
                 await hwProfileEditor.selectModel(constants.modelMistral);
                 await notebook.codeEditor.languageSwitch("\\chat");
                 await notebook.codeEditor.loadCommandResults();
-                const result = await notebook.codeEditor.execute(query);
+                const result = await notebook.codeEditor.execute(query, undefined, true);
                 expect(result.chat!.length).toBeGreaterThan(0);
 
                 const history = await hwProfileEditor.getHistory();
@@ -618,157 +613,3 @@ describe("NOTEBOOKS", () => {
 
 });
 
-describe("NOTEBOOKS - CLIPBOARD", () => {
-
-    const globalConn: interfaces.IDBConnection = {
-        dbType: "MySQL",
-        caption: `E2E - NOTEBOOKS clipboard`,
-        description: "Local connection",
-        basic: {
-            hostname: "localhost",
-            username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_PORT!, 10),
-            schema: "sakila",
-            password: String(process.env.DBUSERNAME1PWD),
-        },
-    };
-
-    const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
-    const notebook = new E2ENotebook();
-
-    beforeAll(async () => {
-        await loadDriver(false);
-        await driver.get(url);
-
-        try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
-            const settings = new E2ESettings();
-            await settings.open();
-            await settings.selectCurrentTheme(constants.darkModern);
-            await settings.close();
-
-            await dbTreeSection.focus();
-            await dbTreeSection.createDatabaseConnection(globalConn);
-            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait5seconds);
-            await (await dbTreeSection.tree.getActionButton(globalConn.caption!,
-                constants.openNewDatabaseConnectionOnNewTab))!.click();
-            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
-            await notebook.codeEditor.loadCommandResults();
-        } catch (e) {
-            await Misc.storeScreenShot("beforeAll_NOTEBOOKS");
-            throw e;
-        }
-
-    });
-
-    afterAll(async () => {
-        await Os.writeFELogs(basename(__filename), driver.manage().logs());
-        await driver.close();
-        await driver.quit();
-    });
-
-    afterEach(async () => {
-        if (existsInQueue) {
-            await TestQueue.pop(expect.getState().currentTestName!);
-            existsInQueue = false;
-        }
-
-        if (testFailed) {
-            testFailed = false;
-            await Misc.storeScreenShot();
-        }
-    });
-
-    it("Copy paste into notebook", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            await notebook.codeEditor.clean();
-            const filename = "users.sql";
-            const destFile = join(process.cwd(), "src", "tests", "e2e", "sql", filename);
-            await dbTreeSection.tree.openContextMenuAndSelect(globalConn.caption!, constants.loadSQLScriptFromDisk);
-            await Misc.uploadFile(destFile);
-            await driver.wait(async () => {
-                return ((await notebook.toolbar.editorSelector.getCurrentEditor()).label) === filename;
-            }, constants.wait5seconds, `Current editor is not ${filename}`);
-
-            let textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-            await Os.keyboardSelectAll(textArea);
-            await Os.keyboardCopy(textArea);
-            await (await new E2ETabContainer().getTab(globalConn.caption!))?.click();
-
-            textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-            await driver.executeScript("arguments[0].click()", textArea);
-            await Os.keyboardPaste(textArea);
-
-            const sakilaFile = await fs.readFile(join(process.cwd(), "src", "tests", "e2e", "sql", filename));
-            const fileLines = sakilaFile.toString().split("\n");
-            const widget = await new E2ECodeEditorWidget(notebook).open();
-
-            try {
-                for (const line of fileLines) {
-                    if (line.trim() !== "") {
-                        await widget.setTextToFind(line.substring(0, 150).replace(/`|;/gm, ""));
-                        await driver.wait(widget.untilMatchesCount(/1 of (\d+)/), constants.wait2seconds);
-                    }
-                }
-            } finally {
-                await widget.close();
-                await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.dbNotebook));
-            }
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("Cut paste into notebook", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            const sentence1 = "select * from sakila.actor";
-            const sentence2 = "select * from sakila.address";
-            await notebook.codeEditor.clean();
-            await notebook.codeEditor.write(sentence1);
-            await notebook.codeEditor.setNewLine();
-            await notebook.codeEditor.write(sentence2);
-            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-            await Os.keyboardSelectAll(textArea);
-            await Os.keyboardCut(textArea);
-            expect(await notebook.exists(sentence1)).toBe(false);
-            expect(await notebook.exists(sentence2)).toBe(false);
-            await Os.keyboardPaste(textArea);
-            expect(await notebook.exists(sentence1)).toBe(true);
-            expect(await notebook.exists(sentence2)).toBe(true);
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-    it("Copy to clipboard button", async () => {
-        try {
-            await TestQueue.push(expect.getState().currentTestName!);
-            existsInQueue = true;
-            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
-
-            await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("\\about ");
-            await result.copyToClipboard();
-            await notebook.codeEditor.clean();
-            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-            await Os.keyboardPaste(textArea);
-            await driver.wait(async () => {
-                return notebook.exists("Welcome");
-            }, constants.wait5seconds, "The text was not pasted to the notebook");
-        } catch (e) {
-            testFailed = true;
-            throw e;
-        }
-    });
-
-});

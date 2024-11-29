@@ -182,7 +182,7 @@ export class ObjectStorageBrowser {
                     let item = await this.getItem(path[i], String(i));
                     await driver.executeScript("arguments[0].click()",
                         await item.findElement(objStorageItem.treeToggle));
-                    await driver.wait(this.untilItemsAreLoaded(), constants.wait5seconds,
+                    await driver.wait(this.untilItemsAreLoaded(), constants.wait15seconds,
                         ` ${path[i + 1]} to be loaded`);
                     item = await this.getItem(path[i], String(i));
                     const itemToggle = await item.findElement(objStorageItem.treeToggle);

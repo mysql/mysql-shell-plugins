@@ -221,7 +221,7 @@ export class E2ETree {
      * @returns A condition resolving to true if the element exists, false otherwise
      */
     public untilExists = (element: string | RegExp): Condition<boolean> => {
-        return new Condition(`for ${element} to exist`, async () => {
+        return new Condition(`for ${element} to exist on the tree`, async () => {
             let reloadLabel: string;
             await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
 
@@ -248,7 +248,7 @@ export class E2ETree {
      * @returns A condition resolving to true if the element does not exist, false otherwise
      */
     public untilDoesNotExist = (element: string | RegExp): Condition<boolean> => {
-        return new Condition(`for ${element} to not exist`, async () => {
+        return new Condition(`for ${element} to not exist on the tree`, async () => {
             let reloadLabel: string;
             await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
             if (this.accordionSection.accordionSectionName === constants.dbTreeSection ||
@@ -274,30 +274,48 @@ export class E2ETree {
      */
     public isElementDefault = async (element: string, type: string): Promise<boolean | undefined> => {
 
-        const treeItem = await this.getElement(element);
-        const el = await treeItem!.findElement(locator.section.tree.element.icon.exists);
-        const backImage = await el.getCssValue("mask-image");
+        let isDefaultElement = false;
+        await driver.wait(async () => {
+            try {
+                const treeItem = await this.getElement(element);
+                const el = await treeItem!.findElement(locator.section.tree.element.icon.exists);
+                const backImage = await el.getCssValue("mask-image");
 
-        switch (type) {
-            case "profile": {
-                return backImage.includes("ociProfileCurrent");
+                switch (type) {
+                    case "profile": {
+                        isDefaultElement = backImage.includes("ociProfileCurrent");
+                        break;
+                    }
+                    case "compartment": {
+                        isDefaultElement = backImage.includes("folderCurrent");
+                        break;
+                    }
+                    case "bastion": {
+                        isDefaultElement = backImage.includes("ociBastionCurrent");
+                        break;
+                    }
+                    case "rest": {
+                        isDefaultElement = backImage.includes("mrsServiceDefault");
+                        break;
+                    }
+                    case "schema": {
+                        isDefaultElement = backImage.includes("schemaMySQLCurrent");
+                        break;
+                    }
+                    default: {
+                        throw new Error(`Unknown element default type ${type}`);
+                    }
+                }
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
             }
-            case "compartment": {
-                return backImage.includes("folderCurrent");
-            }
-            case "bastion": {
-                return backImage.includes("ociBastionCurrent");
-            }
-            case "rest": {
-                return backImage.includes("mrsServiceDefault");
-            }
-            case "schema": {
-                return backImage.includes("schemaMySQLCurrent");
-            }
-            default: {
-                break;
-            }
-        }
+        }, constants.wait5seconds, `Could not verify if tree element (${element}) is marked as default`);
+
+        return isDefaultElement;
     };
 
     /**
@@ -629,8 +647,8 @@ export class E2ETree {
 
             if ((await Misc.getToastNotifications()).length > 0) {
                 const notification = await new E2EToastNotification().create();
-                expect(notification.message).toBe("MySQL REST Service configured successfully.");
-                await notification.close();
+                expect(notification!.message).toBe("MySQL REST Service configured successfully.");
+                await notification!.close();
 
                 return true;
             }

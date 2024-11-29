@@ -65,7 +65,7 @@ describe("OPEN EDITORS", () => {
         await driver.get(url);
 
         try {
-            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds, "Home page was not loaded");
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
             const settings = new E2ESettings();
             await settings.open();
             await settings.selectCurrentTheme(constants.darkModern);
@@ -73,7 +73,7 @@ describe("OPEN EDITORS", () => {
 
             await dbTreeSection.focus();
             await dbTreeSection.createDatabaseConnection(globalConn);
-            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait5seconds);
+            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait3seconds);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_OPEN_EDITORS");
             throw e;

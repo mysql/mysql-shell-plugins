@@ -517,14 +517,7 @@ export class CommandResult implements interfaces.ICommandResult {
             await driver.executeScript("arguments[0].click()", columnTitles[0]);
             await driver.wait(async () => {
                 return (await (this.context!.findElements(gridLocator.row.cell.exists))).length > 0;
-            }, constants.wait2seconds, `Table cells were not loaded for cmd ${this.command} for the second time`)
-                .catch(async () => {
-                    await driver.executeScript("arguments[0].click()", columnTitles[1]);
-                    await driver.wait(async () => {
-                        return (await (this.context!.findElements(gridLocator.row.cell.exists))).length > 0;
-                    }, constants.wait2seconds,
-                        `Table cells were not loaded for cmd ${this.command} for the third time`);
-                });
+            }, constants.wait10seconds, `Table cells were not loaded for cmd ${this.command} for the second time`);
         });
 
         await this.setToolbar();
