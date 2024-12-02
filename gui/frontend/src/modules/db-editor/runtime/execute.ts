@@ -114,3 +114,21 @@ export const execute = async (worker: PrivateWorker, code: string,
         throw e;
     }
 };
+
+/**
+ * There's no built-in way to test if a value is cloneable for use in postMessage.
+ * Instead, we create a temporary message channel and see if that allows us to post the value.
+ *
+ * @param value The value to check.
+ *
+ * @returns true if the value is cloneable, false otherwise.
+ */
+export const isCloneable = (value: unknown): boolean => {
+    try {
+        new MessageChannel().port1.postMessage(value);
+
+        return true;
+    } catch (e) {
+        return false;
+    }
+};
