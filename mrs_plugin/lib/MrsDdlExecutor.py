@@ -2880,7 +2880,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
             stmt = (
                 f'CREATE OR REPLACE REST {rest_object_type} {db_object.get("request_path")}\n'
-                + f'    ON SERVICE {mrs_object.get("host_ctx")} SCHEMA {db_object.get("schema_request_path")}\n'
+                + f'    ON SERVICE {db_object.get("host_ctx")} SCHEMA {db_object.get("schema_request_path")}\n'
                 + f'    AS {db_object.get("qualified_name")}'
             )
 
