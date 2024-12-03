@@ -353,7 +353,7 @@ def create_compute_instance_for_endpoint(**kwargs):
 
                     # Get MySQL Router configuration from remote instance
                     output = ""
-                    output = conn.execute('mysqlsh -e "mds.info()"').strip()
+                    output = conn.execute('mysqlsh --js -e "mds.info()"').strip()
                     if "MySQL Shell MDS Plugin" not in output:
                         # If the config is not available yet, give the instance
                         # time to complete setup
@@ -366,7 +366,7 @@ def create_compute_instance_for_endpoint(**kwargs):
                             while ("MySQL Shell MDS Plugin" not in output
                                    and i < 25):
                                 output = conn.execute(
-                                    'mysqlsh -e "mds.info()"').strip()
+                                    'mysqlsh --js -e "mds.info()"').strip()
                                 if "MySQL Shell MDS Plugin" not in output:
                                     time.sleep(5)
                                     if interactive:
