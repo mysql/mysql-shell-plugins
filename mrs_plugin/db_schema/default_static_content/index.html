@@ -955,8 +955,9 @@
             render = (props, state) => {
                 const { userName, password, loginError, userNameVerified, authApps, authApp } = state;
                 const supportedVendors = [
-                    "0x30000000000000000000000000000000",
-                    "0x31000000000000000000000000000000"
+                    "0x30000000000000000000000000000000", // MRS Native
+                    "0x31000000000000000000000000000000", // MySQL Internal
+                    "0x35000000000000000000000000000000", // OCI OAuth
                 ];
 
                 let requestedAuthApp;
@@ -1010,6 +1011,24 @@
                         </div>`;
                 }
 
+                const oracleCloudAuthLink = (appName) => {
+                    const currentLocation = (new URL(window.location.href));
+                    const servicePath = currentLocation.searchParams.get("service");
+                    const redirectUrl = currentLocation.searchParams.get("redirectUrl");
+                    const ociUrl = `${currentLocation.protocol}//${currentLocation.host}${servicePath}/` +
+                        `authentication/login?authApp=${appName}&onCompletionRedirect=${redirectUrl}`
+
+                    return html`
+                        <a href="${ociUrl}">
+                            Login with OCI
+                        </a>
+                    `;
+                };
+
+                if (requestedAuthApp.vendorId === "0x35000000000000000000000000000000") {
+                    return oracleCloudAuthLink(requestedAuthApp.name);
+                }
+
                 // Otherwise, show the login form.
                 const LoginNextBtn = html`
                     <div id="userNameBtn" className="mrsLoginBtnNext"
@@ -1038,9 +1057,9 @@
                         </div>`;
 
                 // Single MRS AuthApp configured
-                return html`
+                const loginForm = html`
                     <div className="mrsLogin">
-                        <p><br/><br/>Sign in with ${requestedAuthApp.name}</p>
+                        <p><br/><br/>Login with ${requestedAuthApp.name}</p>
                         <div className="mrsLoginFields">
                             ${loginBtnHtml}
                             ${userNameVerified && passwordBtnHtml}
@@ -1050,6 +1069,16 @@
                     }
                         <div className="mrsLoginSeparator" />
                     </div>`;
+
+                const oracleCloudAuthApp = authApps?.find((app) => {
+                    return app.vendorId === "0x35000000000000000000000000000000";
+                });
+
+                if (oracleCloudAuthApp === undefined) {
+                    return loginForm;
+                }
+
+                return html`${loginForm}${oracleCloudAuthLink(oracleCloudAuthApp.name)}`;
             }
         }
 
