@@ -41,9 +41,9 @@ In order to serve a welcome landing page when the root URI of a MySQL Router con
 
 These static files are stored in the `./default_static_content/` directory.
 
-Whenever changes are made to any of those files, the `config` table default inserts in the MySQL Workbench model need to be updated with JSON data containing the minified and Base64-encoded content of those static files.
+Please Note: Whenever changes are made to any of those files the MySQL Workbench model needs to be updated.
 
-The script `../scripts/prepare_default_static_content.sh` and the corresponding NPM SCRIPTS entry can be used to generate a `./default_static_content/config.data.json` file that can be then used to populate the `config.data` column in the MySQL Workbench model. In addition, a `./default_static_content/insert.sql` script is generated that can be executed against a MySQL Server already configured for MRS. The latter is useful to test any modifications to the static files.
+The script `../scripts/prepare_default_static_content.sh` and the corresponding NPM SCRIPTS entry can be used to generate a `./default_static_content/insert.sql` file. The MySQL Workbench model script `4. Insert Default Content` content needs to be replaced with the content of this `./default_static_content/insert.sql` file.
 
 Please note, that the `../scripts/prepare_default_static_content.sh` script requires the installation of the following dependencies.
 
@@ -58,7 +58,7 @@ $ brew link --force gettext
 1. Open the `shell-plugins/mrs_plugin/db_schema/mrs_metadata_schema.mwb` file in MySQL Workbench, make the required changes to the model.
 2. If there are changes to a table tracked in the audit log (check the existing `TRIGGER`s), select `Scripting > Run Script File > Audit_Log_Triggers_grt.py` to re-generate the embedded `Audit Log Triggers` SQL script.
 3. Update the `mrs_user_schema_version` VIEW following the semantic versioning scheme if needed.
-4. Update the SQL Script `4. Create Schema Version VIEW` and set the version of the `schema_version` VIEW to the new version using the semantic versioning scheme and apply changes.
+4. Update the SQL Script `5. Create Schema Version VIEW` and set the version of the `schema_version` VIEW to the new version using the semantic versioning scheme and apply changes.
 5. Save the model.
 6. Select `File > Export > Forward Engineer SQL CREATE Script...` and store in `shell-plugins/mrs_plugin/db_schema/mrs_metadata_schema_x.y.z.sql`.
 7. Using the `SQL Scripts` available in the Workbench model, update the exported file as follows:
@@ -67,7 +67,8 @@ $ brew link --force gettext
       1. `1. Additional SQL`
       2. `Audit Log Triggers`
       3. `3. Create Roles`
-      4. `4. Create Schema Version VIEW`
+      4. `4. Insert Default Content`
+      5. `5. Create Schema Version VIEW`
 8. Copy `shell-plugins/mrs_plugin/db_schema/mrs_metadata_schema_x.y.z.sql` to `shell-plugins/mrs_plugin/db_schema/mrs_metadata_schema.sql`
 9. Create a `shell-plugins/mrs_plugin/db_schema/mrs_metadata_schema_a.b.c_to_x.y.z.sql` file and write all the ALTER statements required to get the latest metadata schema version a.b.c to the new state of x.y.z.
 
