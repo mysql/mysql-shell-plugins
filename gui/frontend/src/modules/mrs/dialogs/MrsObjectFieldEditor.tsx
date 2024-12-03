@@ -1188,12 +1188,14 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                                             return item.field.name === selVal[0] && !item.firstItem;
                                         })?.field.id;
 
-                                        // Clear checkboxes of child rows, except the selected one
+                                        // Clear checkboxes of child rows, except the selected one and references
                                         if (reduceToFieldId) {
                                             cellData.children?.forEach((child) => {
                                                 const childTreeItem = this.findTreeItemById(
                                                     child.field.id, data.currentTreeItems);
-                                                if (childTreeItem && childTreeItem.field.id !== reduceToFieldId) {
+                                                if (childTreeItem && childTreeItem.field.id !== reduceToFieldId
+                                                    && !childTreeItem.field.objectReference
+                                                ) {
                                                     childTreeItem.field.enabled = false;
                                                 } else if (childTreeItem &&
                                                     childTreeItem.field.id === reduceToFieldId) {

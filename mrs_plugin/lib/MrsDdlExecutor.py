@@ -134,7 +134,7 @@ def walk(fields, parent_id=None, level=1, add_data_type=False, current_object=No
                 result = f'{result} {" ".join(attributes)}'
 
             if children:
-                result = f"{result} {{\n{children}\n{indent}}}\n"
+                result = f"{result} {{\n{children}\n{indent}}},\n"
 
     return result
 
