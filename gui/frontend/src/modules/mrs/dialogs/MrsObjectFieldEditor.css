@@ -339,7 +339,7 @@ body[theme=dark] .mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.re
 }
 
 .withoutChildren {
-    padding-left: 21px;
+    padding-left: 32px;
 }
 
 .mrsObjectJsonFieldDiv .tableIcon {
@@ -448,7 +448,7 @@ body[theme=dark] .mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.re
 }
 
 .mrsObjectFieldEditor:not(.labelWithInput) .bracket {
-    padding-left: 2px;
+    padding-left: 8px;
 }
 
 .mrsObjectDbColumnFieldDiv {
@@ -585,6 +585,10 @@ body[theme=dark] .mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row.re
 
 .mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row .tabulator-cell .tabulator-data-tree-branch-empty {
     width: 7px;
+}
+
+.mrsObjectFieldEditor .msg.treeGrid.tabulator .tabulator-row .tabulator-cell .tabulator-data-tree-branch-empty:not(:has(+ .treeToggle)) {
+    margin-right: unset;
 }
 
 /*.mrsObjectFieldEditor .settingsMain .button {
