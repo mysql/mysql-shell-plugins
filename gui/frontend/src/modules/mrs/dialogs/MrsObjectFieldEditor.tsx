@@ -253,9 +253,9 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     } else if (field.objectReference !== undefined && (field.enabled || field.objectReference.unnest)) {
                         const c = cutLastComma(walk(
                             fields, field.representsReferenceId, (level ?? 1) + 1, addDataType, field.objectReference));
-                        const refTable = field.objectReference.referenceMapping.referencedSchema +
-                            field.objectReference.referenceMapping.referencedTable ? "." +
-                        field.objectReference.referenceMapping.referencedTable : "";
+                        let refTable = field.objectReference.referenceMapping.referencedSchema;
+                        refTable += field.objectReference.referenceMapping.referencedTable ? "." +
+                            field.objectReference.referenceMapping.referencedTable : "";
                         s += `${indent}${field.name}: ${refTable}`;
                         if (field.objectReference.options?.dualityViewInsert) { s += ` @INSERT`; }
                         if (field.objectReference.options?.dualityViewUpdate) { s += ` @UPDATE`; }

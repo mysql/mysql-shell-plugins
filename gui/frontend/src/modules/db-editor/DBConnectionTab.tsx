@@ -2926,6 +2926,7 @@ Execute \\help or \\? for help;`;
                 };
 
                 this.notebookRef.current?.restoreHistoryState(historyEntry);
+                savedState.currentExecutionHistoryIndex = 0;
             } else {
                 // Load the next/prev history entry and restore the state in the notebook.
                 savedState.currentExecutionHistoryIndex += backwards ? +1 : -1;
