@@ -479,9 +479,10 @@
                 const nonce = this.hex(crypto.getRandomValues(new Uint8Array(10)));
 
                 const challenge = await (await this.doFetch({
-                    input: `${this.authPath}/login?app=${authApp}`,
+                    input: `${this.authPath}/login`,
                     method: "POST",
                     body: {
+                        authApp,
                         user: userName,
                         nonce,
                     },
@@ -499,6 +500,58 @@
                 };
             };
 
+            verifyCredentials = async (username, password, authApp) => {
+                const { challenge, clientFirst, serverFirst, clientFinal } = this.loginState;
+
+                if (password !== undefined && password !== "" && authApp !== undefined) {
+                    try {
+                        const response = await this.doFetch({
+                            input: `${this.authPath}/login`,
+                            method: "POST",
+                            body: {
+                                authApp,
+                                username,
+                                password,
+                                sessionType: "bearer"
+                            },
+                        }, undefined, undefined, undefined, false);
+
+                        if (!response.ok) {
+                            this.accessToken = undefined;
+
+                            return {
+                                authApp: authApp,
+                                errorCode: response.status,
+                                errorMessage: (response.status === 401)
+                                    ? "The sign in failed. Please check your username and password."
+                                    : `The sign in failed. Error code: ${String(response.status)}`,
+                            };
+                        } else {
+                            const result = await response.json();
+
+                            this.accessToken = String(result.accessToken);
+
+                            return {
+                                authApp: authApp,
+                                jwt: this.accessToken,
+                            };
+                        }
+                    } catch (e) {
+                        return {
+                            authApp: authApp,
+                            errorCode: 2,
+                            errorMessage: `The sign in failed. Server Error: ${String(e)}`,
+                        };
+                    }
+                } else {
+                    return {
+                        authApp: authApp,
+                        errorCode: 1,
+                        errorMessage: `No password given.`,
+                    };
+                }
+            };
+
             verifyPassword = async (password) => {
                 const { challenge, clientFirst, serverFirst, clientFinal } = this.loginState;
 
@@ -512,8 +565,7 @@
 
                     try {
                         const response = await this.doFetch({
-                            input: `${this.authPath}/login?app=${this.authApp}&sessionType=bearer` +
-                                (challenge.session !== undefined ? "&session=" + challenge.session : ""),
+                            input: `${this.authPath}/login`,
                             method: "POST",
                             body: {
                                 clientProof,
@@ -858,7 +910,9 @@
 
                 this.setStateClassStyle("userNameBtn", "loading");
                 try {
-                    await session.verifyUserName(authApp, userName);
+                    if (authApp.vendorId === "0x30000000000000000000000000000000") {
+                        await session.verifyUserName(authApp.name, userName);
+                    }
 
                     this.setState({
                         userNameVerified: true,
@@ -868,22 +922,26 @@
                 }
             };
 
-            verifyPassword = async () => {
+            verifyPassword = async (authApp) => {
                 const { handleLogin, session } = this.props;
-                const { password } = this.state;
+                const { password, userName } = this.state;
 
-                if (password !== undefined && password !== "") {
-                    this.setStateClassStyle("passwordBtn", "loading");
+                this.setStateClassStyle("passwordBtn", "loading");
 
-                    const response = await session.verifyPassword(password);
+                let response;
 
-                    if (response.errorCode !== null && response.errorCode !== undefined) {
-                        this.showLoginError(response.errorMessage);
-                    }
-
-                    handleLogin(response.authApp, response.jwt, true);
-                    this.setStateClassStyle("userNameBtn", password !== "" ? "active" : undefined);
+                if (authApp.vendorId === "0x30000000000000000000000000000000") {
+                    response = await session.verifyPassword(password);
+                } else {
+                    response = await session.verifyCredentials(userName, password, authApp.name);
                 }
+
+                if (response.errorCode !== null && response.errorCode !== undefined) {
+                    this.showLoginError(response.errorMessage);
+                }
+
+                handleLogin(response.authApp, response.jwt, true);
+                this.setStateClassStyle("userNameBtn", password !== "" ? "active" : undefined);
             };
 
             /**
@@ -896,6 +954,10 @@
              */
             render = (props, state) => {
                 const { userName, password, loginError, userNameVerified, authApps, authApp } = state;
+                const supportedVendors = [
+                    "0x30000000000000000000000000000000",
+                    "0x31000000000000000000000000000000"
+                ];
 
                 let requestedAuthApp;
                 // If a specific authApp has been given, use that one
@@ -904,9 +966,9 @@
                         return app.name.toLowerCase() === authApp.toLowerCase();
                     });
                 } else {
-                    // If not specific authApp was specified, use the first MRS authApp
+                    // If not specific authApp was specified, use the first supported auth App
                     requestedAuthApp = authApps?.find((app) => {
-                        return app.vendorId === "0x30000000000000000000000000000000";
+                        return supportedVendors.indexOf(app.vendorId) > -1;
                     });
                 }
 
@@ -940,53 +1002,53 @@
                         </div>`
                 }
 
-                // Handle MRS authApps
-                if (requestedAuthApp?.vendorId === "0x30000000000000000000000000000000") {
-                    // If an MRS authApp has been defined, immediately show the login inputs
-                    const LoginNextBtn = html`
-                        <div id="userNameBtn" className="mrsLoginBtnNext"
-                            onClick=${() => { void this.verifyUserName(requestedAuthApp.name); }}
-                            onKeyPress=${() => { /** */ }} role="button" tabIndex={-1} />`;
-                    const loginBtnHtml = html`
-                            <div className="mrsLoginField">
-                                <input type="text" id="userName" placeholder="User Name or Email" autoFocus
-                                    value=${userName}
-                                    onInput=${(e) => { this.userNameChange(e.target.value); }}
-                                    onKeyPress=${(e) => {
-                            if (e.keyCode === 13) {
-                                void this.verifyUserName(requestedAuthApp.name);
-                            }
-                        }} />
-                                ${!userNameVerified && LoginNextBtn}
-                            </div>`;
-                    const passwordBtnHtml = html`
-                            <div className="mrsLoginField">
-                                <input type="password" id="userPassword" placeholder="Password" value=${password}
-                                    onInput=${(e) => { this.passwordChange(e.target.value); }}
-                                    onKeyPress=${(e) => { if (e.keyCode === 13) { void this.verifyPassword(); } }} />
-                                <div id="passwordBtn" className="mrsLoginBtnNext"
-                                    onClick=${() => { void this.verifyPassword(); }}
-                                    onKeyPress=${() => { /** */ }} role="button" tabIndex={-2} />
-                            </div>`;
-
-                    // Single MRS AuthApp configured
+                // If the specified auth app is from an unsupported vendor, display error message.
+                if (supportedVendors.indexOf(requestedAuthApp.vendorId) == -1) {
                     return html`
                         <div className="mrsLogin">
-                            <p><br/><br/>Sign in with ${requestedAuthApp.name}</p>
-                            <div className="mrsLoginFields">
-                                ${loginBtnHtml}
-                                ${userNameVerified && passwordBtnHtml}
-                            </div>
-                            ${loginError !== undefined &&
-                        html`<div className="mrsLoginError"><p>${loginError}</p></div>`
-                        }
-                            <div className="mrsLoginSeparator" />
+                            <p>Requested Authentication App ${authApp} not supported yet.</p>
                         </div>`;
                 }
 
+                // Otherwise, show the login form.
+                const LoginNextBtn = html`
+                    <div id="userNameBtn" className="mrsLoginBtnNext"
+                        onClick=${() => { void this.verifyUserName(requestedAuthApp); }}
+                        onKeyPress=${() => { /** */ }} role="button" tabIndex={-1} />`;
+                const loginBtnHtml = html`
+                        <div className="mrsLoginField">
+                            <input type="text" id="userName" placeholder="User Name or Email" autoFocus
+                                value=${userName}
+                                onInput=${(e) => { this.userNameChange(e.target.value); }}
+                                onKeyPress=${(e) => {
+                        if (e.keyCode === 13) {
+                            void this.verifyUserName(requestedAuthApp);
+                        }
+                    }} />
+                            ${!userNameVerified && LoginNextBtn}
+                        </div>`;
+                const passwordBtnHtml = html`
+                        <div className="mrsLoginField">
+                            <input type="password" id="userPassword" placeholder="Password" value=${password}
+                                onInput=${(e) => { this.passwordChange(e.target.value); }}
+                                onKeyPress=${(e) => { if (e.keyCode === 13) { void this.verifyPassword(requestedAuthApp); } }} />
+                            <div id="passwordBtn" className="mrsLoginBtnNext"
+                                onClick=${() => { void this.verifyPassword(requestedAuthApp); }}
+                                onKeyPress=${() => { /** */ }} role="button" tabIndex={-2} />
+                        </div>`;
+
+                // Single MRS AuthApp configured
                 return html`
                     <div className="mrsLogin">
-                        <p>Requested Authentication App ${authApp} not supported yet.</p>
+                        <p><br/><br/>Sign in with ${requestedAuthApp.name}</p>
+                        <div className="mrsLoginFields">
+                            ${loginBtnHtml}
+                            ${userNameVerified && passwordBtnHtml}
+                        </div>
+                        ${loginError !== undefined &&
+                    html`<div className="mrsLoginError"><p>${loginError}</p></div>`
+                    }
+                        <div className="mrsLoginSeparator" />
                     </div>`;
             }
         }
