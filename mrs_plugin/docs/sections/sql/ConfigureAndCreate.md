@@ -153,13 +153,16 @@ These options can include the following JSON keys.
     - `refresh_when_increases_by`
       - In addition to the time based refresh, the GTID cache can also be refreshed based on the number of transactions that happened since the last refresh. Set in number of transactions, e.g. 500.
 - `responseCache`
-  - Global options for the REST endpoint response cache, which keeps an in-memory cache of responses to GET requests on tables, views, procedures and functions. To enable caching of an endpoint, you must also set the `cache_ttl` option for each object to be cached.
-  - `maxCacheSize`
-    - Maximum size of the cache. Default is 1M.
+    - Global options for the REST endpoint response cache, which keeps an in-memory cache of responses to GET requests on tables, views, procedures and functions. To enable caching of an endpoint, you must also set the `cacheTimeToLive` option for each object to be cached.
+    - `maxCacheSize`
+        - Maximum size of the cache. Default is 1M.
 - `fileCache`
-  - Global options for the static file data cache, which keeps an in-memory cache of responses to GET requests on content set files.
-  - `maxCacheSize`
-    - Maximum size of the cache. Default is 1M.
+    - Global options for the static file data cache, which keeps an in-memory cache of responses to GET requests on content set files.
+    - `maxCacheSize`
+        - Maximum size of the cache. Default is 1M.
+- `sqlQuery`
+    - `timeout`
+        - Number of milliseconds to allow for DB operations while serving an endpoint. DB requests taking longer than that time will be interrupted and an error 504 returned. Default 2000. Can be overridden at a per-endpoint basis.
 - `defaultStaticContent`
   - Allows the definition of static content for the root path `/` that will be returned for file paths matching the given JSON keys. A JSON key `index.html` will be  served as `/index.html` by the MySQL Router. The file content needs to be Base64 encoded. If the same JSON key is used for `defaultStaticContent` as well as for `defaultRedirects`, the redirect is prioritized.
 - `defaultRedirects`
@@ -984,7 +987,7 @@ metadata:
 ;
 ```
 
-### JSON Options for Views
+### Json Options for Views
 
 ```antlr
 jsonOptions:
@@ -992,9 +995,30 @@ jsonOptions:
 ;
 ```
 
-The following additional options can be configured for a view in a JSON object through the OPTIONS clause:
+The following additional options can be configured for most database object endpoints in a JSON object through the OPTIONS clause (indentation means JSON object nesting):
 
-- `cache_ttl` enables caching for GET requests. Specifies the number of seconds to keep the response in the cache, after which it will be discarded until a new request comes in or when the cache fills up.
+- `http`
+    - see (REST Service JSON Options)[rest-service-json-options]
+- `logging`
+    - see (REST Service JSON Options)[rest-service-json-options]
+- `metadata`
+    - `gtid` (_bool_)
+        - if true, embeds the GTID assigned to DB change operations into the metadata of the response JSON object.  Enable when using with replication topologies, to ensure that changes made to an object will be reflected when reading it,regardless of where the read happens. Default true.
+- `sqlQuery`
+    - `embedWait` (_bool_)
+        - if true, performs the wait described in the `wait` option directly in the DB query, as opposed to executing it beforehand in a separate statement.
+    - `timeout` (_int_)
+        - number of milliseconds to wait for the DB query to execute before it's terminated. Default is taken from the global `sqlQuery`.`timeout` option.
+    - `wait` (_bool_)
+        - when querying data from a secondary server, controls whether to wait until the transaction GTID specified through the `asof` clause are applied. Effectively enables read-own-writes semantics.
+- `result`
+    - `cacheTimeToLive` (_double_)
+        - enables caching for GET requests. Specifies the number of seconds (including sub-second values) to keep the response in the cache, after which it will be discarded until a new request comes in or when the cache fills up. 
+    - `includeLinks` (_bool_)
+        - whether to include links in returned JSON objects (default true)
+- `returnInternalErrorDetails` (_bool_)
+    - controls debug logging
+
 
 ## CREATE REST PROCEDURE
 
@@ -1052,9 +1076,7 @@ jsonOptions:
 ;
 ```
 
-The following additional options can be configured for a view in a JSON object through the OPTIONS clause:
-
-- `cache_ttl` enables caching for GET or PUT requests. Specifies the number of seconds to keep the response in the cache, after which it will be discarded until a new request comes in or when the cache fills up.
+See [JSON Options](#json-options-for-views)
 
 ## CREATE REST FUNCTION
 
@@ -1112,9 +1134,7 @@ jsonOptions:
 ;
 ```
 
-The following additional options can be configured for a view in a JSON object through the OPTIONS clause:
-
-- `cache_ttl` enables caching for GET or PUT requests. Specifies the number of seconds to keep the response in the cache, after which it will be discarded until a new request comes in or when the cache fills up.
+See [JSON Options](#json-options-for-views)
 
 ## CREATE REST CONTENT SET
 
@@ -1325,3 +1345,4 @@ createRestRoleStatement ::=
 
 restRoleOptions ::=
 ![restRoleOptions](../../images/sql/restRoleOptions.svg "restRoleOptions")
+
