@@ -1891,7 +1891,7 @@ Execute \\help or \\? for help;`;
 
                         const action = firstLoad ? "loaded" : ("refreshed (v" + String(libVersionNotebook) + ")");
                         const authInfo = authenticated ? " User authenticated." : "";
-                        void ui.showInformationNotification(`MRS SDK for ${serviceMetadata.hostCtx} has been ` +
+                        void ui.setStatusBarMessage(`MRS SDK for ${serviceMetadata.hostCtx} has been ` +
                             `${action}.${authInfo}`);
                     }
                     statusBarItem.dispose();

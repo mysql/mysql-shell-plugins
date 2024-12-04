@@ -52,7 +52,11 @@ export class ProxyStatusBarItem implements IStatusBarItem {
     #timeout?: number;
 
     public constructor(options: IStatusBarItemOptions) {
-        this.#id = "msg." + (options.id ?? `statusBarItem.${ProxyStatusBarItem.#nextId++}`);
+        if (options.id?.startsWith("msg.")) {
+            this.#id = options.id;
+        } else {
+            this.#id = "msg." + (options.id ?? `statusBarItem.${ProxyStatusBarItem.#nextId++}`);
+        }
         this.#text = options.text ?? "";
         this.#alignment = options.alignment ?? StatusBarAlignment.Left;
         this.#priority = options.priority;

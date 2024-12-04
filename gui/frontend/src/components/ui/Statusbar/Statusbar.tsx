@@ -101,7 +101,7 @@ export class StatusBar extends ComponentBase<{}, IStatusBarState> {
      */
     public static setStatusBarMessage(text: string, hideWhenDone: Promise<unknown>): IDisposable;
     public static setStatusBarMessage(text: string, timeoutOrPromise?: Promise<unknown> | number): IDisposable {
-        const details = {
+        const details: IStatusBarItemOptions = {
             id: "msg.fe.statusBarMessage",
             text,
             alignment: StatusBarAlignment.Left,
@@ -153,17 +153,15 @@ export class StatusBar extends ComponentBase<{}, IStatusBarState> {
 
         // The embedded scenario: promises are not supported, only timeout values.
         if (typeof timeoutOrPromise === "number") {
-            const item = new ProxyStatusBarItem(details);
-
-            return {
-                dispose: () => {
-                    item.dispose();
-                },
-            };
+            details.timeout = timeoutOrPromise;
         }
 
+        const item = new ProxyStatusBarItem(details);
+
         return {
-            dispose: () => {/* do nothing */ },
+            dispose: () => {
+                item.dispose();
+            },
         };
     }
 
