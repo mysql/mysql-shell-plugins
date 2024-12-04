@@ -781,8 +781,8 @@ restMetadataOptions: (
                 which keeps an in-memory cache of responses to GET
                 requests on tables, views, procedures and functions. To
                 enable caching of an endpoint, you must also set the
-                <code>cache_ttl</code> option for each object to be
-                cached.</li>
+                <code>cacheTimeToLive</code> option for each object to
+                be cached.</li>
                 <li><code>maxCacheSize</code>
                 <ul>
                 <li>Maximum size of the cache. Default is 1M.</li>
@@ -796,6 +796,17 @@ restMetadataOptions: (
                 <li><code>maxCacheSize</code>
                 <ul>
                 <li>Maximum size of the cache. Default is 1M.</li>
+                </ul></li>
+                </ul></li>
+                <li><code>sqlQuery</code>
+                <ul>
+                <li><code>timeout</code>
+                <ul>
+                <li>Number of milliseconds to allow for DB operations
+                while serving an endpoint. DB requests taking longer
+                than that time will be interrupted and an error 504
+                returned. Default 2000. Can be overridden at a
+                per-endpoint basis.</li>
                 </ul></li>
                 </ul></li>
                 <li><code>defaultStaticContent</code>
@@ -1869,20 +1880,83 @@ graphQlValue:
 ;</code></pre>
                 <h3 data-number="2.4.10"
                 id="json-options-for-views"><span
-                class="header-section-number">2.4.10</span> JSON Options
+                class="header-section-number">2.4.10</span> Json Options
                 for Views</h3>
                 <pre class="antlr"><code>jsonOptions:
     OPTIONS jsonValue
 ;</code></pre>
                 <p>The following additional options can be configured
-                for a view in a JSON object through the OPTIONS
-                clause:</p>
+                for most database object endpoints in a JSON object
+                through the OPTIONS clause (indentation means JSON
+                object nesting):</p>
                 <ul>
-                <li><code>cache_ttl</code> enables caching for GET
-                requests. Specifies the number of seconds to keep the
-                response in the cache, after which it will be discarded
-                until a new request comes in or when the cache fills
-                up.</li>
+                <li><code>http</code>
+                <ul>
+                <li>see (REST Service JSON
+                Options)[rest-service-json-options]</li>
+                </ul></li>
+                <li><code>logging</code>
+                <ul>
+                <li>see (REST Service JSON
+                Options)[rest-service-json-options]</li>
+                </ul></li>
+                <li><code>metadata</code>
+                <ul>
+                <li><code>gtid</code> (<em>bool</em>)
+                <ul>
+                <li>if true, embeds the GTID assigned to DB change
+                operations into the metadata of the response JSON
+                object. Enable when using with replication topologies,
+                to ensure that changes made to an object will be
+                reflected when reading it,regardless of where the read
+                happens. Default true.</li>
+                </ul></li>
+                </ul></li>
+                <li><code>sqlQuery</code>
+                <ul>
+                <li><code>embedWait</code> (<em>bool</em>)
+                <ul>
+                <li>if true, performs the wait described in the
+                <code>wait</code> option directly in the DB query, as
+                opposed to executing it beforehand in a separate
+                statement.</li>
+                </ul></li>
+                <li><code>timeout</code> (<em>int</em>)
+                <ul>
+                <li>number of milliseconds to wait for the DB query to
+                execute before it’s terminated. Default is taken from
+                the global <code>sqlQuery</code>.<code>timeout</code>
+                option.</li>
+                </ul></li>
+                <li><code>wait</code> (<em>bool</em>)
+                <ul>
+                <li>when querying data from a secondary server, controls
+                whether to wait until the transaction GTID specified
+                through the <code>asof</code> clause are applied.
+                Effectively enables read-own-writes semantics.</li>
+                </ul></li>
+                </ul></li>
+                <li><code>result</code>
+                <ul>
+                <li><code>cacheTimeToLive</code> (<em>double</em>)
+                <ul>
+                <li>enables caching for GET requests. Specifies the
+                number of seconds (including sub-second values) to keep
+                the response in the cache, after which it will be
+                discarded until a new request comes in or when the cache
+                fills up.</li>
+                </ul></li>
+                <li><code>includeLinks</code> (<em>bool</em>)
+                <ul>
+                <li>whether to include links in returned JSON objects
+                (default true)</li>
+                </ul></li>
+                </ul></li>
+                <li><code>returnInternalErrorDetails</code>
+                (<em>bool</em>)
+                <ul>
+                <li>controls debug logging</li>
+                </ul></li>
                 </ul>
                 <h2 data-number="2.5" id="create-rest-procedure"><span
                 class="header-section-number">2.5</span> CREATE REST
@@ -1946,16 +2020,8 @@ restProcedureResult:
                 <pre class="antlr"><code>jsonOptions:
     OPTIONS jsonValue
 ;</code></pre>
-                <p>The following additional options can be configured
-                for a view in a JSON object through the OPTIONS
-                clause:</p>
-                <ul>
-                <li><code>cache_ttl</code> enables caching for GET or
-                PUT requests. Specifies the number of seconds to keep
-                the response in the cache, after which it will be
-                discarded until a new request comes in or when the cache
-                fills up.</li>
-                </ul>
+                <p>See <a href="#json-options-for-views">JSON
+                Options</a></p>
                 <h2 data-number="2.6" id="create-rest-function"><span
                 class="header-section-number">2.6</span> CREATE REST
                 FUNCTION</h2>
@@ -2018,16 +2084,8 @@ restFunctionResult:
                 <pre class="antlr"><code>jsonOptions:
     OPTIONS jsonValue
 ;</code></pre>
-                <p>The following additional options can be configured
-                for a view in a JSON object through the OPTIONS
-                clause:</p>
-                <ul>
-                <li><code>cache_ttl</code> enables caching for GET or
-                PUT requests. Specifies the number of seconds to keep
-                the response in the cache, after which it will be
-                discarded until a new request comes in or when the cache
-                fills up.</li>
-                </ul>
+                <p>See <a href="#json-options-for-views">JSON
+                Options</a></p>
                 <h2 data-number="2.7" id="create-rest-content-set"><span
                 class="header-section-number">2.7</span> CREATE REST
                 CONTENT SET</h2>
