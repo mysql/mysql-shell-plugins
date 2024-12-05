@@ -76,8 +76,8 @@ export class LoginPage extends ComponentBase<{}, ILoginPageState> {
                         MySQL Shell
                     </Label>
                     <Label id="headingSubLabel">
-                        Welcome to the ${title}.
-                        <br />Please provide your ${title} credentials to log into the shell interface.
+                        Welcome to the {title}.
+                        <br />Please provide your {title} credentials to log into the shell interface.
                     </Label>
                 </Container>
                 <Container
