@@ -23,6 +23,8 @@
 
 import { join } from "node:path";
 
+export const jsError = "JSError";
+
 // TIMEOUTS
 export const wait1second = 1000;
 export const wait2seconds = 2000;

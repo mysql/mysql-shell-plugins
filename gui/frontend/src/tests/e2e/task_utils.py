@@ -690,7 +690,7 @@ class BEServer:
             mysqlsh_user_config_home = os.path.join(WORKING_DIR, f'port_{self.port}')
             os.makedirs(mysqlsh_user_config_home, exist_ok=True)
             environment["MYSQLSH_USER_CONFIG_HOME"] = mysqlsh_user_config_home
-            environment["LOG_LEVEL"] = "DEBUG3"
+            environment["LOG_LEVEL"] = "DEBUG2"
             timeout = time.time() + 30   # 30 seconds from now
 
             shell_args = [self.mysqlsh_executable, "--py", "-e"]

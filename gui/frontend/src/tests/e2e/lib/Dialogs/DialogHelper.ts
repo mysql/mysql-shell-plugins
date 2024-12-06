@@ -24,7 +24,6 @@
  */
 import { By, WebElement, Locator, Key, until } from "selenium-webdriver";
 import { driver } from "../../lib/driver.js";
-import { Os } from "../os.js";
 import * as locator from "../locators.js";
 import * as constants from "../constants.js";
 import { ConfirmDialog } from "./ConfirmationDialog.js";
@@ -93,17 +92,9 @@ export class DialogHelper {
      * @returns A promise resolving when the field it cleared
      */
     public static setFieldText = async (dialog: WebElement, fieldLocator: Locator, text: string): Promise<void> => {
-
         const field = await dialog.findElement(fieldLocator);
-        const fieldValue = await field.getAttribute("value");
-        if (fieldValue.trim() !== "") {
-            if (fieldValue !== text) {
-                await this.clearInputField(field);
-                await field.sendKeys(text);
-            }
-        } else {
-            await field.sendKeys(text);
-        }
+        await this.clearInputField(field);
+        await field.sendKeys(text);
     };
 
     /**
@@ -124,16 +115,20 @@ export class DialogHelper {
      * @returns A promise resolving when the field is cleared
      */
     public static clearInputField = async (el: WebElement): Promise<void> => {
-
         await driver.wait(async () => {
             await el.clear();
-            await driver.executeScript("arguments[0].click()", el);
-            if (Os.isMacOs()) {
-                await el.sendKeys(Key.chord(Key.COMMAND, "a"));
-            } else {
-                await el.sendKeys(Key.chord(Key.CONTROL, "a"));
+            const value = await el.getAttribute("value");
+
+            if (value !== "") {
+                const letters = value.split("");
+
+                for (let i = 0; i <= letters.length - 1; i++) {
+                    await el.sendKeys(Key.BACK_SPACE);
+                }
+
             }
-            await el.sendKeys(Key.BACK_SPACE);
+
+            await driver.executeScript("arguments[0].click()", el);
 
             return (await el.getAttribute("value")).length === 0;
         }, constants.wait5seconds, `${await el.getId()} was not cleaned`);

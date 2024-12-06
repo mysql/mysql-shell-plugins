@@ -379,7 +379,7 @@ describe("NOTEBOOKS", () => {
                 const result1 = await notebook.codeEditor.execute(query);
                 const block1 = result1.id;
                 expect(result1.toolbar!.status).toMatch(/OK/);
-                await notebook.codeEditor.languageSwitch("\\javascript ");
+                await notebook.codeEditor.languageSwitch("\\js");
                 const result2 = await notebook.codeEditor.execute(jsCmd);
                 const block2 = result2.id;
                 expect(result2.text).toMatch(/(\d+).(\d+)/);

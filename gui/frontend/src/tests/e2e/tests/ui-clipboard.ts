@@ -38,11 +38,9 @@ import { driver, loadDriver } from "../lib/driver.js";
 import { E2EToastNotification } from "../lib/E2EToastNotification.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
 import { E2ETextEditor } from "../lib/E2ETextEditor.js";
-import { RestServiceDialog } from "../lib/Dialogs/RestServiceDialog.js";
-import { RestObjectDialog } from "../lib/Dialogs/RestObjectDialog.js";
-import { RestSchemaDialog } from "../lib/Dialogs/RestSchemaDialog.js";
 import { E2ECodeEditorWidget } from "../lib/E2ECodeEditorWidget.js";
 import { E2ETabContainer } from "../lib/E2ETabContainer.js";
+import { TestQueue } from "../lib/TestQueue.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -114,11 +112,19 @@ describe("CLIPBOARD", () => {
 
         });
 
+        beforeEach(async () => {
+            await TestQueue.push(expect.getState().currentTestName!);
+            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
+        });
+
+
         afterAll(async () => {
             await Misc.dismissNotifications(true);
         });
 
         afterEach(async () => {
+            await TestQueue.pop(expect.getState().currentTestName!);
+
             if (testFailed) {
                 testFailed = false;
                 await Misc.storeScreenShot();
@@ -220,7 +226,14 @@ describe("CLIPBOARD", () => {
 
         });
 
+        beforeEach(async () => {
+            await TestQueue.push(expect.getState().currentTestName!);
+            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
+        });
+
         afterEach(async () => {
+            await TestQueue.pop(expect.getState().currentTestName!);
+
             if (testFailed) {
                 testFailed = false;
                 await Misc.storeScreenShot();
@@ -398,7 +411,14 @@ describe("CLIPBOARD", () => {
 
         });
 
+        beforeEach(async () => {
+            await TestQueue.push(expect.getState().currentTestName!);
+            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
+        });
+
         afterEach(async () => {
+            await TestQueue.pop(expect.getState().currentTestName!);
+
             if (testFailed) {
                 testFailed = false;
                 await Misc.storeScreenShot();
@@ -494,10 +514,10 @@ describe("CLIPBOARD", () => {
                         const copy = await result.grid!.copyField(row, String(allColumns[i]));
                         const clip = await Os.readClipboard();
 
-                        if (copy.toString().match(new RegExp(clip.toString()))) {
+                        if (copy.toString().match(new RegExp(clip!.toString()))) {
                             return true;
                         } else {
-                            console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip.toString()}`);
+                            console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip!.toString()}`);
                         }
                     }, constants.wait10seconds, "Copy field failed");
 
@@ -505,10 +525,10 @@ describe("CLIPBOARD", () => {
                         const copy = await result.grid!.copyFieldUnquoted(row, String(allColumns[i]));
                         const clip = await Os.readClipboard();
 
-                        if (copy.toString() === clip.toString()) {
+                        if (copy.toString() === clip!.toString()) {
                             return true;
                         } else {
-                            console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip.toString()}`);
+                            console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip!.toString()}`);
                         }
                     }, constants.wait10seconds, "Copy field unquoted failed");
 
@@ -623,10 +643,10 @@ describe("CLIPBOARD", () => {
                         const copy = await result.grid!.copyField(row, String(allColumns[i]));
                         const clip = await Os.readClipboard();
 
-                        if (copy.toString().match(new RegExp(clip.toString()))) {
+                        if (copy.toString().match(new RegExp(clip!.toString()))) {
                             return true;
                         } else {
-                            console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip.toString()}`);
+                            console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip!.toString()}`);
                         }
                     }, constants.wait10seconds, "Copy field failed");
 
@@ -634,10 +654,10 @@ describe("CLIPBOARD", () => {
                         const copy = await result.grid!.copyFieldUnquoted(row, String(allColumns[i]));
                         const clip = await Os.readClipboard();
 
-                        if (copy.toString() === clip.toString()) {
+                        if (copy.toString() === clip!.toString()) {
                             return true;
                         } else {
-                            console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip.toString()}`);
+                            console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip!.toString()}`);
                         }
                     }, constants.wait10seconds, "Copy field unquoted failed");
 
@@ -673,7 +693,13 @@ describe("CLIPBOARD", () => {
 
         });
 
+        beforeEach(async () => {
+            await TestQueue.push(expect.getState().currentTestName!);
+            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
+        });
+
         afterEach(async () => {
+            await TestQueue.pop(expect.getState().currentTestName!);
 
             if (testFailed) {
                 testFailed = false;
@@ -751,242 +777,8 @@ describe("CLIPBOARD", () => {
                 await driver.wait(async () => {
                     await result.copyToClipboard();
 
-                    return (await Os.readClipboard()).includes("Welcome");
+                    return (await Os.readClipboard())!.includes("Welcome");
                 }, constants.wait3seconds, `'Welcome keyword' was not found on the clipboard`);
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
-        });
-
-    });
-
-    describe("MYSQL REST SERVICE", () => {
-
-        let otherService: interfaces.IRestService = {
-            servicePath: `/clipboardService`,
-            enabled: true,
-            default: false,
-            settings: {
-                //hostNameFilter: "localhost",
-                mrsAdminUser: "testUser",
-                mrsAdminPassword: "testPassword",
-                comments: "testing",
-            },
-            authentication: {
-                redirectionUrl: "localhost:8000",
-                redirectionUrlValid: "(.*)",
-                authCompletedChangeCont: "<html>",
-            },
-            restSchemas: [
-                {
-                    restServicePath: `/clipboardService`,
-                    restSchemaPath: `/sakila`,
-                    accessControl: constants.accessControlEnabled,
-                    requiresAuth: false,
-                    settings: {
-                        schemaName: "sakila",
-                        itemsPerPage: "35",
-                        comments: "Hello",
-                    },
-                    restObjects: [
-                        {
-                            treeName: `/actor (actor)`,
-                            jsonRelDuality: {
-                                dbObject: "actor",
-                            },
-                        },
-                        {
-                            treeName: `/city (city)`,
-                            jsonRelDuality: {
-                                dbObject: "city",
-                            },
-                        },
-                    ],
-                },
-                {
-                    restServicePath: `/clipboardService`,
-                    restSchemaPath: `/world_x_cst`,
-                    accessControl: constants.accessControlEnabled,
-                    requiresAuth: false,
-                    settings: {
-                        schemaName: "world_x_cst",
-                        itemsPerPage: "35",
-                        comments: "Hello",
-                    },
-                    restObjects: [
-                        {
-                            treeName: `/city (city)`,
-                            jsonRelDuality: {
-                                dbObject: "city",
-                            },
-                        },
-                    ],
-                },
-            ],
-        };
-
-        beforeAll(async () => {
-            try {
-                await dbTreeSection.focus();
-                Os.deleteShellCredentials();
-                await dbTreeSection.tree.expandDatabaseConnection(globalConn);
-                await dbTreeSection.tree.openContextMenuAndSelect(globalConn.caption!, constants.showSystemSchemas);
-
-                if (!(await dbTreeSection.tree.elementExists("mysql_rest_service_metadata"))) {
-                    await dbTreeSection.tree.configureMySQLRestService(globalConn);
-                }
-
-                await dbTreeSection.tree.expandElement([constants.mysqlRestService]);
-                await dbTreeSection.tree.openContextMenuAndSelect(constants.mysqlRestService,
-                    constants.addRESTService);
-                otherService = await RestServiceDialog.set(otherService);
-                let notification = await new E2EToastNotification().create();
-                await notification!.close();
-
-                await driver.wait(dbTreeSection.tree.untilExists(otherService.treeName!),
-                    constants.wait10seconds);
-
-                await Misc.dismissNotifications();
-                await dbTreeSection.tree.openContextMenuAndSelect(otherService.restSchemas![0].settings!.schemaName!,
-                    constants.addSchemaToREST);
-                otherService.restSchemas![0] = await RestSchemaDialog.set(otherService.restSchemas![0]);
-                notification = await new E2EToastNotification().create();
-                await notification!.close();
-                await dbTreeSection.tree
-                    .expandElement([otherService.treeName!]);
-                await driver.wait(dbTreeSection.tree.untilExists(otherService.restSchemas![0].treeName!),
-                    constants.wait10seconds);
-
-                await dbTreeSection.tree.expandElement([otherService.restSchemas![0].treeName!]);
-                await dbTreeSection.tree.expandElement([otherService.restSchemas![0].settings!.schemaName!]);
-                await dbTreeSection.tree.expandElement(["Tables"]);
-
-                await dbTreeSection.tree.openContextMenuAndSelect("actor", constants.addDBObjToREST);
-                await RestObjectDialog.set({ restServicePath: otherService.treeName });
-                notification = await new E2EToastNotification().create();
-                const notifications = await Misc.getToastNotifications();
-
-                for (const ntf of notifications) {
-                    await ntf?.close();
-                }
-            } catch (e) {
-                await Misc.storeScreenShot("beforeAll_MysqlRESTService_CLIPBOARD");
-                throw e;
-            }
-        });
-
-        beforeEach(async () => {
-            try {
-                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
-                    `${constants.dbTreeSection} is still loading`);
-            } catch (e) {
-                await Misc.storeScreenShot("beforeEach_ServiceContextMenus");
-                throw e;
-            }
-        });
-
-        afterEach(async () => {
-            if (testFailed) {
-                testFailed = false;
-                await Misc.storeScreenShot();
-            }
-
-            await Misc.dismissNotifications();
-        });
-
-        it("Copy CREATE REST SERVICE Statement", async () => {
-            try {
-                await dbTreeSection.tree.openContextMenuAndSelect(otherService.treeName!,
-                    constants.copyCreateRestServiceSt);
-
-                let notification = await new E2EToastNotification().create();
-                if (notification?.message.includes("SDK")) {
-                    await notification.close();
-                    await dbTreeSection.tree.openContextMenuAndSelect(otherService.treeName!,
-                        constants.copyCreateRestServiceSt);
-                    notification = await new E2EToastNotification().create();
-                }
-
-                expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
-                await notification!.close();
-                expect(await Os.readClipboard()).toContain("CREATE REST SERVICE");
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
-        });
-
-        it("Copy CREATE REST SCHEMA Statement", async () => {
-            try {
-                await dbTreeSection.tree.openContextMenuAndSelect(otherService.restSchemas![0].treeName!,
-                    constants.copyCreateRestSchemaSt);
-
-                let notification = await new E2EToastNotification().create();
-                if (notification?.message.includes("SDK")) {
-                    await notification.close();
-                    await dbTreeSection.tree.openContextMenuAndSelect(otherService.treeName!,
-                        constants.copyCreateRestSchemaSt);
-                    notification = await new E2EToastNotification().create();
-                }
-
-                expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
-                await notification!.close();
-                expect(await Os.readClipboard()).toContain("CREATE OR REPLACE REST SCHEMA");
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
-        });
-
-        it("Copy CREATE REST OBJECT Statement", async () => {
-            try {
-                await dbTreeSection.tree
-                    .openContextMenuAndSelect(otherService.restSchemas![0].restObjects![0].treeName!,
-                        constants.copyCreateRestObjSt);
-                let notification = await new E2EToastNotification().create();
-
-                if (notification?.message.includes("SDK")) {
-                    await notification.close();
-                    await dbTreeSection.tree.openContextMenuAndSelect(otherService.treeName!,
-                        constants.copyCreateRestObjSt);
-                    notification = await new E2EToastNotification().create();
-                }
-
-                expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
-                await notification!.close();
-                expect(await Os.readClipboard()).toContain("CREATE OR REPLACE REST VIEW");
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
-        });
-
-        it("Copy REST Object Request Path to Clipboard", async () => {
-            try {
-                const service = otherService.servicePath;
-                const sakila = otherService.restSchemas![0].settings?.schemaName;
-                const actor = otherService.restSchemas![0].restObjects![0].jsonRelDuality?.dbObject;
-                const regex = new RegExp(`localhost:(\\d+)${service}/${sakila}/${actor}`);
-
-                await dbTreeSection.tree
-                    .openContextMenuAndSelect(otherService.restSchemas![0].restObjects![0].treeName!,
-                        constants.copyRESTObjReqPath);
-                let notification = await new E2EToastNotification().create();
-
-                if (notification?.message.includes("SDK")) {
-                    await notification.close();
-                    await dbTreeSection.tree
-                        .openContextMenuAndSelect(otherService.restSchemas![0].restObjects![0].treeName!,
-                            constants.copyRESTObjReqPath);
-                    notification = await new E2EToastNotification().create();
-                }
-
-                expect(notification!.message).toBe("The DB Object Path was copied to the system clipboard");
-                await notification!.close();
-
-                const clipboard = await Os.readClipboard();
-                expect(clipboard).toMatch(regex);
             } catch (e) {
                 testFailed = true;
                 throw e;

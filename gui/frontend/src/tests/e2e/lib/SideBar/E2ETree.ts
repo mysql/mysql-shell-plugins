@@ -434,7 +434,7 @@ export class E2ETree {
         const itemIcon = await treeElement!.findElement(locator.section.tree.element.icon.exists);
         const itemStyle = await itemIcon.getCssValue("mask-image");
 
-        return itemStyle.includes("ociDbSystemStopped");
+        return itemStyle.includes("statusDotMask");
     };
 
     /**
@@ -590,10 +590,16 @@ export class E2ETree {
         await driver.wait(ociSection.untilIsNotLoading(), constants.wait20seconds);
 
         await driver.wait(async () => {
-            const treeElement = await this.getElement(element);
-            await driver.actions().contextClick(treeElement).perform();
+            try {
+                const treeElement = await this.getElement(element);
+                await driver.actions().contextClick(treeElement).perform();
 
-            return (await driver.findElements(contextMenuLocator.exists)).length > 0;
+                return (await driver.findElements(contextMenuLocator.exists)).length > 0;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
         }, constants.wait3seconds, `Context menu was not displayed on element ${element}`);
 
         const items = await driver.findElements(contextMenuLocator.item);

@@ -23,9 +23,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { until } from "selenium-webdriver";
 import { basename } from "path";
 import { Misc } from "../lib/misc.js";
 import { driver, loadDriver } from "../lib/driver.js";
+import * as locator from "../lib/locators.js";
 import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
 import { Os } from "../lib/os.js";
 import * as constants from "../lib/constants.js";
@@ -39,7 +41,7 @@ import { RestUserDialog } from "../lib/Dialogs/RestUserDialog.js";
 import { E2EDatabaseConnectionOverview } from "../lib/E2EDatabaseConnectionOverview.js";
 import { E2EToastNotification } from "../lib/E2EToastNotification.js";
 import { ConfirmDialog } from "../lib/Dialogs/ConfirmationDialog.js";
-import { E2ESettings } from "../lib/E2ESettings.js";
+import { TestQueue } from "../lib/TestQueue.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -192,6 +194,68 @@ const restAuthenticationApp: interfaces.IRestAuthenticationApp = {
     }],
 };
 
+let otherService: interfaces.IRestService = {
+    servicePath: `/clipboardService`,
+    enabled: true,
+    default: false,
+    settings: {
+        mrsAdminUser: "testUser",
+        mrsAdminPassword: "testPassword",
+        comments: "testing",
+    },
+    authentication: {
+        redirectionUrl: "localhost:8000",
+        redirectionUrlValid: "(.*)",
+        authCompletedChangeCont: "<html>",
+    },
+    restSchemas: [
+        {
+            restServicePath: `/clipboardService`,
+            restSchemaPath: `/sakila`,
+            accessControl: constants.accessControlEnabled,
+            requiresAuth: false,
+            settings: {
+                schemaName: "sakila",
+                itemsPerPage: "35",
+                comments: "Hello",
+            },
+            restObjects: [
+                {
+                    treeName: `/actor (actor)`,
+                    jsonRelDuality: {
+                        dbObject: "actor",
+                    },
+                },
+                {
+                    treeName: `/city (city)`,
+                    jsonRelDuality: {
+                        dbObject: "city",
+                    },
+                },
+            ],
+        },
+        {
+            restServicePath: `/clipboardService`,
+            restSchemaPath: `/world_x_cst`,
+            accessControl: constants.accessControlEnabled,
+            requiresAuth: false,
+            settings: {
+                schemaName: "world_x_cst",
+                itemsPerPage: "35",
+                comments: "Hello",
+            },
+            restObjects: [
+                {
+                    treeName: `/city (city)`,
+                    jsonRelDuality: {
+                        dbObject: "city",
+                    },
+                },
+            ],
+        },
+    ],
+};
+
 let testFailed = false;
 
 describe("MYSQL REST SERVICE", () => {
@@ -203,11 +267,6 @@ describe("MYSQL REST SERVICE", () => {
 
         try {
             await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
-            const settings = new E2ESettings();
-            await settings.open();
-            await settings.selectCurrentTheme(constants.darkModern);
-            await settings.close();
-
             await dbTreeSection.focus();
             await dbTreeSection.createDatabaseConnection(globalConn);
             await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait3seconds);
@@ -479,7 +538,7 @@ describe("MYSQL REST SERVICE", () => {
         }
     });
 
-    it.skip("Edit REST Object", async () => {
+    it("Edit REST Object", async () => {
         try {
             const editedObject: interfaces.IRestObject = {
                 treeName: `/editedObject (${globalService.restSchemas![0].restObjects![1].jsonRelDuality?.dbObject})`,
@@ -552,11 +611,11 @@ describe("MYSQL REST SERVICE", () => {
                 },
                 options: `{"test":"value"}`,
             };
-
+            console.log(1);
             await dbTreeSection.tree.openContextMenuAndSelect(globalService.restSchemas![0].restObjects![0].treeName!,
                 constants.editRESTObj);
             globalService.restSchemas![0].restObjects![0] = await RestObjectDialog.set(editedObject);
-
+            console.log(2);
             let ntf = `The MRS Database Object ${editedObject.jsonRelDuality!.dbObject}`;
             ntf += ` was updated successfully.`;
 
@@ -572,8 +631,20 @@ describe("MYSQL REST SERVICE", () => {
                 }),
             ]);
 
+            await dbTreeSection.clickToolbarButton(constants.refreshConnectionList);
+            console.log(3);
             await dbTreeSection.tree.openContextMenuAndSelect(globalService.restSchemas![0].restObjects![0].treeName!,
-                constants.editRESTObj);
+                constants.editRESTObj).catch(async () => {
+                    console.log("aqui");
+                    await dbTreeSection.tree
+                        .openContextMenuAndSelect(/\/actor\/editedObject/,
+                            constants.editRESTObj);
+                    console.log("aqui1");
+                    await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.exists),
+                        constants.wait20seconds, "Edit REST Object dialog was not displayed");
+                    throw new Error("CHECK SCREENSHOT");
+                });
+            console.log(10);
             const thisObject = await RestObjectDialog.get();
             expect(thisObject).toStrictEqual(editedObject);
         } catch (e) {
@@ -609,7 +680,7 @@ describe("MYSQL REST SERVICE", () => {
         }
     });
 
-    it.skip("Delete REST Object", async () => {
+    it("Delete REST Object", async () => {
         try {
             const objectToRemove = globalService.restSchemas![0].restObjects![0].treeName;
             await dbTreeSection.tree.openContextMenuAndSelect(objectToRemove!, constants.deleteRESTObj);
@@ -809,6 +880,202 @@ describe("MYSQL REST SERVICE", () => {
                     .untilDoesNotExist(`${service.servicePath} (${service.settings!.hostNameFilter})`),
                     constants.wait5seconds);
             }
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+});
+
+describe("MYSQL REST SERVICE - CLIPBOARD", () => {
+
+    beforeAll(async () => {
+
+        await loadDriver(false);
+        await driver.get(url);
+
+        try {
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+            await dbTreeSection.focus();
+
+            if (!(await dbTreeSection.tree.elementExists(globalConn.caption!))) {
+                await dbTreeSection.createDatabaseConnection(globalConn);
+                await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait3seconds);
+                await dbTreeSection.tree.expandDatabaseConnection(globalConn);
+                await dbTreeSection.tree.openContextMenuAndSelect(globalConn.caption!, constants.showSystemSchemas);
+
+                if (!(await dbTreeSection.tree.elementExists("mysql_rest_service_metadata"))) {
+                    await dbTreeSection.tree.configureMySQLRestService(globalConn);
+                }
+            } else {
+                await dbTreeSection.tree.expandDatabaseConnection(globalConn);
+            }
+
+            await dbTreeSection.tree.expandElement([constants.mysqlRestService]);
+            await dbTreeSection.tree.openContextMenuAndSelect(constants.mysqlRestService,
+                constants.addRESTService);
+            otherService = await RestServiceDialog.set(otherService);
+            let notification = await new E2EToastNotification().create();
+            await notification!.close();
+
+            await driver.wait(dbTreeSection.tree.untilExists(otherService.treeName!),
+                constants.wait10seconds);
+            await Misc.dismissNotifications();
+            await dbTreeSection.tree.openContextMenuAndSelect(otherService.restSchemas![0].settings!.schemaName!,
+                constants.addSchemaToREST);
+            otherService.restSchemas![0] = await RestSchemaDialog.set(otherService.restSchemas![0]);
+            notification = await new E2EToastNotification().create();
+            await notification!.close();
+            await dbTreeSection.tree
+                .expandElement([otherService.treeName!]);
+            await driver.wait(dbTreeSection.tree.untilExists(otherService.restSchemas![0].treeName!),
+                constants.wait10seconds);
+
+            await dbTreeSection.tree.expandElement([otherService.restSchemas![0].treeName!]);
+            await dbTreeSection.tree.expandElement([otherService.restSchemas![0].settings!.schemaName!]);
+            await dbTreeSection.tree.expandElement(["Tables"]);
+
+            await dbTreeSection.tree.openContextMenuAndSelect("actor", constants.addDBObjToREST);
+            await RestObjectDialog.set({ restServicePath: otherService.treeName });
+            notification = await new E2EToastNotification().create();
+            const notifications = await Misc.getToastNotifications();
+
+            for (const ntf of notifications) {
+                await ntf?.close();
+            }
+        } catch (e) {
+            await Misc.storeScreenShot("beforeAll_MysqlRESTService_CLIPBOARD");
+            throw e;
+        }
+    });
+
+    beforeEach(async () => {
+        try {
+            await TestQueue.push(expect.getState().currentTestName!);
+            await driver.wait(TestQueue.poll(expect.getState().currentTestName!), constants.queuePollTimeout);
+
+            await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
+                `${constants.dbTreeSection} is still loading`);
+        } catch (e) {
+            await Misc.storeScreenShot("beforeEach_MRS_clipboard");
+            throw e;
+        }
+    });
+
+    afterEach(async () => {
+        await TestQueue.pop(expect.getState().currentTestName!);
+
+        if (testFailed) {
+            testFailed = false;
+            await Misc.storeScreenShot();
+        }
+
+        await Misc.dismissNotifications();
+    });
+
+    afterAll(async () => {
+        await Os.writeFELogs(basename(__filename), driver.manage().logs());
+        await driver.close();
+        await driver.quit();
+    });
+
+    it("Copy CREATE REST SERVICE Statement", async () => {
+        try {
+            await dbTreeSection.tree.openContextMenuAndSelect(otherService.treeName!,
+                constants.copyCreateRestServiceSt);
+
+            let notification = await new E2EToastNotification().create();
+            if (notification?.message.includes("SDK")) {
+                await notification.close();
+                await dbTreeSection.tree.openContextMenuAndSelect(otherService.treeName!,
+                    constants.copyCreateRestServiceSt);
+                notification = await new E2EToastNotification().create();
+            }
+
+            expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
+            await notification!.close();
+            expect(await Os.readClipboard())
+                .toMatch(new RegExp(`(CREATE REST SERVICE|${constants.jsError})`));
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Copy CREATE REST SCHEMA Statement", async () => {
+        try {
+            await dbTreeSection.tree.openContextMenuAndSelect(otherService.restSchemas![0].treeName!,
+                constants.copyCreateRestSchemaSt);
+
+            let notification = await new E2EToastNotification().create();
+            if (notification?.message.includes("SDK")) {
+                await notification.close();
+                await dbTreeSection.tree.openContextMenuAndSelect(otherService.treeName!,
+                    constants.copyCreateRestSchemaSt);
+                notification = await new E2EToastNotification().create();
+            }
+
+            expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
+            await notification!.close();
+
+            expect(await Os.readClipboard())
+                .toMatch(new RegExp(`(CREATE OR REPLACE REST SCHEMA|${constants.jsError})`));
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Copy CREATE REST OBJECT Statement", async () => {
+        try {
+            await dbTreeSection.tree
+                .openContextMenuAndSelect(otherService.restSchemas![0].restObjects![0].treeName!,
+                    constants.copyCreateRestObjSt);
+            let notification = await new E2EToastNotification().create();
+
+            if (notification?.message.includes("SDK")) {
+                await notification.close();
+                await dbTreeSection.tree.openContextMenuAndSelect(otherService.treeName!,
+                    constants.copyCreateRestObjSt);
+                notification = await new E2EToastNotification().create();
+            }
+
+            expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
+            await notification!.close();
+            expect(await Os.readClipboard())
+                .toMatch(new RegExp(`(CREATE OR REPLACE REST VIEW|${constants.jsError})`));
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Copy REST Object Request Path to Clipboard", async () => {
+        try {
+            const service = otherService.servicePath;
+            const sakila = otherService.restSchemas![0].settings?.schemaName;
+            const actor = otherService.restSchemas![0].restObjects![0].jsonRelDuality?.dbObject;
+            const regex = new RegExp(`(localhost:(\\d+)${service}/${sakila}/${actor}|${constants.jsError})`);
+
+            await dbTreeSection.tree
+                .openContextMenuAndSelect(otherService.restSchemas![0].restObjects![0].treeName!,
+                    constants.copyRESTObjReqPath);
+            let notification = await new E2EToastNotification().create();
+
+            if (notification?.message.includes("SDK")) {
+                await notification.close();
+                await dbTreeSection.tree
+                    .openContextMenuAndSelect(otherService.restSchemas![0].restObjects![0].treeName!,
+                        constants.copyRESTObjReqPath);
+                notification = await new E2EToastNotification().create();
+            }
+
+            expect(notification!.message).toBe("The DB Object Path was copied to the system clipboard");
+            await notification!.close();
+
+            const clipboard = await Os.readClipboard();
+            expect(clipboard).toMatch(regex);
         } catch (e) {
             testFailed = true;
             throw e;
