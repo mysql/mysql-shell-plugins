@@ -64,7 +64,6 @@ const globalService: interfaces.IRestService = {
     enabled: true,
     default: false,
     settings: {
-        //hostNameFilter: "localhost",
         mrsAdminUser: "testUser",
         mrsAdminPassword: "testPassword",
         comments: "testing",
@@ -128,7 +127,6 @@ let serviceToEdit: interfaces.IRestService = {
     enabled: true,
     default: false,
     settings: {
-        hostNameFilter: "localhost",
         comments: "testing",
     },
     authentication: {
@@ -344,12 +342,11 @@ describe("MYSQL REST SERVICE", () => {
                 .openContextMenuAndSelect(serviceToEdit.treeName!, constants.editRESTService);
 
             const editedService = {
-                treeName: "/edited (127.0.0.1)",
+                treeName: "/edited",
                 servicePath: `/edited`,
                 enabled: true,
                 default: true,
                 settings: {
-                    hostNameFilter: "127.0.0.1",
                     comments: "change testing",
                 },
                 options: `{"test":"value"}`,

@@ -135,8 +135,12 @@ export class RestServiceDialog {
         const restServiceSettings: interfaces.IRestServiceSettings = {};
         restServiceSettings.comments = await DialogHelper.getFieldValue(dialog,
             locator.mrsServiceDialog.settings.comments);
-        restServiceSettings.hostNameFilter = await DialogHelper.getFieldValue(dialog,
+        const hostnameFilter = await DialogHelper.getFieldValue(dialog,
             locator.mrsServiceDialog.settings.hostNameFilter);
+        if (hostnameFilter !== "") {
+            restServiceSettings.hostNameFilter = hostnameFilter;
+        }
+
         restService.settings = restServiceSettings;
 
         // Options

@@ -231,7 +231,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         this.workerPool = new ExecutionWorkerPool();
 
         this.#connectionsDataModel = new ConnectionDataModel();
-        this.#connectionsDataModel.autoRouterRefresh = true;
+        this.#connectionsDataModel.autoRouterRefresh = false;
 
         // The document data model does not need to be initialized. It's built dynamically.
         this.#documentDataModel = new OpenDocumentDataModel();
