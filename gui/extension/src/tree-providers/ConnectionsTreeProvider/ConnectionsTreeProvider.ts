@@ -101,7 +101,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
 
     public constructor(dataModel: ConnectionDataModel) {
         this.#dataModel = dataModel;
-        dataModel.autoRouterRefresh = true;
+        dataModel.autoRouterRefresh = false;
         dataModel.subscribe(this.dataModelChanged);
 
         // A connection refresh request can be scheduled from the frontend or within the extension.
