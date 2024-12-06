@@ -264,7 +264,7 @@ export class E2ETree {
         const itemIcon = await dbSystem.findElement(locator.section.itemIcon);
         const itemStyle = await itemIcon.getAttribute("style");
 
-        return itemStyle.includes("ociDbSystemStopped");
+        return itemStyle.includes("ociDbSystemNotActive");
     };
 
     /**

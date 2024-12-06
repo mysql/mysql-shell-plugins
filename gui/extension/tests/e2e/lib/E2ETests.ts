@@ -600,8 +600,14 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         process.env.NODE_ENV = "test";
         const defaultStdoutWrite = process.stdout.write.bind(process.stdout);
 
+        const filename = `test_results_${testSuite.name}.log`;
+
         if (log) {
-            const logStream = createWriteStream(`test_results_${testSuite.name}.log`, { flags: "a" });
+            if (existsSync(filename)) {
+                rmSync(filename);
+            }
+
+            const logStream = createWriteStream(filename, { flags: "a" });
 
             process.stdout.write = process.stderr.write = logStream.write.bind(logStream);
         }

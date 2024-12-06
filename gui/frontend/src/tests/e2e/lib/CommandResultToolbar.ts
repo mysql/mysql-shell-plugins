@@ -58,7 +58,7 @@ export class CommandResultToolbar implements interfaces.ICommandResultToolbar {
             return (await status.getAttribute("innerHTML")) !== "";
         }, constants.wait5seconds, `The status is empty for cmd ${this.result!.command}`);
 
-        this.status = await status!.getText();
+        this.status = await status!.getAttribute("innerHTML");
     };
 
     /**

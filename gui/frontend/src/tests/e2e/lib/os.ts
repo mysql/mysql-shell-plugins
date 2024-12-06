@@ -87,8 +87,14 @@ export class Os {
      * Reads and returns the content of the clipboard
      * @returns A promise revolved with the clipboard content
      */
-    public static readClipboard = async (): Promise<string> => {
-        return driver.executeScript("window.focus(); return await navigator.clipboard.readText()");
+    public static readClipboard = async (): Promise<string | undefined> => {
+        try {
+            return driver.executeScript("return await navigator.clipboard.readText()");
+        } catch (e) {
+            if (e instanceof error.JavascriptError) {
+                return constants.jsError;
+            }
+        }
     };
 
     /**
@@ -102,7 +108,7 @@ export class Os {
 
         await driver.wait(async () => {
             try {
-                const clipboardData = (await this.readClipboard()).split("\n").filter((item) => { return item; });
+                const clipboardData = (await this.readClipboard())!.split("\n").filter((item) => { return item; });
                 const replacers = [/\n/, / (\d+):(\d+):(\d+)/];
 
                 if (clipboardData.length > 1) {

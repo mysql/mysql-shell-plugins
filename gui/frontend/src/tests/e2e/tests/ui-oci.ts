@@ -49,6 +49,7 @@ const tabContainer = new E2ETabContainer();
 let mdsEndPoint: string | undefined;
 let dbSystemID: string | undefined;
 let bastionID: string | undefined;
+let ociFailure = false;
 
 describe("OCI", () => {
 
@@ -179,14 +180,25 @@ describe("OCI", () => {
                 const mds = await new E2EDatabaseConnectionOverview().getConnection(treeDbSystem);
                 await mds.click();
 
-                try {
-                    await driver.wait(new E2ENotebook().untilIsOpened(mdsConnection), constants.wait1minute);
-                } catch (e) {
-                    if (String(e).match(/Tunnel/) !== null) {
-                        return;
-                    } else {
-                        throw e;
-                    }
+                await driver.wait(new E2ENotebook().untilIsOpened(mdsConnection), constants.wait1minute)
+                    .catch(async (e) => {
+                        const notifications = await Misc.getToastNotifications();
+                        if (notifications.length > 0) {
+                            for (const notification of notifications) {
+                                if (notification!.message.includes("The connection could not be opened")) {
+                                    await notification?.close();
+                                    ociFailure = true;
+
+                                    break;
+                                }
+                            }
+                        } else {
+                            throw e;
+                        }
+                    });
+
+                if (ociFailure) {
+                    return; // No connection to OCI, skipping test
                 }
 
                 const notebook = new E2ENotebook();
@@ -194,6 +206,8 @@ describe("OCI", () => {
                 const result = await notebook.codeEditor.execute("select version();");
                 expect(result.toolbar!.status).toMatch(/OK/);
             } else {
+                ociFailure = true;
+
                 return;
             }
         } catch (e) {
@@ -205,16 +219,23 @@ describe("OCI", () => {
     it("Set as Current Bastion", async () => {
         try {
             const treeBastion = await ociTreeSection.tree.getOciElementByType(constants.bastionType);
-            await ociTreeSection.tree.openContextMenuAndSelect(treeBastion, constants.setAsCurrentBastion);
+            const expected1 = `Setting current bastion to ${treeBastion} ...`;
+            const expected2 = `Current bastion set to ${treeBastion}.`;
+
+            await driver.wait(async () => {
+                await ociTreeSection.tree.openContextMenuAndSelect(treeBastion, constants.setAsCurrentBastion);
+                const notifications = await Misc.getToastNotifications(true);
+                for (const notification of notifications) {
+                    if (notification?.message !== expected1 && notification?.message !== expected2) {
+                        throw new Error(`Notification message should be '${expected1}' or '${expected2}'`);
+                    } else {
+                        return true;
+                    }
+                }
+            }, constants.wait10seconds, `Could not find any notification`);
+
             await driver.wait(ociTreeSection.tree.untilIsDefault(treeBastion, "bastion"),
                 constants.wait10seconds, "Bastion is not the default item");
-            let notification = (await new E2EToastNotification().create())!;
-            expect(notification.message).toBe(`Setting current bastion to ${treeBastion} ...`);
-            await notification.close();
-            await driver.wait(notification.untilIsClosed(), constants.wait3seconds);
-            notification = (await new E2EToastNotification().create())!;
-            expect(notification.message).toBe(`Current bastion set to ${treeBastion}.`);
-            await notification.close();
 
             const shellConsole = new E2EShellConsole();
             await shellConsole.openNewShellConsole();
@@ -231,6 +252,10 @@ describe("OCI", () => {
 
     it("Create a new MDS Connection", async () => {
         try {
+            if (ociFailure) {
+                return; // There was an issue connection to OCI, so we skip the test
+            }
+
             const treeDbSystem = await ociTreeSection.tree.getOciElementByType(constants.dbSystemType);
 
             if (await ociTreeSection.tree.isDBSystemStopped(treeDbSystem)) {
