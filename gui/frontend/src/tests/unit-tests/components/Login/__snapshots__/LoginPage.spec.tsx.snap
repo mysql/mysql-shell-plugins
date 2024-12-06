@@ -74,11 +74,11 @@ exports[`Login Page Tests Render Test 1`] = `
               id="headingSubLabel"
               style={{}}
             >
-              Welcome to the $
+              Welcome to the 
               MySQL Shell Workbench
               .
               <br />
-              Please provide your $
+              Please provide your 
               MySQL Shell Workbench
                credentials to log into the shell interface.
             </label>
