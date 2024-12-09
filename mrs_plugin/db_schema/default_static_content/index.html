@@ -1017,7 +1017,7 @@
                     const servicePath = currentLocation.searchParams.get("service");
                     const redirectUrl = currentLocation.searchParams.get("redirectUrl");
                     const ociUrl = `${currentLocation.protocol}//${currentLocation.host}${servicePath}/` +
-                        `authentication/login?authApp=${appName}&onCompletionRedirect=${redirectUrl}`
+                        `authentication/login?authApp=${appName}&sessionType=bearer&onCompletionRedirect=${redirectUrl}`
 
                     return html`
                         <a href="${ociUrl}">
