@@ -873,16 +873,17 @@ class MrsJSON {
             // expand $notnull operator (lookup at the child level)
             // if we are operating at the root of the object, "not" is a field name, in which case, there is nothing
             // left to do
-            // { where: { not: { foo: null } } } => ?q={"foo":{"$notnull":"null"}}
+            // { where: { not: { foo: null } } } => ?q={"foo":{"$notnull":null}}
             if (key !== "" && typeof value === "object" && value !== null && value.not === null) {
-                return { $notnull: "null" };
+                return { $notnull: null };
             }
 
             // expand $null operator
-            // { where: { foo: null } } ?q={"foo":{"$null":"null"}}
-            // { where: { not: null } } => ?q={"not":{"$null":"null"}}
-            if (value === null) {
-                return { $null: "null" };
+            // ignore correct variations of "$null" and "$notnull" to avoid infinite recursion
+            // { where: { foo: null } } ?q={"foo":{"$null":null}}
+            // { where: { not: null } } => ?q={"not":{"$null":null}}
+            if (key !== "$notnull" && key !== "$null" && value === null) {
+                return { $null: null };
             }
 
             return value;

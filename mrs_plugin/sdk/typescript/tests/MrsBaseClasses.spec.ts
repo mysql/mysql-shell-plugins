@@ -233,7 +233,7 @@ describe("MRS SDK API", () => {
             const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz", options);
             await query.fetch();
 
-            const searchParams = new URLSearchParams({ q: '{"maybe":{"$null":"null"}}' });
+            const searchParams = new URLSearchParams({ q: '{"maybe":{"$null":null}}' });
             expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
@@ -249,7 +249,7 @@ describe("MRS SDK API", () => {
             const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz", options);
             await query.fetch();
 
-            const searchParams = new URLSearchParams({ q: '{"maybe":{"$notnull":"null"}}' });
+            const searchParams = new URLSearchParams({ q: '{"maybe":{"$notnull":null}}' });
             expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
@@ -263,7 +263,7 @@ describe("MRS SDK API", () => {
             const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz", options);
             await query.fetch();
 
-            const searchParams = new URLSearchParams({ q: '{"not":{"$null":"null"}}' });
+            const searchParams = new URLSearchParams({ q: '{"not":{"$null":null}}' });
             expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
@@ -279,7 +279,7 @@ describe("MRS SDK API", () => {
             const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz", options);
             await query.fetch();
 
-            const searchParams = new URLSearchParams({ q: '{"not":{"$notnull":"null"}}' });
+            const searchParams = new URLSearchParams({ q: '{"not":{"$notnull":null}}' });
             expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.anything());
         });
 
@@ -877,7 +877,7 @@ describe("MRS SDK API", () => {
             const query = new MrsBaseObjectDelete<{ maybe: number | null }>(schema, "/baz", { where: { maybe: null }});
             await query.fetch();
 
-            const searchParams = new URLSearchParams({ q: '{"maybe":{"$null":"null"}}' });
+            const searchParams = new URLSearchParams({ q: '{"maybe":{"$null":null}}' });
             expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.objectContaining({
                 method: "DELETE",
             }));
@@ -888,7 +888,7 @@ describe("MRS SDK API", () => {
                 not: null }}});
             await query.fetch();
 
-            const searchParams = new URLSearchParams({ q: '{"maybe":{"$notnull":"null"}}' });
+            const searchParams = new URLSearchParams({ q: '{"maybe":{"$notnull":null}}' });
             expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz?${searchParams.toString()}`, expect.objectContaining({
                 method: "DELETE",
             }));
