@@ -719,8 +719,8 @@ export class CommandResultGrid {
                 constants.resultGridContextMenu.copyMultipleRows,
                 constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRows);
 
-            if ((await Os.getClipboardContent())[0].split(",").length !== allColumns.length) {
-                console.log(`clipboard: ${(await Os.getClipboardContent()).toString()}`);
+            if ((await Os.getClipboardContent())![0].split(",").length !== allColumns.length) {
+                console.log(`clipboard: ${(await Os.getClipboardContent())!.toString()}`);
             } else {
                 return true;
             }
@@ -758,8 +758,8 @@ export class CommandResultGrid {
                 constants.resultGridContextMenu.copyMultipleRows,
                 constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNames);
 
-            if ((await Os.getClipboardContent())[0].split(",").length !== allColumns.length) {
-                console.log(`clipboard: ${(await Os.getClipboardContent()).toString()}`);
+            if ((await Os.getClipboardContent())![0].split(",").length !== allColumns.length) {
+                console.log(`clipboard: ${(await Os.getClipboardContent())!.toString()}`);
             } else {
                 return true;
             }
@@ -797,8 +797,8 @@ export class CommandResultGrid {
                 constants.resultGridContextMenu.copyMultipleRows,
                 constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsUnquoted);
 
-            if ((await Os.getClipboardContent())[0].split(",").length !== allColumns.length) {
-                console.log(`clipboard: ${(await Os.getClipboardContent()).toString()}`);
+            if ((await Os.getClipboardContent())![0].split(",").length !== allColumns.length) {
+                console.log(`clipboard: ${(await Os.getClipboardContent())!.toString()}`);
             } else {
                 return true;
             }
@@ -836,8 +836,8 @@ export class CommandResultGrid {
                 constants.resultGridContextMenu.copyMultipleRows,
                 constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNamesUnquoted);
 
-            if ((await Os.getClipboardContent())[0].split(",").length !== allColumns.length) {
-                console.log(`clipboard: ${(await Os.getClipboardContent()).toString()}`);
+            if ((await Os.getClipboardContent())![0].split(",").length !== allColumns.length) {
+                console.log(`clipboard: ${(await Os.getClipboardContent())!.toString()}`);
             } else {
                 return true;
             }
@@ -875,8 +875,8 @@ export class CommandResultGrid {
                 constants.resultGridContextMenu.copyMultipleRows,
                 constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNamesTabSeparated);
 
-            if ((await Os.getClipboardContent())[0].split("\t").length !== allColumns.length) {
-                console.log(`clipboard: ${(await Os.getClipboardContent()).toString()}`);
+            if ((await Os.getClipboardContent())![0].split("\t").length !== allColumns.length) {
+                console.log(`clipboard: ${(await Os.getClipboardContent())!.toString()}`);
             } else {
                 return true;
             }
@@ -914,8 +914,8 @@ export class CommandResultGrid {
                 constants.resultGridContextMenu.copyMultipleRows,
                 constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsTabSeparated);
 
-            if ((await Os.getClipboardContent())[0].split("\t").length !== allColumns.length) {
-                console.log(`clipboard: ${(await Os.getClipboardContent()).toString()}`);
+            if ((await Os.getClipboardContent())![0].split("\t").length !== allColumns.length) {
+                console.log(`clipboard: ${(await Os.getClipboardContent())!.toString()}`);
             } else {
                 return true;
             }
