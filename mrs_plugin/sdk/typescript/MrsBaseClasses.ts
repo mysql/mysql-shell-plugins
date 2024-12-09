@@ -200,11 +200,13 @@ export class MrsBaseSession {
         const nonce = this.hex(crypto.getRandomValues(new Uint8Array(10)));
 
         const challenge: IAuthChallenge = await (await this.doFetch({
-            input: `${this.authPath}/login?app=${authApp}`,
+            input: `${this.authPath}/login`,
             method: "POST",
             body: {
+                authApp,
                 user: userName,
                 nonce,
+                sessionType: "bearer",
             },
         })).json();
 
@@ -233,8 +235,7 @@ export class MrsBaseSession {
 
             try {
                 const response = await this.doFetch({
-                    input: `${this.authPath}/login?app=${this.authApp}&sessionType=bearer` +
-                        (challenge.session !== undefined ? "&session=" + challenge.session : ""),
+                    input: `${this.authPath}/login`,
                     method: "POST",
                     body: {
                         clientProof,
