@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g id="share">
+        <g transform="matrix(0.421518,0,0,0.413558,-3.04115,-1.56273)">
+            <path d="M30.3,13.7L25,8.4L19.7,13.7L18.3,12.3L25,5.6L31.7,12.3L30.3,13.7Z" style="fill-rule:nonzero;"/>
+        </g>
+        <g transform="matrix(0.421518,0,0,0.413558,-3.04115,-1.56273)">
+            <rect x="24" y="7" width="2" height="21" style="fill-rule:nonzero;"/>
+        </g>
+        <g transform="matrix(0.421518,0,0,0.413558,-3.04115,-1.56273)">
+            <path d="M35,40L15,40C13.3,40 12,38.7 12,37L12,19C12,17.3 13.3,16 15,16L22,16L22,18L15,18C14.4,18 14,18.4 14,19L14,37C14,37.6 14.4,38 15,38L35,38C35.6,38 36,37.6 36,37L36,19C36,18.4 35.6,18 35,18L28,18L28,16L35,16C36.7,16 38,17.3 38,19L38,37C38,38.7 36.7,40 35,40Z" style="fill-rule:nonzero;"/>
+        </g>
+    </g>
+</svg>

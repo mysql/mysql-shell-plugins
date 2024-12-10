@@ -1,0 +1,263 @@
+/*
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+:root {
+    --main-background-color: #fff;
+    --secondary-background-color: #fff;
+    --toolbar-background-color: rgba(245, 245, 246, 0.75);
+    --toolbar-secondary-background-color: rgba(248, 248, 248, 0.6);
+    --list-background-color: #F2F2F7;
+    --list-item-background-color: #fff;
+    --list-item-selected-background-color: hsl(240, 8%, 88%);
+    --list-item-selected-focus-background-color: hsl(200, 65%, 86%);
+    --button-background-color: #6E6D70;
+    --primary-text-color: #333333;
+    --secondary-text-color: #ADADAD;
+    --title-text-color: #222;
+    --title-text-inverse-color: #fff;
+    --title-text-inverse-secondary-color: #ddd;
+    --list-item-color: #000;
+    --list-item-secondary-color: #666;
+    --button-text-color: #DFDEDF;
+    --splitter-color: #D4D4D4;
+    --icon-color: hsl(200, 65%, 40%);
+    --focus-color: hsl(200, 65%, 70%);
+    --error-color: hsl(0, 100%, 70%);
+    --error-text-color: #500;
+    --background-image-color-overlay: rgba(255, 130, 0, 0.5);
+
+    --display-flex-on-screen-none-on-mobile: flex;
+    --display-none-on-screen-flex-on-mobile: none;
+}
+
+@media (prefers-color-scheme: dark) {
+
+    :root {
+        --main-background-color: #0d0d0d;
+        --secondary-background-color: #181A1B;
+        --toolbar-background-color: rgba(29, 32, 33, 0.6);
+        --toolbar-secondary-background-color: rgba(24, 26, 27, 0.6);
+        --list-background-color: #1E2022;
+        --list-item-background-color: #181A1B;
+        --list-item-selected-background-color: hsl(210, 7%, 20%);
+        --list-item-selected-focus-background-color: hsl(200, 65%, 20%);
+        --button-background-color: #666;
+        --primary-text-color: #c4c4c4;
+        --secondary-text-color: #595959;
+        --title-text-color: #e5e5e7;
+        --title-text-inverse-color: #ccc;
+        --title-text-inverse-secondary-color: #aaa;
+        --list-item-color: #E8E6E3;
+        --list-item-secondary-color: #666;
+        --splitter-color: #3A3436;
+        --icon-color: hsl(200, 65%, 40%);
+        --focus-color: hsl(200, 65%, 30%);
+        --error-color: hsl(0, 100%, 20%);
+        --error-text-color: #e00;
+        --background-image-color-overlay: rgba(0, 0, 0, 0.2);
+    }
+}
+
+@media screen and (max-width: 600px) {
+    :root {
+        --display-flex-on-screen-none-on-mobile: none;
+        --display-none-on-screen-flex-on-mobile: flex;
+    }
+}
+
+html * {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    background-color: var(--main-background-color);
+    color: var(--primary-text-color);
+    height: 100%;
+    overflow: hidden;
+    background-image: url("../public/images/redwood-bg.png");
+    background-position-x: -150px;
+    background-size: 2000px;
+}
+
+body:before {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    background-color: var(--background-image-color-overlay);
+    content: ' ';
+}
+
+p {
+    line-height: 1.3;
+}
+
+textarea {
+    background: var(--main-background-color);
+    color: var(--primary-text-color);
+    border: none;
+    font-size: 18px;
+}
+
+textarea:focus {
+    outline: transparent;
+    border: 1px solid var(--primary-text-color);
+}
+
+button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 26px;
+    font-size: 15px;
+    font-weight: 300;
+    border-radius: 6px;
+    border: none;
+    background-color: var(--button-background-color);
+    color: var(--button-text-color);
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+.flatButton:active {
+    box-shadow: 0px 1px 4px rgba(0, 0, 0, 0.3) inset;
+}
+
+.page {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    overflow: hidden;
+}
+
+.doCenter {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.gradientText {
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    background-image: linear-gradient(225deg, #f95da8 36.04%, #022fca 88.83%, #f66233 220.3%);
+}
+
+.gradientText2 {
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    background-image: linear-gradient(-45deg, #35C3F3 0%, #8b9fe8 20%, #e681d8 39%, #ffa9a4 76%, #FED2CE 100%);
+}
+
+.footer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    width: 80%;
+    padding-bottom: 10px;
+}
+
+.footer p {
+    font-size: 10px;
+    font-weight: 200;
+}
+
+.icon {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
+}
+
+.iconBg {
+    width: 100%;
+    height: 100%;
+    background-color: var(--icon-color);
+}
+
+/* cSpell:disable */
+
+.sakilaIcon {
+    background-color: hsl(200, 65%, 40%);
+    -webkit-mask-image: url("/images/sakila.svg");
+    mask-image: url("/images/sakila.svg");
+}
+
+.addIcon {
+    -webkit-mask-image: url("/images/add.svg");
+    mask-image: url("/images/add.svg");
+}
+
+.searchIcon {
+    background-color: var(--primary-text-color);
+    -webkit-mask-image: url("/images/search.svg");
+    mask-image: url("/images/search.svg");
+}
+
+.deleteIcon {
+    -webkit-mask-image: url("/images/delete.svg");
+    mask-image: url("/images/delete.svg");
+}
+
+.userIcon {
+    -webkit-mask-image: url("/images/user.svg");
+    mask-image: url("/images/user.svg");
+}
+
+.exitIcon {
+    -webkit-mask-image: url("/images/exit.svg");
+    mask-image: url("/images/exit.svg");
+}
+
+.shareIcon {
+    -webkit-mask-image: url("/images/share.svg");
+    mask-image: url("/images/share.svg");
+}
+
+.pendingInvitationIcon {
+    -webkit-mask-image: url("/images/pendingInvitation.svg");
+    mask-image: url("/images/pendingInvitation.svg");
+}
+
+.backIcon {
+    -webkit-mask-image: url("/images/back.svg");
+    mask-image: url("/images/back.svg");
+}

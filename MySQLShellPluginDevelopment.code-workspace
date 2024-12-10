@@ -30,6 +30,10 @@
             "path": "mrs_plugin/examples/mrs_scripts"
         },
         {
+            "name": "MRS HeatWave Chat",
+            "path": "mrs_plugin/examples/mrs_chat"
+        },
+        {
             "name": "Shell Plugin Tools",
             "path": "gui/tools"
         }

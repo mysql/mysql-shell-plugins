@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,1.51615,0)">
+        <g id="SchemaTableIndex">
+            <path id="Magnify" d="M8.032,10.446C7.436,10.798 6.741,11 6,11C3.792,11 2,9.208 2,7C2,4.792 3.792,3 6,3C8.208,3 10,4.792 10,7C10,7.741 9.798,8.436 9.446,9.032L12.95,12.536L11.536,13.95L8.032,10.446ZM6,4C4.344,4 3,5.344 3,7C3,8.656 4.344,10 6,10C7.656,10 9,8.656 9,7C9,5.344 7.656,4 6,4Z"/>
+        </g>
+    </g>
+</svg>
