@@ -1,0 +1,171 @@
+/*
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.pageForm {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    background-color: var(--secondary-background-color);
+    overflow: hidden;
+}
+
+.pageFormContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: scroll;
+}
+
+.headerTitle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.headerTitle :global(.icon) {
+    width: 160px;
+    height: 160px;
+    padding-top: 50px;
+    padding-bottom: 30px;
+}
+
+.headerTitle :global(.iconBg) {
+    background-image: linear-gradient(-45deg, #35C3F3 0%, #8b9fe8 20%, #e681d8 39%, #ffa9a4 76%, #FED2CE 100%);
+}
+
+.headerTitle h3 {
+    padding-bottom: 20px;
+    font-size: 32px;
+    font-weight: 600;
+}
+
+.headerTitle p {
+    padding-bottom: 20px;
+    text-align: center;
+}
+
+.formField {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--secondary-text-color);
+    padding: 8px 16px;
+}
+
+.formField:first-of-type {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.formField:last-of-type {
+    border-top: 0px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    margin-bottom: 16px;
+}
+
+.formField p {
+    font-size: 12px;
+    color: var(--secondary-text-color);
+}
+
+.formField input[type=text] {
+    border: none;
+    outline: none;
+    background-color: transparent;
+    color: var(--primary-text-color);
+    font-size: 17px;
+    width: 250px;
+}
+
+.formCheckbox {
+    display: flex;
+}
+
+.formField input[type=checkbox] {
+    position: relative;
+    cursor: pointer;
+}
+
+.formField input[type=checkbox]:before {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 6px;
+    left: 0;
+    border: 2px solid var(--secondary-text-color);
+    border-radius: 3px;
+    background-color: var(--secondary-background-color);
+}
+
+.formField input[type=checkbox]:checked:after {
+    content: "";
+    display: block;
+    width: 5px;
+    height: 10px;
+    border: solid var(--primary-text-color);
+    border-width: 0 2px 2px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+    position: absolute;
+    top: 8px;
+    left: 6px;
+}
+
+.formField label {
+    padding-left: 16px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+.formField:focus-within {
+    outline: 1px solid var(--focus-color);
+    outline-offset: -1px;
+}
+
+.formButtons {
+    display: flex;
+    gap: 24px;
+    padding-top: 8px;
+    padding-bottom: 24px;
+}
+
+.formSuccess {
+    padding-bottom: 16px;
+    text-align: center;
+}
+
+.formSuccess a {
+    color: var(--icon-color);
+}
+
+.formError {
+    padding-bottom: 16px;
+    color: red;
+}

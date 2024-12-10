@@ -1,0 +1,101 @@
+/*
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.chat {
+    display: flex;
+    width: 90%;
+    height: 100%;
+    flex: 1;
+    overflow: hidden;
+    gap: 30px;
+}
+
+.chatTitle {
+    display: var(--display-flex-on-screen-none-on-mobile);
+    flex-direction: column;
+    max-width: 300px;
+    padding-top: 120px;
+}
+
+.chatTitle h1 {
+    color: var(--title-text-inverse-color);
+    font-size: 2.4em;
+}
+
+.chatTitle p {
+    padding-top: 10px;
+    color: var(--title-text-inverse-secondary-color);
+    line-height: 1.1em;
+    font-size: 1.1em;
+}
+
+.chatBubbles {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 350px;
+    width: 100%;
+    font-size: 1.2em;
+    overflow-y: scroll;
+    padding-top: 120px;
+    padding-bottom: 40px;
+}
+
+.chatItem {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.chatPrompt {
+    display: flex;
+    align-items: stretch;
+    background-color: var(--secondary-background-color);
+    color: var(--primary-text-color);
+    width: 70%;
+    max-width: 70%;
+    align-self: flex-end;
+    padding: 8px 15px;
+    border-radius: 12px 2px 12px 12px;
+}
+
+.chatResponse {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-start;
+}
+
+.chatResponseItem:last-child {
+    border-radius: 2px 12px 12px 12px;
+}
+
+.chatResponseItem {
+    background-color: var(--secondary-background-color);
+    color: var(--primary-text-color);
+    padding: 8px 15px;
+    border-radius: 2px 12px 12px 2px;
+    max-width: 70%;
+}

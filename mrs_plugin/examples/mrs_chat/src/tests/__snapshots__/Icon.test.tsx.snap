@@ -1,0 +1,19 @@
+// Vitest Snapshot v1
+
+exports[`Icon > should match the snapshot 1`] = `
+<Icon
+  copyright="Copyright (c) 2022, 2024, Oracle and/or its affiliates."
+  name="sakila"
+  onClick={[Function]}
+  styleClass="MyStyle"
+>
+  <div
+    className="icon MyStyle"
+    onClick={[Function]}
+  >
+    <div
+      className="iconBg sakila"
+    />
+  </div>
+</Icon>
+`;
