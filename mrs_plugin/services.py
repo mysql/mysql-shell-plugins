@@ -985,11 +985,11 @@ def dump_sdk_service_files(**kwargs):
         with open(os.path.join(directory, f"{file_name}.{file_type}"), 'w') as f:
             f.write(service_classes)
 
-        add_app_base_class = mrs_config.get("addAppCaseClass")
+        add_app_base_class = mrs_config.get("addAppBaseClass")
 
         if add_app_base_class is not None and isinstance(add_app_base_class, str) and add_app_base_class != '':
             path = os.path.abspath(__file__)
-            file_path = Path(os.path.dirname(path), "sdk", add_app_base_class)
+            file_path = Path(os.path.dirname(path), "sdk", sdk_language.lower(), add_app_base_class)
             shutil.copy(file_path, os.path.join(directory, add_app_base_class))
 
     # cspell:ignore timespec
