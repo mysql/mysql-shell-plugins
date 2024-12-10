@@ -386,10 +386,6 @@
                 try {
                     response = await fetch(`${this.serviceUrl ?? ""}${input}`, {
                         method,
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        headers: (this.accessToken !== undefined)
-                            ? { Authorization: "Bearer " + this.accessToken }
-                            : undefined,
                         body: (body !== undefined) ? JSON.stringify(body) : undefined,
                         signal: controller.signal,
                     });
@@ -485,7 +481,7 @@
                         authApp,
                         user: userName,
                         nonce,
-                        sessionType: "bearer",
+                        sessionType: "cookie",
                     },
                 })).json();
 
@@ -513,7 +509,7 @@
                                 authApp,
                                 username,
                                 password,
-                                sessionType: "bearer"
+                                sessionType: "cookie"
                             },
                         }, undefined, undefined, undefined, false);
 
@@ -733,7 +729,7 @@
                     const redirectUrl = encodeURIComponent(MrsBaseApp.getUrlWithNewSearchString(`authApp=${authApp}`));
 
                     globalThis.location.href =
-                        `${this.serviceUrl}/authentication/login?app=${authApp}&sessionType=bearer` +
+                        `${this.serviceUrl}/authentication/login?app=${authApp}&sessionType=cookie` +
                         `&onCompletionRedirect=${redirectUrl}`;
                 } else {
                     globalThis.location.href = MrsBaseApp.getUrlWithNewSearchString();
@@ -1017,7 +1013,7 @@
                     const servicePath = currentLocation.searchParams.get("service");
                     const redirectUrl = currentLocation.searchParams.get("redirectUrl");
                     const ociUrl = `${currentLocation.protocol}//${currentLocation.host}${servicePath}/` +
-                        `authentication/login?authApp=${appName}&sessionType=bearer&onCompletionRedirect=${redirectUrl}`
+                        `authentication/login?authApp=${appName}&sessionType=cookie&onCompletionRedirect=${redirectUrl}`
 
                     return html`
                         <a href="${ociUrl}">
@@ -1101,7 +1097,7 @@
                 const fullRedirectUrl = encodeURIComponent(this.getUrlWithNewSearchString(
                     `authApp=${authApp}&redirectUrl=${redirectUrl}`));
 
-                const loginPath = `${serviceUrl}${authPath}/login?app=${authApp}&sessionType=bearer` +
+                const loginPath = `${serviceUrl}${authPath}/login?app=${authApp}&sessionType=cookie` +
                     `&onCompletionRedirect=${fullRedirectUrl}`;
 
                 window.location.href = loginPath;

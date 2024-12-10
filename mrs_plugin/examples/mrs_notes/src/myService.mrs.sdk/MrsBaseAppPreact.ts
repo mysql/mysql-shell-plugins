@@ -127,6 +127,7 @@ export abstract class MrsBaseApp<Service extends MrsBaseService, State extends I
             // TODO: maybe we need a public API to add a token in the SDK
             this.mrsService.session.accessToken = accessToken;
         } else {
+            this.mrsService.session.accessToken = accessToken;
             // If it was specified, store it in the globalThis.localStorage
             globalThis.localStorage.setItem(`${this.appName}JwtAccessToken`, accessToken);
             // Clean Browser URL without reloading the page
