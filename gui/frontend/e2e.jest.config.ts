@@ -282,7 +282,8 @@ const config: Config = {
                 "useCssFile": true,
             }
         ]
-    ]
+    ],
+    testSequencer: "./src/tests/e2e/testSequencer.js",
 };
 
 export default config;
