@@ -124,10 +124,11 @@ export abstract class MrsBaseApp<Service extends MrsBaseService, State extends I
         if (accessToken === undefined) {
             const storedJwtAccessToken = globalThis.localStorage.getItem(`${this.appName}JwtAccessToken`);
             accessToken = storedJwtAccessToken !== null ? storedJwtAccessToken : undefined;
+            // TODO: maybe we need a public API to add a token in the SDK
+            this.mrsService.session.accessToken = accessToken;
         } else {
             // If it was specified, store it in the globalThis.localStorage
             globalThis.localStorage.setItem(`${this.appName}JwtAccessToken`, accessToken);
-
             // Clean Browser URL without reloading the page
             globalThis.history.replaceState(undefined, "", MrsBaseApp.getUrlWithNewSearchString());
         }
@@ -143,25 +144,23 @@ export abstract class MrsBaseApp<Service extends MrsBaseService, State extends I
             globalThis.localStorage.setItem(`${this.appName}BuiltInAuth`, String(mrsBuiltInAuth));
         }
 
-        // Initialize the App Component's state variables
-        this.setState({
-            authenticating: this.mrsService.session.accessToken !== undefined && !mrsBuiltInAuth,
-        }, () => {
-            // Check if the current accessToken is still valid
-            if (this.mrsService.session.accessToken !== undefined) {
-                void this.mrsService.session.getAuthenticationStatus().then((status) => {
-                    if (status?.status === "authorized") {
-                        // Execute additional handling that is defined in derived app class
-                        this.afterHandleLogin(status).catch(() => {
-                            this.logout();
-                        });
-                    } else {
-                        // If not, go back to login page
+        // This triggers a "Loading..." message until afterHandleLogin() or logout() finish.
+        this.setState({ authenticating: accessToken !== undefined });
+
+        // Check if the current accessToken is still valid
+        if (accessToken !== undefined) {
+            void this.mrsService.session.getAuthenticationStatus().then((status) => {
+                if (status?.status === "authorized") {
+                    // Execute additional handling that is defined in derived app class
+                    this.afterHandleLogin(status).catch(() => {
                         this.logout();
-                    }
-                });
-            }
-        });
+                    });
+                } else {
+                    // If not, go back to login page
+                    this.logout();
+                }
+            });
+        }
     };
 
     protected afterLogout = async (): Promise<void> => { /** */ };
