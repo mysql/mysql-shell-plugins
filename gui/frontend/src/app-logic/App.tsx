@@ -39,6 +39,8 @@ import { ErrorBoundary } from "./ErrorBoundary.js";
 import { ProfileSelector } from "./ProfileSelector.js";
 
 import type { IDisposable } from "monaco-editor";
+import { StandaloneServices } from "monaco-editor/esm/vs/editor/standalone/browser/standaloneServices.js";
+import { IStandaloneThemeService } from "monaco-editor/esm/vs/editor/standalone/common/standaloneTheme.js";
 import { MessageScheduler } from "../communication/MessageScheduler.js";
 import { IShellProfile } from "../communication/ProtocolGui.js";
 import { MessagePanel } from "../components/Dialogs/MessagePanel.js";
@@ -154,6 +156,15 @@ export class App extends Component<{}, IAppState> {
             requisitions.unregister("themeChanged", this.themeChanged);
             requisitions.unregister("dialogResponse", this.dialogResponse);
         });
+
+        // The Monaco Editor includes a font (codicon.ttf).
+        // However, its associated CSS, such as .codicon-chevron-down:before { content: '\eb09'; },
+        // is dynamically injected into the document by JavaScript via a style.monaco-colors element.
+        // This injection only occurs if an Editor instance is created.
+        // We require the icons to be available on pages even without an editor instance.
+        // The only reason why it works in standalone is that CommunicationDebugger renders CodeEditor.
+        const themeService = StandaloneServices.get(IStandaloneThemeService);
+        themeService.registerEditorContainer(document.createElement("div"));
     }
 
     public override componentDidMount(): void {
