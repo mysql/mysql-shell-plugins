@@ -1701,7 +1701,11 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         let caption = cellData.data?.name ?? "";
         switch (cellData.data.type) {
             case ObjectStorageTreeItemType.Compartment: {
-                iconSrc = cellData.data.isCurrent ? currentFolderIcon : Codicon.Folder;
+                iconSrc = Codicon.Folder;
+                if (cellData.data.isCurrent) {
+                    iconSrc = currentFolderIcon;
+                    iconClassName = "current-compartment";
+                }
                 break;
             }
 
