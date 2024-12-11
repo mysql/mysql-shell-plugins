@@ -811,3 +811,7 @@ body[theme=dark] .msg.lakehouseNavigatorHost .tabulator-row.tabulator-row-even.n
 .msg.lakehouseNavigatorHost .step2to3 {
     left: calc(66% - (1.4em / 3));
 }
+
+.msg.lakehouseNavigatorHost .current-compartment {
+    background-color: var(--rowTextColor);
+}
