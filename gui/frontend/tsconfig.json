@@ -35,14 +35,22 @@
             ],
             "react-dom": [
                 "./node_modules/preact/compat/"
+            ],
+            "monaco-editor/esm/vs/editor/standalone/browser/standaloneServices.js": [
+                "./typings/monaco-editor/monaco-editor.d.ts"
+            ],
+            "monaco-editor/esm/vs/editor/standalone/common/standaloneTheme.js": [
+                "./typings/monaco-editor/monaco-editor.d.ts"
             ]
-        }
+        },
+        "typeRoots": ["./node_modules/@types", "./typings"]
     },
     "include": [
         "scripts/**/*.ts",
         "src/**/*",
         "src/**/*.json",
         "src/oci-typings/**/*.ts",
+        "src/typings/**/*",
         "vite.config.ts",
         "postcss.config.cjs",
         "src/tests/e2e/postActions.mjs",
