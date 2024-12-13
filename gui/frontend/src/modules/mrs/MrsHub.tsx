@@ -181,7 +181,7 @@ export class MrsHub extends ComponentBase {
             type: MrsDialogType.MrsService,
             title,
             parameters: {
-                protocols: ["HTTPS", "HTTP"],
+                protocols: ["HTTPS"],
                 authVendors,
             },
             values: {
@@ -777,7 +777,7 @@ export class MrsHub extends ComponentBase {
             type: MrsDialogType.MrsAuthenticationApp,
             title,
             parameters: {
-                protocols: ["HTTPS", "HTTP"],
+                protocols: ["HTTPS"],
                 authVendors,
                 roles,
             },

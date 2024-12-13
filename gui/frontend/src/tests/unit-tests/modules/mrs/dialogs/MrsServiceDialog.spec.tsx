@@ -179,8 +179,6 @@ describe("MRS Service dialog tests", () => {
 
         await dialogHelper.setInputText("servicePath", "/myService2");
 
-        await dialogHelper.setInputText("hostName", "localhost");
-
         await dialogHelper.clickOk();
 
         await promise;

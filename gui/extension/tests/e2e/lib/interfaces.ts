@@ -129,7 +129,6 @@ export interface IRestServiceSettings {
     mrsAdminUser?: string;
     mrsAdminPassword?: string;
     comments?: string;
-    hostNameFilter?: string;
 }
 
 export interface IRestServiceAuthentication {
@@ -147,7 +146,13 @@ export interface IRestService {
     published?: boolean;
     settings?: IRestServiceSettings;
     options?: string;
+    advanced?: IRestServiceAdvanced;
     authentication?: IRestServiceAuthentication;
+}
+
+export interface IRestServiceAdvanced {
+    hostNameFilter?: string;
+    protocols?: string[];
 }
 
 export interface IRestSchema {

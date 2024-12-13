@@ -1047,6 +1047,7 @@ export const mrsServiceDialog = {
         authAppsUrl: By.id("authApps.url"),
         authAppsUrlDirectAuth: By.id("authApps.urlDirectAuth"),
     },
+    advancedTab: By.id("page3"),
     ok: By.id("ok"),
     cancel: By.id("cancel"),
 };
