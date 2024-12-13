@@ -35,7 +35,7 @@ export class E2ETextEditor {
      * Gets the text inside the active text editor
      * @returns A promise resolving with the text
      */
-    public getText = async (): Promise<string> => {
+    public getText = async (): Promise<string | undefined> => {
         const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
         await Os.keyboardSelectAll(textArea);
         await Os.keyboardCopy();
@@ -50,7 +50,7 @@ export class E2ETextEditor {
     public untilIsJson = (): Condition<boolean> => {
         return new Condition("for document to be json", async () => {
             try {
-                JSON.parse(await this.getText());
+                JSON.parse(String(await this.getText()));
 
                 return true;
             } catch (e) {
