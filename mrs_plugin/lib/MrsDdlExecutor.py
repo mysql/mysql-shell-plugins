@@ -928,6 +928,24 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     raise Exception(
                         f'The vendor `{mrs_object.get("vendor")}` was not found.'
                     )
+                # Check constraints for OAuth2 vender apps
+                if (auth_vendor["id"] != lib.core.id_to_binary("0x30000000000000000000000000000000", "") and
+                    auth_vendor["id"] != lib.core.id_to_binary("0x31000000000000000000000000000000", "")):
+                    if mrs_object.get("url") is None:
+                        raise Exception(
+                            f'The OAuth2 vendor `{mrs_object.get("vendor")}` requires '
+                            'the URL option to be specified.'
+                        )
+                    if mrs_object.get("app_id") is None:
+                        raise Exception(
+                            f'The OAuth2 vendor `{mrs_object.get("vendor")}` requires '
+                            'the APP/CLIENT ID option to be specified.'
+                        )
+                    if mrs_object.get("app_secret") is None:
+                        raise Exception(
+                            f'The OAuth2 vendor `{mrs_object.get("vendor")}` requires '
+                            'the APP/CLIENT SECRET option to be specified.'
+                        )
 
                 auth_app_id = lib.auth_apps.add_auth_app(
                     session=self.session,
