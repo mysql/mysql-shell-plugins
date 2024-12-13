@@ -23,28 +23,28 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-// import { IStandaloneThemeService } from "monaco-editor/esm/vs/editor/standalone/common/standaloneTheme.js";
+/* eslint-disable max-classes-per-file */
 
-declare module "monaco-editor/esm/vs/editor/standalone/browser/standaloneServices.js" {
-  export type StandaloneServicesType = {
-    get<T>(service: new (...args: unknown[]) => T): T;
-    get<T>(service: { identifier: symbol }): T;
-  };
+declare class StandaloneThemeService {
+    // Neither of these works:
+    // import { IDisposable } from "monaco-editor";
+    // import { IDisposable } from "monaco-editor/esm/vs/editor/editor.api.js";
 
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  export const StandaloneServices: StandaloneServicesType;
+    // Therefore inlining interface signature
+    public registerEditorContainer(domNode: HTMLElement): { dispose(): void; };
 }
 
 declare module "monaco-editor/esm/vs/editor/standalone/common/standaloneTheme.js" {
-  import type { IDisposable } from "monaco-editor";
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    export declare const IStandaloneThemeService: StandaloneThemeService;
+}
 
-  export interface IStandaloneThemeService {
-    registerEditorContainer(domNode: HTMLElement): IDisposable;
-  }
+declare module "monaco-editor/esm/vs/editor/standalone/browser/standaloneServices.js" {
+    type SupportedServices = StandaloneThemeService;
+    declare class ServiceContainer<T extends SupportedServices> {
+        public get(id: T): T;
+    }
 
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  export const IStandaloneThemeService: {
-    identifier: symbol;
-    new (): IStandaloneThemeService;
-  };
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    export declare const StandaloneServices: ServiceContainer<StandaloneThemeService>;
 }
