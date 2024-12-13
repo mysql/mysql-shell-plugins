@@ -69,11 +69,6 @@ export class RestServiceDialog {
                 await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.settings.comments,
                     restService.settings.comments);
             }
-
-            if (restService.settings.hostNameFilter) {
-                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.settings.hostNameFilter,
-                    restService.settings.hostNameFilter);
-            }
         }
 
         // Options
@@ -82,6 +77,7 @@ export class RestServiceDialog {
             await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.options.options,
                 restService.options);
         }
+
         if (restService.authentication) {
             await dialog.findElement(locator.mrsServiceDialog.authenticationTab).click();
             if (restService.authentication.authenticationPath) {
@@ -105,9 +101,19 @@ export class RestServiceDialog {
             }
         }
 
-        restService.treeName = restService.settings.hostNameFilter ?
-            `${restService.servicePath} (${restService.settings.hostNameFilter})` :
-            restService.servicePath;
+        if (restService.advanced) {
+            await dialog.findElement(locator.mrsServiceDialog.advancedTab).click();
+            if (restService.advanced.hostNameFilter) {
+                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.settings.hostNameFilter,
+                    restService.advanced.hostNameFilter);
+            }
+        }
+
+        if (restService.advanced && restService.advanced.hostNameFilter) {
+            restService.treeName = `${restService.servicePath} (${restService.advanced.hostNameFilter})`;
+        } else {
+            restService.treeName = restService.servicePath;
+        }
 
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsServiceDialog.ok).click();
@@ -142,8 +148,6 @@ export class RestServiceDialog {
         const restServiceSettings: interfaces.IRestServiceSettings = {};
         restServiceSettings.comments = await DialogHelper.getFieldValue(dialog,
             locator.mrsServiceDialog.settings.comments);
-        restServiceSettings.hostNameFilter = await DialogHelper.getFieldValue(dialog,
-            locator.mrsServiceDialog.settings.hostNameFilter);
         restService.settings = restServiceSettings;
 
         // Options
@@ -164,9 +168,21 @@ export class RestServiceDialog {
             locator.mrsServiceDialog.authentication.authCompletedPageContent);
         restService.authentication = authentication;
 
-        restService.treeName = restService.settings.hostNameFilter ?
-            `${restService.servicePath} (${restService.settings.hostNameFilter})` :
-            restService.servicePath;
+        await dialog.findElement(locator.mrsServiceDialog.advancedTab).click();
+        const hostnameFilter = await DialogHelper.getFieldValue(dialog,
+            locator.mrsServiceDialog.settings.hostNameFilter);
+
+        if (hostnameFilter !== "") {
+            restService.advanced = {
+                hostNameFilter: hostnameFilter,
+            };
+        }
+
+        if (restService.advanced && restService.advanced.hostNameFilter) {
+            restService.treeName = `${restService.servicePath} (${restService.advanced.hostNameFilter})`;
+        } else {
+            restService.treeName = restService.servicePath;
+        }
 
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsServiceDialog.cancel).click();

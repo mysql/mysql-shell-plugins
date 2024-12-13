@@ -61,7 +61,6 @@ export class E2ENotebook {
                 const notifications = await Misc.getToastNotifications();
 
                 if (notifications.length > 0) {
-                    console.log(`notifications: ${notifications.length}`);
                     for (const notification of notifications) {
 
                         if (notification!.type === "error") {

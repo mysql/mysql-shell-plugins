@@ -296,6 +296,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                     }
                 }
 
+                if (skipTest) {
+                    this.skip(); // No connection to OCI, skipping test
+                }
+
                 const notebook = new E2ENotebook();
                 await notebook.codeEditor.create();
                 const result = await notebook.codeEditor.execute("select version();");

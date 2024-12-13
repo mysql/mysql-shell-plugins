@@ -64,6 +64,9 @@ export class E2ERestService {
     /** The service authentication */
     public authentication: interfaces.IRestServiceAuthentication;
 
+    /** The service advanced data */
+    public advanced: interfaces.IRestServiceAdvanced;
+
     /** The service authentication apps */
     public authenticationApps: E2EAuthenticationApp[] | undefined = [];
 
@@ -71,9 +74,14 @@ export class E2ERestService {
     public restSchemas: E2ERestSchema[] | undefined = [];
 
     public constructor(restService: interfaces.IRestService) {
-        restService.treeName = restService.treeName ?? restService.settings.hostNameFilter ?
-            `${restService.servicePath} (${restService.settings.hostNameFilter})` :
-            restService.servicePath;
+        if (!restService.treeName) {
+            if (restService.advanced && restService.advanced.hostNameFilter) {
+                restService.treeName = `${restService.servicePath} (${restService.advanced.hostNameFilter})`;
+            } else {
+                restService.treeName = restService.servicePath;
+            }
+        }
+
         this.set(restService);
     }
 

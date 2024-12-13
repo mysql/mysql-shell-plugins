@@ -876,9 +876,7 @@ describe("MYSQL REST SERVICE", () => {
                 const notification = await new E2EToastNotification().create();
                 expect(notification!.message).toBe("The MRS service has been deleted successfully.");
                 await notification!.close();
-                await driver.wait(dbTreeSection.tree
-                    .untilDoesNotExist(`${service.servicePath} (${service.settings!.hostNameFilter})`),
-                    constants.wait5seconds);
+                await driver.wait(dbTreeSection.tree.untilDoesNotExist(service.treeName!), constants.wait5seconds);
             }
         } catch (e) {
             testFailed = true;

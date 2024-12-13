@@ -136,14 +136,6 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
                     horizontalSpan: 3,
                     description: "The descriptive name of the REST service.",
                 },
-                /*protocols: {
-                    type: "set",
-                    caption: "Supported Protocols",
-                    horizontalSpan: 3,
-                    tagSet: ["HTTP", "HTTPS"],
-                    value: request.values?.protocols as string[] ?? [],
-                    description: "The supported protocols.",
-                },*/
                 makeDefaultTitle: {
                     type: "description",
                     caption: "REST Service Flags",
@@ -218,15 +210,6 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
             horizontalSpan: 8,
             description: "Comments to describe this REST Service.",
         };
-        settingsSection.values.hostName = {
-            type: "text",
-            caption: "Host Name Filter",
-            value: request.values?.hostName as string,
-            horizontalSpan: 4,
-            description: "If specified, the REST service will only be made available " +
-                "to requests for this specific host.",
-            placeholder: "<Host Name Filter:Port>",
-        };
 
         const optionsSection: IDialogSection = {
             caption: "Options",
@@ -291,6 +274,30 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
             },
         };
 
+        const advancedSection: IDialogSection = {
+            caption: "Advanced",
+            groupName: "group1",
+            values: {
+                hostName: {
+                    type: "text",
+                    caption: "Host Name Filter",
+                    value: request.values?.hostName as string,
+                    horizontalSpan: 5,
+                    description: "If specified, the REST service will only be made available " +
+                        "to requests for this specific host.",
+                    placeholder: "<Host Name Filter:Port>",
+                },
+                protocols: {
+                    type: "set",
+                    caption: "Supported Protocols",
+                    horizontalSpan: 3,
+                    tagSet: ["HTTP", "HTTPS"],
+                    value: request.values?.protocols as string[] ?? [],
+                    description: "The protocols the REST service is accessed on. HTTPS is preferred.",
+                },
+            },
+        };
+
         return {
             id: "mainSection",
             sections: new Map<string, IDialogSection>([
@@ -298,6 +305,7 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
                 ["settingsSection", settingsSection],
                 ["optionsSection", optionsSection],
                 ["authSection", authSection],
+                ["advancedSection", advancedSection],
             ]),
         };
     }
@@ -307,17 +315,16 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
         const settingsSection = dialogValues.sections.get("settingsSection");
         const optionsSection = dialogValues.sections.get("optionsSection");
         const authSection = dialogValues.sections.get("authSection");
+        const advancedSection = dialogValues.sections.get("advancedSection");
 
-        if (mainSection && settingsSection && optionsSection && authSection) {
+        if (mainSection && settingsSection && optionsSection && authSection && advancedSection) {
             const values: IMrsServiceDialogData = {
                 servicePath: mainSection.values.servicePath.value as string,
                 name: mainSection.values.name.value as string,
                 comments: settingsSection.values.comments.value as string,
-                hostName: settingsSection.values.hostName.value as string,
                 isCurrent: mainSection.values.makeDefault.value as boolean,
                 enabled: mainSection.values.enabled.value as boolean,
                 published: mainSection.values.published.value as boolean,
-                protocols: ["HTTP", "HTTPS"], // mainSection.values.protocols.value as string[],
                 options: optionsSection.values.options.value as string,
                 authPath: authSection.values.authPath.value as string,
                 authCompletedUrlValidation: authSection.values.authCompletedUrlValidation.value as string,
@@ -326,6 +333,8 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
                 metadata: optionsSection.values.metadata.value as string,
                 mrsAdminUser: settingsSection.values.mrsAdminUser?.value as string | undefined,
                 mrsAdminUserPassword: settingsSection.values.mrsAdminUserPassword?.value as string | undefined,
+                hostName: advancedSection.values.hostName.value as string,
+                protocols: advancedSection.values.protocols.value as string[],
             };
 
             return values;

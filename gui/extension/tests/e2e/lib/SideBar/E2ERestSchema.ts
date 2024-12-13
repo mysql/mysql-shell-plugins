@@ -70,8 +70,13 @@ export class E2ERestSchema {
         this.parentService = restService;
         restSchema.treeName = restSchema.treeName ??
             `/${restSchema.settings.schemaName} (${restSchema.settings.schemaName})`;
-        restSchema.restServicePath = restService.settings.hostNameFilter ?
-            `${restService.settings.hostNameFilter}${restService.servicePath}` : restService.servicePath;
+
+        if (restService.advanced && restService.advanced.hostNameFilter) {
+            restSchema.restServicePath = `${restService.advanced.hostNameFilter}${restService.servicePath}`;
+        } else {
+            restSchema.restServicePath = restService.servicePath;
+        }
+
         this.set(restSchema);
     }
 

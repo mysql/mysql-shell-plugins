@@ -207,6 +207,19 @@ exports[`MRS Service dialog tests Show MRS Service Dialog (snapshot) and escape 
                       Authentication
                     </label>
                   </div>
+                  <div
+                    class="msg button tabItem"
+                    id="page3"
+                    role="button"
+                    tabindex="-1"
+                  >
+                    <label
+                      class="msg label"
+                      data-tooltip="inherit"
+                    >
+                      Advanced
+                    </label>
+                  </div>
                 </div>
                 <div
                   class="scrollbar"
@@ -308,35 +321,6 @@ exports[`MRS Service dialog tests Show MRS Service Dialog (snapshot) and escape 
                     data-tooltip="expand"
                   >
                     Comments to describe this REST Service.
-                  </label>
-                </div>
-                <div
-                  class="msg container fixedScrollbar gridCell"
-                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-                >
-                  <label
-                    class="msg label valueTitle"
-                    data-tooltip="expand"
-                  >
-                    Host Name Filter
-                  </label>
-                  <div
-                    class="msg container fixedScrollbar inputWithProgress"
-                    style="flex-direction: row;"
-                  >
-                    <input
-                      class="msg input valueEditor"
-                      id="hostName"
-                      placeholder="<Host Name Filter:Port>"
-                      spellcheck="true"
-                      type="text"
-                    />
-                  </div>
-                  <label
-                    class="msg label cellDescription"
-                    data-tooltip="expand"
-                  >
-                    If specified, the REST service will only be made available to requests for this specific host.
                   </label>
                 </div>
               </div>

@@ -223,7 +223,6 @@ describe("MySQL REST Service", () => {
             default: false,
             published: false,
             settings: {
-                //hostNameFilter: "localhost:8444",
                 mrsAdminUser: "testUser",
                 mrsAdminPassword: "testPassword",
                 comments: "testing",
@@ -241,13 +240,15 @@ describe("MySQL REST Service", () => {
             enabled: true,
             default: false,
             settings: {
-                hostNameFilter: "localhost",
                 comments: "testing",
             },
             authentication: {
                 redirectionUrl: "localhost:8000",
                 redirectionUrlValid: "(.*)",
                 authCompletedChangeCont: "<html>",
+            },
+            advanced: {
+                hostNameFilter: "localhost",
             },
         };
 
@@ -447,7 +448,6 @@ describe("MySQL REST Service", () => {
                 enabled: true,
                 default: true,
                 settings: {
-                    hostNameFilter: "127.0.0.1",
                     comments: "change testing",
                 },
                 options: `{"test":"value"}`,
@@ -456,6 +456,9 @@ describe("MySQL REST Service", () => {
                     redirectionUrl: "localhost:8001",
                     redirectionUrlValid: "(.*)(.*)",
                     authCompletedChangeCont: "<body>",
+                },
+                advanced: {
+                    hostNameFilter: "127.0.0.1",
                 },
             };
 
@@ -849,7 +852,7 @@ describe("MySQL REST Service", () => {
             servicePath: `/crudService`,
             published: true,
             enabled: true,
-            settings: {
+            advanced: {
                 hostNameFilter: "",
             },
         };
@@ -880,10 +883,10 @@ describe("MySQL REST Service", () => {
 
         before(async function () {
             try {
-                crudService.settings.hostNameFilter = `127.0.0.1:${routerPort}`;
-                crudSchema.restServicePath = `${crudService.settings.hostNameFilter}${crudService.servicePath}`;
-                crudObject.restServicePath = `${crudService.settings.hostNameFilter}${crudService.servicePath}`;
-                baseUrl = `https://${crudService.settings.hostNameFilter}`;
+                crudService.advanced.hostNameFilter = `127.0.0.1:${routerPort}`;
+                crudSchema.restServicePath = `${crudService.advanced.hostNameFilter}${crudService.servicePath}`;
+                crudObject.restServicePath = `${crudService.advanced.hostNameFilter}${crudService.servicePath}`;
+                baseUrl = `https://${crudService.advanced.hostNameFilter}`;
                 baseUrl += `${crudService.servicePath}${crudSchema.restSchemaPath}`;
 
                 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
