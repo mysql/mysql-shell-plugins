@@ -91,6 +91,9 @@ export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
                 if (mainSection.values.authVendorName.value !== "MRS" &&
                     mainSection.values.authVendorName.value !== "MySQL Internal") {
                         const oAuthSection = values.sections.get("oAuthSection");
+                        if (!oAuthSection?.values.url.value) {
+                            result.messages.url = "The App URL must not be empty for OAuth2 auth apps.";
+                        }
                         if (!oAuthSection?.values.appId.value) {
                             result.messages.appId = "The App ID must not be empty for OAuth2 auth apps.";
                         }
@@ -112,7 +115,12 @@ export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
             }
         } else if (mainSection) {
             if (mainSection.values.name.value as string === "" || mainSection.values.name.value === undefined) {
-                mainSection.values.name.value = (mainSection.values.authVendorName.value as string).replace(/\s/g, "");
+                const vendorName = mainSection.values.authVendorName.value as string;
+                if (vendorName === "OCI OAuth2") {
+                    mainSection.values.name.value = "OCI";
+                } else {
+                    mainSection.values.name.value = vendorName.replace(/\s/g, "");
+                }
             }
         }
 
@@ -211,6 +219,13 @@ export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
             caption: "OAuth2 Settings",
             groupName: "group1",
             values: {
+                url: {
+                    type: "text",
+                    caption: "Custom URL",
+                    value: appData.url,
+                    description: "A custom OAuth2 service URL",
+                    horizontalSpan: 8,
+                },
                 appId: {
                     type: "text",
                     caption: "App ID",
@@ -224,13 +239,6 @@ export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
                     value: appData.accessToken,
                     description: "The OAuth2 App Secret/Client Secret for this app as defined by the vendor",
                     horizontalSpan: 4,
-                },
-                url: {
-                    type: "text",
-                    caption: "Custom URL",
-                    value: appData.url,
-                    description: "A custom OAuth2 service URL",
-                    horizontalSpan: 8,
                 },
                 urlDirectAuth: {
                     type: "text",
