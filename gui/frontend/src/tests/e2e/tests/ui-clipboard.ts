@@ -152,7 +152,7 @@ describe("CLIPBOARD", () => {
                 await driver.wait(tabContainer.untilTabIsOpened(qaInfoJson), constants.wait5seconds);
                 const textEditor = new E2ETextEditor();
                 await driver.wait(textEditor.untilIsJson(), constants.wait5seconds);
-                process.env.COMPARTMENT_ID = JSON.parse(await textEditor.getText()).id;
+                process.env.COMPARTMENT_ID = JSON.parse(String(await textEditor.getText())).id;
                 await tabContainer.closeAllTabs();
             } catch (e) {
                 await Misc.storeScreenShot();

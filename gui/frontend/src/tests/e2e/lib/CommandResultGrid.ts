@@ -506,7 +506,7 @@ export class CommandResultGrid {
             await this.openCellContextMenuAndSelect(row, column,
                 constants.resultGridContextMenu.copySingleRow,
                 constants.resultGridContextMenu.copySingleRowContextMenu.copyRow);
-            const fieldValues = (await Os.readClipboard()).split(",");
+            const fieldValues = (await Os.readClipboard())!.split(",");
 
             if (fieldValues.length !== allColumns.length) {
                 console.log(`clipboard: ${fieldValues.join(",")}`);
@@ -539,7 +539,7 @@ export class CommandResultGrid {
             await this.openCellContextMenuAndSelect(row, column,
                 constants.resultGridContextMenu.copySingleRow,
                 constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNames);
-            const columns = (await Os.readClipboard()).split("\n");
+            const columns = (await Os.readClipboard())!.split("\n");
 
             if (columns[0].split(",").length !== allColumns.length) {
                 console.log(`clipboard: ${columns.join("\n")}`);
@@ -577,7 +577,7 @@ export class CommandResultGrid {
             await this.openCellContextMenuAndSelect(row, column,
                 constants.resultGridContextMenu.copySingleRow,
                 constants.resultGridContextMenu.copySingleRowContextMenu.copyRowUnquoted);
-            const fieldValues = (await Os.readClipboard()).split(",");
+            const fieldValues = (await Os.readClipboard())!.split(",");
 
             if (fieldValues.length !== allColumns.length) {
                 console.log(`clipboard: ${fieldValues.join(",")}`);
@@ -610,7 +610,7 @@ export class CommandResultGrid {
             await this.openCellContextMenuAndSelect(row, column,
                 constants.resultGridContextMenu.copySingleRow,
                 constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesUnquoted);
-            const fieldValues = (await Os.readClipboard()).split("\n");
+            const fieldValues = (await Os.readClipboard())!.split("\n");
 
             if (fieldValues[0].split(",").length !== allColumns.length) {
                 console.log(`clipboard: ${fieldValues.join("\n")}`);
@@ -647,7 +647,7 @@ export class CommandResultGrid {
             await this.openCellContextMenuAndSelect(row, column,
                 constants.resultGridContextMenu.copySingleRow,
                 constants.resultGridContextMenu.copySingleRowContextMenu.copyRowWithNamesTabSeparated);
-            const fieldValues = (await Os.readClipboard()).split("\n");
+            const fieldValues = (await Os.readClipboard())!.split("\n");
 
             if (fieldValues[0].split("\t").length !== allColumns.length) {
                 console.log(`clipboard: ${fieldValues.join("\n")}`);
@@ -684,7 +684,7 @@ export class CommandResultGrid {
             await this.openCellContextMenuAndSelect(row, column,
                 constants.resultGridContextMenu.copySingleRow,
                 constants.resultGridContextMenu.copySingleRowContextMenu.copyRowTabSeparated);
-            const fieldValues = (await Os.readClipboard()).split("\t");
+            const fieldValues = (await Os.readClipboard())!.split("\t");
 
             if (fieldValues.length !== allColumns.length) {
                 console.log(`clipboard: ${fieldValues.join("\t")}`);
@@ -949,7 +949,7 @@ export class CommandResultGrid {
             await this.openCellContextMenuAndSelect(row, column,
                 constants.resultGridContextMenu.copyField);
 
-            return (await Os.readClipboard()).match(/'.*'|(\d+)/) !== null;
+            return (await Os.readClipboard())!.match(/'.*'|(\d+)/) !== null;
         }, constants.wait5seconds, `The Copy Field did not copied anything to the clipboard for column '${column}'`);
 
         const cellValue = await this.getCellValue(row, column);
@@ -978,7 +978,7 @@ export class CommandResultGrid {
             await this.openCellContextMenuAndSelect(row, column,
                 constants.resultGridContextMenu.copyFieldUnquoted);
 
-            return (await Os.readClipboard()).match(/.*/) !== null;
+            return (await Os.readClipboard())!.match(/.*/) !== null;
         }, constants.wait5seconds,
             `The Copy Field Unquoted did not copied anything to the clipboard for column '${column}'`);
 
