@@ -423,7 +423,8 @@ export class DBEditorCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.editRoutine", async (entry?: ICdmRoutineEntry) => {
             if (entry) {
-                const sql = await this.#connectionsProvider.getCreateSqlScript(entry, "procedure", true, true);
+                const entryType = entry.type === CdmEntityType.StoredFunction ? "function" : "procedure";
+                const sql = await this.#connectionsProvider.getCreateSqlScript(entry, entryType, true, true);
 
                 void this.addNewSqlScript(entry.connection.details.id, "msg.editRoutine",
                     entry.parent.caption, "Edit Routine", sql);
