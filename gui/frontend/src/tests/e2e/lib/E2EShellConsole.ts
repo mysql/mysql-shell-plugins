@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until, Condition } from "selenium-webdriver";
+import { until } from "selenium-webdriver";
 import * as constants from "./constants.js";
 import * as locator from "./locators.js";
 import * as interfaces from "./interfaces.js";
@@ -29,6 +29,9 @@ import { driver } from "./driver.js";
 import { E2ECodeEditor } from "./E2ECodeEditor.js";
 import { E2EToolbar } from "./E2EToolbar.js";
 import { PasswordDialog } from "./Dialogs/PasswordDialog.js";
+import { Os } from "./os.js";
+import { ResultData } from "./CommandResults/ResultData.js";
+import { ResultGrid } from "./CommandResults/ResultGrid.js";
 
 /**
  * This class represents the Shell console
@@ -39,7 +42,7 @@ export class E2EShellConsole {
     public toolbar = new E2EToolbar();
 
     /** The code editor*/
-    public codeEditor = new E2ECodeEditor(this);
+    public codeEditor = new E2ECodeEditor(1);
 
     /**
      * Clicks on the button "Open New Shell Console"
@@ -51,17 +54,19 @@ export class E2EShellConsole {
 
     /**
      * Waits until the shell session is opened
-     * @param connection The database connection
+     * @param timeout The timeout
      * @returns A promise resolving when the shell session is opened
      */
-    public untilIsOpened = (connection?: interfaces.IDBConnection): Condition<boolean> => {
-        return new Condition(`for Shell console to be opened`, async () => {
-            if (await PasswordDialog.exists()) {
-                await PasswordDialog.setCredentials(connection!);
-            }
+    public untilIsOpened = async (timeout = constants.wait5seconds): Promise<E2EShellConsole> => {
+        await driver.wait(async () => {
+            if ((await driver.findElements(locator.shellConsole.editor)).length > 0) {
+                this.codeEditor = await this.codeEditor.build();
 
-            return (await driver.findElements(locator.shellConsole.editor)).length > 0;
-        });
+                return true;
+            }
+        }, timeout, `Could not open shell session`);
+
+        return this;
     };
 
     /**
@@ -70,7 +75,7 @@ export class E2EShellConsole {
      * @param schema The schema
      * @returns A promise resolving with the command result
      */
-    public changeSchema = async (schema: string): Promise<interfaces.ICommandResult> => {
+    public changeSchema = async (schema: string): Promise<ResultData> => {
         const tabSchema = await driver.findElement(locator.shellConsole.connectionTab.schema);
         await tabSchema.click();
         const menu = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schemaMenu),
@@ -89,7 +94,70 @@ export class E2EShellConsole {
         }, constants.wait5seconds, `${schema} was not selected`);
 
         const commandResult = await this.codeEditor.getLastExistingCommandResult(true);
-        this.codeEditor.resultIds.push(commandResult.id!);
+
+        return commandResult as ResultData;
+    };
+
+    /**
+     * Deletes all stored credentials on the key chain, using shell
+     * @returns A promise resolving when the command is executed
+     */
+    public deleteCredentials = async (): Promise<void> => {
+        const cmd = "shell.deleteAllCredentials()";
+        await this.codeEditor.write(cmd, false);
+        await this.codeEditor.exec();
+
+        if (!(await Os.existsCredentialHelper())) {
+            // we expect an error on the console
+            await this.codeEditor.buildResult(cmd, this.codeEditor.lastResultId! + 1);
+            this.codeEditor.lastResultId!++;
+        }
+    };
+
+    /**
+     * Executes a language switch on the editor (sql, python, typescript or javascript)
+     *
+     * @param cmd The command to change the language
+     * @returns A promise resolving when the command is executed
+     */
+    public languageSwitch = async (
+        cmd: string,
+    ): Promise<ResultData> => {
+
+        if (!this.codeEditor.isSpecialCmd(cmd)) {
+            throw new Error("Please use the function 'this.execute() or others'");
+        }
+
+        await this.codeEditor.write(cmd);
+        await this.codeEditor.exec();
+
+        const commandResult = await this.codeEditor.buildResult(cmd, this.codeEditor.lastResultId! + 1);
+        this.codeEditor.lastResultId!++;
+
+        return commandResult as ResultData;
+
+    };
+
+    /**
+     * Executes a command on the editor, setting the credentials right after the execution is triggered
+     *
+     * @param cmd The command
+     * @param dbConnection The DB Connection to use
+     * @returns A promise resolving when the command is executed
+     */
+    public executeExpectingCredentials = async (cmd: string, dbConnection: interfaces.IDBConnection,
+    ): Promise<ResultGrid | ResultData | undefined> => {
+
+        if (this.codeEditor.isSpecialCmd(cmd)) {
+            throw new Error("Please use the function 'this.languageSwitch()'");
+        }
+
+        await this.codeEditor.write(cmd);
+        await this.codeEditor.exec();
+        await PasswordDialog.setCredentials(dbConnection);
+
+        const commandResult = await this.codeEditor.buildResult(cmd, this.codeEditor.lastResultId! + 1);
+        this.codeEditor.lastResultId!++;
 
         return commandResult;
     };

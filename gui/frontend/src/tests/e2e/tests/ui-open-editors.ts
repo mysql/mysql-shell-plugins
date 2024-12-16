@@ -56,7 +56,7 @@ describe("OPEN EDITORS", () => {
 
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
     const openEditorsTreeSection = new E2EAccordionSection(constants.openEditorsTreeSection);
-    const notebook = new E2ENotebook();
+    let notebook: E2ENotebook;
     let testFailed = false;
 
     beforeAll(async () => {
@@ -109,7 +109,7 @@ describe("OPEN EDITORS", () => {
             await dbTreeSection.focus();
             await (await dbTreeSection.tree.getActionButton(globalConn.caption!,
                 constants.openNewDatabaseConnectionOnNewTab))!.click();
-            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
+            notebook = await new E2ENotebook().untilIsOpened(globalConn);
             await openEditorsTreeSection.focus();
             const newMySQLScript = await openEditorsTreeSection.tree.getActionButton(globalConn.caption!,
                 constants.newMySQLScript);

@@ -45,6 +45,8 @@ import { driver, loadDriver } from "../lib/driver.js";
 import { E2ETabContainer } from "../lib/E2ETabContainer.js";
 import { E2EToastNotification } from "../lib/E2EToastNotification.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
+import { ResultGrid } from "../lib/CommandResults/ResultGrid.js";
+import { ResultData } from "../lib/CommandResults/ResultData.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -268,12 +270,10 @@ describe("DATABASE CONNECTIONS", () => {
                 const sqliteWebConn = dbConnectionOverview.getConnection(sqliteConn.caption);
 
                 await driver.executeScript("arguments[0].click();", sqliteWebConn);
-                const notebook = new E2ENotebook();
-                await driver.wait(notebook.untilIsOpened(sqliteConn), constants.wait15seconds);
-                await notebook.codeEditor.loadCommandResults();
-                const result = await notebook.codeEditor.executeWithButton("SELECT * FROM main.db_connection;",
-                    constants.execFullBlockSql);
-                expect(result.toolbar!.status).toMatch(/OK/);
+                const notebook = await new E2ENotebook().untilIsOpened(sqliteConn);
+                const result = await notebook.executeWithButton("SELECT * FROM main.db_connection;",
+                    constants.execFullBlockSql) as ResultGrid;
+                expect(result.status).toMatch(/OK/);
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -297,14 +297,12 @@ describe("DATABASE CONNECTIONS", () => {
                 const dbConn = dbConnectionOverview.getConnection(sslConn.caption);
 
                 await driver.executeScript("arguments[0].click();", dbConn);
-                const notebook = new E2ENotebook();
-                await driver.wait(notebook.untilIsOpened(sslConn), constants.wait15seconds);
+                const notebook = await new E2ENotebook().untilIsOpened(sslConn);
                 const query = `select * from performance_schema.session_status
                 where variable_name in ("ssl_cipher") and variable_value like "%TLS%";`;
 
-                await notebook.codeEditor.create();
-                const result = await notebook.codeEditor.execute(query);
-                expect(result.toolbar!.status).toMatch(/1 record retrieved/);
+                const result = await notebook.codeEditor.execute(query) as ResultGrid;
+                expect(result.status).toMatch(/1 record retrieved/);
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -795,10 +793,9 @@ describe("DATABASE CONNECTIONS", () => {
             try {
                 await (await dbTreeSection.tree.getActionButton(globalConn.caption!,
                     constants.openNewDatabaseConnectionOnNewTab))!.click();
-                let notebook = new E2ENotebook();
-                await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
-                await notebook.codeEditor.loadCommandResults();
-                let result = await notebook.codeEditor.execute(`INSTALL COMPONENT "file://component_mle";`);
+                let notebook = await new E2ENotebook().untilIsOpened(globalConn);
+                let result = await notebook.codeEditor
+                    .execute(`INSTALL COMPONENT "file://component_mle";`) as ResultData;
                 expect(result.text).toMatch(/OK/);
 
                 await new E2ETabContainer().closeAllTabs();
@@ -869,9 +866,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await mysqlAdministration.performanceDashboard.toolbar.editorSelector
                     .selectEditor(new RegExp(constants.dbNotebook));
 
-                notebook = new E2ENotebook();
-                await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
-                await notebook.codeEditor.loadCommandResults();
+                notebook = await new E2ENotebook().untilIsOpened(globalConn);
 
                 const jsFunction =
                     `CREATE FUNCTION IF NOT EXISTS js_pow(arg1 INT, arg2 INT)
@@ -883,10 +878,10 @@ describe("DATABASE CONNECTIONS", () => {
                     $$;
                 `;
 
-                result = await notebook.codeEditor.executeWithButton(jsFunction, constants.execFullBlockSql);
+                result = await notebook.executeWithButton(jsFunction, constants.execFullBlockSql) as ResultData;
                 expect(result.text).toMatch(/OK/);
-                result = await notebook.codeEditor.execute("SELECT js_pow(2,3);");
-                expect(result.toolbar!.status).toMatch(/OK/);
+                const result1 = await notebook.codeEditor.execute("SELECT js_pow(2,3);") as ResultGrid;
+                expect(result1.status).toMatch(/OK/);
                 await new E2ETabContainer().closeAllTabs();
                 await (await dbTreeSection.tree.getElement(constants.performanceDashboard))!.click();
                 await (await mysqlAdministration.performanceDashboard.getTab(constants.perfDashMLETab))!.click();
@@ -962,8 +957,7 @@ describe("DATABASE CONNECTIONS", () => {
                 try {
                     await mysqlAdministration.lakeHouseNavigator.toolbar.editorSelector
                         .selectEditor(new RegExp(constants.dbNotebook));
-                    const notebook = new E2ENotebook();
-                    await notebook.codeEditor.loadCommandResults();
+                    const notebook = await new E2ENotebook().untilIsOpened(heatWaveConn);
                     let query = `DROP TABLE IF EXISTS ${(heatWaveConn.basic as interfaces.IConnBasicMySQL).schema}`;
                     query += `.${newTask.name};`;
                     await notebook.codeEditor.execute(query);
@@ -1181,24 +1175,22 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("DB Connection - Load SQL Script from Disk", async () => {
             try {
-                const notebook = new E2ENotebook();
-                const script = "sakila_cst.sql";
-                const destFile = join(process.cwd(), "src", "tests", "e2e", "sql", script);
+                const script = new E2EScript();
+                const sqlScript = "sakila_cst.sql";
+                const destFile = join(process.cwd(), "src", "tests", "e2e", "sql", sqlScript);
                 await dbTreeSection.tree.openContextMenuAndSelect(globalConn.caption!, constants.loadSQLScriptFromDisk);
                 await Misc.uploadFile(destFile);
-                await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
+                await driver.wait(script.untilIsOpened(globalConn), constants.wait15seconds);
                 await driver.wait(async () => {
-                    return ((await notebook.toolbar.editorSelector.getCurrentEditor()).label) === script;
-                }, constants.wait5seconds, `Current editor is not ${script}`);
-                expect((await notebook.toolbar.editorSelector.getCurrentEditor()).icon)
+                    return ((await script.toolbar.editorSelector.getCurrentEditor()).label) === sqlScript;
+                }, constants.wait5seconds, `Current editor is not ${sqlScript}`);
+                expect((await script.toolbar.editorSelector.getCurrentEditor()).icon)
                     .toContain(constants.mysqlScriptIcon);
 
                 const scriptLines = await driver.findElements(locator.notebook.codeEditor.editor.line);
                 expect(scriptLines.length).toBeGreaterThan(0);
-                await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.dbNotebook),
+                await script.toolbar.editorSelector.selectEditor(new RegExp(constants.dbNotebook),
                     globalConn.caption);
-
-                await notebook.codeEditor.loadCommandResults();
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -1209,7 +1201,7 @@ describe("DATABASE CONNECTIONS", () => {
             try {
                 await dbTreeSection.tree.openContextMenuAndSelect(globalConn.caption!,
                     constants.openNewMySQLShellConsoleForThisConnection);
-                await driver.wait(new E2EShellConsole().untilIsOpened(globalConn), constants.wait15seconds);
+                await driver.wait(new E2EShellConsole().untilIsOpened(), constants.wait15seconds);
                 const treeOpenEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
                 await treeOpenEditorsSection.focus();
 
@@ -1233,20 +1225,19 @@ describe("DATABASE CONNECTIONS", () => {
                     constants.openNewDatabaseConnectionOnNewTab))!.click();
                 await (await tabContainer.getTab(globalConn.caption!))!.click();
 
-                const notebook = new E2ENotebook();
-                await notebook.codeEditor.create();
-                let result = await notebook.codeEditor.execute("select database();");
-                expect(result.toolbar!.status).toMatch(/OK/);
-                expect(await result.grid!.content!.getAttribute("innerHTML"))
+                const notebook = await new E2ENotebook().untilIsOpened(globalConn);
+                let result = await notebook.codeEditor.execute("select database();") as ResultGrid;
+                expect(result.status).toMatch(/OK/);
+                expect(await result.resultContext!.getAttribute("innerHTML"))
                     .toMatch(new RegExp((globalConn.basic as interfaces.IConnBasicMySQL).schema!));
                 await dbTreeSection.tree.openContextMenuAndSelect("world_x_cst", constants.setAsCurrentDatabaseSchema);
                 await driver.wait(dbTreeSection.tree.untilIsDefault("world_x_cst", "schema"), constants.wait5seconds);
                 expect(await dbTreeSection.tree.isElementDefault("sakila", "schema")).toBe(false);
                 await (await tabContainer.getTab(globalConn.caption!))!.click();
                 await notebook.codeEditor.clean();
-                result = await notebook.codeEditor.execute("select database();");
-                expect(result.toolbar!.status).toMatch(/OK/);
-                expect(await result.grid!.content!.getAttribute("innerHTML")).toMatch(/world_x_cst/);
+                result = await notebook.codeEditor.execute("select database();") as ResultGrid;
+                expect(result.status).toMatch(/OK/);
+                expect(await result.resultContext!.getAttribute("innerHTML")).toMatch(/world_x_cst/);
                 await tabContainer.closeAllTabs();
                 await driver.wait(async () => {
                     return !(await dbTreeSection.tree.isElementDefault("world_x_cst", "schema"));
@@ -1262,8 +1253,7 @@ describe("DATABASE CONNECTIONS", () => {
             try {
                 await (await dbTreeSection.tree.getActionButton(globalConn.caption!,
                     constants.openNewDatabaseConnectionOnNewTab))!.click();
-                const notebook = new E2ENotebook();
-                await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
+                const notebook = await new E2ENotebook().untilIsOpened(globalConn);
                 const schemaName = (globalConn.basic as interfaces.IConnBasicMySQL).schema!;
                 await dbTreeSection.tree.openContextMenuAndSelect(schemaName,
                     [constants.sendToSQLEditor.exists, constants.sendToSQLEditor.name]);
@@ -1283,11 +1273,9 @@ describe("DATABASE CONNECTIONS", () => {
                 await dbTreeSection.tree.expandElement([(globalConn.basic as interfaces.IConnBasicMySQL).schema!]);
                 await dbTreeSection.tree.expandElement(["Tables"]);
                 await dbTreeSection.tree.openContextMenuAndSelect("actor", constants.selectRows);
-                const notebook = new E2ENotebook();
-                await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
-                await notebook.codeEditor.create();
-                const result = await notebook.codeEditor.getLastExistingCommandResult(true);
-                expect(result.toolbar!.status).toMatch(/OK/);
+                const notebook = await new E2ENotebook().untilIsOpened(globalConn);
+                const result = await notebook.codeEditor.getLastExistingCommandResult(true) as ResultGrid;
+                expect(result.status).toMatch(/OK/);
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -1316,11 +1304,9 @@ describe("DATABASE CONNECTIONS", () => {
                 await dbTreeSection.tree.expandElement([(globalConn.basic as interfaces.IConnBasicMySQL).schema!]);
                 await dbTreeSection.tree.expandElement(["Views"]);
                 await dbTreeSection.tree.openContextMenuAndSelect(testView, constants.selectRows);
-                const notebook = new E2ENotebook();
-                await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
-                await notebook.codeEditor.create();
-                const result = await notebook.codeEditor.getLastExistingCommandResult(true);
-                expect(result.toolbar!.status).toMatch(/OK/);
+                const notebook = await new E2ENotebook().untilIsOpened(globalConn);
+                const result = await notebook.codeEditor.getLastExistingCommandResult(true) as ResultGrid;
+                expect(result.status).toMatch(/OK/);
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -1329,8 +1315,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("View - Send to SQL Editor", async () => {
             try {
-                const notebook = new E2ENotebook();
-                await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
+                const notebook = await new E2ENotebook().untilIsOpened(globalConn);
                 await dbTreeSection.tree.openContextMenuAndSelect(testView,
                     [constants.sendToSQLEditor.exists, constants.sendToSQLEditor.name]);
                 await driver.wait(notebook.untilExists(testView), constants.wait3seconds);
@@ -1348,8 +1333,7 @@ describe("DATABASE CONNECTIONS", () => {
             try {
                 await dbTreeSection.tree.collapseElement("Tables");
                 await dbTreeSection.tree.expandElement(["Functions"]);
-                const notebook = new E2ENotebook();
-                await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
+                const notebook = await new E2ENotebook().untilIsOpened(globalConn);
                 await dbTreeSection.tree.openContextMenuAndSelect(testFunction,
                     [constants.sendToSQLEditor.exists, constants.sendToSQLEditor.name]);
                 await driver.wait(notebook.untilExists(testFunction), constants.wait3seconds);
@@ -1366,8 +1350,7 @@ describe("DATABASE CONNECTIONS", () => {
         it("Events - Send to SQL Editor", async () => {
             try {
                 await dbTreeSection.tree.expandElement(["Events"]);
-                const notebook = new E2ENotebook();
-                await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
+                const notebook = await new E2ENotebook().untilIsOpened(globalConn);
                 await dbTreeSection.tree.openContextMenuAndSelect(testEvent,
                     [constants.sendToSQLEditor.exists, constants.sendToSQLEditor.name]);
                 await driver.wait(notebook.untilExists(testEvent), constants.wait3seconds);
@@ -1384,8 +1367,7 @@ describe("DATABASE CONNECTIONS", () => {
         it("Procedures - Send to SQL Editor", async () => {
             try {
                 await dbTreeSection.tree.expandElement(["Procedures"]);
-                const notebook = new E2ENotebook();
-                await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
+                const notebook = await new E2ENotebook().untilIsOpened(globalConn);
                 await dbTreeSection.tree.openContextMenuAndSelect(testProcedure,
                     [constants.sendToSQLEditor.exists, constants.sendToSQLEditor.name]);
                 await driver.wait(notebook.untilExists(testProcedure), constants.wait3seconds);

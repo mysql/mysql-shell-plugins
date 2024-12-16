@@ -41,6 +41,8 @@ import { E2ETextEditor } from "../lib/E2ETextEditor.js";
 import { E2ECodeEditorWidget } from "../lib/E2ECodeEditorWidget.js";
 import { E2ETabContainer } from "../lib/E2ETabContainer.js";
 import { TestQueue } from "../lib/TestQueue.js";
+import { ResultGrid } from "../lib/CommandResults/ResultGrid.js";
+import { ResultData } from "../lib/CommandResults/ResultData.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -394,7 +396,7 @@ describe("CLIPBOARD", () => {
 
 
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
-        const notebook = new E2ENotebook();
+        let notebook: E2ENotebook;
 
         beforeAll(async () => {
             try {
@@ -402,8 +404,8 @@ describe("CLIPBOARD", () => {
                 await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait5seconds);
                 await (await dbTreeSection.tree.getActionButton(globalConn.caption!,
                     constants.openNewDatabaseConnectionOnNewTab))!.click();
+                notebook = await new E2ENotebook().untilIsOpened(globalConn);
                 await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
-                await notebook.codeEditor.loadCommandResults();
             } catch (e) {
                 await Misc.storeScreenShot("beforeAll_RESULT_GRIDS_CLIPBOARD");
                 throw e;
@@ -429,14 +431,14 @@ describe("CLIPBOARD", () => {
             try {
                 const maxRows = 2;
                 const result = await notebook.codeEditor
-                    .execute(`select * from sakila.actor limit ${maxRows};`);
-                expect(result.toolbar!.status).toMatch(/OK/);
+                    .execute(`select * from sakila.actor limit ${maxRows};`) as ResultGrid;
+                expect(result.status).toMatch(/OK/);
                 const row = 0;
                 const column = "first_name";
 
                 // Copy all rows.
                 await driver.wait(async () => {
-                    const copy = await result.grid!.copyAllRows(row, column);
+                    const copy = await result.copyAllRows(row, column);
                     const clipboard = await Os.getClipboardContent();
 
                     if (copy.toString() === clipboard!.toString()) {
@@ -448,7 +450,7 @@ describe("CLIPBOARD", () => {
 
                 // Copy all rows with names.
                 await driver.wait(async () => {
-                    const copy = await result.grid!.copyAllRowsWithNames(row, column);
+                    const copy = await result.copyAllRowsWithNames(row, column);
                     const clipboard = await Os.getClipboardContent();
 
                     if (copy.toString() === clipboard!.toString()) {
@@ -460,7 +462,7 @@ describe("CLIPBOARD", () => {
 
                 // Copy all rows unquoted.
                 await driver.wait(async () => {
-                    const copy = await result.grid!.copyAllRowsUnquoted(row, column);
+                    const copy = await result.copyAllRowsUnquoted(row, column);
                     const clipboard = await Os.getClipboardContent();
 
                     if (copy.toString() === clipboard!.toString()) {
@@ -472,7 +474,7 @@ describe("CLIPBOARD", () => {
 
                 // Copy all rows with names unquoted.
                 await driver.wait(async () => {
-                    const copy = await result.grid!.copyAllRowsWithNamesUnquoted(row, column);
+                    const copy = await result.copyAllRowsWithNamesUnquoted(row, column);
                     const clipboard = await Os.getClipboardContent();
 
                     if (copy.toString() === clipboard!.toString()) {
@@ -484,7 +486,7 @@ describe("CLIPBOARD", () => {
 
                 // Copy all rows with names tab separated.
                 await driver.wait(async () => {
-                    const copy = await result.grid!.copyAllRowsWithNamesTabSeparated(row, column);
+                    const copy = await result.copyAllRowsWithNamesTabSeparated(row, column);
                     const clipboard = await Os.getClipboardContent();
 
                     if (copy.toString() === clipboard!.toString()) {
@@ -502,16 +504,16 @@ describe("CLIPBOARD", () => {
 
         it("Result grid context menu - Copy field, copy field unquoted, set field to null", async () => {
             try {
-                const result = await notebook.codeEditor.execute("select * from sakila.result_sets;");
-                expect(result.toolbar!.status).toMatch(/OK/);
+                const result = await notebook.codeEditor.execute("select * from sakila.result_sets;") as ResultGrid;
+                expect(result.status).toMatch(/OK/);
 
                 const row = 0;
-                const allColumns = Array.from(result.grid!.columnsMap!.keys());
+                const allColumns = Array.from(result.columnsMap!.keys());
 
                 for (let i = 1; i <= allColumns.length - 1; i++) {
 
                     await driver.wait(async () => {
-                        const copy = await result.grid!.copyField(row, String(allColumns[i]));
+                        const copy = await result.copyField(row, String(allColumns[i]));
                         const clip = await Os.readClipboard();
 
                         if (copy.toString().match(new RegExp(clip!.toString()))) {
@@ -522,7 +524,7 @@ describe("CLIPBOARD", () => {
                     }, constants.wait10seconds, "Copy field failed");
 
                     await driver.wait(async () => {
-                        const copy = await result.grid!.copyFieldUnquoted(row, String(allColumns[i]));
+                        const copy = await result.copyFieldUnquoted(row, String(allColumns[i]));
                         const clip = await Os.readClipboard();
 
                         if (copy.toString() === clip!.toString()) {
@@ -532,12 +534,12 @@ describe("CLIPBOARD", () => {
                         }
                     }, constants.wait10seconds, "Copy field unquoted failed");
 
-                    await result.grid!.openCellContextMenuAndSelect(row, String(allColumns[i]),
+                    await result.openCellContextMenuAndSelect(row, String(allColumns[i]),
                         constants.resultGridContextMenu.setFieldToNull);
-                    expect(await result.grid!.getCellValue(row, String(allColumns[i]))).toBe(constants.isNull);
+                    expect(await result.getCellValue(row, String(allColumns[i]))).toBe(constants.isNull);
                 }
 
-                await result.toolbar!.rollbackChanges();
+                await result.rollbackChanges();
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -546,15 +548,15 @@ describe("CLIPBOARD", () => {
 
         it("Result grid context menu - Copy single row", async () => {
             try {
-                const result = await notebook.codeEditor.execute("select * from sakila.actor limit 1;");
-                expect(result.toolbar!.status).toMatch(/OK/);
+                const result = await notebook.codeEditor.execute("select * from sakila.actor limit 1;") as ResultGrid;
+                expect(result.status).toMatch(/OK/);
 
                 const row = 0;
                 const column = "first_name";
 
                 // Copy row.
                 await driver.wait(async () => {
-                    const copy = await result.grid!.copyRow(row, column);
+                    const copy = await result.copyRow(row, column);
                     const clipboard = await Os.getClipboardContent();
 
                     if (copy.toString() === clipboard!.toString()) {
@@ -566,7 +568,7 @@ describe("CLIPBOARD", () => {
 
                 // Copy row with names.
                 await driver.wait(async () => {
-                    const copy = await result.grid!.copyRowWithNames(row, column);
+                    const copy = await result.copyRowWithNames(row, column);
                     const clipboard = await Os.getClipboardContent();
 
                     if (copy.toString() === clipboard!.toString()) {
@@ -578,7 +580,7 @@ describe("CLIPBOARD", () => {
 
                 // Copy row unquoted.
                 await driver.wait(async () => {
-                    const copy = await result.grid!.copyRowUnquoted(row, column);
+                    const copy = await result.copyRowUnquoted(row, column);
                     const clipboard = await Os.getClipboardContent();
 
                     if (copy.toString() === clipboard!.toString()) {
@@ -590,7 +592,7 @@ describe("CLIPBOARD", () => {
 
                 // Copy row with names, unquoted.
                 await driver.wait(async () => {
-                    const copy = await result.grid!.copyRowWithNamesUnquoted(row, column);
+                    const copy = await result.copyRowWithNamesUnquoted(row, column);
                     const clipboard = await Os.getClipboardContent();
 
                     if (copy.toString() === clipboard!.toString()) {
@@ -602,7 +604,7 @@ describe("CLIPBOARD", () => {
 
                 // Copy row with names, tab separated.
                 await driver.wait(async () => {
-                    const copy = await result.grid!.copyRowWithNamesTabSeparated(row, column);
+                    const copy = await result.copyRowWithNamesTabSeparated(row, column);
                     const clipboard = await Os.getClipboardContent();
 
                     if (copy.toString() === clipboard!.toString()) {
@@ -614,7 +616,7 @@ describe("CLIPBOARD", () => {
 
                 // Copy row, tab separated.
                 await driver.wait(async () => {
-                    const copy = await result.grid!.copyRowTabSeparated(row, column);
+                    const copy = await result.copyRowTabSeparated(row, column);
                     const clipboard = await Os.getClipboardContent();
 
                     if (copy.toString() === clipboard!.toString()) {
@@ -631,16 +633,16 @@ describe("CLIPBOARD", () => {
 
         it("Result grid context menu - Copy field, copy field unquoted, set field to null", async () => {
             try {
-                const result = await notebook.codeEditor.execute("select * from sakila.result_sets;");
-                expect(result.toolbar!.status).toMatch(/OK/);
+                const result = await notebook.codeEditor.execute("select * from sakila.result_sets;") as ResultGrid;
+                expect(result.status).toMatch(/OK/);
 
                 const row = 0;
-                const allColumns = Array.from(result.grid!.columnsMap!.keys());
+                const allColumns = Array.from(result.columnsMap!.keys());
 
                 for (let i = 1; i <= allColumns.length - 1; i++) {
 
                     await driver.wait(async () => {
-                        const copy = await result.grid!.copyField(row, String(allColumns[i]));
+                        const copy = await result.copyField(row, String(allColumns[i]));
                         const clip = await Os.readClipboard();
 
                         if (copy.toString().match(new RegExp(clip!.toString()))) {
@@ -651,7 +653,7 @@ describe("CLIPBOARD", () => {
                     }, constants.wait10seconds, "Copy field failed");
 
                     await driver.wait(async () => {
-                        const copy = await result.grid!.copyFieldUnquoted(row, String(allColumns[i]));
+                        const copy = await result.copyFieldUnquoted(row, String(allColumns[i]));
                         const clip = await Os.readClipboard();
 
                         if (copy.toString() === clip!.toString()) {
@@ -661,12 +663,12 @@ describe("CLIPBOARD", () => {
                         }
                     }, constants.wait10seconds, "Copy field unquoted failed");
 
-                    await result.grid!.openCellContextMenuAndSelect(row, String(allColumns[i]),
+                    await result.openCellContextMenuAndSelect(row, String(allColumns[i]),
                         constants.resultGridContextMenu.setFieldToNull);
-                    expect(await result.grid!.getCellValue(row, String(allColumns[i]))).toBe(constants.isNull);
+                    expect(await result.getCellValue(row, String(allColumns[i]))).toBe(constants.isNull);
                 }
 
-                await result.toolbar!.rollbackChanges();
+                await result.rollbackChanges();
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -678,14 +680,13 @@ describe("CLIPBOARD", () => {
     describe("NOTEBOOKS", () => {
 
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
-        const notebook = new E2ENotebook();
+        let notebook: E2ENotebook;
 
         beforeAll(async () => {
             try {
                 await (await dbTreeSection.tree.getActionButton(globalConn.caption!,
                     constants.openNewDatabaseConnectionOnNewTab))!.click();
-                await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
-                await notebook.codeEditor.loadCommandResults();
+                notebook = await new E2ENotebook().untilIsOpened(globalConn);
             } catch (e) {
                 await Misc.storeScreenShot("beforeAll_NOTEBOOKS_clipboard");
                 throw e;
@@ -773,7 +774,7 @@ describe("CLIPBOARD", () => {
         it("Copy to clipboard button", async () => {
             try {
                 await notebook.codeEditor.clean();
-                const result = await notebook.codeEditor.execute("\\about ");
+                const result = await notebook.codeEditor.execute("\\about ") as ResultData;
                 await driver.wait(async () => {
                     await result.copyToClipboard();
 
