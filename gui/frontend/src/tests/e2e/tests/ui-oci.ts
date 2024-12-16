@@ -37,6 +37,8 @@ import { E2EToastNotification } from "../lib/E2EToastNotification.js";
 import { DatabaseConnectionDialog } from "../lib/Dialogs/DatabaseConnectionDialog.js";
 import { E2EDatabaseConnectionOverview } from "../lib/E2EDatabaseConnectionOverview.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
+import { ResultData } from "../lib/CommandResults/ResultData.js";
+import { ResultGrid } from "../lib/CommandResults/ResultGrid.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -139,8 +141,7 @@ describe("OCI", () => {
             await shellConsole.openNewShellConsole();
             await driver.wait(shellConsole.untilIsOpened(), constants.wait5seconds * 3,
                 "Shell Console was not loaded");
-            await shellConsole.codeEditor.create();
-            const result = await shellConsole.codeEditor.execute("mds.get.currentCompartmentId()");
+            const result = await shellConsole.codeEditor.execute("mds.get.currentCompartmentId()") as ResultData;
             expect(result.text).toContain("ocid1");
         } catch (e) {
             await Misc.storeScreenShot();
@@ -179,7 +180,6 @@ describe("OCI", () => {
 
                 const mds = await new E2EDatabaseConnectionOverview().getConnection(treeDbSystem);
                 await mds.click();
-
                 await driver.wait(new E2ENotebook().untilIsOpened(mdsConnection), constants.wait1minute)
                     .catch((e) => {
                         if (String(e).includes(constants.ociFailure)) {
@@ -190,11 +190,9 @@ describe("OCI", () => {
                 if (ociFailure) {
                     return; // No connection to OCI, skipping test
                 }
-
-                const notebook = new E2ENotebook();
-                await notebook.codeEditor.create();
-                const result = await notebook.codeEditor.execute("select version();");
-                expect(result.toolbar!.status).toMatch(/OK/);
+                const notebook = await new E2ENotebook().untilIsOpened(mdsConnection);
+                const result = await notebook.codeEditor.execute("select version();") as ResultGrid;
+                expect(result.status).toMatch(/OK/);
             } else {
                 ociFailure = true;
 
@@ -231,8 +229,7 @@ describe("OCI", () => {
             await shellConsole.openNewShellConsole();
             await driver.wait(shellConsole.untilIsOpened(), constants.wait15seconds,
                 "Shell Console was not loaded");
-            await shellConsole.codeEditor.create();
-            const result = await shellConsole.codeEditor.execute("mds.get.currentBastionId()");
+            const result = await shellConsole.codeEditor.execute("mds.get.currentBastionId()") as ResultData;
             expect(result.text).toBe(bastionID);
         } catch (e) {
             await Misc.storeScreenShot();
@@ -279,24 +276,10 @@ describe("OCI", () => {
             await driver.executeScript("arguments[0].click()",
                 await dbTreeSection.tree.getActionButton(localConn.caption!,
                     constants.openNewDatabaseConnectionOnNewTab));
-            const notebook = new E2ENotebook();
 
-            await driver.wait(notebook.untilIsOpened(localConn),
-                constants.wait25seconds, "MDS Connection was not opened")
-                .catch(async (e) => {
-                    if (String(e).includes(constants.ociFailure)) {
-                        ociFailure = true;
-                        await Misc.dismissNotifications();
-                    }
-                });
-
-            if (ociFailure) {
-                return; // No connection to OCI, skipping test
-            }
-
-            await notebook.codeEditor.create();
-            const result = await notebook.codeEditor.execute("select version();");
-            expect(result.toolbar!.status).toMatch(/OK/);
+            const notebook = await new E2ENotebook().untilIsOpened(localConn, constants.wait25seconds);
+            const result = await notebook.codeEditor.execute("select version();") as ResultGrid;
+            expect(result.status).toMatch(/OK/);
         } catch (e) {
             await Misc.storeScreenShot();
             throw e;

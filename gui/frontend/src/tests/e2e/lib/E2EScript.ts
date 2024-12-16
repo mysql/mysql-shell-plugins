@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Condition } from "selenium-webdriver";
+import { Condition, until, error } from "selenium-webdriver";
 import * as constants from "./constants.js";
 import * as locator from "./locators.js";
 import * as interfaces from "./interfaces.js";
@@ -30,6 +30,9 @@ import { E2ECodeEditor } from "./E2ECodeEditor.js";
 import { E2EToolbar } from "./E2EToolbar.js";
 import { PasswordDialog } from "./Dialogs/PasswordDialog.js";
 import { CommandResult } from "./CommandResult.js";
+import { ResultGrid } from "./CommandResults/ResultGrid.js";
+import { ResultData } from "./CommandResults/ResultData.js";
+import { Os } from "./os.js";
 
 /**
  * This class represents the Script page
@@ -39,8 +42,7 @@ export class E2EScript {
     /** The toolbar*/
     public toolbar = new E2EToolbar();
 
-    /** The code editor*/
-    public codeEditor = new E2ECodeEditor(this);
+    public codeEditor = new E2ECodeEditor();
 
     /**
      * Waits until the shell session is opened
@@ -63,7 +65,12 @@ export class E2EScript {
                 }, constants.wait15seconds, `Could not connect to '${connection.caption}'`);
             }
 
-            return ((await this.toolbar.editorSelector.getCurrentEditor()).label).match(/Script/) !== null;
+            const currentEditor = (await this.toolbar.editorSelector.getCurrentEditor()).label;
+
+            return (currentEditor).match(/Script/) !== null ||
+                (currentEditor).match(/.sql/) !== null ||
+                (currentEditor).match(/.ts/) !== null ||
+                (currentEditor).match(/.js/) !== null;
         });
 
     };
@@ -74,11 +81,39 @@ export class E2EScript {
      * @returns A promise resolving with the script result
      */
     public getLastResult = async (): Promise<interfaces.ICommandResult> => {
-        const codeEditor = new E2ECodeEditor(this);
-        const commandResult = new CommandResult(codeEditor);
+        const commandResult = new CommandResult(this.codeEditor);
         await commandResult.loadResult(true);
 
         return commandResult;
+    };
+
+    /**
+     * Executes a command on the editor using a toolbar button
+     *
+     * @param cmd The command
+     * @param button The button to click, to trigger the execution
+     * @returns A promise resolving when the command is executed
+     */
+    public executeWithButton = async (cmd: string, button: string):
+        Promise<ResultGrid | ResultData | undefined> => {
+
+        if (this.codeEditor.isSpecialCmd(cmd)) {
+            throw new Error("Please use the function 'this.languageSwitch()'");
+        }
+
+        if (button === constants.execCaret) {
+            throw new Error("Please use the function 'this.findCmdAndExecute()'");
+        }
+
+        await this.codeEditor.write(cmd);
+        await (await this.toolbar.getButton(button))!.click();
+        //const id = searchOnExistingId ?? await this.codeEditor
+        //    .getNextResultId(this.codeEditor.resultIds[this.codeEditor.resultIds.length - 1]);
+        //const commandResult = new CommandResult(this.codeEditor, cmd, id);
+        //await commandResult.loadResult();
+        //this.codeEditor.resultIds.push(commandResult.id!);
+
+        return this.codeEditor.buildResult(cmd, undefined);
     };
 
 }

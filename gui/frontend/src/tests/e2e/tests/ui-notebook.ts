@@ -39,6 +39,8 @@ import { E2ECodeEditorWidget } from "../lib/E2ECodeEditorWidget.js";
 import { E2EHeatWaveProfileEditor } from "../lib/MySQLAdministration/E2EHeatWaveProfileEditor.js";
 import { E2ETabContainer } from "../lib/E2ETabContainer.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
+import { ResultData } from "../lib/CommandResults/ResultData.js";
+import { ResultGrid } from "../lib/CommandResults/ResultGrid.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -59,7 +61,7 @@ describe("NOTEBOOKS", () => {
     };
 
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
-    const notebook = new E2ENotebook();
+    let notebook: E2ENotebook;
 
     beforeAll(async () => {
         await loadDriver(true);
@@ -77,8 +79,7 @@ describe("NOTEBOOKS", () => {
             await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait3seconds);
             await (await dbTreeSection.tree.getActionButton(globalConn.caption!,
                 constants.openNewDatabaseConnectionOnNewTab))!.click();
-            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
-            await notebook.codeEditor.loadCommandResults();
+            notebook = await new E2ENotebook().untilIsOpened(globalConn);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_NOTEBOOKS");
             throw e;
@@ -102,6 +103,10 @@ describe("NOTEBOOKS", () => {
             if (testFailed) {
                 testFailed = false;
                 await Misc.storeScreenShot();
+
+                if (!cleanEditor) {
+                    await notebook.codeEditor.build();
+                }
             }
 
             if (cleanEditor) {
@@ -188,8 +193,9 @@ describe("NOTEBOOKS", () => {
 
                     select 1 $$`;
 
-                const result = await notebook.codeEditor.executeWithButton(query, constants.execFullBlockSql);
-                expect(result.toolbar!.status).toMatch(/OK/);
+                const result = await notebook.executeWithButton(query,
+                    constants.execFullBlockSql) as ResultData;
+                expect(result.status).toMatch(/OK/);
                 expect(result.tabs!.length).toBe(2);
                 expect(result.tabs![0].name).toMatch(/Result/);
                 expect(result.tabs![1].name).toMatch(/Result/);
@@ -201,9 +207,9 @@ describe("NOTEBOOKS", () => {
 
         it("Connection toolbar buttons - Execute the block and print the result as text", async () => {
             try {
-                const result = await notebook.codeEditor.executeWithButton("SELECT * FROM sakila.actor;",
-                    constants.execAsText);
-                expect(result.toolbar!.status).toMatch(/OK/);
+                const result = await notebook.executeWithButton("SELECT * FROM sakila.actor;",
+                    constants.execAsText) as ResultData;
+                expect(result.status).toMatch(/OK/);
                 expect(result.text).toMatch(/\|.*\|/);
             } catch (e) {
                 testFailed = true;
@@ -213,9 +219,9 @@ describe("NOTEBOOKS", () => {
 
         it("Connection toolbar buttons - Execute selection or full block and create a new block", async () => {
             try {
-                const result = await notebook.codeEditor.executeWithButton("SELECT * FROM sakila.actor;",
-                    constants.execFullBlockSql);
-                expect(result.toolbar!.status).toMatch(/(\d+) record/);
+                const result = await notebook.executeWithButton("SELECT * FROM sakila.actor;",
+                    constants.execFullBlockSql) as ResultGrid;
+                expect(result.status).toMatch(/(\d+) record/);
                 await driver.wait(notebook.codeEditor.untilNewPromptExists(), constants.wait5seconds);
             } catch (e) {
                 testFailed = true;
@@ -227,20 +233,21 @@ describe("NOTEBOOKS", () => {
             try {
                 const query1 = "select * from sakila.actor limit 1;";
                 const query2 = "select * from sakila.address limit 2;";
-                await notebook.codeEditor.write(query1, true);
-                await notebook.codeEditor.setNewLine();
-                await notebook.codeEditor.write(query2, true);
-                let result = await notebook.codeEditor.findAndExecute(query1);
-                expect(result.toolbar!.status).toMatch(/OK/);
-                let htmlGrid = await result.grid!.content!.getAttribute("innerHTML");
+
+                await notebook.codeEditor.clean();
+
+                const result1 = await notebook.codeEditor.execute(query1) as ResultGrid;
+                expect(result1.status).toMatch(/OK/);
+
+                const result2 = await notebook.codeEditor.execute(query2) as ResultGrid;
+                expect(result2.status).toMatch(/OK/);
+
+                let careResult = await notebook.findAndExecute(query1, result1.id) as ResultGrid;
+                let htmlGrid = await careResult.resultContext!.getAttribute("innerHTML");
                 expect(htmlGrid).toMatch(/actor_id/);
 
-                await driver.sleep(1000);
-                await notebook.codeEditor.loadCommandResults();
-                result = await notebook.codeEditor
-                    .findAndExecute(query2, notebook.codeEditor.resultIds[notebook.codeEditor.resultIds.length - 1]);
-                expect(result.toolbar!.status).toMatch(/OK/);
-                htmlGrid = await result.grid!.content!.getAttribute("innerHTML");
+                careResult = await notebook.findAndExecute(query2, result2.id) as ResultGrid;
+                htmlGrid = await careResult.resultContext!.getAttribute("innerHTML");
                 expect(htmlGrid).toMatch(/address_id/);
             } catch (e) {
                 testFailed = true;
@@ -252,16 +259,19 @@ describe("NOTEBOOKS", () => {
 
         it("Switch between search tabs", async () => {
             try {
-                const result = await notebook.codeEditor
-                    .execute("select * from sakila.actor limit 1; select * from sakila.address limit 1;");
-                expect(result.toolbar!.status).toMatch(/OK/);
+                const query = "select * from sakila.actor limit 1; select * from sakila.address limit 1;";
+                let result = await notebook.codeEditor
+                    // eslint-disable-next-line max-len
+                    .execute(query) as ResultData;
+                expect(result.status).toMatch(/OK/);
                 expect(result.tabs!.length).toBe(2);
                 expect(result.tabs![0].name).toBe("Result #1");
                 expect(result.tabs![1].name).toBe("Result #2");
-                expect(await result.grid!.content!.getAttribute("innerHTML"))
+                expect(await result.resultContext!.getAttribute("innerHTML"))
                     .toMatch(/actor_id.*first_name.*last_name.*last_update/);
                 await result.selectTab(result.tabs![1].name);
-                expect(await result.grid!.content!.getAttribute("innerHTML"))
+                result = await notebook.codeEditor.refreshResult(query, result.id) as ResultData;
+                expect(await result.resultContext!.getAttribute("innerHTML"))
                     .toMatch(/address.*address2.*district.*city_id.*postal_code.*phone.*last_update/);
             } catch (e) {
                 testFailed = true;
@@ -271,9 +281,9 @@ describe("NOTEBOOKS", () => {
 
         it("Connect to database and verify default schema", async () => {
             try {
-                const result = await notebook.codeEditor.execute("SELECT SCHEMA();");
-                expect(result.toolbar!.status).toMatch(/1 record retrieved/);
-                expect(await result.grid!.content!.getAttribute("innerHTML"))
+                const result = await notebook.codeEditor.execute("SELECT SCHEMA();") as ResultGrid;
+                expect(result.status).toMatch(/1 record retrieved/);
+                expect(await result.resultContext!.getAttribute("innerHTML"))
                     .toMatch(new RegExp((globalConn.basic as interfaces.IConnBasicMySQL).schema!));
             } catch (e) {
                 testFailed = true;
@@ -300,22 +310,26 @@ describe("NOTEBOOKS", () => {
                     constants.wait3seconds, "Commit button should be enabled");
 
                 let result = await notebook.codeEditor
-                    .execute(`INSERT INTO sakila.actor (first_name, last_name) VALUES ("${random}","${random}");`);
+                    // eslint-disable-next-line max-len
+                    .execute(`INSERT INTO sakila.actor (first_name, last_name) VALUES ("${random}","${random}");`) as ResultData;
                 expect(result.text).toMatch(/OK/);
 
                 await rollBackBtn!.click();
 
-                result = await notebook.codeEditor.execute(`SELECT * FROM sakila.actor WHERE first_name="${random}";`);
+                // eslint-disable-next-line max-len
+                result = await notebook.codeEditor.execute(`SELECT * FROM sakila.actor WHERE first_name="${random}";`) as ResultData;
                 expect(result.text).toMatch(/OK/);
 
                 result = await notebook.codeEditor
-                    .execute(`INSERT INTO sakila.actor (first_name, last_name) VALUES ("${random}","${random}");`);
+                    // eslint-disable-next-line max-len
+                    .execute(`INSERT INTO sakila.actor (first_name, last_name) VALUES ("${random}","${random}");`) as ResultData;
                 expect(result.text).toMatch(/OK/);
 
                 await commitBtn!.click();
 
-                result = await notebook.codeEditor.execute(`SELECT * FROM sakila.actor WHERE first_name="${random}";`);
-                expect(result.toolbar!.status).toMatch(/OK/);
+                // eslint-disable-next-line max-len
+                const result1 = await notebook.codeEditor.execute(`SELECT * FROM sakila.actor WHERE first_name="${random}";`) as ResultGrid;
+                expect(result1.status).toMatch(/OK/);
 
                 await autoCommitBtn!.click();
 
@@ -332,8 +346,9 @@ describe("NOTEBOOKS", () => {
                     "Commit/Rollback DB changes button is still enabled ",
                 );
 
-                result = await notebook.codeEditor.execute(`DELETE FROM sakila.actor WHERE first_name="${random}";`);
-                expect(result.text).toMatch(/OK/);
+                const result2 = await notebook.codeEditor
+                    .execute(`DELETE FROM sakila.actor WHERE first_name="${random}";`) as ResultData;
+                expect(result2.text).toMatch(/OK/);
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -376,16 +391,16 @@ describe("NOTEBOOKS", () => {
             try {
                 const query = "select * from sakila.actor limit 1";
                 const jsCmd = "Math.random()";
-                const result1 = await notebook.codeEditor.execute(query);
+                const result1 = await notebook.codeEditor.execute(query) as ResultGrid;
                 const block1 = result1.id;
-                expect(result1.toolbar!.status).toMatch(/OK/);
+                expect(result1.status).toMatch(/OK/);
                 await notebook.codeEditor.languageSwitch("\\js");
-                const result2 = await notebook.codeEditor.execute(jsCmd);
+                const result2 = await notebook.codeEditor.execute(jsCmd) as ResultData;
                 const block2 = result2.id;
                 expect(result2.text).toMatch(/(\d+).(\d+)/);
-                const result3 = await notebook.codeEditor.findAndExecute(query, block1);
-                expect(result3.toolbar!.status).toMatch(/OK/);
-                const result4 = await notebook.codeEditor.findAndExecute(jsCmd, block2);
+                const result3 = await notebook.findAndExecute(query, block1) as ResultGrid;
+                expect(result3.status).toMatch(/OK/);
+                const result4 = await notebook.findAndExecute(jsCmd, block2) as ResultData;
                 expect(result4.text).toMatch(/(\d+).(\d+)/);
             } catch (e) {
                 testFailed = true;
@@ -398,9 +413,9 @@ describe("NOTEBOOKS", () => {
         it("Multi-line comments", async () => {
             try {
                 await notebook.codeEditor.languageSwitch("\\sql ");
-                const result1 = await notebook.codeEditor.execute("select version();");
-                expect(result1.toolbar!.status).toMatch(/1 record retrieved/);
-                const cell = result1.grid!.content!
+                const result1 = await notebook.codeEditor.execute("select version();") as ResultGrid;
+                expect(result1.status).toMatch(/1 record retrieved/);
+                const cell = result1.resultContext!
                     .findElement(locator.notebook.codeEditor.editor.result.grid.row.cell.exists);
                 const cellText = await cell.getText();
                 const server = cellText.match(/(\d+).(\d+).(\d+)/g)![0];
@@ -409,10 +424,12 @@ describe("NOTEBOOKS", () => {
                 digits[1].length === 1 ? serverVer += "0" + digits[1] : serverVer += digits[1];
                 digits[2].length === 1 ? serverVer += "0" + digits[2] : serverVer += digits[2];
 
-                const result2 = await notebook.codeEditor.execute(`/*!${serverVer} select * from sakila.actor;*/`);
-                expect(result2.toolbar!.status).toMatch(/OK, (\d+) records retrieved/);
+                const result2 = await notebook.codeEditor
+                    .execute(`/*!${serverVer} select * from sakila.actor;*/`) as ResultGrid;
+                expect(result2.status).toMatch(/OK, (\d+) records retrieved/);
                 const higherServer = parseInt(serverVer, 10) + 1;
-                const result3 = await notebook.codeEditor.execute(`/*!${higherServer} select * from sakila.actor;*/`);
+                const result3 = await notebook.codeEditor
+                    .execute(`/*!${higherServer} select * from sakila.actor;*/`) as ResultData;
                 expect(result3.text).toMatch(/OK, 0 records retrieved/);
             } catch (e) {
                 testFailed = true;
@@ -422,9 +439,9 @@ describe("NOTEBOOKS", () => {
 
         it("Maximize and Normalize Result tab", async () => {
             try {
-                const result = await notebook.codeEditor.execute("select * from sakila.actor;");
-                expect(result.toolbar!.status).toMatch(/OK/);
-                await result.toolbar!.maximize();
+                const result = await notebook.codeEditor.execute("select * from sakila.actor;") as ResultGrid;
+                expect(result.status).toMatch(/OK/);
+                await result.maximize();
                 expect((await notebook.toolbar.editorSelector.getCurrentEditor()).label).toBe("Result #1");
 
                 try {
@@ -435,7 +452,7 @@ describe("NOTEBOOKS", () => {
                 } finally {
                     await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.dbNotebook),
                         globalConn.caption);
-                    await notebook.codeEditor.loadCommandResults();
+                    await notebook.codeEditor.build();
                 }
             } catch (e) {
                 testFailed = true;
@@ -449,7 +466,7 @@ describe("NOTEBOOKS", () => {
                 const result = await notebook.codeEditor.execute(
                     `const res = await runSql("SELECT Name, Capital FROM world_x_cst.country limit 10");
                 const options: IGraphOptions = {series:[{type: "bar", yLabel: "Actors", data: res as IJsonGraphData}]};
-                Graph.render(options);`);
+                Graph.render(options);`) as ResultData;
 
                 expect(result.graph).toBeDefined();
                 const chartColumns = await result.graph!
@@ -492,8 +509,8 @@ describe("NOTEBOOKS", () => {
         it("Save Notebooks", async () => {
             try {
                 await notebook.codeEditor.clean();
-                const result = await notebook.codeEditor.execute("SELECT VERSION();");
-                expect(result.toolbar!.status).toMatch(/1 record retrieved/);
+                const result = await notebook.codeEditor.execute("SELECT VERSION();") as ResultGrid;
+                expect(result.status).toMatch(/1 record retrieved/);
                 await (await notebook.toolbar.getButton(constants.saveNotebook))!.click();
 
                 await driver.wait(new Condition("", async () => {
@@ -552,7 +569,7 @@ describe("NOTEBOOKS", () => {
 
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
         const cookbookFile = "static_cookbook.pdf";
-        const notebook = new E2ENotebook();
+        let notebook: E2ENotebook;
         let testFailed = false;
 
         beforeAll(async () => {
@@ -561,9 +578,10 @@ describe("NOTEBOOKS", () => {
                 await dbTreeSection.focus();
                 await dbTreeSection.createDatabaseConnection(heatWaveConn);
                 await (await new E2EDatabaseConnectionOverview().getConnection(heatWaveConn.caption!)).click();
-                await driver.wait(notebook.untilIsOpened(heatWaveConn), constants.wait5seconds);
-                const result = await notebook.codeEditor.getLastExistingCommandResult(true);
+                notebook = await new E2ENotebook().untilIsOpened(heatWaveConn);
+                let result = await notebook.codeEditor.getLastExistingCommandResult(true) as ResultData;
                 await driver.wait(result.heatWaveChatIsDisplayed(), constants.wait5seconds);
+                result = await notebook.codeEditor.refreshResult(result.command, result.id) as ResultData;
             } catch (e) {
                 await Misc.storeScreenShot("beforeAll_HeatWaveChat");
                 throw e;
@@ -586,8 +604,8 @@ describe("NOTEBOOKS", () => {
                 await driver.wait(hwProfileEditor.untilIsOpened(), constants.wait5seconds);
                 await hwProfileEditor.selectModel(constants.modelMistral);
                 await notebook.codeEditor.languageSwitch("\\chat");
-                await notebook.codeEditor.loadCommandResults();
-                const result = await notebook.codeEditor.execute(query, undefined, true);
+                await notebook.codeEditor.build();
+                const result = await notebook.codeEditor.execute(query, true) as ResultData;
                 expect(result.chat!.length).toBeGreaterThan(0);
 
                 const history = await hwProfileEditor.getHistory();

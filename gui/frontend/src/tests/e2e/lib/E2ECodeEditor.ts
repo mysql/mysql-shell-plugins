@@ -22,63 +22,54 @@
  */
 
 import { error, Key, until, WebElement, Condition } from "selenium-webdriver";
-import { PasswordDialog } from "./Dialogs/PasswordDialog.js";
-import { E2ENotebook } from "./E2ENotebook.js";
 import * as constants from "./constants.js";
 import * as locator from "./locators.js";
-import * as interfaces from "./interfaces.js";
 import { driver } from "./driver.js";
 import { Os } from "./os.js";
-import { CommandResult } from "./CommandResult.js";
-import { E2EScript } from "./E2EScript.js";
-import { E2EShellConsole } from "./E2EShellConsole.js";
+import { ResultGrid } from "./CommandResults/ResultGrid.js";
+import { ResultData } from "./CommandResults/ResultData.js";
 
 /**
  * This class represents the code editor that exist on notebooks, scripts or shell consoles
  */
 export class E2ECodeEditor {
 
-    /** The page it belongs to (it can be a notebook, script or shell console)*/
-    public parent: E2ENotebook | E2EScript | E2EShellConsole;
+    /** The last command result id on the code editor. If undefined, it assumes the code editor is from a script */
+    public lastResultId: number | undefined;
 
-    /** Collection of command result ids */
-    public resultIds: string[] = [];
-
-    public constructor(parent: E2ENotebook | E2EScript | E2EShellConsole) {
-        this.parent = parent;
+    public constructor(resultId?: number) {
+        this.lastResultId = resultId;
     }
 
     /**
      * Loads the code editor command results and returns the code editor object
      * @returns The last result id
      */
-    public create = async (): Promise<E2ECodeEditor> => {
-        await this.loadCommandResults();
+    public build = async (): Promise<E2ECodeEditor> => {
+        await this.setLastResultId();
 
         return this;
     };
 
     /**
-     * Gets the last result id on the editor
-     * @returns The last result id
+     * Sets the last result id on the editor
      */
-    public loadCommandResults = async (): Promise<void> => {
+    public setLastResultId = async (): Promise<void> => {
         await driver.wait(async () => {
             try {
-                const results = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
-                if (results.length > 0) {
-                    this.resultIds = await Promise.all(results.map(async (item: WebElement) => {
-                        return (await item.getAttribute("monaco-view-zone")).match(/(\d+)/)![1];
-                    }));
+                const results = await driver.wait(until
+                    .elementsLocated(locator.notebook.codeEditor.editor.result.exists), constants.wait3seconds,
+                    "Could not find any command results");
+                this.lastResultId = parseInt((await results[results.length - 1].getAttribute("monaco-view-zone"))
+                    .match(/(\d+)/)![1], 10);
 
-                    return true;
-                }
+                return true;
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "Could not find any command results");
+        }, constants.wait5seconds, "Could not get the command results");
     };
 
     /**
@@ -211,171 +202,100 @@ export class E2ECodeEditor {
             }
         }, constants.wait5seconds, "Editor was not cleaned");
 
-        this.resultIds = [];
+        await this.execute("\\about");
     };
 
     /**
-     * Deletes all stored credentials on the key chain, using shell
-     * @returns A promise resolving when the command is executed
+     * Builds a command result
+     * @param cmd The command
+     * @param resultId The result id. If not provided, it will build the last existing result on the editor
+     * @returns A promise resolving with the result
      */
-    public deleteCredentials = async (): Promise<void> => {
-        if (this.parent instanceof E2EShellConsole) {
-            const cmd = "shell.deleteAllCredentials()";
-            await this.write(cmd, false);
-            await this.exec();
+    public buildResult = async (
+        cmd: string,
+        resultId: number | undefined,
+    ): Promise<ResultGrid | ResultData | undefined> => {
+        const result = await this.getResult(cmd, resultId);
+        const resultType = await this.getResultType(cmd, result);
 
-            if (!(await Os.existsCredentialHelper())) {
-                // we expect an error on the console
-                const id = await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
-                const commandResult = new CommandResult(this, cmd, id);
-                await commandResult.loadResult();
-                this.resultIds.push(commandResult.id!);
+        if (this.expectTabs(cmd) === true) {
+            const commandResult = new ResultData(cmd, resultId!);
+            commandResult.setResultContext(result);
+            await commandResult.setStatus();
+            await commandResult.setTabs();
+
+            return commandResult;
+        }
+
+        let commandResult: ResultGrid | ResultData | undefined;
+        if (resultType === constants.isGrid) {
+            commandResult = new ResultGrid(cmd, resultId!);
+            commandResult.setResultContext(result);
+            await commandResult.setStatus();
+            await commandResult.setColumnsMap();
+        } else {
+            commandResult = new ResultData(cmd, resultId!);
+            commandResult.setResultContext(result);
+
+            switch (resultType) {
+
+                case constants.isGridText: {
+                    await commandResult.setText();
+                    await commandResult.setStatus();
+                    break;
+                }
+
+                case constants.isText: {
+                    await commandResult.setText();
+                    break;
+                }
+
+                case constants.isJson: {
+                    await commandResult.setJson();
+                    break;
+                }
+
+                case constants.isGraph: {
+                    await commandResult.setGraph();
+                    break;
+                }
+
+                case constants.isSqlPreview: {
+                    await commandResult.setPreview();
+                    break;
+                }
+
+                case constants.isHWAboutInfo: {
+                    commandResult.isHWAboutInfo = true;
+                    break;
+                }
+
+                case constants.isChat: {
+                    await commandResult.setChat();
+                    break;
+                }
+
+                default: {
+                    break;
+                }
             }
         }
-    };
-
-    /**
-     * Executes a command on the editor
-     *
-     * @param cmd The command
-     * @param searchOnExistingId Verify the result on this result id
-     * @param ignoreKeywords True to ignore the keywords
-     * @returns A promise resolving when the command is executed
-     */
-    public execute = async (cmd: string, searchOnExistingId?: string, ignoreKeywords = false):
-        Promise<interfaces.ICommandResult> => {
-        if (this.isSpecialCmd(cmd)) {
-            throw new Error("Please use the function 'languageSwitch()'");
-        }
-
-        let commandResult: CommandResult;
-
-        await this.write(cmd, ignoreKeywords);
-        await this.exec();
-
-        if (this.parent instanceof E2EScript) {
-            commandResult = new CommandResult(this, cmd);
-            await commandResult.loadResult(true);
-        } else {
-            const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
-            commandResult = new CommandResult(this, cmd, id);
-            await commandResult.loadResult();
-        }
-
-        this.resultIds.push(commandResult.id!);
-
-        return commandResult!;
-    };
-
-    /**
-     * Executes a command on the editor using a toolbar button
-     *
-     * @param cmd The command
-     * @param button The button to click, to trigger the execution
-     * @param searchOnExistingId Verify the result on this result id
-     * @returns A promise resolving when the command is executed
-     */
-    public executeWithButton = async (cmd: string, button: string, searchOnExistingId?: string):
-        Promise<interfaces.ICommandResult> => {
-
-        if (this.isSpecialCmd(cmd)) {
-            throw new Error("Please use the function 'this.languageSwitch()'");
-        }
-
-        if (button === constants.execCaret) {
-            throw new Error("Please use the function 'this.findCmdAndExecute()'");
-        }
-
-        await this.write(cmd);
-        const parent = this.parent as E2ENotebook | E2EScript; // Shell sessions does not have any toolbar
-        await (await parent.toolbar.getButton(button))!.click();
-        const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
-        const commandResult = new CommandResult(this, cmd, id);
-        await commandResult.loadResult();
-        this.resultIds.push(commandResult.id!);
 
         return commandResult;
     };
 
     /**
-     * Executes a command on the editor using a context menu item
-     *
+     * Refreshes a command result, rebuilding it
      * @param cmd The command
-     * @param item The context menu item to click, to trigger the execution
-     * @param searchOnExistingId Verify the result on this result id
-     * @returns A promise resolving when the command is executed
+     * @param resultId The result id. If not provided, it will build the last existing result on the editor
+     * @returns A promise resolving with the result
      */
-    public executeWithContextMenu = async (cmd: string, item: string, searchOnExistingId?: string):
-        Promise<interfaces.ICommandResult> => {
+    public refreshResult = async (
+        cmd: string,
+        resultId: number,
+    ): Promise<ResultGrid | ResultData | undefined> => {
 
-        if (this.isSpecialCmd(cmd)) {
-            throw new Error("Please use the function 'this.languageSwitch()'");
-        }
-
-        await this.write(cmd);
-        await this.clickContextItem(item);
-        const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
-        const commandResult = new CommandResult(this, cmd, id);
-        await commandResult.loadResult();
-        this.resultIds.push(commandResult.id!);
-
-        return commandResult;
-    };
-
-    /**
-     * Executes a command on the editor, setting the credentials right after the execution is triggered
-     *
-     * @param cmd The command
-     * @param dbConnection The DB Connection to use
-     * @param searchOnExistingId Verify the result on this result id
-     * @returns A promise resolving when the command is executed
-     */
-    public executeExpectingCredentials = async (cmd: string, dbConnection: interfaces.IDBConnection,
-        searchOnExistingId?: string): Promise<interfaces.ICommandResult> => {
-
-        if (this.isSpecialCmd(cmd)) {
-            throw new Error("Please use the function 'this.languageSwitch()'");
-        }
-
-        await this.write(cmd);
-        await this.exec();
-        await PasswordDialog.setCredentials(dbConnection);
-        const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
-        const commandResult = new CommandResult(this, cmd, id);
-        await commandResult.loadResult();
-        this.resultIds.push(commandResult.id!);
-
-        return commandResult;
-    };
-
-    /**
-     * Searches for a command on the editor, and execute it,
-     * using the Exec Caret button Verify the result on this result id
-     * @param cmd The command
-     * @param searchOnExistingId Verify the result on this result id
-     * @returns A promise resolving when the command is executed
-     */
-    public findAndExecute = async (cmd: string, searchOnExistingId?: string): Promise<interfaces.ICommandResult> => {
-
-        if (this.isSpecialCmd(cmd)) {
-            throw new Error("Please use the function 'this.languageSwitch()'");
-        }
-
-        await this.setMouseCursorAt(cmd);
-        const parent = this.parent as E2ENotebook | E2EScript;
-
-        if (await parent.toolbar.existsButton(constants.execCaret)) {
-            const toolbarButton = await parent.toolbar.getButton(constants.execCaret);
-            await driver.executeScript("arguments[0].click()", toolbarButton);
-        } else {
-            const button = await parent.toolbar.getButton(constants.execFullBlockJs);
-            await driver.executeScript("arguments[0].click()", button);
-        }
-        const id = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
-        const commandResult = new CommandResult(this, cmd, id);
-        await commandResult.loadResult();
-
-        return commandResult;
+        return this.buildResult(cmd, resultId);
     };
 
     /**
@@ -383,45 +303,170 @@ export class E2ECodeEditor {
      * @param waitForIncomingResult Wait for a command result that will be executed
      * @returns A promise resolving with the last cmd result
      */
-    public getLastExistingCommandResult = async (waitForIncomingResult = false): Promise<interfaces.ICommandResult> => {
-        let commandResult: CommandResult;
+    public getLastExistingCommandResult = async (
+        waitForIncomingResult = false): Promise<ResultGrid | ResultData | undefined> => {
+
+        let commandResult: ResultGrid | ResultData | undefined;
 
         if (waitForIncomingResult) {
-            commandResult = new CommandResult(this, undefined,
-                await this.getNextResultId(this.resultIds[this.resultIds.length - 1]));
+            commandResult = await this.buildResult("", this.lastResultId! + 1);
+            this.lastResultId!++;
         } else {
-            commandResult = new CommandResult(this);
+            commandResult = await this.buildResult("", this.lastResultId);
         }
 
-        await commandResult.loadResult();
+        return commandResult;
+    };
+
+    /**
+     * Executes a command on the editor
+     *
+     * @param cmd The command
+     * @param ignoreKeywords True to ignore the keywords
+     * @returns A promise resolving when the command is executed
+     */
+    public execute = async (cmd: string, ignoreKeywords = false):
+        Promise<ResultGrid | ResultData | undefined> => {
+        if (this.isSpecialCmd(cmd)) {
+            throw new Error("Please use the function 'languageSwitch()'");
+        }
+
+        let commandResult: ResultGrid | ResultData | undefined;
+
+        await this.write(cmd, ignoreKeywords);
+        await this.exec();
+
+        if (!this.lastResultId) { // its from a script
+            commandResult = await this.buildResult(cmd, undefined);
+        } else {
+            commandResult = await this.buildResult(cmd, this.lastResultId + 1);
+        }
+
+        this.lastResultId!++;
 
         return commandResult;
+    };
+
+
+    /**
+     * Gets the result block for an expected result id
+     * When the nextId is undefined, the method will return the last existing command result on the editor
+     * @param cmd The command
+     * @param resultId The next expected result id. If undefined, it assumes it comes from a script
+     * @returns A promise resolving when the mouse cursor is placed at the desired spot
+     */
+    public getResult = async (cmd?: string, resultId?: number): Promise<WebElement> => {
+        let result: WebElement;
+
+        if (resultId) {
+            try {
+                result = await driver.wait(until
+                    .elementLocated(locator.notebook.codeEditor.editor.result
+                        .existsById(String(resultId))),
+                    constants.wait2seconds, `Could not find result id ${String(resultId)} for ${cmd}`);
+            } catch (e) {
+                if (e instanceof error.TimeoutError) {
+                    const results = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
+
+                    if (results.length > 0) {
+                        const lastId = await results[results.length - 1].getAttribute("monaco-view-zone");
+                        // eslint-disable-next-line max-len
+                        console.log(`[DEBUG] Could not find result id ${String(resultId)} for ${cmd}. Last id found: ${lastId}`);
+                        this.lastResultId = parseInt(lastId.match(/(\d+)/)![1], 10);
+
+                        result = results[results.length - 1];
+                    } else {
+                        throw new Error("[DEBUG] No results at all were found on the notebook");
+                    }
+                } else {
+                    throw e;
+                }
+
+            }
+        } else {
+            return driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.result.script),
+                constants.wait5seconds, `Could not find any script result, for cmd ${cmd}. Maybe this is a notebook?`);
+        }
+
+        await this.scrollDown();
+
+        return result!;
+    };
+
+    /**
+     * Gets the result type
+     * @param cmd The command
+     * @param context The context
+     * @returns A promise resolving with the result type
+     */
+    public getResultType = async (cmd: string | undefined, context: WebElement): Promise<string> => {
+        let type = "";
+
+        const resultLocator = locator.notebook.codeEditor.editor.result;
+        await driver.wait(async () => {
+            if ((await context.findElements(resultLocator.singleOutput.exists)).length > 0 &&
+                ((await context.findElements(resultLocator.singleOutput.text.exists)).length > 0) &&
+                ((await context.findElements(resultLocator.grid.status)).length > 0) &&
+                (await context.findElements(resultLocator.json.pretty)).length === 0) {
+                type = constants.isGridText;
+            }
+
+            if ((await context.findElements(resultLocator.singleOutput.exists)).length > 0 &&
+                ((await context.findElements(resultLocator.singleOutput.text.exists)).length > 0) &&
+                (await context.findElements(resultLocator.grid.status)).length === 0 &&
+                (await context.findElements(resultLocator.json.pretty)).length === 0) {
+                type = constants.isText;
+            }
+
+            if ((await context.findElements(resultLocator.singleOutput.exists)).length > 0 &&
+                (((await context.findElements(resultLocator.json.pretty)).length > 0) ||
+                    (await context.findElements(resultLocator.json.raw)).length > 0)
+            ) {
+                type = constants.isJson;
+            }
+
+            if ((await context.findElements(resultLocator.graphHost.exists)).length > 0) {
+                type = constants.isGraph;
+            }
+
+            if ((await context.findElements(resultLocator.grid.exists)).length > 0) {
+                type = constants.isGrid;
+            }
+
+            if ((await context
+                .findElements(locator.notebook.codeEditor.editor.result.previewChanges.exists)).length > 0) {
+                type = constants.isSqlPreview;
+            }
+
+            if ((await context.findElements(resultLocator.chat.aboutInfo)).length > 0) {
+                type = constants.isHWAboutInfo;
+            }
+
+            if ((await context.findElements(resultLocator.chat.isProcessingResult)).length > 0) {
+                type = constants.isChat;
+            }
+
+            if (type !== "") {
+                return true;
+            }
+        }, constants.wait5seconds, `Could not get the result type for ${cmd}`);
+
+        return type;
     };
 
     /**
      * Executes a language switch on the editor (sql, python, typescript or javascript)
      *
      * @param cmd The command to change the language
-     * @param searchOnExistingId Verify the result on this result id
      * @returns A promise resolving when the command is executed
      */
-    public languageSwitch = async (cmd: string, searchOnExistingId?:
-        string | undefined): Promise<interfaces.ICommandResult | undefined> => {
+    public languageSwitch = async (cmd: string): Promise<void> => {
         if (!this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.execute() or others'");
         }
 
         await this.write(cmd);
         await this.exec();
-
-        if (this.parent instanceof E2EShellConsole) {
-            const nextId = searchOnExistingId ?? await this.getNextResultId(this.resultIds[this.resultIds.length - 1]);
-            const commandResult = new CommandResult(this, cmd, nextId);
-            await commandResult.loadResult();
-            this.resultIds[this.resultIds.length - 1] = commandResult.id!;
-
-            return commandResult;
-        }
     };
 
     /**
@@ -470,88 +515,6 @@ export class E2ECodeEditor {
                 }
             }
         }, constants.wait5seconds, "The elements were always stale - setMouseCursorAt");
-    };
-
-    /**
-     * Gets the last text on the last prompt/editor line
-     * @returns A promise resolving with the text
-     */
-    public getPromptLastTextLine = async (): Promise<string> => {
-        const context = await driver.findElement(locator.notebook.codeEditor.editor.exists);
-        let sentence = "";
-        await driver.wait(async () => {
-            try {
-                const codeLineWords = await context.findElements(locator.notebook.codeEditor.editor.wordInSentence);
-                if (codeLineWords.length > 0) {
-                    for (const word of codeLineWords) {
-                        sentence += (await word.getText()).replace("&nbsp;", " ");
-                    }
-
-                    return true;
-                }
-            } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
-                    throw e;
-                }
-            }
-        }, constants.wait5seconds, "Could not get the text from last prompt line");
-
-        return sentence;
-    };
-
-    /**
-     * Clicks on a context menu item
-     * @param item The item
-     * @returns A promise resolving when the click is performed
-     */
-    public clickContextItem = async (item: string): Promise<void> => {
-        const isCtxMenuDisplayed = async (): Promise<boolean> => {
-            const el = await driver.executeScript(`return document.querySelector(".shadow-root-host").
-                shadowRoot.querySelector("span[aria-label='${item}']")`);
-
-            return el !== null;
-        };
-
-        await driver.wait(async () => {
-            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
-            await driver.actions().contextClick(textArea).perform();
-
-            return isCtxMenuDisplayed();
-
-        }, constants.wait5seconds, `Expected context menu for "${item}" was not displayed`);
-
-        await driver.wait(async () => {
-            try {
-                const el: WebElement = await driver.executeScript(`return document.querySelector(".shadow-root-host").
-                shadowRoot.querySelector("span[aria-label='${item}']")`);
-                await el.click();
-
-                return !(await isCtxMenuDisplayed());
-            } catch (e) {
-                if (e instanceof TypeError) {
-                    return true;
-                }
-            }
-        }, constants.wait5seconds, `Unexpected context menu continues displayed after selecting "${item}"`);
-    };
-
-    /**
-     * Gets the line number where a word is found
-     * @param wordRef The word
-     * @returns A promise resolving with the line number
-     */
-    public getLineFromWord = async (wordRef: string): Promise<number> => {
-        const lines = await driver.findElements(locator.notebook.codeEditor.editor.promptLine);
-        for (let i = 0; i <= lines.length - 1; i++) {
-            const match = (await lines[i].getAttribute("innerHTML")).match(/(?<=">)(.*?)(?=<\/span>)/gm);
-            if (match !== null) {
-                const cmdFromEditor = match.join("").replace(/&nbsp;/g, " ");
-                if (cmdFromEditor === wordRef) {
-                    return i;
-                }
-            }
-        }
-        throw new Error(`Could not find '${wordRef}' in the code editor`);
     };
 
     /**
@@ -633,33 +596,6 @@ export class E2ECodeEditor {
     };
 
     /**
-     * Verifies if a new prompt exists on the Code Editor
-     * @returns A promise resolving with true if exists, false otherwise
-     */
-    public hasNewPrompt = async (): Promise<boolean> => {
-        let text: String;
-        await driver.wait(async () => {
-            try {
-                await this.scrollDown();
-                const context = await driver.findElement(locator.notebook.codeEditor.editor.exists);
-                const prompts = await context.findElements(locator.notebook.codeEditor.editor.editorPrompt);
-                const lastPrompt = await prompts[prompts.length - 1]
-                    .findElement(locator.htmlTag.span)
-                    .findElement(locator.htmlTag.span);
-                text = await lastPrompt.getText();
-
-                return true;
-            } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
-                    throw e;
-                }
-            }
-        }, constants.wait5seconds, "Could not check the new prompt");
-
-        return String(text!).length === 0;
-    };
-
-    /**
      * Returns true if the given text exists on the editor
      * @param text The text to search for
      * @returns A promise resolving with the truthiness of the function
@@ -707,31 +643,8 @@ export class E2ECodeEditor {
      * @param cmd The command
      * @returns A promise resolving when the command is marked as special or not special
      */
-    private isSpecialCmd = (cmd: string): boolean => {
+    public isSpecialCmd = (cmd: string): boolean => {
         return (cmd.match(/(\\js|\\javascript|\\ts|\\typescript|\\sql|\\q|\\d|\\py|\\python|\\chat)/)) !== null;
-    };
-
-    /**
-     * Calculates and returns the next expected result id
-     * If the lastResultId is undefined, it will fetch the last existing result id from the editor,
-     * and calculate the next one based on it
-     * @param lastResultId The last known result id
-     * @returns A promise resolving with the next result id
-     */
-    private getNextResultId = async (lastResultId: string): Promise<string | undefined> => {
-        let resultId: string;
-        if (lastResultId) {
-            resultId = String(parseInt(lastResultId, 10) + 1);
-        } else {
-            // the editor may not have any previous results at all (it has been cleaned)
-            const results = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.editor.result.exists),
-                constants.wait5seconds, "Could not find results to calculate the next id");
-            const result = results[results.length - 1];
-            const id = (await result.getAttribute("monaco-view-zone")).match(/(\d+)/)![1];
-            resultId = String(parseInt(id, 10));
-        }
-
-        return resultId;
     };
 
     /**
@@ -758,6 +671,50 @@ export class E2ECodeEditor {
                     }
                 }
             }, constants.wait3seconds, "Suggestion widget was not closed");
+        }
+    };
+
+    /**
+     * Gets the line number where a word is found
+     * @param wordRef The word
+     * @returns A promise resolving with the line number
+     */
+    private getLineFromWord = async (wordRef: string): Promise<number> => {
+        const lines = await driver.findElements(locator.notebook.codeEditor.editor.promptLine);
+        for (let i = 0; i <= lines.length - 1; i++) {
+            const match = (await lines[i].getAttribute("innerHTML")).match(/(?<=">)(.*?)(?=<\/span>)/gm);
+            if (match !== null) {
+                const cmdFromEditor = match.join("").replace(/&nbsp;/g, " ");
+                if (cmdFromEditor === wordRef) {
+                    return i;
+                }
+            }
+        }
+        throw new Error(`Could not find '${wordRef}' in the code editor`);
+    };
+
+    /**
+     * Returns true if it is expected that the given command will return a result with tabs (ex. Multiple
+     * select queries)
+     * @param cmd The command
+     * @returns A promise resolving with true if there are tabs expected, false otherwise
+     */
+    private expectTabs = (cmd: string): boolean => {
+        if (cmd) {
+            const selectMatch = cmd.match(/(select|SELECT)/g);
+            const matchSpecial = cmd.match(/(UNION|INTERSECT|EXCEPT|for update|\()/g);
+            if (selectMatch && selectMatch.length > 1) { // more than 1 select
+                if (matchSpecial) {
+                    return false;
+                } else {
+                    return true;
+                }
+
+            } else {
+                return false;
+            }
+        } else {
+            return false;
         }
     };
 

@@ -317,17 +317,31 @@ export const notebook = {
             result: {
                 exists: By.className("zoneHost"),
                 hasContent: By.className("content"),
-                existsById: (view: string): By => {
+                existsById: (id: string): By => {
                     let xpath = `//div[@class='zoneHost' and (`;
                     xpath += `
-                        @monaco-view-zone='b${view}' or
-                        @monaco-view-zone='c${view}' or
-                        @monaco-view-zone='d${view}' or
-                        @monaco-view-zone='e${view}' or
-                        @monaco-view-zone='f${view}' or
-                        @monaco-view-zone='g${view}' or
-                        @monaco-view-zone='h${view}' or
-                        @monaco-view-zone='i${view}'
+                        @monaco-view-zone='a${id}' or
+                        @monaco-view-zone='b${id}' or
+                        @monaco-view-zone='c${id}' or
+                        @monaco-view-zone='d${id}' or
+                        @monaco-view-zone='e${id}' or
+                        @monaco-view-zone='f${id}' or
+                        @monaco-view-zone='g${id}' or
+                        @monaco-view-zone='h${id}' or
+                        @monaco-view-zone='i${id}' or
+                        @monaco-view-zone='j${id}' or 
+                        @monaco-view-zone='k${id}' or
+                        @monaco-view-zone='l${id}' or
+                        @monaco-view-zone='m${id}' or
+                        @monaco-view-zone='n${id}' or
+                        @monaco-view-zone='s${id}' or
+                        @monaco-view-zone='t${id}' or
+                        @monaco-view-zone='u${id}' or
+                        @monaco-view-zone='v${id}' or
+                        @monaco-view-zone='w${id}' or
+                        @monaco-view-zone='x${id}' or
+                        @monaco-view-zone='y${id}' or
+                        @monaco-view-zone='z${id}'
                         )]
                     `;
 

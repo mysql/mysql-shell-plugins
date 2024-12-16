@@ -224,6 +224,7 @@
         "unnest",
         "unnested",
         "uuidv",
+        "vendorOCIOAuth2",
         "vnic",
         "webrootpath",
         "xdescribe",
