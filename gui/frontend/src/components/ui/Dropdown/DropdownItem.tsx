@@ -28,7 +28,6 @@ import "./Dropdown.css";
 import { ComponentChild, VNode } from "preact";
 
 import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
-import { Checkbox, CheckState } from "../Checkbox/Checkbox.js";
 import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
 import { IIconProperties } from "../Icon/Icon.js";
 import { IImageProperties } from "../Image/Image.js";
@@ -71,14 +70,20 @@ export class DropdownItem<T extends IDropdownItemProperties> extends ComponentBa
             this.classFromProperty(selected, "selected"),
         ]);
 
+        const labelClassName = this.getEffectiveClassNames([
+            "checkbox",
+            this.classFromProperty(checked, ["unchecked", "checked", "indeterminate"]),
+        ]);
+
         let content = children as ComponentChild | undefined;
         if (!content) {
             if (checked != null) {
-                content = <Checkbox
-                    checkState={checked ? CheckState.Checked : CheckState.Unchecked}
-                    caption={caption}
-                />;
-
+                content = (
+                    <label className={labelClassName}>
+                        <span className="checkMark" />
+                        {caption}
+                    </label>
+                );
             } else {
                 if (picture) {
                     content = <Container
