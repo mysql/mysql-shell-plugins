@@ -1005,6 +1005,7 @@ graphQlAllowedKeyword:
     | DO_SYMBOL
     | URL_SYMBOL
     | CLIENT_SYMBOL
+    | STATUS_SYMBOL
 ;
 
 graphQlPairKey:
