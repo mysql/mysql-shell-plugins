@@ -286,10 +286,13 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 try {
                     await driver.wait(new E2ENotebook().untilIsOpened(mdsConnection), constants.wait1minute);
                 } catch (e) {
-                    if (String(e).match(/Tunnel/) !== null) {
+                    if (String(e).includes(constants.ociFailure)) {
                         await Workbench.closeEditor(new RegExp(constants.dbDefaultEditor));
                         skipTest = true;
+                        await Workbench.dismissNotifications();
                         this.skip();
+                    } else {
+                        throw e;
                     }
                 }
 

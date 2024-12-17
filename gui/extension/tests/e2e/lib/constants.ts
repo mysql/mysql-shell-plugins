@@ -504,3 +504,4 @@ export const ociComputeInstanceCtxMenu = new Map([
 ]);
 
 export const restServiceMetadataSchema = "mysql_rest_service_metadata";
+export const ociFailure = "OCI Failure";

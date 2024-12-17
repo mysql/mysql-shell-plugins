@@ -20,7 +20,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { Condition, until } from "vscode-extension-tester";
+import { Condition, until, Workbench as extWorkbench, NotificationType } from "vscode-extension-tester";
 import { driver, Misc } from "../Misc";
 import * as constants from "../constants";
 import * as locator from "../locators";
@@ -58,6 +58,31 @@ export class E2ENotebook {
             }
 
             const isOpened = async (): Promise<boolean> => {
+                await Misc.switchBackToTopFrame();
+                const notifications = await new extWorkbench().getNotifications();
+
+                if (notifications.length > 0) {
+
+                    for (const notification of notifications) {
+
+                        if (await notification.getType() === NotificationType.Error) {
+                            let errorMessage = "";
+
+                            if ((await notification.getMessage()).includes("could not be opened")) {
+                                errorMessage = constants.ociFailure;
+                            } else {
+                                errorMessage = await notification.getMessage();
+                            }
+
+                            throw new Error(errorMessage);
+                        } else {
+                            throw new Error(await notification.getMessage());
+                        }
+                    }
+                } else {
+                    await Misc.switchToFrame();
+                }
+
                 const existsScript = (await driver.findElements(locator.notebook.codeEditor.editor.host))
                     .length > 0;
                 const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
@@ -67,23 +92,9 @@ export class E2ENotebook {
 
             if (await PasswordDialog.exists()) {
                 await PasswordDialog.setCredentials(connection);
-
-                return driver.wait(async () => {
-                    return isOpened();
-                }, constants.wait10seconds)
-                    .catch(async () => {
-                        const existsErrorDialog = (await driver.findElements(locator.errorDialog.exists)).length > 0;
-                        if (existsErrorDialog) {
-                            const errorDialog = await driver.findElement(locator.errorDialog.exists);
-                            const errorMsg = await errorDialog.findElement(locator.errorDialog.message);
-                            throw new Error(await errorMsg.getText());
-                        } else {
-                            throw new Error("Unknown error");
-                        }
-                    });
-            } else {
-                return isOpened();
             }
+
+            return isOpened();
         });
     };
 

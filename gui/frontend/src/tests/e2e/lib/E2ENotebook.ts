@@ -58,6 +58,28 @@ export class E2ENotebook {
             }
 
             const isOpened = async (): Promise<boolean> => {
+                const notifications = await Misc.getToastNotifications();
+
+                if (notifications.length > 0) {
+                    console.log(`notifications: ${notifications.length}`);
+                    for (const notification of notifications) {
+
+                        if (notification!.type === "error") {
+                            let errorMessage = "";
+
+                            if (notification?.message.includes("could not be opened")) {
+                                errorMessage = constants.ociFailure;
+                            } else {
+                                errorMessage = notification!.message;
+                            }
+
+                            throw new Error(errorMessage);
+                        } else {
+                            throw new Error(notification!.message);
+                        }
+                    }
+                }
+
                 const tabContainer = new E2ETabContainer();
 
                 return (await tabContainer.getTab(connection.caption!)) !== undefined;
@@ -65,29 +87,9 @@ export class E2ENotebook {
 
             if (await PasswordDialog.exists()) {
                 await PasswordDialog.setCredentials(connection);
-
-                await driver.wait(async () => {
-                    try {
-                        await isOpened();
-
-                        return true;
-                    } catch (e) {
-                        const existsErrorDialog = (await driver.findElements(locator.errorDialog.exists)).length > 0;
-                        if (existsErrorDialog) {
-                            const errorDialog = await driver.findElement(locator.errorDialog.exists);
-                            const errorMsg = await errorDialog.findElement(locator.errorDialog.message);
-                            throw new Error(await errorMsg.getText());
-                        } else {
-                            console.log(`error: ${String(e)}`);
-                            throw new Error("Unknown error");
-                        }
-                    }
-                }, constants.wait10seconds, `Could not open connection ${connection.caption}`);
-
-                return true;
-            } else {
-                return isOpened();
             }
+
+            return isOpened();
         });
     };
 
