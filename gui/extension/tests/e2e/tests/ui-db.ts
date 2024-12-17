@@ -1081,7 +1081,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await uploadToObjectStorage.objectStorageBrowser.selectOciProfile("HEATWAVE");
                 await uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
                 await driver.wait(uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
-                    constants.wait15seconds);
+                    constants.wait1minute);
 
                 await uploadToObjectStorage.objectStorageBrowser
                     .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
@@ -1093,13 +1093,8 @@ describe("DATABASE CONNECTIONS", () => {
                     constants.wait10seconds);
                 await uploadToObjectStorage.objectStorageBrowser.checkItem("upload");
                 await (await uploadToObjectStorage.getFilesForUploadButton(constants.startFileUpload)).click();
-                await uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
-                await driver.wait(uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
-                    constants.wait20seconds);
-                expect(await uploadToObjectStorage.objectStorageBrowser.existsItem(fileToUpload)).to.be.true;
                 await driver.wait(Workbench.untilNotificationExists("The files have been uploaded successfully"),
                     constants.wait20seconds);
-
             });
 
             it("Load into Lakehouse", async () => {

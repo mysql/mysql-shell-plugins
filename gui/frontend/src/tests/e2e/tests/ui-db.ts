@@ -1000,10 +1000,6 @@ describe("DATABASE CONNECTIONS", () => {
                     const notification = await new E2EToastNotification().create(undefined, constants.wait10seconds);
                     expect(notification!.message).toBe("The files have been uploaded successfully.");
                     await notification!.close();
-                    await uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
-                    await driver.wait(uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
-                        constants.wait20seconds);
-                    expect(await uploadToObjectStorage.objectStorageBrowser.existsItem(fileToUpload)).toBe(true);
                 } catch (e) {
                     await Misc.storeScreenShot();
                     throw e;

@@ -21,8 +21,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import * as constants from "./constants.js";
 import {
-    Builder, WebDriver, logging, Browser,
+    Builder, WebDriver, logging, Browser, error,
 } from "selenium-webdriver";
 import { Options, ServiceBuilder } from "selenium-webdriver/chrome.js";
 export let driver: WebDriver;
@@ -66,18 +67,35 @@ export const loadDriver = async (runInBackground: boolean): Promise<void> => {
         options.headless().windowSize({ width: 1300, height: 768 });
     }
 
-    if (process.env.CHROMEDRIVER_PATH) {
-        const builder = new ServiceBuilder(process.env.CHROMEDRIVER_PATH);
-        driver = await new Builder()
-            .forBrowser(Browser.CHROME)
-            .setChromeOptions(options)
-            .setChromeService(builder)
-            .build();
-    } else {
-        driver = await new Builder()
-            .forBrowser(Browser.CHROME)
-            .setChromeOptions(options)
-            .build();
+    const createDriver = async (): Promise<WebDriver> => {
+        if (process.env.CHROMEDRIVER_PATH) {
+            const builder = new ServiceBuilder(process.env.CHROMEDRIVER_PATH);
+            driver = await new Builder()
+                .forBrowser(Browser.CHROME)
+                .setChromeOptions(options)
+                .setChromeService(builder)
+                .build();
+        } else {
+            driver = await new Builder()
+                .forBrowser(Browser.CHROME)
+                .setChromeOptions(options)
+                .build();
+        }
+
+        return driver;
+    };
+
+    try {
+        driver = await createDriver();
+    } catch (e) {
+        if (e instanceof error.SessionNotCreatedError) {
+            await new Promise((resolve) => { setTimeout(resolve, constants.wait5seconds); });
+            console.log("Creating again the driver ...");
+            driver = await createDriver();
+        } else {
+            console.log("Another error ...");
+            throw e;
+        }
     }
 
     if (!runInBackground || process.env.E2E_DEBUG) {

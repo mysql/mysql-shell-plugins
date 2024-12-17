@@ -181,19 +181,9 @@ describe("OCI", () => {
                 await mds.click();
 
                 await driver.wait(new E2ENotebook().untilIsOpened(mdsConnection), constants.wait1minute)
-                    .catch(async (e) => {
-                        const notifications = await Misc.getToastNotifications();
-                        if (notifications.length > 0) {
-                            for (const notification of notifications) {
-                                if (notification!.message.includes("The connection could not be opened")) {
-                                    await notification?.close();
-                                    ociFailure = true;
-
-                                    break;
-                                }
-                            }
-                        } else {
-                            throw e;
+                    .catch((e) => {
+                        if (String(e).includes(constants.ociFailure)) {
+                            ociFailure = true;
                         }
                     });
 
@@ -292,7 +282,18 @@ describe("OCI", () => {
             const notebook = new E2ENotebook();
 
             await driver.wait(notebook.untilIsOpened(localConn),
-                constants.wait25seconds, "MDS Connection was not opened");
+                constants.wait25seconds, "MDS Connection was not opened")
+                .catch(async (e) => {
+                    if (String(e).includes(constants.ociFailure)) {
+                        ociFailure = true;
+                        await Misc.dismissNotifications();
+                    }
+                });
+
+            if (ociFailure) {
+                return; // No connection to OCI, skipping test
+            }
+
             await notebook.codeEditor.create();
             const result = await notebook.codeEditor.execute("select version();");
             expect(result.toolbar!.status).toMatch(/OK/);

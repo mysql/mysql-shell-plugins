@@ -309,3 +309,4 @@ export const accessControlEnabled = "enabled";
 export const accessControlDisabled = "disabled";
 export const accessControlPrivate = "private";
 export const vendorOCIOAuth2 = "OCI OAuth2";
+export const ociFailure = "OCI Failure";

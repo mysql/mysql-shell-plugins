@@ -544,7 +544,7 @@ describe("NOTEBOOKS", () => {
 
     describe("Persistent Notebooks", () => {
 
-        const destFile = `${process.cwd()}/test`;
+        const destFile = `${process.cwd()}/a_test`;
         const e2eTreeSection = new E2EAccordionSection("e2e");
         const notebook = new E2ENotebook();
 
@@ -622,14 +622,14 @@ describe("NOTEBOOKS", () => {
             await browser.openResources(process.cwd());
             await Workbench.dismissNotifications();
             await driver.wait(e2eTreeSection.untilExists(), constants.wait5seconds);
-            const file = await (await e2eTreeSection.getWebElement()).findItem("test.mysql-notebook", 3);
+            const file = await (await e2eTreeSection.getWebElement()).findItem("a_test.mysql-notebook", 3);
             await file.click();
             const input = await InputBox.create(constants.wait5seconds * 4);
             await (await input.findQuickPick(globalConn.caption)).select();
-            await Workbench.openEditor("test.mysql-notebook");
+            await Workbench.openEditor("a_test.mysql-notebook");
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
             await notebook.exists("SELECT VERSION");
-            await Workbench.closeEditor(new RegExp("test.mysql-notebook"), true);
+            await Workbench.closeEditor(new RegExp("a_test.mysql-notebook"), true);
 
         });
 
@@ -638,11 +638,11 @@ describe("NOTEBOOKS", () => {
             await Workbench.closeAllEditors();
             await browser.openResources(process.cwd());
             await driver.wait(e2eTreeSection.untilExists(), constants.wait5seconds);
-            const file = await (await e2eTreeSection.getWebElement()).findItem("test.mysql-notebook", 3);
+            const file = await (await e2eTreeSection.getWebElement()).findItem("a_test.mysql-notebook", 3);
             await e2eTreeSection.tree.openContextMenuAndSelect(file, constants.openNotebookWithConn);
             const input = await InputBox.create();
             await (await input.findQuickPick(globalConn.caption)).select();
-            await driver.wait(Workbench.untilTabIsOpened("test.mysql-notebook"), constants.wait5seconds);
+            await driver.wait(Workbench.untilTabIsOpened("a_test.mysql-notebook"), constants.wait5seconds);
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
             await notebook.exists("SELECT VERSION");
 
@@ -651,15 +651,15 @@ describe("NOTEBOOKS", () => {
         it("Auto close notebook tab when DB connection is deleted", async () => {
 
             await driver.wait(e2eTreeSection.untilExists(), constants.wait5seconds);
-            const file = await (await e2eTreeSection.getWebElement()).findItem("test.mysql-notebook", 3);
+            const file = await (await e2eTreeSection.getWebElement()).findItem("a_test.mysql-notebook", 3);
             await file.click();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
-            await Workbench.openEditor("test.mysql-notebook");
+            await Workbench.openEditor("a_test.mysql-notebook");
             const activityBar = new ActivityBar();
             await (await activityBar.getViewControl(constants.extensionName))?.openView();
             await dbTreeSection.tree.deleteDatabaseConnection(globalConn.caption);
             const tabs = await Workbench.getOpenEditorTitles();
-            expect(tabs, errors.tabIsNotOpened("test.mysql-notebook")).to.not.include("test.mysql-notebook");
+            expect(tabs, errors.tabIsNotOpened("a_test.mysql-notebook")).to.not.include("a_test.mysql-notebook");
 
         });
 
@@ -675,9 +675,9 @@ describe("NOTEBOOKS", () => {
             await (await activityBar.getViewControl("Explorer"))?.openView();
 
             await driver.wait(e2eTreeSection.untilExists(), constants.wait5seconds);
-            const file = await (await e2eTreeSection.getWebElement()).findItem("test.mysql-notebook", 3);
+            const file = await (await e2eTreeSection.getWebElement()).findItem("a_test.mysql-notebook", 3);
             await file.click();
-            await Workbench.openEditor("test.mysql-notebook");
+            await Workbench.openEditor("a_test.mysql-notebook");
             await Workbench.getNotification("Please create a MySQL Database Connection first.", undefined, true);
             await Misc.switchToFrame();
             expect(await driver.findElement(locator.htmlTag.h2).getText(), "'No connection selected' message was found")
