@@ -22,7 +22,7 @@
  */
 
 import { WebElement, Condition } from "selenium-webdriver";
-import { CommandResultGrid } from "./CommandResultGrid.js";
+import { E2ECommandResultGrid } from "./CommandResults/E2ECommandResultGrid.js";
 
 export interface ICommandResult {
     id?: string;
@@ -30,7 +30,7 @@ export interface ICommandResult {
     json?: string;
     graph?: WebElement;
     tabs?: ICommandResultTab[];
-    grid?: CommandResultGrid;
+    grid?: E2ECommandResultGrid;
     preview?: ICommandResultPreview;
     toolbar?: ICommandResultToolbar;
     context?: WebElement;

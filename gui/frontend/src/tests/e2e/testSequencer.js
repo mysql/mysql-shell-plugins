@@ -29,9 +29,9 @@ import Sequencer from "@jest/test-sequencer";
 const basePath = join(process.cwd(), "src", "tests", "e2e", "tests");
 
 const testPriority = new Map([
-    [join(basePath, "ui-result-grids.ts"), 1],
-    [join(basePath, "ui-db.ts"), 2],
-    [join(basePath, "ui-rest.ts"), 3],
+    [join(basePath, "ui-rest.ts"), 1],
+    [join(basePath, "ui-result-grids.ts"), 2],
+    [join(basePath, "ui-db.ts"), 3],
     [join(basePath, "ui-clipboard.ts"), 4],
     [join(basePath, "ui-notebook.ts"), 5],
     [join(basePath, "ui-oci.ts"), 6],

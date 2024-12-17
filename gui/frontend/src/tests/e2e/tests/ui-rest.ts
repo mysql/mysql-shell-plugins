@@ -23,11 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until } from "selenium-webdriver";
 import { basename } from "path";
 import { Misc } from "../lib/misc.js";
 import { driver, loadDriver } from "../lib/driver.js";
-import * as locator from "../lib/locators.js";
 import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection.js";
 import { Os } from "../lib/os.js";
 import * as constants from "../lib/constants.js";
@@ -611,11 +609,11 @@ describe("MYSQL REST SERVICE", () => {
                 },
                 options: `{"test":"value"}`,
             };
-            console.log(1);
+
             await dbTreeSection.tree.openContextMenuAndSelect(globalService.restSchemas![0].restObjects![0].treeName!,
                 constants.editRESTObj);
             globalService.restSchemas![0].restObjects![0] = await RestObjectDialog.set(editedObject);
-            console.log(2);
+
             let ntf = `The MRS Database Object ${editedObject.jsonRelDuality!.dbObject}`;
             ntf += ` was updated successfully.`;
 
@@ -632,19 +630,8 @@ describe("MYSQL REST SERVICE", () => {
             ]);
 
             await dbTreeSection.clickToolbarButton(constants.refreshConnectionList);
-            console.log(3);
             await dbTreeSection.tree.openContextMenuAndSelect(globalService.restSchemas![0].restObjects![0].treeName!,
-                constants.editRESTObj).catch(async () => {
-                    console.log("aqui");
-                    await dbTreeSection.tree
-                        .openContextMenuAndSelect(/\/actor\/editedObject/,
-                            constants.editRESTObj);
-                    console.log("aqui1");
-                    await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.exists),
-                        constants.wait20seconds, "Edit REST Object dialog was not displayed");
-                    throw new Error("CHECK SCREENSHOT");
-                });
-            console.log(10);
+                constants.editRESTObj);
             const thisObject = await RestObjectDialog.get();
             expect(thisObject).toStrictEqual(editedObject);
         } catch (e) {

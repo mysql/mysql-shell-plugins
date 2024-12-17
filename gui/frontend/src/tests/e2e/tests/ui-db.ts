@@ -45,8 +45,8 @@ import { driver, loadDriver } from "../lib/driver.js";
 import { E2ETabContainer } from "../lib/E2ETabContainer.js";
 import { E2EToastNotification } from "../lib/E2EToastNotification.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
-import { ResultGrid } from "../lib/CommandResults/ResultGrid.js";
-import { ResultData } from "../lib/CommandResults/ResultData.js";
+import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
+import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -272,7 +272,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await driver.executeScript("arguments[0].click();", sqliteWebConn);
                 const notebook = await new E2ENotebook().untilIsOpened(sqliteConn);
                 const result = await notebook.executeWithButton("SELECT * FROM main.db_connection;",
-                    constants.execFullBlockSql) as ResultGrid;
+                    constants.execFullBlockSql) as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
             } catch (e) {
                 testFailed = true;
@@ -301,7 +301,7 @@ describe("DATABASE CONNECTIONS", () => {
                 const query = `select * from performance_schema.session_status
                 where variable_name in ("ssl_cipher") and variable_value like "%TLS%";`;
 
-                const result = await notebook.codeEditor.execute(query) as ResultGrid;
+                const result = await notebook.codeEditor.execute(query) as E2ECommandResultGrid;
                 expect(result.status).toMatch(/1 record retrieved/);
             } catch (e) {
                 testFailed = true;
@@ -795,7 +795,7 @@ describe("DATABASE CONNECTIONS", () => {
                     constants.openNewDatabaseConnectionOnNewTab))!.click();
                 let notebook = await new E2ENotebook().untilIsOpened(globalConn);
                 let result = await notebook.codeEditor
-                    .execute(`INSTALL COMPONENT "file://component_mle";`) as ResultData;
+                    .execute(`INSTALL COMPONENT "file://component_mle";`) as E2ECommandResultData;
                 expect(result.text).toMatch(/OK/);
 
                 await new E2ETabContainer().closeAllTabs();
@@ -878,9 +878,10 @@ describe("DATABASE CONNECTIONS", () => {
                     $$;
                 `;
 
-                result = await notebook.executeWithButton(jsFunction, constants.execFullBlockSql) as ResultData;
+                result = await notebook.executeWithButton(jsFunction,
+                    constants.execFullBlockSql) as E2ECommandResultData;
                 expect(result.text).toMatch(/OK/);
-                const result1 = await notebook.codeEditor.execute("SELECT js_pow(2,3);") as ResultGrid;
+                const result1 = await notebook.codeEditor.execute("SELECT js_pow(2,3);") as E2ECommandResultGrid;
                 expect(result1.status).toMatch(/OK/);
                 await new E2ETabContainer().closeAllTabs();
                 await (await dbTreeSection.tree.getElement(constants.performanceDashboard))!.click();
@@ -980,6 +981,8 @@ describe("DATABASE CONNECTIONS", () => {
                         }), constants.wait3seconds);
 
                     await mysqlAdministration.lakeHouseNavigator.overview.clickUploadFiles();
+                    await driver.wait(uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
+                        constants.wait25seconds);
                     await uploadToObjectStorage.objectStorageBrowser.selectOciProfile("HEATWAVE");
                     await uploadToObjectStorage.objectStorageBrowser.refreshObjectStorageBrowser();
                     await driver.wait(uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
@@ -1226,7 +1229,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await (await tabContainer.getTab(globalConn.caption!))!.click();
 
                 const notebook = await new E2ENotebook().untilIsOpened(globalConn);
-                let result = await notebook.codeEditor.execute("select database();") as ResultGrid;
+                let result = await notebook.codeEditor.execute("select database();") as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
                 expect(await result.resultContext!.getAttribute("innerHTML"))
                     .toMatch(new RegExp((globalConn.basic as interfaces.IConnBasicMySQL).schema!));
@@ -1235,7 +1238,7 @@ describe("DATABASE CONNECTIONS", () => {
                 expect(await dbTreeSection.tree.isElementDefault("sakila", "schema")).toBe(false);
                 await (await tabContainer.getTab(globalConn.caption!))!.click();
                 await notebook.codeEditor.clean();
-                result = await notebook.codeEditor.execute("select database();") as ResultGrid;
+                result = await notebook.codeEditor.execute("select database();") as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
                 expect(await result.resultContext!.getAttribute("innerHTML")).toMatch(/world_x_cst/);
                 await tabContainer.closeAllTabs();
@@ -1274,7 +1277,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await dbTreeSection.tree.expandElement(["Tables"]);
                 await dbTreeSection.tree.openContextMenuAndSelect("actor", constants.selectRows);
                 const notebook = await new E2ENotebook().untilIsOpened(globalConn);
-                const result = await notebook.codeEditor.getLastExistingCommandResult(true) as ResultGrid;
+                const result = await notebook.codeEditor.getLastExistingCommandResult(true) as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
             } catch (e) {
                 testFailed = true;
@@ -1305,7 +1308,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await dbTreeSection.tree.expandElement(["Views"]);
                 await dbTreeSection.tree.openContextMenuAndSelect(testView, constants.selectRows);
                 const notebook = await new E2ENotebook().untilIsOpened(globalConn);
-                const result = await notebook.codeEditor.getLastExistingCommandResult(true) as ResultGrid;
+                const result = await notebook.codeEditor.getLastExistingCommandResult(true) as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
             } catch (e) {
                 testFailed = true;

@@ -30,8 +30,8 @@ import { E2ECodeEditor } from "./E2ECodeEditor.js";
 import { E2EToolbar } from "./E2EToolbar.js";
 import { PasswordDialog } from "./Dialogs/PasswordDialog.js";
 import { Os } from "./os.js";
-import { ResultData } from "./CommandResults/ResultData.js";
-import { ResultGrid } from "./CommandResults/ResultGrid.js";
+import { ResultData } from "./CommandResults/E2ECommandResultData.js";
+import { ResultGrid } from "./CommandResults/E2ECommandResultGrid.js";
 
 /**
  * This class represents the Shell console

@@ -36,8 +36,8 @@ import { E2EShellConsole } from "../lib/E2EShellConsole.js";
 import { E2EDatabaseConnectionOverview } from "../lib/E2EDatabaseConnectionOverview.js";
 import { E2ETabContainer } from "../lib/E2ETabContainer.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
-import { ResultData } from "../lib/CommandResults/ResultData.js";
-import { ResultGrid } from "../lib/CommandResults/ResultGrid.js";
+import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
+import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -112,7 +112,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Connect to host", async () => {
             try {
                 let connUri = `\\c ${username}:${password}@${hostname}:${port}/${schema}`;
-                const result = await shellConsole.codeEditor.execute(connUri) as ResultData;
+                const result = await shellConsole.codeEditor.execute(connUri) as E2ECommandResultData;
                 connUri = `Creating a session to '${username}@${hostname}:${port}/${schema}'`;
                 expect(result.text).toMatch(new RegExp(connUri));
                 expect(result.text).toMatch(/Server version: (\d+).(\d+).(\d+)/);
@@ -147,7 +147,7 @@ describe("MYSQL SHELL CONSOLES", () => {
             try {
                 Os.deleteShellCredentials();
                 let uri = `\\c ${shellUsername}@${hostname}:${port}/${schema}`;
-                const result = await shellConsole.executeExpectingCredentials(uri, shellConn) as ResultData;
+                const result = await shellConsole.executeExpectingCredentials(uri, shellConn) as E2ECommandResultData;
                 uri = `Creating a session to '${shellUsername}@${hostname}:${port}/${schema}'`;
                 expect(result.text).toMatch(new RegExp(uri));
                 expect(result.text).toMatch(/Server version: (\d+).(\d+).(\d+)/);
@@ -169,10 +169,10 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         it("Connect using shell global variable", async () => {
             try {
-                let result = await shellConsole.codeEditor.execute("shell.status()") as ResultData;
+                let result = await shellConsole.codeEditor.execute("shell.status()") as E2ECommandResultData;
                 expect(result.text).toMatch(/MySQL Shell version (\d+).(\d+).(\d+)/);
                 let uri = `shell.connect('${username}:${password}@${hostname}:${port}0/${schema}')`;
-                result = await shellConsole.codeEditor.execute(uri) as ResultData;
+                result = await shellConsole.codeEditor.execute(uri) as E2ECommandResultData;
                 uri = `Creating a session to '${username}@${hostname}:${port}0/${schema}'`;
                 expect(result.text).toMatch(new RegExp(uri));
                 expect(result.text).toMatch(/Server version: (\d+).(\d+).(\d+)/);
@@ -196,10 +196,10 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Connect using mysql mysqlx global variable", async () => {
             try {
                 let cmd = `mysql.getClassicSession('${username}:${password}@${hostname}:${port}/${schema}')`;
-                let result = await shellConsole.codeEditor.execute(cmd) as ResultData;
+                let result = await shellConsole.codeEditor.execute(cmd) as E2ECommandResultData;
                 expect(result.text).toMatch(/ClassicSession/);
                 cmd = `mysqlx.getSession('${username}:${password}@${hostname}:${port}0/${schema}')`;
-                result = await shellConsole.codeEditor.execute(cmd) as ResultData;
+                result = await shellConsole.codeEditor.execute(cmd) as E2ECommandResultData;
                 expect(result.text).toMatch(/Session/);
             } catch (e) {
                 testFailed = true;
@@ -219,7 +219,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                 await openEditorsTreeSection.clickToolbarButton(constants.addConsole);
                 shellConsole = await new E2EShellConsole().untilIsOpened();
                 let uri = `\\c ${username}:${password}@${hostname}:${port}0/${schema}`;
-                const result = await shellConsole.codeEditor.execute(uri) as ResultData;
+                const result = await shellConsole.codeEditor.execute(uri) as E2ECommandResultData;
                 uri = `Creating a session to '${username}@${hostname}:${port}0/${schema}'`;
                 expect(result.text).toMatch(new RegExp(uri));
                 uri = `Connection to server ${hostname} at port ${port}0,`;
@@ -248,7 +248,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         it("Verify help command", async () => {
             try {
-                const result = await shellConsole.codeEditor.execute("\\help ") as ResultData;
+                const result = await shellConsole.codeEditor.execute("\\help ") as E2ECommandResultData;
                 const regex = [
                     /The Shell Help is organized in categories and topics/,
                     /SHELL COMMANDS/,
@@ -302,7 +302,8 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         it("Using db global variable", async () => {
             try {
-                const result = await shellConsole.codeEditor.execute("db.actor.select().limit(1)") as ResultGrid;
+                const result = await shellConsole.codeEditor
+                    .execute("db.actor.select().limit(1)") as E2ECommandResultGrid;
                 expect(await result.resultContext!.getAttribute("innerHTML")).toMatch(/PENELOPE/);
             } catch (e) {
                 testFailed = true;
@@ -313,7 +314,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Using util global variable", async () => {
             try {
                 const result = await shellConsole.codeEditor
-                    .execute('util.exportTable("actor","test.txt")') as ResultData;
+                    .execute('util.exportTable("actor","test.txt")') as E2ECommandResultData;
                 expect(result.text).toMatch(/Running data dump using 1 thread/);
                 const matches = [
                     /Total duration: (\d+)(\d+):(\d+)(\d+):(\d+)(\d+)s/,
@@ -334,7 +335,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Verify collections - json format", async () => {
             try {
                 await shellConsole.changeSchema("world_x_cst");
-                const result = await shellConsole.codeEditor.execute("db.countryinfo.find()") as ResultData;
+                const result = await shellConsole.codeEditor.execute("db.countryinfo.find()") as E2ECommandResultData;
                 expect(result.json).toMatch(/Yugoslavia/);
             } catch (e) {
                 testFailed = true;
@@ -345,26 +346,28 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Check query result content", async () => {
             try {
                 await shellConsole.languageSwitch("\\sql");
-                let result = await shellConsole.codeEditor.execute("SHOW DATABASES;") as ResultGrid;
+                let result = await shellConsole.codeEditor.execute("SHOW DATABASES;") as E2ECommandResultGrid;
                 expect(await result.resultContext!.getAttribute("innerHTML")).toMatch(/sakila/);
                 expect(await result.resultContext!.getAttribute("innerHTML")).toMatch(/mysql/);
                 await shellConsole.languageSwitch("\\js");
                 let result1 = await shellConsole.codeEditor
-                    .execute(`shell.options.resultFormat="json/raw" `) as ResultData;
+                    .execute(`shell.options.resultFormat="json/raw" `) as E2ECommandResultData;
                 expect(result1.text).toMatch(/json\/raw/);
                 result1 = await shellConsole.codeEditor
-                    .execute(`shell.options.showColumnTypeInfo=false `) as ResultData;
+                    .execute(`shell.options.showColumnTypeInfo=false `) as E2ECommandResultData;
                 expect(result1.text).toMatch(/false/);
                 result1 = await shellConsole.codeEditor
-                    .execute(`shell.options.resultFormat="json/pretty" `) as ResultData;
+                    .execute(`shell.options.resultFormat="json/pretty" `) as E2ECommandResultData;
                 expect(result1.text).toMatch(/json\/pretty/);
                 result1 = await shellConsole.changeSchema("sakila");
                 expect(result1.text).toMatch(/Default schema `sakila` accessible through db/);
-                result1 = await shellConsole.codeEditor.execute("db.category.select().limit(1)") as ResultData;
+                result1 = await shellConsole.codeEditor
+                    .execute("db.category.select().limit(1)") as E2ECommandResultData;
                 expect(result1.json).toMatch(/Action/);
-                result1 = await shellConsole.codeEditor.execute(`shell.options.resultFormat="table" `) as ResultData;
+                result1 = await shellConsole.codeEditor
+                    .execute(`shell.options.resultFormat="table" `) as E2ECommandResultData;
                 expect(result1.text).toMatch(/table/);
-                result = await shellConsole.codeEditor.execute("db.category.select().limit(1)") as ResultGrid;
+                result = await shellConsole.codeEditor.execute("db.category.select().limit(1)") as E2ECommandResultGrid;
                 expect(await result.resultContext!.getAttribute("innerHTML")).toMatch(/Action/);
             } catch (e) {
                 testFailed = true;

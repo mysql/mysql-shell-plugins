@@ -29,6 +29,7 @@ import { driver } from "../lib/driver.js";
 import * as locator from "../lib/locators.js";
 import { E2EToastNotification } from "./E2EToastNotification.js";
 import { IOciProfileConfig } from "./interfaces.js";
+import { createConnection } from "mysql2/promise";
 
 export const feLog = "fe.log";
 export const shellServers = new Map([
@@ -284,6 +285,36 @@ export class Misc {
         }
 
         return ociConfig;
+    };
+
+    /**
+     * Verifies if a schema exists on the current database
+     * @param schema The schema name
+     * @returns True if the schema exists, false otherwise
+     */
+    public static untilSchemaExists = (schema: string): Condition<boolean> => {
+        return new Condition(`for schema '${schema}' to exist`, async () => {
+            try {
+                const mysqlConnection = await createConnection({
+                    host: "localhost",
+                    user: process.env.DBUSERNAME1,
+                    password: process.env.DBUSERNAME1PWD,
+                    database: schema,
+                    port: parseInt(process.env.MYSQL_PORT!, 10),
+                });
+
+                await mysqlConnection.connect();
+                mysqlConnection.destroy();
+
+                return true;
+            } catch (e) {
+                if (String(e).includes("Unknown database")) {
+                    return false;
+                } else {
+                    throw e;
+                }
+            }
+        });
     };
 
 }

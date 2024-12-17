@@ -33,29 +33,61 @@ const resultLocator = locator.notebook.codeEditor.editor.result;
 /**
  * This class represents a command result and all its related functions
  */
-export abstract class Result {
+export abstract class E2ECommandResult {
 
     /** The command text*/
-    public command: string;
+    #command: string;
 
     /** monaco-view-zone id number*/
-    public id: number;
+    #id: number;
 
     /** Result context*/
-    public resultContext: WebElement | undefined;
+    #resultContext: WebElement | undefined;
 
     public constructor(command: string, id: number) {
-        this.id = id;
-        this.command = command;
+        this.#id = id;
+        this.#command = command;
+    }
+
+    /**
+     * Gets the command
+     * @returns The command
+     */
+    public get command(): string {
+        return this.#command;
+    }
+
+    /**
+     * Gets the id
+     * @returns The id
+     */
+    public get id(): number {
+        return this.#id;
+    }
+
+    /**
+     * Gets the result context
+     * @returns The result context
+     */
+    public get resultContext(): WebElement | undefined {
+        return this.#resultContext;
     }
 
     /**
      * Sets the result context
      * @param context The result context
      */
-    public setResultContext = (context: WebElement): void => {
-        this.resultContext = context;
-    };
+    public set resultContext(context: WebElement) {
+        this.#resultContext = context;
+    }
+
+    /**
+     * Sets the id
+     * @param newId The new id
+     */
+    public set id(newId: number) {
+        this.#id = newId;
+    }
 
     /**
      * Verifies if the result is maximized

@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Condition, until, error } from "selenium-webdriver";
+import { Condition } from "selenium-webdriver";
 import * as constants from "./constants.js";
 import * as locator from "./locators.js";
 import * as interfaces from "./interfaces.js";
@@ -29,10 +29,8 @@ import { driver } from "./driver.js";
 import { E2ECodeEditor } from "./E2ECodeEditor.js";
 import { E2EToolbar } from "./E2EToolbar.js";
 import { PasswordDialog } from "./Dialogs/PasswordDialog.js";
-import { CommandResult } from "./CommandResult.js";
-import { ResultGrid } from "./CommandResults/ResultGrid.js";
-import { ResultData } from "./CommandResults/ResultData.js";
-import { Os } from "./os.js";
+import { E2ECommandResultGrid } from "./CommandResults/E2ECommandResultGrid.js";
+import { E2ECommandResultData } from "./CommandResults/E2ECommandResultData.js";
 
 /**
  * This class represents the Script page
@@ -76,18 +74,6 @@ export class E2EScript {
     };
 
     /**
-     * Returns the last existing script result on the editor
-     *
-     * @returns A promise resolving with the script result
-     */
-    public getLastResult = async (): Promise<interfaces.ICommandResult> => {
-        const commandResult = new CommandResult(this.codeEditor);
-        await commandResult.loadResult(true);
-
-        return commandResult;
-    };
-
-    /**
      * Executes a command on the editor using a toolbar button
      *
      * @param cmd The command
@@ -95,7 +81,7 @@ export class E2EScript {
      * @returns A promise resolving when the command is executed
      */
     public executeWithButton = async (cmd: string, button: string):
-        Promise<ResultGrid | ResultData | undefined> => {
+        Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
 
         if (this.codeEditor.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.languageSwitch()'");
