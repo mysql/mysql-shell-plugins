@@ -31,8 +31,8 @@ import * as interfaces from "./interfaces.js";
 import { PasswordDialog } from "./Dialogs/PasswordDialog.js";
 import { ConfirmDialog } from "./Dialogs/ConfirmationDialog.js";
 import { E2ETabContainer } from "./E2ETabContainer.js";
-import { ResultGrid } from "./CommandResults/ResultGrid.js";
-import { ResultData } from "./CommandResults/ResultData.js";
+import { E2ECommandResultGrid } from "./CommandResults/E2ECommandResultGrid.js";
+import { E2ECommandResultData } from "./CommandResults/E2ECommandResultData.js";
 
 /**
  * This class aggregates the functions that perform operations inside notebooks
@@ -159,7 +159,7 @@ export class E2ENotebook {
      * @returns A promise resolving when the command is executed
      */
     public executeWithButton = async (cmd: string, button: string):
-        Promise<ResultGrid | ResultData | undefined> => {
+        Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
 
         if (this.codeEditor.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.codeEditor.languageSwitch()'");
@@ -185,7 +185,7 @@ export class E2ENotebook {
      * @returns A promise resolving when the command is executed
      */
     public findAndExecute = async (cmd: string, resultId: number):
-        Promise<ResultGrid | ResultData | undefined> => {
+        Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
 
         if (this.codeEditor.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.languageSwitch()'");
@@ -212,7 +212,7 @@ export class E2ENotebook {
      * @returns A promise resolving when the command is executed
      */
     public executeWithContextMenu = async (cmd: string, item: string):
-        Promise<ResultGrid | ResultData | undefined> => {
+        Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
 
         if (this.codeEditor.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.codeEditor.languageSwitch()'");

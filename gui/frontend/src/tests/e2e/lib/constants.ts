@@ -310,3 +310,4 @@ export const accessControlDisabled = "disabled";
 export const accessControlPrivate = "private";
 export const vendorOCIOAuth2 = "OCI OAuth2";
 export const ociFailure = "OCI Failure";
+export const restServiceMetadataSchema = "mysql_rest_service_metadata";

@@ -37,8 +37,8 @@ import { E2EToastNotification } from "../lib/E2EToastNotification.js";
 import { DatabaseConnectionDialog } from "../lib/Dialogs/DatabaseConnectionDialog.js";
 import { E2EDatabaseConnectionOverview } from "../lib/E2EDatabaseConnectionOverview.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
-import { ResultData } from "../lib/CommandResults/ResultData.js";
-import { ResultGrid } from "../lib/CommandResults/ResultGrid.js";
+import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
+import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -141,7 +141,8 @@ describe("OCI", () => {
             await shellConsole.openNewShellConsole();
             await driver.wait(shellConsole.untilIsOpened(), constants.wait5seconds * 3,
                 "Shell Console was not loaded");
-            const result = await shellConsole.codeEditor.execute("mds.get.currentCompartmentId()") as ResultData;
+            const result = await shellConsole.codeEditor
+                .execute("mds.get.currentCompartmentId()") as E2ECommandResultData;
             expect(result.text).toContain("ocid1");
         } catch (e) {
             await Misc.storeScreenShot();
@@ -190,8 +191,8 @@ describe("OCI", () => {
                 if (ociFailure) {
                     return; // No connection to OCI, skipping test
                 }
-                const notebook = await new E2ENotebook().untilIsOpened(mdsConnection);
-                const result = await notebook.codeEditor.execute("select version();") as ResultGrid;
+                const notebook = await new E2ENotebook().untilIsOpened(mdsConnection, constants.wait1minute);
+                const result = await notebook.codeEditor.execute("select version();") as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
             } else {
                 ociFailure = true;
@@ -229,7 +230,8 @@ describe("OCI", () => {
             await shellConsole.openNewShellConsole();
             await driver.wait(shellConsole.untilIsOpened(), constants.wait15seconds,
                 "Shell Console was not loaded");
-            const result = await shellConsole.codeEditor.execute("mds.get.currentBastionId()") as ResultData;
+            const result = await shellConsole.codeEditor
+                .execute("mds.get.currentBastionId()") as E2ECommandResultData;
             expect(result.text).toBe(bastionID);
         } catch (e) {
             await Misc.storeScreenShot();
@@ -278,7 +280,7 @@ describe("OCI", () => {
                     constants.openNewDatabaseConnectionOnNewTab));
 
             const notebook = await new E2ENotebook().untilIsOpened(localConn, constants.wait25seconds);
-            const result = await notebook.codeEditor.execute("select version();") as ResultGrid;
+            const result = await notebook.codeEditor.execute("select version();") as E2ECommandResultGrid;
             expect(result.status).toMatch(/OK/);
         } catch (e) {
             await Misc.storeScreenShot();

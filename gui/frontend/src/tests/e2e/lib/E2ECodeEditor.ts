@@ -26,8 +26,8 @@ import * as constants from "./constants.js";
 import * as locator from "./locators.js";
 import { driver } from "./driver.js";
 import { Os } from "./os.js";
-import { ResultGrid } from "./CommandResults/ResultGrid.js";
-import { ResultData } from "./CommandResults/ResultData.js";
+import { E2ECommandResultGrid } from "./CommandResults/E2ECommandResultGrid.js";
+import { E2ECommandResultData } from "./CommandResults/E2ECommandResultData.js";
 
 /**
  * This class represents the code editor that exist on notebooks, scripts or shell consoles
@@ -214,28 +214,28 @@ export class E2ECodeEditor {
     public buildResult = async (
         cmd: string,
         resultId: number | undefined,
-    ): Promise<ResultGrid | ResultData | undefined> => {
+    ): Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
         const result = await this.getResult(cmd, resultId);
         const resultType = await this.getResultType(cmd, result);
 
         if (this.expectTabs(cmd) === true) {
-            const commandResult = new ResultData(cmd, resultId!);
-            commandResult.setResultContext(result);
+            const commandResult = new E2ECommandResultData(cmd, resultId!);
+            commandResult.resultContext = result;
             await commandResult.setStatus();
             await commandResult.setTabs();
 
             return commandResult;
         }
 
-        let commandResult: ResultGrid | ResultData | undefined;
+        let commandResult: E2ECommandResultGrid | E2ECommandResultData | undefined;
         if (resultType === constants.isGrid) {
-            commandResult = new ResultGrid(cmd, resultId!);
-            commandResult.setResultContext(result);
+            commandResult = new E2ECommandResultGrid(cmd, resultId!);
+            commandResult.resultContext = result;
             await commandResult.setStatus();
             await commandResult.setColumnsMap();
         } else {
-            commandResult = new ResultData(cmd, resultId!);
-            commandResult.setResultContext(result);
+            commandResult = new E2ECommandResultData(cmd, resultId!);
+            commandResult.resultContext = result;
 
             switch (resultType) {
 
@@ -293,7 +293,7 @@ export class E2ECodeEditor {
     public refreshResult = async (
         cmd: string,
         resultId: number,
-    ): Promise<ResultGrid | ResultData | undefined> => {
+    ): Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
 
         return this.buildResult(cmd, resultId);
     };
@@ -304,9 +304,9 @@ export class E2ECodeEditor {
      * @returns A promise resolving with the last cmd result
      */
     public getLastExistingCommandResult = async (
-        waitForIncomingResult = false): Promise<ResultGrid | ResultData | undefined> => {
+        waitForIncomingResult = false): Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
 
-        let commandResult: ResultGrid | ResultData | undefined;
+        let commandResult: E2ECommandResultGrid | E2ECommandResultData | undefined;
 
         if (waitForIncomingResult) {
             commandResult = await this.buildResult("", this.lastResultId! + 1);
@@ -326,12 +326,12 @@ export class E2ECodeEditor {
      * @returns A promise resolving when the command is executed
      */
     public execute = async (cmd: string, ignoreKeywords = false):
-        Promise<ResultGrid | ResultData | undefined> => {
+        Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
         if (this.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'languageSwitch()'");
         }
 
-        let commandResult: ResultGrid | ResultData | undefined;
+        let commandResult: E2ECommandResultGrid | E2ECommandResultData | undefined;
 
         await this.write(cmd, ignoreKeywords);
         await this.exec();

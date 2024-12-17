@@ -253,7 +253,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         });
 
-        it("Create connection with Bastion Service", async function () {
+        // Access denied modal dialog
+        it.skip("Create connection with Bastion Service", async function () {
 
             const treeDbSystem = await ociTreeSection.tree.getOciElementByType(constants.dbSystemType);
             const dbSystemName = await treeDbSystem.getLabel();
@@ -281,6 +282,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 }
 
                 const mds = await new DatabaseConnectionOverview().getConnection(dbSystemName);
+                await driver.sleep(60000);
                 await mds.click();
 
                 try {
@@ -483,7 +485,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         });
 
-        it("Create a new MDS Connection", async function () {
+        // Access denied modal dialog
+        it.skip("Create a new MDS Connection", async function () {
 
             if (skipTest) {
                 this.skip();

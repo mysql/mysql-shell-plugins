@@ -24,32 +24,121 @@
  */
 
 import { WebElement, until, Key, Condition, error, Button, Origin } from "selenium-webdriver";
-import { driver } from "./driver.js";
-import * as constants from "./constants.js";
-import * as interfaces from "./interfaces.js";
-import * as locator from "./locators.js";
-import { Os } from "./os.js";
-import { CommandResult } from "./CommandResult.js";
+import { driver } from "../driver.js";
+import * as constants from "../constants.js";
+import * as interfaces from "../interfaces.js";
+import * as locator from "../locators.js";
+import { Os } from "../os.js";
+import { E2ECommandResult } from "./E2ECommandResult.js";
+import { ConfirmDialog } from "../Dialogs/ConfirmationDialog.js";
+import { E2ECodeEditor } from "../E2ECodeEditor.js";
 
 const gridLocator = locator.notebook.codeEditor.editor.result.grid;
+
+const toolbarLocator = locator.notebook.codeEditor.editor.result.toolbar;
 
 /**
  * This class represents a command result grid and all its related functions
  */
-export class CommandResultGrid {
-
-    /** The grid*/
-    public content: WebElement | undefined;
+export class E2ECommandResultGrid extends E2ECommandResult {
 
     /** The columns of the result query, if exists*/
-    public columnsMap: Map<string, string> | undefined;
+    #columnsMap: Map<string, string> | undefined;
 
-    /** The result which it belongs to*/
-    private result: CommandResult;
+    /** The result status*/
+    #status: string | undefined;
 
-    public constructor(commandResult: CommandResult) {
-        this.result = commandResult;
+    /**
+     * Gets the columnsMap
+     * @returns The columnsMap
+     */
+    public get columnsMap(): Map<string, string> | undefined {
+        return this.#columnsMap;
     }
+
+    /**
+     * Gets the status
+     * @returns The status
+     */
+    public get status(): string | undefined {
+        return this.#status;
+    }
+
+    /**
+     * Maps the result grid columns to the corresponding tabulator field number
+     * @returns A promise resolving when the map is finished
+     */
+    public setColumnsMap = async (): Promise<void> => {
+        await driver.wait(async () => {
+            try {
+                const columns = await this.resultContext!
+                    .findElements(locator.notebook.codeEditor.editor.result.grid.column);
+
+                if (columns.length > 0) {
+                    this.#columnsMap = new Map();
+
+                    for (const column of columns) {
+                        const title = await column
+                            .findElement(locator.notebook.codeEditor.editor.result.grid.columnTitle);
+                        this.#columnsMap.set(await title.getAttribute("innerHTML"),
+                            await column.getAttribute("tabulator-field"));
+                    }
+
+                    return true;
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, `Could not set the columns map for command ${this.command}`);
+    };
+
+    /**
+     * Sets the toolbar status message
+     * @returns A promise resolving when the toolbar status message is set
+     */
+    public setStatus = async (): Promise<void> => {
+        let status: WebElement | undefined;
+
+        await driver.wait(async () => {
+            status = await this.resultContext!.findElement(toolbarLocator.status.text);
+
+            return (await status.getAttribute("innerHTML")) !== "";
+        }, constants.wait5seconds, `The status is empty for cmd ${this.command}`);
+
+        this.#status = await status!.getAttribute("innerHTML");
+    };
+
+
+    /**
+     * Verifies if the grid is editable
+     * @returns A condition resolving to true if the grid is editable
+     */
+    public untilIsEditable = (): Condition<boolean> => {
+        return new Condition(`for result grid to be editable`, async () => {
+            const editButton = await this.resultContext!
+                .findElement(locator.notebook.codeEditor.editor.result.toolbar.editButton);
+
+            return (await editButton.getAttribute("class")).includes("disabled") === false;
+        });
+    };
+
+    /**
+     * Gets the edit button
+     * @returns A promise resolving with the edit button
+     */
+    public getEditButton = (): Promise<WebElement | undefined> => {
+        return this.resultContext!.findElement(toolbarLocator.editButton);
+    };
+
+    /**
+     * Starts the editing of a grid
+     * @returns A promise resolving when the edit button is clicked
+     */
+    public edit = async (): Promise<void> => {
+        await (await this.getEditButton())!.click();
+    };
 
     /**
      * Edits a cell from a result grid
@@ -58,8 +147,8 @@ export class CommandResultGrid {
      * @returns A promise resolving when the new value is set
      */
     public editCells = async (cells: interfaces.IResultGridCell[], method: string): Promise<void> => {
-        await driver.wait(this.result.untilIsEditable(), constants.wait5seconds,
-            `The grid for cmd ${this.result.command} is not editable`);
+        await driver.wait(this.untilIsEditable(), constants.wait5seconds,
+            `The grid is not editable`);
 
         const updateValue = async (cellRef: interfaces.IResultGridCell): Promise<void> => {
 
@@ -97,8 +186,6 @@ export class CommandResultGrid {
                 await this.setCellBooleanValue(cellRef.rowNumber!, cellRef.columnName,
                     cellRef.value as boolean);
             }
-
-            await this.result.loadResult();
         };
 
         const saveCellChanges = async (cellRef: interfaces.IResultGridCell
@@ -121,7 +208,7 @@ export class CommandResultGrid {
                 if (method === constants.editButton) {
                     await driver.actions().keyDown(Key.TAB).keyUp(Key.TAB).perform();
                 } else {
-                    await this.result.context!
+                    await this.resultContext!
                         .findElement(locator.notebook.codeEditor.editor.result.toolbar.exists).click();
                 }
             }
@@ -141,7 +228,7 @@ export class CommandResultGrid {
         };
 
         if (method === constants.editButton) {
-            await this.result.toolbar!.edit();
+            await this.edit();
 
             for (let i = 0; i <= cells.length - 1; i++) {
                 await driver.wait(async () => {
@@ -280,7 +367,7 @@ export class CommandResultGrid {
                     await driver.executeScript("arguments[0].value=arguments[1]", input, cell.value as string);
                 }
 
-                await this.result.context!
+                await this.resultContext!
                     .findElement(locator.notebook.codeEditor.editor.result.toolbar.exists).click();
             } else {
                 await this.setCellBooleanValue(-1, cell.columnName, cell.value as boolean);
@@ -308,8 +395,6 @@ export class CommandResultGrid {
                 }
             }, constants.wait10seconds, `The cell on column ${cell.columnName} was always stale`);
         }
-
-        await this.result.loadResult();
     };
 
     /**
@@ -475,9 +560,7 @@ export class CommandResultGrid {
 
                 return driver.wait(until.stalenessOf(contextMenu), constants.wait150MilliSeconds,
                     `The context menu should have been closed, after clicking ${contextMenuItem}, 
-                    ${subContextMenuItem}`).then(async () => {
-                        await this.result.loadResult();
-
+                    ${subContextMenuItem}`).then(() => {
                         return true;
                     }).catch(() => {
                         return false;
@@ -728,7 +811,7 @@ export class CommandResultGrid {
             `Copy all rows - Copied field values don't match the number of table column`);
 
         const toReturn: string[] = [];
-        const rows = await this.content!.findElements(gridLocator.row.exists);
+        const rows = await this.resultContext!.findElements(gridLocator.row.exists);
 
         for (let i = 0; i <= rows.length - 1; i++) {
             toReturn.push(((await this.getCellValues(i)).map((item, index) => {
@@ -767,7 +850,7 @@ export class CommandResultGrid {
             `Copy all rows with names - Copied field values don't match the number of table column`);
 
         const toReturn: string[] = [`# ${allColumns.join(",")}`];
-        const rows = await this.content!.findElements(gridLocator.row.exists);
+        const rows = await this.resultContext!.findElements(gridLocator.row.exists);
 
         for (let i = 0; i <= rows.length - 1; i++) {
             toReturn.push(((await this.getCellValues(i)).map((item, index) => {
@@ -806,7 +889,7 @@ export class CommandResultGrid {
             `Copy all rows unquoted - Copied field values don't match the number of table column`);
 
         const toReturn: string[] = [];
-        const rows = await this.content!.findElements(gridLocator.row.exists);
+        const rows = await this.resultContext!.findElements(gridLocator.row.exists);
 
         for (let i = 0; i <= rows.length - 1; i++) {
             toReturn.push(((await this.getCellValues(i)).map((item) => {
@@ -845,7 +928,7 @@ export class CommandResultGrid {
             `Copy all rows with names unquoted - Copied field values don't match the number of table column`);
 
         const toReturn: string[] = [`# ${allColumns.join(",")}`];
-        const rows = await this.content!.findElements(gridLocator.row.exists);
+        const rows = await this.resultContext!.findElements(gridLocator.row.exists);
 
         for (let i = 0; i <= rows.length - 1; i++) {
             toReturn.push(((await this.getCellValues(i)).map((item) => {
@@ -884,7 +967,7 @@ export class CommandResultGrid {
             `Copy all rows with names tab separated - Copied field values don't match the number of table column`);
 
         const toReturn: string[] = [`# ${allColumns.join("\t")}`];
-        const rows = await this.content!.findElements(gridLocator.row.exists);
+        const rows = await this.resultContext!.findElements(gridLocator.row.exists);
 
         for (let i = 0; i <= rows.length - 1; i++) {
             toReturn.push(((await this.getCellValues(i)).map((item, index) => {
@@ -923,7 +1006,7 @@ export class CommandResultGrid {
             `Copy all rows tab separated - Copied field values don't match the number of table column`);
 
         const toReturn: string[] = [];
-        const rows = await this.content!.findElements(gridLocator.row.exists);
+        const rows = await this.resultContext!.findElements(gridLocator.row.exists);
 
         for (let i = 0; i <= rows.length - 1; i++) {
             toReturn.push(((await this.getCellValues(i)).map((item, index) => {
@@ -1035,7 +1118,7 @@ export class CommandResultGrid {
      */
     public untilCellsWereChanged = (changed: number): Condition<boolean> => {
         return new Condition(`for changed ${changed} cells to be marked has changed (yellow background)`, async () => {
-            return (await this.content!
+            return (await this.resultContext!
                 .findElements(locator.notebook.codeEditor.editor.result.changedTableCell)).length === changed;
         });
     };
@@ -1046,7 +1129,7 @@ export class CommandResultGrid {
      * @returns A promise resolving with the row
      */
     public getRow = async (gridRow: number): Promise<WebElement> => {
-        const rows = await this.content!.findElements(gridLocator.row.exists);
+        const rows = await this.resultContext!.findElements(gridLocator.row.exists);
 
         return rows[gridRow];
     };
@@ -1061,7 +1144,7 @@ export class CommandResultGrid {
 
         await driver.wait(async () => {
             try {
-                const rows = await this.content!.findElements(gridLocator.row.exists);
+                const rows = await this.resultContext!.findElements(gridLocator.row.exists);
                 const cells = await rows[rowNumber].findElements(gridLocator.row.cell.exists);
 
                 for (const cell of cells) {
@@ -1098,11 +1181,19 @@ export class CommandResultGrid {
     };
 
     /**
-     * Sets the grid content
-     * @returns A promise resolving when grid content is set
+     * Verifies if the status matches a regex
+     * @param regex The regex
+     * @returns A condition resolving to true if status matches the regex
      */
-    public setContent = async (): Promise<void> => {
-        this.content = await this.result.context!.findElement(gridLocator.content);
+    public untilStatusMatches = (regex: RegExp): Condition<boolean> => {
+        return new Condition("", async () => {
+            const codeEditor = new E2ECodeEditor(this.id);
+            const result = await codeEditor.getResult(this.command, this.id);
+            this.resultContext = result;
+            await this.setStatus();
+
+            return this.status!.match(regex) !== null;
+        });
     };
 
     /**
@@ -1112,35 +1203,14 @@ export class CommandResultGrid {
      */
     public untilRowIsHighlighted = (gridRow: number): Condition<boolean> => {
         return new Condition(`for row ${gridRow} to be highlighted`, async () => {
-            const rows = await this.content!.findElements(gridLocator.row.exists);
+            const rows = await this.resultContext!.findElements(gridLocator.row.exists);
 
-            return (await rows[gridRow].getAttribute("class")).includes("tabulator-selected");
-        });
-    };
-
-    /**
-     * Maps the result grid columns to the corresponding tabulator field number
-     * @returns A promise resolving when the map is finished
-     */
-    public setColumnsMap = async (): Promise<void> => {
-        await driver.wait(async () => {
-            try {
-                const columns = await this.content!.findElements(locator.notebook.codeEditor.editor.result.grid.column);
-                this.columnsMap = new Map();
-
-                for (const column of columns) {
-                    const title = await column.findElement(locator.notebook.codeEditor.editor.result.grid.columnTitle);
-                    this.columnsMap.set(await title.getAttribute("innerHTML"),
-                        await column.getAttribute("tabulator-field"));
-                }
-
-                return true;
-            } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
-                    throw e;
-                }
+            if (rows.length > 0) {
+                return (await rows[gridRow].getAttribute("class")).includes("tabulator-selected");
+            } else {
+                return false;
             }
-        }, constants.wait5seconds, `Could not set the columns map for cmd ${this.result.command}`);
+        });
     };
 
     /**
@@ -1157,7 +1227,98 @@ export class CommandResultGrid {
 
             return (await activeElement.getAttribute("class")).includes("tabulator-cell") &&
                 (await activeElement.getAttribute("tabulator-field")).includes("0");
-        }, constants.wait10seconds, `Could not start the focus on result grid for cmd ${this.result.command}`);
+        }, constants.wait10seconds, `Could not start the focus on result grid`);
+    };
+
+    /**
+     * Maximizes the result grid
+     * @returns A promise resolving when the result is maximized
+     */
+    public maximize = async (): Promise<void> => {
+        await this.resultContext!.findElement(toolbarLocator.maximize).click();
+        await driver.wait(this.untilIsMaximized(), constants.wait5seconds);
+    };
+
+    /**
+     * Selects a view
+     * @param name The view name
+     * @returns A promise resolving when the view is selected
+     */
+    public selectView = async (name: string): Promise<void> => {
+        const view = await this.resultContext!.findElement(toolbarLocator.view.exists);
+        await view.click();
+        await driver.wait(until.elementLocated(toolbarLocator.view.isVisible), constants.wait5seconds,
+            "Could not find the result grid view drop down list");
+
+        if (name === constants.gridView) {
+            await driver.findElement(toolbarLocator.view.grid).click();
+        } else if (name === constants.previewView) {
+            await driver.findElement(toolbarLocator.view.preview).click();
+        } else {
+            throw new Error(`Could not find the view with name ${name}`);
+        }
+    };
+
+    /**
+     * Gets the SQL Preview generated for a string
+     * @returns A promise resolving with the sql preview
+     */
+    public selectSqlPreview = async (): Promise<void> => {
+        await this.resultContext!.findElement(toolbarLocator.previewButton).click();
+    };
+
+    /**
+     * Clicks on the Apply Changes button of a result grid
+     * @returns A promise resolving when the button is clicked
+     */
+    public applyChanges = async (): Promise<void> => {
+        await driver.executeScript("arguments[0].click()",
+            await this.resultContext!.findElement(toolbarLocator.applyButton));
+    };
+
+    /**
+     * Clicks on the Rollback Changes button of a result grid
+     * @returns A promise resolving when the button is clicked
+     */
+    public rollbackChanges = async (): Promise<void> => {
+        await this.resultContext!.findElement(toolbarLocator.rollbackButton).click();
+        const dialog = await new ConfirmDialog().untilExists();
+        await dialog.accept();
+    };
+
+    /**
+     * Closes the current result set
+     * @returns A promise resolving when the result set is closed
+     */
+    public closeResultSet = async (): Promise<void> => {
+        await driver.wait(async () => {
+            try {
+                await driver.wait(async () => {
+                    return (await this.resultContext!
+                        .findElements(toolbarLocator.showActionMenu.open)).length > 0;
+                }, constants.wait5seconds, "Could not find Show Actions button");
+
+                const showActions = await this.resultContext!
+                    .findElement(toolbarLocator.showActionMenu.open);
+                await driver.executeScript("arguments[0].click()", showActions);
+
+                await driver.wait(async () => {
+                    return (await driver.findElements(toolbarLocator.showActionMenu.exists))
+                        .length > 0;
+                }, constants.wait5seconds, "Action menu was not displayed");
+
+                const menu = await driver.findElement(toolbarLocator.showActionMenu.exists);
+                await menu.findElement(toolbarLocator.showActionMenu.closeResultSet).click();
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait10seconds, "Show actions button was not interactable");
+
+        this.id--;
     };
 
     /**
@@ -1172,17 +1333,20 @@ export class CommandResultGrid {
 
         await driver.wait(async () => {
             try {
-                await this.result.loadResult();
-                const resultGrid = this.content;
-
                 if (gridRow === -1) {
-                    const addedTableRows = await resultGrid!
+                    const addedTableRows = await this.resultContext!
                         .findElements(gridLocator.newAddedRow);
                     cells = await addedTableRows[addedTableRows.length - 1]
                         .findElements(gridLocator.row.cell.exists);
                 } else {
-                    const rows = await resultGrid!.findElements(gridLocator.row.exists);
-                    cells = await rows[gridRow].findElements(gridLocator.row.cell.exists);
+                    const rows = await this.resultContext!.findElements(gridLocator.row.exists);
+
+                    if (rows.length > 0) {
+
+                        cells = await rows[gridRow].findElements(gridLocator.row.cell.exists);
+                    } else {
+                        return false;
+                    }
                 }
 
                 cellToReturn = cells[parseInt(this.columnsMap!.get(gridColumn)!, 10)];
@@ -1195,11 +1359,7 @@ export class CommandResultGrid {
             }
         }, constants.wait10seconds, `Could not get cell for row: ${gridRow}; column ${gridColumn}`);
 
-        if (!cellToReturn) {
-            throw new Error(`Could not find cell on row '${gridRow}' and column '${gridColumn}'`);
-        } else {
-            return cellToReturn;
-        }
+        return cellToReturn!;
     };
 
     /**
@@ -1208,7 +1368,7 @@ export class CommandResultGrid {
      */
     private untilNewRowExists = (): Condition<boolean> => {
         return new Condition(`for added table row`, async () => {
-            return (await this.content!.findElements(gridLocator.newAddedRow)).length > 0;
+            return (await this.resultContext!.findElements(gridLocator.newAddedRow)).length > 0;
         });
     };
 
@@ -1219,16 +1379,16 @@ export class CommandResultGrid {
     private clickAddNewRowButton = async (): Promise<void> => {
         const resultLocator = locator.notebook.codeEditor.editor.result;
         await driver.wait(async () => {
-            const tableHeader = await this.result.context!.findElement(gridLocator.headers);
+            const tableHeader = await this.resultContext!.findElement(gridLocator.headers);
             await driver.actions().move({ origin: tableHeader }).perform();
 
-            return (await this.result.context!
+            return (await this.resultContext!
                 .findElements(resultLocator.toolbar.addNewRowButton))
                 .length > 0;
         }, constants.wait5seconds, "Add new button was not displayed");
 
         await driver.executeScript("arguments[0].click()",
-            await (this.result.context!).findElement(resultLocator.toolbar.addNewRowButton));
+            await (this.resultContext!).findElement(resultLocator.toolbar.addNewRowButton));
     };
 
     /**
@@ -1290,7 +1450,7 @@ export class CommandResultGrid {
      * @returns A promise resolving when the field is cleared
      */
     private focusCell = async (rowNumber: number, columnName: string): Promise<void> => {
-        const rows = await this.content!.findElements(gridLocator.row.exists);
+        const rows = await this.resultContext!.findElements(gridLocator.row.exists);
         const maxTabs = rows.length * Array.from(this.columnsMap!.keys()).length;
 
         let activeElement: WebElement | undefined;

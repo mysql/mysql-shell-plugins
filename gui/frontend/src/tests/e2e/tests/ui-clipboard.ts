@@ -41,8 +41,8 @@ import { E2ETextEditor } from "../lib/E2ETextEditor.js";
 import { E2ECodeEditorWidget } from "../lib/E2ECodeEditorWidget.js";
 import { E2ETabContainer } from "../lib/E2ETabContainer.js";
 import { TestQueue } from "../lib/TestQueue.js";
-import { ResultGrid } from "../lib/CommandResults/ResultGrid.js";
-import { ResultData } from "../lib/CommandResults/ResultData.js";
+import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
+import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -431,7 +431,7 @@ describe("CLIPBOARD", () => {
             try {
                 const maxRows = 2;
                 const result = await notebook.codeEditor
-                    .execute(`select * from sakila.actor limit ${maxRows};`) as ResultGrid;
+                    .execute(`select * from sakila.actor limit ${maxRows};`) as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
                 const row = 0;
                 const column = "first_name";
@@ -504,7 +504,8 @@ describe("CLIPBOARD", () => {
 
         it("Result grid context menu - Copy field, copy field unquoted, set field to null", async () => {
             try {
-                const result = await notebook.codeEditor.execute("select * from sakila.result_sets;") as ResultGrid;
+                const result = await notebook.codeEditor
+                    .execute("select * from sakila.result_sets;") as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
 
                 const row = 0;
@@ -548,7 +549,8 @@ describe("CLIPBOARD", () => {
 
         it("Result grid context menu - Copy single row", async () => {
             try {
-                const result = await notebook.codeEditor.execute("select * from sakila.actor limit 1;") as ResultGrid;
+                const result = await notebook.codeEditor
+                    .execute("select * from sakila.actor limit 1;") as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
 
                 const row = 0;
@@ -633,7 +635,8 @@ describe("CLIPBOARD", () => {
 
         it("Result grid context menu - Copy field, copy field unquoted, set field to null", async () => {
             try {
-                const result = await notebook.codeEditor.execute("select * from sakila.result_sets;") as ResultGrid;
+                const result = await notebook.codeEditor
+                    .execute("select * from sakila.result_sets;") as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
 
                 const row = 0;
@@ -774,7 +777,7 @@ describe("CLIPBOARD", () => {
         it("Copy to clipboard button", async () => {
             try {
                 await notebook.codeEditor.clean();
-                const result = await notebook.codeEditor.execute("\\about ") as ResultData;
+                const result = await notebook.codeEditor.execute("\\about ") as E2ECommandResultData;
                 await driver.wait(async () => {
                     await result.copyToClipboard();
 

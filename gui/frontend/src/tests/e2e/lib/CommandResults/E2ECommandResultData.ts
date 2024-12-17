@@ -27,7 +27,7 @@ import { WebElement, Condition, until } from "selenium-webdriver";
 import { driver } from "../driver.js";
 import * as constants from "../constants.js";
 import * as locator from "../locators.js";
-import { Result } from "./Result.js";
+import { E2ECommandResult } from "./E2ECommandResult.js";
 import * as interfaces from "../interfaces.js";
 
 const resultLocator = locator.notebook.codeEditor.editor.result;
@@ -35,31 +35,102 @@ const resultLocator = locator.notebook.codeEditor.editor.result;
 /**
  * This class represents a command result and all its related functions
  */
-export class ResultData extends Result {
+export class E2ECommandResultData extends E2ECommandResult {
 
     /** The text result*/
-    public text: string | undefined;
+    #text: string | undefined;
 
     /** The result if the result is a text grid or a pretty json*/
-    public status: string | undefined;
+    #status: string | undefined;
 
     /** The json result*/
-    public json: string | undefined;
+    #json: string | undefined;
 
     /** Result graphs*/
-    public graph: WebElement | undefined;
+    #graph: WebElement | undefined;
 
     /** Result sql preview*/
-    public preview: interfaces.ICommandResultPreview | undefined;
+    #preview: interfaces.ICommandResultPreview | undefined;
 
     /** Result tabs*/
-    public tabs: interfaces.ICommandResultTab[] | undefined;
+    #tabs: interfaces.ICommandResultTab[] | undefined;
 
     /** True if it's an about info for HeatWave, false otherwise*/
-    public isHWAboutInfo: boolean | undefined;
+    #isHWAboutInfo: boolean | undefined;
 
     /** Chat result for HeatWave queries*/
-    public chat: string | undefined;
+    #chat: string | undefined;
+
+    /**
+     * Gets the text
+     * @returns The text
+     */
+    public get text(): string | undefined {
+        return this.#text;
+    }
+
+    /**
+     * Gets the status
+     * @returns The status
+     */
+    public get status(): string | undefined {
+        return this.#status;
+    }
+
+    /**
+     * Gets the json
+     * @returns The json
+     */
+    public get json(): string | undefined {
+        return this.#json;
+    }
+
+    /**
+     * Gets the graph
+     * @returns The graph
+     */
+    public get graph(): WebElement | undefined {
+        return this.#graph;
+    }
+
+    /**
+     * Gets the preview
+     * @returns The preview
+     */
+    public get preview(): interfaces.ICommandResultPreview | undefined {
+        return this.#preview;
+    }
+
+    /**
+     * Gets the tabs
+     * @returns The tabs
+     */
+    public get tabs(): interfaces.ICommandResultTab[] | undefined {
+        return this.#tabs;
+    }
+
+    /**
+     * Gets the isHWAboutInfo
+     * @returns The isHWAboutInfo
+     */
+    public get isHWAboutInfo(): boolean | undefined {
+        return this.#isHWAboutInfo;
+    }
+
+    /**
+     * Gets the chat
+     * @returns The chat
+     */
+    public get chat(): string | undefined {
+        return this.#chat;
+    }
+
+    /**
+     * Sets the isHWAboutInfo
+     */
+    public set isHWAboutInfo(value: boolean) {
+        this.#isHWAboutInfo = value;
+    }
 
     /**
      * Sets the result text
@@ -98,7 +169,7 @@ export class ResultData extends Result {
             }
         }
 
-        this.text = await text();
+        this.#text = await text();
     };
 
     /**
@@ -115,7 +186,7 @@ export class ResultData extends Result {
             return (await status.getAttribute("innerHTML")) !== "";
         }, constants.wait5seconds, `The status is empty for cmd ${this.command}`);
 
-        this.status = await status!.getAttribute("innerHTML");
+        this.#status = await status!.getAttribute("innerHTML");
     };
 
     /**
@@ -129,9 +200,9 @@ export class ResultData extends Result {
 
         if (prettyJson.length > 0) {
             await this.setStatus();
-            this.json = await prettyJson[0].getAttribute("innerHTML");
+            this.#json = await prettyJson[0].getAttribute("innerHTML");
         } else if (rawJson.length > 0) {
-            this.json = await rawJson[0].getAttribute("innerHTML");
+            this.#json = await rawJson[0].getAttribute("innerHTML");
         } else {
             throw new Error(`Could not find any json on result`);
         }
@@ -144,7 +215,7 @@ export class ResultData extends Result {
     public setGraph = async (): Promise<void> => {
         const resultLocator = locator.notebook.codeEditor.editor.result;
 
-        this.graph = await this.resultContext!.findElement(resultLocator.graphHost.column);
+        this.#graph = await this.resultContext!.findElement(resultLocator.graphHost.column);
     };
 
     /**
@@ -159,7 +230,7 @@ export class ResultData extends Result {
             previewText += (await word.getAttribute("innerHTML")).replace("&nbsp;", " ");
         }
 
-        this.preview = {
+        this.#preview = {
             text: previewText,
             link: previewLink,
         };
@@ -191,7 +262,7 @@ export class ResultData extends Result {
         }
 
         if (tabsToGrab.length > 0) {
-            this.tabs = tabsToGrab;
+            this.#tabs = tabsToGrab;
         } else {
             throw new Error(`The number of tabs should be at least 1, for cmd ${this.command}`);
         }
@@ -211,7 +282,7 @@ export class ResultData extends Result {
 
         await driver.wait(chatResultIsProcessed(), constants.wait1minute);
         const text = await this.resultContext!.findElement(resultLocator.chat.resultText);
-        this.chat = await text.getText();
+        this.#chat = await text.getText();
     };
 
     /**
