@@ -301,30 +301,58 @@ END$$
 -- Procedure `mysql_task_management`.`execute_prepared_stmt_async`
 -- -----------------------------------------------------
 DROP PROCEDURE IF EXISTS `execute_prepared_stmt_async`$$
-CREATE DEFINER = CURRENT_USER PROCEDURE `execute_prepared_stmt_async`(
-  IN `name` VARCHAR(45), IN `schema_name` VARCHAR(255), IN `sql_statements` TEXT, OUT task_id INT UNSIGNED)
-  SQL SECURITY INVOKER
+CREATE DEFINER=`dba`@`%` PROCEDURE `execute_prepared_stmt_async`(
+    IN `name` VARCHAR(45), IN `sql_statements` TEXT, IN `schema_name` VARCHAR(255), OUT task_id INT UNSIGNED)
+    SQL SECURITY INVOKER
 BEGIN
-  DECLARE EXIT HANDLER FOR SQLEXCEPTION
-  BEGIN
-    GET DIAGNOSTICS CONDITION 1 @p1 = RETURNED_SQLSTATE, @p2 = MYSQL_ERRNO, @p3 = MESSAGE_TEXT;
-    CALL `mysql_task_management`.`add_task_log`(task_id, 'error', json_object('error', @p3), 100, 'ERROR');
-  END;
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @p1 = RETURNED_SQLSTATE, @p2 = MYSQL_ERRNO, @p3 = MESSAGE_TEXT;
+        IF @p3 = 'No schema set.' THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'No schema set. Please pass in the schema name or set the current schema with USE.',
+                MYSQL_ERRNO = 5400;
+        ELSE
+            CALL `mysql_task_management`.`add_task_log`(task_id, 'error', json_object('error', @p3), 100, 'ERROR');
+        END IF;
+    END;
 
-  CALL `mysql_task_management`.`create_task_id`(task_id);
-  CALL `mysql_task_management`.`create_task_with_id`(task_id, name, 'Async_SQL', NULL);
+    CALL `mysql_task_management`.`create_task_id`(task_id);
+    CALL `mysql_task_management`.`create_task_with_id`(task_id, name, 'Async_SQL', NULL);
 
-  SET @eventSql = CONCAT(
-    'CREATE EVENT ', sys.quote_identifier(schema_name), '.`', UUID(), '` ',
-    'ON SCHEDULE AT NOW() ON COMPLETION NOT PRESERVE ENABLE DO BEGIN ',
-    'SET @task_id =', task_id, ';',
-    sql_statements,
-    ' END');
+    IF schema_name IS NULL THEN
+        SELECT current_schema INTO schema_name
+            FROM `performance_schema`.`events_statements_current`
+            WHERE thread_id=PS_CURRENT_THREAD_ID()
+                AND nesting_event_level=0;
+    END IF;
+    IF schema_name IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No schema set.', MYSQL_ERRNO = 5400;
+    END IF;
 
-  CALL `mysql_task_management`.`add_task_log`(task_id, 'Scheduling event...', json_object('sql', @eventSql, 'role', cast(current_role() as char), 'user', CURRENT_USER()), 0, 'RUNNING');
-  PREPARE dynamic_statement FROM @eventSql;
-  EXECUTE dynamic_statement;
-  DEALLOCATE PREPARE dynamic_statement;
+    IF NOT REGEXP_LIKE(sql_statements, ';[:space:]*$') THEN
+        SET sql_statements = CONCAT(sql_statements, '; ');
+    END IF;
+
+    SET @eventSql = CONCAT(
+        'CREATE EVENT ', sys.quote_identifier(schema_name), '.`', UUID(), '` ',
+        'ON SCHEDULE AT NOW() ON COMPLETION NOT PRESERVE ENABLE DO BEGIN ',
+        'DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN ',
+        '  GET DIAGNOSTICS CONDITION 1 @p1 = RETURNED_SQLSTATE, @p2 = MYSQL_ERRNO, @p3 = MESSAGE_TEXT; ',
+        '  CALL `mysql_task_management`.`add_task_log`(', task_id, ', "error", json_object("error", @p3), 100, "ERROR"); ',
+        'END; ',
+        'SET @task_id =', task_id, '; SET @task_result = NULL; ',
+        'CALL `mysql_task_management`.`add_task_log`(@task_id, "Event execution started...", NULL, 0, "RUNNING"); ',
+        sql_statements,
+        'CALL `mysql_task_management`.`add_task_log`(@task_id, "Execution finished.", @task_result, 100, "COMPLETED"); ',
+        'END;');
+
+    CALL `mysql_task_management`.`add_task_log`(
+        task_id, 'Scheduling event...',
+        json_object('sql', @eventSql, 'role', cast(current_role() as char), 'user', CURRENT_USER()), 0, 'RUNNING');
+    PREPARE dynamic_statement FROM @eventSql;
+    EXECUTE dynamic_statement;
+    DEALLOCATE PREPARE dynamic_statement;
 END$$
 
 -- -----------------------------------------------------
