@@ -244,6 +244,7 @@ serviceRequestPath:
 restServiceOptions: (
         enabledDisabled
         | publishedUnpublished
+        | restProtocol
         | restAuthentication
         | jsonOptions
         | comments
@@ -332,13 +333,13 @@ The `serviceDevelopersIdentifier` will be set automatically when a REST service 
 ```antlr
 serviceDevelopersIdentifier:
     serviceDeveloperIdentifier (
-        COMMA_SYMBOL serviceDeveloperIdentifier
-    )* AT_SIGN_SYMBOL?
+        COMMA serviceDeveloperIdentifier
+    )* AT_SIGN?
 ;
 
 hostAndPortIdentifier: (
         (dottedIdentifier | AT_TEXT_SUFFIX) (
-            COLON_SYMBOL INT_NUMBER
+            COLON INT_NUMBER
         )?
     )
 ;
@@ -381,20 +382,81 @@ A REST service in `UNPUBLISHED` state will only be served by MySQL Routers that 
 
 ```antlr
 publishedUnpublished:
-    PUBLISHED_SYMBOL
-    | UNPUBLISHED_SYMBOL
+    PUBLISHED
+    | UNPUBLISHED
 ;
 ```
 
 publishedUnpublished ::=
 ![publishedUnpublished](../../images/sql/publishedUnpublished.svg "publishedUnpublished")
 
+### Setting the REST Service Protocol
+
+In general it is advised to run the MySQL REST Service using HTTPS only and changing the REST service protocol default (HTTPS) is not required.
+
+There might still be special use cases when configuring the MySQL Router using HTTP is acceptable, e.g. when using a reverse proxy on the same machine that is handling the HTTPS part and not using MySQL internal authentication which requires passwords to be transferred in plain text. But even in that specific example the REST service protocol must be set to HTTPS as the reverse proxy offers the REST service via HTTPS.
+
+Should there still be a configuration setup that requires the REST service to be accessible by clients via HTTP, the REST service protocol can be switched to HTTP.
+
+This setting is used in two places.
+
+- When specifying a `hostAndPortIdentifier` to limit accepted connections to requests to this host and port, the protocol setting is used to build fully qualified URLs in the link section of JSON results.
+- When performing an OAuth2 authentication request, the protocol is used to build the redirect URL parameter in the first authentication request to the OAuth2 server. The protocol used in the redirect URL parameter must match the external protocol the REST service is reachable on. In case of using a reverse proxy, the `X-Forwarded-Proto` request header will overwrite this setting when made available by the proxy.
+
+```antlr
+restProtocol:
+    PROTOCOL (
+        HTTP
+        | HTTPS
+    )
+;
+```
+
 ### REST Service Authentication Settings
 
 Each REST service requires allows for specific authentication settings.
 
+```antlr
+restAuthentication:
+    AUTHENTICATION (
+        authPath
+        | authRedirection
+        | authValidation
+        | authPageContent
+    )*
+;
+
+authPath:
+    PATH quotedTextOrDefault
+;
+
+authRedirection:
+    REDIRECTION quotedTextOrDefault
+;
+
+authValidation:
+    VALIDATION quotedTextOrDefault
+;
+
+authPageContent:
+    PAGE CONTENT quotedTextOrDefault
+;
+```
+
 restAuthentication ::=
 ![restAuthentication](../../images/sql/restAuthentication.svg "restAuthentication")
+
+authPath ::=
+![authPath](../../images/sql/authPath.svg "authPath")
+
+authRedirection ::=
+![authRedirection](../../images/sql/authRedirection.svg "authRedirection")
+
+authValidation ::=
+![authValidation](../../images/sql/authValidation.svg "authValidation")
+
+authPageContent ::=
+![authPageContent](../../images/sql/authPageContent.svg "authPageContent")
 
 - AUTHENTICATION PATH
   - The html path used for authentication handling for this REST service. Specified as a sub-path to the REST service path. If not explicitly set, the default is path is `/authentication` is used.
@@ -492,7 +554,7 @@ The metadata can hold any JSON data. It can later be consumed by a front end imp
 
 ```antlr
 metadata:
-    METADATA_SYMBOL jsonValue
+    METADATA jsonValue
 ;
 ```
 
@@ -550,9 +612,9 @@ Setting a schema to private disables public access via HTTPS but keeps the schem
 
 ```antlr
 enabledDisabledPrivate:
-    ENABLED_SYMBOL
-    | DISABLED_SYMBOL
-    | PRIVATE_SYMBOL
+    ENABLED
+    | DISABLED
+    | PRIVATE
 ;
 ```
 
@@ -627,7 +689,7 @@ The metadata can hold any JSON data. It can later be consumed by a front end imp
 
 ```antlr
 metadata:
-    METADATA_SYMBOL jsonValue
+    METADATA jsonValue
 ;
 ```
 
@@ -782,9 +844,9 @@ Setting a REST data mapping view to private disables public access via HTTPS but
 
 ```antlr
 enabledDisabledPrivate:
-    ENABLED_SYMBOL
-    | DISABLED_SYMBOL
-    | PRIVATE_SYMBOL
+    ENABLED
+    | DISABLED
+    | PRIVATE
 ;
 ```
 
@@ -918,7 +980,7 @@ The metadata can hold any JSON data. It can later be consumed by a front end imp
 
 ```antlr
 metadata:
-    METADATA_SYMBOL jsonValue
+    METADATA jsonValue
 ;
 ```
 
@@ -1111,8 +1173,8 @@ restAuthAppOptions: (
 ;
 
 allowNewUsersToRegister:
-    (DO_SYMBOL NOT_SYMBOL)? ALLOW_SYMBOL NEW_SYMBOL USERS_SYMBOL (
-        TO_SYMBOL REGISTER_SYMBOL
+    (DO NOT)? ALLOW NEW USERS (
+        TO REGISTER
     )?
 ;
 
@@ -1121,15 +1183,15 @@ defaultRole:
 ;
 
 appId:
-    (APP_SYMBOL | CLIENT_SYMBOL) ID_SYMBOL quotedText
+    (APP | CLIENT) ID quotedText
 ;
 
 appSecret:
-    (APP_SYMBOL | CLIENT_SYMBOL) SECRET_SYMBOL quotedText
+    (APP | CLIENT) SECRET quotedText
 ;
 
 url:
-    URL_SYMBOL quotedText
+    URL quotedText
 ;
 ```
 

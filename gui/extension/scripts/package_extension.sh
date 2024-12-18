@@ -214,11 +214,11 @@ for d in packaging/mysql-shell/*; do
         cp -R $d/share shell/.
 
         echo "Cleanup OCI SDK folder"
-        OCIPATH=shell/lib/mysqlsh/lib/python3.10/site-packages/oci
+        OCIPATH=shell/lib/mysqlsh/lib/python3.12/site-packages/oci
         if [ "$PLATFORM" == "linux-arm64" ] || [ "$PLATFORM" == "linux-x64" ]; then
-            OCIPATH=shell/lib/mysqlsh/lib/python3.9/site-packages/oci
+            OCIPATH=shell/lib/mysqlsh/lib/python3.12/site-packages/oci
         elif [ "$PLATFORM" == "win32-x64" ]; then
-            OCIPATH=shell/lib/Python3.10/Lib/site-packages/oci
+            OCIPATH=shell/lib/Python3.12/Lib/site-packages/oci
         fi
         strip_oci_package $OCIPATH
 

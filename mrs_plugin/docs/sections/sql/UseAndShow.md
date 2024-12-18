@@ -201,8 +201,8 @@ The `SHOW REST FUNCTIONS` statement lists all available REST functions of the gi
 
 ```antlr
 showRestFunctionsStatement:
-    SHOW_SYMBOL REST_SYMBOL FUNCTIONS_SYMBOL (
-        (IN_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
+    SHOW REST FUNCTIONS (
+        (IN | FROM) serviceSchemaSelector
     )?
 ;
 
@@ -387,8 +387,8 @@ The `SHOW CREATE REST FUNCTION` statement shows the corresponding DDL statement 
 
 ```antlr
 showCreateRestFunctionStatement:
-    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL FUNCTION_SYMBOL functionRequestPath (
-        (ON_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
+    SHOW CREATE REST FUNCTION functionRequestPath (
+        (ON | FROM) serviceSchemaSelector
     )?
 ;
 
@@ -444,9 +444,9 @@ Shows a list of roles, optionally filtered by service or auth app and users that
 
 ```antlr
 showRestRolesStatement:
-    SHOW_SYMBOL REST_SYMBOL ROLES_SYMBOL (
-        (ON_SYMBOL | FROM_SYMBOL) (ANY_SYMBOL SERVICE_SYMBOL | SERVICE_SYMBOL? serviceRequestPath)
-    )? (FOR_SYMBOL userName? AT_SIGN_SYMBOL authAppName)?
+    SHOW REST ROLES (
+        (ON | FROM) (ANY SERVICE | SERVICE? serviceRequestPath)
+    )? (FOR userName? AT_SIGN authAppName)?
 ;
 ```
 
@@ -462,7 +462,7 @@ Show the list of REST privileges that were granted to the given role.
 
 ```antlr
 showRestGrantsStatement:
-    SHOW_SYMBOL REST_SYMBOL GRANTS_SYMBOL FOR_SYMBOL roleName
+    SHOW REST GRANTS FOR roleName
 ;
 ```
 

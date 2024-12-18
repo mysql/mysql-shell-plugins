@@ -40,6 +40,7 @@
                             if (!el.classList.contains('active')) {
                                 el.classList.add('active');
                             }
+                            history.pushState({}, "", "#" + id);
                         } else {
                             if (window.visibleItems.includes(el)) {
                                 if (window.visibleItems.length === 1) {
@@ -149,7 +150,7 @@
                 <nav class="section-nav">
                     <div class="bookToc">
                         <br>
-                        <h3>MRS Developer's Guide 1.18.1</h3>
+                        <h3>MRS Developer's Guide 1.19.0</h3>
                                                 <ul>
                                                 <li><a
                                                 href="#introduction-to-the-mysql-rest-service"
@@ -329,11 +330,11 @@
                                                 MRS Examples</a>
                                                 <ul>
                                                 <li><a
-                                                href="#mrs-notes-examples"
-                                                id="toc-mrs-notes-examples"><span
+                                                href="#mrs-notes-example"
+                                                id="toc-mrs-notes-example"><span
                                                 class="toc-section-number">9.1</span>
                                                 MRS Notes
-                                                Examples</a></li>
+                                                Example</a></li>
                                                 <li><a
                                                 href="#mrs-scripts-example"
                                                 id="toc-mrs-scripts-example"><span
@@ -2660,13 +2661,13 @@ router_id=16</code></pre>
                 class="header-section-number">8.2.3</span> OAuth2
                 Authentication</h3>
                 <p>Several OAuth2 services from 3rd-party vendors are
-                supported by MRS; for example, sign in with FaceBook and
-                Google. In order for a MRS service to authenticate
-                against those vendors, one needs to be registered as a
-                developer with those vendors and a vendor specific
-                authentication apps need to be created. Then the OAuth2
-                specific settings - like APP ID and APP SECRET - need to
-                be configured on the MRS side.</p>
+                supported by MRS; for example, sign in with FaceBook,
+                Google or the OCI OAuth2 service. In order for a MRS
+                service to authenticate against those vendors, one needs
+                to be registered as a developer with those vendors and a
+                vendor specific authentication apps need to be created.
+                Then the OAuth2 specific settings - like APP ID and APP
+                SECRET - need to be configured on the MRS side.</p>
                 <h4 data-number="8.2.3.1"
                 id="configuring-oci-oauth2"><span
                 class="header-section-number">8.2.3.1</span> Configuring
@@ -2716,7 +2717,11 @@ router_id=16</code></pre>
                 <code>Authorization code</code> checkboxes.</li>
                 <li>Enter the correct <code>Redirect URL</code> using
                 the format
-                <code>https://&lt;router-ip&gt;/&lt;rest-service&gt;/authentication/login</code>.</li>
+                <code>https://&lt;router-address&gt;/&lt;rest-service&gt;/authentication/login?authApp=&lt;authAppName&gt;&amp;sessionType=&lt;bearer | cookie&gt;</code>.
+                <ul>
+                <li>Example:
+                <code>https://rest.mydomain.com/myService/authentication/login?authApp=OCI&amp;sessionType=cookie</code></li>
+                </ul></li>
                 <li>Ensure the <code>Client type</code> is set to
                 <code>Confidential</code>.</li>
                 <li>In the <code>Allowed operations</code> sections
@@ -2741,6 +2746,27 @@ router_id=16</code></pre>
                 href="sql.html#create-rest-auth-app">CREATE REST AUTH
                 APP</a> section how to create a REST authentication app
                 using the <code>"OCI OAuth2"</code> vendor next.</p>
+                <h4 data-number="8.2.3.2"
+                id="configuring-the-redirection-url-of-a-rest-service"><span
+                class="header-section-number">8.2.3.2</span> Configuring
+                the Redirection URL of a REST service</h4>
+                <p>After configuring the OAuth2 vendor specific
+                authentication app and creating the corresponding REST
+                authentication app, the redirection URL of the REST
+                service needs to be configured.</p>
+                <p>The redirection URL tells the MySQL Router which URL
+                it should send the user to after the authentication
+                process against the OAuth2 server has been completed for
+                a specific REST service.</p>
+                <p>The redirection URL can be set using the <a
+                href="sql.html#alter-rest-service"><code>ALTER REST SERVICE</code></a>
+                command. Please see <a
+                href="sql.html#rest-service-authentication-settings">REST
+                service authentication settings</a> for more
+                details.</p>
+                <p>Alternatively the redirection URL can be set by
+                opening the REST service dialog and switching to the
+                <code>Authentication</code> tab sheet.</p>
                 <h2 data-number="8.3"
                 id="authorization-management"><span
                 class="header-section-number">8.3</span> Authorization
@@ -2892,9 +2918,9 @@ router_id=16</code></pre>
                 You should have received a copy of the GNU General Public License
                 along with this program; if not, write to the Free Software Foundation, Inc.,
                 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
-                <h2 data-number="9.1" id="mrs-notes-examples"><span
+                <h2 data-number="9.1" id="mrs-notes-example"><span
                 class="header-section-number">9.1</span> MRS Notes
-                Examples</h2>
+                Example</h2>
                 <p>The MRS Notes example implements a simple note taking
                 application as a <a
                 href="https://en.wikipedia.org/wiki/Progressive_web_app">Progressive
@@ -2983,28 +3009,6 @@ router_id=16</code></pre>
                 <li>Open a web browser and access the full path
                 specified in the previous step to open the app,
                 e.g. <code>https://localhost:8444/myService/app/index.html</code></li>
-                </ol>
-                <h4 data-number="9.1.2.2"
-                id="deploying-the-javascript-example"><span
-                class="header-section-number">9.1.2.2</span> Deploying
-                the JavaScript Example</h4>
-                <p>The MrsNotes project also ships with a minimal
-                JavaScript demo app that allows each user to store his
-                own notes.</p>
-                <ol type="1">
-                <li>If you have not done so in the previous section,
-                save the following project to disk and open it with VS
-                Code <code>VSCodeProject:examples/mrs_notes</code></li>
-                <li>Right click on the <code>js_app</code> folder in the
-                Folders view and select
-                <code>Upload Folder to MySQL REST Service</code> from
-                the popup menu.</li>
-                <li>Set the path the app should be using,
-                e.g. <code>/app_js</code> and click <code>Upload</code>
-                to upload the files.</li>
-                <li>Open a web browser and access the path specified in
-                the previous step to open the app,
-                e.g. <code>https://localhost:8443/myService/app_js/index.html</code></li>
                 </ol>
                 <h3 data-number="9.1.3"
                 id="mrs-setup-and-configuration-for-the-mrs-notes-examples"><span

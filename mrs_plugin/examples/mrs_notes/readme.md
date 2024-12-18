@@ -25,7 +25,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
 
-## MRS Notes Examples
+## MRS Notes Example
 
 The MRS Notes example implements a simple note taking application as a [Progressive Web Apps (PWA)](https://en.wikipedia.org/wiki/Progressive_web_app) that allows for sharing notes between users.
 
@@ -63,15 +63,6 @@ The MrsNotes project implements a TypeScript demo app that allows to create, man
 4. Right click on the `dist` folder in the Folders view and select `Upload Folder to MySQL REST Service` from the popup menu.
 5. In the REST Content Set dialog set the `Request Path` the app should be using, e.g. `/app` and click `OK` to upload the files to the MRS service.
 6. Open a web browser and access the full path specified in the previous step to open the app, e.g. `https://localhost:8444/myService/app/index.html`
-
-#### Deploying the JavaScript Example
-
-The MrsNotes project also ships with a minimal JavaScript demo app that allows each user to store his own notes.
-
-1. If you have not done so in the previous section, save the following project to disk and open it with VS Code `VSCodeProject:examples/mrs_notes`
-2. Right click on the `js_app` folder in the Folders view and select `Upload Folder to MySQL REST Service` from the popup menu.
-3. Set the path the app should be using, e.g. `/app_js` and click `Upload` to upload the files.
-4. Open a web browser and access the path specified in the previous step to open the app, e.g. `https://localhost:8443/myService/app_js/index.html`
 
 ### MRS Setup and Configuration for the MRS Notes Examples
 

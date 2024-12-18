@@ -55,6 +55,7 @@
                             if (!el.classList.contains('active')) {
                                 el.classList.add('active');
                             }
+                            history.pushState({}, "", "#" + id);
                         } else {
                             if (window.visibleItems.includes(el)) {
                                 if (window.visibleItems.length === 1) {

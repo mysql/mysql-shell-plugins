@@ -1,5 +1,26 @@
 # MySQL Shell for VS Code Change Log
 
+## Changes in 1.19.0+9.1.0
+
+### Additions
+
+- Switched to improved UI Frontend sidebar handling
+- MRS: Added advanced tab sheet to REST service dialog
+- MRS: Improved layout of REST Auth App dialog
+- MRS: Make URL, APP ID, APP SECRET mandatory when creating OAuth2 REST Auth Apps
+- MRS: Added support for MySQL internal authentication in the MRS Client SDK
+- MRS: Allow manual selection of PKs for REST objects
+- Disable MRS Tree auto-refresh
+- Changed MySQL Router logging to INFO level
+
+### Fixes
+
+- Fix icon rendering in various areas of the UI
+- Several fixes regarding MRS authentication
+- Added missing version string to MRS docs
+- Fixed CREATE REST USER and ALTER REST USER commands
+- Fix REST object field charset and collation
+
 ## Changes in 1.18.1+9.1.0
 
 ### Additions

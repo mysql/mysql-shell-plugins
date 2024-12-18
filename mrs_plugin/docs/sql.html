@@ -40,6 +40,7 @@
                             if (!el.classList.contains('active')) {
                                 el.classList.add('active');
                             }
+                            history.pushState({}, "", "#" + id);
                         } else {
                             if (window.visibleItems.includes(el)) {
                                 if (window.visibleItems.length === 1) {
@@ -149,7 +150,7 @@
                 <nav class="section-nav">
                     <div class="bookToc">
                         <br>
-                        <h3>MRS SQL Reference 1.18.1</h3>
+                        <h3>MRS SQL Reference 1.19.0</h3>
                                                 <ul>
                                                 <li><a
                                                 href="#introduction"
@@ -925,6 +926,7 @@ serviceRequestPath:
 restServiceOptions: (
         enabledDisabled
         | publishedUnpublished
+        | restProtocol
         | restAuthentication
         | jsonOptions
         | comments
@@ -1027,13 +1029,13 @@ restServiceOptions: (
                 command.</p>
                 <pre class="antlr"><code>serviceDevelopersIdentifier:
     serviceDeveloperIdentifier (
-        COMMA_SYMBOL serviceDeveloperIdentifier
-    )* AT_SIGN_SYMBOL?
+        COMMA serviceDeveloperIdentifier
+    )* AT_SIGN?
 ;
 
 hostAndPortIdentifier: (
         (dottedIdentifier | AT_TEXT_SUFFIX) (
-            COLON_SYMBOL INT_NUMBER
+            COLON INT_NUMBER
         )?
     )
 ;
@@ -1092,23 +1094,101 @@ requestPathIdentifier:
                 href="#alter-rest-service"><code>ALTER REST SERVICE</code></a>
                 statement.</p>
                 <pre class="antlr"><code>publishedUnpublished:
-    PUBLISHED_SYMBOL
-    | UNPUBLISHED_SYMBOL
+    PUBLISHED
+    | UNPUBLISHED
 ;</code></pre>
                 <p>publishedUnpublished ::= <img
                 src="sections/sql/../../images/sql/publishedUnpublished.svg"
                 title="publishedUnpublished"
                 alt="publishedUnpublished" /></p>
                 <h3 data-number="2.2.4"
+                id="setting-the-rest-service-protocol"><span
+                class="header-section-number">2.2.4</span> Setting the
+                REST Service Protocol</h3>
+                <p>In general it is advised to run the MySQL REST
+                Service using HTTPS only and changing the REST service
+                protocol default (HTTPS) is not required.</p>
+                <p>There might still be special use cases when
+                configuring the MySQL Router using HTTP is acceptable,
+                e.g. when using a reverse proxy on the same machine that
+                is handling the HTTPS part and not using MySQL internal
+                authentication which requires passwords to be
+                transferred in plain text. But even in that specific
+                example the REST service protocol must be set to HTTPS
+                as the reverse proxy offers the REST service via
+                HTTPS.</p>
+                <p>Should there still be a configuration setup that
+                requires the REST service to be accessible by clients
+                via HTTP, the REST service protocol can be switched to
+                HTTP.</p>
+                <p>This setting is used in two places.</p>
+                <ul>
+                <li>When specifying a <code>hostAndPortIdentifier</code>
+                to limit accepted connections to requests to this host
+                and port, the protocol setting is used to build fully
+                qualified URLs in the link section of JSON results.</li>
+                <li>When performing an OAuth2 authentication request,
+                the protocol is used to build the redirect URL parameter
+                in the first authentication request to the OAuth2
+                server. The protocol used in the redirect URL parameter
+                must match the external protocol the REST service is
+                reachable on. In case of using a reverse proxy, the
+                <code>X-Forwarded-Proto</code> request header will
+                overwrite this setting when made available by the
+                proxy.</li>
+                </ul>
+                <pre class="antlr"><code>restProtocol:
+    PROTOCOL (
+        HTTP
+        | HTTPS
+    )
+;</code></pre>
+                <h3 data-number="2.2.5"
                 id="rest-service-authentication-settings"><span
-                class="header-section-number">2.2.4</span> REST Service
+                class="header-section-number">2.2.5</span> REST Service
                 Authentication Settings</h3>
                 <p>Each REST service requires allows for specific
                 authentication settings.</p>
+                <pre class="antlr"><code>restAuthentication:
+    AUTHENTICATION (
+        authPath
+        | authRedirection
+        | authValidation
+        | authPageContent
+    )*
+;
+
+authPath:
+    PATH quotedTextOrDefault
+;
+
+authRedirection:
+    REDIRECTION quotedTextOrDefault
+;
+
+authValidation:
+    VALIDATION quotedTextOrDefault
+;
+
+authPageContent:
+    PAGE CONTENT quotedTextOrDefault
+;</code></pre>
                 <p>restAuthentication ::= <img
                 src="sections/sql/../../images/sql/restAuthentication.svg"
                 title="restAuthentication"
                 alt="restAuthentication" /></p>
+                <p>authPath ::= <img
+                src="sections/sql/../../images/sql/authPath.svg"
+                title="authPath" alt="authPath" /></p>
+                <p>authRedirection ::= <img
+                src="sections/sql/../../images/sql/authRedirection.svg"
+                title="authRedirection" alt="authRedirection" /></p>
+                <p>authValidation ::= <img
+                src="sections/sql/../../images/sql/authValidation.svg"
+                title="authValidation" alt="authValidation" /></p>
+                <p>authPageContent ::= <img
+                src="sections/sql/../../images/sql/authPageContent.svg"
+                title="authPageContent" alt="authPageContent" /></p>
                 <ul>
                 <li>AUTHENTICATION PATH
                 <ul>
@@ -1151,9 +1231,9 @@ requestPathIdentifier:
                 page.</li>
                 </ul></li>
                 </ul>
-                <h3 data-number="2.2.5"
+                <h3 data-number="2.2.6"
                 id="rest-service-json-options"><span
-                class="header-section-number">2.2.5</span> REST Service
+                class="header-section-number">2.2.6</span> REST Service
                 Json Options</h3>
                 <p>The jsonOptions allow to set a number of specific
                 options for the service.</p>
@@ -1250,32 +1330,32 @@ requestPathIdentifier:
                 keys to avoid them be overwritten by future MRS
                 options.</p>
                 <p><strong><em>Examples</em></strong></p>
-                <div class="sourceCode" id="cb19"><pre
-                class="sourceCode json"><code class="sourceCode json"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Credentials&quot;</span><span class="fu">:</span> <span class="st">&quot;true&quot;</span><span class="fu">,</span></span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Headers&quot;</span><span class="fu">:</span> <span class="st">&quot;Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token&quot;</span><span class="fu">,</span></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Methods&quot;</span><span class="fu">:</span> <span class="st">&quot;GET, POST, PUT, DELETE, OPTIONS&quot;</span></span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;http&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;allowedOrigin&quot;</span><span class="fu">:</span> <span class="st">&quot;auto&quot;</span></span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;logging&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;exceptions&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
-<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
-<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">},</span></span>
-<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;response&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
-<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
-<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
-<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;returnInternalErrorDetails&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
-<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;includeLinksInResults&quot;</span><span class="fu">:</span> <span class="kw">false</span></span>
-<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-                <h3 data-number="2.2.6" id="rest-service-comments"><span
-                class="header-section-number">2.2.6</span> REST Service
+                <div class="sourceCode" id="cb21"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Credentials&quot;</span><span class="fu">:</span> <span class="st">&quot;true&quot;</span><span class="fu">,</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Headers&quot;</span><span class="fu">:</span> <span class="st">&quot;Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token&quot;</span><span class="fu">,</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;Access-Control-Allow-Methods&quot;</span><span class="fu">:</span> <span class="st">&quot;GET, POST, PUT, DELETE, OPTIONS&quot;</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;http&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;allowedOrigin&quot;</span><span class="fu">:</span> <span class="st">&quot;auto&quot;</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;logging&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;exceptions&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;request&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>        <span class="fu">},</span></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;response&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;body&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;headers&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;returnInternalErrorDetails&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;includeLinksInResults&quot;</span><span class="fu">:</span> <span class="kw">false</span></span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <h3 data-number="2.2.7" id="rest-service-comments"><span
+                class="header-section-number">2.2.7</span> REST Service
                 Comments</h3>
                 <p>The comments can hold a description of the REST
                 service. The maximal length is of the comments string is
@@ -1286,15 +1366,15 @@ requestPathIdentifier:
                 <p>comments ::= <img
                 src="sections/sql/../../images/sql/comments.svg"
                 title="comments" alt="comments" /></p>
-                <h3 data-number="2.2.7" id="rest-service-metadata"><span
-                class="header-section-number">2.2.7</span> REST Service
+                <h3 data-number="2.2.8" id="rest-service-metadata"><span
+                class="header-section-number">2.2.8</span> REST Service
                 Metadata</h3>
                 <p>The metadata can hold any JSON data. It can later be
                 consumed by a front end implementation to dynamically
                 render certain attributes, like a specific icon or a
                 color.</p>
                 <pre class="antlr"><code>metadata:
-    METADATA_SYMBOL jsonValue
+    METADATA jsonValue
 ;</code></pre>
                 <h2 data-number="2.3" id="create-rest-schema"><span
                 class="header-section-number">2.3</span> CREATE REST
@@ -1347,10 +1427,10 @@ restSchemaOptions: (
                 <p>The following example creates a REST schema
                 <code>/sakila</code> on the REST service
                 <code>/myService</code>.</p>
-                <div class="sourceCode" id="cb23"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">FROM</span> `sakila`</span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;The sakila schema&quot;</span>;</span></code></pre></div>
+                <div class="sourceCode" id="cb25"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">FROM</span> `sakila`</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;The sakila schema&quot;</span>;</span></code></pre></div>
                 <h3 data-number="2.3.1"
                 id="enabling-or-disabling-a-rest-schema-at-creation-time"><span
                 class="header-section-number">2.3.1</span> Enabling or
@@ -1362,9 +1442,9 @@ restSchemaOptions: (
                 via HTTPS but keeps the schema available for private
                 access from MRS scripts.</p>
                 <pre class="antlr"><code>enabledDisabledPrivate:
-    ENABLED_SYMBOL
-    | DISABLED_SYMBOL
-    | PRIVATE_SYMBOL
+    ENABLED
+    | DISABLED
+    | PRIVATE
 ;</code></pre>
                 <p>enabledDisabledPrivate ::= <img
                 src="sections/sql/../../images/sql/enabledDisabledPrivate.svg"
@@ -1453,7 +1533,7 @@ restSchemaOptions: (
                 render certain attributes, like a specific icon or a
                 color.</p>
                 <pre class="antlr"><code>metadata:
-    METADATA_SYMBOL jsonValue
+    METADATA jsonValue
 ;</code></pre>
                 <h2 data-number="2.4" id="create-rest-view"><span
                 class="header-section-number">2.4</span> CREATE REST
@@ -1514,53 +1594,53 @@ restObjectOptions: (
                 <p>The following example adds a REST data mapping view
                 for the <code>sakila.city</code> database schema
                 table.</p>
-                <div class="sourceCode" id="cb31"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="kw">AS</span> `sakila`.`city` {</span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>    city: city,</span>
-<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>    countryId: country_id,</span>
-<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>    lastUpdate: last_update</span>
-<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>AUTHENTICATION REQUIRED;</span></code></pre></div>
-                <p>Querying the REST data mapping view using the
-                TypeScript SDK returns the following JSON document.</p>
-                <div class="sourceCode" id="cb32"><pre
-                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>{</span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;city&quot;</span><span class="op">:</span> <span class="st">&quot;A Corua (La Corua)&quot;</span><span class="op">,</span></span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>      {</span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>         <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>         <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>      }</span>
-<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>   ]<span class="op">,</span></span>
-<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;cityId&quot;</span><span class="op">:</span> 1<span class="op">,</span></span>
-<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;countryId&quot;</span><span class="op">:</span> 87<span class="op">,</span></span>
-<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;lastUpdate&quot;</span><span class="op">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="op">,</span></span>
-<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {</span>
-<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;etag&quot;</span><span class="op">:</span> <span class="st">&quot;EE93452B41984F3F5BBB0395CCB2CED00F5C748FEEA4A36CCD749CC3F85B7CEA&quot;</span></span>
-<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>   }</span>
-<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-                <p>The next example adds the referenced table
-                <code>sakila.country</code> to the REST data mapping
-                view.</p>
                 <div class="sourceCode" id="cb33"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
 <span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
 <span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="kw">AS</span> `sakila`.`city` {</span>
 <span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
 <span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>    city: city,</span>
 <span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>    countryId: country_id,</span>
-<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>    lastUpdate: last_update,</span>
-<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>    country: sakila.country {</span>
-<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>        countryId: country_id @SORTABLE,</span>
-<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>        country: country,</span>
-<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>        lastUpdate: last_update</span>
-<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>AUTHENTICATION REQUIRED;</span></code></pre></div>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>    lastUpdate: last_update</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>AUTHENTICATION REQUIRED;</span></code></pre></div>
+                <p>Querying the REST data mapping view using the
+                TypeScript SDK returns the following JSON document.</p>
+                <div class="sourceCode" id="cb34"><pre
+                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;city&quot;</span><span class="op">:</span> <span class="st">&quot;A Corua (La Corua)&quot;</span><span class="op">,</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>      {</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>         <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>         <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>   ]<span class="op">,</span></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;cityId&quot;</span><span class="op">:</span> 1<span class="op">,</span></span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;countryId&quot;</span><span class="op">:</span> 87<span class="op">,</span></span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;lastUpdate&quot;</span><span class="op">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="op">,</span></span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {</span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;etag&quot;</span><span class="op">:</span> <span class="st">&quot;EE93452B41984F3F5BBB0395CCB2CED00F5C748FEEA4A36CCD749CC3F85B7CEA&quot;</span></span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>   }</span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <p>The next example adds the referenced table
+                <code>sakila.country</code> to the REST data mapping
+                view.</p>
+                <div class="sourceCode" id="cb35"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="kw">AS</span> `sakila`.`city` {</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>    city: city,</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>    countryId: country_id,</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>    lastUpdate: last_update,</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>    country: sakila.country {</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>        countryId: country_id @SORTABLE,</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>        country: country,</span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>        lastUpdate: last_update</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>AUTHENTICATION REQUIRED;</span></code></pre></div>
                 <p>This is what the REST data mapping view looks like in
                 the interactive MySQL REST Object Dialog in the MySQL
                 Shell for VS Code extension.</p>
@@ -1570,28 +1650,28 @@ restObjectOptions: (
                 alt="Adding a Referenced Table" />ı</p>
                 <p>Running a TypeScript SDK query against this new REST
                 endpoint returns the following JSON Document.</p>
-                <div class="sourceCode" id="cb34"><pre
-                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>{</span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;city&quot;</span><span class="op">:</span> <span class="st">&quot;A Corua (La Corua)&quot;</span><span class="op">,</span></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>        {</span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
-<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>    ]<span class="op">,</span></span>
-<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;cityId&quot;</span><span class="op">:</span> 1<span class="op">,</span></span>
-<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;country&quot;</span><span class="op">:</span> {</span>
-<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;country&quot;</span><span class="op">:</span> <span class="st">&quot;Spain&quot;</span><span class="op">,</span></span>
-<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;countryId&quot;</span><span class="op">:</span> 87<span class="op">,</span></span>
-<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;lastUpdate&quot;</span><span class="op">:</span> <span class="st">&quot;2006-02-15 04:44:00.000000&quot;</span></span>
-<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span></span>
-<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;countryId&quot;</span><span class="op">:</span> 87<span class="op">,</span></span>
-<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;lastUpdate&quot;</span><span class="op">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="op">,</span></span>
-<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {</span>
-<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;etag&quot;</span><span class="op">:</span> <span class="st">&quot;FFA2187AD4B98DF48EC40B3E807E0561A71D02C2F4F5A3B953AA6CB6E41CAD16&quot;</span></span>
-<span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <div class="sourceCode" id="cb36"><pre
+                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;city&quot;</span><span class="op">:</span> <span class="st">&quot;A Corua (La Corua)&quot;</span><span class="op">,</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>    ]<span class="op">,</span></span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;cityId&quot;</span><span class="op">:</span> 1<span class="op">,</span></span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;country&quot;</span><span class="op">:</span> {</span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;country&quot;</span><span class="op">:</span> <span class="st">&quot;Spain&quot;</span><span class="op">,</span></span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;countryId&quot;</span><span class="op">:</span> 87<span class="op">,</span></span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;lastUpdate&quot;</span><span class="op">:</span> <span class="st">&quot;2006-02-15 04:44:00.000000&quot;</span></span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span></span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;countryId&quot;</span><span class="op">:</span> 87<span class="op">,</span></span>
+<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;lastUpdate&quot;</span><span class="op">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="op">,</span></span>
+<span id="cb36-18"><a href="#cb36-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {</span>
+<span id="cb36-19"><a href="#cb36-19" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;etag&quot;</span><span class="op">:</span> <span class="st">&quot;FFA2187AD4B98DF48EC40B3E807E0561A71D02C2F4F5A3B953AA6CB6E41CAD16&quot;</span></span>
+<span id="cb36-20"><a href="#cb36-20" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb36-21"><a href="#cb36-21" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
                 <h3 data-number="2.4.1" id="preconditions"><span
                 class="header-section-number">2.4.1</span>
                 Preconditions</h3>
@@ -1631,9 +1711,9 @@ restObjectOptions: (
                 public access via HTTPS but keeps the schema available
                 for private access from MRS scripts.</p>
                 <pre class="antlr"><code>enabledDisabledPrivate:
-    ENABLED_SYMBOL
-    | DISABLED_SYMBOL
-    | PRIVATE_SYMBOL
+    ENABLED
+    | DISABLED
+    | PRIVATE
 ;</code></pre>
                 <p>enabledDisabledPrivate ::= <img
                 src="sections/sql/../../images/sql/enabledDisabledPrivate.svg"
@@ -1785,7 +1865,7 @@ graphQlValue:
                 render certain attributes, like a specific icon or a
                 color.</p>
                 <pre class="antlr"><code>metadata:
-    METADATA_SYMBOL jsonValue
+    METADATA jsonValue
 ;</code></pre>
                 <h3 data-number="2.4.10"
                 id="json-options-for-views"><span
@@ -2007,8 +2087,8 @@ restAuthAppOptions: (
 ;
 
 allowNewUsersToRegister:
-    (DO_SYMBOL NOT_SYMBOL)? ALLOW_SYMBOL NEW_SYMBOL USERS_SYMBOL (
-        TO_SYMBOL REGISTER_SYMBOL
+    (DO NOT)? ALLOW NEW USERS (
+        TO REGISTER
     )?
 ;
 
@@ -2017,15 +2097,15 @@ defaultRole:
 ;
 
 appId:
-    (APP_SYMBOL | CLIENT_SYMBOL) ID_SYMBOL quotedText
+    (APP | CLIENT) ID quotedText
 ;
 
 appSecret:
-    (APP_SYMBOL | CLIENT_SYMBOL) SECRET_SYMBOL quotedText
+    (APP | CLIENT) SECRET quotedText
 ;
 
 url:
-    URL_SYMBOL quotedText
+    URL quotedText
 ;</code></pre>
                 <p>createRestAuthAppStatement ::= <img
                 src="sections/sql/../../images/sql/createRestAuthAppStatement.svg"
@@ -2054,16 +2134,16 @@ url:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example creates an REST authentication
                 app for the REST service <code>/myService</code>.</p>
-                <div class="sourceCode" id="cb49"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST AUTHENTICATION APP <span class="ot">&quot;MRS&quot;</span> <span class="kw">ON</span> SERVICE <span class="op">/</span>myService VENDOR MRS;</span></code></pre></div>
+                <div class="sourceCode" id="cb51"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST AUTHENTICATION APP <span class="ot">&quot;MRS&quot;</span> <span class="kw">ON</span> SERVICE <span class="op">/</span>myService VENDOR MRS;</span></code></pre></div>
                 <p>The next example creates an REST authentication app
                 for the OCI OAuth2 service.</p>
-                <div class="sourceCode" id="cb50"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST AUTHENTICATION APP <span class="ot">&quot;OCI&quot;</span> <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
-<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>    VENDOR <span class="ot">&quot;OCI OAuth2&quot;</span></span>
-<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>    URL <span class="ot">&quot;https://idcs-f84866196ff54e3b93a15651865191da.identity.oraclecloud.com:443&quot;</span>;</span>
-<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>    CLIENT <span class="kw">ID</span> <span class="ot">&quot;f2abc2c0f19a4c40a1abc48edcdfe60b&quot;</span></span>
-<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>    CLIENT SECRET <span class="ot">&quot;53310d82-5f6f-4030-b62b-2e4c5fefd52a&quot;</span></span></code></pre></div>
+                <div class="sourceCode" id="cb52"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST AUTHENTICATION APP <span class="ot">&quot;OCI&quot;</span> <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>    VENDOR <span class="ot">&quot;OCI OAuth2&quot;</span></span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>    URL <span class="ot">&quot;https://idcs-f84866196ff54e3b93a15651865191da.identity.oraclecloud.com:443&quot;</span>;</span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>    CLIENT <span class="kw">ID</span> <span class="ot">&quot;f2abc2c0f19a4c40a1abc48edcdfe60b&quot;</span></span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>    CLIENT SECRET <span class="ot">&quot;53310d82-5f6f-4030-b62b-2e4c5fefd52a&quot;</span></span></code></pre></div>
                 <h3 data-number="2.8.1"
                 id="rest-authentication-app-vendors"><span
                 class="header-section-number">2.8.1</span> REST
@@ -2266,9 +2346,9 @@ restServiceOptions: (
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example alters a REST service
                 <code>/myService</code> by setting a new comment.</p>
-                <div class="sourceCode" id="cb54"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST SERVICE <span class="op">/</span>myService</span>
-<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;A simple, improved REST service&quot;</span>;</span></code></pre></div>
+                <div class="sourceCode" id="cb56"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST SERVICE <span class="op">/</span>myService</span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;A simple, improved REST service&quot;</span>;</span></code></pre></div>
                 <h2 data-number="3.2" id="alter-rest-schema"><span
                 class="header-section-number">3.2</span> ALTER REST
                 SCHEMA</h2>
@@ -2307,9 +2387,9 @@ restSchemaOptions: (
                 <p>The following example alters a REST schema
                 <code>/myService</code> to use a new request path
                 <code>/myPublicService</code>.</p>
-                <div class="sourceCode" id="cb56"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
-<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">NEW</span> REQUEST PATH <span class="op">/</span>myPublicService;</span></code></pre></div>
+                <div class="sourceCode" id="cb58"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">NEW</span> REQUEST PATH <span class="op">/</span>myPublicService;</span></code></pre></div>
                 <h2 data-number="3.3" id="alter-rest-view"><span
                 class="header-section-number">3.3</span> ALTER REST
                 VIEW</h2>
@@ -2364,13 +2444,13 @@ restObjectOptions: (
                 <p>The following example alters a REST data mapping view
                 for the <code>sakila.city</code> database schema table
                 and sets a new list of fields.</p>
-                <div class="sourceCode" id="cb58"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
-<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
-<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` <span class="kw">AS</span> MyServiceSakilaCity {</span>
-<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
-<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>    city: city</span>
-<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>};</span></code></pre></div>
+                <div class="sourceCode" id="cb60"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> `sakila`.`city` <span class="kw">AS</span> MyServiceSakilaCity {</span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>    cityId: city_id @SORTABLE,</span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>    city: city</span>
+<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a>};</span></code></pre></div>
                 <h2 data-number="3.4" id="alter-rest-procedure"><span
                 class="header-section-number">3.4</span> ALTER REST
                 PROCEDURE</h2>
@@ -2541,8 +2621,8 @@ restObjectOptions: (
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example drops a REST service with the
                 request path <code>/myService</code>.</p>
-                <div class="sourceCode" id="cb64"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <div class="sourceCode" id="cb66"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
                 <h2 data-number="4.2" id="drop-rest-schema"><span
                 class="header-section-number">4.2</span> DROP REST
                 SCHEMA</h2>
@@ -2561,8 +2641,8 @@ restObjectOptions: (
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example drops a REST schema using the
                 request path <code>/myService</code>.</p>
-                <div class="sourceCode" id="cb66"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <div class="sourceCode" id="cb68"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
                 <h2 data-number="4.3" id="drop-rest-view"><span
                 class="header-section-number">4.3</span> DROP REST
                 VIEW</h2>
@@ -2581,9 +2661,9 @@ restObjectOptions: (
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example drops a REST data mapping view
                 using the request path <code>/city</code>.</p>
-                <div class="sourceCode" id="cb68"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
-<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <div class="sourceCode" id="cb70"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DROP</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city</span>
+<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
                 <h2 data-number="4.4" id="drop-rest-procedure"><span
                 class="header-section-number">4.4</span> DROP REST
                 PROCEDURE</h2>
@@ -2822,17 +2902,17 @@ serviceAndSchemaRequestPaths:
                 <p>The following example makes the REST service with the
                 request path <code>/myService</code> the new default
                 REST service.</p>
-                <div class="sourceCode" id="cb80"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <div class="sourceCode" id="cb82"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
                 <p>After the default REST service has been set, the
                 following statement can be used to set the default REST
                 schema.</p>
-                <div class="sourceCode" id="cb81"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <div class="sourceCode" id="cb83"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
                 <p>The next example shows how to set the default REST
                 service and REST schema in a single statement.</p>
-                <div class="sourceCode" id="cb82"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <div class="sourceCode" id="cb84"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a><span class="kw">USE</span> REST SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
                 <h2 data-number="6.2" id="show-rest-status"><span
                 class="header-section-number">6.2</span> SHOW REST
                 STATUS</h2>
@@ -2850,8 +2930,8 @@ serviceAndSchemaRequestPaths:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example drops a REST schema using the
                 request path <code>/myService</code>.</p>
-                <div class="sourceCode" id="cb84"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a>SHOW REST STATUS;</span></code></pre></div>
+                <div class="sourceCode" id="cb86"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a>SHOW REST STATUS;</span></code></pre></div>
                 <h2 data-number="6.3" id="show-rest-services"><span
                 class="header-section-number">6.3</span> SHOW REST
                 SERVICES</h2>
@@ -2867,8 +2947,8 @@ serviceAndSchemaRequestPaths:
                 alt="showRestServicesStatement" /></p>
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example lists all REST services.</p>
-                <div class="sourceCode" id="cb86"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a>SHOW REST SERVICES;</span></code></pre></div>
+                <div class="sourceCode" id="cb88"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a>SHOW REST SERVICES;</span></code></pre></div>
                 <h2 data-number="6.4" id="show-rest-schemas"><span
                 class="header-section-number">6.4</span> SHOW REST
                 SCHEMAS</h2>
@@ -2889,8 +2969,8 @@ serviceAndSchemaRequestPaths:
                 <p>The following example lists all REST schemas of the
                 REST service using the request path
                 <code>/myService</code>.</p>
-                <div class="sourceCode" id="cb88"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a>SHOW REST SERVICES <span class="kw">FROM</span> <span class="op">/</span>myService;</span></code></pre></div>
+                <div class="sourceCode" id="cb90"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb90-1"><a href="#cb90-1" aria-hidden="true" tabindex="-1"></a>SHOW REST SERVICES <span class="kw">FROM</span> <span class="op">/</span>myService;</span></code></pre></div>
                 <h2 data-number="6.5" id="show-rest-views"><span
                 class="header-section-number">6.5</span> SHOW REST
                 VIEWS</h2>
@@ -2918,8 +2998,8 @@ serviceSchemaSelector:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example lists all REST data mapping
                 views of the given REST schema.</p>
-                <div class="sourceCode" id="cb90"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb90-1"><a href="#cb90-1" aria-hidden="true" tabindex="-1"></a>SHOW REST VIEWS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <div class="sourceCode" id="cb92"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb92-1"><a href="#cb92-1" aria-hidden="true" tabindex="-1"></a>SHOW REST VIEWS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
                 <h2 data-number="6.6" id="show-rest-procedures"><span
                 class="header-section-number">6.6</span> SHOW REST
                 PROCEDURES</h2>
@@ -2952,8 +3032,8 @@ serviceSchemaSelector:
                 REST schema.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>showRestFunctionsStatement:
-    SHOW_SYMBOL REST_SYMBOL FUNCTIONS_SYMBOL (
-        (IN_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
+    SHOW REST FUNCTIONS (
+        (IN | FROM) serviceSchemaSelector
     )?
 ;
 
@@ -2971,8 +3051,8 @@ serviceSchemaSelector:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example lists all REST procedures of
                 the given REST schema.</p>
-                <div class="sourceCode" id="cb93"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a>SHOW REST PROCEDURES <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <div class="sourceCode" id="cb95"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a>SHOW REST PROCEDURES <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
                 <h2 data-number="6.8" id="show-rest-content-sets"><span
                 class="header-section-number">6.8</span> SHOW REST
                 CONTENT SETS</h2>
@@ -2992,8 +3072,8 @@ serviceSchemaSelector:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example lists all REST content sets of
                 the given REST service.</p>
-                <div class="sourceCode" id="cb95"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a>SHOW REST CONTENT SETS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <div class="sourceCode" id="cb97"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb97-1"><a href="#cb97-1" aria-hidden="true" tabindex="-1"></a>SHOW REST CONTENT SETS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
                 <h2 data-number="6.9" id="show-rest-auth-apps"><span
                 class="header-section-number">6.9</span> SHOW REST AUTH
                 APPS</h2>
@@ -3013,8 +3093,8 @@ serviceSchemaSelector:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example lists all REST auth apps of the
                 given REST service.</p>
-                <div class="sourceCode" id="cb97"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb97-1"><a href="#cb97-1" aria-hidden="true" tabindex="-1"></a>SHOW REST AUTH APPS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <div class="sourceCode" id="cb99"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb99-1"><a href="#cb99-1" aria-hidden="true" tabindex="-1"></a>SHOW REST AUTH APPS <span class="kw">FROM</span> SERVICE <span class="op">/</span>myService;</span></code></pre></div>
                 <h2 data-number="6.10"
                 id="show-create-rest-service"><span
                 class="header-section-number">6.10</span> SHOW CREATE
@@ -3034,8 +3114,8 @@ serviceSchemaSelector:
                 <p>The following example shows the DDL statement for the
                 REST service with request path
                 <code>/myService</code>.</p>
-                <div class="sourceCode" id="cb99"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb99-1"><a href="#cb99-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
+                <div class="sourceCode" id="cb101"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb101-1"><a href="#cb101-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST SERVICE <span class="op">/</span>myService;</span></code></pre></div>
                 <h2 data-number="6.11"
                 id="show-create-rest-schema"><span
                 class="header-section-number">6.11</span> SHOW CREATE
@@ -3056,8 +3136,8 @@ serviceSchemaSelector:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example shows the DDL statement for the
                 given REST schema.</p>
-                <div class="sourceCode" id="cb101"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb101-1"><a href="#cb101-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">FROM</span> <span class="op">/</span>myService;</span></code></pre></div>
+                <div class="sourceCode" id="cb103"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb103-1"><a href="#cb103-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">FROM</span> <span class="op">/</span>myService;</span></code></pre></div>
                 <h2 data-number="6.12" id="show-create-rest-view"><span
                 class="header-section-number">6.12</span> SHOW CREATE
                 REST VIEW</h2>
@@ -3085,8 +3165,8 @@ serviceSchemaSelector:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example shows the DDL statement for the
                 given REST data mapping view.</p>
-                <div class="sourceCode" id="cb103"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb103-1"><a href="#cb103-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <div class="sourceCode" id="cb105"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb105-1"><a href="#cb105-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
                 <h2 data-number="6.13"
                 id="show-create-rest-procedure"><span
                 class="header-section-number">6.13</span> SHOW CREATE
@@ -3121,8 +3201,8 @@ serviceSchemaSelector:
                 function.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>showCreateRestFunctionStatement:
-    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL FUNCTION_SYMBOL functionRequestPath (
-        (ON_SYMBOL | FROM_SYMBOL) serviceSchemaSelector
+    SHOW CREATE REST FUNCTION functionRequestPath (
+        (ON | FROM) serviceSchemaSelector
     )?
 ;
 
@@ -3140,8 +3220,8 @@ serviceSchemaSelector:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example shows the DDL statement for the
                 given REST procedure.</p>
-                <div class="sourceCode" id="cb106"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb106-1"><a href="#cb106-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">PROCEDURE</span> <span class="op">/</span>inventory_in_stock <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
+                <div class="sourceCode" id="cb108"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb108-1"><a href="#cb108-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">PROCEDURE</span> <span class="op">/</span>inventory_in_stock <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila;</span></code></pre></div>
                 <h2 data-number="6.15" id="show-create-auth-app"><span
                 class="header-section-number">6.15</span> SHOW CREATE
                 AUTH APP</h2>
@@ -3161,8 +3241,8 @@ serviceSchemaSelector:
                 <p><strong><em>Examples</em></strong></p>
                 <p>The following example shows the DDL statement for the
                 given REST auth app.</p>
-                <div class="sourceCode" id="cb108"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb108-1"><a href="#cb108-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST AUTH APP <span class="ot">&quot;MRS&quot;</span> <span class="kw">FROM</span> SERVICE localhost<span class="op">/</span>myTestService;</span></code></pre></div>
+                <div class="sourceCode" id="cb110"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb110-1"><a href="#cb110-1" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST AUTH APP <span class="ot">&quot;MRS&quot;</span> <span class="kw">FROM</span> SERVICE localhost<span class="op">/</span>myTestService;</span></code></pre></div>
                 <h2 data-number="6.16" id="show-rest-roles"><span
                 class="header-section-number">6.16</span> SHOW REST
                 ROLES</h2>
@@ -3170,9 +3250,9 @@ serviceSchemaSelector:
                 or auth app and users that were granted the role.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>showRestRolesStatement:
-    SHOW_SYMBOL REST_SYMBOL ROLES_SYMBOL (
-        (ON_SYMBOL | FROM_SYMBOL) (ANY_SYMBOL SERVICE_SYMBOL | SERVICE_SYMBOL? serviceRequestPath)
-    )? (FOR_SYMBOL userName? AT_SIGN_SYMBOL authAppName)?
+    SHOW REST ROLES (
+        (ON | FROM) (ANY SERVICE | SERVICE? serviceRequestPath)
+    )? (FOR userName? AT_SIGN authAppName)?
 ;</code></pre>
                 <p>showRestRolesStatement ::= <img
                 src="sections/sql/../../images/sql/showRestRolesStatement.svg"
@@ -3185,7 +3265,7 @@ serviceSchemaSelector:
                 the given role.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>showRestGrantsStatement:
-    SHOW_SYMBOL REST_SYMBOL GRANTS_SYMBOL FOR_SYMBOL roleName
+    SHOW REST GRANTS FOR roleName
 ;</code></pre>
                 <p>showRestGrantsStatement ::= <img
                 src="sections/sql/../../images/sql/showRestGrantsStatement.svg"
