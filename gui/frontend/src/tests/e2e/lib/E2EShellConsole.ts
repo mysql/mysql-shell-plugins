@@ -30,8 +30,8 @@ import { E2ECodeEditor } from "./E2ECodeEditor.js";
 import { E2EToolbar } from "./E2EToolbar.js";
 import { PasswordDialog } from "./Dialogs/PasswordDialog.js";
 import { Os } from "./os.js";
-import { ResultData } from "./CommandResults/E2ECommandResultData.js";
-import { ResultGrid } from "./CommandResults/E2ECommandResultGrid.js";
+import { E2ECommandResultData } from "./CommandResults/E2ECommandResultData.js";
+import { E2ECommandResultGrid } from "./CommandResults/E2ECommandResultGrid.js";
 
 /**
  * This class represents the Shell console
@@ -75,7 +75,7 @@ export class E2EShellConsole {
      * @param schema The schema
      * @returns A promise resolving with the command result
      */
-    public changeSchema = async (schema: string): Promise<ResultData> => {
+    public changeSchema = async (schema: string): Promise<E2ECommandResultData> => {
         const tabSchema = await driver.findElement(locator.shellConsole.connectionTab.schema);
         await tabSchema.click();
         const menu = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schemaMenu),
@@ -95,7 +95,7 @@ export class E2EShellConsole {
 
         const commandResult = await this.codeEditor.getLastExistingCommandResult(true);
 
-        return commandResult as ResultData;
+        return commandResult as E2ECommandResultData;
     };
 
     /**
@@ -122,7 +122,7 @@ export class E2EShellConsole {
      */
     public languageSwitch = async (
         cmd: string,
-    ): Promise<ResultData> => {
+    ): Promise<E2ECommandResultData> => {
 
         if (!this.codeEditor.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.execute() or others'");
@@ -134,7 +134,7 @@ export class E2EShellConsole {
         const commandResult = await this.codeEditor.buildResult(cmd, this.codeEditor.lastResultId! + 1);
         this.codeEditor.lastResultId!++;
 
-        return commandResult as ResultData;
+        return commandResult as E2ECommandResultData;
 
     };
 
@@ -146,7 +146,7 @@ export class E2EShellConsole {
      * @returns A promise resolving when the command is executed
      */
     public executeExpectingCredentials = async (cmd: string, dbConnection: interfaces.IDBConnection,
-    ): Promise<ResultGrid | ResultData | undefined> => {
+    ): Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
 
         if (this.codeEditor.isSpecialCmd(cmd)) {
             throw new Error("Please use the function 'this.languageSwitch()'");

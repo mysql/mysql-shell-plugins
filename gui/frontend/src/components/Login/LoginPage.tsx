@@ -127,7 +127,7 @@ export class LoginPage extends ComponentBase<{}, ILoginPageState> {
                 )}
 
                 <Label id="loginDialogSubtext">
-                    If you do not have a ${title} account yet, please<br />
+                    If you do not have a {title} account yet, please<br />
                     ask your administrator to have one created for you.
                 </Label>
                 <div className="copyright" />

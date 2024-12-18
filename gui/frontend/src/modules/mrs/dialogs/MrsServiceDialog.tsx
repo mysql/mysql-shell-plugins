@@ -274,10 +274,26 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
             },
         };
 
+        let protocol = "HTTPS";
+        if (request.values?.protocols !== undefined) {
+            const protocols = request.values?.protocols as string[];
+            if (protocols.length >= 1) {
+                protocol = protocols[protocols.length - 1];
+            }
+        }
+
         const advancedSection: IDialogSection = {
             caption: "Advanced",
             groupName: "group1",
             values: {
+                protocols: {
+                    type: "choice",
+                    caption: "Supported Protocols",
+                    horizontalSpan: 3,
+                    choices: ["HTTP", "HTTPS"],
+                    value: protocol,
+                    description: "The protocol the REST service is accessed on. HTTPS is preferred.",
+                },
                 hostName: {
                     type: "text",
                     caption: "Host Name Filter",
@@ -286,14 +302,6 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
                     description: "If specified, the REST service will only be made available " +
                         "to requests for this specific host.",
                     placeholder: "<Host Name Filter:Port>",
-                },
-                protocols: {
-                    type: "set",
-                    caption: "Supported Protocols",
-                    horizontalSpan: 3,
-                    tagSet: ["HTTP", "HTTPS"],
-                    value: request.values?.protocols as string[] ?? [],
-                    description: "The protocols the REST service is accessed on. HTTPS is preferred.",
                 },
             },
         };
@@ -334,7 +342,7 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
                 mrsAdminUser: settingsSection.values.mrsAdminUser?.value as string | undefined,
                 mrsAdminUserPassword: settingsSection.values.mrsAdminUserPassword?.value as string | undefined,
                 hostName: advancedSection.values.hostName.value as string,
-                protocols: advancedSection.values.protocols.value as string[],
+                protocols: [advancedSection.values.protocols.value as string],
             };
 
             return values;

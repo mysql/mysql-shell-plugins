@@ -339,7 +339,7 @@ exports[`Application tests Application readiness 1`] = `
               id="loginDialogSubtext"
               style={{}}
             >
-              If you do not have a $
+              If you do not have a 
               MySQL Shell Workbench
                account yet, please
               <br />

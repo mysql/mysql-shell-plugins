@@ -40,6 +40,7 @@
                             if (!el.classList.contains('active')) {
                                 el.classList.add('active');
                             }
+                            history.pushState({}, "", "#" + id);
                         } else {
                             if (window.visibleItems.includes(el)) {
                                 if (window.visibleItems.length === 1) {
@@ -149,7 +150,7 @@
                 <nav class="section-nav">
                     <div class="bookToc">
                         <br>
-                        <h3>MRS SDK Reference 1.18.1</h3>
+                        <h3>MRS SDK Reference 1.19.0</h3>
                                                 <ul>
                                                 <li><a
                                                 href="#introduction-to-the-mrs-sdk"

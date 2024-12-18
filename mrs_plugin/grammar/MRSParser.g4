@@ -189,7 +189,7 @@ createRestServiceStatement:
 restServiceOptions: (
         enabledDisabled
         | publishedUnpublished
-        // | restProtocol -- not enabled yet
+        | restProtocol
         | restAuthentication
         // | userManagementSchema -- not enabled yet
         | jsonOptions
@@ -207,8 +207,6 @@ restProtocol:
     PROTOCOL_SYMBOL (
         HTTP_SYMBOL
         | HTTPS_SYMBOL
-        | HTTP_SYMBOL COMMA_SYMBOL HTTPS_SYMBOL
-        | HTTPS_SYMBOL COMMA_SYMBOL HTTP_SYMBOL
     )
 ;
 

@@ -119,7 +119,7 @@ This authentication method is suitable for applications that are not exposed pub
 
 ### OAuth2 Authentication
 
-Several OAuth2 services from 3rd-party vendors are supported by MRS; for example, sign in with FaceBook and Google. In order for a MRS service to authenticate against those vendors, one needs to be registered as a developer with those vendors and a vendor specific authentication apps need to be created. Then the OAuth2 specific settings - like APP ID and APP SECRET - need to be configured on the MRS side.
+Several OAuth2 services from 3rd-party vendors are supported by MRS; for example, sign in with FaceBook, Google or the OCI OAuth2 service. In order for a MRS service to authenticate against those vendors, one needs to be registered as a developer with those vendors and a vendor specific authentication apps need to be created. Then the OAuth2 specific settings - like APP ID and APP SECRET - need to be configured on the MRS side.
 
 #### Configuring OCI OAuth2
 
@@ -141,7 +141,8 @@ Click on the `Integrated applications` link on the left hand side, then click th
    * Set the `Primary audience` to `MySQL-REST-Service`.
 4. Choose `Configure this application as a client now`
    * In the `Authorization` section, check the `Client credentials` and `Authorization code` checkboxes.
-   * Enter the correct `Redirect URL` using the format `https://<router-ip>/<rest-service>/authentication/login`.
+   * Enter the correct `Redirect URL` using the format `https://<router-address>/<rest-service>/authentication/login?authApp=<authAppName>&sessionType=<bearer | cookie>`.
+     * Example: `https://rest.mydomain.com/myService/authentication/login?authApp=OCI&sessionType=cookie`
    * Ensure the `Client type` is set to `Confidential`.
    * In the `Allowed operations` sections check the `Introspect` checkbox.
    * Turn the `Bypass consent` on.
@@ -152,6 +153,16 @@ Click on the `Integrated applications` link on the left hand side, then click th
 You will be taken to your new `Integrated Application`. In the `OAuth configuration / General Information` section the `Client ID` and the `Client secret` are show. These need to be provided when creating the REST authentication app.
 
 Please see the [CREATE REST AUTH APP](sql.html#create-rest-auth-app) section how to create a REST authentication app using the `"OCI OAuth2"` vendor next.
+
+#### Configuring the Redirection URL of a REST service
+
+After configuring the OAuth2 vendor specific authentication app and creating the corresponding REST authentication app, the redirection URL of the REST service needs to be configured.
+
+The redirection URL tells the MySQL Router which URL it should send the user to after the authentication process against the OAuth2 server has been completed for a specific REST service.
+
+The redirection URL can be set using the [`ALTER REST SERVICE`](sql.html#alter-rest-service) command. Please see [REST service authentication settings](sql.html#rest-service-authentication-settings) for more details.
+
+Alternatively the redirection URL can be set by opening the REST service dialog and switching to the `Authentication` tab sheet.
 
 ## Authorization Management
 

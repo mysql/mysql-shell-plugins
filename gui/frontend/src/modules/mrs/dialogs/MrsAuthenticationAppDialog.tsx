@@ -239,6 +239,7 @@ export class MrsAuthenticationAppDialog extends AwaitableValueEditDialog {
                     value: appData.accessToken,
                     description: "The OAuth2 App Secret/Client Secret for this app as defined by the vendor",
                     horizontalSpan: 4,
+                    obfuscated: true,
                 },
                 urlDirectAuth: {
                     type: "text",
