@@ -118,12 +118,12 @@ DROP TABLE IF EXISTS `all_data_types_ints`;
   DROP TABLE IF EXISTS `all_data_types_blobs`;
   CREATE TABLE `all_data_types_blobs` (
     `id` int NOT NULL AUTO_INCREMENT,
+    `test_binary` binary(50) DEFAULT NULL,
+    `test_varbinary` varbinary(50) DEFAULT NULL,
     `test_tinyblob` tinyblob,
     `test_blob` blob,
     `test_mediumblob` mediumblob,
     `test_longblob` longblob,
-    `test_binary` binary(50) DEFAULT NULL,
-    `test_varbinary` varbinary(50) DEFAULT NULL,
     PRIMARY KEY (`id`)
   ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -194,12 +194,12 @@ INSERT INTO all_data_types_chars VALUES(
 
 INSERT INTO all_data_types_blobs VALUES(
 1, -- id
+0xa1b8de72d02badac81b9f7deac, -- binary 
+0xa1b8de72d02badac81b9f7deac, -- var binary 
 0xa1b8de72d02badac81b9f7deac, -- tiny blob
 0xa1b8de72d02badac81b9f7deac, -- blob
 0xa1b8de72d02badac81b9f7deac, -- mediumblob
-0xa1b8de72d02badac81b9f7deac, -- long blob
-0x6173646667, -- binary 
-0x6173646667 -- var binary 
+0xa1b8de72d02badac81b9f7deac -- long blob
 );
 
 INSERT INTO all_data_types_geometries VALUES(

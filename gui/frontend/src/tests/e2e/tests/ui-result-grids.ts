@@ -81,8 +81,6 @@ describe("RESULT GRIDS", () => {
 
         try {
             await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
-
-            await driver.wait(Misc.untilSchemaExists(constants.restServiceMetadataSchema), constants.wait25seconds);
             const settings = new E2ESettings();
             await settings.open();
             await settings.selectCurrentTheme(constants.darkModern);
@@ -96,7 +94,19 @@ describe("RESULT GRIDS", () => {
             await dbTreeSection.tree.expandDatabaseConnection(globalConn);
             await (await dbTreeSection.tree.getActionButton(globalConn.caption!,
                 constants.openNewDatabaseConnectionOnNewTab))!.click();
-            notebook = await new E2ENotebook().untilIsOpened(globalConn);
+            notebook = await new E2ENotebook().untilIsOpened(globalConn)
+                .catch(async (e) => {
+                    if (String(e).includes("MRS SDK")) {
+                        const notification = await new E2EToastNotification().create();
+                        await notification?.close();
+                        const notebook = new E2ENotebook();
+                        await notebook.codeEditor.build();
+
+                        return notebook;
+                    } else {
+                        throw e;
+                    }
+                });
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_RESULT-GRIDS");
             throw e;
@@ -216,12 +226,12 @@ describe("RESULT GRIDS", () => {
                 const binaryField = await result.getCellValue(row, "test_binary");
                 const varBinaryField = await result.getCellValue(row, "test_varbinary");
 
+                expect(binaryField).toMatch(/0x/);
+                expect(varBinaryField).toMatch(/0x/);
                 expect(await result.getCellIconType(row, "test_tinyblob")).toBe(constants.blob);
                 expect(await result.getCellIconType(row, "test_blob")).toBe(constants.blob);
                 expect(await result.getCellIconType(row, "test_mediumblob")).toBe(constants.blob);
                 expect(await result.getCellIconType(row, "test_longblob")).toBe(constants.blob);
-                expect(binaryField).toMatch(/0x/);
-                expect(varBinaryField).toMatch(/0x/);
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -726,7 +736,7 @@ describe("RESULT GRIDS", () => {
                 const rowNumber = 0;
                 const tableColumns: string[] = [];
 
-                await notebook.codeEditor.execute("\\about");
+                await notebook.codeEditor.clean();
                 const result = await notebook.codeEditor
                     .execute("SELECT * from sakila.all_data_types_ints limit 1;") as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
@@ -754,7 +764,7 @@ describe("RESULT GRIDS", () => {
         it("Result grid cell tooltips - date columns", async () => {
             try {
                 const rowNumber = 0;
-                await notebook.codeEditor.execute("\\about");
+                await notebook.codeEditor.clean();
                 const result = await notebook.codeEditor
                     .execute("SELECT * from sakila.all_data_types_dates where id = 1;") as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
@@ -784,7 +794,7 @@ describe("RESULT GRIDS", () => {
         it("Result grid cell tooltips - char columns", async () => {
             try {
                 const rowNumber = 0;
-                await notebook.codeEditor.execute("\\about");
+                await notebook.codeEditor.clean();
                 const result = await notebook.codeEditor
                     .execute("SELECT * from sakila.all_data_types_chars where id = 1;") as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
@@ -810,7 +820,7 @@ describe("RESULT GRIDS", () => {
         it("Result grid cell tooltips - binary and varbinary columns", async () => {
             try {
                 const rowNumber = 0;
-                await notebook.codeEditor.execute("\\about");
+                await notebook.codeEditor.clean();
                 const result = await notebook.codeEditor
                     .execute("SELECT * from sakila.all_data_types_blobs limit 1;") as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
@@ -820,7 +830,7 @@ describe("RESULT GRIDS", () => {
                     tableColumns.push(key);
                 }
 
-                for (let i = 5; i <= tableColumns.length - 1; i++) {
+                for (let i = 1; i <= 2; i++) {
                     if (i === tableColumns.length - 1) {
                         await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
                     } else {
@@ -841,7 +851,7 @@ describe("RESULT GRIDS", () => {
         it("Result grid cell tooltips - bit column", async () => {
             try {
                 const rowNumber = 0;
-                await notebook.codeEditor.execute("\\about");
+                await notebook.codeEditor.clean();
                 const result = await notebook.codeEditor
                     .execute("SELECT * from sakila.all_data_types_geometries;") as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
