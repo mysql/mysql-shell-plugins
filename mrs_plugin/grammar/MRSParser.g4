@@ -451,14 +451,19 @@ appOptions:
 ;
 
 accountLock:
-    ACCOUNT_SYMBOL ( LOCK_SYMBOL | UNLOCK_SYMBOL )
+    ACCOUNT_SYMBOL (LOCK_SYMBOL | UNLOCK_SYMBOL)
 ;
 
 // - CREATE REST ROLE -------------------------------------------------------
 createRestRoleStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL ROLE_SYMBOL roleName (
         EXTENDS_SYMBOL parentRoleName
-    )? (ON_SYMBOL (ANY_SYMBOL SERVICE_SYMBOL | SERVICE_SYMBOL? serviceRequestPath))? restRoleOptions?
+    )? (
+        ON_SYMBOL (
+            ANY_SYMBOL SERVICE_SYMBOL
+            | SERVICE_SYMBOL? serviceRequestPath
+        )
+    )? restRoleOptions?
 ;
 
 restRoleOptions: (jsonOptions | comments)+
@@ -561,7 +566,7 @@ newAuthAppName:
 alterRestUserStatement:
     ALTER_SYMBOL REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL authAppName (
         ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
-     )? ( IDENTIFIED_SYMBOL BY_SYMBOL userPassword )? userOptions?
+    )? (IDENTIFIED_SYMBOL BY_SYMBOL userPassword)? userOptions?
 ;
 
 // DROP statements ==========================================================
@@ -727,7 +732,10 @@ showRestAuthAppsStatement:
 
 showRestRolesStatement:
     SHOW_SYMBOL REST_SYMBOL ROLES_SYMBOL (
-        (ON_SYMBOL | FROM_SYMBOL) (ANY_SYMBOL SERVICE_SYMBOL | SERVICE_SYMBOL? serviceRequestPath)
+        (ON_SYMBOL | FROM_SYMBOL) (
+            ANY_SYMBOL SERVICE_SYMBOL
+            | SERVICE_SYMBOL? serviceRequestPath
+        )
     )? (FOR_SYMBOL userName? AT_SIGN_SYMBOL authAppName)?
 ;
 
@@ -948,36 +956,85 @@ graphQlPair:
 ;
 
 graphQlAllowedKeyword:
-    DATABASE_SYMBOL
+    CREATE_SYMBOL
+    | OR_SYMBOL
+    | REPLACE_SYMBOL
+    | ALTER_SYMBOL
+    | SHOW_SYMBOL
+    | STATUS_SYMBOL
+    | NEW_SYMBOL
+    | ON_SYMBOL
+    | FROM_SYMBOL
+    | IN_SYMBOL
     | DATABASES_SYMBOL
+    | DATABASE_SYMBOL
     | JSON_SYMBOL
     | VIEW_SYMBOL
     | PROCEDURE_SYMBOL
     | FUNCTION_SYMBOL
+    | DROP_SYMBOL
+    | USE_SYMBOL
+    | AS_SYMBOL
     | FILTER_SYMBOL
+    | AUTHENTICATION_SYMBOL
     | PATH_SYMBOL
+    | VALIDATION_SYMBOL
+    | DEFAULT_SYMBOL
     | USER_SYMBOL
     | OPTIONS_SYMBOL
+    | IF_SYMBOL
+    | NOT_SYMBOL
+    | EXISTS_SYMBOL
     | PAGE_SYMBOL
     | HOST_SYMBOL
     | TYPE_SYMBOL
     | FORMAT_SYMBOL
     | UPDATE_SYMBOL
+    | NULL_SYMBOL
+    | TRUE_SYMBOL
+    | FALSE_SYMBOL
+    | SET_SYMBOL
+    | IDENTIFIED_SYMBOL
+    | BY_SYMBOL
     | ROLE_SYMBOL
+    | TO_SYMBOL
+    | IGNORE_SYMBOL
+    | CLONE_SYMBOL
+    | FILE_SYMBOL
+    | BINARY_SYMBOL
+    | DATA_SYMBOL
+    | LOAD_SYMBOL
+    | GRANT_SYMBOL
+    | READ_SYMBOL
+    | DELETE_SYMBOL
+    | GROUP_SYMBOL
+    | REVOKE_SYMBOL
+    | ACCOUNT_SYMBOL
+    | LOCK_SYMBOL
+    | UNLOCK_SYMBOL
+    | GRANTS_SYMBOL
+    | FOR_SYMBOL
+    | LEVEL_SYMBOL
+    | ANY_SYMBOL
+    | CLIENT_SYMBOL
+    | URL_SYMBOL
+    | NAME_SYMBOL
+    | DO_SYMBOL
     | CONFIGURE_SYMBOL
     | REST_SYMBOL
     | METADATA_SYMBOL
     | SERVICES_SYMBOL
     | SERVICE_SYMBOL
-    | DATA_SYMBOL
-    | MAPPING_SYMBOL
     | VIEWS_SYMBOL
     | PROCEDURES_SYMBOL
     | PARAMETERS_SYMBOL
     | FUNCTIONS_SYMBOL
     | RESULT_SYMBOL
     | ENABLED_SYMBOL
+    | PUBLISHED_SYMBOL
     | DISABLED_SYMBOL
+    | PRIVATE_SYMBOL
+    | UNPUBLISHED_SYMBOL
     | PROTOCOL_SYMBOL
     | HTTP_SYMBOL
     | HTTPS_SYMBOL
@@ -985,27 +1042,37 @@ graphQlAllowedKeyword:
     | REQUEST_SYMBOL
     | REDIRECTION_SYMBOL
     | MANAGEMENT_SYMBOL
+    | AVAILABLE_SYMBOL
     | REQUIRED_SYMBOL
     | ITEMS_SYMBOL
+    | PER_SYMBOL
     | CONTENT_SYMBOL
     | MEDIA_SYMBOL
+    | AUTODETECT_SYMBOL
     | FEED_SYMBOL
     | ITEM_SYMBOL
     | SETS_SYMBOL
+    | FILES_SYMBOL
     | AUTH_SYMBOL
     | APPS_SYMBOL
     | APP_SYMBOL
+    | ID_SYMBOL
+    | SECRET_SYMBOL
     | VENDOR_SYMBOL
+    | MRS_SYMBOL
     | MYSQL_SYMBOL
     | USERS_SYMBOL
+    | ALLOW_SYMBOL
     | REGISTER_SYMBOL
     | CLASS_SYMBOL
-    | ID_SYMBOL
-    | NAME_SYMBOL
-    | DO_SYMBOL
-    | URL_SYMBOL
-    | CLIENT_SYMBOL
-    | STATUS_SYMBOL
+    | DEVELOPMENT_SYMBOL
+    | SCRIPTS_SYMBOL
+    | MAPPING_SYMBOL
+    | TYPESCRIPT_SYMBOL
+    | ROLES_SYMBOL
+    | EXTENDS_SYMBOL
+    | OBJECT_SYMBOL
+    | HIERARCHY_SYMBOL
 ;
 
 graphQlPairKey:
