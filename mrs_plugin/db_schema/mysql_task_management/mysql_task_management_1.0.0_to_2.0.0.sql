@@ -33,6 +33,13 @@ CREATE OR REPLACE SQL SECURITY INVOKER VIEW `mysql_task_management`.`schema_vers
 SELECT 0, 0, 0;
 
 -- -----------------------------------------------------
+-- Drop views which are no longer used
+-- -----------------------------------------------------
+DROP VIEW IF EXISTS `mysql_task_management`.`task`;
+DROP VIEW IF EXISTS `mysql_task_management`.`task_log`;
+DROP VIEW IF EXISTS `mysql_task_management`.`task_status`;
+
+-- -----------------------------------------------------
 -- Table `mysql_task_management`.`config`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mysql_task_management`.`config` (
@@ -48,53 +55,71 @@ VALUES (1, '{ "limits": { "maximumParallelTasks": 100, "maximumLakehouseLoadingT
 -- -----------------------------------------------------
 -- Table `mysql_task_management`.`task_id_impl`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_task_management`.`task_id_impl` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `server_uuid` VARCHAR(36) NOT NULL,
-  PRIMARY KEY(`id`, `server_uuid`)
-) ENGINE=InnoDB AUTO_INCREMENT=1;
+
+SET @tmp_uuid = UUID();
+
+ALTER TABLE `mysql_task_management`.`task_impl`
+  DROP FOREIGN KEY `fk_task_impl_task_id_impl_idx`;
+
+ALTER TABLE `mysql_task_management`.`task_log_impl`
+  DROP FOREIGN KEY `fk_task_log_task`;
+
+ALTER TABLE `mysql_task_management`.`task_id_impl`
+  ADD COLUMN `server_uuid` VARCHAR(36);
+
+UPDATE `mysql_task_management`.`task_id_impl`
+  SET `server_uuid` = @tmp_uuid;
+
+ALTER TABLE `mysql_task_management`.`task_id_impl`
+  MODIFY COLUMN `server_uuid` VARCHAR(36) NOT NULL;
+
+ALTER TABLE `mysql_task_management`.`task_id_impl`
+  DROP PRIMARY KEY,
+  ADD PRIMARY KEY (`id`, `server_uuid`);
 
 -- -----------------------------------------------------
 -- Table `mysql_task_management`.`task_impl`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_task_management`.`task_impl` (
-  `id` INT UNSIGNED NOT NULL,
-  `server_uuid`  VARCHAR(36) NOT NULL,
-  `name` VARCHAR(255) NOT NULL,
-  `user` VARCHAR(288) DEFAULT (CURRENT_USER()),
-  `connection_id` BIGINT UNSIGNED NOT NULL,
-  `thread_id` BIGINT UNSIGNED NOT NULL,
-  `task_type` VARCHAR(80),
-  `data` JSON,
-  PRIMARY KEY(`id`, `server_uuid`),
-  INDEX(`user`),
-  INDEX(`task_type`),
-  CONSTRAINT `fk_task_id`
+ALTER TABLE `mysql_task_management`.`task_impl`
+  ADD COLUMN `server_uuid` VARCHAR(36);
+
+UPDATE `mysql_task_management`.`task_impl`
+  SET `server_uuid` = @tmp_uuid;
+
+ALTER TABLE `mysql_task_management`.`task_impl`
+  MODIFY COLUMN `server_uuid` VARCHAR(36) NOT NULL;
+
+ALTER TABLE `mysql_task_management`.`task_impl`
+  DROP PRIMARY KEY,
+  ADD PRIMARY KEY (`id`, `server_uuid`);
+
+ALTER TABLE `mysql_task_management`.`task_impl`
+  ADD CONSTRAINT `fk_task_id`
     FOREIGN KEY(`id`, `server_uuid`)
-    REFERENCES `mysql_task_management`.`task_id_impl` (`id`, `server_uuid`)
-) ENGINE=InnoDB;
+    REFERENCES `mysql_task_management`.`task_id_impl` (`id`, `server_uuid`);
 
 -- -----------------------------------------------------
 -- Table `mysql_task_management`.`task_log_impl`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_task_management`.`task_log_impl` (
-  `id` BINARY(16) NOT NULL,
-  `task_id` INT UNSIGNED NOT NULL,
-  `server_uuid`  VARCHAR(36) NOT NULL,
-  `log_time` TIMESTAMP(6) NOT NULL,
-  `message` VARCHAR(2000),
-  `data` JSON,
-  `user` VARCHAR(288) DEFAULT (CURRENT_USER()),
-  `progress` SMALLINT NOT NULL DEFAULT 0,
-  `status` ENUM('SCHEDULED', 'RUNNING', 'COMPLETED', 'ERROR', 'CANCELLED') DEFAULT 'SCHEDULED',
-  PRIMARY KEY(`id`),
-  INDEX(`log_time`),
-  INDEX(`user`),
-  INDEX(`status`),
-  CONSTRAINT `fk_task_log_task_id`
-    FOREIGN KEY (`task_id`, `server_uuid`)
-    REFERENCES `mysql_task_management`.`task_impl` (`id`, `server_uuid`)
-) ENGINE=InnoDB;
+ALTER TABLE `mysql_task_management`.`task_log_impl`
+  ADD COLUMN `server_uuid` VARCHAR(36);
+
+UPDATE `mysql_task_management`.`task_log_impl`
+  SET `server_uuid` = @tmp_uuid;
+
+ALTER TABLE `mysql_task_management`.`task_log_impl`
+  MODIFY COLUMN `server_uuid` VARCHAR(36) NOT NULL;
+
+ALTER TABLE `mysql_task_management`.`task_log_impl`
+  DROP PRIMARY KEY,
+  ADD PRIMARY KEY (`id`, `server_uuid`);
+
+ALTER TABLE `mysql_task_management`.`task_log_impl`
+  ADD CONSTRAINT `fk_task_log_task_id`
+    FOREIGN KEY(`task_id`, `server_uuid`)
+    REFERENCES `mysql_task_management`.`task_impl` (`id`, `server_uuid`);
+
+SET @tmp_uuid = NULL;
 
 -- -----------------------------------------------------
 -- Trigger `mysql_task_management`.`task_impl_BEFORE_DELETE`
