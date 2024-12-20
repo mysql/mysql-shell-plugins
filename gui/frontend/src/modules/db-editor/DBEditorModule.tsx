@@ -1259,6 +1259,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             const sqlMode = details.sqlMode ?? Settings.get("editor.sqlMode", "");
             const serverVersion = details.version ?? Settings.get("editor.dbVersion", 80024);
             const heatWaveEnabled = details.heatWaveAvailable ?? false;
+            const mleEnabled = details.mleAvailable ?? false;
 
             const entryId = uuid();
             let useNotebook;
@@ -1306,7 +1307,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 documents: [],
                 documentStates,
                 heatWaveEnabled,
-                mleEnabled: false,
+                mleEnabled,
                 adminPageStates: {
                     lakehouseNavigatorState: {
                         activeTabId: LakehouseNavigatorTab.Overview,
