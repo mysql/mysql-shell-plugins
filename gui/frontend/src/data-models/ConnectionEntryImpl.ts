@@ -229,6 +229,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         this.details.sqlMode = connectionData.info.sqlMode;
         this.details.edition = connectionData.info.edition;
         this.details.heatWaveAvailable = connectionData.info.heatWaveAvailable;
+        this.details.mleAvailable = connectionData.info.mleAvailable;
 
         return true;
     }

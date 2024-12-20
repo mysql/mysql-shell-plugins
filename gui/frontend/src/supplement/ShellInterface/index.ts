@@ -67,6 +67,9 @@ export interface IConnectionDetails {
     /** Is MHS (MySQL Heatwave Service) available on this server? */
     heatWaveAvailable?: boolean;
 
+    /** Is MLE (Multi lingual Engine) available on this server? */
+    mleAvailable?: boolean;
+
     /** Connection specific UI settings. */
     settings?: IConnectionSettings;
 }
