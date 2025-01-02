@@ -25,10 +25,13 @@
 
 import { ScriptingApi } from "../console.worker-types.js";
 
-import { currentWorker } from "./execute.js";
+import { currentWorker, isCloneable } from "./execute.js";
 
-export const runSqlIterative = (sql: string, callback?: (res: unknown) => void,
-    params?: unknown): void => {
+export const runSqlIterative = (sql: string, callback?: (res: unknown) => void, params?: unknown): void => {
+    if (!isCloneable(params)) {
+        throw new Error("The given parameters cannot be used in this function, because they are not cloneable.");
+    }
+
     if (callback) {
         currentWorker.pendingRequests.set(currentWorker.currentContext, callback);
     }
@@ -41,8 +44,11 @@ export const runSqlIterative = (sql: string, callback?: (res: unknown) => void,
     });
 };
 
-export const runSqlWithCallback = (sql: string, callback?: (res: unknown) => void,
-    params?: unknown): void => {
+export const runSqlWithCallback = (sql: string, callback?: (res: unknown) => void, params?: unknown): void => {
+    if (!isCloneable(params)) {
+        throw new Error("The given parameters cannot be used in this function, because they are not cloneable.");
+    }
+
     if (callback) {
         currentWorker.pendingRequests.set(currentWorker.currentContext, callback);
     }
