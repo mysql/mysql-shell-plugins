@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -68,6 +68,7 @@ import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellIn
 import { DBType } from "../../supplement/ShellInterface/index.js";
 import { convertRows, generateColumnInfo } from "../../supplement/index.js";
 import { uuid } from "../../utilities/helpers.js";
+import { ui } from "../../app-logic/UILayer.js";
 
 interface IGlobalStatus {
     threadConnected?: number;
@@ -163,7 +164,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 }
             })
             .catch((error) => {
-                void requisitions.execute("showError", "Cannot load performance schema: " + String(error));
+                void ui.showErrorNotification("Cannot load performance schema: " + String(error));
             });
         this.addHandledProperties("backend", "toolbarItems");
     }
@@ -720,7 +721,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
     private handleKillConnection = (): void => {
         if ((this.selectedRow?.TYPE as string) === "BACKGROUND") {
-            void requisitions.execute("showError", `Connection ${this.getSelectedRowValue("PROCESSLIST_ID")} ` +
+            void ui.showErrorNotification(`Connection ${this.getSelectedRowValue("PROCESSLIST_ID")} ` +
                 `cannot be killed`);
 
             return;
@@ -730,7 +731,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
     private handleKillQuery = (): void => {
         if ((this.selectedRow?.TYPE as string) === "BACKGROUND") {
-            void requisitions.execute("showError", `Thread ${this.getSelectedRowValue("THREAD_ID")} cannot be killed`);
+            void ui.showErrorNotification(`Thread ${this.getSelectedRowValue("THREAD_ID")} cannot be killed`);
 
             return;
         }
@@ -773,7 +774,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 await backend.execute(`KILL CONNECTION ${id}`);
                 await this.updateValues();
             } catch (reason) {
-                void requisitions.execute("showError", `Error executing KILL CONNECTION on connectionId: ${id}, ` +
+                void ui.showErrorNotification(`Error executing KILL CONNECTION on connectionId: ${id}, ` +
                     `error: ${String(reason)}`);
             }
         }
@@ -791,7 +792,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 await backend.execute(`KILL QUERY ${id}`);
                 await this.updateValues();
             } catch (reason) {
-                void requisitions.execute("showError", `Error executing KILL QUERY on threadId:` +
+                void ui.showErrorNotification(`Error executing KILL QUERY on threadId:` +
                     `${this.selectedRow?.THREAD_ID as string}, error: ${String(reason)}`);
             }
         }
@@ -936,7 +937,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 this.setState({ waitingText });
             }
         }).catch((reason) => {
-            void requisitions.execute("showError", `Error looking up metadata lock information error: ${reason}`);
+            void ui.showErrorNotification(`Error looking up metadata lock information error: ${reason}`);
         });
     };
 
@@ -971,7 +972,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 this.setState({ grantedLocks: resultSet });
             }
         }).catch((error: Error) => {
-            void requisitions.execute("showError", `Error looking up metadata lock information error: ` +
+            void ui.showErrorNotification(`Error looking up metadata lock information error: ` +
                 `${error.message}`);
         });
     };

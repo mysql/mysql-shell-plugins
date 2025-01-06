@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,6 +25,7 @@
 
 /// <reference path="../components/CommunicationDebugger/debugger-runtime.d.ts"/>
 
+import { ui } from "../app-logic/UILayer.js";
 import { appParameters, requisitions } from "../supplement/Requisitions.js";
 import { webSession } from "../supplement/WebSession.js";
 import { uuid } from "../utilities/helpers.js";
@@ -400,7 +401,7 @@ export class MessageScheduler {
             clearTimeout(this.reconnectTimer);
             this.reconnectTimer = null;
 
-            void requisitions.execute("showInfo", "Connection to the backend established.");
+            void ui.showInformationNotification("Connection to the backend established.");
         }
         this.reconnectTimeout = 1000;
 
@@ -450,7 +451,7 @@ export class MessageScheduler {
             }, this.reconnectTimeout);
         }
 
-        void requisitions.execute("showError", `Could not establish a connection to the backend. Make sure you ` +
+        void ui.showErrorNotification(`Could not establish a connection to the backend. Make sure you ` +
             `use valid user credentials and the MySQL Shell is running. Trying to reconnect in ` +
             `${this.reconnectTimeout / 1000} seconds.`,
         );
@@ -518,7 +519,7 @@ export class MessageScheduler {
             return response;
         } catch (reason) {
             const message = reason instanceof Error ? reason.message : String(reason);
-            void requisitions.execute("showError", `Could not parse JSON response from MySQL Shell (${message}).`);
+            void ui.showErrorNotification(`Could not parse JSON response from MySQL Shell (${message}).`);
         }
     };
 

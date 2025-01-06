@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -31,6 +31,7 @@ import { requisitions } from "../supplement/Requisitions.js";
 import { type IColumnDetails } from "../supplement/RequisitionTypes.js";
 import { uuid } from "../utilities/helpers.js";
 import { IColumnInfo, IDictionary, IStatusInfo } from "./general-types.js";
+import { ui } from "./UILayer.js";
 
 export enum StoreType {
     Unused = "unused",
@@ -296,7 +297,7 @@ export class ApplicationDB {
                 }
             }).catch(/* istanbul ignore next */(reason) => {
                 const message = reason instanceof Error ? reason.message : String(reason);
-                void requisitions.execute("showError", `IndexedDB Error: ${message}`);
+                void ui.showErrorNotification(`IndexedDB Error: ${message}`);
                 reject(reason);
             });
         });

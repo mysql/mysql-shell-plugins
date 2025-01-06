@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -58,7 +58,7 @@ import { ShellModule } from "../modules/shell/ShellModule.js";
 import { versionMatchesExpected } from "../utilities/helpers.js";
 import { ApplicationDB } from "./ApplicationDB.js";
 import { IDialogResponse, minimumShellVersion, type IServicePasswordRequest } from "./general-types.js";
-import { registerUiLayer } from "./UILayer.js";
+import { registerUiLayer, ui } from "./UILayer.js";
 
 interface IAppState extends IComponentState {
     explorerIsVisible: boolean;
@@ -126,7 +126,7 @@ export class App extends Component<{}, IAppState> {
             // Check if the connected shell has the minimum required version.
             const info = await ShellInterface.core.backendInformation ?? { major: 0, minor: 0, patch: 0 };
             if (!versionMatchesExpected([info.major, info.minor, info.patch], minimumShellVersion)) {
-                void requisitions.execute("showError", `The connected shell has an unsupported version: ` +
+                void ui.showErrorNotification(`The connected shell has an unsupported version: ` +
                     `${info.major}.${info.minor}.${info.patch}`);
 
                 return Promise.resolve(false);
@@ -366,7 +366,7 @@ export class App extends Component<{}, IAppState> {
             this.setState({ loginInProgress: false });
         }).catch( /* istanbul ignore next */(reason) => {
             const message = reason instanceof Error ? reason.message : String(reason);
-            void requisitions.execute("showError", `Cannot retrieve the module list: ${message}`);
+            void ui.showErrorNotification(`Cannot retrieve the module list: ${message}`);
         });
     }
 

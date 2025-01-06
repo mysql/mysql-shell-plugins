@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -58,6 +58,7 @@ import { ShellPromptHandler } from "../common/ShellPromptHandler.js";
 import { IShellTabPersistentState, ShellTab } from "./ShellTab.js";
 import { IShellEditorModel } from "./index.js";
 import type { IOdmShellSessionEntry } from "../../data-models/OpenDocumentDataModel.js";
+import { ui } from "../../app-logic/UILayer.js";
 
 interface IShellTabInfo {
     details: IShellSessionDetails;
@@ -471,7 +472,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                     this.hideProgress(id);
                 } catch (reason) {
                     const message = reason instanceof Error ? reason.message : String(reason);
-                    void requisitions.execute("showError", "Shell Session Error: " + message);
+                    void ui.showErrorNotification("Shell Session Error: " + message);
 
                     this.hideProgress("sessions");
                 }
@@ -517,7 +518,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
             this.hideProgress(id);
         } catch (reason) {
             const message = reason instanceof Error ? reason.message : String(reason);
-            void requisitions.execute("showError", "Shell Session Error: " + message);
+            void ui.showErrorNotification("Shell Session Error: " + message);
 
             this.hideProgress("sessions");
         }

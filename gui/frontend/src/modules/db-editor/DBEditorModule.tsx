@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -776,7 +776,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 }
             }).catch((reason) => {
                 const message = reason instanceof Error ? reason.message : String(reason);
-                void requisitions.execute("showError", "Cannot add DB connection: " + message);
+                void ui.showErrorNotification("Cannot add DB connection: " + message);
 
             });
     };
@@ -787,7 +787,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             requisitions.executeRemote("connectionUpdated", entry.details);
         }).catch((reason) => {
             const message = reason instanceof Error ? reason.message : String(reason);
-            void requisitions.execute("showError", "Cannot update DB connection: " + message);
+            void ui.showErrorNotification("Cannot update DB connection: " + message);
         });
     };
 
@@ -800,7 +800,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             requisitions.executeRemote("connectionRemoved", entry.details);
         }).catch((reason) => {
             const message = reason instanceof Error ? reason.message : String(reason);
-            void requisitions.execute("showError", "Cannot remove DB connection: " + message);
+            void ui.showErrorNotification("Cannot remove DB connection: " + message);
         });
     };
 
@@ -1373,7 +1373,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             await this.setStatePromise({ connectionTabs, selectedPage: tab.id, loading: false });
         } catch (reason) {
             const message = reason instanceof Error ? reason.message : String(reason);
-            void requisitions.execute("showError", "Connection Error: " + message);
+            void ui.showErrorNotification("Connection Error: " + message);
 
             const { lastSelectedPage } = this.state;
             await this.setStatePromise({ selectedPage: lastSelectedPage ?? "connections" });

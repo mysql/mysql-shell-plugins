@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -84,6 +84,7 @@ import {
     convertCamelToSnakeCase, convertCamelToTitleCase, convertSnakeToCamelCase, convertToPascalCase,
 } from "../../../utilities/string-helpers.js";
 import { MrsDbObjectType, MrsObjectKind, MrsSdkLanguage } from "../types.js";
+import { ui } from "../../../app-logic/UILayer.js";
 
 export interface IMrsObjectFieldEditorData extends IDictionary {
     servicePath: string;
@@ -1407,7 +1408,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     initTreeItemsToReduce);
             }
         } catch (reason) {
-            void requisitions.execute("showError", `Backend Error: ${String(reason)}`);
+            void ui.showErrorNotification(`Backend Error: ${String(reason)}`);
         }
 
         // Add at tree item that represents the closing of the table
@@ -1839,7 +1840,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     }
                 }
             } catch (reason) {
-                void requisitions.execute("showError", `Backend Error: ${String(reason)}`);
+                void ui.showErrorNotification(`Backend Error: ${String(reason)}`);
             }
 
             await this.fillTreeBasedOnMrsObjectFields();
@@ -2451,7 +2452,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             this.performIconClick(treeItem, iconGroup, icon).then(() => {
                 this.updateStateData(data);
             }).catch((e) => {
-                void requisitions.execute("showError", `An error occurred during execution: ${String(e)}`);
+                void ui.showErrorNotification(`An error occurred during execution: ${String(e)}`);
             });
         }
     };
