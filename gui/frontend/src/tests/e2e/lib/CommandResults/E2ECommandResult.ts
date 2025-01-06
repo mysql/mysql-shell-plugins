@@ -23,10 +23,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { WebElement, Condition } from "selenium-webdriver";
+import { WebElement, Condition, until } from "selenium-webdriver";
 import { driver } from "../driver.js";
 import * as constants from "../constants.js";
 import * as locator from "../locators.js";
+import * as interfaces from "../interfaces.js";
+import { E2ECodeEditor } from "../E2ECodeEditor.js";
 
 const resultLocator = locator.notebook.codeEditor.editor.result;
 
@@ -43,6 +45,9 @@ export abstract class E2ECommandResult {
 
     /** Result context*/
     #resultContext: WebElement | undefined;
+
+    /** Result tabs*/
+    #tabs: interfaces.ICommandResultTab[] | undefined;
 
     public constructor(command: string, id: number) {
         this.#id = id;
@@ -71,6 +76,14 @@ export abstract class E2ECommandResult {
      */
     public get resultContext(): WebElement | undefined {
         return this.#resultContext;
+    }
+
+    /**
+     * Gets the tabs
+     * @returns The tabs
+     */
+    public get tabs(): interfaces.ICommandResultTab[] | undefined {
+        return this.#tabs;
     }
 
     /**
@@ -118,6 +131,79 @@ export abstract class E2ECommandResult {
         return new Condition(`for result to be normalized`, async () => {
             return (await driver.findElements(resultLocator.toolbar.maximize)).length > 0;
         });
+    };
+
+    /**
+     * Sets the result grids
+     * @returns A promise resolving with the graph
+     */
+    public setTabs = async (): Promise<void> => {
+        const tabLocator = locator.notebook.codeEditor.editor.result.tabs;
+
+        const tabContext = await driver.wait(async () => {
+            const tabs = await this.resultContext!.findElements(tabLocator.exists);
+            if (tabs.length > 0) {
+                return tabs[0];
+            }
+        }, constants.wait5seconds, `Could not find the tabs for cmd ${this.command}`);
+
+        const tabsToGrab: interfaces.ICommandResultTab[] = [];
+        const existingTabs = await tabContext!.findElements(tabLocator.tab);
+        for (const existingTab of existingTabs) {
+            tabsToGrab.push({
+                name: await (await existingTab.findElement(locator.htmlTag.label)).getText(),
+                element: existingTab,
+            });
+        }
+
+        if (tabsToGrab.length > 0) {
+            this.#tabs = tabsToGrab;
+        } else {
+            throw new Error(`The number of tabs should be at least 1, for cmd ${this.command}`);
+        }
+    };
+
+    /**
+     * Right-clicks on the tab and selects an item from the context menu
+     * @param tabName The tab name
+     * @param menuItem The menu item
+     * @returns Promise resolving when the menu item is clicked
+     */
+    public selectTabContextMenu = async (tabName: string, menuItem: string): Promise<void> => {
+        if (this.#tabs!.length > 0) {
+            const tab = this.#tabs!.filter((item: interfaces.ICommandResultTab) => {
+                return item.name === tabName;
+            });
+
+            await driver.actions().move({ origin: tab[0].element }).contextClick().perform();
+            await driver.wait(until.elementLocated(locator.tab.contextMenu.exists),
+                constants.wait3seconds, `Could not find the context menu for tab '${tabName}'`);
+
+            if (menuItem === constants.close) {
+                await driver.findElement(locator.tab.contextMenu.close).click();
+            } else if (menuItem === constants.closeAll) {
+                await driver.findElement(locator.tab.contextMenu.closeAll).click();
+            } else if (menuItem === constants.closeToTheRight) {
+                await driver.findElement(locator.tab.contextMenu.closeRight).click();
+            } else if (menuItem === constants.closeOthers) {
+                await driver.findElement(locator.tab.contextMenu.closeOthers).click();
+            } else {
+                throw new Error(`Unknown context menu item ${menuItem}`);
+            }
+
+            this.resultContext = await new E2ECodeEditor().getResult(this.command, this.id);
+            const tabLocator = locator.notebook.codeEditor.editor.result.tabs;
+            const tabs = await this.resultContext.findElements(tabLocator.exists);
+
+            if (tabs.length > 0) {
+                await this.setTabs();
+            } else {
+                this.#tabs = undefined;
+            }
+
+        } else {
+            throw new Error(`The result has no tabs`);
+        }
     };
 
 }

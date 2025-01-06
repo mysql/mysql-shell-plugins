@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -72,10 +72,6 @@ class TestDBEditorModule extends DBEditorModule {
 
     public testHandleEditorRename = (id: string, editorId: string, newCaption: string): void => {
         this["handleEditorRename"](id, editorId, newCaption);
-    };
-
-    public testHandleRemoveEditor = (id: string, editorId: string, doUpdate = true): void => {
-        this["handleRemoveDocument"](id, editorId, doUpdate);
     };
 
     public testHandleAddConnection = (entry: ICdmConnectionEntry): void => {
@@ -664,35 +660,6 @@ EXAMPLES
         expect(editorTab.dataModelEntry.details.options).toStrictEqual(options);
 
         instance.testHandleEditorRename(editorTab.dataModelEntry.id, String(connID), "newName");
-
-        component.unmount();
-    });
-
-    it("Test DBEditorModule function handleRemoveEditor", async () => {
-        const component = mount<TestDBEditorModule>(<TestDBEditorModule />);
-        const instance = component.instance();
-
-        const newEditorRequest: INewEditorRequest = {
-            page: "1",
-            language: "msg",
-        };
-
-        await requisitions.execute("refreshConnection", undefined);
-        expect(instance.state.connectionTabs).toHaveLength(0);
-
-        await requisitions.execute("showPage", {
-            module: DBEditorModuleId,
-            page: String(connID),
-        });
-
-        await requisitions.execute("createNewEditor", newEditorRequest);
-
-        expect(instance.state.connectionTabs).toHaveLength(1);
-        const editorTab = instance.state.connectionTabs[0];
-
-        expect(editorTab.dataModelEntry.details.options).toStrictEqual(options);
-
-        instance.testHandleRemoveEditor(editorTab.dataModelEntry.id, "0");
 
         component.unmount();
     });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,7 +27,8 @@ import "./Button.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { ComponentBase, DragEventType, IComponentProperties, MouseEventType } from "../Component/ComponentBase.js";
+import { ComponentBase, DragEventType, IComponentProperties, MouseEventCallback,
+    MouseEventType } from "../Component/ComponentBase.js";
 import { Orientation } from "../Container/Container.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
 import type { IRequestTypeMap } from "../../../supplement/RequisitionTypes.js";
@@ -49,6 +50,8 @@ export interface IButtonProperties extends IComponentProperties {
     requestType?: keyof IRequestTypeMap;
 
     focusOnClick?: boolean;
+
+    onContextMenu?: MouseEventCallback;
 }
 
 export class Button extends ComponentBase<IButtonProperties> {

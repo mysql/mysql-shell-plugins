@@ -170,7 +170,6 @@ interface IDBConnectionTabProperties extends IComponentProperties {
     onHelpCommand?: (command: string, currentLanguage: EditorLanguage) => string | undefined;
 
     onAddEditor?: (id: string) => string | undefined;
-    onRemoveEditor?: (id: string, editorId: string) => void;
     onSelectItem?: (details: ISelectItemDetails) => void;
     onEditorRename?: (id: string, editorId: string, newCaption: string) => void;
 
@@ -2562,16 +2561,6 @@ Execute \\help or \\? for help;`;
         if (canClose) {
             return onSelectItem?.({ tabId: id, document: entry });
         }
-    };
-
-    private handleCloseEditor = (editorId: string): void => {
-        const { id, onRemoveEditor } = this.props;
-
-        void this.canClose().then((canClose) => {
-            if (canClose) {
-                onRemoveEditor?.(id ?? "", editorId);
-            }
-        });
     };
 
     private handleAddEditor = (): Promise<string | undefined> => {

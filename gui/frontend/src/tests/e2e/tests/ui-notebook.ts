@@ -84,7 +84,6 @@ describe("NOTEBOOKS", () => {
             await Misc.storeScreenShot("beforeAll_NOTEBOOKS");
             throw e;
         }
-
     });
 
     afterAll(async () => {
@@ -506,6 +505,58 @@ describe("NOTEBOOKS", () => {
             }
         });
 
+        it("Close result tabs using tab context menu", async () => {
+            try {
+
+                let query = `select "test1"; `;
+                query += `select "test2"; `;
+                query += `select "test3";`;
+
+                await notebook.codeEditor.clean();
+                let result = await notebook.codeEditor.execute(query) as E2ECommandResultData;
+                expect(result.status).toMatch(/OK/);
+
+                // Close
+                await result.selectTabContextMenu("Result #1", constants.close);
+                expect(result.tabs![0].name).toBe("Result #2");
+                expect(result.tabs![1].name).toBe("Result #3");
+                result = await notebook.codeEditor.execute(query) as E2ECommandResultData;
+                expect(result.status).toMatch(/OK/);
+
+                // Close others
+                await result.selectTabContextMenu("Result #1", constants.closeOthers);
+                expect(result.tabs).toBeUndefined();
+                await driver.wait(async () => {
+                    const newResult = await driver.findElements(locator.notebook.codeEditor.editor.result
+                        .existsById(String(result.id)));
+
+                    return (await newResult[0].getAttribute("innerHTML")).match(/test1/);
+                }, constants.wait5seconds, `Result #3 should not have been closed`);
+                result = await notebook.codeEditor.execute(query) as E2ECommandResultData;
+                expect(result.status).toMatch(/OK/);
+
+                // Close to the right
+                await result.selectTabContextMenu("Result #2", constants.closeToTheRight);
+                expect(result.tabs!.length).toBe(2);
+                expect(result.tabs![0].name).toBe("Result #1");
+                expect(result.tabs![1].name).toBe("Result #2");
+                result = await notebook.codeEditor.execute(query) as E2ECommandResultData;
+                expect(result.status).toMatch(/OK/);
+
+                // Close all
+                await result.selectTabContextMenu("Result #2", constants.closeAll);
+                await driver.wait(async () => {
+                    return (await driver.findElements(locator.notebook.codeEditor.editor.result
+                        .existsById(String(result.id))))
+                        .length === 0;
+                }, constants.wait5seconds, `Close all did not closed all the tabs`);
+                await notebook.codeEditor.clean();
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
         it("Save Notebooks", async () => {
             try {
                 await notebook.codeEditor.clean();
@@ -577,7 +628,7 @@ describe("NOTEBOOKS", () => {
                 await dbTreeSection.focus();
                 await dbTreeSection.createDatabaseConnection(heatWaveConn);
                 await (await new E2EDatabaseConnectionOverview().getConnection(heatWaveConn.caption!)).click();
-                notebook = await new E2ENotebook().untilIsOpened(heatWaveConn);
+                notebook = await new E2ENotebook().untilIsOpened(heatWaveConn, constants.wait20seconds);
                 let result = await notebook.codeEditor.getLastExistingCommandResult(true) as E2ECommandResultData;
                 await driver.wait(result.heatWaveChatIsDisplayed(), constants.wait5seconds);
                 result = await notebook.codeEditor.refreshResult(result.command, result.id) as E2ECommandResultData;

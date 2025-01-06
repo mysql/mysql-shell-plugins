@@ -204,6 +204,57 @@ describe("CLIPBOARD", () => {
             }
         });
 
+        it("Close tabs using tab context menu", async () => {
+            const tabContainer = new E2ETabContainer();
+            await ociTreeSection.tree.openContextMenuAndSelect(treeE2eProfile!,
+                constants.viewConfigProfileInformation);
+            await driver.wait(tabContainer.untilTabIsOpened(`${ociConfig!.name} Info.json`), constants.wait3seconds);
+            const qaInfoJson = `${ociTree[2].source} Info.json`;
+            await ociTreeSection.tree.openContextMenuAndSelect(ociTree[2],
+                constants.viewCompartmentInformation);
+            await driver.wait(tabContainer.untilTabIsOpened(qaInfoJson), constants.wait5seconds);
+            const treeDbSystem = await ociTreeSection.tree.getOciElementByType(constants.dbSystemType);
+            await ociTreeSection.tree.openContextMenuAndSelect(treeDbSystem, constants.viewDBSystemInformation);
+            await driver.wait(tabContainer.untilTabIsOpened(`${treeDbSystem} Info.json`),
+                constants.wait5seconds);
+
+            // Close
+            await tabContainer.selectTabContextMenu(`${ociConfig!.name} Info.json`, constants.close);
+            expect(await tabContainer.tabExists(`${ociConfig!.name} Info.json`)).toBe(false);
+
+            await ociTreeSection.tree.openContextMenuAndSelect(treeE2eProfile!,
+                constants.viewConfigProfileInformation);
+            await driver.wait(tabContainer.untilTabIsOpened(`${ociConfig!.name} Info.json`), constants.wait3seconds);
+
+            // Close Others
+            await tabContainer.selectTabContextMenu(`${ociConfig!.name} Info.json`, constants.closeOthers);
+            expect(await tabContainer.tabExists(`${ociConfig!.name} Info.json`)).toBe(true);
+            expect(await tabContainer.tabExists(qaInfoJson)).toBe(false);
+            expect(await tabContainer.tabExists(`${treeDbSystem} Info.json`)).toBe(false);
+
+            await ociTreeSection.tree.openContextMenuAndSelect(ociTree[2],
+                constants.viewCompartmentInformation);
+            await driver.wait(tabContainer.untilTabIsOpened(qaInfoJson), constants.wait5seconds);
+            await ociTreeSection.tree.openContextMenuAndSelect(treeDbSystem, constants.viewDBSystemInformation);
+            await driver.wait(tabContainer.untilTabIsOpened(`${treeDbSystem} Info.json`),
+                constants.wait5seconds);
+
+            // Close to the right
+            await tabContainer.selectTabContextMenu(qaInfoJson, constants.closeToTheRight);
+            expect(await tabContainer.tabExists(`${ociConfig!.name} Info.json`)).toBe(true);
+            expect(await tabContainer.tabExists(qaInfoJson)).toBe(true);
+            expect(await tabContainer.tabExists(`${treeDbSystem} Info.json`)).toBe(false);
+            await ociTreeSection.tree.openContextMenuAndSelect(treeDbSystem, constants.viewDBSystemInformation);
+            await driver.wait(tabContainer.untilTabIsOpened(`${treeDbSystem} Info.json`),
+                constants.wait5seconds);
+
+            // Close all
+            await tabContainer.selectTabContextMenu(qaInfoJson, constants.closeAll);
+            expect(await tabContainer.tabExists(`${ociConfig!.name} Info.json`)).toBe(false);
+            expect(await tabContainer.tabExists(qaInfoJson)).toBe(false);
+            expect(await tabContainer.tabExists(`${treeDbSystem} Info.json`)).toBe(false);
+        });
+
     });
 
     describe("DATABASE CONNECTIONS", () => {

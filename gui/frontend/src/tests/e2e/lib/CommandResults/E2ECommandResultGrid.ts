@@ -48,9 +48,6 @@ export class E2ECommandResultGrid extends E2ECommandResult {
     /** The result status*/
     #status: string | undefined;
 
-    /** Result tabs*/
-    #tabs: interfaces.ICommandResultTab[] | undefined;
-
     /**
      * Gets the columnsMap
      * @returns The columnsMap
@@ -65,14 +62,6 @@ export class E2ECommandResultGrid extends E2ECommandResult {
      */
     public get status(): string | undefined {
         return this.#status;
-    }
-
-    /**
-     * Gets the tabs
-     * @returns The tabs
-     */
-    public get tabs(): interfaces.ICommandResultTab[] | undefined {
-        return this.#tabs;
     }
 
     /**
@@ -119,36 +108,6 @@ export class E2ECommandResultGrid extends E2ECommandResult {
         }, constants.wait5seconds, `The status is empty for cmd ${this.command}`);
 
         this.#status = await status!.getAttribute("innerHTML");
-    };
-
-    /**
-     * Sets the result tabs
-     * @returns A promise resolving with the graph
-     */
-    public setTabs = async (): Promise<void> => {
-        const tabLocator = locator.notebook.codeEditor.editor.result.tabs;
-
-        const tabContext = await driver.wait(async () => {
-            const tabs = await this.resultContext!.findElements(tabLocator.exists);
-            if (tabs.length > 0) {
-                return tabs[0];
-            }
-        }, constants.wait5seconds, `Could not find the tabs for cmd ${this.command}`);
-
-        const tabsToGrab: interfaces.ICommandResultTab[] = [];
-        const existingTabs = await tabContext!.findElements(tabLocator.tab);
-        for (const existingTab of existingTabs) {
-            tabsToGrab.push({
-                name: await (await existingTab.findElement(locator.htmlTag.label)).getText(),
-                element: existingTab,
-            });
-        }
-
-        if (tabsToGrab.length > 0) {
-            this.#tabs = tabsToGrab;
-        } else {
-            throw new Error(`The number of tabs should be at least 1, for cmd ${this.command}`);
-        }
     };
 
     /**
@@ -497,14 +456,16 @@ export class E2ECommandResultGrid extends E2ECommandResult {
      * @returns A promise resolving when the cell is resized
      */
     public reduceCellWidth = async (gridRow: number, gridRowColumn: string, reduce = "selenium"): Promise<void> => {
-        let counter = 0;
         await driver.wait(async () => {
             try {
-                const cell = await this.getCell(gridRow, gridRowColumn);
+                let counter = 0;
+                let cell = await this.getCell(gridRow, gridRowColumn);
                 const cellWidth = await cell.getCssValue("width");
+
                 if (counter > 0) {
                     reduce = "js";
                 }
+
                 if (reduce === "selenium") {
                     try {
                         const rect = await cell.getRect();
@@ -523,20 +484,23 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                         counter++;
                     } catch (e) {
                         if (e instanceof error.MoveTargetOutOfBoundsError) {
-                            const cell = await this.getCell(gridRow, gridRowColumn);
+                            cell = await this.getCell(gridRow, gridRowColumn);
                             await driver
-                                .executeScript(`arguments[0].setAttribute("style", "width: 40px; height: 23px;")`,
+                                .executeScript(`arguments[0].setAttribute("style", "width: 40px; height: 24px;")`,
                                     cell);
                         } else {
                             throw e;
                         }
                     }
                 } else {
-                    await driver.executeScript(`arguments[0].setAttribute("style", "width: 40px; height: 23px;")`,
+                    await driver.executeScript(`arguments[0].setAttribute("style", "width: 30px; height: 24px;")`,
                         cell);
                 }
 
-                return (await (await this.getCell(gridRow, gridRowColumn)).getCssValue("width")) !== cellWidth;
+                cell = await this.getCell(gridRow, gridRowColumn);
+                const newWidth = await cell.getCssValue("width");
+
+                return newWidth !== cellWidth;
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
@@ -1416,7 +1380,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
      * @param tabName The tab name to select
      */
     public selectTab = async (tabName: string): Promise<void> => {
-        if (this.#tabs!.length > 0) {
+        if (this.tabs!.length > 0) {
             await this.tabs!.find((item: interfaces.ICommandResultTab) => {
                 return item.name === tabName;
             })!.element.click();

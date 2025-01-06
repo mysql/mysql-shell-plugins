@@ -628,6 +628,99 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
+        it("Close connections using tab context menu", async () => {
+            const e2eConn1: interfaces.IDBConnection = {
+                dbType: "MySQL",
+                caption: `e2eConnection1`,
+                description: "Local connection",
+                basic: {
+                    hostname: "localhost",
+                    username: String(process.env.DBUSERNAME1),
+                    port: 3308,
+                    schema: "sakila",
+                    password: String(process.env.DBUSERNAME1PWD),
+                },
+            };
+
+            const e2eConn2: interfaces.IDBConnection = {
+                dbType: "MySQL",
+                caption: `e2eConnection2`,
+                description: "Local connection",
+                basic: {
+                    hostname: "localhost",
+                    username: String(process.env.DBUSERNAME1),
+                    port: 3308,
+                    schema: "sakila",
+                    password: String(process.env.DBUSERNAME1PWD),
+                },
+            };
+
+
+            try {
+                const tabContainer = new E2ETabContainer();
+                await tabContainer.closeAllTabs();
+                await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+                await DatabaseConnectionDialog.setConnection(e2eConn1);
+                await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+                await DatabaseConnectionDialog.setConnection(e2eConn2);
+
+                await driver.executeScript("arguments[0].click();",
+                    await dbConnectionOverview.getConnection(globalConn.caption!));
+                await new E2ENotebook().untilIsOpened(globalConn);
+                await (await tabContainer.getTab(constants.connectionOverview))?.click();
+                await driver.executeScript("arguments[0].click();",
+                    await dbConnectionOverview.getConnection(e2eConn1.caption!));
+                await new E2ENotebook().untilIsOpened(e2eConn1);
+                await (await tabContainer.getTab(constants.connectionOverview))?.click();
+                await driver.executeScript("arguments[0].click();",
+                    await dbConnectionOverview.getConnection(e2eConn2.caption!));
+                await new E2ENotebook().untilIsOpened(e2eConn2);
+                await (await tabContainer.getTab(constants.connectionOverview))?.click();
+
+                // Close
+                await tabContainer.selectTabContextMenu(e2eConn1.caption!, constants.close);
+                expect(await tabContainer.tabExists(e2eConn1.caption!)).toBe(false);
+                await driver.executeScript("arguments[0].click();",
+                    await dbConnectionOverview.getConnection(e2eConn1.caption!));
+                await new E2ENotebook().untilIsOpened(e2eConn1);
+                await (await tabContainer.getTab(constants.connectionOverview))?.click();
+
+                // Close others
+                await tabContainer.selectTabContextMenu(e2eConn1.caption!, constants.closeOthers);
+                expect(await tabContainer.tabExists(e2eConn2.caption!)).toBe(false);
+                expect(await tabContainer.tabExists(globalConn.caption!)).toBe(false);
+                await driver.executeScript("arguments[0].click();",
+                    await dbConnectionOverview.getConnection(globalConn.caption!));
+                await new E2ENotebook().untilIsOpened(globalConn);
+                await (await tabContainer.getTab(constants.connectionOverview))?.click();
+                await driver.executeScript("arguments[0].click();",
+                    await dbConnectionOverview.getConnection(e2eConn2.caption!));
+                await new E2ENotebook().untilIsOpened(e2eConn2);
+                await (await tabContainer.getTab(constants.connectionOverview))?.click();
+
+                // Close to the right
+                await tabContainer.selectTabContextMenu(globalConn.caption!, constants.closeToTheRight);
+                expect(await tabContainer.tabExists(e2eConn2.caption!)).toBe(false);
+                expect(await tabContainer.tabExists(e2eConn1.caption!)).toBe(true);
+                await driver.executeScript("arguments[0].click();",
+                    await dbConnectionOverview.getConnection(e2eConn2.caption!));
+                await new E2ENotebook().untilIsOpened(e2eConn2);
+
+                // Close All
+                await tabContainer.selectTabContextMenu(globalConn.caption!, constants.closeAll);
+                await driver.wait(tabContainer.untilTabDoesNotExists(e2eConn1.caption!), constants.wait3seconds,
+                    `Tab ${e2eConn1.caption!} should have been closed`);
+                await driver.wait(tabContainer.untilTabDoesNotExists(e2eConn2.caption!), constants.wait3seconds,
+                    `Tab ${e2eConn2.caption!} should have been closed`);
+                await driver.wait(tabContainer.untilTabDoesNotExists(globalConn.caption!), constants.wait3seconds,
+                    `Tab ${globalConn.caption!} should have been closed`);
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+
+        });
+
     });
 
     describe("MySQL Administration", () => {
@@ -930,7 +1023,6 @@ describe("DATABASE CONNECTIONS", () => {
                     await dbTreeSection.tree.expandDatabaseConnection(heatWaveConn);
                     await dbTreeSection.tree.expandElement([constants.mysqlAdministrationTreeElement]);
                     await (await dbTreeSection.tree.getElement(constants.lakeHouseNavigator)).click();
-                    expect(tabContainer.getTab(constants.lakeHouseNavigator)).toBeDefined();
 
                     await driver.wait(mysqlAdministration.untilPageIsOpened(heatWaveConn),
                         constants.wait15seconds);
@@ -970,7 +1062,6 @@ describe("DATABASE CONNECTIONS", () => {
             it("Upload data to object storage", async () => {
                 try {
                     const uploadToObjectStorage = mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage;
-
                     await driver.wait(mysqlAdministration.lakeHouseNavigator.overview.untilIsOpened(),
                         constants.wait3seconds);
                     await driver.wait(new Condition(`for editor to be ${constants.lakeHouseNavigatorEditor}`,
@@ -978,7 +1069,6 @@ describe("DATABASE CONNECTIONS", () => {
                             return (await mysqlAdministration.lakeHouseNavigator.toolbar.editorSelector
                                 .getCurrentEditor()).label === constants.lakeHouseNavigatorEditor;
                         }), constants.wait3seconds);
-
                     await mysqlAdministration.lakeHouseNavigator.overview.clickUploadFiles();
                     await driver.wait(uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
                         constants.wait25seconds);
@@ -1002,6 +1092,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                     await uploadToObjectStorage.addFiles(join(process.cwd(), "..", "extension",
                         "tests", "e2e", "lakehouse_nav_files", fileToUpload));
+
                     await uploadToObjectStorage.objectStorageBrowser.checkItem("upload");
                     await uploadToObjectStorage.startFileUpload();
                     const notification = await new E2EToastNotification().create(undefined, constants.wait10seconds);
@@ -1252,14 +1343,14 @@ describe("DATABASE CONNECTIONS", () => {
         it("Schema - Set as Current Database Schema", async () => {
             try {
                 await dbTreeSection.focus();
-                await (await tabContainer.getTab(globalConn.caption!))!.click();
+                await (await tabContainer.getTab(globalConn.caption!)).click();
                 await dbTreeSection.tree.expandDatabaseConnection(globalConn);
                 await dbTreeSection.tree.openContextMenuAndSelect((globalConn.basic as interfaces.IConnBasicMySQL)
                     .schema!, constants.setAsCurrentDatabaseSchema);
                 await driver.wait(dbTreeSection.tree.untilIsDefault("sakila", "schema"), constants.wait5seconds);
                 await (await dbTreeSection.tree.getActionButton(globalConn.caption!,
                     constants.openNewDatabaseConnectionOnNewTab))!.click();
-                await (await tabContainer.getTab(globalConn.caption!))!.click();
+                await (await tabContainer.getTab(globalConn.caption!)).click();
 
                 const notebook = await new E2ENotebook().untilIsOpened(globalConn);
                 let result = await notebook.codeEditor.execute("select database();") as E2ECommandResultGrid;
@@ -1269,7 +1360,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await dbTreeSection.tree.openContextMenuAndSelect("world_x_cst", constants.setAsCurrentDatabaseSchema);
                 await driver.wait(dbTreeSection.tree.untilIsDefault("world_x_cst", "schema"), constants.wait5seconds);
                 expect(await dbTreeSection.tree.isElementDefault("sakila", "schema")).toBe(false);
-                await (await tabContainer.getTab(globalConn.caption!))!.click();
+                await (await tabContainer.getTab(globalConn.caption!)).click();
                 await notebook.codeEditor.clean();
                 result = await notebook.codeEditor.execute("select database();") as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);

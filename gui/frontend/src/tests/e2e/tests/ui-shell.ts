@@ -375,5 +375,74 @@ describe("MYSQL SHELL CONSOLES", () => {
             }
         });
 
+        it("Close sessions using tab context menu", async () => {
+            try {
+                const tabContainer = new E2ETabContainer();
+                await tabContainer.closeAllTabs();
+
+                await openEditorsTreeSection.focus();
+
+                await openEditorsTreeSection.clickToolbarButton(constants.addConsole);
+                await driver.wait(new E2ETabContainer().untilTabIsOpened(/Session (\d+)/), constants.wait5seconds);
+                let tabs = await tabContainer.getTabs();
+                let sessionNumber = parseInt(tabs[tabs.length - 1].match(/Session (\d+)/)![1], 10);
+
+                await openEditorsTreeSection.clickToolbarButton(constants.addConsole);
+                sessionNumber++;
+                await driver.wait(new E2ETabContainer().untilTabIsOpened(new RegExp(`Session ${sessionNumber}`)),
+                    constants.wait5seconds);
+                await openEditorsTreeSection.clickToolbarButton(constants.addConsole);
+                sessionNumber++;
+                await driver.wait(new E2ETabContainer().untilTabIsOpened(new RegExp(`Session ${sessionNumber}`)),
+                    constants.wait5seconds);
+
+                // Close
+                tabs = await tabContainer.getTabs();
+                await tabContainer.selectTabContextMenu(tabs[2], constants.close);
+                await driver.wait(tabContainer.untilTabDoesNotExists(tabs[2]), constants.wait2seconds);
+                await openEditorsTreeSection.clickToolbarButton(constants.addConsole);
+                sessionNumber++;
+                await driver.wait(new E2ETabContainer().untilTabIsOpened(new RegExp(`Session ${sessionNumber}`)),
+                    constants.wait5seconds);
+
+                // Close others
+                tabs = await tabContainer.getTabs();
+                await tabContainer.selectTabContextMenu(tabs[1], constants.closeOthers);
+                await driver.wait(tabContainer.untilTabDoesNotExists(tabs[2]), constants.wait2seconds);
+                expect(await tabContainer.tabExists(tabs[1])).toBe(true);
+                await driver.wait(tabContainer.untilTabDoesNotExists(tabs[3]), constants.wait2seconds);
+                await openEditorsTreeSection.clickToolbarButton(constants.addConsole);
+                sessionNumber++;
+                await driver.wait(new E2ETabContainer().untilTabIsOpened(new RegExp(`Session ${sessionNumber}`)),
+                    constants.wait5seconds);
+                await openEditorsTreeSection.clickToolbarButton(constants.addConsole);
+                sessionNumber++;
+                await driver.wait(new E2ETabContainer().untilTabIsOpened(new RegExp(`Session ${sessionNumber}`)),
+                    constants.wait5seconds);
+
+                // Close to the right
+                tabs = await tabContainer.getTabs();
+                await tabContainer.selectTabContextMenu(tabs[1], constants.closeToTheRight);
+                expect(await tabContainer.tabExists(tabs[1])).toBe(true);
+                await driver.wait(tabContainer.untilTabDoesNotExists(tabs[2]), constants.wait2seconds);
+                await driver.wait(tabContainer.untilTabDoesNotExists(tabs[3]), constants.wait2seconds);
+                await openEditorsTreeSection.clickToolbarButton(constants.addConsole);
+                sessionNumber++;
+                await driver.wait(new E2ETabContainer().untilTabIsOpened(new RegExp(`Session ${sessionNumber}`)),
+                    constants.wait5seconds);
+
+                // Close all
+                tabs = await tabContainer.getTabs();
+                await tabContainer.selectTabContextMenu(tabs[1], constants.closeAll);
+                await driver.wait(tabContainer.untilTabDoesNotExists(tabs[1]), constants.wait2seconds);
+                await driver.wait(tabContainer.untilTabDoesNotExists(tabs[2]), constants.wait2seconds);
+                await driver.wait(tabContainer.untilTabDoesNotExists(tabs[3]), constants.wait2seconds);
+
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
     });
 });
