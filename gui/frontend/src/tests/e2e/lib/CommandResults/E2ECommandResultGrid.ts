@@ -230,12 +230,18 @@ export class E2ECommandResultGrid extends E2ECommandResult {
         if (method === constants.editButton) {
             await this.edit();
 
+            const tableColumns: string[] = [];
+            for (const key of this.columnsMap!.keys()) {
+                tableColumns.push(key);
+            }
+
+            await driver.wait(this.untilIsEditing(cells[0].rowNumber!, tableColumns[0]),
+                constants.wait5seconds);
+
             for (let i = 0; i <= cells.length - 1; i++) {
                 await driver.wait(async () => {
                     try {
-                        const cell = await this.getCell(cells[i].rowNumber!, cells[i].columnName); // avoid stale
-
-                        if (await this.isEditing(cell)) {
+                        if (await this.isEditing(cells[i].rowNumber!, cells[i].columnName)) {
                             await updateValue(cells[i]);
 
                             if (i === cells.length - 1) {
@@ -475,7 +481,6 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     throw e;
                 }
             }
-
         }, constants.wait5seconds, `The cell width was not reduced on column ${gridRowColumn}`);
 
     };
@@ -487,19 +492,35 @@ export class E2ECommandResultGrid extends E2ECommandResult {
      * @returns A promise resolving with the cell tooltip
      */
     public getCellTooltip = async (gridRow: number, columnName: string): Promise<string | undefined> => {
-        const cell = await this.getCell(gridRow, columnName);
-        await driver.actions().move({
-            origin: cell,
-            x: -5,
-            y: -5,
-        }).perform();
+        let tooltipText: string | undefined;
 
-        return driver.wait(async () => {
-            const tooltip = await driver.findElements(locator.notebook.codeEditor.tooltip);
-            if (tooltip.length > 0) {
-                return tooltip[0].getText();
+        await driver.wait(async () => {
+            try {
+                const cell = await this.getCell(gridRow, columnName);
+                await driver.actions().move({
+                    origin: cell,
+                    x: -5,
+                    y: -5,
+                }).perform();
+
+                tooltipText = await driver.wait(async () => {
+                    const tooltip = await driver.findElements(locator.notebook.codeEditor.tooltip);
+                    if (tooltip.length > 0) {
+                        return tooltip[0].getText();
+                    }
+                }, constants.wait5seconds,
+                    `Could not find tooltip for cell on row '${gridRow}' and column '${columnName}'`);
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
             }
-        }, constants.wait5seconds, `Could not find tooltip for cell on row '${gridRow}' and column '${columnName}'`);
+        }, constants.wait10seconds,
+            `Could not get the tooltip for cell on row '${gridRow}' and column '${columnName}'`);
+
+        return tooltipText;
     };
 
     /**
@@ -1480,11 +1501,26 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
     /**
      * Checks if a cell is being edited
-     * @param cell The cell
+     * @param rowNumber The row number
+     * @param columnName The column name
      * @returns A promise revolving to true if the cell is being edited, false otherwise
      */
-    private isEditing = async (cell: WebElement): Promise<boolean> => {
+    private isEditing = async (rowNumber: number, columnName: string): Promise<boolean> => {
+        const cell = await this.getCell(rowNumber, columnName);
+
         return (await cell.getAttribute("class")).includes("tabulator-editing");
+    };
+
+    /**
+     * Checks if a cell is being edited
+     * @param rowNumber The row number
+     * @param columnName The column name
+     * @returns A condition revolving to true if the cell is being edited, false otherwise
+     */
+    private untilIsEditing = (rowNumber: number, columnName: string): Condition<boolean> => {
+        return new Condition(`for cell on row ${rowNumber} and column '${columnName}' to be editing`, async () => {
+            return this.isEditing(rowNumber, columnName);
+        });
     };
 
     /**
@@ -1501,7 +1537,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
         await driver.wait(async () => {
             const cell = await this.getCell(rowNumber, columnName);
             try {
-                if (await this.isEditing(cell)) {
+                if (await this.isEditing(rowNumber, columnName)) {
                     return (await cell.findElements(locator.htmlTag.input)).length > 0 ||
                         (await cell.findElements(locator.htmlTag.textArea)).length > 0 ||
                         (await cell.findElements(selectListLocator)).length > 0;

@@ -102,8 +102,10 @@ export class E2EToastNotification implements interfaces.INotification {
         const notificationMessage = this.message;
         await driver.wait(async () => {
             try {
-                await driver.executeScript("arguments[0].click()",
-                    await this.webElement?.findElement(locator.toastNotification.close));
+                const closeButton = await this.webElement!.findElement(locator.toastNotification.close);
+                await closeButton.click();
+
+                return (await driver.findElements(locator.toastNotification.existsById(this.id))).length === 0;
             } catch (e) {
                 if (e instanceof error.StaleElementReferenceError || e instanceof error.ElementNotInteractableError) {
                     return true;
@@ -111,7 +113,7 @@ export class E2EToastNotification implements interfaces.INotification {
                     throw e;
                 }
             }
-        }, constants.wait3seconds, `Could not close notification '${notificationMessage}'`);
+        }, constants.wait2seconds, `Could not close notification '${notificationMessage}'`);
     };
 
     /**

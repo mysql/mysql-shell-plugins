@@ -35,7 +35,6 @@ import * as constants from "../lib/constants.js";
 import * as interfaces from "../lib/interfaces.js";
 import * as locator from "../lib/locators.js";
 import { driver, loadDriver } from "../lib/driver.js";
-import { E2EToastNotification } from "../lib/E2EToastNotification.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
 import { E2ETextEditor } from "../lib/E2ETextEditor.js";
 import { E2ECodeEditorWidget } from "../lib/E2ECodeEditorWidget.js";
@@ -282,18 +281,20 @@ describe("CLIPBOARD", () => {
                 await dbTreeSection.tree
                     .openContextMenuAndSelect((globalConn.basic as interfaces.IConnBasicMySQL)
                         .schema!, [constants.copyToClipboard.exists, constants.copyToClipboard.name]);
-                let notification = await new E2EToastNotification().create();
-                expect(notification!.message).toBe("The name was copied to the system clipboard");
-                await notification!.close();
+
+                await driver.wait(Misc.untilNotificationExists(/The name was copied to the system clipboard/),
+                    constants.wait3seconds);
                 expect(await Os.readClipboard()).toBe((globalConn.basic as interfaces.IConnBasicMySQL).schema);
+                await Misc.dismissNotifications();
 
                 await dbTreeSection.tree
                     .openContextMenuAndSelect((globalConn.basic as interfaces.IConnBasicMySQL)
                         .schema!, [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
-                notification = await new E2EToastNotification().create();
-                expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
-                await notification!.close();
+                await driver.wait(Misc
+                    .untilNotificationExists(/The CREATE statement was copied to the system clipboard/),
+                    constants.wait3seconds);
                 expect(await Os.readClipboard()).toContain("CREATE DATABASE");
+                await Misc.dismissNotifications();
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -304,17 +305,18 @@ describe("CLIPBOARD", () => {
             try {
                 await dbTreeSection.tree.openContextMenuAndSelect("actor",
                     [constants.copyToClipboard.exists, constants.copyToClipboard.name]);
-                let notification = await new E2EToastNotification().create();
-                expect(notification!.message).toBe("The name was copied to the system clipboard");
-                await notification!.close();
+                await driver.wait(Misc.untilNotificationExists(/The name was copied to the system clipboard/),
+                    constants.wait3seconds);
                 expect(await Os.readClipboard()).toBe("actor");
+                await Misc.dismissNotifications();
 
                 await dbTreeSection.tree.openContextMenuAndSelect("actor",
                     [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
-                notification = await new E2EToastNotification().create();
-                expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
-                await notification!.close();
+                await driver.wait(Misc
+                    .untilNotificationExists(/The CREATE statement was copied to the system clipboard/),
+                    constants.wait3seconds);
                 expect(await Os.readClipboard()).toContain("CREATE TABLE");
+                await Misc.dismissNotifications();
                 await dbTreeSection.tree.collapseElement("Tables");
             } catch (e) {
                 testFailed = true;
@@ -326,10 +328,11 @@ describe("CLIPBOARD", () => {
             try {
                 await dbTreeSection.tree.openContextMenuAndSelect(testView,
                     [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
-                const notification = await new E2EToastNotification().create();
-                expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
-                await notification!.close();
+                await driver.wait(Misc
+                    .untilNotificationExists(/The CREATE statement was copied to the system clipboard/),
+                    constants.wait3seconds);
                 expect(await Os.readClipboard()).toContain("AS select");
+                await Misc.dismissNotifications();
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -341,10 +344,11 @@ describe("CLIPBOARD", () => {
                 await dbTreeSection.tree.expandElement(["Functions"]);
                 await dbTreeSection.tree.openContextMenuAndSelect(testFunction,
                     [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
-                const notification = await new E2EToastNotification().create();
-                expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
-                await notification!.close();
+                await driver.wait(Misc
+                    .untilNotificationExists(/The CREATE statement was copied to the system clipboard/),
+                    constants.wait3seconds);
                 expect(await Os.readClipboard()).toMatch(/CREATE.*FUNCTION/);
+                await Misc.dismissNotifications();
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -357,18 +361,20 @@ describe("CLIPBOARD", () => {
                 await dbTreeSection.tree.openContextMenuAndSelect(testEvent,
                     [constants.copyToClipboard.exists, constants.copyToClipboard.name]);
 
-                let notification = await new E2EToastNotification().create();
-                expect(notification!.message).toBe("The name was copied to the system clipboard");
-                await notification!.close();
+                await driver.wait(Misc
+                    .untilNotificationExists(/The name was copied to the system clipboard/),
+                    constants.wait3seconds);
+                await Misc.dismissNotifications();
 
                 expect(await Os.readClipboard()).toBe(testEvent);
                 await dbTreeSection.tree.openContextMenuAndSelect(testEvent,
                     [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
 
-                notification = await new E2EToastNotification().create();
-                expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
-                await notification!.close();
+                await driver.wait(Misc
+                    .untilNotificationExists(/The CREATE statement was copied to the system clipboard/),
+                    constants.wait3seconds);
                 expect(await Os.readClipboard()).toMatch(/CREATE.*EVENT/);
+                await Misc.dismissNotifications();
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -380,10 +386,11 @@ describe("CLIPBOARD", () => {
                 await dbTreeSection.tree.expandElement(["Procedures"]);
                 await dbTreeSection.tree.openContextMenuAndSelect(testProcedure,
                     [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
-                const notification = await new E2EToastNotification().create();
-                expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
-                await notification!.close();
+                await driver.wait(Misc
+                    .untilNotificationExists(/The CREATE statement was copied to the system clipboard/),
+                    constants.wait3seconds);
                 expect(await Os.readClipboard()).toMatch(/CREATE.*PROCEDURE/);
+                await Misc.dismissNotifications();
             } catch (e) {
                 testFailed = true;
                 throw e;

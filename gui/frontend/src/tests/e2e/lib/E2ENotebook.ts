@@ -70,17 +70,10 @@ export class E2ENotebook {
                     for (const notification of notifications) {
 
                         if (notification!.type === "error") {
-                            let errorMessage = "";
-
-                            if (notification?.message.includes("could not be opened")) {
-                                errorMessage = constants.ociFailure;
-                            } else {
-                                errorMessage = notification!.message;
-                            }
-
-                            throw new Error(errorMessage);
-                        } else {
                             throw new Error(notification!.message);
+                        } else {
+                            await Misc.dismissNotifications();
+                            break;
                         }
                     }
                 }

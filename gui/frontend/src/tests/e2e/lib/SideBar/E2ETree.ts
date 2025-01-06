@@ -52,8 +52,8 @@ export class E2ETree {
      * @param element The element
      * @returns A promise resolving with the element
      */
-    public getElement = async (element: string | RegExp): Promise<WebElement | undefined> => {
-        let el: WebElement;
+    public getElement = async (element: string | RegExp): Promise<WebElement> => {
+        let el: WebElement | undefined;
         let elementLocator: By;
 
         if (this.accordionSection.accordionSectionName === constants.dbTreeSection) {
@@ -69,31 +69,33 @@ export class E2ETree {
                 const treeItems = await (await this.accordionSection.get())!
                     .findElements(locator.section.tree.element.exists);
 
-                for (const item of treeItems) {
-                    const caption = await item.findElement(elementLocator);
-                    let elementText: string;
+                if (treeItems.length > 0) {
+                    for (const item of treeItems) {
+                        const caption = await item.findElement(elementLocator);
+                        let elementText: string;
 
-                    if (await caption.getAttribute("id")) {
-                        elementText = await caption.getText();
-                    } else {
-                        elementText = await (await item.findElement(locator.section.tree.element.label)).getText();
-                    }
-
-                    if (element instanceof RegExp) {
-                        if (elementText.match(element) !== null) {
-                            el = item;
-                            break;
+                        if (await caption.getAttribute("id")) {
+                            elementText = await caption.getText();
+                        } else {
+                            elementText = await (await item.findElement(locator.section.tree.element.label)).getText();
                         }
 
-                    } else {
-                        if (elementText === element) {
-                            el = item;
-                            break;
+                        if (element instanceof RegExp) {
+                            if (elementText.match(element) !== null) {
+                                el = item;
+                                break;
+                            }
+
+                        } else {
+                            if (elementText === element) {
+                                el = item;
+                                break;
+                            }
                         }
                     }
+
+                    return true;
                 }
-
-                return true;
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
@@ -102,7 +104,11 @@ export class E2ETree {
         }, constants.wait3seconds,
             `Could not perform get on ${element.toString()} on section ${this.accordionSection.accordionSectionName}`);
 
-        return el!;
+        if (!el) {
+            throw new Error(`Could not find '${element}' on section ${this.accordionSection.accordionSectionName}`);
+        } else {
+            return el;
+        }
     };
 
     /**
@@ -127,7 +133,7 @@ export class E2ETree {
                 }
 
                 const treeParentElement = await this.getElement(parent);
-                const treeParentElementLevel = parseInt((await treeParentElement!.getAttribute("class"))
+                const treeParentElementLevel = parseInt((await treeParentElement.getAttribute("class"))
                     .match(/tabulator-tree-level-(\d+)/)![1], 10);
 
                 const nextSibling = async (el: WebElement): Promise<WebElement> => {
@@ -135,7 +141,7 @@ export class E2ETree {
                 };
 
 
-                let refElement = await nextSibling(treeParentElement!);
+                let refElement = await nextSibling(treeParentElement);
 
                 if (!refElement) {
                     throw new Error(`Could not find the next sibling of ${parent}`);
@@ -278,7 +284,7 @@ export class E2ETree {
         await driver.wait(async () => {
             try {
                 const treeItem = await this.getElement(element);
-                const el = await treeItem!.findElement(locator.section.tree.element.icon.exists);
+                const el = await treeItem.findElement(locator.section.tree.element.icon.exists);
                 const backImage = await el.getCssValue("mask-image");
 
                 switch (type) {
@@ -331,11 +337,12 @@ export class E2ETree {
                 for (let i = 0; i <= elements.length - 1; i++) {
                     if (!(await this.elementIsExpanded(elements[i]))) {
                         const treeElement = await this.getElement(elements[i]);
-                        await treeElement!.findElement(locator.section.tree.element.toggle).click();
-                        await driver.wait(this.accordionSection.untilIsNotLoading(), loadingTimeout);
+                        await treeElement.findElement(locator.section.tree.element.toggle).click();
 
                         if (i !== elements.length - 1) {
-                            await driver.wait(this.untilElementHasChildren(elements[i]));
+                            await driver.wait(this.untilElementHasChildren(elements[i]), loadingTimeout);
+                        } else {
+                            await driver.wait(this.accordionSection.untilIsNotLoading(), loadingTimeout);
                         }
                     }
                 }
@@ -355,7 +362,7 @@ export class E2ETree {
      */
     public collapseElement = async (element: string): Promise<void> => {
         const treeElement = await this.getElement(element);
-        await treeElement!.findElement(locator.section.tree.element.toggle).click();
+        await treeElement.findElement(locator.section.tree.element.toggle).click();
     };
 
     /**
@@ -364,7 +371,7 @@ export class E2ETree {
      * @returns A promise resolving with true if the section is expanded, false otherwise
      */
     public elementIsExpanded = async (element: string | RegExp): Promise<boolean> => {
-        return (await (await this.getElement(element))!
+        return (await (await this.getElement(element))
             .findElements(locator.section.tree.element.isExpanded)).length > 0;
     };
 
@@ -375,7 +382,7 @@ export class E2ETree {
      */
     public hasChildren = async (element: string | RegExp): Promise<boolean> => {
         const treeElement = await this.getElement(element);
-        const elementLevel = (await treeElement!.getAttribute("class")).match(/tabulator-tree-level-(\d+)/)![1];
+        const elementLevel = (await treeElement.getAttribute("class")).match(/tabulator-tree-level-(\d+)/)![1];
         const nextSibling: WebElement | undefined = await driver
             .executeScript("return arguments[0].nextElementSibling;", treeElement);
         if (nextSibling) {
@@ -431,7 +438,7 @@ export class E2ETree {
      */
     public isDBSystemStopped = async (dbSystem: string): Promise<boolean> => {
         const treeElement = await this.getElement(dbSystem);
-        const itemIcon = await treeElement!.findElement(locator.section.tree.element.icon.exists);
+        const itemIcon = await treeElement.findElement(locator.section.tree.element.icon.exists);
         const itemStyle = await itemIcon.getCssValue("mask-image");
 
         return itemStyle.includes("statusDotMask");
@@ -445,7 +452,7 @@ export class E2ETree {
     public isMRSDisabled = async (mrsTreeItem: string): Promise<boolean> => {
         const treeElement = await this.getElement(mrsTreeItem);
 
-        return (await treeElement!.findElements(locator.section.tree.element.icon.redDot)).length > 0;
+        return (await treeElement.findElements(locator.section.tree.element.icon.redDot)).length > 0;
     };
 
     /**
@@ -463,19 +470,19 @@ export class E2ETree {
                 await driver.actions().move({ origin: treeElement }).perform();
 
                 if (actionButton === constants.openNewDatabaseConnectionOnNewTab) {
-                    treeItemActionButton = await treeElement!
+                    treeItemActionButton = await treeElement
                         .findElement(locator.section.tree.element.actions.openNewDatabaseConnection);
                 } else if (actionButton === constants.refreshConnection) {
-                    treeItemActionButton = await treeElement!
+                    treeItemActionButton = await treeElement
                         .findElement(locator.section.tree.element.actions.refreshConnection);
                 } else if (actionButton === constants.newMySQLScript) {
-                    treeItemActionButton = await treeElement!
+                    treeItemActionButton = await treeElement
                         .findElement(locator.section.tree.element.actions.newMySQLScript);
                 } else if (actionButton === constants.loadSQLScriptFromDisk) {
-                    treeItemActionButton = await treeElement!
+                    treeItemActionButton = await treeElement
                         .findElement(locator.section.tree.element.actions.loadSQLScriptFromDisk);
                 } else if (actionButton === constants.closeEditor) {
-                    treeItemActionButton = await treeElement!
+                    treeItemActionButton = await treeElement
                         .findElement(locator.section.tree.element.actions.closeEditor);
                 }
                 else {
@@ -503,7 +510,7 @@ export class E2ETree {
      */
     public isRouterActive = async (): Promise<boolean> => {
         const treeElement = await this.getElement(new RegExp(hostname()));
-        const itemIcon = await treeElement!.findElement(locator.section.tree.element.icon.exists);
+        const itemIcon = await treeElement.findElement(locator.section.tree.element.icon.exists);
         const itemStyle = await itemIcon.getCssValue("mask-image");
 
         return itemStyle.match(/router.svg/) !== null;
@@ -515,7 +522,7 @@ export class E2ETree {
      */
     public routerHasError = async (): Promise<boolean> => {
         const treeElement = await this.getElement(new RegExp(hostname()));
-        const itemIcon = await treeElement!.findElement(locator.section.tree.element.icon.exists);
+        const itemIcon = await treeElement.findElement(locator.section.tree.element.icon.exists);
         const itemStyle = await itemIcon.getCssValue("mask-image");
 
         return itemStyle.includes("routerError");
@@ -708,6 +715,14 @@ export class E2ETree {
      * @returns A promise resolving with true if the element exists, false otherwise
      */
     public elementExists = async (element: string | RegExp): Promise<boolean> => {
-        return (await this.getElement(element)) !== undefined;
+        const el = await this.getElement(element).catch((e) => {
+            if (String(e).includes("Could not find")) {
+                return undefined;
+            } else {
+                throw e;
+            }
+        });
+
+        return el !== undefined;
     };
 }

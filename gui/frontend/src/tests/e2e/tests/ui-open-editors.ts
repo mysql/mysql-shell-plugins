@@ -192,7 +192,7 @@ describe("OPEN EDITORS", () => {
 
     it("Open DB Connection Overview", async () => {
         try {
-            await (await openEditorsTreeSection.tree.getElement(constants.dbConnectionOverview))!.click();
+            await (await openEditorsTreeSection.tree.getElement(constants.dbConnectionOverview)).click();
             expect((await new E2EDatabaseConnectionOverview().toolbar.editorSelector.getCurrentEditor()).label)
                 .toBe(constants.dbConnectionOverview);
         } catch (e) {
@@ -203,7 +203,7 @@ describe("OPEN EDITORS", () => {
 
     it("Open DB Notebook", async () => {
         try {
-            await (await openEditorsTreeSection.tree.getElement(constants.dbNotebook))!.click();
+            await (await openEditorsTreeSection.tree.getElement(constants.dbNotebook)).click();
             expect((await notebook.toolbar.editorSelector.getCurrentEditor()).label).toBe(constants.dbNotebook);
         } catch (e) {
             testFailed = true;

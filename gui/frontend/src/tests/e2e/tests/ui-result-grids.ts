@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024 Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -254,6 +254,141 @@ describe("RESULT GRIDS", () => {
                 expect(await result.getCellIconType(row, "test_multipolygon")).toBe(constants.geometry);
                 expect(await result.getCellIconType(row, "test_geometrycollection")).toBe(constants.geometry);
                 expect(bitCell).toMatch(/(\d+)/);
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
+        it("Result grid cell tooltips - integer columns", async () => {
+            try {
+                const rowNumber = 0;
+                const tableColumns: string[] = [];
+
+                await notebook.codeEditor.clean();
+                const result = await notebook.codeEditor
+                    .execute("SELECT * from sakila.all_data_types_ints limit 1;") as E2ECommandResultGrid;
+                expect(result.status).toMatch(/OK/);
+
+                for (const key of result.columnsMap!.keys()) {
+                    tableColumns.push(key);
+                }
+
+                for (let i = 1; i <= tableColumns.length - 1; i++) {
+                    if (i === tableColumns.length - 1) {
+                        await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                    } else {
+                        await result.reduceCellWidth(rowNumber, tableColumns[i]);
+                    }
+                    const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                    await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                        constants.wait3seconds);
+                }
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
+        it("Result grid cell tooltips - date columns", async () => {
+            try {
+                const rowNumber = 0;
+                await notebook.codeEditor.clean();
+                const result = await notebook.codeEditor
+                    .execute("SELECT * from sakila.all_data_types_dates where id = 1;") as E2ECommandResultGrid;
+                expect(result.status).toMatch(/OK/);
+
+                const tableColumns: string[] = [];
+                for (const key of result.columnsMap!.keys()) {
+                    tableColumns.push(key);
+                }
+
+                for (let i = 1; i <= tableColumns.length - 1; i++) {
+                    if (i === tableColumns.length - 1) {
+                        await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                    } else {
+                        await result.reduceCellWidth(rowNumber, tableColumns[i]);
+                    }
+
+                    const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                    await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                        constants.wait3seconds);
+                }
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
+        it("Result grid cell tooltips - char columns", async () => {
+            try {
+                const rowNumber = 0;
+                await notebook.codeEditor.clean();
+                const result = await notebook.codeEditor
+                    .execute("SELECT * from sakila.all_data_types_chars where id = 1;") as E2ECommandResultGrid;
+                expect(result.status).toMatch(/OK/);
+
+                const tableColumns: string[] = [];
+                for (const key of result.columnsMap!.keys()) {
+                    tableColumns.push(key);
+                }
+
+                for (let i = 1; i <= tableColumns.length - 1; i++) {
+                    await result.reduceCellWidth(rowNumber, tableColumns[i]);
+
+                    const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                    await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                        constants.wait3seconds);
+                }
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
+        it("Result grid cell tooltips - binary and varbinary columns", async () => {
+            try {
+                const rowNumber = 0;
+                await notebook.codeEditor.clean();
+                const result = await notebook.codeEditor
+                    .execute("SELECT * from sakila.all_data_types_blobs limit 1;") as E2ECommandResultGrid;
+                expect(result.status).toMatch(/OK/);
+
+                const tableColumns: string[] = [];
+                for (const key of result.columnsMap!.keys()) {
+                    tableColumns.push(key);
+                }
+
+                for (let i = 1; i <= 2; i++) {
+                    if (i === tableColumns.length - 1) {
+                        await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                    } else {
+                        await result.reduceCellWidth(rowNumber, tableColumns[i]);
+                    }
+
+                    const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                    await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                        constants.wait3seconds);
+
+                }
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
+        it("Result grid cell tooltips - bit column", async () => {
+            try {
+                const rowNumber = 0;
+                await notebook.codeEditor.clean();
+                const result = await notebook.codeEditor
+                    .execute("SELECT * from sakila.all_data_types_geometries;") as E2ECommandResultGrid;
+                expect(result.status).toMatch(/OK/);
+
+                const column = "test_bit";
+                await result.reduceCellWidth(rowNumber, column);
+                const cellText = await result.getCellValue(rowNumber, column);
+                await driver.wait(result.untilCellTooltipIs(rowNumber, column, cellText), constants.wait3seconds);
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -731,141 +866,6 @@ describe("RESULT GRIDS", () => {
             }
         });
 
-        it("Result grid cell tooltips - integer columns", async () => {
-            try {
-                const rowNumber = 0;
-                const tableColumns: string[] = [];
-
-                await notebook.codeEditor.clean();
-                const result = await notebook.codeEditor
-                    .execute("SELECT * from sakila.all_data_types_ints limit 1;") as E2ECommandResultGrid;
-                expect(result.status).toMatch(/OK/);
-
-                for (const key of result.columnsMap!.keys()) {
-                    tableColumns.push(key);
-                }
-
-                for (let i = 1; i <= tableColumns.length - 1; i++) {
-                    if (i === tableColumns.length - 1) {
-                        await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
-                    } else {
-                        await result.reduceCellWidth(rowNumber, tableColumns[i]);
-                    }
-                    const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
-                    await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
-                        constants.wait3seconds);
-                }
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
-        });
-
-        it("Result grid cell tooltips - date columns", async () => {
-            try {
-                const rowNumber = 0;
-                await notebook.codeEditor.clean();
-                const result = await notebook.codeEditor
-                    .execute("SELECT * from sakila.all_data_types_dates where id = 1;") as E2ECommandResultGrid;
-                expect(result.status).toMatch(/OK/);
-
-                const tableColumns: string[] = [];
-                for (const key of result.columnsMap!.keys()) {
-                    tableColumns.push(key);
-                }
-
-                for (let i = 1; i <= tableColumns.length - 1; i++) {
-                    if (i === tableColumns.length - 1) {
-                        await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
-                    } else {
-                        await result.reduceCellWidth(rowNumber, tableColumns[i]);
-                    }
-
-                    const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
-                    await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
-                        constants.wait3seconds);
-                }
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
-        });
-
-        it("Result grid cell tooltips - char columns", async () => {
-            try {
-                const rowNumber = 0;
-                await notebook.codeEditor.clean();
-                const result = await notebook.codeEditor
-                    .execute("SELECT * from sakila.all_data_types_chars where id = 1;") as E2ECommandResultGrid;
-                expect(result.status).toMatch(/OK/);
-
-                const tableColumns: string[] = [];
-                for (const key of result.columnsMap!.keys()) {
-                    tableColumns.push(key);
-                }
-
-                for (let i = 1; i <= tableColumns.length - 1; i++) {
-                    await result.reduceCellWidth(rowNumber, tableColumns[i]);
-
-                    const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
-                    await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
-                        constants.wait3seconds);
-                }
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
-        });
-
-        it("Result grid cell tooltips - binary and varbinary columns", async () => {
-            try {
-                const rowNumber = 0;
-                await notebook.codeEditor.clean();
-                const result = await notebook.codeEditor
-                    .execute("SELECT * from sakila.all_data_types_blobs limit 1;") as E2ECommandResultGrid;
-                expect(result.status).toMatch(/OK/);
-
-                const tableColumns: string[] = [];
-                for (const key of result.columnsMap!.keys()) {
-                    tableColumns.push(key);
-                }
-
-                for (let i = 1; i <= 2; i++) {
-                    if (i === tableColumns.length - 1) {
-                        await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
-                    } else {
-                        await result.reduceCellWidth(rowNumber, tableColumns[i]);
-                    }
-
-                    const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
-                    await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
-                        constants.wait3seconds);
-
-                }
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
-        });
-
-        it("Result grid cell tooltips - bit column", async () => {
-            try {
-                const rowNumber = 0;
-                await notebook.codeEditor.clean();
-                const result = await notebook.codeEditor
-                    .execute("SELECT * from sakila.all_data_types_geometries;") as E2ECommandResultGrid;
-                expect(result.status).toMatch(/OK/);
-
-                const column = "test_bit";
-                await result.reduceCellWidth(rowNumber, column);
-                const cellText = await result.getCellValue(rowNumber, column);
-                await driver.wait(result.untilCellTooltipIs(rowNumber, column, cellText), constants.wait3seconds);
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
-        });
-
         it("Edit a result grid and rollback", async () => {
             try {
                 const modifiedText = "56";
@@ -1189,21 +1189,21 @@ describe("RESULT GRIDS", () => {
 
                 const dialogMessage = /do you want to commit or rollback the changes before continuing/;
 
-                await (await dbTreeSection.tree.getElement(constants.serverStatus))!.click();
+                await (await dbTreeSection.tree.getElement(constants.serverStatus)).click();
                 let dialog = await new ConfirmDialog().untilExists();
                 expect(await dialog.getText()).toMatch(dialogMessage);
                 await dialog.alternative();
                 expect((await anotherConnNotebook.toolbar.editorSelector.getCurrentEditor()).label)
                     .toBe(constants.dbNotebook);
 
-                await (await dbTreeSection.tree.getElement(constants.clientConnections))!.click();
+                await (await dbTreeSection.tree.getElement(constants.clientConnections)).click();
                 dialog = await new ConfirmDialog().untilExists();
                 expect(await dialog.getText()).toMatch(dialogMessage);
                 await dialog.alternative();
                 expect((await anotherConnNotebook.toolbar.editorSelector.getCurrentEditor()).label)
                     .toBe(constants.dbNotebook);
 
-                await (await dbTreeSection.tree.getElement(constants.performanceDashboard))!.click();
+                await (await dbTreeSection.tree.getElement(constants.performanceDashboard)).click();
                 dialog = await new ConfirmDialog().untilExists();
                 expect(await dialog.getText()).toMatch(dialogMessage);
                 await dialog.alternative();
