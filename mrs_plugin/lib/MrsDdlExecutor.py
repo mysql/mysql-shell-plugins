@@ -1,4 +1,4 @@
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -1978,14 +1978,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 raise
 
     def grantRestPrivileges(self, mrs_object: dict):
-        try:
-            return self.grantRestPrivilegesX(mrs_object)
-        except:
-            import traceback
-
-            traceback.print_exc()
-
-    def grantRestPrivilegesX(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
 
@@ -2172,6 +2164,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     session=self.session,
                     role_id=role.get("id"),
                     privileges=privileges,
+                    service_id=service_id,
                     service_path=service_path,
                     schema_path=schema_request_path,
                     object_path=object_request_path,

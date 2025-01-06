@@ -1,4 +1,4 @@
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -53,6 +53,7 @@ k_privilege_query = """
 
 k_privilege_query_3_0_1 = """
     SELECT p.id, p.role_id, r.caption as role_name, p.crud_operations,
+        p.service_id,
         CONCAT(h.name, p.service_path) AS full_service_path,
         p.schema_path as schema_path,
         p.object_path as object_path
@@ -197,13 +198,29 @@ def delete_role(session, role_id):
         raise
 
 
-def get_role_privileges(session, role_id=None):
+def get_role_privileges(session,
+                        role_id=None,
+                        service_path=core.NotSet,
+                        schema_path=core.NotSet,
+                        object_path=core.NotSet):
     md_version = core.get_mrs_schema_version_int(session)
     if md_version and md_version < 30001:
         sql = k_privilege_query + " WHERE p.role_id=?"
     else:
         sql = k_privilege_query_3_0_1 + " WHERE p.role_id=?"
-    return core.MrsDbExec(sql, [role_id]).exec(session).items
+    conds = []
+    args = [role_id]
+    if service_path is not core.NotSet:
+        conds.append(f" AND service_path {'=' if service_path else 'IS'} ?")
+        args.append(service_path)
+    if schema_path is not core.NotSet:
+        conds.append(f" AND schema_path {'=' if schema_path else 'IS'} ?")
+        args.append(schema_path)
+    if object_path is not core.NotSet:
+        conds.append(f" AND object_path {'=' if object_path else 'IS'} ?")
+        args.append(object_path)
+    sql += "".join(conds)
+    return core.MrsDbExec(sql, args).exec(session).items
 
 
 def get_role_privilege(session, privilege_id=None):
@@ -213,7 +230,6 @@ def get_role_privilege(session, privilege_id=None):
     else:
         sql = k_privilege_query_3_0_1 + " WHERE p.id=?"
     return core.MrsDbExec(sql, [privilege_id]).exec(session).first
-
 
 def add_role_privilege(
     session,
@@ -227,6 +243,24 @@ def add_role_privilege(
     md_version = core.get_mrs_schema_version_int(session)
 
     wildcards_allowed = md_version >= 30001
+
+    privs = get_role_privileges(session,
+        role_id=role_id,
+        service_path=service_path,
+        schema_path=schema_path,
+        object_path=object_path)
+    if privs:
+        priv = privs[0]
+        # add grants to existing privilege
+        new_privileges = ",".join(set(priv["crud_operations"]) | set(privileges))
+
+        sql = """
+        UPDATE `mysql_rest_service_metadata`.mrs_privilege
+            SET crud_operations=? WHERE id=?
+        """
+        params = [new_privileges, priv["id"]]
+        core.MrsDbExec(sql, params).exec(session)
+        return priv["id"]
 
     # NOTE: eventually service_id, db_schema_id and db_object_id will be removed from the DB,
     # but for now we must set them for backwards compatibility
@@ -317,52 +351,56 @@ def delete_role_privilege(
 
     md_version = core.get_mrs_schema_version_int(session)
 
+    found = False
     privs = get_role_privileges(session, role_id=role_id)
     for priv in privs:
         if md_version >= 30001 and (not db_schema_id and not db_object_id):
-            if (
+            if not (
                 (
                     priv.get("full_service_path") == service_path
                     or priv.get("service_id") == service_id
                 )
                 and priv.get("schema_path") == schema_path
-                and priv.get("object_path ") == object_path
+                and priv.get("object_path") == object_path
             ):
-                break
+                continue
         else:
-            if (
+            if not (
                 priv.get("service_id") == service_id
                 and priv.get("db_schema_id") == db_schema_id
-                and priv.get("db_object_id ") == db_object_id
+                and priv.get("db_object_id") == db_object_id
             ):
-                break
-    else:
-        return False
+                continue
 
-    operations = priv.get("crud_operations")
-    for p in privileges:
-        p = p.upper()
-        if p in operations:
-            operations.remove(p)
+        found = True
 
-    params = []
-    if not operations:
-        sql = """
-        DELETE FROM `mysql_rest_service_metadata`.mrs_privilege
-        WHERE id = ?
-        """
-        params.append(priv.get("id"))
-    else:
-        sql = """
-        UPDATE `mysql_rest_service_metadata`.mrs_privilege
-        SET crud_operations = ?
-        WHERE id = ?
-        """
-        params.append(",".join(operations))
-        params.append(priv.get("id"))
-    core.MrsDbExec(sql, params).exec(session)
+        needs_update = False
+        operations = priv.get("crud_operations")
+        for p in privileges:
+            p = p.upper()
+            if p in operations:
+                operations.remove(p)
+                needs_update = True
 
-    return True
+        if needs_update:
+            params = []
+            if not operations:
+                sql = """
+                DELETE FROM `mysql_rest_service_metadata`.mrs_privilege
+                WHERE id = ?
+                """
+                params.append(priv.get("id"))
+            else:
+                sql = """
+                UPDATE `mysql_rest_service_metadata`.mrs_privilege
+                SET crud_operations = ?
+                WHERE id = ?
+                """
+                params.append(",".join(operations))
+                params.append(priv.get("id"))
+            core.MrsDbExec(sql, params).exec(session)
+
+    return found
 
 
 def format_role_grant_statement(grant: dict) -> str:

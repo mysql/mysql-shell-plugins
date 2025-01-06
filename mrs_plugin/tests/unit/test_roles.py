@@ -1,4 +1,4 @@
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -184,10 +184,24 @@ def test_sql(phone_book):
 
     with QueryResults(lambda: session.run_sql('show rest grants for "myrole"')) as qr:
         session.run_sql(
+            'grant rest CREATE, DELETE on SERVICE localhost/test SCHEMA /PhoneBook OBJECT /Contacts to "myrole"'
+        )
+        qr.expect_added(
+            [
+                {
+                    "REST grants for myrole": 'GRANT REST CREATE,DELETE ON SERVICE localhost/test SCHEMA /PhoneBook OBJECT /Contacts TO "myrole"'
+                }
+            ]
+        )
+
+        session.run_sql(
             'grant rest CREATE, UPDATE on SERVICE localhost/test SCHEMA /PhoneBook to "myrole"'
         )
         qr.expect_added(
             [
+                {
+                    "REST grants for myrole": 'GRANT REST CREATE,DELETE ON SERVICE localhost/test SCHEMA /PhoneBook OBJECT /Contacts TO "myrole"'
+                },
                 {
                     "REST grants for myrole": 'GRANT REST CREATE,UPDATE ON SERVICE localhost/test SCHEMA /PhoneBook TO "myrole"'
                 }
@@ -195,13 +209,43 @@ def test_sql(phone_book):
         )
 
         session.run_sql(
-            'revoke rest UPDATE on SERVICE localhost/test SCHEMA /PhoneBook from "myrole"'
+            'grant rest READ on SERVICE localhost/test SCHEMA /PhoneBook to "myrole"'
         )
-        qr.run(True)
         qr.expect_added(
             [
                 {
-                    "REST grants for myrole": 'GRANT REST CREATE ON SERVICE localhost/test SCHEMA /PhoneBook TO "myrole"'
+                    "REST grants for myrole": 'GRANT REST CREATE,DELETE ON SERVICE localhost/test SCHEMA /PhoneBook OBJECT /Contacts TO "myrole"'
+                },
+                {
+                    "REST grants for myrole": 'GRANT REST CREATE,READ,UPDATE ON SERVICE localhost/test SCHEMA /PhoneBook TO "myrole"'
+                }
+            ]
+        )
+        # ensure no duplicate added
+        session.run_sql(
+            'grant rest READ on SERVICE localhost/test SCHEMA /PhoneBook to "myrole"'
+        )
+        qr.expect_added(
+            [
+                {
+                    "REST grants for myrole": 'GRANT REST CREATE,DELETE ON SERVICE localhost/test SCHEMA /PhoneBook OBJECT /Contacts TO "myrole"'
+                },
+                {
+                    "REST grants for myrole": 'GRANT REST CREATE,READ,UPDATE ON SERVICE localhost/test SCHEMA /PhoneBook TO "myrole"'
+                }
+            ]
+        )
+
+        session.run_sql(
+            'revoke rest UPDATE on SERVICE localhost/test SCHEMA /PhoneBook from "myrole"'
+        )
+        qr.expect_added(
+            [
+                {
+                    "REST grants for myrole": 'GRANT REST CREATE,DELETE ON SERVICE localhost/test SCHEMA /PhoneBook OBJECT /Contacts TO "myrole"'
+                },
+                {
+                    "REST grants for myrole": 'GRANT REST CREATE,READ ON SERVICE localhost/test SCHEMA /PhoneBook TO "myrole"'
                 }
             ]
         )
