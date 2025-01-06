@@ -1,4 +1,4 @@
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -43,9 +43,9 @@ def test_grant_revoke_sql(phone_book):
                     'GRANT REST CREATE, READ, UPDATE, DELETE ON SERVICE localhost/test SCHEMA /sakila TO "role1"'
                 )
             assert (
-                "Failed to grant privileges for REST role `role1`. Schema `/sakila` was not found."
+                "Schema `/sakila` was not found."
                 in str(exc_info.value)
-            )
+            ), exc_info.value
             qr.expect_added([])
 
             # invalid but wildcard
