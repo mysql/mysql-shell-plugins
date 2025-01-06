@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -557,10 +557,10 @@ Execute \\help or \\? for help;`;
             await connection.backend.execute("commit");
             await requisitions.execute("sqlTransactionChanged", undefined);
 
-            void requisitions.execute("showInfo", "Commit successful.");
+            void ui.showInformationNotification("Commit successful.");
         } catch (reason) /* istanbul ignore next */ {
             const message = reason instanceof Error ? reason.message : String(reason);
-            await requisitions.execute("showError", "Error while committing changes: " + message);
+            await ui.showErrorNotification("Error while committing changes: " + message);
         }
 
         return true;
@@ -769,7 +769,7 @@ Execute \\help or \\? for help;`;
             }
         } catch (reason) {
             const message = reason instanceof ResponseError ? reason.message : String(reason);
-            void requisitions.execute("showError", "Accept Password Error: " + message);
+            void ui.showErrorNotification("Accept Password Error: " + message);
         }
 
         return Promise.resolve(false);
@@ -879,7 +879,7 @@ Execute \\help or \\? for help;`;
                 } catch (error) {
                     this.loadingNotebook = false;
                     const message = convertErrorToString(error);
-                    void requisitions.execute("showError", "Error while loading notebook: " + message);
+                    void ui.showErrorNotification("Error while loading notebook: " + message);
                 }
             }
         };
@@ -2838,7 +2838,7 @@ Execute \\help or \\? for help;`;
                     try {
                         void await connection?.backend.mhs.saveMdsChatOptions(fileResult.path[0], options);
 
-                        void requisitions.execute("showInfo",
+                        void ui.showInformationNotification(
                             `The HeatWave options have been saved successfully to ${fileResult.path[0]}`);
                     } catch (reason) /* istanbul ignore next */ {
                         let content: string;
@@ -2854,7 +2854,7 @@ Execute \\help or \\? for help;`;
                             content = "Error: " + content.substring(shellErrorHeader.length);
                         }
 
-                        void requisitions.execute("showError", content);
+                        void ui.showErrorNotification(content);
                     }
                 }
 
@@ -2871,7 +2871,7 @@ Execute \\help or \\? for help;`;
                         if (id && onChatOptionsChange) {
                             onChatOptionsChange(id, { options });
 
-                            void requisitions.execute("showInfo",
+                            void ui.showInformationNotification(
                                 `The HeatWave options have been loaded successfully from ${fileResult.path[0]}`);
                         }
                     } catch (reason) /* istanbul ignore next */ {
@@ -2888,7 +2888,7 @@ Execute \\help or \\? for help;`;
                             content = "Error: " + content.substring(shellErrorHeader.length);
                         }
 
-                        void requisitions.execute("showError", content);
+                        void ui.showErrorNotification(content);
                     }
                 }
                 break;

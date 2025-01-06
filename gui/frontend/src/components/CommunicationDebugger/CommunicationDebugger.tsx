@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -60,6 +60,7 @@ import { Tabview, type ITabviewPage } from "../ui/Tabview/Tabview.js";
 import { Toolbar } from "../ui/Toolbar/Toolbar.js";
 import { SetDataAction, TreeGrid, type ITreeGridOptions } from "../ui/TreeGrid/TreeGrid.js";
 import { defaultEditorOptions } from "../ui/index.js";
+import { ui } from "../../app-logic/UILayer.js";
 
 enum ScriptTreeType {
     Folder,
@@ -449,7 +450,7 @@ export class CommunicationDebugger
 
                 this.setState({ activeInputTab: name, scriptTabs });
             }).catch((e) => {
-                void requisitions.execute("showError", `Internal Error ${e}`);
+                void ui.showErrorNotification(`Internal Error ${e}`);
             });
         } else {
             this.setState({ activeInputTab: name });
@@ -530,7 +531,7 @@ export class CommunicationDebugger
             });
 
         }).catch((event) => {
-            void requisitions.execute("showError", `Loading Debugger Scripts: , ${event.message}`);
+            void ui.showErrorNotification(`Loading Debugger Scripts: , ${event.message}`);
         });
     }
 

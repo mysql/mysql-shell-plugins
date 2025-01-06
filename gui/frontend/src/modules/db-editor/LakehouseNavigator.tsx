@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -2330,7 +2330,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             }
         } catch (reason) {
             const message = reason instanceof Error ? reason.message : String(reason);
-            void requisitions.execute("showError", `Failed to delete object: ${message}`);
+            void ui.showErrorNotification(`Failed to delete object: ${message}`);
         }
     };
 
@@ -2807,7 +2807,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             await this.autoRefreshTrees();
         } catch (e) {
             const message = e instanceof Error ? e.message : String(e);
-            void requisitions.execute("showError", `Error: ${message}`);
+            void ui.showErrorNotification(`Error: ${message}`);
         }
     };
 
@@ -3017,11 +3017,11 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     );
 
                     if (error === 0) {
-                        void requisitions.execute("showInfo", "The files have been uploaded successfully.");
+                        void ui.showInformationNotification("The files have been uploaded successfully.");
                     } else {
                         const message = `${error} error${error > 1 ? "s" : ""} occurred during upload. ` +
                             "Please check the file list.";
-                        void requisitions.execute("showError", message);
+                        void ui.showErrorNotification(message);
                     }
                 } finally {
                     this.setState({ uploadRunning: false, uploadComplete: true });
@@ -3227,13 +3227,13 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     `CALL sys.genai_ensure_privileges(?, ?)`,
                     [userName, hostName], undefined, (data) => {
                         if (data.result.rows !== undefined && data.result.rows.length === 0) {
-                            void requisitions.execute("showInfo", `The required privileges where assigned to the ` +
+                            void ui.showInformationNotification(`The required privileges where assigned to the ` +
                                 `MySQL user ${userName}@${hostName}`);
                         }
                     });
             } catch (reason) {
                 const message = reason instanceof Error ? reason.message : String(reason);
-                void requisitions.execute("showError", `Failed to assign the required privileges: ${message}`);
+                void ui.showErrorNotification(`Failed to assign the required privileges: ${message}`);
             }
         }
     };
@@ -3285,7 +3285,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 if (errStr.includes("run_sql: ")) {
                     errStr = errStr.slice(errStr.indexOf("run_sql: ") + 9);
                 }
-                void requisitions.execute("showError", `Failed to create the database schema: ${errStr}`);
+                void ui.showErrorNotification(`Failed to create the database schema: ${errStr}`);
             }
         }
     };

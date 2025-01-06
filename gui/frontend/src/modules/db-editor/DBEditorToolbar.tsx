@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -60,6 +60,7 @@ import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { IOpenDocumentState } from "./DBConnectionTab.js";
 import { IToolbarItems } from "./index.js";
+import { ui } from "../../app-logic/UILayer.js";
 
 interface IDBEditorToolbarProperties extends IComponentProperties {
     /**
@@ -512,7 +513,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
             await this.queryAutoCommit();
         } catch (reason) {
             const message = reason instanceof Error ? reason.message : String(reason);
-            void requisitions.execute("showError", "Cannot Switch Auto Commit Mode." + message);
+            void ui.showErrorNotification("Cannot Switch Auto Commit Mode." + message);
         }
 
         this.updateState();

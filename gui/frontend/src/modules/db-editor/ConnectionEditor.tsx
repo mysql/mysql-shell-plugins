@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -52,6 +52,7 @@ import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/Shel
 import { DBConnectionEditorType, DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { basename, filterInt } from "../../utilities/string-helpers.js";
 import { DBEditorContext, type DBEditorContextType } from "./index.js";
+import { ui } from "../../app-logic/UILayer.js";
 
 const editorHeading = "Database Connection Configuration";
 
@@ -779,7 +780,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                                 this.fillProfileDropdown(profiles);
                             }).catch((reason) => {
                                 const message = reason instanceof Error ? reason.message : String(reason);
-                                void requisitions.execute("showError", "Error while loading OCI profiles: " + message);
+                                void ui.showErrorNotification("Error while loading OCI profiles: " + message);
                             });
                         }
                     },
@@ -1063,7 +1064,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             };
             void requisitions.execute("requestPassword", passwordRequest);
         } else {
-            void requisitions.execute("showError", "User, Host and port cannot be empty.");
+            void ui.showErrorNotification("User, Host and port cannot be empty.");
         }
     };
 
@@ -1091,7 +1092,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 }
             }).catch((reason) => {
                 const message = reason instanceof Error ? reason.message : String(reason);
-                void requisitions.execute("showError", "Clear Password Error: " + message);
+                void ui.showErrorNotification("Clear Password Error: " + message);
             });
         }
     };
@@ -1184,7 +1185,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 }
             }).catch((reason) => {
                 const message = reason instanceof Error ? reason.message : String(reason);
-                void requisitions.execute("showError", "Get MHS Database Error: " + message);
+                void ui.showErrorNotification("Get MHS Database Error: " + message);
                 this.updateInputValue("<error loading mds database info>", "mysqlDbSystemName");
             });
         }
@@ -1205,7 +1206,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 this.fillProfileDropdown(profiles);
             }).catch((reason) => {
                 const message = reason instanceof Error ? reason.message : String(reason);
-                void requisitions.execute("showError", "Error when loading OCI profiles: " + message);
+                void ui.showErrorNotification("Error when loading OCI profiles: " + message);
             });
         }
     };
@@ -1218,7 +1219,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             return summary;
         } catch (reason) {
             const message = reason instanceof Error ? reason.message : String(reason);
-            void requisitions.execute("showError", "Create Bastion Error: " + message);
+            void ui.showErrorNotification("Create Bastion Error: " + message);
             this.updateInputValue("<failed to create default bastion>", "bastionName");
             this.editorRef.current?.updateInputValue("<failed to create default bastion>", "bastionId");
 

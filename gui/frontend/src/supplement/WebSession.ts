@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,6 +27,7 @@ import { requisitions } from "./Requisitions.js";
 import { IShellProfile } from "../communication/ProtocolGui.js";
 import { ShellInterface } from "./ShellInterface/ShellInterface.js";
 import { Cookies } from "./Storage/Cookies.js";
+import { ui } from "../app-logic/UILayer.js";
 
 interface IWebSessionData {
     sessionId?: string;
@@ -178,10 +179,10 @@ class WebSession {
     public saveProfile(): void {
         // Notify the shell for profile updates
         ShellInterface.users.updateProfile(this.shellProfile).then(() => {
-            void requisitions.execute("showInfo", "Profile updated successfully.");
+            void ui.showInformationNotification("Profile updated successfully.");
         }).catch((reason) => {
             const message = reason instanceof Error ? reason.message : String(reason);
-            void requisitions.execute("showError", "Profile Update Error: " + message);
+            void ui.showErrorNotification("Profile Update Error: " + message);
         });
 
     }

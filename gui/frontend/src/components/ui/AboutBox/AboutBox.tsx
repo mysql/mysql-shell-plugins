@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -40,6 +40,7 @@ import { Icon } from "../Icon/Icon.js";
 import { Label } from "../Label/Label.js";
 import { HelpLinkList } from "../HelpLinkList/HelpLinkList.js";
 import { helpUrlMap } from "../../../supplement/index.js";
+import { ui } from "../../../app-logic/UILayer.js";
 
 interface IAboutBoxState extends IComponentState {
     data?: IBackendInformation;
@@ -56,7 +57,7 @@ export class AboutBox extends ComponentBase<{}, IAboutBoxState> {
         ShellInterface.core.backendInformation.then((data) => {
             this.setState({ data });
         }).catch((reason) => {
-            void requisitions.execute("showError", "Backend Error: " + String(reason));
+            void ui.showErrorNotification("Backend Error: " + String(reason));
         });
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -243,7 +243,6 @@ describe("DBConnectionTab tests", (): void => {
         );
 
         let sqlTransactionFunctionCalled = false;
-        let showInfoFunctionCalled = false;
 
         requisitions.register("sqlTransactionChanged", async () => {
             sqlTransactionFunctionCalled = true;
@@ -252,23 +251,13 @@ describe("DBConnectionTab tests", (): void => {
             return false;
         });
 
-        const showInfo = async (_message: string): Promise<boolean> => {
-            showInfoFunctionCalled = true;
-            await nextProcessTick();
-
-            return false;
-        };
-
-        requisitions.register("showInfo", showInfo);
-
         const result = await requisitions.execute("editorCommit", undefined);
 
         expect(result).toBe(true);
         expect(sqlTransactionFunctionCalled).toBe(true);
-        expect(showInfoFunctionCalled).toBe(true);
+        expect(uiLayerMock.showInformationNotification).toHaveBeenCalled();
 
         requisitions.unregister("sqlTransactionChanged");
-        requisitions.unregister("showInfo");
 
         component.unmount();
     });
@@ -811,18 +800,6 @@ describe("DBConnectionTab tests", (): void => {
             resourceId: "unknownResourceId",
             path: ["some/path"],
         };
-
-        let showInfoFunctionCalled = false;
-
-        const showInfo = async (_message: string): Promise<boolean> => {
-            showInfoFunctionCalled = true;
-            await nextProcessTick();
-
-            return false;
-        };
-
-        requisitions.register("showInfo", showInfo);
-
         const options: IMdsChatData = { schemaName: "testSchema" };
 
         const saveMdsChatOptionsMock = jest.spyOn(connection.backend.mhs,
@@ -833,38 +810,31 @@ describe("DBConnectionTab tests", (): void => {
         let result = await requisitions.execute("selectFile", fileResultSaveValid);
         expect(result).toBe(true);
         expect(saveMdsChatOptionsMock).toHaveBeenCalledWith("/valid/path/to/save", {});
-        expect(showInfoFunctionCalled).toBe(true);
+        expect(uiLayerMock.showInformationNotification).toHaveBeenCalled();
+        (uiLayerMock.showInformationNotification as jest.Mock).mockClear();
 
-        showInfoFunctionCalled = false;
         saveMdsChatOptionsMock.mockReset();
 
         result = await requisitions.execute("selectFile", fileResultSaveInvalid);
         expect(result).toBe(true);
         expect(saveMdsChatOptionsMock).toHaveBeenCalledTimes(0);
-        expect(showInfoFunctionCalled).toBe(false);
-
-        showInfoFunctionCalled = false;
 
         result = await requisitions.execute("selectFile", fileResultLoadValid);
         expect(result).toBe(true);
         expect(loadMdsChatOptionsMock).toHaveBeenCalledWith("/valid/path/to/load");
-        expect(showInfoFunctionCalled).toBe(false);
 
-        showInfoFunctionCalled = false;
         loadMdsChatOptionsMock.mockReset();
 
         result = await requisitions.execute("selectFile", fileResultLoadInvalid);
         expect(result).toBe(true);
         expect(saveMdsChatOptionsMock).toHaveBeenCalledTimes(0);
-        expect(showInfoFunctionCalled).toBe(false);
 
-        showInfoFunctionCalled = false;
         loadMdsChatOptionsMock.mockReset();
 
         result = await requisitions.execute("selectFile", fileResultUnknown);
         expect(result).toBe(true);
         expect(saveMdsChatOptionsMock).toHaveBeenCalledTimes(0);
-        expect(showInfoFunctionCalled).toBe(false);
+        expect(uiLayerMock.showInformationNotification).not.toHaveBeenCalled();
 
         saveMdsChatOptionsMock.mockRestore();
         loadMdsChatOptionsMock.mockRestore();

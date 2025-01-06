@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -58,6 +58,7 @@ import { DBEditorToolbar } from "../db-editor/DBEditorToolbar.js";
 import type { IToolbarItems } from "../db-editor/index.js";
 import { ShellConsole } from "./ShellConsole.js";
 import { ShellPrompt } from "./ShellPrompt.js";
+import { ui } from "../../app-logic/UILayer.js";
 
 interface IResultTimer {
     timer: SetIntervalAsyncTimer<unknown[]>;
@@ -198,7 +199,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                 }
             }).catch((reason) => {
                 const message = reason instanceof Error ? reason.message : String(reason);
-                void requisitions.execute("showError", "Shell Language Switch Error: " + message);
+                void ui.showErrorNotification("Shell Language Switch Error: " + message);
             });
         }
     }
@@ -281,7 +282,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                     });
                                 }).catch((reason) => {
                                     const message = reason instanceof Error ? reason.message : String(reason);
-                                    void requisitions.execute("showError", "Shell Language Switch Error" + message);
+                                    void ui.showErrorNotification("Shell Language Switch Error" + message);
 
                                     resolve(false);
                                 });
@@ -703,7 +704,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
             }
         } catch (reason) {
             const message = reason instanceof Error ? reason.message : String(reason);
-            void requisitions.execute("showError", "Shell Execution Error: " + message);
+            void ui.showErrorNotification("Shell Execution Error: " + message);
 
             throw reason;
         }
@@ -822,7 +823,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
             });
         } catch (reason) {
             const message = reason instanceof Error ? reason.message : String(reason);
-            void requisitions.execute("showError", "Shell DB Session Error: " + message);
+            void ui.showErrorNotification("Shell DB Session Error: " + message);
         }
     };
 
