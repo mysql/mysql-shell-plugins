@@ -96,6 +96,7 @@ export const dbConnectionOverview = "DB Connection Overview";
 export const editConnection = "Edit Connection";
 export const dupConnection = "Duplicate Connection";
 export const removeConnection = "Remove Connection";
+export const connectionOverview = "Connection Overview";
 
 // EDIT RESULT GRIDS
 export const doubleClick = "doubleClick";
@@ -311,3 +312,8 @@ export const accessControlPrivate = "private";
 export const vendorOCIOAuth2 = "OCI OAuth2";
 export const ociFailure = "OCI Failure";
 export const restServiceMetadataSchema = "mysql_rest_service_metadata";
+
+export const close = "Close";
+export const closeAll = "Close All";
+export const closeOthers = "Close Others";
+export const closeToTheRight = "Close to the Right";

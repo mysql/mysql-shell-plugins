@@ -52,9 +52,6 @@ export class E2ECommandResultData extends E2ECommandResult {
     /** Result sql preview*/
     #preview: interfaces.ICommandResultPreview | undefined;
 
-    /** Result tabs*/
-    #tabs: interfaces.ICommandResultTab[] | undefined;
-
     /** True if it's an about info for HeatWave, false otherwise*/
     #isHWAboutInfo: boolean | undefined;
 
@@ -99,14 +96,6 @@ export class E2ECommandResultData extends E2ECommandResult {
      */
     public get preview(): interfaces.ICommandResultPreview | undefined {
         return this.#preview;
-    }
-
-    /**
-     * Gets the tabs
-     * @returns The tabs
-     */
-    public get tabs(): interfaces.ICommandResultTab[] | undefined {
-        return this.#tabs;
     }
 
     /**
@@ -238,35 +227,7 @@ export class E2ECommandResultData extends E2ECommandResult {
         await this.setStatus();
     };
 
-    /**
-     * Sets the result grids
-     * @returns A promise resolving with the graph
-     */
-    public setTabs = async (): Promise<void> => {
-        const tabLocator = locator.notebook.codeEditor.editor.result.tabs;
 
-        const tabContext = await driver.wait(async () => {
-            const tabs = await this.resultContext!.findElements(tabLocator.exists);
-            if (tabs.length > 0) {
-                return tabs[0];
-            }
-        }, constants.wait5seconds, `Could not find the tabs for cmd ${this.command}`);
-
-        const tabsToGrab: interfaces.ICommandResultTab[] = [];
-        const existingTabs = await tabContext!.findElements(tabLocator.tab);
-        for (const existingTab of existingTabs) {
-            tabsToGrab.push({
-                name: await (await existingTab.findElement(locator.htmlTag.label)).getText(),
-                element: existingTab,
-            });
-        }
-
-        if (tabsToGrab.length > 0) {
-            this.#tabs = tabsToGrab;
-        } else {
-            throw new Error(`The number of tabs should be at least 1, for cmd ${this.command}`);
-        }
-    };
 
     /**
      * Sets the result chat text
@@ -297,17 +258,6 @@ export class E2ECommandResultData extends E2ECommandResult {
     };
 
     /**
-     * Selects a tab from the result set
-     * @param name the tab name
-     * @returns A promise resolving when the tab is selected
-     */
-    public selectTab = async (name: string): Promise<void> => {
-        await this.tabs!.find((item: interfaces.ICommandResultTab) => {
-            return item.name === name;
-        })!.element.click();
-    };
-
-    /**
      * Returns the result block from a script execution
      * @returns A promise resolving with the result block
      */
@@ -333,4 +283,5 @@ export class E2ECommandResultData extends E2ECommandResult {
         await driver.actions().move({ origin: this.preview!.link })
             .doubleClick(this.preview!.link).perform();
     };
+
 }

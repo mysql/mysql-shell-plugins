@@ -290,6 +290,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                     caption,
                     auxiliary: showMaximizeButton === "tab" && toggleStateButton,
                     content,
+                    canClose: true,
                 });
             }
         });
@@ -332,6 +333,8 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                     canReorderTabs={true}
 
                     onSelectTab={this.handleTabSelection}
+                    closeTabs={this.closeTabs}
+                    canCloseTab={this.canClose}
                 />
                 {
                     statusInfo && <ResultStatus statusInfo={statusInfo}>
@@ -474,22 +477,23 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
     /**
      * Ask the user for confirmation if there are any pending changes.
      *
+     * @param id If only certain tab ID needs to be checked. Optional
      * @returns true if the user can close the tab, false otherwise.
      */
-    public async canClose(): Promise<boolean> {
+    public canClose = async (id?: string): Promise<boolean> => {
         // Store values in a separate array before iterating over them -
         // they may be removed from #editingInfo map by the time the user confirms the operation.
-        const infoValues = [...this.#editingInfo.values()];
+        const infoValues = [...this.#editingInfo.values()].filter((info) => {
+            return !id || id === info.resultSet.resultId;
+        });
         for (const info of infoValues) {
-            const ok = await this.confirmCommitOrRollback(info);
-
-            if (!ok) {
+            if (!(await this.confirmCommitOrRollback(info))) {
                 return false;
             }
         }
 
         return true;
-    }
+    };
 
     /**
      * Triggers a column update in the group which belongs to the given request id.
@@ -556,6 +560,18 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             this.actionMenuRef.current?.close();
             this.actionMenuRef.current?.open(targetRect, false);
         }
+    };
+
+    private closeTabs = (ids: string[]) => {
+        const { onRemoveResult } = this.props;
+
+        this.props.resultSets.sets.forEach(({ resultId }) => {
+            if (ids.includes(resultId)) {
+                onRemoveResult?.(resultId);
+            }
+        });
+
+        return Promise.resolve(true);
     };
 
     private handleActionMenuItemClick = (props: IMenuItemProperties): boolean => {

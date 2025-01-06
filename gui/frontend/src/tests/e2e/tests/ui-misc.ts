@@ -38,11 +38,13 @@ import { E2ELogin } from "../lib/E2ELogin.js";
 import { E2EStatusBar } from "../lib/E2EStatusBar.js";
 import { DatabaseConnectionDialog } from "../lib/Dialogs/DatabaseConnectionDialog.js";
 import { E2ENotificationsCenter } from "../lib/E2ENotificationsCenter.js";
+import { E2EDebugger } from "../lib/E2EDebugger.js";
+import { E2ETabContainer } from "../lib/E2ETabContainer.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
 
-describe("TOKEN VERIFICATION", () => {
+describe("Token Verification", () => {
 
     let testFailed = false;
 
@@ -122,7 +124,7 @@ describe("TOKEN VERIFICATION", () => {
 
 });
 
-describe("LOGIN", () => {
+describe("Login", () => {
 
     let testFailed = false;
     const login = new E2ELogin();
@@ -175,7 +177,7 @@ describe("LOGIN", () => {
 
 });
 
-describe("NOTIFICATIONS", () => {
+describe("Notifications", () => {
 
     const localConn: interfaces.IDBConnection = {
         dbType: "MySQL",
@@ -392,6 +394,87 @@ describe("NOTIFICATIONS", () => {
             notifications = await notificationsCenter!.getNotifications();
             expect(notifications[0].type).toBe("error");
             expect(notifications[0].message).toContain("Error");
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+});
+
+describe("Communication Debugger", () => {
+
+    let testFailed = false;
+
+    beforeAll(async () => {
+        await loadDriver(true);
+        await driver.get(url);
+
+        try {
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+            await driver.findElement(locator.e2eDebugger.toggle).click();
+            await driver.wait(E2EDebugger.untilIsOpened(), constants.wait3seconds, "The Debugger page was not opened");
+        } catch (e) {
+            await Misc.storeScreenShot("beforeAll_DEBUGGER");
+            throw e;
+        }
+    });
+
+    afterEach(async () => {
+        if (testFailed) {
+            testFailed = false;
+            await Misc.storeScreenShot();
+        }
+    });
+
+    afterAll(async () => {
+        await Os.writeFELogs(basename(__filename), driver.manage().logs());
+        await driver.close();
+        await driver.quit();
+    });
+
+    it("Close tabs using tab context menu", async () => {
+        try {
+            const item1 = "_init_sqlite.js";
+            const item2 = "_noop.js";
+            const item3 = "_init_lib_item.js";
+
+            const treeItem1 = await E2EDebugger.getTreeItem(item1);
+            const treeItem2 = await E2EDebugger.getTreeItem(item2);
+            const treeItem3 = await E2EDebugger.getTreeItem(item3);
+
+            await driver.actions().doubleClick(treeItem1).perform();
+            await driver.actions().doubleClick(treeItem2).perform();
+            await driver.actions().doubleClick(treeItem3).perform();
+
+            // Close
+            const tabContainer = new E2ETabContainer();
+            await tabContainer.selectTabContextMenu(item1, constants.close);
+            expect(await tabContainer.tabExists(item1)).toBe(false);
+            expect(await tabContainer.tabExists(item2)).toBe(true);
+            expect(await tabContainer.tabExists(item3)).toBe(true);
+            await driver.actions().doubleClick(treeItem1).perform();
+
+            // Close others
+            await tabContainer.selectTabContextMenu(item1, constants.closeOthers);
+            expect(await tabContainer.tabExists(item1)).toBe(true);
+            expect(await tabContainer.tabExists(item2)).toBe(false);
+            expect(await tabContainer.tabExists(item3)).toBe(false);
+            await driver.actions().doubleClick(treeItem2).perform();
+            await driver.actions().doubleClick(treeItem3).perform();
+
+            // Close to the right
+            await tabContainer.selectTabContextMenu(item2, constants.closeToTheRight);
+            expect(await tabContainer.tabExists(item1)).toBe(true);
+            expect(await tabContainer.tabExists(item2)).toBe(true);
+            expect(await tabContainer.tabExists(item3)).toBe(false);
+            await driver.actions().doubleClick(treeItem3).perform();
+
+            // Close all
+            await tabContainer.selectTabContextMenu(item3, constants.closeAll);
+            expect(await tabContainer.tabExists(item1)).toBe(false);
+            expect(await tabContainer.tabExists(item2)).toBe(false);
+            expect(await tabContainer.tabExists(item3)).toBe(false);
         } catch (e) {
             testFailed = true;
             throw e;

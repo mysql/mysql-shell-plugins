@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -29,17 +29,27 @@ import { ComponentChild, createRef } from "preact";
 
 import { Codicon } from "../Codicon.js";
 import { convertPropValue } from "../../../utilities/string-helpers.js";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
+import { IComponentProperties, ComponentBase, ComponentPlacement,
+    IComponentState } from "../Component/ComponentBase.js";
 import { Orientation, Container } from "../Container/Container.js";
 import { Button, IButtonProperties } from "../Button/Button.js";
 import { Icon } from "../Icon/Icon.js";
 import { Label } from "../Label/Label.js";
+import { Menu } from "../Menu/Menu.js";
+import { IMenuItemProperties, MenuItem } from "../Menu/MenuItem.js";
 
 export enum TabPosition {
     Top = "top",
     Right = "right",
     Bottom = "bottom",
     Left = "left",
+}
+
+export enum CloseMenuItem {
+    CloseTab = "closeTab",
+    CloseOthers = "closeOthers",
+    CloseRight = "closeRight",
+    CloseAll = "closeAll",
 }
 
 /** The description for a tab page. */
@@ -60,6 +70,8 @@ export interface ITabviewPage {
 
     /** The content to show in the tabview body, when this tab is active. */
     content: ComponentChild;
+
+    canClose?: boolean;
 }
 
 interface ITabviewProperties extends IComponentProperties {
@@ -100,6 +112,16 @@ interface ITabviewProperties extends IComponentProperties {
 
     /** Triggered when the user drags a tab item to a new position. */
     onMoveTab?: (id: string, fromIndex: number, toIndex: number) => void;
+
+    closeTabs?: (ids: string[]) => Promise<unknown>;
+    canCloseTab?: (id: string) => Promise<boolean>;
+}
+
+interface IState extends IComponentState {
+    closeTabDisabled: boolean;
+    closeOthersDisabled: boolean;
+    closeRightDisabled: boolean;
+    closeAllDisabled: boolean;
 }
 
 /**
@@ -107,7 +129,7 @@ interface ITabviewProperties extends IComponentProperties {
  * Which one is determined by the `active` property.
  * Usually a tabview is combined with a tab bar, to select an active tab.
  */
-export class Tabview extends ComponentBase<ITabviewProperties> {
+export class Tabview extends ComponentBase<ITabviewProperties, IState> {
 
     public static override defaultProps = {
         tabPosition: TabPosition.Top,
@@ -125,6 +147,8 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
 
     private resizeObserver?: ResizeObserver;
 
+    private tabMenuRef = createRef<Menu>();
+
     public constructor(props: ITabviewProperties) {
         super(props);
 
@@ -140,6 +164,26 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
             this.connectDragEvents();
         }
 
+        this.state = {
+            closeTabDisabled: false,
+            closeOthersDisabled: false,
+            closeRightDisabled: false,
+            closeAllDisabled: false,
+        };
+    }
+
+    public static getSelectedPageId(remainingPageIds: string[], previouslySelected: string | undefined,
+        closingIds: string[], defaultSelection: string): string {
+
+        if (!remainingPageIds.length && defaultSelection) {
+            return defaultSelection;
+        }
+
+        if (previouslySelected && !closingIds.includes(previouslySelected)) {
+            return previouslySelected;
+        }
+
+        return remainingPageIds[remainingPageIds.length - 1];
     }
 
     public override componentDidMount(): void {
@@ -178,6 +222,7 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
                     focusOnClick={false}
                     draggable={canReorderTabs}
                     onClick={this.selectTab}
+                    onContextMenu={this.showTabMenu}
                     onDragEnter={this.handleTabItemDragEnter}
                     onDrop={this.handleTabItemDrop}
                 >
@@ -274,6 +319,35 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
                                 </div>
                             </div>
                             {auxillary && <span className="auxillary">{auxillary}</span>}
+                            {this.props.closeTabs && (
+                                <Menu
+                                    id="tabMenu"
+                                    ref={this.tabMenuRef}
+                                    placement={ComponentPlacement.BottomLeft}
+                                    onItemClick={this.handleContextMenuClick}
+                                >
+                                    <MenuItem
+                                        id={CloseMenuItem.CloseTab}
+                                        command={{ title: "Close", command: CloseMenuItem.CloseTab }}
+                                        disabled={this.state.closeTabDisabled}
+                                    />
+                                    <MenuItem
+                                        id={CloseMenuItem.CloseOthers}
+                                        command={{ title: "Close Others", command: CloseMenuItem.CloseOthers }}
+                                        disabled={this.state.closeOthersDisabled}
+                                    />
+                                    <MenuItem
+                                        id={CloseMenuItem.CloseRight}
+                                        command={{ title: "Close to the Right", command: CloseMenuItem.CloseRight }}
+                                        disabled={this.state.closeRightDisabled}
+                                    />
+                                    <MenuItem
+                                        id={CloseMenuItem.CloseAll}
+                                        command={{ title: "Close All", command: CloseMenuItem.CloseAll }}
+                                        disabled={this.state.closeAllDisabled}
+                                    />
+                                </Menu>
+                            )}
                         </Container>
                     )
                 }
@@ -377,7 +451,6 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
                         pages.splice(targetIndex, 0, page);
 
                         onMoveTab?.(sourceId, sourceIndex, targetIndex);
-                        this.setState({ updated: true });
                     }
                 }
             }
@@ -509,6 +582,182 @@ export class Tabview extends ComponentBase<ITabviewProperties> {
 
             const sliderLeft = tabArea.scrollLeft * tabArea.clientWidth / tabArea.scrollWidth;
             this.sliderRef.current!.style.left = `${sliderLeft}px`;
+        }
+    };
+
+    private getTabById(id: string): ITabviewPage | undefined {
+        return this.props.pages.find((p) => {
+            return p.id === id;
+        });
+    }
+
+    private showTabMenu = (event: MouseEvent): void => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        this.tabMenuRef.current?.close();
+
+        if (!this.props.closeTabs) {
+            return;
+        }
+
+        const currentTabId = (event.currentTarget as HTMLElement).id;
+        if (!currentTabId) {
+            return;
+        }
+
+        // Hide menu completely if there are no tabs to close.
+        if (!this.getTabById(currentTabId) || !this.getClosingAllTabIds().length) {
+            return;
+        }
+
+        const targetRect = new DOMRect(event.clientX, event.clientY, 2, 2);
+
+        const newState: IState = {
+            closeTabDisabled: this.isMenuItemDisabled(CloseMenuItem.CloseTab, currentTabId),
+            closeOthersDisabled: this.isMenuItemDisabled(CloseMenuItem.CloseOthers, currentTabId),
+            closeRightDisabled: this.isMenuItemDisabled(CloseMenuItem.CloseRight, currentTabId),
+            closeAllDisabled: this.isMenuItemDisabled(CloseMenuItem.CloseAll, currentTabId),
+        };
+
+        this.setState(newState, () => {
+            this.tabMenuRef.current?.open(targetRect, false, {}, currentTabId);
+        });
+    };
+
+    private async closeIfAllowed(ids: string[]): Promise<void> {
+        if (!this.props.closeTabs) {
+            return;
+        }
+
+        const closingIds = ids;
+        for (const [index, id] of ids.entries()) {
+            let canClose = true;
+            if (this.props.canCloseTab) {
+                canClose = await this.props.canCloseTab(id);
+            }
+            if (!canClose) {
+                closingIds.splice(index, 1);
+            }
+        }
+
+        void this.props.closeTabs?.(closingIds);
+    }
+
+    private getClosingOtherTabIds(ownId: string): string[] {
+        return this.props.pages.filter((page) => {
+            return page.id !== ownId && page.canClose;
+        }).map((page) => {
+            return page.id;
+        });
+    }
+
+    private closeOthers(currentTabId: string): void {
+        const closingIds = this.getClosingOtherTabIds(currentTabId);
+
+        void this.closeIfAllowed(closingIds);
+    }
+
+    private getClosingToTheRightTabIds(ownId: string): string[] {
+        const closingIds: string[] = [];
+
+        let closeAfterIndex = Infinity;
+        this.props.pages.forEach((page, index) => {
+            if (!page.canClose) {
+                return;
+            }
+            const isOwn = page.id === ownId;
+            if (isOwn) {
+                closeAfterIndex = index;
+            }
+
+            if (index > closeAfterIndex) {
+                closingIds.push(page.id);
+            }
+        });
+
+        return closingIds;
+    }
+
+    private closeRight(currentTabId: string): void {
+        const closingIds = this.getClosingToTheRightTabIds(currentTabId);
+
+        void this.closeIfAllowed(closingIds);
+    }
+
+    private getClosingAllTabIds(): string[] {
+        return this.props.pages.filter((page) => {
+            return page.canClose;
+        }).map((page) => {
+            return page.id;
+        });
+    }
+
+    private closeAll(): void {
+        const closingIds = this.getClosingAllTabIds();
+
+        void this.closeIfAllowed(closingIds);
+    }
+
+    private closeTab(id: string): void {
+        void this.closeIfAllowed([id]);
+    }
+
+    private handleContextMenuClick = (props: IMenuItemProperties, altActive: boolean,
+        currentTabId: unknown): boolean => {
+        this.tabMenuRef.current?.close();
+
+        switch (props.id! as CloseMenuItem) {
+            case CloseMenuItem.CloseTab: {
+                this.closeTab(currentTabId as string);
+
+                break;
+            }
+            case CloseMenuItem.CloseAll: {
+                this.closeAll();
+
+                break;
+            }
+            case CloseMenuItem.CloseOthers: {
+                this.closeOthers(currentTabId as string);
+
+                break;
+            }
+            case CloseMenuItem.CloseRight: {
+                this.closeRight(currentTabId as string);
+
+                break;
+            }
+
+            default:
+                break;
+        }
+
+        return true;
+    };
+
+    private isMenuItemDisabled = (menuItemId: CloseMenuItem, currentTabId: string): boolean => {
+        const currentTab = this.getTabById(currentTabId);
+        const canClose = !!currentTab?.canClose;
+
+        switch (menuItemId) {
+            case CloseMenuItem.CloseTab: {
+                return !canClose; // Disable when menu is under non-closable tab.
+            }
+            case CloseMenuItem.CloseOthers: {
+                return !canClose
+                    || !this.getClosingOtherTabIds(currentTab.id).length;
+            }
+            case CloseMenuItem.CloseRight: {
+                return !canClose
+                    || !this.getClosingToTheRightTabIds(currentTab.id).length;
+            }
+            case CloseMenuItem.CloseAll: {
+                return !this.getClosingAllTabIds().length;
+            }
+            default: {
+                return false;
+            }
         }
     };
 }

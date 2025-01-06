@@ -296,6 +296,7 @@ export class CommunicationDebugger
                 selectedId={activeInputTab}
                 stretchTabs={false}
                 onSelectTab={this.selectScriptTab}
+                closeTabs={this.closeTabsAsync}
             />,
             minSize: 200,
             initialSize: this.inputAreaHeight,
@@ -441,9 +442,10 @@ export class CommunicationDebugger
                         id={name}
                         className="closeButton"
                         round={true}
-                        onClick={this.closeScriptTab}>
+                        onClick={this.closeScriptTab.bind(this, name)}>
                         <Icon src={closeButton} />
                     </Button>,
+                    canClose: true,
 
                     content: this.renderInputScriptTab(state, false, true),
                 });
@@ -461,26 +463,31 @@ export class CommunicationDebugger
         this.setState({ activeInputTab: id });
     };
 
-    private closeScriptTab = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
+    private closeScriptTab = (id: string, e: MouseEvent | KeyboardEvent): void => {
         e.stopPropagation();
         e.preventDefault();
 
+        this.closeTabs([id]);
+    };
+
+    private closeTabs = (ids: string[]): void => {
         const { scriptTabs, activeInputTab } = this.state;
 
-        let index = scriptTabs.findIndex((candidate) => { return candidate.id === props.id; });
-        if (index > -1) {
-            scriptTabs.splice(index, 1);
+        const remainingTabPages = scriptTabs.filter((t) => {
+            return !ids.includes(t.id);
+        });
+        const pageIds = remainingTabPages.map((t) => {
+            return t.id;
+        });
+        const newSelection = Tabview.getSelectedPageId(pageIds, activeInputTab, ids, "interactiveTab");
 
-            // Select the tab which is located left to the one being closed, if the current one is being closed.
-            let newSelection = activeInputTab;
-            if (activeInputTab === props.id) {
-                newSelection = "interactiveTab";
-                if (--index > -1) {
-                    newSelection = scriptTabs[index].id;
-                }
-            }
-            this.setState({ scriptTabs, activeInputTab: newSelection });
-        }
+        this.setState({ scriptTabs: remainingTabPages, activeInputTab: newSelection });
+    };
+
+    private closeTabsAsync = (ids: string[]) => {
+        this.closeTabs(ids);
+
+        return Promise.resolve();
     };
 
     private loadScripts(): void {

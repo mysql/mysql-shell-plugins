@@ -85,7 +85,7 @@ export class E2ENotebook {
 
                 const tabContainer = new E2ETabContainer();
 
-                if ((await tabContainer.getTab(connection.caption!)) !== undefined) {
+                if (await tabContainer.tabExists(connection.caption!)) {
                     this.codeEditor = await this.codeEditor.build();
 
                     return true;

@@ -21,10 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Condition, WebElement, error } from "selenium-webdriver";
+import { Condition, WebElement, error, until } from "selenium-webdriver";
 import * as locator from "./locators.js";
 import { driver } from "./driver.js";
-import { wait5seconds } from "./constants.js";
+import * as constants from "./constants.js";
 
 /**
  * This class represents the tab container
@@ -36,38 +36,79 @@ export class E2ETabContainer {
      * @param name The tab name
      * @returns A promise resolving with the tab
      */
-    public getTab = async (name: string | RegExp): Promise<WebElement | undefined> => {
+    public getTab = async (name: string | RegExp): Promise<WebElement> => {
         let tabRef: WebElement | undefined;
 
         await driver.wait(async () => {
             try {
                 const tabs = await driver.findElements(locator.tab.exists);
 
-                for (const tab of tabs) {
-                    const label = await (await tab.findElement(locator.tab.label)).getText();
+                if (tabs.length > 0) {
+                    for (const tab of tabs) {
+                        const label = await (await tab.findElement(locator.tab.label)).getText();
 
-                    if (name instanceof RegExp) {
-                        if (label.match(name) !== null) {
-                            tabRef = tab;
-                            break;
-                        }
-                    } else {
-                        if (label === name) {
-                            tabRef = tab;
-                            break;
+                        if (name instanceof RegExp) {
+                            if (label.match(name) !== null) {
+                                tabRef = tab;
+
+                                return true;
+                            }
+                        } else {
+                            if (label === name) {
+                                tabRef = tab;
+
+                                return true;
+                            }
                         }
                     }
                 }
-
-                return true;
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
-        }, wait5seconds, `Could not get tab ${name}`);
+        }, constants.wait5seconds, `Could not get tab ${name}`);
 
-        return tabRef;
+        return tabRef!;
+    };
+
+    /**
+     * Gets the tab names
+     * @returns A promise resolving with the existing tab names
+     */
+    public getTabs = async (): Promise<string[]> => {
+
+        const tabs = await driver.findElements(locator.tab.exists);
+
+        const tabTexts = await Promise.all(tabs.map(async (item: WebElement) => {
+            return (await item.findElement(locator.tab.label)).getAttribute("innerHTML");
+        }));
+
+        return tabTexts.filter((item: string) => {
+            return item !== "INPUT CONSOLE";
+        });
+    };
+
+    /**
+     * Verifies if a tab exists
+     * @param name The tab name
+     * @returns A condition resolving to true if the tab exists, false otherwise
+     */
+    public untilTabExists = (name: string | RegExp): Condition<boolean> => {
+        return new Condition(`for tab '${name}' to exist`, async () => {
+            return this.tabExists(name);
+        });
+    };
+
+    /**
+     * Verifies if a tab does not exists
+     * @param name The tab name
+     * @returns A condition resolving to true if the tab does not exists, false otherwise
+     */
+    public untilTabDoesNotExists = (name: string | RegExp): Condition<boolean> => {
+        return new Condition(`for tab '${name}' to not exist`, async () => {
+            return !(await this.tabExists(name));
+        });
     };
 
     /**
@@ -76,7 +117,7 @@ export class E2ETabContainer {
      * @returns A condition resolving to true if the tab is opened, false otherwise
      */
     public untilTabIsOpened = (name: string | RegExp): Condition<boolean> => {
-        return new Condition(``, async () => {
+        return new Condition(`for tab '${name}' to be opened`, async () => {
             return (await this.getTab(name)) !== undefined;
         });
     };
@@ -87,7 +128,7 @@ export class E2ETabContainer {
      */
     public closeTab = async (name: string | RegExp): Promise<void> => {
         const tab = await this.getTab(name);
-        await (await tab!.findElement(locator.tab.close)).click();
+        await (await tab.findElement(locator.tab.close)).click();
     };
 
     /**
@@ -112,6 +153,70 @@ export class E2ETabContainer {
                     throw e;
                 }
             }
-        }, wait5seconds, "Could not close all tabs");
+        }, constants.wait5seconds, "Could not close all tabs");
+    };
+
+    /**
+     * Right-clicks on the tab and selects an item from the context menu
+     * @param tabName The tab name
+     * @param menuItem The menu item
+     * @returns Promise resolving when the menu item is clicked
+     */
+    public selectTabContextMenu = async (tabName: string, menuItem: string): Promise<void> => {
+        const tab = await this.getTab(tabName);
+        await driver.actions().move({ origin: tab }).contextClick().perform();
+        await driver.wait(until.elementLocated(locator.tab.contextMenu.exists),
+            constants.wait3seconds, `Could not find the context menu for tab '${tabName}'`);
+
+        if (menuItem === constants.close) {
+            await driver.findElement(locator.tab.contextMenu.close).click();
+        } else if (menuItem === constants.closeAll) {
+            await driver.findElement(locator.tab.contextMenu.closeAll).click();
+        } else if (menuItem === constants.closeToTheRight) {
+            await driver.findElement(locator.tab.contextMenu.closeRight).click();
+        } else if (menuItem === constants.closeOthers) {
+            await driver.findElement(locator.tab.contextMenu.closeOthers).click();
+        } else {
+            throw new Error(`Unknown context menu item ${menuItem}`);
+        }
+    };
+
+    /**
+     * Verifies if a tab exists
+     * @param name The tab name
+     * @returns A condition resolving to true if the tab exists, false otherwise
+     */
+    public tabExists = async (name: string | RegExp): Promise<boolean> => {
+        let exists = false;
+
+        await driver.wait(async () => {
+            try {
+                const tabs = await driver.findElements(locator.tab.exists);
+
+                for (const tab of tabs) {
+                    const label = await (await tab.findElement(locator.tab.label)).getText();
+
+                    if (name instanceof RegExp) {
+                        if (label.match(name) !== null) {
+                            exists = true;
+                            break;
+                        }
+                    } else {
+                        if (label === name) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                }
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait3seconds, `Could not verify if tab '${name}' exists`);
+
+        return exists;
     };
 }

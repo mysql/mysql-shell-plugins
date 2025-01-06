@@ -38,8 +38,10 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
       }
     >
       <Tabview
+        canCloseTab={[Function]}
         canReorderTabs={true}
         className="resultTabview"
+        closeTabs={[Function]}
         hideSingleTab={false}
         onSelectTab={[Function]}
         pages={
@@ -72,7 +74,9 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
         tabPosition="top"
       >
         <Container
+          canCloseTab={[Function]}
           className="msg tabview top resultTabview"
+          closeTabs={[Function]}
           onDragEnter={[Function]}
           onDragLeave={[Function]}
           onDragOver={[Function]}
@@ -87,7 +91,9 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
           }
         >
           <div
+            canCloseTab={[Function]}
             className="msg container fixedScrollbar tabview top resultTabview"
+            closeTabs={[Function]}
             onDragEnter={[Function]}
             onDragLeave={[Function]}
             onDragOver={[Function]}
@@ -174,6 +180,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                         id="output"
                         key="output"
                         onClick={[Function]}
+                        onContextMenu={[Function]}
                         onDragEnter={[Function]}
                         onDrop={[Function]}
                         tabIndex={-1}
@@ -183,6 +190,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                           draggable={true}
                           id="output"
                           onClick={[Function]}
+                          onContextMenu={[Function]}
                           onDragEnter={[Function]}
                           onDragLeave={[Function]}
                           onDragOver={[Function]}
@@ -223,6 +231,12 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                     />
                   </div>
                 </div>
+                <Menu
+                  id="tabMenu"
+                  onItemClick={[Function]}
+                  orientation="column"
+                  placement="bottom-start"
+                />
               </div>
             </Container>
             <Container
@@ -529,8 +543,10 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
       }
     >
       <Tabview
+        canCloseTab={[Function]}
         canReorderTabs={true}
         className="resultTabview"
+        closeTabs={[Function]}
         hideSingleTab={true}
         onSelectTab={[Function]}
         pages={[]}
@@ -540,7 +556,9 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
         tabPosition="top"
       >
         <Container
+          canCloseTab={[Function]}
           className="msg tabview top resultTabview"
+          closeTabs={[Function]}
           onDragEnter={[Function]}
           onDragLeave={[Function]}
           onDragOver={[Function]}
@@ -555,7 +573,9 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
           }
         >
           <div
+            canCloseTab={[Function]}
             className="msg container fixedScrollbar tabview top resultTabview"
+            closeTabs={[Function]}
             onDragEnter={[Function]}
             onDragLeave={[Function]}
             onDragOver={[Function]}
@@ -683,8 +703,10 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
       }
     >
       <Tabview
+        canCloseTab={[Function]}
         canReorderTabs={true}
         className="resultTabview"
+        closeTabs={[Function]}
         hideSingleTab={true}
         onSelectTab={[Function]}
         pages={
@@ -719,6 +741,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                   src="toolbar-maximize.svg"
                 />
               </Button>,
+              "canClose": true,
               "caption": "Result #1",
               "content": <ResultView
                 editModeActive={false}
@@ -763,6 +786,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                   src="toolbar-maximize.svg"
                 />
               </Button>,
+              "canClose": true,
               "caption": "Result #2",
               "content": <ResultView
                 editModeActive={false}
@@ -798,7 +822,9 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
         tabPosition="top"
       >
         <Container
+          canCloseTab={[Function]}
           className="msg tabview top resultTabview"
+          closeTabs={[Function]}
           onDragEnter={[Function]}
           onDragLeave={[Function]}
           onDragOver={[Function]}
@@ -813,7 +839,9 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
           }
         >
           <div
+            canCloseTab={[Function]}
             className="msg container fixedScrollbar tabview top resultTabview"
+            closeTabs={[Function]}
             onDragEnter={[Function]}
             onDragLeave={[Function]}
             onDragOver={[Function]}
@@ -962,6 +990,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                         id="output"
                         key="output"
                         onClick={[Function]}
+                        onContextMenu={[Function]}
                         onDragEnter={[Function]}
                         onDrop={[Function]}
                         tabIndex={-1}
@@ -971,6 +1000,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                           draggable={true}
                           id="output"
                           onClick={[Function]}
+                          onContextMenu={[Function]}
                           onDragEnter={[Function]}
                           onDragLeave={[Function]}
                           onDragOver={[Function]}
@@ -1005,6 +1035,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                         id="123"
                         key="123"
                         onClick={[Function]}
+                        onContextMenu={[Function]}
                         onDragEnter={[Function]}
                         onDrop={[Function]}
                         tabIndex={-1}
@@ -1014,6 +1045,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                           draggable={true}
                           id="123"
                           onClick={[Function]}
+                          onContextMenu={[Function]}
                           onDragEnter={[Function]}
                           onDragLeave={[Function]}
                           onDragOver={[Function]}
@@ -1093,6 +1125,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                         id="456"
                         key="456"
                         onClick={[Function]}
+                        onContextMenu={[Function]}
                         onDragEnter={[Function]}
                         onDrop={[Function]}
                         tabIndex={-1}
@@ -1102,6 +1135,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                           draggable={true}
                           id="456"
                           onClick={[Function]}
+                          onContextMenu={[Function]}
                           onDragEnter={[Function]}
                           onDragLeave={[Function]}
                           onDragOver={[Function]}
@@ -1187,6 +1221,12 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                     />
                   </div>
                 </div>
+                <Menu
+                  id="tabMenu"
+                  onItemClick={[Function]}
+                  orientation="column"
+                  placement="bottom-start"
+                />
               </div>
             </Container>
             <Container

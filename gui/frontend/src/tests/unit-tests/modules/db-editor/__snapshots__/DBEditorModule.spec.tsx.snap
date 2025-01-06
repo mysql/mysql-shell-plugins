@@ -53,8 +53,10 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
           {
             "content": <g>
               <Tabview
+                canCloseTab={[Function]}
                 canReorderTabs={true}
                 className="dbModuleTabview"
+                closeTabs={[Function]}
                 hideSingleTab={false}
                 onSelectTab={[Function]}
                 pages={

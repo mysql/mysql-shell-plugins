@@ -559,7 +559,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 savedState={connectionState}
                 onHelpCommand={this.handleHelpCommand}
                 onAddEditor={this.handleAddNotebook}
-                onRemoveEditor={this.handleRemoveDocument}
                 onLoadScript={this.handleLoadScript}
                 onSelectItem={this.handleSelectItem}
                 onEditorRename={this.handleEditorRename}
@@ -585,6 +584,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         <Icon src={Assets.misc.closeIcon2} />
                     </Button>
                 ),
+                canClose: !appParameters.embedded,
             });
         });
 
@@ -616,6 +616,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         <Icon src={Assets.misc.closeIcon2} />
                     </Button>
                 ),
+                canClose: !appParameters.embedded,
             });
         });
 
@@ -647,6 +648,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         <Icon src={Assets.misc.closeIcon2} />
                     </Button>
                 ),
+                canClose: !appParameters.embedded,
             });
         });
 
@@ -661,6 +663,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 canReorderTabs
                 pages={pages}
                 onSelectTab={this.handleSelectTab}
+                closeTabs={this.removeTabs}
+                canCloseTab={this.canCloseTab}
             />
             {isEmbedded &&
                 <Menu
@@ -1383,6 +1387,16 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         return true;
     }
 
+    private canCloseTab = async (id: string): Promise<boolean> => {
+        const { selectedPage } = this.state;
+
+        if (id !== selectedPage || !this.#currentTabRef.current) {
+            return true;
+        }
+
+        return this.#currentTabRef.current.canClose();
+    };
+
     /**
      * Handles closing of a single tab (via its close button).
      *
@@ -1395,164 +1409,186 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         if (this.#currentTabRef.current) {
             void this.#currentTabRef.current.canClose().then((canClose) => {
                 if (canClose) {
-                    void this.removeTab(id);
+                    void this.removeTabs([id]);
                 }
             });
         } else {
-            void this.removeTab(id);
+            void this.removeTabs([id]);
         }
+    };
+
+    private updateAppTabsState = (state: Partial<IDBEditorModuleState>, closingIds: string[]): void => {
+        const { selectedPage } = this.state;
+
+        const remainingPageIds: string[] = [];
+        state.shellSessionTabs?.forEach((info) => {
+            remainingPageIds.push(info.dataModelEntry.id);
+        });
+        state.connectionTabs?.forEach((info) => {
+            remainingPageIds.push(info.dataModelEntry.id);
+        });
+        state.documentTabs?.forEach((info) => {
+            remainingPageIds.push(info.dataModelEntry.id);
+        });
+        const newSelection = Tabview.getSelectedPageId(remainingPageIds, selectedPage, closingIds, "connections");
+        state.selectedPage = newSelection;
+
+        this.setState(state);
     };
 
     /**
      * Completely removes a tab, with all its editors (if the tab is a connection tab).
      *
-     * @param tabId The ID of the tab to remove. For standalone documents this is equal to the document ID.
+     * @param tabIds The list of tab IDs to remove. For standalone documents this is equal to the document ID.
      *
      * @returns A promise resolving to true, when the tab removal is finished.
      */
-    private async removeTab(tabId: string): Promise<boolean> {
-        const { selectedPage, connectionTabs, documentTabs, shellSessionTabs } = this.state;
-
-        let index = shellSessionTabs.findIndex((info) => {
-            return info.dataModelEntry.id === tabId;
-        });
-
-        if (index > -1) {
-            return this.removeShellTab(tabId);
+    private removeTabs = async (tabIds: string[]): Promise<boolean> => {
+        if (!tabIds.length) {
+            return true;
         }
+        const { connectionTabs, documentTabs, shellSessionTabs } = this.state;
 
-        // Remove all result data from the application DB.
-        await ApplicationDB.removeDataByTabId(StoreType.DbEditor, tabId);
+        const closingTabs: Pick<IDBEditorModuleState, "shellSessionTabs" | "connectionTabs" | "documentTabs"> = {
+            shellSessionTabs: [],
+            connectionTabs: [],
+            documentTabs: [],
+        };
+        const remainingTabsState: Pick<IDBEditorModuleState, "shellSessionTabs" | "connectionTabs" | "documentTabs"> = {
+            shellSessionTabs: [],
+            connectionTabs: [],
+            documentTabs: [],
+        };
 
-        // Remove tab info from the connection state and select another tab.
-        index = connectionTabs.findIndex((info: IConnectionTab) => {
-            return info.dataModelEntry.id === tabId;
+        shellSessionTabs.forEach((info) => {
+            if (tabIds.includes(info.dataModelEntry.id)) {
+                closingTabs.shellSessionTabs.push(info);
+            } else {
+                remainingTabsState.shellSessionTabs.push(info);
+            }
+        });
+        connectionTabs.forEach((info) => {
+            if (tabIds.includes(info.dataModelEntry.id)) {
+                closingTabs.connectionTabs.push(info);
+            } else {
+                remainingTabsState.connectionTabs.push(info);
+            }
+        });
+        documentTabs.forEach((info) => {
+            if (tabIds.includes(info.dataModelEntry.id)) {
+                closingTabs.documentTabs.push(info);
+            } else {
+                remainingTabsState.documentTabs.push(info);
+            }
         });
 
-        if (index > -1) {
-            const info = connectionTabs[index];
-            const page = connectionTabs[index].dataModelEntry;
+        await Promise.all(tabIds.map(async (id) => {
+            // Remove all result data from the application DB.
+            await ApplicationDB.removeDataByTabId(StoreType.DbEditor, id);
+        }));
 
-            // Remove the editor tab and its associated connection state, but watch out:
-            // Order is important here. First remove the tab, then set the state and finally close the session.
-            connectionTabs.splice(index, 1);
+        await Promise.all(closingTabs.shellSessionTabs.map(async (info) => {
+            await this.removeShellTab(info.dataModelEntry.id, false);
+        }));
+        await Promise.all(closingTabs.connectionTabs.map(async (info) => {
+            await this.removeConnectionTab(info);
+        }));
+        closingTabs.documentTabs.forEach((info) => {
+            this.removeDocument(info.dataModelEntry.id, info.dataModelEntry.id);
+        });
 
-            let newSelection = selectedPage;
+        this.updateAppTabsState(remainingTabsState, tabIds);
 
-            if (tabId === newSelection) {
-                if (index > 0) {
-                    newSelection = connectionTabs[index - 1].dataModelEntry.id;
-                } else {
-                    if (index >= connectionTabs.length - 1) {
-                        newSelection = "connections"; // The overview page cannot be closed.
-                    } else {
-                        newSelection = connectionTabs[index + 1].dataModelEntry.id;
-                    }
+        return true;
+    };
+
+    /**
+     * Similar to `removeTabs`, but for connection tabs.
+     *
+     * @param info Connection tab information
+     *
+     * @returns A promise resolving to true, when the tab removal is finished.
+     */
+    private removeConnectionTab = async (info: IConnectionTab): Promise<boolean> => {
+        const tabId = info.dataModelEntry.id;
+
+        const page = info.dataModelEntry;
+        const connectionState = this.connectionPresentation.get(page);
+        if (connectionState) {
+            this.notifyRemoteEditorClose(tabId); // details.documentId, tab.connection.details.i
+
+            this.removeDocument(tabId, undefined, page.details.id);
+
+            // Release all editor models.
+            connectionState.documentStates.forEach((editor) => {
+                const model = editor.state?.model;
+                if (model) {
+                    model.executionContexts?.dispose();
+                    model.dispose();
                 }
-            }
-
-            this.setState({ selectedPage: newSelection, connectionTabs });
-
-            const connectionState = this.connectionPresentation.get(page);
-            if (connectionState) {
-                this.notifyRemoteEditorClose(tabId);
-
-                this.#documentDataModel.closeDocument(undefined, {
-                    pageId: tabId,
-                    connectionId: page.details.id,
-                });
-
-                // Release all editor models.
-                connectionState.documentStates.forEach((editor) => {
-                    const model = editor.state?.model;
-                    if (model) {
-                        model.executionContexts?.dispose();
-                        model.dispose();
-                    }
-                });
-
-                this.connectionPresentation.delete(page);
-
-                // Note: this connection is not part of the data model, so we don't have to remove it from there.
-                //       Instead it was cloned when the tab was created.
-                await info.connection.close();
-            }
-        } else {
-            index = documentTabs.findIndex((info: IDocumentTab) => {
-                return info.dataModelEntry.id === tabId;
             });
 
-            if (index > -1) {
-                let newSelection = selectedPage;
-                documentTabs.splice(index, 1);
+            this.connectionPresentation.delete(page);
 
-                // Select a new page if the one that we close was also the active one.
-                if (tabId === newSelection) {
-                    // Standalone documents are always ordered last in the tab list. So first try to select the
-                    // previous document tab or, if there are no more document tabs, select
-                    // the last connection tab. If that's not possible either, select the overview tab.
-                    if (index > 0) {
-                        newSelection = documentTabs[index - 1].dataModelEntry.id;
-                    } else if (connectionTabs.length > 0) {
-                        newSelection = connectionTabs[connectionTabs.length - 1].dataModelEntry.id;
-                    } else {
-                        newSelection = "connections";
-                    }
-                }
-
-                this.#documentDataModel.closeDocument(undefined, {
-                    pageId: tabId,
-                    id: tabId,
-                });
-
-                this.setState({ documentTabs, selectedPage: newSelection });
-            }
+            // Note: this connection is not part of the data model, so we don't have to remove it from there.
+            // Instead it was cloned when the tab was created.
+            await info.connection.close();
         }
 
         return true;
-    }
+    };
 
     /**
-     * Similar to `removeTab`, but for shell session tabs.
+     * Similar to `removeTabs`, but for document tabs.
      *
-     * @param id The session id (tab id) of the shell session to remove.
+     * @param tabId The id of the tab to remove.
+     * @param documentId The id of the document to remove, optional.
+     * @param connectionId The id of the connection to remove, optional,
+     */
+    private removeDocument = (tabId: string, documentId?: string, connectionId?: number): void => {
+        this.#documentDataModel.closeDocument(undefined, {
+            pageId: tabId,
+            connectionId,
+            id: documentId,
+        });
+    };
+
+    /**
+     * Similar to `removeTabs`, but for shell session tabs.
+     *
+     * @param id The session (tab) id to remove.
+     * @param updateAppState Whether application state and tabs have to be updated, defaults to true.
      *
      * @returns A promise resolving to true, when the tab removal is finished.
      */
-    private removeShellTab = async (id: string): Promise<boolean> => {
-        const { selectedPage, shellSessionTabs } = this.state;
+    private removeShellTab = async (id: string, updateAppState = true): Promise<boolean> => {
+        const { shellSessionTabs } = this.state;
 
-        // Remove all result data from the application DB.
-        void ApplicationDB.removeDataByTabId(StoreType.Shell, id);
+        if (updateAppState) {
+            // Remove all result data from the application DB.
+            void ApplicationDB.removeDataByTabId(StoreType.Shell, id);
+        }
 
-        const index = shellSessionTabs.findIndex((info) => {
+        const session = shellSessionTabs.find((info) => {
             return info.dataModelEntry.id === id;
         });
 
-        if (index > -1) {
+        if (session) {
             this.#documentDataModel.removeShellSession(undefined, id);
 
-            const session = shellSessionTabs[index];
             await session.savedState.backend.closeShellSession();
 
-            shellSessionTabs.splice(index, 1);
             requisitions.executeRemote("sessionRemoved", session.dataModelEntry.details);
+        }
 
-            let newSelection = selectedPage;
+        if (updateAppState) {
+            const remainingTabs = shellSessionTabs.filter((t) => {
+                return t.dataModelEntry.id !== id;
+            });
 
-            if (id === newSelection) {
-                if (index > 0) {
-                    newSelection = shellSessionTabs[index - 1].dataModelEntry.id;
-                } else {
-                    if (index >= shellSessionTabs.length - 1) {
-                        newSelection = "sessions"; // The overview page cannot be closed.
-                    } else {
-                        newSelection = shellSessionTabs[index + 1].dataModelEntry.id;
-                    }
-                }
-            }
-
-            this.setState({ selectedPage: newSelection, shellSessionTabs });
+            this.updateAppTabsState({
+                shellSessionTabs: remainingTabs,
+            }, [id]);
         }
 
         return true;
@@ -1673,28 +1709,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private handleCloseDocument = async (details: { connectionId?: number, documentId: string; }): Promise<boolean> => {
         const { connectionTabs, documentTabs, shellSessionTabs } = this.state;
 
-        const index = shellSessionTabs.findIndex((entry) => {
-            return entry.dataModelEntry.id === details.documentId;
-        });
-
-        if (index > -1) {
-            return this.removeShellTab(details.documentId);
-        }
-
         const tab = connectionTabs.find((tab) => {
             return tab.connection.details.id === details.connectionId;
         });
 
         if (!tab) {
-            const document = documentTabs.find((entry) => {
-                return entry.dataModelEntry.id === details.documentId;
-            });
-
-            if (document) {
-                return this.removeTab(details.documentId);
-            }
-
-            return Promise.resolve(false);
+            return this.removeTabs([details.documentId]);
         }
 
         const connectionState = this.connectionPresentation.get(tab.dataModelEntry);
@@ -1727,15 +1747,11 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
                 if (connectionState.documentStates.length === 0) {
                     // No editor left over -> close the connection. This will also send a remote notification.
-                    return this.removeTab(tab.dataModelEntry.id);
+                    return this.removeTabs([tab.dataModelEntry.id]);
                 } else {
                     this.notifyRemoteEditorClose(tab.dataModelEntry.id, documentState.document.id,
                         tab.connection.details.id);
-                    this.#documentDataModel.closeDocument(undefined, {
-                        pageId: tab.dataModelEntry.id,
-                        connectionId: tab.connection.details.id,
-                        id: documentState.document.id,
-                    });
+                    this.removeDocument(tab.dataModelEntry.id, documentState.document.id, tab.connection.details.id);
 
                     this.forceUpdate();
 
@@ -1893,98 +1909,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 this.forceUpdate();
 
                 return editorId;
-            }
-        }
-    };
-
-    /**
-     * Removes a single editor on a connection tab.
-     *
-     * @param tabId  The id of the tab in which the editor is located.
-     * @param documentId The id of the document to remove.
-     * @param doUpdate A flag telling if re-rendering is needed.
-     */
-    private handleRemoveDocument = (tabId: string, documentId: string, doUpdate = true): void => {
-        const { connectionTabs } = this.state;
-
-        const tab = connectionTabs.find((entry) => {
-            return entry.dataModelEntry.id === tabId;
-        });
-
-        if (tab) {
-            const connectionState = this.connectionPresentation.get(tab?.dataModelEntry);
-            if (connectionState) {
-                const index = connectionState.documentStates.findIndex((editor: IOpenDocumentState) => {
-                    return editor.document.id === documentId;
-                });
-
-                if (index > -1) {
-                    if (connectionState.activeEntry === documentId) {
-                        // Select another editor if we're just removing the selected one.
-                        if (index > 0) {
-                            connectionState.activeEntry = connectionState.documentStates[index - 1].document.id;
-                        } else {
-                            if (index < connectionState.documentStates.length - 1) {
-                                connectionState.activeEntry = connectionState.documentStates[index + 1].document.id;
-                            }
-                        }
-                    }
-
-                    connectionState.documentStates.splice(index, 1);
-
-                    this.notifyRemoteEditorClose(tabId, documentId, tab.connection.details.id);
-
-                    const connection = tab.connection;
-                    this.#documentDataModel.closeDocument(undefined, {
-                        pageId: tabId,
-                        connectionId: connection.details.id,
-                        id: documentId,
-                    });
-
-                    if (connectionState.documentStates.length === 0) {
-                        // Add the default editor, if the user just removed the last editor.
-                        const useNotebook = Settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
-                        const language = useNotebook ? "msg" : "mysql";
-                        const model = this.createEditorModel(connection.backend, "", language,
-                            connection.details.version!, connection.details.sqlMode!, connection.currentSchema);
-
-                        const entryId = uuid();
-                        const editorCaption = `DB Notebook ${++this.#documentCounter}`;
-                        const type = useNotebook ? OdmEntityType.Notebook : OdmEntityType.Script;
-
-                        const document = this.#documentDataModel.openDocument(undefined, {
-                            type,
-                            parameters: {
-                                pageId: tabId,
-                                id: entryId,
-                                connection: connection.details,
-                                caption: editorCaption,
-                                language,
-                            },
-                        });
-
-                        if (document) {
-                            const newState: IOpenDocumentState = {
-                                state: {
-                                    model,
-                                    viewState: null,
-                                    options: defaultEditorOptions,
-                                },
-                                currentVersion: model.getVersionId(),
-                                document,
-                            };
-
-                            connectionState.documentStates.push(newState);
-                            connectionState.activeEntry = entryId;
-
-                            this.notifyRemoteEditorOpen(tabId, document);
-                        }
-                    }
-
-                    if (doUpdate) {
-                        this.forceUpdate();
-                    }
-                }
             }
         }
     };

@@ -1026,6 +1026,13 @@ export const tab = {
     exists: By.css(".tabArea .tabItem"),
     label: By.css("label"),
     close: By.className("closeButton"),
+    contextMenu: {
+        exists: By.css("#tabMenu .visible"),
+        close: By.id("closeTab"),
+        closeOthers: By.id("closeOthers"),
+        closeRight: By.id("closeRight"),
+        closeAll: By.id("closeAll"),
+    },
 };
 
 export const fileSelect = By.id("fileSelect");
@@ -1178,5 +1185,13 @@ export const mrsDbObjectDialog = {
     },
     ok: By.id("ok"),
     cancel: By.id("cancel"),
+};
+
+export const e2eDebugger = {
+    toggle: By.id("statusBarItem.1"),
+    exists: By.id("debuggerPaneHost"),
+    scripts: {
+        treeItem: By.css("#scriptSection .tabulator-row"),
+    },
 };
 
