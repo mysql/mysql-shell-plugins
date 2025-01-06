@@ -164,12 +164,17 @@ export class E2EObjectStorageBrowser {
                             await driver.findElement(scrollTable));
                     }
                     let item = await this.getItem(path[i], String(i));
-                    await driver.executeScript("arguments[0].click()",
-                        await item.findElement(objStorageItem.treeToggle));
-                    await driver.wait(this.untilItemsAreLoaded(), constants.wait15seconds,
-                        ` ${path[i + 1]} to be loaded`);
+                    let itemToggle = await item.findElement(objStorageItem.treeToggle);
+
+                    if (!(await (itemToggle.getAttribute("class"))).includes("expanded")) {
+                        await driver.executeScript("arguments[0].click()",
+                            await item.findElement(objStorageItem.treeToggle));
+                        await driver.wait(this.untilItemsAreLoaded(), constants.wait15seconds,
+                            ` ${path[i + 1]} to be loaded`);
+                    }
+
                     item = await this.getItem(path[i], String(i));
-                    const itemToggle = await item.findElement(objStorageItem.treeToggle);
+                    itemToggle = await item.findElement(objStorageItem.treeToggle);
 
                     return (await (itemToggle.getAttribute("class"))).includes("expanded");
                 } catch (e) {

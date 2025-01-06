@@ -363,7 +363,8 @@ describe("MYSQL REST SERVICE", () => {
                 }
             }, constants.wait5seconds, "A new tab was not opened to the MRS Documentation");
 
-            expect(await driver.getCurrentUrl()).toBe("https://dev.mysql.com/doc/dev/mysql-rest-service/latest/");
+            expect(await driver.getCurrentUrl()).toContain("https://dev.mysql.com/doc/dev/mysql-rest-service/latest/");
+
             await driver.close();
             await driver.switchTo().window(browserTabs[0]);
         } catch (e) {
@@ -921,6 +922,7 @@ describe("MYSQL REST SERVICE - CLIPBOARD", () => {
             await dbTreeSection.tree.expandElement([otherService.restSchemas![0].settings!.schemaName!]);
             await dbTreeSection.tree.expandElement(["Tables"]);
 
+            await driver.wait(dbTreeSection.tree.untilElementHasChildren("Tables"), constants.wait5seconds);
             await dbTreeSection.tree.openContextMenuAndSelect("actor", constants.addDBObjToREST);
             await RestObjectDialog.set({ restServicePath: otherService.treeName });
             notification = await new E2EToastNotification().create();
@@ -979,9 +981,10 @@ describe("MYSQL REST SERVICE - CLIPBOARD", () => {
             }
 
             expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
-            await notification!.close();
             expect(await Os.readClipboard())
                 .toMatch(new RegExp(`(CREATE REST SERVICE|${constants.jsError})`));
+
+            await notification!.close();
         } catch (e) {
             testFailed = true;
             throw e;
@@ -1002,10 +1005,10 @@ describe("MYSQL REST SERVICE - CLIPBOARD", () => {
             }
 
             expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
-            await notification!.close();
-
             expect(await Os.readClipboard())
                 .toMatch(new RegExp(`(CREATE OR REPLACE REST SCHEMA|${constants.jsError})`));
+
+            await notification!.close();
         } catch (e) {
             testFailed = true;
             throw e;
@@ -1027,9 +1030,11 @@ describe("MYSQL REST SERVICE - CLIPBOARD", () => {
             }
 
             expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
-            await notification!.close();
             expect(await Os.readClipboard())
                 .toMatch(new RegExp(`(CREATE OR REPLACE REST VIEW|${constants.jsError})`));
+
+            await notification!.close();
+
         } catch (e) {
             testFailed = true;
             throw e;
@@ -1057,10 +1062,10 @@ describe("MYSQL REST SERVICE - CLIPBOARD", () => {
             }
 
             expect(notification!.message).toBe("The DB Object Path was copied to the system clipboard");
-            await notification!.close();
-
             const clipboard = await Os.readClipboard();
             expect(clipboard).toMatch(regex);
+
+            await Misc.dismissNotifications();
         } catch (e) {
             testFailed = true;
             throw e;

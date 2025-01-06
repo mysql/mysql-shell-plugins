@@ -81,16 +81,6 @@ describe("OCI", () => {
 
     });
 
-    beforeEach(async () => {
-        try {
-            await ociTreeSection.tree.expandElement(ociTree, constants.wait25seconds);
-            await Misc.dismissNotifications(true);
-        } catch (e) {
-            await Misc.storeScreenShot("beforeEach_OCI");
-            throw e;
-        }
-    });
-
     afterAll(async () => {
         await Os.writeFELogs(basename(__filename), driver.manage().logs());
         await driver.close();
@@ -108,6 +98,8 @@ describe("OCI", () => {
 
     it("Set as New Default Config Profile", async () => {
         try {
+            await ociTreeSection.tree.expandElement(ociTree, constants.wait25seconds);
+            await Misc.dismissNotifications(true);
             await ociTreeSection.tree.openContextMenuAndSelect(treeE2eProfile!,
                 constants.setAsNewDefaultConfigProfile);
             await driver.wait(ociTreeSection.tree.untilIsDefault(treeE2eProfile!,
@@ -121,6 +113,7 @@ describe("OCI", () => {
 
     it("Set as Current Compartment", async () => {
         try {
+            await ociTreeSection.tree.expandElement(ociTree, constants.wait25seconds);
             await Misc.dismissNotifications(true);
             await ociTreeSection.tree.openContextMenuAndSelect(ociTree[2],
                 constants.setAsCurrentCompartment);
@@ -208,6 +201,11 @@ describe("OCI", () => {
 
     it("Set as Current Bastion", async () => {
         try {
+            await ociTreeSection.tree.expandElement(ociTree, constants.wait25seconds);
+            await Misc.dismissNotifications(true);
+            await driver.wait(ociTreeSection.tree.untilElementHasChildren(ociTree[ociTree.length - 1]),
+                constants.wait20seconds);
+
             const treeBastion = await ociTreeSection.tree.getOciElementByType(constants.bastionType);
             const expected1 = `Setting current bastion to ${treeBastion} ...`;
             const expected2 = `Current bastion set to ${treeBastion}.`;
@@ -226,14 +224,6 @@ describe("OCI", () => {
 
             await driver.wait(ociTreeSection.tree.untilIsDefault(treeBastion, "bastion"),
                 constants.wait10seconds, "Bastion is not the default item");
-
-            /*const shellConsole = new E2EShellConsole();
-            await shellConsole.openNewShellConsole();
-            await driver.wait(shellConsole.untilIsOpened(), constants.wait15seconds,
-                "Shell Console was not loaded");
-            const result = await shellConsole.codeEditor
-                .execute("mds.get.currentBastionId()") as E2ECommandResultData;
-            expect(result.text).toBe(bastionID);*/
         } catch (e) {
             await Misc.storeScreenShot();
             throw e;

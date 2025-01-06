@@ -202,7 +202,7 @@ export class E2ECodeEditor {
             }
         }, constants.wait5seconds, "Editor was not cleaned");
 
-        await this.execute("\\about");
+        await this.execute("\\about ", true);
     };
 
     /**

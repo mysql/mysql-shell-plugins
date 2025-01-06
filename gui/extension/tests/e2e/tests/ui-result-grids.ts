@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024 Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -1292,6 +1292,7 @@ describe("RESULT GRIDS", () => {
             await Workbench.openMySQLShellForVSCode();
             const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
             await openEditorsSection.expand();
+            await Workbench.dismissNotifications();
             const openEditorsGlobalConn = await openEditorsSection.tree.getElement(globalConn.caption);
             await (await openEditorsGlobalConn.getActionButton(constants.newMySQLScript)).click();
             const anotherConnection = await dbTreeSection.tree
