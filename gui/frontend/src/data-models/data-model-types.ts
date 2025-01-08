@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,6 +24,9 @@
  */
 
 import type { ConnectionDataModelEntry } from "./ConnectionDataModel.js";
+
+/** A list of names for schemas we consider being system schemas. */
+export const systemSchemas = new Set(["mysql", "mysql_innodb_cluster_metadata", "mysql_rest_service_metadata"]);
 
 /**
  * This is the same interface as defined by VS Code. By defining a copy here we can use duck typing to
@@ -100,4 +103,6 @@ export interface IDataModelEntryState {
 
     /** Was the entry expanded before? If not it must be initialized on expand. */
     expandedOnce: boolean;
+
+    payload?: IDictionary;
 }

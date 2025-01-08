@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -356,18 +356,22 @@ export class DBEditorCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.showSystemSchemasOnConnection",
             (entry?: ICdmConnectionEntry) => {
                 if (entry) {
-                    //entry.details.hideSystemSchemas = false;
+                    if (entry.type === CdmEntityType.Connection) {
+                        entry.state.payload = { showSystemSchemas: true };
 
-                    void requisitions.execute("refreshConnection", entry);
+                        void requisitions.execute("refreshConnection", entry);
+                    }
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.hideSystemSchemasOnConnection",
             (entry?: ICdmConnectionEntry) => {
                 if (entry) {
-                    //entry.details.hideSystemSchemas = true;
+                    if (entry.type === CdmEntityType.Connection) {
+                        entry.state.payload = { showSystemSchemas: false };
 
-                    void requisitions.execute("refreshConnection", entry);
+                        void requisitions.execute("refreshConnection", entry);
+                    }
                 }
             }));
 

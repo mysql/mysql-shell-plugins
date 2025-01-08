@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "declaration": true,
+        "declaration": false,
         "module": "Node16",
         "moduleResolution": "Node16",
         "target": "ES2022",
@@ -8,9 +8,8 @@
         "noEmit": true,
         "removeComments": true,
         "noImplicitAny": true,
-        "sourceMap": true,
+        "sourceMap": false,
         "esModuleInterop": true,
-        "inlineSources": true,
         "isolatedModules": true,
         "allowSyntheticDefaultImports": true,
         "strictNullChecks": true,

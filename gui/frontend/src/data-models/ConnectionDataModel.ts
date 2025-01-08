@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -203,14 +203,6 @@ export interface ICdmBaseEntry {
 
     /** Transient information related to initialization, UI and others. */
     readonly state: IDataModelEntryState;
-
-    /**
-     * Loads the content of this entry if not yet done. The promise returns `true` if loading was successful,
-     * otherwise `false`. Not all entries need to implement this method, as some are always loaded with their parent.
-     *
-     * @param callback An optional callback to report progress.
-     */
-    //initialize?(callback?: ProgressCallback): Promise<boolean>;
 
     /**
      * Reloads the content of this data model entry, regardless of whether it was already initialized or not.

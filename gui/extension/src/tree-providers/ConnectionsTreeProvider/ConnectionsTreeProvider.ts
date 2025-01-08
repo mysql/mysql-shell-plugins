@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -38,7 +38,9 @@ import {
 
 import type { IDialogRequest, IServicePasswordRequest } from "../../../../frontend/src/app-logic/general-types.js";
 import { ShellPromptResponseType, type IPromptReplyBackend } from "../../../../frontend/src/communication/Protocol.js";
-import type { AdminPageType, ISubscriberActionType } from "../../../../frontend/src/data-models/data-model-types.js";
+import {
+    systemSchemas, type AdminPageType, type ISubscriberActionType,
+} from "../../../../frontend/src/data-models/data-model-types.js";
 import { DBType, IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface/index.js";
 import { convertErrorToString } from "../../../../frontend/src/utilities/helpers.js";
 import { DBConnectionViewProvider } from "../../WebviewProviders/DBConnectionViewProvider.js";
@@ -51,6 +53,7 @@ import { MrsAuthAppTreeItem } from "./MrsAuthAppTreeItem.js";
 import { MrsContentFileTreeItem } from "./MrsContentFileTreeItem.js";
 import { MrsContentSetTreeItem } from "./MrsContentSetTreeItem.js";
 import { MrsDbObjectTreeItem } from "./MrsDbObjectTreeItem.js";
+import { MrsRouterServiceTreeItem } from "./MrsRouterServiceTreeItem.js";
 import { MrsRouterTreeItem } from "./MrsRouterTreeItem.js";
 import { MrsSchemaTreeItem } from "./MrsSchemaTreeItem.js";
 import { MrsServiceTreeItem } from "./MrsServiceTreeItem.js";
@@ -71,7 +74,6 @@ import { SchemaTableSqliteTreeItem } from "./SchemaTableSqliteTreeItem.js";
 import { SchemaTableTriggerTreeItem } from "./SchemaTableTriggerTreeItem.js";
 import { SchemaViewMySQLTreeItem } from "./SchemaViewMySQLTreeItem.js";
 import { SchemaViewSqliteTreeItem } from "./SchemaViewSqliteTreeItem.js";
-import { MrsRouterServiceTreeItem } from "./MrsRouterServiceTreeItem.js";
 
 /** A class to provide the entire tree structure for DB editor connections and the DB objects from them. */
 export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionDataModelEntry> {
@@ -82,6 +84,9 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
         ["lakehouseNavigator", "adminLakehouseNavigator.svg"],
     ]);
 
+    /** The data model that provides the data for the tree. */
+    public readonly dataModel: ConnectionDataModel;
+
     // List to keep track of visible MrsTreeItems
     private expandedMrsTreeItems = new Set<ICdmRestRootEntry>();
 
@@ -90,17 +95,14 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
     // When set a timer will be started to remove all current schemas from the tree.
     private clearCurrentSchemas = false;
 
-    // The data model that provides the data for the tree.
-    #dataModel: ConnectionDataModel;
-
-    #openEditorCounts = new Map<ICdmConnectionEntry, number>();
+    private openEditorCounts = new Map<ICdmConnectionEntry, number>();
 
     public get onDidChangeTreeData(): Event<ConnectionDataModelEntry | undefined> {
         return this.changeEvent.event;
     }
 
     public constructor(dataModel: ConnectionDataModel) {
-        this.#dataModel = dataModel;
+        this.dataModel = dataModel;
         dataModel.autoRouterRefresh = false;
         dataModel.subscribe(this.dataModelChanged);
 
@@ -113,10 +115,6 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
         requisitions.register("showDialog", this.handleShowDialog);
     }
 
-    public get dataModel(): ConnectionDataModel {
-        return this.#dataModel;
-    }
-
     public dispose(): void {
         requisitions.unregister("refreshConnection", this.refreshConnection);
         requisitions.unregister("proxyRequest", this.proxyRequest);
@@ -126,7 +124,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
 
     public refresh(entry?: ConnectionDataModelEntry): void {
         if (!entry) {
-            void this.#dataModel.reloadConnections().then(() => {
+            void this.dataModel.reloadConnections().then(() => {
                 this.changeEvent.fire(entry);
 
                 void requisitions.execute("connectionsUpdated", undefined);
@@ -147,7 +145,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
             // A provider is now active, so update the current schemas for all connections.
             this.clearCurrentSchemas = false;
             provider.currentSchemas.forEach((schema, id) => {
-                const connection = this.#dataModel.findConnectionEntryById(id);
+                const connection = this.dataModel.findConnectionEntryById(id);
                 if (connection) {
                     connection.currentSchema = schema;
                 }
@@ -173,7 +171,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
     }
 
     public resetCurrentSchemas(): void {
-        this.#dataModel.connections.forEach((connection) => {
+        this.dataModel.connections.forEach((connection) => {
             connection.currentSchema = "";
         });
         this.changeEvent.fire(undefined);
@@ -335,13 +333,13 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
 
     public async getChildren(entry?: ConnectionDataModelEntry): Promise<ConnectionDataModelEntry[]> {
         if (!entry) {
-            await this.#dataModel.initialize();
+            await this.dataModel.initialize();
 
-            return this.#dataModel.connections;
+            return this.dataModel.connections;
         }
 
-        // Initialize the entry if it hasn't been done yet.
         try {
+            // Initialize the entry if it hasn't been done yet.
             await entry.refresh?.((result?: string | Error): void => {
                 if (result instanceof Error) {
                     void window.showErrorMessage(result.message);
@@ -355,11 +353,22 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
             return [];
         }
 
-        return entry.getChildren?.() ?? [];
+        let children = entry.getChildren?.() ?? [];
+
+        if (entry.type === CdmEntityType.Connection) {
+            if (!entry.state.payload?.showSystemSchemas) {
+                // Remove all system schemas from the child list.
+                children = children.filter((schema) => {
+                    return !systemSchemas.has(schema.caption);
+                });
+            }
+        }
+
+        return children;
     }
 
     public async closeAllConnections(): Promise<void> {
-        return this.#dataModel.closeAllConnections();
+        return this.dataModel.closeAllConnections();
     }
 
     /**
@@ -415,7 +424,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
         const delimiterKeyword = uppercaseKeywords ? "DELIMITER" : "delimiter";
         entryType = uppercaseKeywords ? entryType.toUpperCase() : entryType.toLowerCase();
 
-        const qualifiedName = this.#dataModel.getQualifiedName(entry);
+        const qualifiedName = this.dataModel.getQualifiedName(entry);
         const data = await entry.connection.backend.execute(`show create ${entryType} ${qualifiedName}`);
         const isRoutine = entry.type === CdmEntityType.StoredProcedure || entry.type === CdmEntityType.StoredFunction;
         if (data) {
@@ -481,8 +490,8 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
         void showModalDialog(message, okText, "This operation cannot be reverted!").then(async (accepted) => {
             if (accepted) {
                 try {
-                    await this.#dataModel.removeEntry(entry);
-                    await this.#dataModel.dropItem(entry);
+                    await this.dataModel.removeEntry(entry);
+                    await this.dataModel.dropItem(entry);
 
                     // TODO: refresh only the affected connection.
                     void commands.executeCommand("msg.refreshConnections");
@@ -521,7 +530,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
                     editorId: string, connectionId: number, schema: string;
                 };
 
-                const connection = this.#dataModel.findConnectionEntryById(response.connectionId);
+                const connection = this.dataModel.findConnectionEntryById(response.connectionId);
                 if (connection) {
                     connection.currentSchema = response.schema;
 
@@ -538,7 +547,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
             }
 
             case "connectionAdded": {
-                await this.#dataModel.reloadConnections();
+                await this.dataModel.reloadConnections();
                 this.refresh();
 
                 break;
@@ -546,14 +555,14 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
 
             case "connectionUpdated": {
                 const response = request.original.parameter as IConnectionDetails;
-                const connection = this.#dataModel.updateConnectionDetails(response);
+                const connection = this.dataModel.updateConnectionDetails(response);
                 this.refresh(connection);
 
                 break;
             }
 
             case "connectionRemoved": {
-                await this.#dataModel.reloadConnections();
+                await this.dataModel.reloadConnections();
 
                 this.refresh();
 
@@ -563,10 +572,10 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
             case "documentOpened": {
                 const response = request.original.parameter as IDocumentOpenData;
 
-                const connection = this.#dataModel.findConnectionEntryById(response.connection?.id ?? -1);
+                const connection = this.dataModel.findConnectionEntryById(response.connection?.id ?? -1);
                 if (connection) {
-                    const count = this.#openEditorCounts.get(connection) ?? 0;
-                    this.#openEditorCounts.set(connection, count + 1);
+                    const count = this.openEditorCounts.get(connection) ?? 0;
+                    this.openEditorCounts.set(connection, count + 1);
                 }
 
                 return Promise.resolve(true);
@@ -576,12 +585,12 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
                 const response = request.original.parameter as IDocumentCloseData;
 
                 if (response.connectionId) {
-                    const connection = this.#dataModel.findConnectionEntryById(response.connectionId);
+                    const connection = this.dataModel.findConnectionEntryById(response.connectionId);
                     if (connection) {
-                        let count = this.#openEditorCounts.get(connection);
+                        let count = this.openEditorCounts.get(connection);
                         if (count !== undefined) {
                             --count;
-                            this.#openEditorCounts.set(connection, count);
+                            this.openEditorCounts.set(connection, count);
                             if (count === 0) {
                                 connection.currentSchema = "";
 
@@ -596,7 +605,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
 
             case "updateMrsRoot": {
                 const response = request.original.parameter as string;
-                const entry = this.#dataModel.findConnectionEntryById(parseInt(response, 10));
+                const entry = this.dataModel.findConnectionEntryById(parseInt(response, 10));
 
                 if (entry) {
                     void entry.mrsEntry?.refresh?.().then(() => {
