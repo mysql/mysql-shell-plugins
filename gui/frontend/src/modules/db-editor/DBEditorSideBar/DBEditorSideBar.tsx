@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -51,8 +51,9 @@ import {
     OciDmEntityType, type IOciDmCompartment, type IOciDmProfile, type OciDataModelEntry,
 } from "../../../data-models/OciDataModel.js";
 import { OdmEntityType, type OpenDocumentDataModelEntry } from "../../../data-models/OpenDocumentDataModel.js";
-import type {
-    AdminPageType, Command, IDataModelEntryState, ISubscriberActionType,
+import {
+    systemSchemas,
+    type AdminPageType, type Command, type IDataModelEntryState, type ISubscriberActionType,
 } from "../../../data-models/data-model-types.js";
 import { BastionLifecycleState } from "../../../oci-typings/oci-bastion/lib/model/bastion-lifecycle-state.js";
 import { Assets } from "../../../supplement/Assets.js";
@@ -158,8 +159,6 @@ const mrsDbObjectTypeToIcon: Map<MrsDbObjectType, string> = new Map([
     [MrsDbObjectType.Function, Assets.mrs.dbObjectFunctionIcon],
     //[MrsDbObjectType.Event, Assets.mrs.dbObjectEventIcon],
 ]);
-
-const systemSchemas = new Set(["mysql", "mysql_innodb_cluster_metadata", "mysql_rest_service_metadata"]);
 
 export interface IDBEditorSideBarSectionState {
     expanded?: boolean;
@@ -276,7 +275,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                 connectionTreeItems: [],
                 ociTreeItems: [],
             },
-            showSystemSchemas: true,
+            showSystemSchemas: false,
         };
 
         this.addHandledProperties("selectedEntry", "markedSchema", "savedSectionState", "onSelectConnectionItem",
