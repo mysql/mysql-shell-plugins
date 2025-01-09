@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -91,30 +91,33 @@ export class WebviewProvider implements IWebviewProvider {
      *
      * @param requestType The type of the request to be sent.
      * @param parameter The data for the request.
-     * @param settingName For positioning in VS Code, if a new webview must be opened.
+     * @param caption For positioning in VS Code, if a new webview must be opened.
+     * @param reveal Whether web view panel needs to be revealed.
      *
      * @returns A promise that resolves when the panel is up and running.
      */
     public runCommand<K extends keyof IRequestTypeMap>(requestType: K, parameter: IRequisitionCallbackValues<K>,
-        settingName = ""): Promise<boolean> {
+        caption = "", reveal = true): Promise<boolean> {
         return this.runInPanel(() => {
             this.requisitions?.executeRemote(requestType, parameter);
 
             return Promise.resolve(true);
-        }, settingName);
+        }, caption, reveal);
     }
 
     /**
      * Runs a block of code in this web view. If the web view panel doesn't exist, it will be created first.
      *
      * @param block The block to execute.
-     * @param settingName The name of the setting which determines where to place the tab in case it must be created
+     * @param caption The name of the setting which determines where to place the tab in case it must be created
      *                    by this method.
+     * @param reveal Whether web view panel needs to be revealed.
      * @returns A promise which resolves after the block was executed.
      */
-    protected runInPanel(block: () => Promise<boolean>, settingName?: string): Promise<boolean> {
+    protected runInPanel(block: () => Promise<boolean>, caption?: string,
+        reveal?: boolean): Promise<boolean> {
         const placement =
-            settingName ? workspace.getConfiguration("msg.tabPosition").get<string>(settingName) : undefined;
+            caption ? workspace.getConfiguration("msg.tabPosition").get<string>(caption) : undefined;
 
         return new Promise((resolve, reject) => {
             if (!this.panel) {
@@ -133,7 +136,9 @@ export class WebviewProvider implements IWebviewProvider {
                     resolve(false);
                 }
             } else {
-                this.panel.reveal();
+                if (reveal) {
+                    this.panel.reveal();
+                }
                 block().then(() => {
                     resolve(true);
                 }).catch((reason) => {
