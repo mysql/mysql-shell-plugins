@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -41,7 +41,6 @@ def dump(path, **kwargs):
         object_name (str): The name of the object to be exported.
         session (object): The database session to use.
     """
-    print(kwargs)
     session = kwargs.get('session', None)
 
     lib.core.convert_ids_to_binary(
@@ -123,7 +122,6 @@ def dump_object(path, **kwargs):
         object_name (str): The name of the object to be exported.
         session (object): The database session to use.
     """
-    print(kwargs)
     dump(path, **kwargs)
 
 
@@ -249,3 +247,28 @@ def load_object(path, **kwargs):
         session (object): The database session to use during the import.
     """
     load(path, **kwargs)
+
+
+@plugin_function('mrs.dump.auditLog', shell=True, cli=True, web=True)
+def export_audit_log(file_path, **kwargs):
+    """Exports the MRS audit log to a file
+
+    Args:
+        file_path (str): The file path to write the audit log to.
+        **kwargs: Additional keyword arguments.
+
+    Keyword Args:
+        audit_log_position_file (str): The file containing the audit log position. If not provided, a
+            mrs_audit_log_position.json file next to the file_path will be created.
+        audit_log_position (int): The audit log position to export from. Defaults to 0.
+        starting_from_today (bool): Whether to start exporting from today. Defaults to true.
+        when_server_is_writeable (bool): Whether to only write out the log when the MySQL server is writeable. Defaults to false.
+        session (object): The database session to use.
+
+    Returns:
+        None
+    """
+    session = kwargs.get('session', None)
+
+    with lib.core.MrsDbSession(session=session) as session:
+        lib.dump.export_audit_log(file_path=file_path, session=session, **kwargs)
