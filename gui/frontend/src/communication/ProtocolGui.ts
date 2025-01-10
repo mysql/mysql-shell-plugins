@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IConnectionDetails } from "../supplement/ShellInterface/index.js";
+import { IConnectionDetails, IFolderPath } from "../supplement/ShellInterface/index.js";
 import { IShellDictionary } from "./Protocol.js";
 
 /* eslint-disable max-len */
@@ -76,6 +76,18 @@ export enum ShellAPIGui {
     GuiDbConnectionsTestConnection = "gui.dbConnections.test_connection",
     /** Updates the connections sort order for the given profile */
     GuiDbConnectionsMoveConnection = "gui.dbConnections.move_connection",
+    /** Add a new folder path */
+    GuiDbConnectionsAddFolderPath = "gui.dbConnections.add_folder_path",
+    /** Remove a folder path */
+    GuiDbConnectionsRemoveFolderPath = "gui.dbConnections.remove_folder_path",
+    /** Rename a folder path */
+    GuiDbConnectionsRenameFolderPath = "gui.dbConnections.rename_folder_path",
+    /** Move a folder path to a new parent folder */
+    GuiDbConnectionsMoveFolder = "gui.dbConnections.move_folder",
+    /** List folder paths */
+    GuiDbConnectionsListFolderPaths = "gui.dbConnections.list_folder_paths",
+    /** Lists all connections and folder paths for the given profile and folder */
+    GuiDbConnectionsListAll = "gui.dbConnections.list_all",
     /** Indicates whether this module is a GUI backend module */
     GuiMdsIsGuiModuleBackend = "gui.mds.is_gui_module_backend",
     /** Returns display information about the module */
@@ -296,17 +308,23 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiCoreIsShellWebCertificateInstalled]: { kwargs?: IShellGuiCoreIsShellWebCertificateInstalledKwargs; };
     [ShellAPIGui.GuiCoreInstallShellWebCertificate]: { kwargs?: IShellGuiCoreInstallShellWebCertificateKwargs; };
     [ShellAPIGui.GuiCoreRemoveShellWebCertificate]: {};
-    [ShellAPIGui.GuiDbConnectionsAddDbConnection]: { args: { profileId: number; connection: IShellDbConnection; folderPath?: string; }; };
-    [ShellAPIGui.GuiDbConnectionsUpdateDbConnection]: { args: { profileId: number; connectionId: number; connection: IShellDbConnection; folderPath?: string; }; };
+    [ShellAPIGui.GuiDbConnectionsAddDbConnection]: { args: { profileId: number; connection: IShellDbConnection; folderPathId?: number; }; };
+    [ShellAPIGui.GuiDbConnectionsUpdateDbConnection]: { args: { profileId: number; connectionId: number; connection: IShellDbConnection; folderPathId?: number; }; };
     [ShellAPIGui.GuiDbConnectionsRemoveDbConnection]: { args: { profileId: number; connectionId: number; }; };
-    [ShellAPIGui.GuiDbConnectionsListDbConnections]: { args: { profileId: number; folderPath?: string; }; };
+    [ShellAPIGui.GuiDbConnectionsListDbConnections]: { args: { profileId: number; folderPathId?: number; }; };
     [ShellAPIGui.GuiDbConnectionsGetDbConnection]: { args: { dbConnectionId: number; }; };
     [ShellAPIGui.GuiDbConnectionsGetDbTypes]: {};
     [ShellAPIGui.GuiDbConnectionsSetCredential]: { args: { url: string; password: string; }; };
     [ShellAPIGui.GuiDbConnectionsDeleteCredential]: { args: { url: string; }; };
     [ShellAPIGui.GuiDbConnectionsListCredentials]: {};
     [ShellAPIGui.GuiDbConnectionsTestConnection]: { args: { connection: IShellDbConnection | number; password?: string; }; };
-    [ShellAPIGui.GuiDbConnectionsMoveConnection]: { args: { profileId: number; folderPath: string; connectionIdToMove: number; connectionIdOffset: number; before?: boolean; }; };
+    [ShellAPIGui.GuiDbConnectionsMoveConnection]: { args: { profileId: number; folderId: number; connectionIdToMove: number; connectionIdOffset: number; before?: boolean; }; };
+    [ShellAPIGui.GuiDbConnectionsAddFolderPath]: { args: { profileId: number; caption: string; parentFolderId?: number; }; };
+    [ShellAPIGui.GuiDbConnectionsRemoveFolderPath]: { args: { folderPathId: number; }; };
+    [ShellAPIGui.GuiDbConnectionsRenameFolderPath]: { args: { folderPathId: number; newCaption: string; }; };
+    [ShellAPIGui.GuiDbConnectionsMoveFolder]: { args: { folderPathId: number; newParentFolderId: number; }; };
+    [ShellAPIGui.GuiDbConnectionsListFolderPaths]: { args: { parentFolderId?: number; }; };
+    [ShellAPIGui.GuiDbConnectionsListAll]: { args: { profileId: number; folderId?: number; }; };
     [ShellAPIGui.GuiMdsIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiMdsGetGuiModuleDisplayInfo]: {};
     [ShellAPIGui.GuiModelerIsGuiModuleBackend]: {};
@@ -739,9 +757,15 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiDbConnectionsGetDbTypes]: { result: string[]; };
     [ShellAPIGui.GuiDbConnectionsSetCredential]: {};
     [ShellAPIGui.GuiDbConnectionsDeleteCredential]: {};
-    [ShellAPIGui.GuiDbConnectionsListCredentials]: {};
-    [ShellAPIGui.GuiDbConnectionsTestConnection]: {};
+    [ShellAPIGui.GuiDbConnectionsListCredentials]: { result: string[]; };
+    [ShellAPIGui.GuiDbConnectionsTestConnection]: { result?: { moduleSessionId?: string; }; };
     [ShellAPIGui.GuiDbConnectionsMoveConnection]: {};
+    [ShellAPIGui.GuiDbConnectionsAddFolderPath]: { result: number; };
+    [ShellAPIGui.GuiDbConnectionsRemoveFolderPath]: {};
+    [ShellAPIGui.GuiDbConnectionsRenameFolderPath]: {};
+    [ShellAPIGui.GuiDbConnectionsMoveFolder]: {};
+    [ShellAPIGui.GuiDbConnectionsListFolderPaths]: { result: IFolderPath[]; };
+    [ShellAPIGui.GuiDbConnectionsListAll]: { result: Array<IConnectionDetails | IFolderPath>; };
     [ShellAPIGui.GuiMdsIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiMdsGetGuiModuleDisplayInfo]: {};
     [ShellAPIGui.GuiModelerIsGuiModuleBackend]: {};

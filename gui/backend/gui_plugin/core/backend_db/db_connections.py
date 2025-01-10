@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -22,31 +22,37 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-def get_next_connection_index(db, profile_id, folder_path):
+def get_next_connection_index(db, profile_id, folder_path_id):
     """Finds next connection index
 
     Args:
         db (object): The db object
         profile_id (int): The id of the profile
-        folder_path (str): The folder path used for grouping and nesting connections
+        folder_path_id (int): The id of the folder path used for grouping and nesting connections
 
     Returns:
         Next connection index value
     """
-    res = db.execute('''SELECT max(`index`)
-                        FROM profile_has_db_connection
-                        WHERE profile_id=? and folder_path=?''',
-                    (profile_id, folder_path)).fetch_one()
+    res = db.execute('''SELECT MAX(max_index) AS max_index
+                        FROM (
+                            SELECT MAX(`index`) AS max_index
+                                FROM profile_has_db_connection
+                                WHERE profile_id=? AND folder_path_id=?
+                            UNION ALL
+                            SELECT MAX(`index`) AS max_index
+                                FROM folder_path
+                                WHERE parent_folder_id=?
+                        ) AS combined_max_index;''', (profile_id, folder_path_id, folder_path_id)).fetchone()
 
     return res[0] + 1 if res[0] is not None else 1
 
-def get_connection_folder_index(db, profile_id, folder_path, connection_id):
+def get_connection_index(db, profile_id, folder_id, connection_id):
     """Finds connection index in folder
 
     Args:
         db (object): The db object
         profile_id (int): The id of the profile
-        folder_path (str): The folder path used for grouping and nesting connections
+        folder_id (int): The folder id used for grouping and nesting connections
         connection_id (int): The id of the connection
 
     Returns:
@@ -54,6 +60,24 @@ def get_connection_folder_index(db, profile_id, folder_path, connection_id):
     """
     res = db.execute('''SELECT `index`
                         FROM profile_has_db_connection
-                        WHERE profile_id=? and folder_path=? and db_connection_id=?''',
-                    (profile_id, folder_path, connection_id)).fetch_one()
+                        WHERE profile_id=? and folder_path_id=? and db_connection_id=?''',
+                    (profile_id, folder_id, connection_id)).fetch_one()
     return res[0]
+
+def folder_exists(db, caption, parent_folder_id):
+    """Checks if folder path exists
+
+    Args:
+        db (object): The db object
+        caption (str): The caption of the folder
+        parent_folder_id (int): The parent folder id
+
+    Returns:
+        The id of the folder or None
+    """
+    res = db.execute('''SELECT id
+                        FROM folder_path
+                        WHERE caption=? AND parent_folder_id=?''',
+                    (caption, parent_folder_id)).fetch_one()
+    return res[0] if res else None
+

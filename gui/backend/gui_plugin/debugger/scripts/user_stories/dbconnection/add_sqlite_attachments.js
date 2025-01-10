@@ -107,6 +107,36 @@ await ws.sendAndValidate({
     }
 ])
 
+await ws.send({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.add_folder_path",
+    "args": {
+        "profile_id": 1,
+        "caption": ws.tokens["folder_path"]
+    }
+})
+
+ws.validateLastResponse({
+    "request_state": {
+        "type": "PENDING",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "result": ws.ignore
+})
+
+
+ws.tokens['folder_path_id'] = ws.lastResponse['result']
+
+ws.validateLastResponse({
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
+})
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -133,7 +163,7 @@ await ws.sendAndValidate({
                 ]
             },
         },
-        "folder_path": ws.tokens["folder_path"]
+        "folder_path_id": ws.tokens['folder_path_id']
     }
 }, [{
     "request_id": ws.lastGeneratedRequestId,
@@ -374,3 +404,20 @@ await ws.sendAndValidate({
     }
 }])
 
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.remove_folder_path",
+    "args": {
+        "folder_path_id": ws.tokens['folder_path_id']
+    }
+}, [
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ws.ignore
+        },
+        "done": true
+    }
+])

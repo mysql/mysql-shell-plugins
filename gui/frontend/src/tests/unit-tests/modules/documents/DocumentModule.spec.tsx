@@ -119,7 +119,7 @@ describe("Document module tests", (): void => {
 
         launcher = await setupShellForTests(false, true, "DEBUG3");
         testMySQLConnection.id = await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
-            testMySQLConnection, "unit-tests") ?? -1;
+            testMySQLConnection) ?? -1;
         expect(testMySQLConnection.id).toBeGreaterThan(-1);
         connID = testMySQLConnection.id;
 
@@ -224,7 +224,7 @@ describe("Document module tests", (): void => {
         });
 
         const state = instance.state;
-        expect(state.selectedPage).toBe(initialSelectedPage);
+        expect(state.selectedPage).toBe("1");
         component.unmount();
     });
 

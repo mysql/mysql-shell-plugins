@@ -22,3 +22,21 @@ await ws.sendAndValidate({
         "done": true
     }
 ])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.remove_folder_path",
+    "args": {
+        "folder_path_id": ws.tokens['base_tests_folder_path_id']
+    }
+}, [
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ws.ignore
+        },
+        "done": true
+    }
+])

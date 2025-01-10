@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IConnectionDetails } from "./index.js";
+import { IConnectionDetails, IFolderPath } from "./index.js";
 import { IDictionary } from "../../app-logic/general-types.js";
 import { MessageScheduler } from "../../communication/MessageScheduler.js";
 import { IShellDictionary } from "../../communication/Protocol.js";
@@ -39,12 +39,12 @@ export class ShellInterfaceDbConnection {
      *
      * @param profileId The id of the profile.
      * @param connection An object holding all data of the connection.
-     * @param folderPath The folder path used for grouping and nesting connections, optional
+     * @param folderPathId The folder path id used for grouping and nesting connections, optional
      *
      * @returns A promise resolving to the id of the new connection.
      */
     public async addDbConnection(profileId: number, connection: IConnectionDetails,
-        folderPath = ""): Promise<number | undefined> {
+        folderPathId: number | undefined = undefined): Promise<number | undefined> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiDbConnectionsAddDbConnection,
             parameters: {
@@ -57,7 +57,7 @@ export class ShellInterfaceDbConnection {
                         options: connection.options as IDictionary,
                         settings: (connection.settings ?? {}) as IShellDictionary,
                     },
-                    folderPath,
+                    folderPathId,
                 },
             },
         });
@@ -70,12 +70,12 @@ export class ShellInterfaceDbConnection {
      *
      * @param profileId The id of the profile.
      * @param connection An object holding all data of the connection.
-     * @param folderPath The folder path used for grouping and nesting connections.
+     * @param folderPathId The folder path id used for grouping and nesting connections.
      *
      * @returns A promise which resolves when the request was concluded.
      */
     public async updateDbConnection(profileId: number, connection: IConnectionDetails,
-        folderPath = ""): Promise<void> {
+        folderPathId: number | undefined = undefined): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiDbConnectionsUpdateDbConnection,
             parameters: {
@@ -89,7 +89,7 @@ export class ShellInterfaceDbConnection {
                         options: connection.options as IShellDictionary,
                         settings: (connection.settings ?? {}) as IShellDictionary,
                     },
-                    folderPath,
+                    folderPathId,
                 },
             },
         });
@@ -114,14 +114,15 @@ export class ShellInterfaceDbConnection {
      * Returns all database connections of a given profile and in a given folder path.
      *
      * @param profileId The id of the profile.
-     * @param folderPath The folder path used for grouping and nesting connections.
+     * @param folderPathId The folder path id used for grouping and nesting connections.
      *
      * @returns A promise which resolves to the list of existing connections.
      */
-    public async listDbConnections(profileId: number, folderPath = ""): Promise<IConnectionDetails[]> {
+    public async listDbConnections(profileId: number,
+        folderPathId: number | undefined = undefined): Promise<IConnectionDetails[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiDbConnectionsListDbConnections,
-            parameters: { args: { profileId, folderPath } },
+            parameters: { args: { profileId, folderPathId } },
         });
 
         const result: IConnectionDetails[] = [];
@@ -142,6 +143,101 @@ export class ShellInterfaceDbConnection {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiDbConnectionsGetDbConnection,
             parameters: { args: { dbConnectionId: connectionId } },
+        });
+
+        return response.result;
+    }
+
+    /**
+     * Adds a new folder path.
+     *
+     * @param profileId The id of the profile.
+     * @param caption The caption of the folder.
+     * @param parentFolderId The id of the parent folder, optional.
+     *
+     * @returns A promise resolving to the id of the new folder path.
+     */
+    public async addFolderPath(profileId: number, caption: string, parentFolderId?: number): Promise<number> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbConnectionsAddFolderPath,
+            parameters: { args: { profileId, caption, parentFolderId } },
+        });
+
+        return response.result;
+    }
+
+    /**
+     * Removes a folder path.
+     *
+     * @param folderPathId The id of the folder path to remove.
+     *
+     * @returns A promise which resolves when the request was concluded.
+     */
+    public async removeFolderPath(folderPathId: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbConnectionsRemoveFolderPath,
+            parameters: { args: { folderPathId } },
+        });
+    }
+
+    /**
+     * Renames a folder path.
+     *
+     * @param folderPathId The id of the folder path to rename.
+     * @param newCaption The new caption for the folder path.
+     *
+     * @returns A promise which resolves when the request was concluded.
+     */
+    public async renameFolderPath(folderPathId: number, newCaption: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbConnectionsRenameFolderPath,
+            parameters: { args: { folderPathId, newCaption } },
+        });
+    }
+
+    /**
+     * Moves a folder path to a new parent folder.
+     *
+     * @param folderPathId The id of the folder path to move.
+     * @param newParentFolderId The id of the new parent folder.
+     *
+     * @returns A promise which resolves when the request was concluded.
+     */
+    public async moveFolder(folderPathId: number, newParentFolderId: number): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbConnectionsMoveFolder,
+            parameters: { args: { folderPathId, newParentFolderId } },
+        });
+    }
+
+    /**
+     * Lists folder paths.
+     *
+     * @param parentFolderId The id of the parent folder to list child folders, optional.
+     *
+     * @returns A promise resolving to the list of folder paths.
+     */
+    public async listFolderPaths(parentFolderId?: number): Promise<IFolderPath[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbConnectionsListFolderPaths,
+            parameters: { args: { parentFolderId } },
+        });
+
+        return response.result;
+    }
+
+    /**
+     * Lists all connections and folder paths for the given profile and folder.
+     *
+     * @param profileId The id of the profile.
+     * @param folderId The id of the folder, optional (for None use root folder).
+     *
+     * @returns A promise resolving to a list of dictionaries containing connections and folders sorted by index.
+     */
+    public async listAll(profileId: number, folderId?: number): Promise<Array<IConnectionDetails | IFolderPath>> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbConnectionsListAll,
+            parameters: { args: { profileId, folderId } },
         });
 
         return response.result;

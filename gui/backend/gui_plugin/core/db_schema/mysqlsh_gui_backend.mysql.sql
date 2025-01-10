@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -259,12 +259,12 @@ DROP TABLE IF EXISTS `profile_has_db_connection` ;
 CREATE TABLE IF NOT EXISTS `profile_has_db_connection` (
   `profile_id` INT NOT NULL,
   `db_connection_id` INT NOT NULL,
-  `folder_path` VARCHAR(1024) NULL,
+  `folder_path_id` INT NOT NULL,
   `index` INT NULL,
   PRIMARY KEY (`profile_id`, `db_connection_id`),
   INDEX `fk_profile_has_db_connection_db_connection1_idx` (`db_connection_id` ASC) VISIBLE,
   INDEX `fk_profile_has_db_connection_user_profile1_idx` (`profile_id` ASC) VISIBLE,
-  INDEX `folder_path_idx` (`folder_path` ASC) VISIBLE,
+  INDEX `fk_profile_has_db_connection_folder_path1_idx` (`folder_path_id` ASC) VISIBLE,
   CONSTRAINT `fk_profile_has_db_connection_profile1`
     FOREIGN KEY (`profile_id`)
     REFERENCES `profile` (`id`)
@@ -273,6 +273,11 @@ CREATE TABLE IF NOT EXISTS `profile_has_db_connection` (
   CONSTRAINT `fk_profile_has_db_connection_db_connection1`
     FOREIGN KEY (`db_connection_id`)
     REFERENCES `db_connection` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_profile_has_db_connection_folder_path1`
+    FOREIGN KEY (`folder_path_id`)
+    REFERENCES `folder_path` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -547,12 +552,32 @@ CREATE TABLE IF NOT EXISTS `logs`.`message` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
+-- -----------------------------------------------------
+-- Table `folder_path`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `folder_path` ;
+
+CREATE TABLE IF NOT EXISTS `folder_path` (
+  `id` INT NOT NULL,
+  `parent_folder_id` INT NULL,
+  `caption` VARCHAR(256) NOT NULL,
+  `index` INT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_folder_path_folder_path1_idx` (`parent_folder_id` ASC) VISIBLE,
+  INDEX `index_idx` (`index` ASC) VISIBLE,
+  CONSTRAINT `fk_folder_path_folder_path1`
+    FOREIGN KEY (`parent_folder_id`)
+    REFERENCES `folder_path` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+
 
 -- -----------------------------------------------------
 -- View `schema_version`
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `schema_version` ;
-CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 18;
+CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 19;
 
 -- -----------------------------------------------------
 -- Data for table `data_category`
@@ -623,6 +648,14 @@ COMMIT;
 -- -----------------------------------------------------
 START TRANSACTION;
 INSERT INTO `user_group` (`id`, `name`, `description`) VALUES (1, 'all', 'All Users');
+
+COMMIT;
+
+-- -----------------------------------------------------
+-- Data for table `folder_path`
+-- -----------------------------------------------------
+START TRANSACTION;
+INSERT INTO `folder_path` (`id`, `parent_folder_id`, `caption`, `index`) VALUES (1, NULL, '/', 0);
 
 COMMIT;
 

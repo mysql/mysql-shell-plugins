@@ -17,6 +17,38 @@ var lib = ws.tokens.lib
 
 _this = lib.connection.add
 
+await ws.send({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.add_folder_path",
+    "args": {
+        "profile_id": 1,
+        "caption": "tests"
+    }
+})
+
+ws.validateLastResponse({
+    "request_state": {
+        "type": "PENDING",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "result": ws.ignore
+})
+
+
+_this.params['folder_path_id'] = ws.lastResponse['result']
+ws.tokens['base_tests_folder_path_id'] = ws.lastResponse['result']
+
+ws.validateLastResponse({
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
+})
+
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
@@ -24,7 +56,7 @@ await ws.sendAndValidate({
     "args": {
         "profile_id": _this.params["profile_id"],
         "connection": _this.params["connection"],
-        "folder_path": _this.params["folder_path"]
+        "folder_path_id": _this.params["folder_path_id"]
     }
 }, [
     {

@@ -743,7 +743,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     };
 
     private handleAddConnection = (entry: ICdmConnectionEntry): void => {
-        ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId, entry.details, "")
+        ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId, entry.details)
             .then((connectionId) => {
                 if (connectionId !== undefined) {
                     entry.details.id = connectionId;

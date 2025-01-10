@@ -37,7 +37,6 @@ await ws.sendAndValidate({
             "description": "This is a test MySQL database description",
             "options": user1_options
         },
-        "folder_path": ""
     }
 }, [
     {
@@ -73,7 +72,6 @@ await ws.sendAndValidate({
             "description": "This is a test MySQL database description",
             "options": user2_options
         },
-        "folder_path": ""
     }
 }, [
     {
@@ -109,7 +107,6 @@ await ws.sendAndValidate({
             "description": "This is a test MySQL database description",
             "options": user2_no_pwd_options
         },
-        "folder_path": ""
     }
 }, [
     {

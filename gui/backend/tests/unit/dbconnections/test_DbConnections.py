@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -80,7 +80,7 @@ def validate_connections_sort_order(connections, expected):
 
 class TestDbConnectionsSqlite:
     def test_add_db_connection(self):
-        results1 = DbConnections.list_db_connections(1, 'tests')
+        results1 = DbConnections.list_db_connections(1)
 
         result = DbConnections.add_db_connection(1, {
             "db_type": 'Sqlite',
@@ -93,9 +93,9 @@ class TestDbConnectionsSqlite:
                     "db_file": "tests.attachment.sqlite3"
                 }
             }
-        }, 'tests')
+        })
 
-        results2 = DbConnections.list_db_connections(1, 'tests')
+        results2 = DbConnections.list_db_connections(1)
 
         validate_response(results2)
         validate_rows(results2, validate_connection_row)
@@ -104,7 +104,7 @@ class TestDbConnectionsSqlite:
 
         DbConnections.remove_db_connection(
             1, result)
-        results3 = DbConnections.list_db_connections(1, 'tests')
+        results3 = DbConnections.list_db_connections(1)
 
         assert len(results3) == len(results1)
 
@@ -116,7 +116,7 @@ class TestDbConnectionsSqlite:
             "options": {
                 "db_file": "tests.sqlite3"
             }
-        }, 'tests')
+        })
 
         connection_id = result
 
@@ -152,7 +152,7 @@ class TestDbConnectionsSqlite:
 class TestDbConnectionMySQL:
 
     def test_add_db_connection_mysql(self):
-        results1 = DbConnections.list_db_connections(1, 'tests')
+        results1 = DbConnections.list_db_connections(1)
         default_root_config = config.Config.get_instance(
         ).database_connections[0]
 
@@ -167,9 +167,9 @@ class TestDbConnectionMySQL:
                 'password': default_root_config['options']['password'],
                 'scheme': default_root_config['options']['scheme']
             }
-        }, 'tests')
+        })
 
-        results2 = DbConnections.list_db_connections(1, 'tests')
+        results2 = DbConnections.list_db_connections(1)
 
         validate_response(results2)
         validate_rows(results2, validate_connection_row)
@@ -178,7 +178,7 @@ class TestDbConnectionMySQL:
 
         DbConnections.remove_db_connection(
             1, result)
-        results3 = DbConnections.list_db_connections(1, 'tests')
+        results3 = DbConnections.list_db_connections(1)
 
         assert len(results3) == len(results1)
 
@@ -197,7 +197,7 @@ class TestDbConnectionMySQL:
                     'password': default_root_config['options']['password'],
                     'scheme': default_root_config['options']['scheme']
                 }
-            }, 'tests')
+            })
 
         assert str(
             exp.value) == "Error[MSG-1012]: The connection must contain valid database type."
@@ -214,7 +214,7 @@ class TestDbConnectionMySQL:
                     'password': default_root_config['options']['password'],
                     'scheme': default_root_config['options']['scheme']
                 }
-            }, 'tests')
+            })
 
         assert str(
             exp.value) == "Error[MSG-1012]: The connection must contain valid database type."
@@ -230,7 +230,7 @@ class TestDbConnectionMySQL:
                     'password': default_root_config['options']['password'],
                     'scheme': default_root_config['options']['scheme']
                 }
-            }, 'tests')
+            })
 
         assert str(
             exp.value) == "Error[MSG-1012]: The connection must contain valid caption."

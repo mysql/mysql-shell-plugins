@@ -25,6 +25,37 @@ await ws.sendAndValidate({
 }
 ])
 
+await ws.send({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.add_folder_path",
+    "args": {
+        "profile_id": 1,
+        "caption": "tests"
+    }
+})
+
+ws.validateLastResponse({
+    "request_state": {
+        "type": "PENDING",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "result": ws.ignore
+})
+
+
+ws.tokens['folder_path_id'] = ws.lastResponse['result']
+
+ws.validateLastResponse({
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
+})
+
 
 await ws.send({
     "request": "execute",
@@ -40,7 +71,7 @@ await ws.send({
                 "db_file": "tests_db_that_not_exists.sqlite3"
             }
         },
-        "folder_path": "tests"
+        "folder_path_id": ws.tokens['folder_path_id']
     }
 })
 
@@ -86,3 +117,20 @@ ws.validateLastResponse({
     }
 })
 
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.remove_folder_path",
+    "args": {
+        "folder_path_id": ws.tokens['folder_path_id']
+    }
+}, [
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ws.ignore
+        },
+        "done": true
+    }
+])

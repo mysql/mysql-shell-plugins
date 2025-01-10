@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -61,17 +61,19 @@ describe("ShellInterfaceDbConnection Tests", () => {
 
         let connections = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId);
         expect(connections.length).toBe(0);
+        const folderID = await ShellInterface.dbConnections.addFolderPath(
+            webSession.currentProfileId, "unit-tests", -1);
         testConnection.id = await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
-            testConnection, "unit-tests") ?? -1;
+            testConnection, folderID) ?? -1;
         expect(testConnection.id).toBeGreaterThan(-1);
 
-        connections = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "./");
+        connections = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, 1);
         expect(connections.length).toBe(0);
 
         connections = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId);
-        expect(connections.length).toBe(1);
+        expect(connections.length).toBe(0);
 
-        connections = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, "unit-tests");
+        connections = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, folderID);
         expect(connections.length).toBe(1);
 
         // Add the same connection again, this time with no folder path.
@@ -97,5 +99,7 @@ describe("ShellInterfaceDbConnection Tests", () => {
 
         connections = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId);
         expect(connections.length).toBe(0);
+
+        await ShellInterface.dbConnections.removeFolderPath(folderID);
     });
 });

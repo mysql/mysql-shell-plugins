@@ -61,6 +61,7 @@ describe("ConnectionEditor tests", (): void => {
     let backend: ShellInterfaceSqlEditor;
     let connID: number;
     let dialogHelper: DialogHelper;
+    let folderID: number;
 
     const credentials = getDbCredentials();
     const dataModel = new ConnectionDataModel();
@@ -86,8 +87,11 @@ describe("ConnectionEditor tests", (): void => {
         backend = new ShellInterfaceSqlEditor();
 
         launcher = await setupShellForTests(false, true, "DEBUG3");
+        folderID = await ShellInterface.dbConnections.addFolderPath(
+            webSession.currentProfileId, "unit-tests", -1);
+        expect(folderID).toBeGreaterThan(-1);
         testMySQLConnection.id = await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
-            testMySQLConnection, "unit-tests") ?? -1;
+            testMySQLConnection, folderID) ?? -1;
         expect(testMySQLConnection.id).toBeGreaterThan(-1);
         connID = testMySQLConnection.id;
 
@@ -97,6 +101,7 @@ describe("ConnectionEditor tests", (): void => {
     });
 
     afterAll(async () => {
+        await ShellInterface.dbConnections.removeFolderPath(folderID);
         await backend.closeSession();
         await ShellInterface.dbConnections.removeDbConnection(webSession.currentProfileId, connID);
         await launcher.exitProcess();

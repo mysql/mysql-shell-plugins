@@ -25,7 +25,6 @@ lib.connection.add.params = {
             "schema": "information_schema"
         }
     },
-    "folder_path": "",
     "profile_id": 1,
 }
 

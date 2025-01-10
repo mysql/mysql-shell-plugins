@@ -34,8 +34,8 @@ from gui_plugin.core.Error import MSGException
 from gui_plugin.core.modules.DbModuleSession import DbModuleSession
 
 
-@plugin_function('gui.dbConnections.addDbConnection', cli=True, shell=True, web=True)
-def add_db_connection(profile_id, connection, folder_path='',
+@plugin_function('gui.dbConnections.addDbConnection', shell=False, web=True)
+def add_db_connection(profile_id, connection, folder_path_id=None,
                       be_session=None):
     """Add a new db_connection and associate the connection with a profile
 
@@ -52,8 +52,7 @@ def add_db_connection(profile_id, connection, folder_path='',
             "settings": {
                 "defaultEditor": "DB Notebook",
             }}
-        folder_path (str): The folder path used for grouping and nesting
-            connections, optional
+        folder_path_id (int): The id of the folder path used for grouping and nesting connections, optional
         be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
@@ -98,21 +97,24 @@ def add_db_connection(profile_id, connection, folder_path='',
 
             connection_id = db.get_last_row_id()
 
+            if folder_path_id is None:
+                folder_path_id = 1 # Root folder
+
             index = db_connections.get_next_connection_index(
-                db, profile_id, folder_path)
+                db, profile_id, folder_path_id)
 
             # Insert n:m profile_has_db_connection to associate the connection with
             # a profile
             db.execute('''INSERT INTO profile_has_db_connection(
-                profile_id, db_connection_id, folder_path, `index`)
+                profile_id, db_connection_id, folder_path_id, `index`)
                 VALUES(?, ?, ?, ?)''',
-                       (profile_id, connection_id, folder_path, index))
+                       (profile_id, connection_id, folder_path_id, index))
 
     return connection_id
 
 
-@plugin_function('gui.dbConnections.updateDbConnection', cli=True, shell=True, web=True)
-def update_db_connection(profile_id, connection_id, connection, folder_path='', be_session=None):
+@plugin_function('gui.dbConnections.updateDbConnection', shell=False, web=True)
+def update_db_connection(profile_id, connection_id, connection, folder_path_id=None, be_session=None):
     """Update the data for a database connection
 
     Args:
@@ -129,8 +131,7 @@ def update_db_connection(profile_id, connection_id, connection, folder_path='', 
                     "defaultEditor": "DB Notebook",
                 }
             }
-        folder_path (str): The folder path used for grouping and nesting
-            connections, optional
+        folder_path_id (int): The id of the folder path used for grouping and nesting connections, optional
         be_session (object):  A session to the GUI backend database
             where the operation will be performed.
 
@@ -162,17 +163,17 @@ def update_db_connection(profile_id, connection_id, connection, folder_path='', 
             if "settings" in connection:
                 db.execute("UPDATE db_connection SET settings=? WHERE id=?", (json.dumps(
                     connection['settings']), connection_id))
-            if "folder_path" in connection:
+            if "folder_path_id" in connection:
                 index = db_connections.get_next_connection_index(
-                    db, profile_id, folder_path)
+                    db, profile_id, folder_path_id)
                 db.execute("""UPDATE profile_has_db_connection
-                              SET folder_path=?
+                              SET folder_path_id=?
                               WHERE profile_id=? AND db_connection_id=?""",
-                           (connection['folder_path'], profile_id, connection_id))
+                           (connection['folder_path_id'], profile_id, connection_id))
                 db.execute("""UPDATE profile_has_db_connection
                               SET `index`=?
-                              WHERE profile_id=? AND folder_path=? AND db_connection_id=?""",
-                           (index, profile_id, connection['folder_path'], connection_id))
+                              WHERE profile_id=? AND folder_path_id=? AND db_connection_id=?""",
+                           (index, profile_id, connection['folder_path_id'], connection_id))
 
 
 @plugin_function('gui.dbConnections.removeDbConnection', cli=True, shell=True, web=True)
@@ -207,12 +208,12 @@ def remove_db_connection(profile_id, connection_id, be_session=None):
 
 
 @plugin_function('gui.dbConnections.listDbConnections', cli=True, shell=True, web=True)
-def list_db_connections(profile_id, folder_path='', be_session=None):
+def list_db_connections(profile_id, folder_path_id=None, be_session=None):
     """Lists the db_connections for the given profile
 
     Args:
         profile_id (int): The id of the profile
-        folder_path (str): The folder path used for grouping and nesting
+        folder_path_id (int): The folder path ID used for grouping and nesting
             connections, optional
         be_session (object):  A session to the GUI backend database
             where the operation will be performed.
@@ -221,13 +222,15 @@ def list_db_connections(profile_id, folder_path='', be_session=None):
         list: the list of connections
     """
     with BackendDatabase(be_session) as db:
-        return db.select('''SELECT dc.id, p_dc.folder_path, dc.caption,
+        return db.select('''SELECT dc.id, fc.caption as `folder_path`, dc.caption,
             dc.description, dc.db_type, dc.options, dc.settings, p_dc.`index`
             FROM profile_has_db_connection p_dc
                 LEFT JOIN db_connection dc ON
                     p_dc.db_connection_id = dc.id
-            WHERE p_dc.profile_id = ? AND p_dc.folder_path LIKE ?''',
-                         (profile_id, '%' if folder_path == '' else folder_path))
+                LEFT JOIN folder_path fc ON
+                    p_dc.folder_path_id = fc.id
+            WHERE p_dc.profile_id = ? AND fc.id = ?''',
+                         (profile_id, '1' if folder_path_id is None else folder_path_id))
 
 
 @plugin_function('gui.dbConnections.getDbConnection', cli=True, shell=True, web=True)
@@ -333,12 +336,12 @@ def test_connection(connection, password=None):
 
 
 @plugin_function('gui.dbConnections.moveConnection', shell=False, web=True)
-def move_connection(profile_id, folder_path, connection_id_to_move, connection_id_offset, before=False, be_session=None):
+def move_connection(profile_id, folder_id, connection_id_to_move, connection_id_offset, before=False, be_session=None):
     """Updates the connections sort order for the given profile
 
     Args:
         profile_id (int): The id of the profile
-        folder_path (str): The folder path used for grouping and nesting connections
+        folder_id (int): The folder id used for grouping and nesting connections
         connection_id_to_move (int): The id of the connection to move
         connection_id_offset (int): The id of the offset connection
         before (bool): Indicates whether connection_id_to_move should be moved before connection_id_offset or after
@@ -352,25 +355,154 @@ def move_connection(profile_id, folder_path, connection_id_to_move, connection_i
 
     with BackendDatabase(be_session) as db:
         with BackendTransaction(db):
-            index_to_move = db_connections.get_connection_folder_index(
-                db, profile_id, folder_path, connection_id_to_move)
-            index_offset = db_connections.get_connection_folder_index(
-                db, profile_id, folder_path, connection_id_offset)
+            index_to_move = db_connections.get_connection_index(
+                db, profile_id, folder_id, connection_id_to_move)
+            index_offset = db_connections.get_connection_index(
+                db, profile_id, folder_id, connection_id_offset)
 
             if index_to_move > index_offset:
                 index = index_offset if before else index_offset + 1
                 db.execute("""UPDATE profile_has_db_connection
                           SET `index`=`index`+1
-                          WHERE profile_id=? AND folder_path=? AND `index`>=? AND `index`<?""",
-                           (profile_id, folder_path, index, index_to_move))
+                          WHERE profile_id=? AND folder_path_id=? AND `index`>=? AND `index`<?""",
+                           (profile_id, folder_id, index, index_to_move))
+                db.execute("""UPDATE folder_path
+                          SET `index`=`index`+1
+                          WHERE `index`>=? AND `index`<?""",
+                           (index, index_to_move))
             else:
                 index = index_offset - 1 if before else index_offset
                 db.execute("""UPDATE profile_has_db_connection
                           SET `index`=`index`-1
-                          WHERE profile_id=? AND folder_path=? AND `index`<=? AND `index`>?""",
-                           (profile_id, folder_path, index, index_to_move))
+                          WHERE profile_id=? AND folder_path_id=? AND `index`<=? AND `index`>?""",
+                           (profile_id, folder_id, index, index_to_move))
+                db.execute("""UPDATE folder_path
+                          SET `index`=`index`-1
+                          WHERE `index`<=? AND `index`>?""",
+                           (index, index_to_move))
 
             db.execute("""UPDATE profile_has_db_connection
                           SET `index`=?
-                          WHERE profile_id=? AND folder_path=? AND db_connection_id=?""",
-                       (index, profile_id, folder_path, connection_id_to_move))
+                          WHERE profile_id=? AND folder_path_id=? AND db_connection_id=?""",
+                       (index, profile_id, folder_id, connection_id_to_move))
+
+
+@plugin_function('gui.dbConnections.addFolderPath', shell=False, web=True)
+def add_folder_path(profile_id, caption, parent_folder_id=None, be_session=None):
+    """Add a new folder path
+
+    Args:
+        profile_id (int): The id of the profile
+        caption (str): The caption of the folder
+        parent_folder_id (int): The id of the parent folder, optional
+        be_session (object): A session to the GUI backend database where the operation will be performed.
+
+    Returns:
+        int: The folder path ID
+    """
+    with BackendDatabase(be_session) as db:
+        with BackendTransaction(db):
+            if parent_folder_id is None:
+                parent_folder_id = 1  # Root folder
+            folder_path_id = db_connections.folder_exists(db, caption, parent_folder_id)
+            if folder_path_id is None:
+                index = db_connections.get_next_connection_index(
+                    db, profile_id, parent_folder_id)
+                db.execute('''INSERT INTO folder_path (parent_folder_id, caption, `index`)
+                            VALUES (?, ?, ?)''',
+                        (parent_folder_id, caption, index))
+                folder_path_id = db.get_last_row_id()
+    return folder_path_id
+
+
+@plugin_function('gui.dbConnections.removeFolderPath', shell=False, web=True)
+def remove_folder_path(folder_path_id, be_session=None):
+    """Remove a folder path
+
+    Args:
+        folder_path_id (int): The id of the folder path to remove
+        be_session (object): A session to the GUI backend database where the operation will be performed.
+
+    Returns:
+        None
+    """
+    with BackendDatabase(be_session) as db:
+        db.execute('''DELETE FROM folder_path WHERE id=?''', (folder_path_id,))
+
+
+@plugin_function('gui.dbConnections.renameFolderPath', shell=False, web=True)
+def rename_folder_path(folder_path_id, new_caption, be_session=None):
+    """Rename a folder path
+
+    Args:
+        folder_path_id (int): The id of the folder path to rename
+        new_caption (str): The new caption for the folder path
+        be_session (object): A session to the GUI backend database where the operation will be performed.
+
+    Returns:
+        None
+    """
+    with BackendDatabase(be_session) as db:
+        db.execute('''UPDATE folder_path SET caption=? WHERE id=?''', (new_caption, folder_path_id))
+
+
+@plugin_function('gui.dbConnections.moveFolder', shell=False, web=True)
+def move_folder(folder_path_id, new_parent_folder_id, be_session=None):
+    """Move a folder path to a new parent folder
+
+    Args:
+        folder_path_id (int): The id of the folder path to move
+        new_parent_folder_id (int): The id of the new parent folder
+        be_session (object): A session to the GUI backend database where the operation will be performed.
+
+    Returns:
+        None
+    """
+    with BackendDatabase(be_session) as db:
+        db.execute('''UPDATE folder_path SET parent_folder_id=? WHERE id=?''', (new_parent_folder_id, folder_path_id))
+
+
+@plugin_function('gui.dbConnections.listFolderPaths', shell=False, web=True)
+def list_folder_paths(parent_folder_id=None, be_session=None):
+    """List folder paths
+
+    Args:
+        parent_folder_id (int): The id of the parent folder to list child folders, optional
+        be_session (object): A session to the GUI backend database where the operation will be performed.
+
+    Returns:
+        list: The list of folder paths
+    """
+    with BackendDatabase(be_session) as db:
+        if parent_folder_id is None:
+            return db.select('''SELECT * FROM folder_path WHERE parent_folder_id IS NULL ORDER BY `index` ASC''')
+        else:
+            return db.select('''SELECT * FROM folder_path WHERE parent_folder_id=? ORDER BY `index` ASC''', (parent_folder_id,))
+
+
+@plugin_function('gui.dbConnections.listAll', shell=False, web=True)
+def list_all(profile_id, folder_id=None, be_session=None):
+    """Lists all connections and folder paths for the given profile and folder
+
+    Args:
+        profile_id (int): The id of the profile
+        folder_id (int): The id of the folder, optional (for None use root folder)
+        be_session (object): A session to the GUI backend database where the operation will be performed.
+
+    Returns:
+        list: A list of dictionaries containing connections and folders sorted by index
+    """
+    with BackendDatabase(be_session) as db:
+        combined_list = db.select('''
+            SELECT dc.id, dc.caption, dc.description, dc.db_type, dc.options, dc.settings, p_dc.`index`, 'connection' AS type
+                FROM profile_has_db_connection p_dc
+                LEFT JOIN db_connection dc ON p_dc.db_connection_id = dc.id
+                WHERE p_dc.profile_id = ? AND p_dc.folder_path_id = ?
+            UNION ALL
+            SELECT fp.id, fp.caption, NULL AS description, NULL AS db_type, NULL AS options, NULL AS settings, fp.`index`, 'folder' AS type
+                FROM folder_path fp
+                WHERE fp.parent_folder_id = ?
+                ORDER BY `index` ASC
+        ''', (profile_id, folder_id if folder_id is not None else 1, folder_id if folder_id is not None else None))
+
+    return combined_list

@@ -1,4 +1,4 @@
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -91,7 +91,6 @@ def add_connection(ws):
                 "connection-attributes": [f"test_session_id={test_session_id}"]
             }
         },
-        "folder_path": "",
         "profile_id": 1,
     }
 
@@ -102,7 +101,6 @@ def add_connection(ws):
         "args": {
             "profile_id": params["profile_id"],
             "connection": params["connection"],
-            "folder_path": params["folder_path"]
         }
     }, [
         {
