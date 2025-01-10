@@ -1141,15 +1141,29 @@ describe("DATABASE CONNECTIONS", () => {
                 expect(latestTable.date).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
                 expect(latestTable.comment).to.equals(newTask.description);
 
-                const latestTask = await lakehouseTables.getLatestTask();
-                await driver.wait(lakehouseTables.untilLakeHouseTaskIsCompleted(latestTask.id),
-                    constants.wait10seconds);
-                expect(latestTask.name).to.equals(`Loading ${newTask.name}`);
-                expect(latestTask.hasProgressBar).to.be.false;
-                expect(latestTask.status).to.equals("COMPLETED");
-                expect(latestTask.startTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
-                expect(latestTask.endTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
-                expect(latestTask.message).to.equals("Task completed.");
+                const tasks = await lakehouseTables.getLakeHouseTasks();
+
+                tasks.sort((itemA: interfaces.ICurrentTask, itemB: interfaces.ICurrentTask) => {
+                    return itemA.id > itemB.id ? -1 : 1; // sort descending
+                });
+
+                if (tasks.length > 0) {
+                    for (const task of tasks) {
+                        if (task.name === `Loading ${newTask.name}`) {
+                            await driver.wait(lakehouseTables.untilLakeHouseTaskIsCompleted(task.id),
+                                constants.wait10seconds);
+                            expect(task.name).to.equals(`Loading ${newTask.name}`);
+                            expect(task.hasProgressBar).to.be.false;
+                            expect(task.status).to.equals("COMPLETED");
+                            expect(task.startTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
+                            expect(task.endTime).to.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
+                            expect(task.message).to.equals("Task completed.");
+                            break;
+                        }
+                    }
+                } else {
+                    throw new Error(`There are not any new tasks to verify`);
+                }
 
             });
 

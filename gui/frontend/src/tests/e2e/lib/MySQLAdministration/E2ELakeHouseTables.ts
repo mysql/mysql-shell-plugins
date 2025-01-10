@@ -202,21 +202,6 @@ export class E2ELakehouseTables {
     };
 
     /**
-     * Gets the most recent task
-     * @returns A promise resolving with the task
-     */
-    public getLatestTask = async (): Promise<interfaces.ICurrentTask | undefined> => {
-        const tasks = await this.getLakeHouseTasks();
-        const maxId = Math.max(...tasks.map((item: interfaces.ICurrentTask) => {
-            return item.id ? parseInt(item.id, 10) : 0;
-        }));
-
-        return tasks.find((item: interfaces.ICurrentTask) => {
-            return parseInt(item.id!, 10) === maxId;
-        });
-    };
-
-    /**
      * Verifies if the lakehouse table exists
      * @param tableLabel The table label
      * @returns A promise resolving with true, if the table is loading, false otherwise

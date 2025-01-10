@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,7 +28,7 @@ import { spawnSync, execSync } from "child_process";
 import fs from "fs/promises";
 import { platform } from "os";
 import { join } from "path";
-import { WebElement, Key } from "vscode-extension-tester";
+import { WebElement, Key, Condition } from "vscode-extension-tester";
 import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
 import clipboard from "clipboardy";
 import * as constants from "./constants";
@@ -96,7 +96,7 @@ export class Os {
      * @returns A promise resolving with the configuration value
      */
     public static getValueFromRouterConfigFile = async (option: string): Promise<string> => {
-        const configFile = await Os.getRouterConfigFile();
+        const configFile = await this.getRouterConfigFile();
         if (existsSync(configFile)) {
             const file = readFileSync(configFile);
             const fileLines = file.toString().split("\n");
@@ -413,6 +413,36 @@ export class Os {
         } else {
             return "";
         }
+    };
+
+    /**
+     * Verifies if the router is active by searching for a specific string on the log file
+     * @returns A promise resolving with true if the router is active, false otherwise
+     */
+    public static untilRouterIsActive = (): Condition<boolean> => {
+        return new Condition(`for router to be ACTIVE`, async () => {
+            const logFile = await Os.getRouterLogFile();
+            const fileContent = await fs.readFile(logFile, "utf-8");
+
+            return fileContent
+                .match(/Start accepting connections for routing/) !== null;
+        });
+
+    };
+
+    /**
+     * Verifies if the router is inactive by searching for a specific string on the log file
+     * @returns A promise resolving with true if the router is inactive, false otherwise
+     */
+    public static untilRouterIsInactive = (): Condition<boolean> => {
+        return new Condition(`for router to be INACTIVE`, async () => {
+            const logFile = await Os.getRouterLogFile();
+            const fileContent = await fs.readFile(logFile, "utf-8");
+
+            return fileContent
+                .match(/Stop accepting connections for routing/) !== null;
+        });
+
     };
 }
 

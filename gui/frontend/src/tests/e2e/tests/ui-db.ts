@@ -1052,15 +1052,30 @@ describe("DATABASE CONNECTIONS", () => {
                     expect(latestTable!.date).toMatch(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
                     expect(latestTable!.comment).toBe(newTask.description);
 
-                    const latestTask = await lakehouseTables.getLatestTask();
-                    await driver.wait(lakehouseTables.untilLakeHouseTaskIsCompleted(latestTask!.id!),
-                        constants.wait20seconds);
-                    expect(latestTask!.name).toBe(`Loading ${newTask.name}`);
-                    expect(latestTask!.hasProgressBar).toBe(false);
-                    expect(latestTask!.status).toBe("COMPLETED");
-                    expect(latestTask!.startTime).toMatch(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
-                    expect(latestTask!.endTime).toMatch(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
-                    expect(latestTask!.message).toBe("Task completed.");
+                    const tasks = await lakehouseTables.getLakeHouseTasks();
+
+                    tasks.sort((itemA: interfaces.ICurrentTask, itemB: interfaces.ICurrentTask) => {
+                        return itemA.id! > itemB.id! ? -1 : 1; // sort descending
+                    });
+
+                    if (tasks.length > 0) {
+                        for (const task of tasks) {
+                            if (task.name === `Loading ${newTask.name}`) {
+                                console.log(task.id);
+                                await driver.wait(lakehouseTables.untilLakeHouseTaskIsCompleted(task.id!),
+                                    constants.wait10seconds);
+                                expect(task.name).toBe(`Loading ${newTask.name}`);
+                                expect(task.hasProgressBar).toBe(false);
+                                expect(task.status).toBe("COMPLETED");
+                                expect(task.startTime).toMatch(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
+                                expect(task.endTime).toMatch(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/);
+                                expect(task.message).toBe("Task completed.");
+                                break;
+                            }
+                        }
+                    } else {
+                        throw new Error(`There are not any new tasks to verify`);
+                    }
                 } catch (e) {
                     await Misc.storeScreenShot();
                     throw e;

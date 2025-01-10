@@ -32,7 +32,7 @@ import * as constants from "../lib/constants.js";
 import * as interfaces from "../lib/interfaces.js";
 import { E2ENotebook } from "../lib/E2ENotebook.js";
 import { Key } from "selenium-webdriver";
-import * as locator from "./../lib/locators.js";
+import * as locator from "../lib/locators.js";
 import { E2EToastNotification } from "../lib/E2EToastNotification.js";
 import { ConfirmDialog } from "../lib/Dialogs/ConfirmationDialog.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
@@ -94,19 +94,7 @@ describe("RESULT GRIDS", () => {
             await dbTreeSection.tree.expandDatabaseConnection(globalConn);
             await (await dbTreeSection.tree.getActionButton(globalConn.caption!,
                 constants.openNewDatabaseConnectionOnNewTab))!.click();
-            notebook = await new E2ENotebook().untilIsOpened(globalConn)
-                .catch(async (e) => {
-                    if (String(e).includes("MRS SDK")) {
-                        const notification = await new E2EToastNotification().create();
-                        await notification?.close();
-                        const notebook = new E2ENotebook();
-                        await notebook.codeEditor.build();
-
-                        return notebook;
-                    } else {
-                        throw e;
-                    }
-                });
+            notebook = await new E2ENotebook().untilIsOpened(globalConn);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_RESULT-GRIDS");
             throw e;
