@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -278,7 +278,7 @@ DROP TABLE IF EXISTS `profile_has_db_connection` ;
 CREATE TABLE IF NOT EXISTS `profile_has_db_connection` (
   `profile_id` INTEGER NOT NULL,
   `db_connection_id` INTEGER NOT NULL,
-  `folder_path` VARCHAR(1024) NULL,
+  `folder_path_id` INTEGER NOT NULL,
   `index` INTEGER NULL,
   PRIMARY KEY (`profile_id`, `db_connection_id`),
   CONSTRAINT `fk_profile_has_db_connection_profile1`
@@ -290,13 +290,18 @@ CREATE TABLE IF NOT EXISTS `profile_has_db_connection` (
     FOREIGN KEY (`db_connection_id`)
     REFERENCES `db_connection` (`id`)
     ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_profile_has_db_connection_folder_path1`
+    FOREIGN KEY (`folder_path_id`)
+    REFERENCES `folder_path` (`id`)
+    ON DELETE NO ACTION
     ON UPDATE NO ACTION);
 
 CREATE INDEX `fk_profile_has_db_connection_db_connection1_idx` ON `profile_has_db_connection` (`db_connection_id` ASC);
 
 CREATE INDEX `fk_profile_has_db_connection_user_profile1_idx` ON `profile_has_db_connection` (`profile_id` ASC);
 
-CREATE INDEX `folder_path_idx` ON `profile_has_db_connection` (`folder_path` ASC);
+CREATE INDEX `fk_profile_has_db_connection_folder_path1_idx` ON `profile_has_db_connection` (`folder_path_id` ASC);
 
 
 
@@ -547,6 +552,30 @@ CREATE INDEX `fk_users_has_role_users1_idx` ON `user_has_role` (`user_id` ASC);
 
 
 
+-- -----------------------------------------------------
+-- Table `folder_path`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `folder_path` ;
+
+CREATE TABLE IF NOT EXISTS `folder_path` (
+  `id` INTEGER NOT NULL,
+  `parent_folder_id` INTEGER NULL,
+  `caption` VARCHAR(256) NOT NULL,
+  `index` INTEGER NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_folder_path_folder_path1`
+    FOREIGN KEY (`parent_folder_id`)
+    REFERENCES `folder_path` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
+CREATE INDEX `fk_folder_path_folder_path1_idx` ON `folder_path` (`parent_folder_id` ASC);
+
+CREATE INDEX `index_idx` ON `folder_path` (`index` ASC);
+
+
+
+
 
 -- -----------------------------------------------------
 -- Schema gui_backend_log
@@ -602,7 +631,7 @@ CREATE TABLE IF NOT EXISTS `logs`.`message` (
 -- View `schema_version`
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `schema_version` ;
-CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 18;
+CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 19;
 
 -- -----------------------------------------------------
 -- Data for table `data_category`
@@ -673,6 +702,14 @@ COMMIT;
 -- -----------------------------------------------------
 BEGIN TRANSACTION;
 INSERT INTO `user_group` (`id`, `name`, `description`) VALUES (1, 'all', 'All Users');
+
+COMMIT;
+
+-- -----------------------------------------------------
+-- Data for table `folder_path`
+-- -----------------------------------------------------
+BEGIN TRANSACTION;
+INSERT INTO `folder_path` (`id`, `parent_folder_id`, `caption`, `index`) VALUES (1, NULL, '/', 0);
 
 COMMIT;
 

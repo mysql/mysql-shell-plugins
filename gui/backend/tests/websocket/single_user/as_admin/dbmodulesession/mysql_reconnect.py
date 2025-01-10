@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -72,6 +72,37 @@ params = {
     "profile_id": 1,
 }
 
+await ws.send({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.add_folder_path",
+    "args": {
+        "profile_id": 1,
+        "caption": params["folder_path"]
+    }
+})
+
+ws.validateLastResponse({
+    "request_state": {
+        "type": "PENDING",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "result": ws.ignore
+})
+
+
+ws.tokens['folder_path_id'] = ws.lastResponse['result']
+
+ws.validateLastResponse({
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
+})
+
 ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
@@ -79,7 +110,7 @@ ws.sendAndValidate({
     "args": {
         "profile_id": params["profile_id"],
         "connection": params["connection"],
-        "folder_path": params["folder_path"]
+        "folder_path_id": ws.tokens['folder_path_id']
     }
 }, [
     {
@@ -203,6 +234,24 @@ ws.sendAndValidate({
     }
 ]
 )
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.remove_folder_path",
+    "args": {
+        "folder_path_id": ws.tokens['folder_path_id']
+    }
+}, [
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ws.ignore
+        },
+        "done": true
+    }
+])
 
 # Validates that both sessions are new
 id = get_session_id(session, test_session_id)

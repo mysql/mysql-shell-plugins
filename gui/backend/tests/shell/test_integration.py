@@ -163,9 +163,6 @@ DESCRIPTION
       Connections MySQL Shell GUI module
 
 FUNCTIONS
-      add_db_connection(profile_id, connection[, folder_path][, be_session])
-            Add a new db_connection and associate the connection with a profile
-
       delete_credential(url)
             Deletes the password of a db_connection url
 
@@ -181,7 +178,7 @@ FUNCTIONS
       list_credentials()
             Lists the db_connection urls that have a password stored
 
-      list_db_connections(profile_id[, folder_path][, be_session])
+      list_db_connections(profile_id[, folder_path_id][, be_session])
             Lists the db_connections for the given profile
 
       remove_db_connection(profile_id, connection_id[, be_session])
@@ -192,10 +189,7 @@ FUNCTIONS
             Set the password of a db_connection url
 
       test_connection(connection[, password])
-            Opens test connection
-
-      update_db_connection(profile_id, connection_id, connection[, folder_path][, be_session])
-            Update the data for a database connection'''
+            Opens test connection'''
 
 
     assert help_text == mysqlsh.globals.gui.db_connections.help() # pylint: disable=no-member

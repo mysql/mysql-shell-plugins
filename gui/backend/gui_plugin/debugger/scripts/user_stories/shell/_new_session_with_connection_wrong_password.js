@@ -20,7 +20,6 @@ await ws.sendAndValidate({
                 "port": default_mysql_options.port,
             }
         },
-        "folder_path": ""
     }
 }, [
     {

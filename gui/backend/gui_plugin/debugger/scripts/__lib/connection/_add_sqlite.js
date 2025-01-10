@@ -62,7 +62,6 @@ lib.connection.add.params = {
             "db_file": ws.tokens["current_test_name"] + ".sqlite3"
         }
     },
-    "folder_path": "",
     "profile_id": 1,
 }
 

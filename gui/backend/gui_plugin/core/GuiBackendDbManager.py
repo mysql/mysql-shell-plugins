@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -38,7 +38,7 @@ from gui_plugin.core.dbms import DbSessionFactory
 from gui_plugin.core.lib.Version import Version
 
 # Refers to the schema version supported by this version of the code
-CURRENT_DB_VERSION = Version((0, 0, 18))
+CURRENT_DB_VERSION = Version((0, 0, 19))
 # Do not change it, it was dropped in 0.0.16 and that is valid value
 DROPPED_VERSION_IN_NAME_DB_VERSION = Version((0, 0, 16))
 OLDEST_SUPPORTED_DB_VERSION = Version((0, 0, 11))

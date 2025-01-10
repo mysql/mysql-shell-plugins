@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General License: , version .=> 0,
@@ -101,4 +101,11 @@ export interface IBackendInformation {
     serverMajor: number;
     serverMinor: number;
     serverPatch: number;
+}
+
+export interface IFolderPath {
+    id: number;
+    caption: string;
+    parentFolderId?: number;
+    index: number;
 }

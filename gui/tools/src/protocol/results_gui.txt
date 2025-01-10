@@ -337,9 +337,15 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiDbConnectionsGetDbTypes]: { result: string[]; };
     [ShellAPIGui.GuiDbConnectionsSetCredential]: {};
     [ShellAPIGui.GuiDbConnectionsDeleteCredential]: {};
-    [ShellAPIGui.GuiDbConnectionsListCredentials]: {};
-    [ShellAPIGui.GuiDbConnectionsTestConnection]: {};
+    [ShellAPIGui.GuiDbConnectionsListCredentials]: { result: string[]; };
+    [ShellAPIGui.GuiDbConnectionsTestConnection]: { result?: { moduleSessionId?: string; }; };
     [ShellAPIGui.GuiDbConnectionsMoveConnection]: {};
+    [ShellAPIGui.GuiDbConnectionsAddFolderPath]: { result: number; };
+    [ShellAPIGui.GuiDbConnectionsRemoveFolderPath]: {};
+    [ShellAPIGui.GuiDbConnectionsRenameFolderPath]: {};
+    [ShellAPIGui.GuiDbConnectionsMoveFolder]: {};
+    [ShellAPIGui.GuiDbConnectionsListFolderPaths]: { result: IFolderPath[]; };
+    [ShellAPIGui.GuiDbConnectionsListAll]: { result: Array<IConnectionDetails | IFolderPath>; };
     [ShellAPIGui.GuiMdsIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiMdsGetGuiModuleDisplayInfo]: {};
     [ShellAPIGui.GuiModelerIsGuiModuleBackend]: {};

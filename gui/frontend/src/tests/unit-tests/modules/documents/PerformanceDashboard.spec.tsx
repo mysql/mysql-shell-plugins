@@ -67,7 +67,7 @@ describe("PerformanceDashboard Tests", (): void => {
         };
 
         testConnection.id = await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
-            testConnection, "") ?? -1;
+            testConnection) ?? -1;
         expect(testConnection.id).toBeGreaterThan(-1);
 
         backend = new ShellInterfaceSqlEditor();
