@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -234,8 +234,10 @@ export const openShellConnection = "Open New MySQL Shell Console for this Connec
 export const browseRESTDocs = "Browse the MySQL REST Service Documentation";
 export const configureREST = "Configure Instance for MySQL REST Service Support";
 export const setCurrentDBSchema = "Set As Current Database Schema";
-export const dumpSchemaToDisk = "Dump Schema to Disk";
-export const dumpSchemaToDiskToService = "Dump Schema to Disk for MySQL Database Service";
+export const dumpToDisk = "Dump to Disk";
+export const databaseSchemaDump = "Database Schema Dump";
+export const databaseSchemaDumpRest = "Database Schema Dump for MySQL Database Service";
+
 export const copyToClipboard = "Copy To Clipboard";
 export const copyToClipboardName = "Name";
 export const copyToClipboardStat = "CREATE Statement";
@@ -265,7 +267,7 @@ export const addNewAuthApp = "Add New REST Authentication App";
 export const deleteRESTService = "Delete REST Service...";
 export const mrsServiceDocs = "MRS Service Documentation";
 export const editRESTSchema = "Edit REST Schema...";
-export const dumpRESTSchemaToJSON = "Dump REST Schema To JSON File...";
+export const dumpRESTSchemaToJSON = "REST Schema To JSON File...";
 export const loadRESTObjFromJSON = "Load REST Object From JSON File...";
 export const deleteRESTSchema = "Delete REST Schema...";
 export const editRESTObj = "Edit REST Object";
@@ -367,14 +369,15 @@ export const dbConnectionSqliteCtxMenu = new Map([
 
 export const schemaCtxMenu = new Map([
     [setCurrentDBSchema, 1],
-    [dumpSchemaToDisk, 2],
-    [dumpSchemaToDiskToService, 3],
-    [copyToClipboard, 4],
+    [dumpToDisk, 2],
+    [databaseSchemaDump, 0],
+    [databaseSchemaDumpRest, 1],
+    [copyToClipboard, 3],
     [copyToClipboardName, 0],
     [copyToClipboardStat, 1],
-    [loadDataToHW, 5],
-    [addSchemaToREST, 6],
-    [dropSchema, 7],
+    [loadDataToHW, 4],
+    [addSchemaToREST, 5],
+    [dropSchema, 6],
 ]);
 
 export const dbObjectCtxMenu = new Map([
@@ -413,47 +416,84 @@ export const restMainCtxMenu = new Map([
     [browseRESTDocs, 8],
 ]);
 
+export const dumpRESTSchemaToSQL = "Rest Schema SQL...";
+export const createStatement = "Create Statement...";
+export const createStatementAllObjs = "Create Statement Including All Objects...";
+export const clipCreateStatementAllObjs = "Create Statement Including All Objects";
+export const loadFromDisk = "Load from Disk";
+export const restObjectFromJSONFile = "REST Object From JSON File...";
+export const restSchemaFromJSONFile = "REST Schema From JSON File...";
+export const clipCreateStatement = "Create Statement";
+export const restClientSDKFiles = "REST Client SDK Files ...";
+
 export const restServiceCtxMenu = new Map([
     [editRESTService, 1],
     [setAsCurrentREST, 2],
-    [loadRESTSchemaFromJSON, 3],
-    [exportRestSdk, 4],
-    [exportCreateRestServiceSt, 5],
-    [copyCreateRestServiceSt, 6],
-    [addNewAuthApp, 7],
-    [deleteRESTService, 10],
-    [mrsServiceDocs, 11],
+    [loadFromDisk, 3],
+    [restSchemaFromJSONFile, 0],
+    [dumpToDisk, 4],
+    [restClientSDKFiles, 0],
+    [createStatement, 1],
+    [createStatementAllObjs, 2],
+    [copyToClipboard, 5],
+    [clipCreateStatement, 0],
+    [clipCreateStatementAllObjs, 1],
+    [addNewAuthApp, 6],
+    [deleteRESTService, 9],
+    [mrsServiceDocs, 10],
 ]);
 
 export const restSchemaCtxMenu = new Map([
     [editRESTSchema, 1],
-    [dumpRESTSchemaToJSON, 2],
-    [loadRESTObjFromJSON, 3],
-    [dumpRestSchemaSQL, 4],
-    [exportCreateRestSchemaSt, 5],
-    [copyCreateRestSchemaSt, 6],
-    [deleteRESTSchema, 7],
+    [loadFromDisk, 2],
+    [restObjectFromJSONFile, 0],
+    [dumpToDisk, 3],
+    [dumpRESTSchemaToJSON, 0],
+    [dumpRESTSchemaToSQL, 1],
+    [createStatement, 2],
+    [createStatementAllObjs, 3],
+    [copyToClipboard, 4],
+    [clipCreateStatement, 0],
+    [clipCreateStatementAllObjs, 1],
+    [deleteRESTSchema, 5],
 ]);
+
+export const restObjectToJSONFile = "REST Object To JSON File...";
+export const restObjectRequestPath = "REST Object Request Path";
 
 export const restObjCtxMenu = new Map([
     [editRESTObj, 1],
     [copyRESTObjReqPath, 2],
-    [copyRESTObjReqPathBrowser, 3],
-    [dumpRESTObjToJSON, 4],
-    [exportCreateRestObjSt, 5],
-    [copyCreateRestObjSt, 6],
-    [deleteRESTObj, 7],
+    [dumpToDisk, 3],
+    [restObjectToJSONFile, 0],
+    [createStatement, 1],
+    [copyToClipboard, 4],
+    [restObjectRequestPath, 0],
+    [clipCreateStatement, 1],
+    [deleteRESTObj, 5],
 ]);
 
 export const restAppCtxMenu = new Map([
     [editAuthenticationApp, 1],
     [addRESTUser, 2],
-    [deleteAuthenticationApp, 3],
+    [dumpToDisk, 3],
+    [createStatement, 1],
+    [createStatementAllObjs, 2],
+    [copyToClipboard, 4],
+    [clipCreateStatement, 0],
+    [clipCreateStatementAllObjs, 1],
+    [deleteAuthenticationApp, 5],
 ]);
 
 export const restUserCtxMenu = new Map([
     [editRESTUser, 1],
     [deleteRESTUser, 2],
+    [dumpToDisk, 3],
+    [createStatement, 1],
+    [createStatementAllObjs, 2],
+    [copyToClipboard, 4],
+    [clipCreateStatement, 0],
+    [clipCreateStatementAllObjs, 1],
 ]);
 
 export const routerCtxMenu = new Map([

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -114,7 +114,7 @@ def test_get_content_set(phone_book):
         args["content_set_id"] = 10
         with pytest.raises(RuntimeError) as exc_info:
             get_content_set(request_path="test_content_set", **args)
-        assert str(exc_info.value) == "Invalid id type for content_set_id."
+        assert str(exc_info.value) == "Invalid id type for 'content_set_id'."
 
         args["content_set_id"] = phone_book["content_set_id"]
         sets = get_content_set(**args)
@@ -138,7 +138,7 @@ def test_enable_disable(phone_book, table_contents):
 
     with pytest.raises(RuntimeError) as exc_info:
         result = disable_content_set(**args)
-    assert str(exc_info.value) == "Invalid id type for content_set_id."
+    assert str(exc_info.value) == "Invalid id type for 'content_set_id'."
 
     args["content_set_id"] = "0x00000000000000000000000000000000"
     result = disable_content_set(**args)
@@ -167,6 +167,7 @@ def test_dump_and_recover(phone_book, table_contents):
         "option_2": "value 2",
         "option_3": "value 3"
     };
+
 CREATE OR REPLACE REST CONTENT FILE "/readme.txt"
     ON SERVICE localhost/test CONTENT SET /tempContentSet
     OPTIONS {
@@ -175,6 +176,7 @@ CREATE OR REPLACE REST CONTENT FILE "/readme.txt"
     CONTENT 'Line \\'1\\'
 Line "2"
 Line \\\\3\\\\';
+
 CREATE OR REPLACE REST CONTENT FILE "/somebinaryfile.bin"
     ON SERVICE localhost/test CONTENT SET /tempContentSet
     OPTIONS {

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -27,7 +27,22 @@
 
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
-from .interactive import resolve_service, resolve_auth_app
+from .interactive import resolve_service, resolve_auth_app, resolve_file_path, resolve_overwrite_file, auth_app_query_selection, service_query_selection
+
+def generate_create_statement(**kwargs) -> str:
+    lib.core.convert_ids_to_binary(["service_id", "auth_app_id"], kwargs)
+    lib.core.try_convert_ids_to_binary(["service", "schema"], kwargs)
+
+    include_all_objects = kwargs.get("include_all_objects", False)
+    auth_app_query = auth_app_query_selection(**kwargs)
+    service_query = service_query_selection(**kwargs)
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        service = resolve_service(session, service_query=service_query)
+        auth_app = resolve_auth_app(session, auth_app_query=auth_app_query, service_query=service_query)
+
+        return lib.auth_apps.get_create_statement(session, auth_app, service, include_all_objects)
+
 
 @plugin_function('mrs.get.authenticationVendors', shell=True, cli=True, web=True)
 def get_auth_vendors(**kwargs):
@@ -210,7 +225,7 @@ def get_auth_app(app_id=None, session=None):
         app_id = lib.core.id_to_binary(app_id, "app_id")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, session=session) as session:
-        auth_app = resolve_auth_app(session, app_id)
+        auth_app = resolve_auth_app(session, auth_app_query=app_id)
 
         if lib.core.get_interactive_result():
             return lib.auth_apps.format_auth_app_listing(
@@ -269,7 +284,7 @@ def delete_auth_app(**kwargs):
     service_id = kwargs.get("service_id")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        auth_app = resolve_auth_app(session, app_id, service_id)
+        auth_app = resolve_auth_app(session, auth_app_query=app_id, service_query=service_id)
 
         with lib.core.MrsDbTransaction(session):
             lib.auth_apps.delete_auth_app(session, service_id=service_id, app_id=auth_app["id"])
@@ -313,3 +328,69 @@ def update_auth_app(**kwargs):
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         value = kwargs.get("value")
         lib.auth_apps.update_auth_app(session, app_id, value)
+
+@plugin_function('mrs.get.authAppCreateStatement', shell=True, cli=True, web=True)
+def get_create_statement(**kwargs):
+    """Returns the corresponding CREATE REST AUTH APP SQL statement of the given MRS service object.
+
+    When using the 'auth_app' parameter, you can choose either of these formats:
+        - '0x11EF8496143CFDEC969C7413EA499D96' - Hexadecimal string ID
+        - 'Ee+ElhQ8/eyWnHQT6kmdlg==' - Base64 string ID
+        - 'localhost/myService/authApp' - Human readable string ID
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        auth_app_id (str): The ID of the authentication app to generate.
+        service_id (str): The ID of the service where the authentication app belongs.
+        auth_app (str): The identifier of the authentication app.
+        include_all_objects (bool): Include all objects that belong to the authentication app.
+        session (object): The database session to use.
+
+    Returns:
+        The SQL that represents the create statement for the MRS schema
+    """
+    return generate_create_statement(**kwargs)
+
+
+@plugin_function('mrs.dump.authAppCreateStatement', shell=True, cli=True, web=True)
+def store_create_statement(**kwargs):
+    """Stores the corresponding CREATE REST AUTH APP SQL statement of the given MRS schema
+    object into a file.
+
+    When using the 'auth_app' parameter, you can choose either of these formats:
+        - '0x11EF8496143CFDEC969C7413EA499D96' - Hexadecimal string ID
+        - 'Ee+ElhQ8/eyWnHQT6kmdlg==' - Base64 string ID
+        - 'localhost/myService/authApp/user' - Human readable string ID
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        auth_app_id (str): The ID of the authentication app to generate.
+        service_id (str): The ID of the service where the authentication app belongs.
+        auth_app (str): The identifier of the authentication app.
+        include_all_objects (bool): Include all objects that belong to the schema.
+        file_path (str): The path where to store the file.
+        overwrite (bool): Overwrite the file, if already exists.
+        session (object): The database session to use.
+
+    Returns:
+        True if the file was saved.
+    """
+    file_path = kwargs.get("file_path")
+    overwrite = kwargs.get("overwrite")
+
+    file_path = resolve_file_path(file_path)
+    resolve_overwrite_file(file_path, overwrite)
+
+    sql = generate_create_statement(**kwargs)
+
+    with open(file_path, "w") as f:
+        f.write(sql)
+
+    if lib.core.get_interactive_result():
+        return f"File created in {file_path}."
+
+    return True

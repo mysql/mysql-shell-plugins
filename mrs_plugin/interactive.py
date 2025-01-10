@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -25,14 +25,62 @@ import json
 import os
 from pathlib import Path
 
+def service_query_selection(**kwargs):
+    service = kwargs.get("service")
+    service_id = kwargs.get("service_id")
+    url_host_name = kwargs.get("url_host_name")
+    url_context_root  = kwargs.get("url_context_root")
 
-def resolve_service(session, service_id=None, required=True, auto_select_single=False):
+    if service_id is not None:
+        return service_id
+
+    if service is not None:
+        return service
+
+    if url_host_name is not None and url_context_root is not None:
+        return f"{url_host_name}{url_context_root}"
+
+    return None
+
+def schema_query_selection(**kwargs):
+    schema = kwargs.get("schema")
+    schema_id = kwargs.get("schema_id")
+
+    if schema_id is not None:
+        return schema_id
+
+    if schema is not None:
+        return schema
+
+    return None
+
+def auth_app_query_selection(**kwargs):
+    auth_app = kwargs.get("auth_app")
+    auth_app_id = kwargs.get("auth_app_id")
+
+    if auth_app_id is not None:
+        return auth_app_id
+
+    if auth_app is not None:
+        return auth_app
+
+    return None
+
+def resolve_service(session, service_query:str | bytes=None, required:bool=True, auto_select_single:bool=False):
     service = None
 
-    if service_id:
-        # Check if given service_id exists or use the current service
-        service = lib.services.get_service(
-            service_id=service_id, session=session)
+    if service_query:
+        if isinstance(service_query, bytes):
+            # Check if given service exists by searching its id
+            service = lib.services.get_service(
+                service_id=service_query, session=session)
+        else:
+            # Check if the service exists by host and context root
+            url_host_name, url_context_root = service_query.split("/")
+            url_context_root = f"/{url_context_root}"
+
+            service = lib.services.get_service(
+                url_host_name=url_host_name, url_context_root=url_context_root, session=session)
 
     if not service:
         service = lib.services.get_current_service(session)
@@ -59,19 +107,24 @@ def resolve_service(session, service_id=None, required=True, auto_select_single=
     return service
 
 
-def resolve_schema(session, schema_id=None, service_id=None, required=True):
+def resolve_schema(session, schema_query:str | bytes=None, service_query:str | bytes=None, required:bool=True):
     schema = None
     service = None
 
-    if schema_id:
-        schema = lib.schemas.get_schema(session=session, schema_id=schema_id, service_id=service_id)
+    if schema_query is not None:
+        if isinstance(schema_query, bytes):
+            schema = lib.schemas.get_schema(session=session, schema_id=schema_query)
+        elif isinstance(schema_query, str):
+            url_host_name, url_context_root, request_path = schema_query.split("/")
+            service = lib.services.get_service(session, url_host_name=url_host_name, url_context_root=f"/{url_context_root}")
+            if service is not None:
+                schema = lib.schemas.get_schema(session, service_id=service["id"], request_path=f"/{request_path}")
 
     if schema:
         return schema
 
     if lib.core.get_interactive_default():
-        if not service_id:
-            service = resolve_service(session, service_id)
+        service = resolve_service(session, service_query)
 
         schemas = lib.schemas.get_schemas(session, service["id"])
         schema = lib.core.prompt_for_list_item(
@@ -86,7 +139,7 @@ def resolve_schema(session, schema_id=None, service_id=None, required=True):
     return schema
 
 
-def resolve_db_object(session, db_object_id=None, schema_id=None, service_id=None, required=True):
+def resolve_db_object(session, db_object_id:bytes=None, schema_id:bytes=None, service_id:bytes=None, required:bool=True):
     db_object = None
 
     if db_object_id:
@@ -96,7 +149,7 @@ def resolve_db_object(session, db_object_id=None, schema_id=None, service_id=Non
         return db_object
 
     if lib.core.get_interactive_default():
-        schema = resolve_schema(session, schema_id, service_id)
+        schema = resolve_schema(session, schema_query=schema_id, service_query=service_id)
 
         db_objects = lib.db_objects.get_db_objects(session, schema["id"])
 
@@ -112,7 +165,7 @@ def resolve_db_object(session, db_object_id=None, schema_id=None, service_id=Non
     return db_object
 
 
-def resolve_content_set(session, content_set_id=None, service_id=None, required=True):
+def resolve_content_set(session, content_set_id:bytes=None, service_id:bytes=None, required:bool=True):
     content_set = None
 
     if content_set_id:
@@ -138,7 +191,7 @@ def resolve_content_set(session, content_set_id=None, service_id=None, required=
     return content_set
 
 
-def resolve_content_file(session, content_file_id=None, content_set_id=None, service_id=None, required=True):
+def resolve_content_file(session, content_file_id:bytes=None, content_set_id:bytes=None, service_id:bytes=None, required:bool=True):
     content_file = None
 
     if content_file_id:
@@ -162,6 +215,91 @@ def resolve_content_file(session, content_file_id=None, content_set_id=None, ser
         raise Exception("Cancelling operation. Could not determine the content file.")
 
     return content_file
+
+def user_query_selection(**kwargs):
+    user_id = kwargs.get("user_id")
+    user = kwargs.get("user")
+
+    if user_id is not None:
+        return user_id
+
+    if user is not None:
+        return user
+
+    return None
+
+
+def resolve_user(session, user_query:str | bytes):
+    if isinstance(user_query, bytes):
+        return lib.users.get_user(session, user_id=user_query)
+
+    if isinstance(user_query, str):
+        url_host_name, url_context_root, auth_app_name, user_name = user_query.split("/")
+        service = lib.services.get_service(session, url_host_name=url_host_name, url_context_root=f"/{url_context_root}")
+
+        if not service:
+            raise Exception("service not found")
+
+        auth_app = lib.auth_apps.get_auth_app(session, service_id=service["id"], name=auth_app_name)
+
+        if not auth_app:
+            raise Exception("auth_app not found")
+
+        user = lib.users.get_user(session, service_id=service["id"], auth_app_id=auth_app["id"], user_name=user_name)
+
+        if not user:
+            raise Exception("user not found")
+
+        return user
+
+    return None
+
+
+def role_query_selection(**kwargs):
+    role_id = kwargs.get("role_id")
+    role_name = kwargs.get("role_id")
+    role_query = kwargs.get("role")
+
+    if role_id is not None:
+        return role_id
+
+    if isinstance(role_query, bytes) or isinstance(role_query, str):
+        return role_query
+
+    if role_name is not None:
+        return role_name
+
+    return None
+
+
+
+def resolve_role(session, role_query:str | bytes):
+    if isinstance(role_query, bytes):
+        return lib.roles.get_role(session, role_id=role_query)
+
+    role_query_list = role_query.split("/")
+
+    service_id = None
+    role_name = None
+
+    if len(role_query_list) == 3:
+        url_host_name = role_query_list[0]
+        url_context_root = role_query_list[1]
+        role_name = role_query_list[2]
+
+        service = lib.services.get_service(session, url_host_name=url_host_name, url_context_root=url_context_root)
+        service_id = service["id"]
+    elif len(role_query_list) == 1:
+        role_name = role_query_list[0]
+
+    roles = lib.roles.get_roles(session, service_id)
+
+    for role in roles:
+        if role["caption"] == role_name:
+            return role
+
+    return None
+
 
 def resolve_options(options, default = None):
     # it should be possible to override the default value with an empty dict
@@ -191,14 +329,20 @@ def resolve_options(options, default = None):
 
     return None
 
-def resolve_auth_app(session, auth_app_id=None, service_id=None, required=True):
-    if auth_app_id:
-        return lib.auth_apps.get_auth_app(session, auth_app_id)
+def resolve_auth_app(session, auth_app_query:str | bytes=None, service_query:str | bytes=None, required:bool=True):
+    if isinstance(auth_app_query, bytes):
+        return lib.auth_apps.get_auth_app(session, auth_app_query)
 
-    if not service_id:
-        service = resolve_service(session, service_id)
+    service = resolve_service(session, service_query=service_query)
 
     auth_app_list = lib.auth_apps.get_auth_apps(session, service["id"])
+
+    if len(auth_app_list) == 0:
+        raise Exception("No Authentication Apps found for this service.")
+
+    if len(auth_app_list) == 1:
+        return auth_app_list[0]
+
     selection = lib.core.prompt_for_list_item(
         item_list=auth_app_list,
         prompt_caption='Please enter the name or index of an auth_app: ',
@@ -210,7 +354,7 @@ def resolve_auth_app(session, auth_app_id=None, service_id=None, required=True):
 
     return selection
 
-def resolve_file_path(file_path=None, required=True):
+def resolve_file_path(file_path:str=None, required:bool=True):
     if file_path is None and lib.core.get_interactive_default():
         file_path = lib.core.prompt("Please set the file path", {
             "defaultValue": None,
@@ -227,7 +371,7 @@ def resolve_file_path(file_path=None, required=True):
 
     return Path(file_path).as_posix()
 
-def resolve_overwrite_file(file_path, overwrite) -> None:
+def resolve_overwrite_file(file_path:str, overwrite:bool) -> None:
     if not os.path.exists(file_path):
         return
 

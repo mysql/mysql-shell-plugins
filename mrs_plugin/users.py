@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,19 @@
 
 from mysqlsh.plugin_manager import plugin_function
 from mrs_plugin import lib
-from .interactive import resolve_auth_app
+from .interactive import service_query_selection, resolve_file_path, resolve_overwrite_file, user_query_selection, resolve_user
+
+def generate_create_statement(**kwargs) -> str:
+    lib.core.convert_ids_to_binary(["user_id"], kwargs)
+    lib.core.try_convert_ids_to_binary(["user"], kwargs)
+
+    include_all_objects = kwargs.get("include_all_objects", False)
+    user_query = user_query_selection(**kwargs)
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        user = resolve_user(session, user_query=user_query)
+
+        return lib.users.get_create_statement(session, user, include_all_objects)
 
 
 @plugin_function("mrs.list.users", shell=True, cli=True, web=True)
@@ -327,3 +339,68 @@ def delete_user_roles(user_id=None, role_id=None, session=None):
     with lib.core.MrsDbSession(session=session) as session:
         with lib.core.MrsDbTransaction(session):
             lib.users.delete_user_roles(session, user_id, role_id)
+
+
+@plugin_function('mrs.get.userCreateStatement', shell=True, cli=True, web=True)
+def get_create_statement(**kwargs):
+    """Returns the corresponding CREATE REST SCHEMA SQL statement of the given MRS service object.
+
+    When using the 'user' parameter, you can choose either of these formats:
+        - '0x11EF8496143CFDEC969C7413EA499D96' - Hexadecimal string ID
+        - 'Ee+ElhQ8/eyWnHQT6kmdlg==' - Base64 string ID
+        - 'localhost/myService/authApp/user' - Human readable string ID
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        user_id (str): The ID of the user to generate.
+        user (str): The identifier of the user.
+        include_all_objects (bool): Include all objects that belong to the user.
+        session (object): The database session to use.
+
+    Returns:
+        The SQL that represents the create statement for the MRS schema
+    """
+    return generate_create_statement(**kwargs)
+
+
+@plugin_function('mrs.dump.userCreateStatement', shell=True, cli=True, web=True)
+def store_create_statement(**kwargs):
+    """Stores the corresponding CREATE REST schema SQL statement of the given MRS schema
+    object into a file.
+
+    When using the 'user' parameter, you can choose either of these formats:
+        - '0x11EF8496143CFDEC969C7413EA499D96' - Hexadecimal string ID
+        - 'Ee+ElhQ8/eyWnHQT6kmdlg==' - Base64 string ID
+        - 'localhost/myService/authApp/user' - Human readable string ID
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        user_id (str): The ID of the user to generate.
+        user (str): The identifier of the user.
+        include_all_objects (bool): Include all objects that belong to the user.
+        file_path (str): The path where to store the file.
+        overwrite (bool): Overwrite the file, if already exists.
+        session (object): The database session to use.
+
+    Returns:
+        True if the file was saved.
+    """
+    file_path = kwargs.get("file_path")
+    overwrite = kwargs.get("overwrite")
+
+    file_path = resolve_file_path(file_path)
+    resolve_overwrite_file(file_path, overwrite)
+
+    sql = generate_create_statement(**kwargs)
+
+    with open(file_path, "w") as f:
+        f.write(sql)
+
+    if lib.core.get_interactive_result():
+        return f"File created in {file_path}."
+
+    return True

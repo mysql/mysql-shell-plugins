@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -27,7 +27,8 @@
 
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
-from .interactive import resolve_service, resolve_schema, resolve_file_path, resolve_overwrite_file
+from .interactive import resolve_service, resolve_schema, \
+    resolve_file_path, resolve_overwrite_file, schema_query_selection, service_query_selection
 
 
 def verify_value_keys(**kwargs):
@@ -194,13 +195,17 @@ def call_update_schema(**kwargs):
 
 def generate_create_statement(**kwargs) -> str:
     lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
-    service_id = kwargs.get("service_id")
-    schema_id = kwargs.get("schema_id")
+    lib.core.try_convert_ids_to_binary(["service", "schema"], kwargs)
+
+    include_all_objects = kwargs.get("include_all_objects", False)
+    service_query = service_query_selection(**kwargs)
+    schema_query = schema_query_selection(**kwargs)
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        schema = resolve_schema(session, schema_id, service_id)
+        schema = resolve_schema(session, schema_query=schema_query, service_query=service_query)
 
-        return lib.schemas.get_create_statement(session, schema)
+        return lib.schemas.get_create_statement(session, schema, include_all_objects=include_all_objects)
+
 
 @plugin_function('mrs.add.schema', shell=True, cli=True, web=True)
 def add_schema(**kwargs):
@@ -634,7 +639,12 @@ def update_schema(**kwargs):
 
 @plugin_function('mrs.get.schemaCreateStatement', shell=True, cli=True, web=True)
 def get_create_statement(**kwargs):
-    """Returns the corresponding CREATE REST SCHEMA SQL statement of the given MRS service object.
+    """Returns the corresponding CREATE REST SCHEMA SQL statement of the given MRS schema object.
+
+    When using the 'schema' parameter, you can choose either of these formats:
+        - '0x11EF8496143CFDEC969C7413EA499D96' - Hexadecimal string ID
+        - 'Ee+ElhQ8/eyWnHQT6kmdlg==' - Base64 string ID
+        - 'localhost/myService/mySchema' - Human readable string ID
 
     Args:
         **kwargs: Options to determine what should be generated.
@@ -642,6 +652,8 @@ def get_create_statement(**kwargs):
     Keyword Args:
         service_id (str): The ID of the service where the schema belongs.
         schema_id (str): The ID of the schema to generate.
+        schema (str): The identifier of the schema.
+        include_all_objects (bool): Include all objects that belong to the schema.
         session (object): The database session to use.
 
     Returns:
@@ -655,14 +667,21 @@ def store_create_statement(**kwargs):
     """Stores the corresponding CREATE REST schema SQL statement of the given MRS schema
     object into a file.
 
+    When using the 'schema' parameter, you can choose either of these formats:
+        - '0x11EF8496143CFDEC969C7413EA499D96' - Hexadecimal string ID
+        - 'Ee+ElhQ8/eyWnHQT6kmdlg==' - Base64 string ID
+        - 'localhost/myService/mySchema' - Human readable string ID
+
     Args:
         **kwargs: Options to determine what should be generated.
 
     Keyword Args:
         service_id (str): The ID of the service where the schema belongs.
         schema_id (str): The ID of the schema to dump.
+        schema (str): The identifier of the schema.
         file_path (str): The path where to store the file.
         overwrite (bool): Overwrite the file, if already exists.
+        include_all_objects (bool): Include all objects that belong to the schema.
         session (object): The database session to use.
 
     Returns:

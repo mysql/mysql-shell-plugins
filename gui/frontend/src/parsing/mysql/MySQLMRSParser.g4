@@ -5237,6 +5237,8 @@ identifierKeywordsUnambiguous:
         | EXTENDS_SYMBOL
         | OBJECT_SYMBOL
         | HIERARCHY_SYMBOL
+        | INCLUDE_SYMBOL
+        | OBJECTS_SYMBOL
         | AT_INOUT_SYMBOL
         | AT_IN_SYMBOL
         | AT_OUT_SYMBOL
@@ -6398,7 +6400,9 @@ showRestGrantsStatement:
 ;
 
 showCreateRestServiceStatement:
-    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL SERVICE_SYMBOL serviceRequestPath?
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL SERVICE_SYMBOL serviceRequestPath? (
+        INCLUDE_SYMBOL ALL_SYMBOL OBJECTS_SYMBOL
+    )?
 ;
 
 showCreateRestSchemaStatement:

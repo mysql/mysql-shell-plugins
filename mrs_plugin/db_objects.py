@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -185,7 +185,7 @@ def add_db_object(**kwargs):
                                                        requires_auth=True if requires_auth else False,
                                                        session=session)
 
-            schema = resolve_schema(session, schema_id)
+            schema = resolve_schema(session, schema_query=schema_id)
 
             if not db_object_type and interactive:
                 # Get object counts per type
@@ -751,7 +751,7 @@ def update_db_object(**kwargs):
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         kwargs["session"] = session
         if not kwargs.get("db_object_id"):
-            schema = resolve_schema(session, kwargs["schema_id"])
+            schema = resolve_schema(session, schema_query=kwargs["schema_id"])
             kwargs["schema_id"] = schema.get("id")
 
         kwargs = resolve_db_object_ids(**kwargs)

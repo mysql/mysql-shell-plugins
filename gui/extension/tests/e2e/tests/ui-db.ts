@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024 Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -964,9 +964,9 @@ describe("DATABASE CONNECTIONS", () => {
             await notebook.codeEditor.loadCommandResults();
 
             const jsFunction =
-                `CREATE FUNCTION IF NOT EXISTS js_pow(arg1 INT, arg2 INT) 
-                    RETURNS INT DETERMINISTIC LANGUAGE JAVASCRIPT 
-                    AS 
+                `CREATE FUNCTION IF NOT EXISTS js_pow(arg1 INT, arg2 INT)
+                    RETURNS INT DETERMINISTIC LANGUAGE JAVASCRIPT
+                    AS
                     $$
                     let x = Math.pow(arg1, arg2)
                     return x
@@ -1345,7 +1345,8 @@ describe("DATABASE CONNECTIONS", () => {
                 .schema);
             await fs.rm(dumpFolder, { force: true, recursive: true });
             await fs.mkdir(dumpFolder);
-            await dbTreeSection.tree.openContextMenuAndSelect(treeTestSchema, constants.dumpSchemaToDisk);
+            await dbTreeSection.tree.openContextMenuAndSelect(treeTestSchema,
+                [constants.dumpToDisk, constants.databaseSchemaDump], constants.schemaCtxMenu);
             await Workbench.setInputPath(dumpFolder);
             await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
             await Workbench.waitForOutputText(`Task 'Dump Schema ${dumpSchemaToDisk} to Disk' completed successfully`,
@@ -1356,6 +1357,8 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(tasksTreeSection.tree.untilExists(`Dump Schema ${dumpSchemaToDisk} to Disk (done)`),
                 constants.wait5seconds);
             await dbTreeSection.focus();
+            await dbTreeSection.tree.expandDatabaseConnection(treeGlobalConn,
+                (globalConn.basic as interfaces.IConnBasicMySQL).password);
             await dbTreeSection.tree.openContextMenuAndSelect(treeTestSchema, constants.dropSchema, undefined);
             await Workbench.pushDialogButton(`Drop ${dumpSchemaToDisk}`);
             await Workbench.getNotification(`The object ${dumpSchemaToDisk} has been dropped successfully.`);
@@ -1386,7 +1389,8 @@ describe("DATABASE CONNECTIONS", () => {
 
             await fs.rm(dumpFolder, { force: true, recursive: true });
             await fs.mkdir(dumpFolder);
-            await dbTreeSection.tree.openContextMenuAndSelect(treeTestSchema, constants.dumpSchemaToDiskToService);
+            await dbTreeSection.tree.openContextMenuAndSelect(treeTestSchema,
+                [constants.dumpToDisk, constants.databaseSchemaDumpRest], constants.schemaCtxMenu);
             await Workbench.setInputPath(dumpFolder);
             await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
             await Workbench

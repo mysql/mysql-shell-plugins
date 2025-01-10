@@ -85,6 +85,7 @@ CLIENT_SYMBOL:         C L I E N T;
 URL_SYMBOL:            U R L;
 NAME_SYMBOL:           N A M E;
 DO_SYMBOL:             D O;
+ALL_SYMBOL:            A L L;
 
 // Used for auto merging this grammar and the standard MySQL grammar.
 /* START OF MERGE PART */
@@ -142,6 +143,8 @@ ROLES_SYMBOL:       R O L E S;
 EXTENDS_SYMBOL:     E X T E N D S;
 OBJECT_SYMBOL:      O B J E C T;
 HIERARCHY_SYMBOL:   H I E R A R C H Y;
+INCLUDE_SYMBOL:     I N C L U D E;
+OBJECTS_SYMBOL:     O B J E C T S;
 
 //----------------- GraphQL --------------------------------------------------------------------------------------------
 

@@ -1559,6 +1559,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         "statementIndex": len(self.results) + 1,
                         "line": mrs_object.get("line"),
                         "type": "success",
+                        "message": f"REST USER `{full_path}` updated successfully.",
                         "affectedItemsCount": 1,
                         "operation": self.current_operation,
                         "id": lib.core.convert_id_to_string(user_id),
@@ -1566,8 +1567,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     }
                 )
             except Exception as e:
-                import traceback
-                traceback.print_exc()
                 self.results.append(
                     {
                         "statementIndex": len(self.results) + 1,
@@ -1578,7 +1577,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     }
                 )
                 raise
-
 
     def dropRestService(self, mrs_object: dict):
         timer = Timer()
@@ -2698,6 +2696,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             )
             raise
 
+    def showRestUser(self, mrs_object: dict):
+        raise NotImplementedError()
+
     def formatJsonSetting(self, setting_name, value: dict):
         if value is None or value == "":
             return ""
@@ -2712,6 +2713,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def showCreateRestService(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
+        include_all_objects = mrs_object.pop("include_all_objects")
 
         full_path = self.getFullServicePath(mrs_object=mrs_object)
 
@@ -2725,33 +2727,44 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             stmt = f'CREATE REST SERVICE {service.get("host_ctx")}\n'
             if service.get("enabled") != 1:
                 stmt += "    DISABLED\n"
-            if service.get("comments") is not None:
+            if service.get("comments"): # ignore either None or empty
                 stmt += f'    COMMENTS "{service.get("comments")}"\n'
 
             auth = ""
             if service.get("auth_path") != "/authentication":
                 auth += f'        PATH "{service.get("auth_path")}"\n'
-            if service.get("auth_completed_url") is not None:
+            if service.get("auth_completed_url"):  # ignore either None or empty
                 auth += f'        REDIRECTION "{service.get("auth_completed_url")}"\n'
-            if service.get("auth_completed_url_validation") is not None:
+            if service.get("auth_completed_url_validation"):  # ignore either None or empty
                 auth += f'        VALIDATION "{service.get("auth_completed_url_validation")}"\n'
-            if service.get("auth_completed_page_content") is not None:
+            if service.get("auth_completed_page_content"):  # ignore either None or empty
                 auth += f'        PAGE CONTENT "{service.get("auth_completed_page_content")}"\n'
-            if auth != "":
+            if auth:  # ignore either None or empty
                 stmt += f"    AUTHENTICATION\n{auth}"
 
             stmt += self.formatJsonSetting("OPTIONS", service.get("options"))
             stmt += self.formatJsonSetting("METADATA", service.get("metadata"))
-            # options = service.get("options")
-            # if options is not None and options != "":
-            #     js = json.dumps(options, indent=4)
-            #     # Indent the json.dumps with 4 spaces
-            #     js_indented = ""
-            #     for ln in js.split("\n"):
-            #         js_indented += f'    {ln}\n'
-            #     stmt += f'    OPTIONS {js_indented[4:-1]}\n'
 
-            result = [{"CREATE REST SERVICE": stmt[:-1] + ";"}]
+            output = [stmt[:-1] + ";"]
+            if include_all_objects:
+                for role in lib.roles.get_roles(self.session, service_id):
+                    output.append(lib.roles.get_create_statement(self.session, role))
+
+                for schema in lib.schemas.get_schemas(self.session, service_id):
+                    if schema["schema_type"] == "SCRIPT_MODULE":
+                        continue
+                    output.append(lib.schemas.get_create_statement(self.session, schema, True))
+
+                for content_set in lib.content_sets.get_content_sets(self.session, service_id):
+                    if content_set["content_type"] == "SCRIPTS":
+                        continue
+                    output.append(lib.content_sets.get_create_statement(self.session, content_set))
+
+                for auth_app in lib.auth_apps.get_auth_apps(self.session, service_id):
+                    output.append(lib.auth_apps.get_create_statement(self.session, auth_app, service, include_all_objects))
+
+
+            result = [{"CREATE REST SERVICE": "\n\n".join(output)}]
 
             self.results.append(
                 {
@@ -2779,24 +2792,20 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def showCreateRestSchema(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
+        include_all_objects = mrs_object.pop("include_all_objects")
+        schema = mrs_object.get("schema")
 
         full_path = self.getFullSchemaPath(mrs_object=mrs_object)
 
         try:
+            if schema is None:
+                raise Exception("The REST schema was not found.")
+
             service_id = self.get_given_or_current_service_id(mrs_object)
 
             service = lib.services.get_service(
                 session=self.session, service_id=service_id
             )
-
-            schema = lib.schemas.get_schema(
-                service_id=service_id,
-                request_path=mrs_object.get("request_path"),
-                session=self.session,
-            )
-
-            if schema is None:
-                raise Exception("The REST schema was not found.")
 
             stmt = f'CREATE OR REPLACE REST SCHEMA {schema.get("request_path")} ON SERVICE {service.get("host_ctx")}\n'
             stmt += f'    FROM `{schema.get("name")}`\n'
@@ -2809,7 +2818,15 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             stmt += self.formatJsonSetting("OPTIONS", schema.get("options"))
             stmt += self.formatJsonSetting("METADATA", schema.get("metadata"))
 
-            result = [{"CREATE REST SCHEMA ": stmt[:-1] + ";"}]
+            output = [stmt[:-1] + ";"]
+
+            if include_all_objects:
+                schema_db_objects = lib.db_objects.get_db_objects(self.session, schema["id"])
+
+                for schema_db_object in schema_db_objects:
+                    output.append(lib.db_objects.get_create_statement(self.session, schema_db_object))
+
+            result = [{"CREATE REST SCHEMA ": "\n\n".join(output)}]
 
             self.results.append(
                 {
@@ -2954,7 +2971,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             ):
                 stmt += f'    ITEMS PER PAGE {db_object["items_per_page"]}\n'
 
-            if db_object["comments"]:
+            if db_object["comments"]:  # ignore either None or empty
                 stmt += f'    COMMENTS "{db_object["comments"]}"\n'
 
             if db_object["media_type"] is not None:
@@ -2963,7 +2980,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             if db_object["crud_operation_format"] != "FEED":
                 stmt += f'    FORMAT {db_object["crud_operation_format"]}\n'
 
-            if db_object["auth_stored_procedure"]:
+            if db_object["auth_stored_procedure"]:  # ignore either None or empty
                 stmt += f'    AUTHENTICATION PROCEDURE {db_object["auth_stored_procedure"]}\n'
 
             stmt += self.formatJsonSetting("OPTIONS", db_object.get("options"))
@@ -3011,7 +3028,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             elif mrs_object["enabled"] is False or mrs_object["enabled"] == 0:
                 stmt += "    DISABLED\n"
 
-            if mrs_object["comments"]:
+            if mrs_object["comments"]:  # ignore either None or empty
                 stmt += f'    COMMENTS "{mrs_object["comments"]}"\n'
 
             stmt += self.formatJsonSetting("OPTIONS", mrs_object.get("options"))
@@ -3100,15 +3117,13 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 }
             )
         except Exception as e:
-            self.results.append(
-                {
-                    "statementIndex": len(self.results) + 1,
-                    "line": mrs_object.get("line"),
-                    "type": "error",
-                    "message": f'Failed to get the REST CONTENT SET `{content_file.get("request_path")}`. {e}',
-                    "operation": self.current_operation,
-                }
-            )
+            self.results.append({
+                "statementIndex": len(self.results) + 1,
+                "line": mrs_object.get("line"),
+                "type": "error",
+                "message": f'Failed to get the REST CONTENT SET `{mrs_object.get("request_path")}`. {e}',
+                "operation": self.current_operation,
+            })
             raise
 
     def showCreateRestAuthApp(self, mrs_object: dict):
@@ -3119,6 +3134,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         full_path = self.getFullServicePath(
             mrs_object=mrs_object, request_path=f":{name}"
         )
+        include_all_objects = mrs_object.pop("include_all_objects")
 
         try:
             service_id = self.get_given_or_current_service_id(mrs_object)
@@ -3151,7 +3167,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             if auth_app["enabled"] is False or auth_app["enabled"] == 0:
                 stmt += "    DISABLED\n"
 
-            if auth_app["description"]:
+            if auth_app["description"]:  # ignore either None or empty
                 stmt += f'    COMMENTS "{auth_app["description"]}"\n'
 
             if auth_app.get("limit_to_registered_users") == 0:
@@ -3165,7 +3181,14 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 if role is not None:
                     stmt += f'    DEFAULT ROLE "{role.get("caption")}"\n'
 
-            result = [{"CREATE REST AUTH APP ": stmt[:-1] + ";"}]
+            output = [stmt[:-1] + ";"]
+
+            if include_all_objects:
+                users = lib.users.get_users(self.session, auth_app_id=auth_app["id"])
+                for user in users:
+                    output.append(lib.users.get_create_statement(self.session, user, include_all_objects))
+
+            result = [{"CREATE REST AUTH APP ": "\n\n".join(output)}]
 
             self.results.append(
                 {
@@ -3185,6 +3208,131 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "line": mrs_object.get("line"),
                     "type": "error",
                     "message": f"Failed to get the REST AUTH APP `{full_path}`. {e}",
+                    "operation": self.current_operation,
+                }
+            )
+            raise
+
+    def showCreateRestUser(self, mrs_object: dict):
+        timer = Timer()
+        self.current_operation = mrs_object.pop("current_operation")
+
+        user_name = mrs_object.get("user_name")
+        auth_app_name = mrs_object.get("auth_app_name")
+        full_user_name = f'"{user_name}"@"{auth_app_name}"'
+        include_all_objects = mrs_object["include_all_objects"]
+
+        try:
+
+            user = lib.users.get_user(self.session, user_id=mrs_object["user_id"])
+
+            if user is None:
+                raise Exception(
+                    f"The given REST USER `{user_name}` could not be found."
+                )
+
+            stmt = f'CREATE OR REPLACE REST USER {full_user_name}\n'
+
+            if not user["login_permitted"]:
+                stmt += "    ACCOUNT LOCK\n"
+
+            if user["auth_string"] is not None:
+                stmt += f'    IDENTIFIED BY "{user["auth_string"]}"\n'
+
+            stmt += self.formatJsonSetting("OPTIONS", user.get("options"))
+            stmt += self.formatJsonSetting("APP OPTIONS", user.get("app_options"))
+
+            # Taking care of the user roles
+            if include_all_objects:
+                for role in lib.users.get_user_roles(self.session, user_id=user["id"]):
+                    stmt += f'GRANT REST ROLE "{role["caption"]}" TO "{user_name}"@"{auth_app_name}"\n'
+                    if role["comments"] is not None:
+                        stmt +=  f'    COMMENTS "{role["comments"]}"\n'
+                    stmt += self.formatJsonSetting("OPTIONS", role.get("user_role_options"))
+
+            result = [{"CREATE REST USER ": stmt[:-1] + ";"}]
+
+            self.results.append(
+                {
+                    "statementIndex": len(self.results) + 1,
+                    "line": mrs_object.get("line"),
+                    "type": "success",
+                    "operation": self.current_operation,
+                    "id": lib.core.convert_id_to_string(user.get("id")),
+                    "result": result,
+                    "executionTime": timer.elapsed(),
+                }
+            )
+
+        except Exception as e:
+            self.results.append(
+                {
+                    "statementIndex": len(self.results) + 1,
+                    "line": mrs_object.get("line"),
+                    "type": "error",
+                    "message": f"Failed to get the REST USER `{full_user_name}`. {e}",
+                    "operation": self.current_operation,
+                }
+            )
+            raise
+
+    def showCreateRestRole(self, mrs_object: dict):
+        timer = Timer()
+        self.current_operation = mrs_object.pop("current_operation")
+
+        caption = mrs_object.get("caption")
+        derived_from_role_id = mrs_object.get("derived_from_role_id")
+        specific_to_service_id = mrs_object.get("specific_to_service_id")
+        comments = mrs_object.get("description")
+        options = mrs_object.get("options")
+
+        try:
+            stmt = f'CREATE REST ROLE "{caption}"'
+
+            if derived_from_role_id is not None:
+                parent_role = lib.roles.get_role(self.session, role_id=derived_from_role_id)
+
+                if parent_role is None:
+                    raise Exception("Role derives from an invalid role.")
+
+                stmt += f' EXTENDS "{parent_role["caption"]}"'
+
+            if specific_to_service_id is not None:
+                service = lib.services.get_service(self.session, service_id=specific_to_service_id)
+
+                if service is None:
+                    raise Exception("The service, which this role is specific to, does not exist.")
+
+                stmt += f" ON SERVICE {service['full_service_path']}"
+
+            stmt += "\n"
+
+            if comments is not None:
+                stmt += f'    COMMENTS "{comments}"\n'
+
+            stmt += self.formatJsonSetting("OPTIONS", options)
+
+            result = [{"CREATE REST ROLE ": stmt[:-1] + ";"}]
+
+            self.results.append(
+                {
+                    "statementIndex": len(self.results) + 1,
+                    "line": mrs_object.get("line"),
+                    "type": "success",
+                    "operation": self.current_operation,
+                    "id": lib.core.convert_id_to_string(mrs_object.get("id")),
+                    "result": result,
+                    "executionTime": timer.elapsed(),
+                }
+            )
+
+        except Exception as e:
+            self.results.append(
+                {
+                    "statementIndex": len(self.results) + 1,
+                    "line": mrs_object.get("line"),
+                    "type": "error",
+                    "message": f"Failed to get the REST USER `{caption}`. {e}",
                     "operation": self.current_operation,
                 }
             )

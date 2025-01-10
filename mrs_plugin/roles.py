@@ -1,4 +1,4 @@
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -23,6 +23,22 @@
 
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
+from .interactive import service_query_selection, resolve_file_path, resolve_overwrite_file, role_query_selection, resolve_role
+
+
+def generate_create_statement(**kwargs) -> str:
+    lib.core.convert_ids_to_binary(["role_id"], kwargs)
+    lib.core.try_convert_ids_to_binary(["role"], kwargs)
+
+    role_query = role_query_selection(**kwargs)
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        role = resolve_role(session, role_query=role_query)
+
+        if role is None:
+            raise Exception("Role not found.")
+
+        return lib.roles.get_create_statement(session, role)
 
 
 @plugin_function("mrs.list.roles", shell=True, cli=True, web=True)
@@ -181,3 +197,68 @@ def delete_role_privilege(role_id=None, session=None, operations=None, **kwargs)
             )
 
             return lib.roles.get_role(session, role_id)
+
+
+@plugin_function('mrs.get.roleCreateStatement', shell=True, cli=True, web=True)
+def get_create_statement(**kwargs):
+    """Returns the corresponding CREATE REST ROLE SQL statement of the given MRS service object.
+
+    When using the 'role' parameter, you can choose either of these formats:
+        - '0x11EF8496143CFDEC969C7413EA499D96' - Hexadecimal string ID
+        - 'Ee+ElhQ8/eyWnHQT6kmdlg==' - Base64 string ID
+        - 'localhost/myService/myRole' - Human readable string ID
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        role_id (str): The ID of the role to generate.
+        role_name (str): The name of the role to generate.
+        role (str): The identifier of the schema.
+        session (object): The database session to use.
+
+    Returns:
+        The SQL that represents the create statement for the MRS schema
+    """
+    return generate_create_statement(**kwargs)
+
+
+@plugin_function('mrs.dump.roleCreateStatement', shell=True, cli=True, web=True)
+def store_create_statement(**kwargs):
+    """Stores the corresponding CREATE REST role SQL statement of the given MRS role
+    object into a file.
+
+    When using the 'role' parameter, you can choose either of these formats:
+        - '0x11EF8496143CFDEC969C7413EA499D96' - Hexadecimal string ID
+        - 'Ee+ElhQ8/eyWnHQT6kmdlg==' - Base64 string ID
+        - 'localhost/myService/myRole' - Human readable string ID
+
+    Args:
+        **kwargs: Options to determine what should be generated.
+
+    Keyword Args:
+        role_id (str): The ID of the role to generate.
+        role_name (str): The name of the role to generate.
+        role (str): The identifier of the schema.
+        file_path (str): The path where to store the file.
+        overwrite (bool): Overwrite the file, if already exists.
+        session (object): The database session to use.
+
+    Returns:
+        True if the file was saved.
+    """
+    file_path = kwargs.get("file_path")
+    overwrite = kwargs.get("overwrite")
+
+    file_path = resolve_file_path(file_path)
+    resolve_overwrite_file(file_path, overwrite)
+
+    sql = generate_create_statement(**kwargs)
+
+    with open(file_path, "w") as f:
+        f.write(sql)
+
+    if lib.core.get_interactive_result():
+        return f"File created in {file_path}."
+
+    return True

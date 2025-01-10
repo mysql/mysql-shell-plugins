@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024 Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -422,6 +422,231 @@ describe("MySQL REST Service", () => {
 
         });
 
+        it("Service - Dump to Disk - Create Statements", async () => {
+
+            let dumpedService = join(process.cwd(), "dumpedService.mrs.sql");
+            const treeService = await dbTreeSection.tree.getElement(restGlobalService.treeName);
+            await fs.rm(dumpedService, { recursive: true, force: true });
+            await dbTreeSection.tree.openContextMenuAndSelect(treeService,
+                [constants.dumpToDisk, constants.createStatement], constants.restServiceCtxMenu);
+            await Workbench.setInputPath(dumpedService);
+            await driver.wait(Workbench.untilNotificationExists(`The REST Service SQL was exported`),
+                constants.wait5seconds);
+            await fs.access(dumpedService);
+            let fileData = (await fs.readFile(dumpedService)).toString();
+            expect(fileData).to.match(new RegExp(restGlobalService.servicePath));
+
+            await fs.unlink(dumpedService);
+            dumpedService = join(process.cwd(), "dumpedServiceAllObjects.mrs.sql");
+            await fs.rm(dumpedService, { recursive: true, force: true });
+            await dbTreeSection.tree.openContextMenuAndSelect(treeService,
+                [constants.dumpToDisk, constants.createStatementAllObjs], constants.restServiceCtxMenu);
+            await Workbench.setInputPath(dumpedService);
+            await driver.wait(Workbench.untilNotificationExists(`The REST Service SQL was exported`),
+                constants.wait5seconds);
+            await fs.access(dumpedService);
+            fileData = (await fs.readFile(dumpedService)).toString();
+            expect(fileData).to.match(new RegExp(restGlobalService.servicePath));
+            expect(fileData).to.match(new RegExp(sakilaRestSchema.restSchemaPath));
+            expect(fileData).to.match(/actor/);
+            expect(fileData).to.match(/address/);
+            await fs.unlink(dumpedService);
+
+        });
+
+        it("Service - Copy to clipboard - Create Statements", async () => {
+
+            const treeService = await dbTreeSection.tree.getElement(restGlobalService.treeName);
+            await dbTreeSection.tree.openContextMenuAndSelect(treeService,
+                [constants.copyToClipboard, constants.clipCreateStatement], constants.restServiceCtxMenu);
+
+            let regex = new RegExp(`CREATE REST SERVICE ${restGlobalService.servicePath}`);
+
+            await driver.wait(async () => {
+                if (clipboard.readSync()
+                    .match(regex) === null) {
+
+                    console.log(`[DEBUG] clipboard content: ${clipboard.readSync()}`);
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeService,
+                        [constants.copyToClipboard, constants.clipCreateStatement], constants.restServiceCtxMenu);
+
+                    return false;
+                }
+
+                await driver.wait(Workbench
+                    .untilNotificationExists(`The CREATE statement was copied to the system clipboard`),
+                    constants.wait5seconds);
+
+                return true;
+            }, constants.wait5seconds, "Service create statement was not copied to the clipboard");
+
+            await dbTreeSection.tree.openContextMenuAndSelect(treeService,
+                [constants.copyToClipboard, constants.clipCreateStatementAllObjs], constants.restServiceCtxMenu);
+
+            regex = new RegExp(`CREATE REST SERVICE ${restGlobalService.servicePath}`);
+            const regexSchema = new RegExp(`CREATE OR REPLACE REST SCHEMA ${sakilaRestSchema.restSchemaPath}`);
+            const regexObject = new RegExp(`CREATE OR REPLACE REST VIEW /actor`);
+
+            await driver.wait(async () => {
+                const clipboardContent = clipboard.readSync();
+
+                if (clipboardContent.match(regex) === null &&
+                    clipboardContent.match(regexSchema) === null &&
+                    clipboardContent.match(regexObject) === null
+                ) {
+
+                    console.log(`[DEBUG] clipboard content: ${clipboardContent}`);
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeService,
+                        [constants.copyToClipboard, constants.clipCreateStatementAllObjs],
+                        constants.restServiceCtxMenu);
+
+                    return false;
+                }
+
+                await driver.wait(Workbench
+                    .untilNotificationExists(`The CREATE statement was copied to the system clipboard`),
+                    constants.wait5seconds);
+
+                return true;
+            }, constants.wait5seconds, "Service create statement with all objects was not copied to the clipboard");
+
+        });
+
+        it("Schema - Dump to Disk - Create Statements", async () => {
+
+            let dumpedSchema = join(process.cwd(), "dumpedSchema.mrs.sql");
+            const treeSakilaSchema = await dbTreeSection.tree.getElement(restGlobalService.restSchemas[0].treeName);
+            await fs.rm(dumpedSchema, { recursive: true, force: true });
+            await dbTreeSection.tree.openContextMenuAndSelect(treeSakilaSchema,
+                [constants.dumpToDisk, constants.createStatement], constants.restSchemaCtxMenu);
+            await Workbench.setInputPath(dumpedSchema);
+            await driver.wait(Workbench.untilNotificationExists(`The REST Schema SQL was exported`),
+                constants.wait5seconds);
+            await fs.access(dumpedSchema);
+            let fileData = (await fs.readFile(dumpedSchema)).toString();
+            expect(fileData).to.match(new RegExp(restGlobalService.restSchemas[0].restSchemaPath));
+
+            await fs.unlink(dumpedSchema);
+            dumpedSchema = join(process.cwd(), "dumpedSchemaAllObjects.mrs.sql");
+            await fs.rm(dumpedSchema, { recursive: true, force: true });
+            await dbTreeSection.tree.openContextMenuAndSelect(treeSakilaSchema,
+                [constants.dumpToDisk, constants.createStatementAllObjs], constants.restSchemaCtxMenu);
+            await Workbench.setInputPath(dumpedSchema);
+            await driver.wait(Workbench.untilNotificationExists(`The REST Schema SQL was exported`),
+                constants.wait5seconds);
+            await fs.access(dumpedSchema);
+            fileData = (await fs.readFile(dumpedSchema)).toString();
+            expect(fileData).to.match(new RegExp(sakilaRestSchema.restSchemaPath));
+            expect(fileData).to.match(/actor/);
+            expect(fileData).to.match(/address/);
+            await fs.unlink(dumpedSchema);
+        });
+
+        it("Schema - Copy to clipboard - Create Statements", async () => {
+
+            const treeSakilaSchema = await dbTreeSection.tree.getElement(restGlobalService.restSchemas[0].treeName);
+            await dbTreeSection.tree.openContextMenuAndSelect(treeSakilaSchema,
+                [constants.copyToClipboard, constants.clipCreateStatement], constants.restSchemaCtxMenu);
+
+            let regexSchema = new RegExp(`CREATE OR REPLACE REST SCHEMA ${restGlobalService.restSchemas[0]
+                .restSchemaPath}`);
+
+            await driver.wait(async () => {
+                if (clipboard.readSync()
+                    .match(regexSchema) === null) {
+
+                    console.log(`[DEBUG] clipboard content: ${clipboard.readSync()}`);
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeSakilaSchema,
+                        [constants.copyToClipboard, constants.clipCreateStatement], constants.restSchemaCtxMenu);
+
+                    return false;
+                }
+
+                await driver.wait(Workbench
+                    .untilNotificationExists(`The CREATE statement was copied to the system clipboard`),
+                    constants.wait5seconds);
+
+                return true;
+            }, constants.wait5seconds, "Schema Create statement was not copied to the clipboard");
+
+            await dbTreeSection.tree.openContextMenuAndSelect(treeSakilaSchema,
+                [constants.copyToClipboard, constants.clipCreateStatementAllObjs], constants.restSchemaCtxMenu);
+
+            regexSchema = new RegExp(`CREATE OR REPLACE REST SCHEMA ${sakilaRestSchema.restSchemaPath}`);
+            const regexObject = new RegExp(`CREATE OR REPLACE REST VIEW /actor`);
+
+            await driver.wait(async () => {
+                const clipboardContent = clipboard.readSync();
+
+                if (
+                    clipboardContent.match(regexSchema) === null &&
+                    clipboardContent.match(regexObject) === null
+                ) {
+
+                    console.log(`[DEBUG] clipboard content: ${clipboardContent}`);
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeSakilaSchema,
+                        [constants.copyToClipboard, constants.clipCreateStatementAllObjs],
+                        constants.restSchemaCtxMenu);
+
+                    return false;
+                }
+
+                await driver.wait(Workbench
+                    .untilNotificationExists(`The CREATE statement was copied to the system clipboard`),
+                    constants.wait5seconds);
+
+                return true;
+            }, constants.wait5seconds, "Schema Create statement with all objects was not copied to the clipboard");
+
+        });
+
+        it("Object - Dump to Disk - Create Statements", async () => {
+
+            const dumpedObject = join(process.cwd(), "dumpedObject.mrs.sql");
+            const treeObject = await dbTreeSection.tree
+                .getElement(restGlobalService.restSchemas[0].restObjects[0].treeName);
+            await fs.rm(dumpedObject, { recursive: true, force: true });
+            await dbTreeSection.tree.openContextMenuAndSelect(treeObject,
+                [constants.dumpToDisk, constants.createStatement], constants.restObjCtxMenu);
+            await Workbench.setInputPath(dumpedObject);
+            await driver.wait(Workbench.untilNotificationExists(`The REST DB OBJECT SQL was exported`),
+                constants.wait5seconds);
+            await fs.access(dumpedObject);
+            const fileData = (await fs.readFile(dumpedObject)).toString();
+            expect(fileData).to.match(new RegExp(restGlobalService.restSchemas[0].restObjects[0].dataMapping.dbObject));
+            await fs.unlink(dumpedObject);
+
+        });
+
+        it("Object - Copy to clipboard - Create Statements", async () => {
+
+            const treeObject = await dbTreeSection.tree
+                .getElement(restGlobalService.restSchemas[0].restObjects[0].treeName);
+            await dbTreeSection.tree.openContextMenuAndSelect(treeObject,
+                [constants.copyToClipboard, constants.clipCreateStatement], constants.restObjCtxMenu);
+
+            const regexObject = new RegExp(`CREATE OR REPLACE REST VIEW /actor`);
+
+            await driver.wait(async () => {
+                if (clipboard.readSync()
+                    .match(regexObject) === null) {
+
+                    console.log(`[DEBUG] clipboard content: ${clipboard.readSync()}`);
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeObject,
+                        [constants.copyToClipboard, constants.clipCreateStatement], constants.restObjCtxMenu);
+
+                    return false;
+                }
+
+                await driver.wait(Workbench
+                    .untilNotificationExists(`The CREATE statement was copied to the system clipboard`),
+                    constants.wait5seconds);
+
+                return true;
+            }, constants.wait5seconds, "Object create statement was not copied to the clipboard");
+
+        });
+
         it("Add New REST Authentication App", async () => {
 
             await restGlobalService.addAuthenticationApp(restAuthenticationApp);
@@ -620,7 +845,8 @@ describe("MySQL REST Service", () => {
             const dummySchema = restGlobalService.restSchemas[2];
             const treeMySQLRestSchema = await dbTreeSection.tree.getElement(dummySchema.treeName);
             await fs.rm(`${destDumpSchema}.mrs.json`, { recursive: true, force: true });
-            await dbTreeSection.tree.openContextMenuAndSelect(treeMySQLRestSchema, constants.dumpRESTSchemaToJSON);
+            await dbTreeSection.tree.openContextMenuAndSelect(treeMySQLRestSchema,
+                [constants.dumpToDisk, constants.dumpRESTSchemaToJSON], constants.restSchemaCtxMenu);
             await Workbench.setInputPath(destDumpSchema);
             await driver.wait(Workbench.untilNotificationExists(`The REST Schema has been dumped successfully`),
                 constants.wait5seconds);
@@ -638,7 +864,8 @@ describe("MySQL REST Service", () => {
             const treeTableToDump = restGlobalService.restSchemas[0].restObjects[2].treeName;
             const treeDumpTable = await dbTreeSection.tree.getElement(treeTableToDump);
             await fs.rm(`${destDumpTable}.mrs.json`, { recursive: true, force: true });
-            await dbTreeSection.tree.openContextMenuAndSelect(treeDumpTable, constants.dumpRESTObjToJSON);
+            await dbTreeSection.tree.openContextMenuAndSelect(treeDumpTable,
+                [constants.dumpToDisk, constants.restObjectToJSONFile], constants.restObjCtxMenu);
             await Workbench.setInputPath(destDumpTable);
             await driver.wait(Workbench
                 .untilNotificationExists(`The REST Database Object has been dumped successfully`),
@@ -656,7 +883,8 @@ describe("MySQL REST Service", () => {
 
             const treeActor = restGlobalService.restSchemas[0].restObjects[0].treeName;
             const actorTree = await dbTreeSection.tree.getElement(treeActor);
-            await dbTreeSection.tree.openContextMenuAndSelect(actorTree, constants.copyRESTObjReqPath);
+            await dbTreeSection.tree.openContextMenuAndSelect(actorTree,
+                [constants.copyToClipboard, constants.restObjectRequestPath], constants.restObjCtxMenu);
 
             const servicePath = restGlobalService.servicePath;
             const schemaPath = restGlobalService.restSchemas[0].restSchemaPath;
@@ -668,7 +896,8 @@ describe("MySQL REST Service", () => {
                     .match(new RegExp(url)) === null) {
 
                     console.log(`[DEBUG] clipboard content: ${clipboard.readSync()}`);
-                    await dbTreeSection.tree.openContextMenuAndSelect(actorTree, constants.copyRESTObjReqPath);
+                    await dbTreeSection.tree.openContextMenuAndSelect(actorTree,
+                        [constants.copyToClipboard, constants.restObjectRequestPath], constants.restObjCtxMenu);
                     await driver.wait(Workbench
                         .untilNotificationExists("The DB Object Path was copied to the system clipboard"),
                         constants.wait5seconds);
@@ -676,6 +905,194 @@ describe("MySQL REST Service", () => {
                     return true;
                 }
             }, constants.wait15seconds, `${url} was not found on the clipboard`);
+
+        });
+
+        it("Authentication App - Dump to disk - Create statements", async () => {
+
+            let dumpedAuthApp = join(process.cwd(), "dumpedAuthApp.mrs.sql");
+            const treeAuthApp = await dbTreeSection.tree.getElement(restGlobalService.authenticationApps[0].treeName);
+            await fs.rm(dumpedAuthApp, { recursive: true, force: true });
+            await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp,
+                [constants.dumpToDisk, constants.createStatement], constants.restAppCtxMenu);
+            await Workbench.setInputPath(dumpedAuthApp);
+            await driver.wait(Workbench.untilNotificationExists(`The REST Authentication App SQL was exported`),
+                constants.wait5seconds);
+            await fs.access(dumpedAuthApp);
+            let fileData = (await fs.readFile(dumpedAuthApp)).toString();
+
+            let regex = new RegExp(`CREATE OR REPLACE REST AUTH APP "${restGlobalService.authenticationApps[0]
+                .name}"`);
+            expect(fileData).to.match(regex);
+
+            await fs.unlink(dumpedAuthApp);
+            dumpedAuthApp = join(process.cwd(), "dumpedAuthAppAllObjects.mrs.sql");
+            await fs.rm(dumpedAuthApp, { recursive: true, force: true });
+            await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp,
+                [constants.dumpToDisk, constants.createStatementAllObjs], constants.restAppCtxMenu);
+            await Workbench.setInputPath(dumpedAuthApp);
+            await driver.wait(Workbench.untilNotificationExists(`The REST Authentication App SQL was exported`),
+                constants.wait5seconds);
+            await fs.access(dumpedAuthApp);
+            fileData = (await fs.readFile(dumpedAuthApp)).toString();
+
+            expect(fileData).to.match(regex);
+            regex = new RegExp(`CREATE OR REPLACE REST USER "${restGlobalService.authenticationApps[0].users[0]
+                .username}"`);
+            expect(fileData).to.match(regex);
+            await fs.unlink(dumpedAuthApp);
+
+        });
+
+        it("Authentication App - Copy to clipboard - Create Statements", async () => {
+
+            const treeAuthApp = await dbTreeSection.tree.getElement(restGlobalService.authenticationApps[0].treeName);
+            await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp,
+                [constants.copyToClipboard, constants.clipCreateStatement], constants.restAppCtxMenu);
+
+            let regex = new RegExp(`CREATE OR REPLACE REST AUTH APP "${restGlobalService.authenticationApps[0]
+                .name}"`);
+
+            await driver.wait(async () => {
+                if (clipboard.readSync()
+                    .match(regex) === null) {
+
+                    console.log(`[DEBUG] clipboard content: ${clipboard.readSync()}`);
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp,
+                        [constants.copyToClipboard, constants.clipCreateStatement], constants.restAppCtxMenu);
+
+                    return false;
+                }
+
+                await driver.wait(Workbench
+                    .untilNotificationExists(`The CREATE statement was copied to the system clipboard`),
+                    constants.wait5seconds);
+
+                return true;
+            }, constants.wait5seconds, "Authentication app Create statement was not copied to the clipboard");
+
+            await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp,
+                [constants.copyToClipboard, constants.clipCreateStatementAllObjs], constants.restAppCtxMenu);
+
+            regex = new RegExp(`CREATE OR REPLACE REST USER "${restGlobalService.authenticationApps[0].users[0]
+                .username}"`);
+
+            await driver.wait(async () => {
+                const clipboardContent = clipboard.readSync();
+
+                if (clipboardContent.match(regex) === null) {
+
+                    console.log(`[DEBUG] clipboard content: ${clipboardContent}`);
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp,
+                        [constants.copyToClipboard, constants.clipCreateStatementAllObjs],
+                        constants.restAppCtxMenu);
+
+                    return false;
+                }
+
+                await driver.wait(Workbench
+                    .untilNotificationExists(`The CREATE statement was copied to the system clipboard`),
+                    constants.wait5seconds);
+
+                return true;
+            }, constants.wait5seconds,
+                "Authentication app Create statement with all objects was not copied to the clipboard");
+
+        });
+
+        it("User - Dump to disk - Create statements", async () => {
+
+            let dumpedUser = join(process.cwd(), "dumpedUser.mrs.sql");
+            const treeUser = await dbTreeSection.tree
+                .getElement(restGlobalService.authenticationApps[0].users[0].username);
+            await fs.rm(dumpedUser, { recursive: true, force: true });
+            await dbTreeSection.tree.openContextMenuAndSelect(treeUser,
+                [constants.dumpToDisk, constants.createStatement], constants.restUserCtxMenu);
+            await Workbench.setInputPath(dumpedUser);
+            await driver.wait(Workbench.untilNotificationExists(`The REST User SQL was exported`),
+                constants.wait5seconds);
+            await fs.access(dumpedUser);
+            let fileData = (await fs.readFile(dumpedUser)).toString();
+
+            let regex = new RegExp(`CREATE OR REPLACE REST USER "${restGlobalService.authenticationApps[0].users[0]
+                .username}"`);
+            expect(fileData).to.match(regex);
+
+            await fs.unlink(dumpedUser);
+            dumpedUser = join(process.cwd(), "dumpedAuthAppAllObjects.mrs.sql");
+            await fs.rm(dumpedUser, { recursive: true, force: true });
+            await dbTreeSection.tree.openContextMenuAndSelect(treeUser,
+                [constants.dumpToDisk, constants.createStatementAllObjs], constants.restUserCtxMenu);
+            await Workbench.setInputPath(dumpedUser);
+            await driver.wait(Workbench.untilNotificationExists(`The REST User SQL was exported`),
+                constants.wait5seconds);
+            await fs.access(dumpedUser);
+            fileData = (await fs.readFile(dumpedUser)).toString();
+
+            expect(fileData).to.match(regex);
+            regex = new RegExp(`CREATE OR REPLACE REST USER "${restGlobalService.authenticationApps[0].users[0]
+                .username}"`);
+
+            expect(fileData).to.match(regex);
+            expect(fileData).to.match(/GRANT REST ROLE/);
+            await fs.unlink(dumpedUser);
+
+        });
+
+        it("User - Copy to clipboard - Create Statements", async () => {
+
+            const treeUser = await dbTreeSection.tree.getElement(restGlobalService.authenticationApps[0]
+                .users[0].username);
+            await dbTreeSection.tree.openContextMenuAndSelect(treeUser,
+                [constants.copyToClipboard, constants.clipCreateStatement], constants.restUserCtxMenu);
+
+            let regex = new RegExp(`CREATE OR REPLACE REST USER "${restGlobalService.authenticationApps[0]
+                .users[0].username}"`);
+
+            await driver.wait(async () => {
+                if (clipboard.readSync()
+                    .match(regex) === null) {
+
+                    console.log(`[DEBUG] clipboard content: ${clipboard.readSync()}`);
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeUser,
+                        [constants.copyToClipboard, constants.clipCreateStatement], constants.restUserCtxMenu);
+
+                    return false;
+                }
+
+                await driver.wait(Workbench
+                    .untilNotificationExists(`The CREATE statement was copied to the system clipboard`),
+                    constants.wait5seconds);
+
+                return true;
+            }, constants.wait5seconds, "User Create statement was not copied to the clipboard");
+
+            await dbTreeSection.tree.openContextMenuAndSelect(treeUser,
+                [constants.copyToClipboard, constants.clipCreateStatementAllObjs], constants.restUserCtxMenu);
+
+            regex = new RegExp(`CREATE OR REPLACE REST USER "${restGlobalService.authenticationApps[0].users[0]
+                .username}"`);
+
+            await driver.wait(async () => {
+                const clipboardContent = clipboard.readSync();
+
+                if (clipboardContent.match(regex) === null && clipboardContent.match(/GRANT REST ROLE/)) {
+
+                    console.log(`[DEBUG] clipboard content: ${clipboardContent}`);
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeUser,
+                        [constants.copyToClipboard, constants.clipCreateStatementAllObjs],
+                        constants.restUserCtxMenu);
+
+                    return false;
+                }
+
+                await driver.wait(Workbench
+                    .untilNotificationExists(`The CREATE statement was copied to the system clipboard`),
+                    constants.wait5seconds);
+
+                return true;
+            }, constants.wait5seconds,
+                "User Create statement with all objects was not copied to the clipboard");
 
         });
 
@@ -776,10 +1193,11 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Export Rest Service SDK files", async () => {
+        it("Dump to Disk - Rest Service SDK files", async () => {
 
             const treeService = await dbTreeSection.tree.getElement(restGlobalService.treeName);
-            await dbTreeSection.tree.openContextMenuAndSelect(treeService, constants.exportRestSdk);
+            await dbTreeSection.tree.openContextMenuAndSelect(treeService,
+                [constants.dumpToDisk, constants.restClientSDKFiles], constants.restServiceCtxMenu);
             await fs.rm(destDumpSdk, { force: true, recursive: true });
             await Workbench.setInputPath(destDumpSdk);
             await ExportSDKDialog.set(undefined);

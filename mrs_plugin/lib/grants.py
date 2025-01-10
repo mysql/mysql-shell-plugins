@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2025 Oracle and/or its affiliates.
+# Copyright (c) 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -21,22 +21,20 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import auth_apps
-from mrs_plugin.lib import core
-from mrs_plugin.lib import services
-from mrs_plugin.lib import schemas
-from mrs_plugin.lib import db_objects
-from mrs_plugin.lib import content_files
-from mrs_plugin.lib import content_sets
-from mrs_plugin.lib import general
-from mrs_plugin.lib import dump
-from mrs_plugin.lib import users
-from mrs_plugin.lib import roles
-from mrs_plugin.lib import grants
-from mrs_plugin.lib import routers
-from mrs_plugin.lib import database
-from mrs_plugin.lib import sdk
-from mrs_plugin.lib import script
-from mrs_plugin.lib import MrsDdlExecutor
-from mrs_plugin.lib import MrsDdlExecutorInterface
-from mrs_plugin.lib import MrsDdlListener
+from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
+
+
+def get_create_statement(session, grant) -> str:
+    executor = MrsDdlExecutor(
+        session=session
+    )
+
+    executor.showCreateRestGrant({
+        "current_operation": "SHOW CREATE REST GRANT",
+        **grant
+    })
+
+    if executor.results[0]["type"] == "error":
+        raise Exception(executor.results[0]['message'])
+
+    return executor.results[0]["result"][0]["CREATE REST GRANT "]

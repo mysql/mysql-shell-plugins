@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -1003,12 +1003,13 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async getServiceCreateStatement(serviceId: string): Promise<string> {
+    public async getServiceCreateStatement(serviceId: string, includeAllObjects: boolean): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsGetServiceCreateStatement,
             parameters: {
                 kwargs: {
                     serviceId,
+                    includeAllObjects,
                     moduleSessionId: this.moduleSessionId,
                 },
             },
@@ -1017,12 +1018,45 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async getSchemaCreateStatement(schemaId: string): Promise<string> {
+    public async getSchemaCreateStatement(schemaId: string, includeAllObjects: boolean): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsGetSchemaCreateStatement,
             parameters: {
                 kwargs: {
                     schemaId,
+                    includeAllObjects,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async getAuthAppCreateStatement(authAppId: string, serviceId: string,
+        includeAllObjects: boolean): Promise<string> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetAuthAppCreateStatement,
+            parameters: {
+                kwargs: {
+                    authAppId,
+                    serviceId,
+                    includeAllObjects,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async getUserCreateStatement(userId: string, includeAllObjects: boolean): Promise<string> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetUserCreateStatement,
+            parameters: {
+                kwargs: {
+                    userId,
+                    includeAllObjects,
                     moduleSessionId: this.moduleSessionId,
                 },
             },
@@ -1075,12 +1109,14 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async dumpServiceCreateStatement(serviceId: string, filePath: string, overwrite: boolean): Promise<boolean> {
+    public async dumpServiceCreateStatement(serviceId: string, filePath: string, overwrite: boolean,
+        includeAllObjects: boolean): Promise<boolean> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsDumpServiceCreateStatement,
             parameters: {
                 kwargs: {
                     serviceId,
+                    includeAllObjects,
                     filePath,
                     overwrite,
                     moduleSessionId: this.moduleSessionId,
@@ -1091,7 +1127,8 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async dumpSchemaCreateStatement(schemaId: string, filePath: string, overwrite: boolean): Promise<boolean> {
+    public async dumpSchemaCreateStatement(schemaId: string, filePath: string, overwrite: boolean
+        , includeAllObjects: boolean): Promise<boolean> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsDumpSchemaCreateStatement,
             parameters: {
@@ -1099,6 +1136,7 @@ export class ShellInterfaceMrs {
                     schemaId,
                     filePath,
                     overwrite,
+                    includeAllObjects,
                     moduleSessionId: this.moduleSessionId,
                 },
             },
@@ -1116,6 +1154,43 @@ export class ShellInterfaceMrs {
                     dbObjectId,
                     filePath,
                     overwrite,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async dumpAuthAppCreateStatement(authAppId: string, serviceId: string,
+        filePath: string, overwrite: boolean, includeAllObjects: boolean): Promise<boolean> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDumpAuthAppCreateStatement,
+            parameters: {
+                kwargs: {
+                    authAppId,
+                    serviceId,
+                    filePath,
+                    overwrite,
+                    includeAllObjects,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async dumpUserCreateStatement(userId: string,
+        filePath: string, overwrite: boolean, includeAllObjects: boolean): Promise<boolean> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDumpUserCreateStatement,
+            parameters: {
+                kwargs: {
+                    userId,
+                    filePath,
+                    overwrite,
+                    includeAllObjects,
                     moduleSessionId: this.moduleSessionId,
                 },
             },

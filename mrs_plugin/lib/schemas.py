@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -336,24 +336,19 @@ def get_current_schema(session):
 
     return current_schema
 
-def get_create_statement(session, schema) -> str:
+def get_create_statement(session, schema, include_all_objects: bool=False) -> str:
     executor = MrsDdlExecutor(
         session=session,
+        current_service_id=schema["service_id"],
         current_schema_id=schema["id"])
 
     executor.showCreateRestSchema({
         "current_operation": "SHOW CREATE REST SCHEMA",
-        "request_path": schema["request_path"],
+        "include_all_objects": include_all_objects,
+        "schema": schema
     })
 
     if executor.results[0]["type"] == "error":
         raise Exception(executor.results[0]['message'])
 
-    result = [executor.results[0]["result"][0]["CREATE REST SCHEMA "]]
-
-    schema_db_objects = db_objects.get_db_objects(session, schema["id"])
-
-    for schema_db_object in schema_db_objects:
-        result.append(db_objects.get_create_statement(session, schema_db_object))
-
-    return "\n".join(result)
+    return executor.results[0]["result"][0]["CREATE REST SCHEMA "]

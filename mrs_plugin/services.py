@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -27,7 +27,7 @@
 
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
-from .interactive import resolve_service, resolve_options, resolve_file_path, resolve_overwrite_file
+from .interactive import resolve_service, resolve_options, resolve_file_path, resolve_overwrite_file, service_query_selection
 from pathlib import Path
 import os
 import shutil
@@ -221,12 +221,18 @@ def default_copyright_header(sdk_language):
 
 def generate_create_statement(**kwargs):
     lib.core.convert_ids_to_binary(["service_id"], kwargs)
-    service_id = kwargs.get("service_id")
+    lib.core.try_convert_ids_to_binary(["service"], kwargs)
+
+    include_all_objects = kwargs.get("include_all_objects", False)
+    service_query = service_query_selection(**kwargs)
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        service = resolve_service(session, service_id=service_id)
+        service = resolve_service(session, service_query=service_query)
 
-        return lib.services.get_create_statement(session=session, service=service)
+        if service is None:
+            raise ValueError("The specified service was not found.")
+
+        return lib.services.get_create_statement(session=session, service=service, include_all_objects=include_all_objects)
 
 
 @plugin_function('mrs.add.service', shell=True, cli=True, web=True)
@@ -878,7 +884,7 @@ def get_sdk_service_classes(**kwargs):
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         service = resolve_service(
-            session=session, service_id=service_id, required=False, auto_select_single=True)
+            session=session, service_query=service_id, required=False, auto_select_single=True)
 
         return lib.sdk.generate_service_sdk(
             service=service, sdk_language=sdk_language, session=session, prepare_for_runtime=prepare_for_runtime,
@@ -1058,11 +1064,25 @@ def get_runtime_management_code(**kwargs):
 def get_create_statement(**kwargs):
     """Returns the corresponding CREATE REST SERVICE SQL statement of the given MRS service object.
 
+    When using the 'service' parameter, you can choose either of these formats:
+        - '0x11EF8496143CFDEC969C7413EA499D96' - Hexadecimal string ID
+        - 'Ee+ElhQ8/eyWnHQT6kmdlg==' - Base64 string ID
+        - 'localhost/myService' - Human readable string ID
+
+    The service search parameters will be prioritized in the following order:
+        - service_id
+        - service
+        - url_host_name + url_context_root
+
     Args:
         **kwargs: Options to determine what should be generated.
 
     Keyword Args:
         service_id (str): The ID of the service to generate.
+        service (str): The identifier of the service.
+        url_context_root (str): The context root for this service
+        url_host_name (str): The host name for this service
+        include_all_objects (bool): Include all objects that belong to the service.
         session (object): The database session to use.
 
     Returns:
@@ -1076,11 +1096,25 @@ def store_create_statement(**kwargs):
     """Stores the corresponding CREATE REST SERVICE SQL statement of the given MRS service
     object into a file.
 
+    When using the 'service' parameter, you can choose either of these formats:
+        - '0x11EF8496143CFDEC969C7413EA499D96' - Hexadecimal string ID
+        - 'Ee+ElhQ8/eyWnHQT6kmdlg==' - Base64 string ID
+        - 'localhost/myService' - Human readable string ID
+
+    The service search parameters will be prioritized in the following order:
+        - service_id
+        - service
+        - url_host_name + url_context_root
+
     Args:
         **kwargs: Options to determine what should be generated.
 
     Keyword Args:
         service_id (str): The ID of the service to dump.
+        service (str): The identifier of the service.
+        url_context_root (str): The context root for this service
+        url_host_name (str): The host name for this service
+        include_all_objects (bool): Include all objects that belong to the service.
         file_path (str): The path where to store the file.
         overwrite (bool): Overwrite the file, if already exists.
         session (object): The database session to use.

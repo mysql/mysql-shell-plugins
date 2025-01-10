@@ -109,7 +109,7 @@ export enum ShellAPIMrs {
     MrsSetSchemaComments = "mrs.set.schema.comments",
     /** Updates the given schema */
     MrsUpdateSchema = "mrs.update.schema",
-    /** Returns the corresponding CREATE REST SCHEMA SQL statement of the given MRS service object. */
+    /** Returns the corresponding CREATE REST SCHEMA SQL statement of the given MRS schema object. */
     MrsGetSchemaCreateStatement = "mrs.get.schema_create_statement",
     /** Stores the corresponding CREATE REST schema SQL statement of the given MRS schema object into a file. */
     MrsDumpSchemaCreateStatement = "mrs.dump.schema_create_statement",
@@ -125,6 +125,10 @@ export enum ShellAPIMrs {
     MrsDeleteAuthenticationApp = "mrs.delete.authentication_app",
     /** Updates an existing auth_app */
     MrsUpdateAuthenticationApp = "mrs.update.authentication_app",
+    /** Returns the corresponding CREATE REST AUTH APP SQL statement of the given MRS service object. */
+    MrsGetAuthAppCreateStatement = "mrs.get.auth_app_create_statement",
+    /** Stores the corresponding CREATE REST AUTH APP SQL statement of the given MRS schema object into a file. */
+    MrsDumpAuthAppCreateStatement = "mrs.dump.auth_app_create_statement",
     /** Add a db_object to the given MRS schema */
     MrsAddDbObject = "mrs.add.db_object",
     /** Gets a specific MRS db_object */
@@ -213,6 +217,10 @@ export enum ShellAPIMrs {
     MrsAddUserRole = "mrs.add.user_role",
     /** Delete all user roles or a single one if the role id is also specified */
     MrsDeleteUserRoles = "mrs.delete.user_roles",
+    /** Returns the corresponding CREATE REST SCHEMA SQL statement of the given MRS service object. */
+    MrsGetUserCreateStatement = "mrs.get.user_create_statement",
+    /** Stores the corresponding CREATE REST schema SQL statement of the given MRS schema object into a file. */
+    MrsDumpUserCreateStatement = "mrs.dump.user_create_statement",
     /** List the roles for the specified service */
     MrsListRoles = "mrs.list.roles",
     /** Get a role by id or its caption. */
@@ -223,6 +231,10 @@ export enum ShellAPIMrs {
     MrsAddRolePrivilege = "mrs.add.role_privilege",
     /** Delete a privilege from a role. */
     MrsDeleteRolePrivilege = "mrs.delete.role_privilege",
+    /** Returns the corresponding CREATE REST ROLE SQL statement of the given MRS service object. */
+    MrsGetRoleCreateStatement = "mrs.get.role_create_statement",
+    /** Stores the corresponding CREATE REST role SQL statement of the given MRS role object into a file. */
+    MrsDumpRoleCreateStatement = "mrs.dump.role_create_statement",
     /** List all router ids */
     MrsListRouterIds = "mrs.list.router_ids",
     /** List all configured routers */
@@ -498,6 +510,14 @@ export interface IShellMrsGetRuntimeManagementCodeKwargs {
 export interface IShellMrsGetServiceCreateStatementKwargs {
     /** The ID of the service to generate. */
     serviceId?: string;
+    /** The identifier of the service. */
+    service?: string;
+    /** The context root for this service */
+    urlContextRoot?: string;
+    /** The host name for this service */
+    urlHostName?: string;
+    /** Include all objects that belong to the service. */
+    includeAllObjects?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -505,6 +525,14 @@ export interface IShellMrsGetServiceCreateStatementKwargs {
 export interface IShellMrsDumpServiceCreateStatementKwargs {
     /** The ID of the service to dump. */
     serviceId?: string;
+    /** The identifier of the service. */
+    service?: string;
+    /** The context root for this service */
+    urlContextRoot?: string;
+    /** The host name for this service */
+    urlHostName?: string;
+    /** Include all objects that belong to the service. */
+    includeAllObjects?: boolean;
     /** The path where to store the file. */
     filePath?: string;
     /** Overwrite the file, if already exists. */
@@ -699,6 +727,10 @@ export interface IShellMrsGetSchemaCreateStatementKwargs {
     serviceId?: string;
     /** The ID of the schema to generate. */
     schemaId?: string;
+    /** The identifier of the schema. */
+    schema?: string;
+    /** Include all objects that belong to the schema. */
+    includeAllObjects?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -708,10 +740,14 @@ export interface IShellMrsDumpSchemaCreateStatementKwargs {
     serviceId?: string;
     /** The ID of the schema to dump. */
     schemaId?: string;
+    /** The identifier of the schema. */
+    schema?: string;
     /** The path where to store the file. */
     filePath?: string;
     /** Overwrite the file, if already exists. */
     overwrite?: boolean;
+    /** Include all objects that belong to the schema. */
+    includeAllObjects?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -800,6 +836,36 @@ export interface IShellMrsUpdateAuthenticationAppKwargs {
     serviceId?: string;
     /** The name of the auth_app to update */
     authAppName?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsGetAuthAppCreateStatementKwargs {
+    /** The ID of the authentication app to generate. */
+    authAppId?: string;
+    /** The ID of the service where the authentication app belongs. */
+    serviceId?: string;
+    /** The identifier of the authentication app. */
+    authApp?: string;
+    /** Include all objects that belong to the authentication app. */
+    includeAllObjects?: boolean;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsDumpAuthAppCreateStatementKwargs {
+    /** The ID of the authentication app to generate. */
+    authAppId?: string;
+    /** The ID of the service where the authentication app belongs. */
+    serviceId?: string;
+    /** The identifier of the authentication app. */
+    authApp?: string;
+    /** Include all objects that belong to the schema. */
+    includeAllObjects?: boolean;
+    /** The path where to store the file. */
+    filePath?: string;
+    /** Overwrite the file, if already exists. */
+    overwrite?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -1304,6 +1370,32 @@ export interface IShellMrsUpdateUserKwargs {
     moduleSessionId?: string;
 }
 
+export interface IShellMrsGetUserCreateStatementKwargs {
+    /** The ID of the user to generate. */
+    userId?: string;
+    /** The identifier of the user. */
+    user?: string;
+    /** Include all objects that belong to the user. */
+    includeAllObjects?: boolean;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsDumpUserCreateStatementKwargs {
+    /** The ID of the user to generate. */
+    userId?: string;
+    /** The identifier of the user. */
+    user?: string;
+    /** Include all objects that belong to the user. */
+    includeAllObjects?: boolean;
+    /** The path where to store the file. */
+    filePath?: string;
+    /** Overwrite the file, if already exists. */
+    overwrite?: boolean;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
 export interface IShellMrsAddRoleKwargs {
     /** The role from which this role derives */
     derivedFromRoleId?: string;
@@ -1331,6 +1423,32 @@ export interface IShellMrsDeleteRolePrivilegeKwargs {
     schema?: string;
     /** The object path or pattern to revoke privileges from. */
     object?: string;
+}
+
+export interface IShellMrsGetRoleCreateStatementKwargs {
+    /** The ID of the role to generate. */
+    roleId?: string;
+    /** The name of the role to generate. */
+    roleName?: string;
+    /** The identifier of the schema. */
+    role?: string;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsDumpRoleCreateStatementKwargs {
+    /** The ID of the role to generate. */
+    roleId?: string;
+    /** The name of the role to generate. */
+    roleName?: string;
+    /** The identifier of the schema. */
+    role?: string;
+    /** The path where to store the file. */
+    filePath?: string;
+    /** Overwrite the file, if already exists. */
+    overwrite?: boolean;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
 }
 
 export interface IShellMrsRunScriptKwargs {
@@ -1398,6 +1516,8 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsListAuthenticationApps]: { args: { serviceId?: string; }; kwargs?: IShellMrsListAuthenticationAppsKwargs; };
     [ShellAPIMrs.MrsDeleteAuthenticationApp]: { kwargs?: IShellMrsDeleteAuthenticationAppKwargs; };
     [ShellAPIMrs.MrsUpdateAuthenticationApp]: { kwargs?: IShellMrsUpdateAuthenticationAppKwargs; };
+    [ShellAPIMrs.MrsGetAuthAppCreateStatement]: { kwargs?: IShellMrsGetAuthAppCreateStatementKwargs; };
+    [ShellAPIMrs.MrsDumpAuthAppCreateStatement]: { kwargs?: IShellMrsDumpAuthAppCreateStatementKwargs; };
     [ShellAPIMrs.MrsAddDbObject]: { kwargs?: IShellMrsAddDbObjectKwargs; };
     [ShellAPIMrs.MrsGetDbObject]: { args: { requestPath?: string; dbObjectName?: string; }; kwargs?: IShellMrsGetDbObjectKwargs; };
     [ShellAPIMrs.MrsListDbObjects]: { kwargs?: IShellMrsListDbObjectsKwargs; };
@@ -1442,11 +1562,15 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsListUserRoles]: { args: { userId?: string; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsAddUserRole]: { args: { userId?: string; roleId?: string; comments?: string; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsDeleteUserRoles]: { args: { userId?: string; roleId?: string; moduleSessionId?: string; }; };
+    [ShellAPIMrs.MrsGetUserCreateStatement]: { kwargs?: IShellMrsGetUserCreateStatementKwargs; };
+    [ShellAPIMrs.MrsDumpUserCreateStatement]: { kwargs?: IShellMrsDumpUserCreateStatementKwargs; };
     [ShellAPIMrs.MrsListRoles]: { args: { serviceId?: string; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsGetRole]: { args: { roleId?: string; moduleSessionId?: string; specificToServiceId?: string; caption?: string; }; };
     [ShellAPIMrs.MrsAddRole]: { args: { caption: string; }; kwargs?: IShellMrsAddRoleKwargs; };
     [ShellAPIMrs.MrsAddRolePrivilege]: { args: { roleId?: string; moduleSessionId?: string; operations?: unknown[]; }; kwargs?: IShellMrsAddRolePrivilegeKwargs; };
     [ShellAPIMrs.MrsDeleteRolePrivilege]: { args: { roleId?: string; moduleSessionId?: string; operations?: unknown[]; }; kwargs?: IShellMrsDeleteRolePrivilegeKwargs; };
+    [ShellAPIMrs.MrsGetRoleCreateStatement]: { kwargs?: IShellMrsGetRoleCreateStatementKwargs; };
+    [ShellAPIMrs.MrsDumpRoleCreateStatement]: { kwargs?: IShellMrsDumpRoleCreateStatementKwargs; };
     [ShellAPIMrs.MrsListRouterIds]: { args: { seenWithin?: number; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsListRouters]: { args: { activeWhenSeenWithin?: number; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsDeleteRouter]: { args: { routerId?: number; moduleSessionId?: string; }; };
@@ -2004,10 +2128,14 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsGetDbObjectCreateStatement]: { result: string; };
     [ShellAPIMrs.MrsGetContentSetCreateStatement]: { result: string; };
     [ShellAPIMrs.MrsGetContentFileCreateStatement]: { result: string; };
+    [ShellAPIMrs.MrsGetAuthAppCreateStatement]: { result: string; };
+    [ShellAPIMrs.MrsGetUserCreateStatement]: { result: string; };
     [ShellAPIMrs.MrsDumpServiceCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpSchemaCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpDbObjectCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpContentSetCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpContentFileCreateStatement]: { result: boolean; };
+    [ShellAPIMrs.MrsDumpAuthAppCreateStatement]: { result: boolean; };
+    [ShellAPIMrs.MrsDumpUserCreateStatement]: { result: boolean; };
 }
 

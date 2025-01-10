@@ -484,11 +484,11 @@
             },
             {
                 "command": "msg.dumpSchemaToDisk",
-                "title": "Dump Schema to Disk"
+                "title": "Database Schema Dump"
             },
             {
                 "command": "msg.dumpSchemaToDiskForMds",
-                "title": "Dump Schema to Disk for MySQL Database Service"
+                "title": "Database Schema Dump for MySQL Database Service"
             },
             {
                 "command": "msg.createSchema",
@@ -754,7 +754,7 @@
             },
             {
                 "command": "msg.mrs.dumpCreateSchemaSql",
-                "title": "Dump REST Schema SQL..."
+                "title": "REST Schema SQL..."
             },
             {
                 "command": "msg.mrs.editAuthApp",
@@ -790,7 +790,7 @@
             },
             {
                 "command": "msg.mrs.copyDbObjectRequestPath",
-                "title": "Copy REST Object Request Path to Clipboard"
+                "title": "REST Object Request Path"
             },
             {
                 "command": "msg.mrs.openDbObjectRequestPath",
@@ -818,63 +818,111 @@
             },
             {
                 "command": "msg.mrs.dumpSchemaToJSONFile",
-                "title": "Dump REST Schema To JSON File..."
+                "title": "REST Schema To JSON File..."
             },
             {
                 "command": "msg.mrs.dumpObjectToJSONFile",
-                "title": "Dump REST Object To JSON File..."
+                "title": "REST Object To JSON File..."
             },
             {
                 "command": "msg.mrs.loadSchemaFromJSONFile",
-                "title": "Load REST Schema From JSON File..."
+                "title": "REST Schema From JSON File..."
             },
             {
                 "command": "msg.mrs.exportServiceSdk",
-                "title": "Export REST Service SDK Files..."
+                "title": "REST Client SDK Files ..."
             },
             {
                 "command": "msg.mrs.exportCreateServiceSql",
-                "title": "Export CREATE REST SERVICE Statement..."
+                "title": "Create Statement..."
+            },
+            {
+                "command": "msg.mrs.exportCreateServiceSqlIncludeAllObjects",
+                "title": "Create Statement Including All Objects..."
             },
             {
                 "command": "msg.mrs.exportCreateSchemaSql",
-                "title": "Export CREATE REST SCHEMA Statement..."
+                "title": "Create Statement..."
+            },
+            {
+                "command": "msg.mrs.exportCreateSchemaSqlIncludeAllObjects",
+                "title": "Create Statement Including All Objects..."
             },
             {
                 "command": "msg.mrs.exportCreateDbObjectSql",
-                "title": "Export CREATE REST OBJECT Statement..."
+                "title": "Create Statement..."
             },
             {
                 "command": "msg.mrs.exportCreateContentSetSql",
-                "title": "Export CREATE REST CONTENT SET Statement..."
+                "title": "Create Statement..."
             },
             {
                 "command": "msg.mrs.exportCreateContentFileSql",
-                "title": "Export CREATE REST CONTENT FILE Statement..."
+                "title": "Create Statement..."
+            },
+            {
+                "command": "msg.mrs.exportCreateAuthAppSql",
+                "title": "Create Statement..."
+            },
+            {
+                "command": "msg.mrs.exportCreateAuthAppSqlIncludeAllObjects",
+                "title": "Create Statement Including All Objects..."
+            },
+            {
+                "command": "msg.mrs.exportCreateUserSql",
+                "title": "Create Statement..."
+            },
+            {
+                "command": "msg.mrs.exportCreateUserSqlIncludeAllObjects",
+                "title": "Create Statement Including All Objects..."
             },
             {
                 "command": "msg.mrs.copyCreateServiceSql",
-                "title": "Copy CREATE REST SERVICE Statement..."
+                "title": "Create Statement"
+            },
+            {
+                "command": "msg.mrs.copyCreateServiceSqlIncludeAllObjects",
+                "title": "Create Statement Including All Objects"
             },
             {
                 "command": "msg.mrs.copyCreateSchemaSql",
-                "title": "Copy CREATE REST SCHEMA Statement..."
+                "title": "Create Statement"
+            },
+            {
+                "command": "msg.mrs.copyCreateSchemaSqlIncludeAllObjects",
+                "title": "Create Statement Including All Objects"
             },
             {
                 "command": "msg.mrs.copyCreateDbObjectSql",
-                "title": "Copy CREATE REST OBJECT Statement..."
+                "title": "Create Statement"
             },
             {
                 "command": "msg.mrs.copyCreateContentSetSql",
-                "title": "Copy CREATE REST CONTENT SET Statement..."
+                "title": "Create Statement"
             },
             {
                 "command": "msg.mrs.copyCreateContentFileSql",
-                "title": "Copy CREATE REST CONTENT FILE Statement..."
+                "title": "Create Statement"
+            },
+            {
+                "command": "msg.mrs.copyCreateAuthAppSql",
+                "title": "Create Statement"
+            },
+            {
+                "command": "msg.mrs.copyCreateAuthAppSqlIncludeAllObjects",
+                "title": "Create Statement Including All Objects"
+            },
+            {
+                "command": "msg.mrs.copyCreateUserSql",
+                "title": "Create Statement"
+            },
+            {
+                "command": "msg.mrs.copyCreateUserSqlIncludeAllObjects",
+                "title": "Create Statement Including All Objects"
             },
             {
                 "command": "msg.mrs.loadObjectFromJSONFile",
-                "title": "Load REST Object From JSON File..."
+                "title": "REST Object From JSON File..."
             },
             {
                 "command": "msg.showTaskOutput",
@@ -1034,16 +1082,127 @@
                 "id": "msg.copyToClipboard",
                 "label": "Copy To Clipboard",
                 "command": ""
+            },
+            {
+                "id": "msg.dumpToDisk",
+                "label": "Dump to Disk",
+                "command": ""
+            },
+            {
+                "id": "msg.loadFromDisk",
+                "label": "Load from Disk",
+                "command": ""
             }
         ],
         "menus": {
+            "msg.loadFromDisk": [
+                {
+                    "command": "msg.mrs.loadSchemaFromJSONFile",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mrs.loadObjectFromJSONFile",
+                    "when": "view == msg.connections && viewItem == mrsSchema",
+                    "group": "2_msg@1"
+                }
+            ],
+            "msg.dumpToDisk": [
+                {
+                    "command": "msg.dumpSchemaToDisk",
+                    "when": "view == msg.connections && viewItem == schemaItemMySQL",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.dumpSchemaToDiskForMds",
+                    "when": "view == msg.connections && viewItem == schemaItemMySQL",
+                    "group": "1_msg@2"
+                },
+                {
+                    "command": "msg.mrs.dumpSchemaToJSONFile",
+                    "when": "view == msg.connections && viewItem == mrsSchema",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mrs.dumpObjectToJSONFile",
+                    "when": "view == msg.connections && viewItem == mrsDbObject",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mrs.exportServiceSdk",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mrs.dumpCreateSchemaSql",
+                    "when": "view == msg.connections && viewItem == mrsSchema",
+                    "group": "2_msg@2"
+                },
+                {
+                    "command": "msg.mrs.exportCreateServiceSql",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "3_msg@2"
+                },
+                {
+                    "command": "msg.mrs.exportCreateServiceSqlIncludeAllObjects",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "3_msg@3"
+                },
+                {
+                    "command": "msg.mrs.exportCreateSchemaSql",
+                    "when": "view == msg.connections && viewItem == mrsSchema",
+                    "group": "3_msg@2"
+                },
+                {
+                    "command": "msg.mrs.exportCreateSchemaSqlIncludeAllObjects",
+                    "when": "view == msg.connections && viewItem == mrsSchema",
+                    "group": "3_msg@3"
+                },
+                {
+                    "command": "msg.mrs.exportCreateDbObjectSql",
+                    "when": "view == msg.connections && viewItem == mrsDbObject",
+                    "group": "3_msg@2"
+                },
+                {
+                    "command": "msg.mrs.exportCreateContentSetSql",
+                    "when": "view == msg.connections && viewItem == mrsContentSet",
+                    "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.mrs.exportCreateContentFileSql",
+                    "when": "view == msg.connections && viewItem == mrsContentFile",
+                    "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.mrs.exportCreateAuthAppSql",
+                    "when": "view == msg.connections && viewItem == mrsAuthApp",
+                    "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.mrs.exportCreateAuthAppSqlIncludeAllObjects",
+                    "when": "view == msg.connections && viewItem == mrsAuthApp",
+                    "group": "3_msg@3"
+                },
+                {
+                    "command": "msg.mrs.exportCreateUserSql",
+                    "when": "view == msg.connections && viewItem == mrsUser",
+                    "group": "3_msg@2"
+                },
+                {
+                    "command": "msg.mrs.exportCreateUserSqlIncludeAllObjects",
+                    "when": "view == msg.connections && viewItem == mrsUser",
+                    "group": "3_msg@3"
+                }
+            ],
             "msg.copyToClipboard": [
                 {
                     "command": "msg.copyNameToClipboard",
+                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Routine)?Item.*/",
                     "group": "1_msg@1"
                 },
                 {
                     "command": "msg.copyCreateScriptToClipboard",
+                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Routine)?Item.*/",
                     "group": "1_msg@2"
                 },
                 {
@@ -1055,6 +1214,56 @@
                     "command": "msg.copyDropCreateScriptWithDelimitersToClipboard",
                     "when": "view == msg.connections && viewItem =~ /^schemaRoutineItem.*/",
                     "group": "1_msg@4"
+                },
+                {
+                    "command": "msg.mrs.copyDbObjectRequestPath",
+                    "when": "viewItem == mrsDbObject",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.mrs.copyCreateServiceSql",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.mrs.copyCreateServiceSqlIncludeAllObjects",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "3_msg@2"
+                },
+                {
+                    "command": "msg.mrs.copyCreateSchemaSql",
+                    "when": "view == msg.connections && viewItem == mrsSchema",
+                    "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.mrs.copyCreateSchemaSqlIncludeAllObjects",
+                    "when": "view == msg.connections && viewItem == mrsSchema",
+                    "group": "3_msg@2"
+                },
+                {
+                    "command": "msg.mrs.copyCreateDbObjectSql",
+                    "when": "view == msg.connections && viewItem == mrsDbObject",
+                    "group": "3_msg@2"
+                },
+                {
+                    "command": "msg.mrs.copyCreateAuthAppSql",
+                    "when": "view == msg.connections && viewItem == mrsAuthApp",
+                    "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.mrs.copyCreateAuthAppSqlIncludeAllObjects",
+                    "when": "view == msg.connections && viewItem == mrsAuthApp",
+                    "group": "3_msg@2"
+                },
+                {
+                    "command": "msg.mrs.copyCreateUserSql",
+                    "when": "view == msg.connections && viewItem == mrsUser",
+                    "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.mrs.copyCreateUserSqlIncludeAllObjects",
+                    "when": "view == msg.connections && viewItem == mrsUser",
+                    "group": "3_msg@2"
                 }
             ],
             "explorer/context": [
@@ -1246,19 +1455,19 @@
                     "group": "1_msg@1"
                 },
                 {
-                    "command": "msg.dumpSchemaToDisk",
-                    "when": "view == msg.connections && viewItem == schemaItemMySQL && !showsModalDialog",
-                    "group": "2_msg@1"
+                    "submenu": "msg.loadFromDisk",
+                    "when": "viewItem =~ /^schema(Table|View|Routine)?Item.*/ || viewItem =~ /^mrs(Service|Schema|DbObject|ContentSet|ContentFile|User|AuthApp).*/",
+                    "group": "2_msg@3"
                 },
                 {
-                    "command": "msg.dumpSchemaToDiskForMds",
-                    "when": "view == msg.connections && viewItem == schemaItemMySQL && !showsModalDialog",
-                    "group": "2_msg@2"
+                    "submenu": "msg.dumpToDisk",
+                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Routine)?Item.*/ || viewItem =~ /^mrs(Service|Schema|DbObject|ContentSet|ContentFile|User|AuthApp).*/",
+                    "group": "2_msg@4"
                 },
                 {
                     "submenu": "msg.copyToClipboard",
-                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Routine)?Item.*/",
-                    "group": "3_msg@9"
+                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Routine)?Item.*/ || viewItem =~ /^mrs(Service|Schema|DbObject|ContentSet|ContentFile|User|AuthApp).*/",
+                    "group": "2_msg@5"
                 },
                 {
                     "command": "msg.mds.loadToHeatWave",
@@ -1536,29 +1745,9 @@
                     "group": "1_msg@1"
                 },
                 {
-                    "command": "msg.mrs.copyDbObjectRequestPath",
-                    "when": "viewItem == mrsDbObject",
-                    "group": "2_msg@1"
-                },
-                {
                     "command": "msg.mrs.openDbObjectRequestPath",
                     "when": "viewItem == mrsDbObject",
                     "group": "2_msg@2"
-                },
-                {
-                    "command": "msg.mrs.dumpObjectToJSONFile",
-                    "when": "view == msg.connections && viewItem == mrsDbObject",
-                    "group": "3_msg@1"
-                },
-                {
-                    "command": "msg.mrs.exportCreateDbObjectSql",
-                    "when": "view == msg.connections && viewItem == mrsDbObject",
-                    "group": "3_msg@2"
-                },
-                {
-                    "command": "msg.mrs.copyCreateDbObjectSql",
-                    "when": "view == msg.connections && viewItem == mrsDbObject",
-                    "group": "3_msg@3"
                 },
                 {
                     "command": "msg.mrs.addDbObject",
@@ -1569,11 +1758,6 @@
                     "command": "msg.mrs.deleteDbObject",
                     "when": "viewItem == mrsDbObject",
                     "group": "9_msg@1"
-                },
-                {
-                    "command": "msg.mrs.exportCreateContentSetSql",
-                    "when": "viewItem == mrsContentSet",
-                    "group": "1_msg@1"
                 },
                 {
                     "command": "msg.mrs.copyCreateContentSetSql",
@@ -1591,11 +1775,6 @@
                     "group": "3_msg@1"
                 },
                 {
-                    "command": "msg.mrs.exportCreateContentFileSql",
-                    "when": "viewItem == mrsContentFile",
-                    "group": "1_msg@1"
-                },
-                {
                     "command": "msg.mrs.copyCreateContentFileSql",
                     "when": "viewItem == mrsContentFile",
                     "group": "1_msg@2"
@@ -1604,51 +1783,6 @@
                     "command": "msg.mrs.openContentFileRequestPath",
                     "when": "viewItem == mrsContentFile",
                     "group": "2_msg@1"
-                },
-                {
-                    "command": "msg.mrs.dumpSchemaToJSONFile",
-                    "when": "view == msg.connections && viewItem == mrsSchema",
-                    "group": "2_msg@1"
-                },
-                {
-                    "command": "msg.mrs.loadSchemaFromJSONFile",
-                    "when": "view == msg.connections && viewItem == mrsService",
-                    "group": "2_msg@1"
-                },
-                {
-                    "command": "msg.mrs.exportServiceSdk",
-                    "when": "view == msg.connections && viewItem == mrsService",
-                    "group": "2_msg@2"
-                },
-                {
-                    "command": "msg.mrs.exportCreateServiceSql",
-                    "when": "view == msg.connections && viewItem == mrsService",
-                    "group": "2_msg@3"
-                },
-                {
-                    "command": "msg.mrs.copyCreateServiceSql",
-                    "when": "view == msg.connections && viewItem == mrsService",
-                    "group": "2_msg@4"
-                },
-                {
-                    "command": "msg.mrs.loadObjectFromJSONFile",
-                    "when": "view == msg.connections && viewItem == mrsSchema",
-                    "group": "2_msg@1"
-                },
-                {
-                    "command": "msg.mrs.dumpCreateSchemaSql",
-                    "when": "view == msg.connections && viewItem == mrsSchema",
-                    "group": "2_msg@2"
-                },
-                {
-                    "command": "msg.mrs.exportCreateSchemaSql",
-                    "when": "view == msg.connections && viewItem == mrsSchema",
-                    "group": "2_msg@3"
-                },
-                {
-                    "command": "msg.mrs.copyCreateSchemaSql",
-                    "when": "view == msg.connections && viewItem == mrsSchema",
-                    "group": "2_msg@4"
                 },
                 {
                     "command": "msg.mds.getProfileInfo",

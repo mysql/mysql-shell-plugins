@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -1217,6 +1217,9 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
                     "code_cleared": code_cleared,
                 })
 
+    if language == "TypeScript" and build_folder is None:
+        raise Exception("The projects build directory was not found. Please build the project before adding the content set.")
+
     if len(code_files) == 0:
         if send_gui_message is not None:
             send_gui_message(
@@ -1608,7 +1611,7 @@ def get_create_statement(session, content_set) -> str:
         result.append(content_files.get_create_statement(
             session, service_content_file))
 
-    return "\n".join(result)
+    return "\n\n".join(result)
 
 
 def update_file_content_via_regex(file_path, reg_ex, substitute):
