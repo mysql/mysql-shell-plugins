@@ -201,6 +201,8 @@ export enum ShellAPIMrs {
     MrsLoadSchema = "mrs.load.schema",
     /** Loads data for a REST Database Object from a JSON file into the target REST Schema */
     MrsLoadObject = "mrs.load.object",
+    /** Exports the MRS audit log to a file */
+    MrsDumpAuditLog = "mrs.dump.audit_log",
     /** Get users configured within a service and/or auth_app */
     MrsListUsers = "mrs.list.users",
     /** Get user */
@@ -1301,6 +1303,19 @@ export interface IShellMrsLoadObjectKwargs {
     moduleSessionId?: string;
 }
 
+export interface IShellMrsDumpAuditLogKwargs {
+    /** The file containing the audit log position. If not provided, a mrs_audit_log_position.json file next to the file_path will be created. */
+    auditLogPositionFile?: string;
+    /** The audit log position to export from. Defaults to 0. */
+    auditLogPosition?: number;
+    /** Whether to start exporting from today. Defaults to true. */
+    startingFromToday?: boolean;
+    /** Whether to only write out the log when the MySQL server is writeable. Defaults to false. */
+    whenServerIsWriteable?: boolean;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
 export interface IShellMrsListUsersKwargs {
     /** Use this service_id to search for all users within this service. */
     serviceId?: string;
@@ -1554,6 +1569,7 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsDumpObject]: { args: { path: string; }; kwargs?: IShellMrsDumpObjectKwargs; };
     [ShellAPIMrs.MrsLoadSchema]: { args: { path: string; }; kwargs?: IShellMrsLoadSchemaKwargs; };
     [ShellAPIMrs.MrsLoadObject]: { args: { path: string; }; kwargs?: IShellMrsLoadObjectKwargs; };
+    [ShellAPIMrs.MrsDumpAuditLog]: { args: { filePath: string; }; kwargs?: IShellMrsDumpAuditLogKwargs; };
     [ShellAPIMrs.MrsListUsers]: { kwargs?: IShellMrsListUsersKwargs; };
     [ShellAPIMrs.MrsGetUser]: { kwargs?: IShellMrsGetUserKwargs; };
     [ShellAPIMrs.MrsAddUser]: { kwargs?: IShellMrsAddUserKwargs; };
