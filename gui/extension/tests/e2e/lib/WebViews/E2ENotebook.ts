@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -29,6 +29,7 @@ import { E2ECodeEditor } from "./E2ECodeEditor";
 import { Toolbar } from "./Toolbar";
 import * as interfaces from "../interfaces";
 import { PasswordDialog } from "./Dialogs/PasswordDialog";
+import { Workbench } from "../Workbench";
 
 /**
  * This class aggregates the functions that perform operations inside notebooks
@@ -66,17 +67,15 @@ export class E2ENotebook {
                     for (const notification of notifications) {
 
                         if (await notification.getType() === NotificationType.Error) {
-                            let errorMessage = "";
+                            if ((await notification.getMessage())
+                                .includes("The currently deployed schema version is 0.0.0")) {
 
-                            if ((await notification.getMessage()).includes("could not be opened")) {
-                                errorMessage = constants.ociFailure;
+                                await notification.dismiss();
                             } else {
-                                errorMessage = await notification.getMessage();
+                                throw new Error(await notification.getMessage());
                             }
-
-                            throw new Error(errorMessage);
                         } else {
-                            throw new Error(await notification.getMessage());
+                            await Workbench.dismissNotifications();
                         }
                     }
                 } else {

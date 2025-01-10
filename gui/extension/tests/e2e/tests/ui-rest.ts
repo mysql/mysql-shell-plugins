@@ -44,7 +44,6 @@ import { E2ERestService } from "../lib/SideBar/E2ERestService";
 import { E2ERestSchema } from "../lib/SideBar/E2ERestSchema";
 import { E2ERestObject } from "../lib/SideBar/E2ERestObject";
 
-
 describe("MySQL REST Service", () => {
 
     const globalConn: interfaces.IDBConnection = {
@@ -171,7 +170,6 @@ describe("MySQL REST Service", () => {
             await driver.wait(dbTreeSection.tree.untilExists(new RegExp(hostname())), constants.wait5seconds);
             const router = await dbTreeSection.tree.getElement(new RegExp(hostname()));
             expect(await dbTreeSection.tree.routerHasError(router), "Please update Router").to.be.false;
-            await driver.wait(dbTreeSection.tree.untilRouterIsInactive(), constants.wait20seconds);
             await Os.setRouterConfigFile({
                 sinks: "filelog",
             });
@@ -181,8 +179,9 @@ describe("MySQL REST Service", () => {
 
             const treeMySQLRestService = await dbTreeSection.tree.getElement(constants.mysqlRestService);
             await treeMySQLRestService.expand();
+            await fs.truncate(await Os.getRouterLogFile());
             await dbTreeSection.tree.openContextMenuAndSelect(treeMySQLRestService, constants.startRouter);
-            await driver.wait(dbTreeSection.tree.untilRouterIsActive(), constants.wait20seconds);
+            await driver.wait(Os.untilRouterIsActive(), constants.wait20seconds);
         });
 
         it("Stop Local MySQL Router Instance", async () => {
@@ -190,7 +189,7 @@ describe("MySQL REST Service", () => {
             await treeMySQLRestService.expand();
             await fs.truncate(await Os.getRouterLogFile());
             await dbTreeSection.tree.openContextMenuAndSelect(treeMySQLRestService, constants.stopRouter);
-            await driver.wait(dbTreeSection.tree.untilRouterIsInactive(), constants.wait20seconds);
+            await driver.wait(Os.untilRouterIsInactive(), constants.wait20seconds);
         });
 
         it("Browse the MySQL REST Service Documentation", async () => {
@@ -1322,7 +1321,7 @@ describe("MySQL REST Service", () => {
                 await fs.truncate(await Os.getRouterLogFile());
                 const treeMySQLRestService = await dbTreeSection.tree.getElement(constants.mysqlRestService);
                 await dbTreeSection.tree.openContextMenuAndSelect(treeMySQLRestService, constants.startRouter);
-                await driver.wait(dbTreeSection.tree.untilRouterIsActive(), constants.wait20seconds);
+                await driver.wait(Os.untilRouterIsActive(), constants.wait20seconds);
                 console.log("Using router service:");
                 console.log(crudService);
             } catch (e) {

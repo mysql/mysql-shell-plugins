@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -35,7 +35,6 @@ import { Misc, driver } from "../Misc";
 import { Workbench } from "../Workbench";
 import { E2EAccordionSection } from "./E2EAccordionSection";
 import { Os } from "../Os";
-import { hostname } from "os";
 
 /**
  * This class represents the tree within an accordion section and its related functions
@@ -315,20 +314,6 @@ export class E2ETree {
     };
 
     /**
-     * Verifies if the router element on the tree is marked as active (yellow dot on the icon)
-     * @returns A promise resolving with true if the router is active, false otherwise
-     */
-    public isRouterActive = async (): Promise<boolean> => {
-        if ((await Misc.insideIframe())) {
-            await Misc.switchBackToTopFrame();
-        }
-        const routerItem = await this.getElement(new RegExp(hostname()));
-        const icon = await routerItem.findElement(locator.section.itemIcon);
-
-        return (await icon.getCssValue("background-image")).match(/router.svg/) !== null;
-    };
-
-    /**
      * Verifies if the router element on the tree is marked with errors (red dot on the icon)
      * @param treeItem The router item
      * @returns A promise resolving with true if the router has errors, false otherwise
@@ -571,32 +556,6 @@ export class E2ETree {
                 `${this.accordionSection.accordionSectionName} is still loading`);
 
             return this.isElementDefault(treeItemName, itemType);
-        });
-    };
-
-    /**
-     * Verifies if the router tree element is marked as active
-     * @returns A condition resolving to true when router icon is active
-     */
-    public untilRouterIsActive = (): Condition<boolean> => {
-        return new Condition(`for router icon to be active`, async () => {
-            await this.accordionSection.clickToolbarButton(constants.reloadConnections);
-            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
-
-            return this.isRouterActive();
-        });
-    };
-
-    /**
-     * Verifies if the router tree element is marked as inactive
-     * @returns A condition resolving to true when router icon is inactive
-     */
-    public untilRouterIsInactive = (): Condition<boolean> => {
-        return new Condition(`for router icon to be inactive`, async () => {
-            await this.accordionSection.clickToolbarButton(constants.reloadConnections);
-            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
-
-            return !(await this.isRouterActive());
         });
     };
 

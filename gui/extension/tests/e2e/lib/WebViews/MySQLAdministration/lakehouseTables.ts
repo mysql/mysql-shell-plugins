@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -204,21 +204,6 @@ export class LakehouseTables {
         }, constants.wait5seconds, "Could not get the Lakehouse tasks");
 
         return toReturn;
-    };
-
-    /**
-     * Gets the most recent task
-     * @returns A promise resolving with the task
-     */
-    public getLatestTask = async (): Promise<interfaces.ICurrentTask> => {
-        const tasks = await this.getLakeHouseTasks();
-        const maxId = Math.max(...tasks.map((item: interfaces.ICurrentTask) => {
-            return parseInt(item.id, 10);
-        }));
-
-        return tasks.find((item: interfaces.ICurrentTask) => {
-            return parseInt(item.id, 10) === maxId;
-        });
     };
 
     /**

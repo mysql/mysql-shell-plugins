@@ -70,7 +70,11 @@ export class E2ENotebook {
                     for (const notification of notifications) {
 
                         if (notification!.type === "error") {
-                            throw new Error(notification!.message);
+                            if (notification!.message.includes("The currently deployed schema version is 0.0.0")) {
+                                await notification!.close();
+                            } else {
+                                throw new Error(notification!.message);
+                            }
                         } else {
                             await Misc.dismissNotifications();
                             break;
