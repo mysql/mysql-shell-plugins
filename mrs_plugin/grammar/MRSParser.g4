@@ -742,7 +742,9 @@ showRestGrantsStatement:
 ;
 
 showCreateRestServiceStatement:
-    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL SERVICE_SYMBOL serviceRequestPath?
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL SERVICE_SYMBOL serviceRequestPath? (
+        INCLUDE_SYMBOL ALL_SYMBOL OBJECTS_SYMBOL
+    )?
 ;
 
 showCreateRestSchemaStatement:

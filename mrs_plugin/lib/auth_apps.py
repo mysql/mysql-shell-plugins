@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -21,7 +21,8 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import core, services, users
+from mrs_plugin.lib import core, services
+from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
 
 MYSQL_AUTHENTICATION = 1
 DEFAULT_ROLE_ID = bytes.fromhex("31000000000000000000000000000000")
@@ -299,3 +300,21 @@ def update_auth_app(session, app_id, data: dict):
               WHERE id = ?"""
 
     core.MrsDbExec(sql, params).exec(session)
+
+
+def get_create_statement(session, auth_app, service, include_all_objects) -> str:
+    executor = MrsDdlExecutor(
+        session=session,
+        current_service_id=service["id"]
+    )
+
+    executor.showCreateRestAuthApp({
+        "current_operation": "SHOW CREATE REST AUTH APP",
+        "include_all_objects": include_all_objects,
+        **auth_app
+    })
+
+    if executor.results[0]["type"] == "error":
+        raise Exception(executor.results[0]['message'])
+
+    return executor.results[0]["result"][0]["CREATE REST AUTH APP "]

@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -155,7 +155,8 @@ def get_default_content_set_init(
 
 
 class SchemaCT(object):
-    def __init__(self, service_id, schema_name, request_path, **kwargs):
+    def __init__(self, session, service_id, schema_name, request_path, **kwargs):
+        self._session = session
         self._schema_id = add_schema(
             service_id=service_id,
             schema_name=schema_name,
@@ -169,11 +170,12 @@ class SchemaCT(object):
         return self._schema_id
 
     def __exit__(self, type, value, traceback):
-        delete_schema(schema_id=self._schema_id)
+        delete_schema(session=self._session, schema_id=self._schema_id)
 
 
 class ServiceCT(object):
     def __init__(self, session, url_context_root, url_host_name, **kwargs):
+        self._session = session
         self._args = kwargs
         self._args["url_context_root"] = url_context_root
         self._args["url_protocol"] = ["HTTP"]
@@ -188,7 +190,7 @@ class ServiceCT(object):
         return self._service_id
 
     def __exit__(self, type, value, traceback):
-        assert delete_service(service_id=self._service_id) == True
+        assert delete_service(session=self._session, service_id=self._service_id) == True
 
 
 class AuthAppCT:
@@ -613,13 +615,6 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
             .exec(session, ["localhost"])
             .first
         )
-
-        service_data = {
-            "url_protocol": ["HTTP"],
-            "url_host_id": url_host["id"] if url_host else None,
-            "enabled": True,
-            "comments": "Test service",
-        }
 
         service_data = {
             "url_context_root": service_context_root,

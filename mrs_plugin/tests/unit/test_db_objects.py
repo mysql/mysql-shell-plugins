@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -175,7 +175,7 @@ def test_get_db_object(phone_book):
 
     with pytest.raises(Exception) as exc_info:
         get_db_object(**args)
-    assert str(exc_info.value) == 'Invalid id type for schema_id.'
+    assert str(exc_info.value) == "Invalid id type for 'schema_id'."
 
     args["schema_id"] = phone_book["schema_id"]
     with pytest.raises(Exception) as exc_info:
@@ -539,7 +539,7 @@ def test_special_schemas(phone_book, mobile_phone_book, table_contents):
     session = phone_book["session"]
     information_schema_grants: TableContents = table_contents("INFORMATION_SCHEMA.TABLE_PRIVILEGES")
 
-    with SchemaCT(phone_book["service_id"], "information_schema", "/information_schema") as schema_id:
+    with SchemaCT(session, phone_book["service_id"], "information_schema", "/information_schema") as schema_id:
 
         db_object_init = get_default_db_object_init(session, schema_id, "CHARACTER_SETS", "/character_sets")
 
@@ -547,7 +547,7 @@ def test_special_schemas(phone_book, mobile_phone_book, table_contents):
             assert information_schema_grants.same_as_snapshot
 
 
-    with SchemaCT(phone_book["service_id"], "performance_schema", "/performance_schema") as schema_id:
+    with SchemaCT(session, phone_book["service_id"], "performance_schema", "/performance_schema") as schema_id:
 
         db_object_init = get_default_db_object_init(session, schema_id,
                                                     "accounts", "/accounts"

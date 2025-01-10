@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -107,7 +107,7 @@ def get_content_file(session, content_file_id: bytes | None = None, content_set_
         params.append(request_path)
 
     sql += core._generate_where(wheres)
-    sql += "GROUP BY f.id"
+    sql += " GROUP BY f.id"
 
     result = core.MrsDbExec(sql, params).exec(session).items
 
@@ -232,7 +232,6 @@ def get_create_statement(session, content_file) -> str:
 
     executor = MrsDdlExecutor(
         session=session,
-
         current_service_id=content_set["service_id"])
 
     executor.showCreateRestContentFile({

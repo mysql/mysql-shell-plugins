@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -180,7 +180,8 @@ export class E2ERestService {
     public loadRestSchemaFromJsonFile = async (schemaPath: string): Promise<void> => {
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
         const thisService = await dbTreeSection.tree.getElement(this.treeName);
-        await dbTreeSection.tree.openContextMenuAndSelect(thisService, constants.loadRESTSchemaFromJSON);
+        await dbTreeSection.tree.openContextMenuAndSelect(thisService,
+            [constants.loadFromDisk, constants.restSchemaFromJSONFile], constants.restServiceCtxMenu);
         await Workbench.setInputPath(schemaPath);
 
         const schemaFile = (await fs.readFile(schemaPath)).toString();

@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import core, schemas, content_sets
+from mrs_plugin.lib import core
 from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
 
 import re
@@ -450,28 +450,18 @@ def set_current_service_id(session, service_id: bytes):
     config.store()
 
 
-def get_create_statement(session, service) -> str:
+def get_create_statement(session, service:bytes, include_all_objects: bool=False) -> str:
     executor = MrsDdlExecutor(
         session=session,
         current_service_id=service["id"])
 
     executor.showCreateRestService({
         "current_operation": "SHOW CREATE REST SERVICE",
-        **service
+        **service,
+        "include_all_objects": include_all_objects ,
     })
 
     if executor.results[0]["type"] == "error":
         raise Exception(executor.results[0]['message'])
 
-    result = [executor.results[0]['result'][0]['CREATE REST SERVICE']]
-
-    service_schemas = schemas.get_schemas(session, service["id"])
-    service_content_sets = content_sets.get_content_sets(session, service["id"])
-
-    for service_schema in service_schemas:
-        result.append(schemas.get_create_statement(session, service_schema))
-
-    for service_content_set in service_content_sets:
-        result.append(content_sets.get_create_statement(session, service_content_set))
-
-    return "\n".join(result)
+    return executor.results[0]['result'][0]['CREATE REST SERVICE']

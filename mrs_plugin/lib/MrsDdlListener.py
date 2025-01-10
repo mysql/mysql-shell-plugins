@@ -1,4 +1,4 @@
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -1875,6 +1875,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "SHOW CREATE REST SERVICE",
+            "include_all_objects": ctx.OBJECTS_SYMBOL() is not None
         }
 
     def exitShowCreateRestServiceStatement(self, ctx):

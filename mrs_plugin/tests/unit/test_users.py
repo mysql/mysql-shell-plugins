@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -297,6 +297,7 @@ def test_user_roles(phone_book, table_contents):
                 "role_id": lib.roles.FULL_ACCESS_ROLE_ID,
                 "specific_to_service_id": None,
                 "options": None,
+                "user_role_options": None,
             },
         ]
 
@@ -323,6 +324,7 @@ def test_user_roles(phone_book, table_contents):
                 "description": "Process administrator.",
                 "options": {},
                 "specific_to_service_id": None,
+                'user_role_options': None,
             },
             {
                 "caption": "Full Access",
@@ -334,6 +336,7 @@ def test_user_roles(phone_book, table_contents):
                 "role_id": lib.roles.FULL_ACCESS_ROLE_ID,
                 "specific_to_service_id": None,
                 "options": None,
+                'user_role_options': None,
             },
         ]
 
@@ -363,6 +366,7 @@ def test_user_roles(phone_book, table_contents):
                 "role_id": lib.roles.FULL_ACCESS_ROLE_ID,
                 "specific_to_service_id": None,
                 "options": None,
+                'user_role_options': None,
             },
         ]
 

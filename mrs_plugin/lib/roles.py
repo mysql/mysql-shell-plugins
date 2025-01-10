@@ -21,7 +21,8 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import *
+from mrs_plugin.lib import core, schemas, db_objects
+from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
 
 FULL_ACCESS_ROLE_ID = bytes.fromhex("31000000000000000000000000000000")
 
@@ -423,3 +424,19 @@ def format_role_grant_statement(grant: dict) -> str:
         where.append(f"OBJECT {object}")
 
     return f"""GRANT REST {",".join(grant.get("crud_operations"))} ON {" ".join(where)} TO {core.quote_str(grant.get('role_name'))}"""
+
+
+def get_create_statement(session, role) -> str:
+    executor = MrsDdlExecutor(
+        session=session
+    )
+
+    executor.showCreateRestRole({
+        "current_operation": "SHOW CREATE REST ROLE",
+        **role
+    })
+
+    if executor.results[0]["type"] == "error":
+        raise Exception(executor.results[0]['message'])
+
+    return executor.results[0]["result"][0]["CREATE REST ROLE "]

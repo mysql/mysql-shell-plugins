@@ -930,18 +930,21 @@ def id_to_binary(id: str, context: str, allowNone=False):
             try:
                 result = bytes.fromhex(id[2:])
             except Exception:
-                raise RuntimeError(f"Invalid hexadecimal string for {context}.")
-        else:
+                raise RuntimeError(f"Invalid hexadecimal string for '{context}'.")
+        elif id.endswith("=="):
             try:
                 result = base64.b64decode(id, validate=True)
             except Exception:
-                raise RuntimeError(f"Invalid base64 string for {context}.")
+                raise RuntimeError(f"Invalid base64 string for '{context}'.")
+        else:
+            raise RuntimeError(f"Invalid id format for '{context}'.")
+
 
         if len(result) != 16:
-            raise RuntimeError(f"The {context} has an invalid size.")
+            raise RuntimeError(f"The '{context}' has an invalid size.")
         return result
 
-    raise RuntimeError(f"Invalid id type for {context}.")
+    raise RuntimeError(f"Invalid id type for '{context}'.")
 
 
 def convert_ids_to_binary(id_options, kwargs):
@@ -950,6 +953,26 @@ def convert_ids_to_binary(id_options, kwargs):
         if id is not None:
             kwargs[id_option] = id_to_binary(id, id_option)
 
+def try_convert_ids_to_binary(id_options, kwargs):
+    """
+    Try to convert the kwargs ID entries, but don't fail if it's an invalid ID type.
+
+    The entry may or may not be an ID, but it needs not to fail if it's not.
+    An use case for this is when we want a parameter, for example 'service',
+    that can be one of the following:
+      - 'localhost@myService'
+      - '0x11EF8496143CFDEC969C7413EA499D96'
+      - 'Ee+ElhQ8/eyWnHQT6kmdlg=='
+    """
+    for id_option in id_options:
+        id = kwargs.get(id_option)
+        if id is not None:
+            try:
+                kwargs[id_option] = id_to_binary(id, id_option)
+            except RuntimeError as e:
+                if str(e) in [f"Invalid id type for '{id_option}'.", f"Invalid id format for '{id_option}'."]:
+                    continue
+                raise
 
 def convert_id_to_string(id) -> str:
     return f"0x{id.hex()}"

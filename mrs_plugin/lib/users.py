@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -22,6 +22,8 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 from mrs_plugin.lib import core, auth_apps
+from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
+
 import hashlib
 import hmac
 import base64
@@ -84,7 +86,7 @@ def get_users(
                     user.vendor_user_id, user.login_permitted,
                     user.mapped_user_id, user.app_options,
                     {f'"{STORED_PASSWORD_STRING}" as auth_string' if mask_password else "user.auth_string"},
-                    app.name auth_app_name                    
+                    app.name auth_app_name
                 FROM `mysql_rest_service_metadata`.`mrs_user` as user
                 JOIN `mysql_rest_service_metadata`.`auth_app` as app
                     ON app.id = user.auth_app_id
@@ -101,7 +103,7 @@ def get_users(
         sql = f"""
             SELECT  user.id, user.auth_app_id, user.name, user.email,
                     user.vendor_user_id, user.login_permitted,
-                    user.mapped_user_id, user.app_options,
+                    user.mapped_user_id, user.app_options, user.options,
                     {f'"{STORED_PASSWORD_STRING}" as auth_string' if mask_password else "user.auth_string"},
                     app.name auth_app_name
                 FROM `mysql_rest_service_metadata`.`mrs_user` as user
@@ -152,7 +154,7 @@ def get_user(
 ):
     if not user_id and not service_id and not auth_app_id:
         raise ValueError("One of user_id or service_id or auth_app_id is required")
-    
+
     result = get_users(
         session,
         user_id=user_id,
@@ -277,7 +279,7 @@ def update_user(session, user_id, value: dict):
 
 def get_user_roles(session, user_id):
     sql = """
-    SELECT ur.user_id, ur.role_id, r.caption, ur.comments,
+    SELECT ur.user_id, ur.role_id, ur.comments, ur.options as user_role_options,
         r.derived_from_role_id, pr.caption derived_from_role_caption,
         r.specific_to_service_id,
         r.caption, r.description, r.options
@@ -318,3 +320,44 @@ def delete_user_roles(session, user_id, role_id=None):
 
 def format_grant_statement(user: dict, user_role: dict) -> str:
     return f"""GRANT REST ROLE {core.quote_str(user_role.get("caption"))} TO {core.quote_str(user.get("name"))}@{core.quote_str(user.get("auth_app_name"))}"""
+
+
+def get_create_statement(session, user, include_all_objects) -> str:
+    sql = """SELECT service.id AS service_id,
+                    CONCAT(host.name, service.url_context_root) AS host_ctx,
+                    CONCAT(host.name, service.url_context_root) AS full_service_path,
+                    auth_app.id AS auth_app_id,
+                    auth_app.name AS auth_app_name,
+                    user.id AS user_id,
+                    user.name AS user_name
+             FROM `mysql_rest_service_metadata`.`mrs_user` user
+                LEFT JOIN `mysql_rest_service_metadata`.`auth_app` ON user.auth_app_id = auth_app.id
+                LEFT JOIN `mysql_rest_service_metadata`.`service_has_auth_app` link ON link.auth_app_id = auth_app.id
+                LEFT JOIN `mysql_rest_service_metadata`.`service` ON service.id = link.service_id
+                LEFT JOIN `mysql_rest_service_metadata`.`url_host` host ON host.id = service.url_host_id
+"""
+    wheres = ["user.id = ?"]
+    params = [user["id"]]
+    sql += core._generate_where(wheres)
+
+    data = core.MrsDbExec(sql, params).exec(session).first
+
+    executor = MrsDdlExecutor(
+        session=session,
+        current_service_id=data["service_id"]
+    )
+
+    executor.showCreateRestUser({
+        "current_operation": "SHOW CREATE REST USER",
+        "user_id": data["user_id"],
+        "user_name": data["user_name"],
+        "auth_app_id": data["auth_app_id"],
+        "auth_app_name": data["auth_app_name"],
+        "full_service_path": data["full_service_path"],
+        "include_all_objects": include_all_objects,
+    })
+
+    if executor.results[0]["type"] == "error":
+        raise Exception(executor.results[0]['message'])
+
+    return executor.results[0]["result"][0]["CREATE REST USER "]

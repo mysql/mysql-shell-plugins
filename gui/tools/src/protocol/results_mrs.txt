@@ -547,9 +547,13 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsGetDbObjectCreateStatement]: { result: string; };
     [ShellAPIMrs.MrsGetContentSetCreateStatement]: { result: string; };
     [ShellAPIMrs.MrsGetContentFileCreateStatement]: { result: string; };
+    [ShellAPIMrs.MrsGetAuthAppCreateStatement]: { result: string; };
+    [ShellAPIMrs.MrsGetUserCreateStatement]: { result: string; };
     [ShellAPIMrs.MrsDumpServiceCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpSchemaCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpDbObjectCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpContentSetCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpContentFileCreateStatement]: { result: boolean; };
+    [ShellAPIMrs.MrsDumpAuthAppCreateStatement]: { result: boolean; };
+    [ShellAPIMrs.MrsDumpUserCreateStatement]: { result: boolean; };
 }

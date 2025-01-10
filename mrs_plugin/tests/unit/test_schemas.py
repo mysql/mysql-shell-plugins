@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -30,6 +30,7 @@ from .helpers import SchemaCT, DbObjectCT, get_default_db_object_init
 
 schema_create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook ON SERVICE localhost/test
     FROM `PhoneBook`;
+
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE localhost/test SCHEMA /PhoneBook
     AS PhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
@@ -42,15 +43,17 @@ CREATE OR REPLACE REST VIEW /Contacts
     AUTHENTICATION REQUIRED;"""
 
 def test_add_schema(phone_book, table_contents):
+    session = phone_book["session"]
     schemas_table = table_contents("db_schema")
 
-    with SchemaCT(phone_book["service_id"], "PhoneBook", "/PhoneBook2") as schema_id:
+    with SchemaCT(session, phone_book["service_id"], "PhoneBook", "/PhoneBook2") as schema_id:
         assert schemas_table.count == schemas_table.snapshot.count + 1
     assert schemas_table.same_as_snapshot
 
 
 def test_get_schemas(phone_book):
-    with SchemaCT(phone_book["service_id"], "PhoneBook", "/PhoneBook2", comments="This is a schema comment") as schema_id:
+    session = phone_book["session"]
+    with SchemaCT(session, phone_book["service_id"], "PhoneBook", "/PhoneBook2", comments="This is a schema comment") as schema_id:
         schemas = get_schemas(session=phone_book["session"], service_id=phone_book["service_id"])
         assert schemas is not None
         assert isinstance(schemas, list)
@@ -103,6 +106,7 @@ def test_get_schema(phone_book):
 
 
 def test_change_schema(phone_book, table_contents):
+    session = phone_book["session"]
     schema_table = table_contents("db_schema")
 
     args = {
@@ -110,7 +114,7 @@ def test_change_schema(phone_book, table_contents):
         "session": phone_book["session"],
     }
 
-    with SchemaCT(phone_book["service_id"], "PhoneBook", "/test_schema2") as schema_id:
+    with SchemaCT(session, phone_book["service_id"], "PhoneBook", "/test_schema2") as schema_id:
         schema_table.count == schema_table.snapshot.count + 1
         assert schema_table.get("id", schema_id) == {
             "comments": "",
@@ -260,7 +264,11 @@ def test_change_schema(phone_book, table_contents):
 
 def test_get_create_statement(phone_book, table_contents):
 
-    sql = get_create_statement(schema_id=phone_book["schema_id"], session=phone_book["session"])
+    sql = get_create_statement(schema_id=phone_book["schema_id"], session=phone_book["session"], include_all_objects=True)
+
+    assert sql == schema_create_statement
+
+    sql = get_create_statement(schema="localhost/test/PhoneBook", session=phone_book["session"], include_all_objects=True)
 
     assert sql == schema_create_statement
 
@@ -275,6 +283,7 @@ def test_dump_create_statement(phone_book, table_contents):
         store_create_statement(file_path=file_path,
                                     overwrite=overwrite,
                                     schema_id=phone_book["schema_id"],
+                                    include_all_objects=True,
                                     session=phone_book["session"])
 
     result = create_function(file_path=home_file, overwrite=True)
@@ -326,24 +335,14 @@ def test_dump_create_statement(phone_book, table_contents):
 
 
 def test_dump_and_recover(phone_book, table_contents):
+    session = phone_book["session"]
     create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE localhost/test
-    FROM `PhoneBook`;
-CREATE OR REPLACE REST VIEW /addresses
-    ON SERVICE localhost/test SCHEMA /PhoneBook2
-    AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
-        id: id
-    }
-    ITEMS PER PAGE 10
-    COMMENTS "Object that will be removed"
-    MEDIA TYPE "application/json"
-    OPTIONS {
-        "aaa": "val aaa",
-        "bbb": "val bbb"
-    };"""
+    FROM `PhoneBook`;"""
     create_function = lambda file_path, schema_id, overwrite=True: \
         store_create_statement(file_path=file_path,
                                 overwrite=overwrite,
-                                schema_id=schema_id,
+                                schema=schema_id,
+                                include_all_objects=False,
                                 session=session)
     session = phone_book["session"]
     service_id = phone_book["service_id"]
@@ -356,7 +355,7 @@ CREATE OR REPLACE REST VIEW /addresses
     schemas = lib.schemas.get_schemas(session, service_id)
     assert len(schemas) == 3
 
-    with SchemaCT(service_id, "PhoneBook", "/PhoneBook2") as schema_id:
+    with SchemaCT(session, service_id, "PhoneBook", "/PhoneBook2") as schema_id:
 
         db_object = get_default_db_object_init(session, schema_id, name="Addresses", request_path="/addresses")
         with DbObjectCT(session, **db_object) as db_object_id:
@@ -398,3 +397,79 @@ CREATE OR REPLACE REST VIEW /addresses
     with open(full_path_file2, "r") as f:
         assert f.read() == script
 
+
+def test_dump_and_recover_include_all_objects(phone_book, table_contents):
+    session = phone_book["session"]
+    create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE localhost/test
+    FROM `PhoneBook`;
+
+CREATE OR REPLACE REST VIEW /addresses
+    ON SERVICE localhost/test SCHEMA /PhoneBook2
+    AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
+        id: id
+    }
+    ITEMS PER PAGE 10
+    COMMENTS "Object that will be removed"
+    MEDIA TYPE "application/json"
+    OPTIONS {
+        "aaa": "val aaa",
+        "bbb": "val bbb"
+    };"""
+    create_function = lambda file_path, schema_id, overwrite=True: \
+        store_create_statement(file_path=file_path,
+                                overwrite=overwrite,
+                                schema=schema_id,
+                                include_all_objects=True,
+                                session=session)
+    session = phone_book["session"]
+    service_id = phone_book["service_id"]
+
+    script = ""
+
+    full_path_file = os.path.expanduser("~/schema_compare_1.dump.sql")
+    full_path_file2 = os.path.expanduser("~/schema_compare_2.dump.sql")
+
+    schemas = lib.schemas.get_schemas(session, service_id)
+    assert len(schemas) == 3
+
+    with SchemaCT(session, service_id, "PhoneBook", "/PhoneBook2") as schema_id:
+
+        db_object = get_default_db_object_init(session, schema_id, name="Addresses", request_path="/addresses")
+        with DbObjectCT(session, **db_object) as db_object_id:
+            result = create_function(file_path=full_path_file, schema_id=schema_id, overwrite=True)
+
+            assert result == True
+
+            schemas = lib.schemas.get_schemas(session, service_id)
+            assert len(schemas) == 4
+
+
+    with open(os.path.expanduser(full_path_file), "r+") as f:
+        script = f.read()
+        assert script == create_statement
+
+
+    schemas = lib.schemas.get_schemas(session, service_id)
+    assert len(schemas) == 3
+
+    with open(full_path_file, "r") as f:
+        script = f.read()
+
+    results = lib.script.run_mrs_script(mrs_script=script)
+
+    schemas = lib.schemas.get_schemas(session, service_id)
+    assert len(schemas) == 4
+
+    for schema in schemas:
+        if schema["request_path"] == "/PhoneBook2":
+            create_function(full_path_file2, schema["id"], True)
+
+    for schema in schemas:
+        if schema["request_path"] == "/PhoneBook2":
+            lib.schemas.delete_schema(session, schema["id"])
+
+    schemas = lib.schemas.get_schemas(session, service_id)
+    assert len(schemas) == 3
+
+    with open(full_path_file2, "r") as f:
+        assert f.read() == script

@@ -31,7 +31,7 @@ from .helpers import ServiceCT, SchemaCT, QueryResults
 def test_grant_revoke_sql(phone_book):
     session = phone_book["session"]
 
-    with SchemaCT(phone_book["service_id"], "PhoneBook", "/phonebook2") as schema_id:
+    with SchemaCT(session, phone_book["service_id"], "PhoneBook", "/phonebook2") as schema_id:
         session.run_sql('create rest role "role1"')
 
         with QueryResults(

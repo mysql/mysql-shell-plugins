@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -212,16 +212,16 @@ export class MRSCommandHandler {
                 }
             }));
 
+        const createStatementServiceSql = async (entry?: ICdmRestServiceEntry,
+            includeAllObjects?: boolean, toFile?: boolean) => {
+            if (!entry) {
+                void window.showErrorMessage(`Error creating the SQL for this REST Service`);
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.exportCreateServiceSql",
-            async (entry?: ICdmRestServiceEntry) => {
-                if (!entry) {
-                    void window.showErrorMessage(`Error creating the SQL for this REST Service`);
+                return;
+            }
 
-                    return;
-                }
-
-                try {
+            try {
+                if (toFile) {
                     const convertedUrl = convertPathToCamelCase(entry.details.urlContextRoot);
                     const overwrite = true;
 
@@ -236,28 +236,36 @@ export class MRSCommandHandler {
                     }
 
                     const result = await entry.connection.backend.mrs.dumpServiceCreateStatement(
-                        entry.details.id, value.fsPath, overwrite);
+                        entry.details.id, value.fsPath, overwrite, includeAllObjects ?? false);
 
                     if (result) {
                         void window.showInformationMessage(`The REST Service SQL was exported`);
                     } else {
                         void window.showErrorMessage(`Error creating the SQL for this REST Service`);
                     }
+                } else {
+                    const result = await entry.connection.backend.mrs.getServiceCreateStatement(
+                        entry.details.id, includeAllObjects ?? false);
 
-                } catch (reason) {
-                    void window.showErrorMessage(`Error setting the default REST Service: ${String(reason)}`);
+                    void env.clipboard.writeText(result).then(() => {
+                        showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
+                    });
                 }
-            }));
+            } catch (reason) {
+                void window.showErrorMessage(`Error setting the default REST Service: ${String(reason)}`);
+            }
+        };
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.exportCreateSchemaSql",
-            async (entry?: ICdmRestSchemaEntry) => {
-                if (!entry) {
-                    void window.showErrorMessage(`Error creating the SQL for this REST Schema`);
+        const createStatementSchemaSql = async (entry?: ICdmRestSchemaEntry,
+            includeAllObjects?: boolean, toFile?: boolean) => {
+            if (!entry) {
+                void window.showErrorMessage(`Error creating the SQL for this REST Schema`);
 
-                    return;
-                }
+                return;
+            }
 
-                try {
+            try {
+                if (toFile) {
                     const convertedUrl = convertPathToCamelCase(entry.details.requestPath) + "."
                         + convertPathToCamelCase(entry.details.hostCtx);
                     const overwrite = true;
@@ -273,41 +281,152 @@ export class MRSCommandHandler {
                     }
 
                     const result = await entry.connection.backend.mrs.dumpSchemaCreateStatement(
-                        entry.details.id, value.fsPath, overwrite);
+                        entry.details.id, value.fsPath, overwrite, includeAllObjects ?? false);
 
                     if (result) {
                         void window.showInformationMessage(`The REST Schema SQL was exported`);
                     } else {
                         void window.showErrorMessage(`Error creating the SQL for this REST Schema`);
                     }
+                } else {
+                    const result = await entry.connection.backend.mrs.getSchemaCreateStatement(
+                        entry.details.id, includeAllObjects ?? false);
 
-                } catch (reason) {
-                    void window.showErrorMessage(`Error setting the default REST Schema: ${String(reason)}`);
+                    void env.clipboard.writeText(result).then(() => {
+                        showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
+                    });
                 }
-            }));
+            } catch (reason) {
+                void window.showErrorMessage(`Error setting the default REST Schema: ${String(reason)}`);
+            }
+        };
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.exportCreateDbObjectSql",
-            async (entry?: ICdmRestDbObjectEntry) => {
-                if (!entry) {
-                    void window.showErrorMessage(`Error creating the SQL for this REST DB Object`);
+        const createStatementAuthenticationAppSql = async (entry?: ICdmRestAuthAppEntry,
+            includeAllObjects?: boolean, toFile?: boolean) => {
+            if (!entry || entry.details.id === undefined) {
+                void window.showErrorMessage(`Error creating the SQL for this REST Authentication App`);
 
-                    return;
+                return;
+            }
+
+            try {
+                if (toFile) {
+                    if (entry.details.name === undefined || entry.parent.details.hostCtx === undefined) {
+                        void window.showErrorMessage(`Error creating the SQL for this REST Auth App`);
+
+                        return;
+                    }
+                    const convertedUrl = convertPathToCamelCase(entry.details.name) + "."
+                        + convertPathToCamelCase(entry.parent.details.hostCtx);
+                    const overwrite = true;
+
+                    const value = await window.showSaveDialog({
+                        title: "Export REST Authentication App SQL to file...",
+                        defaultUri: Uri.file(`${os.homedir()}/${convertedUrl}.mrs.sql`),
+                        saveLabel: "Export SQL File",
+                    });
+
+                    if (value === undefined) {
+                        return;
+                    }
+
+                    const result = await entry.connection.backend.mrs.dumpAuthAppCreateStatement(
+                        entry.details.id, entry.parent.id, value.fsPath, overwrite, includeAllObjects ?? false);
+
+                    if (result) {
+                        void window.showInformationMessage(`The REST Authentication App SQL was exported`);
+                    } else {
+                        void window.showErrorMessage(`Error creating the SQL for this REST Authentication App`);
+                    }
+
+                } else {
+                    const result = await entry.connection.backend.mrs.getAuthAppCreateStatement(
+                        entry.details.id, entry.parent.id, includeAllObjects ?? false);
+
+                    void env.clipboard.writeText(result).then(() => {
+                        showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
+                    });
                 }
+            } catch (reason) {
+                void window.showErrorMessage(`Error setting the default REST Authentication App: ${String(reason)}`);
+            }
+        };
 
-                try {
+        const createStatementUserSql = async (entry?: ICdmRestUserEntry,
+            includeAllObjects?: boolean, toFile?: boolean) => {
+            if (!entry || entry.details.id === undefined) {
+                void window.showErrorMessage(`Error creating the SQL for this REST User`);
+
+                return;
+            }
+
+            try {
+                if (toFile) {
+                    if (entry.details.name === undefined || entry.parent.parent.details.hostCtx === undefined ||
+                        entry.parent.details.name === undefined) {
+                        void window.showErrorMessage(`Error creating the SQL for this REST Auth App`);
+
+                        return;
+                    }
+
+                    const convertedUrl = convertPathToCamelCase(entry.details.name) + "."
+                        + convertPathToCamelCase(entry.parent.details.name) + "."
+                        + convertPathToCamelCase(entry.parent.parent.details.hostCtx);
+                    const overwrite = true;
+
+                    const value = await window.showSaveDialog({
+                        title: "Export REST User SQL to file...",
+                        defaultUri: Uri.file(`${os.homedir()}/${convertedUrl}.mrs.sql`),
+                        saveLabel: "Export SQL File",
+                    });
+
+                    if (value === undefined) {
+                        return;
+                    }
+
+                    const result = await entry.connection.backend.mrs.dumpUserCreateStatement(
+                        entry.details.id, value.fsPath, overwrite, includeAllObjects ?? false);
+
+                    if (result) {
+                        void window.showInformationMessage(`The REST User SQL was exported`);
+                    } else {
+                        void window.showErrorMessage(`Error creating the SQL for this REST User`);
+                    }
+                } else {
+                    const result = await entry.connection.backend.mrs.getUserCreateStatement(
+                        entry.details.id, includeAllObjects ?? false);
+
+                    void env.clipboard.writeText(result).then(() => {
+                        showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
+                    });
+                }
+            } catch (reason) {
+                void window.showErrorMessage(`Error setting the default REST User: ${String(reason)}`);
+            }
+        };
+
+        const createStatementDbObjectSql = async (entry?: ICdmRestDbObjectEntry,
+            toFile?: boolean) => {
+            if (!entry) {
+                void window.showErrorMessage(`Error creating the SQL for this REST DB OBJECT`);
+
+                return;
+            }
+
+            try {
+                if (toFile) {
                     if (entry.details.schemaRequestPath === undefined || entry.details.hostCtx === undefined) {
                         void window.showErrorMessage(`Error creating the SQL for this REST DB Object`);
 
                         return;
                     }
 
-                    const convertedUrl = convertPathToCamelCase(entry.details.requestPath) + "." +
-                        convertPathToCamelCase(entry.details.schemaRequestPath) + "." +
-                        convertPathToCamelCase(entry.details.hostCtx);
+                    const convertedUrl = convertPathToCamelCase(entry.details.requestPath) + "."
+                        + convertPathToCamelCase(entry.details.hostCtx);
                     const overwrite = true;
 
                     const value = await window.showSaveDialog({
-                        title: "Export REST DB Object SQL to file...",
+                        title: "Export REST DB OBJECT SQL to file...",
                         defaultUri: Uri.file(`${os.homedir()}/${convertedUrl}.mrs.sql`),
                         saveLabel: "Export SQL File",
                     });
@@ -320,78 +439,116 @@ export class MRSCommandHandler {
                         entry.details.id, value.fsPath, overwrite);
 
                     if (result) {
-                        void window.showInformationMessage(`The REST DB Object SQL was exported`);
+                        void window.showInformationMessage(`The REST DB OBJECT SQL was exported`);
                     } else {
-                        void window.showErrorMessage(`Error creating the SQL for this REST DB Object`);
+                        void window.showErrorMessage(`Error creating the SQL for this REST DB OBJECT`);
                     }
-
-                } catch (reason) {
-                    void window.showErrorMessage(`Error setting the default REST DB Object: ${String(reason)}`);
-                }
-            }));
-
-
-        context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateServiceSql",
-            async (entry?: ICdmRestDbObjectEntry) => {
-                if (!entry) {
-                    void window.showErrorMessage(`Error creating the SQL for this REST Service`);
-
-                    return;
-                }
-
-                try {
-                    const result = await entry.connection.backend.mrs.getServiceCreateStatement(entry.details.id);
+                } else {
+                    const result = await entry.connection.backend.mrs.getDbObjectCreateStatement(
+                        entry.details.id);
 
                     void env.clipboard.writeText(result).then(() => {
                         showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
                     });
-
-                } catch (reason) {
-                    void window.showErrorMessage(`Error getting the SQL for this REST Service`);
                 }
+            } catch (reason) {
+                void window.showErrorMessage(`Error setting the default REST DB OBJECT: ${String(reason)}`);
+            }
+        };
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.exportCreateServiceSql",
+            async (entry?: ICdmRestServiceEntry) => {
+                await createStatementServiceSql(entry, false, true);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.exportCreateServiceSqlIncludeAllObjects",
+            async (entry?: ICdmRestServiceEntry) => {
+                await createStatementServiceSql(entry, true, true);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.exportCreateSchemaSql",
+            async (entry?: ICdmRestSchemaEntry) => {
+                await createStatementSchemaSql(entry, false, true);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.exportCreateSchemaSqlIncludeAllObjects",
+            async (entry?: ICdmRestSchemaEntry) => {
+                await createStatementSchemaSql(entry, true, true);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.exportCreateAuthAppSql",
+            async (entry?: ICdmRestAuthAppEntry) => {
+                await createStatementAuthenticationAppSql(entry, false, true);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.exportCreateAuthAppSqlIncludeAllObjects",
+            async (entry?: ICdmRestAuthAppEntry) => {
+                await createStatementAuthenticationAppSql(entry, true, true);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.exportCreateUserSql",
+            async (entry?: ICdmRestUserEntry) => {
+                await createStatementUserSql(entry, false, true);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.exportCreateUserSqlIncludeAllObjects",
+            async (entry?: ICdmRestUserEntry) => {
+                await createStatementUserSql(entry, true, true);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.exportCreateDbObjectSql",
+            async (entry?: ICdmRestDbObjectEntry) => {
+                await createStatementDbObjectSql(entry, true);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateServiceSql",
+            async (entry?: ICdmRestServiceEntry) => {
+                await createStatementServiceSql(entry, false, false);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateServiceSqlIncludeAllObjects",
+            async (entry?: ICdmRestServiceEntry) => {
+                await createStatementServiceSql(entry, true, false);
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateSchemaSql",
-            async (entry?: ICdmRestDbObjectEntry) => {
-                if (!entry) {
-                    void window.showErrorMessage(`Error creating the SQL for this REST Schema`);
-
-                    return;
-                }
-
-                try {
-                    const result = await entry.connection.backend.mrs.getSchemaCreateStatement(entry.details.id);
-
-                    void env.clipboard.writeText(result).then(() => {
-                        showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
-                    });
-
-                } catch (reason) {
-                    void window.showErrorMessage(`Error getting the SQL for this REST Schema`);
-                }
+            async (entry?: ICdmRestSchemaEntry) => {
+                await createStatementSchemaSql(entry, false, false);
             }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateSchemaSqlIncludeAllObjects",
+            async (entry?: ICdmRestSchemaEntry) => {
+                await createStatementSchemaSql(entry, true, false);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateAuthAppSql",
+            async (entry?: ICdmRestSchemaEntry) => {
+                await createStatementAuthenticationAppSql(entry, false, false);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateAuthAppSqlIncludeAllObjects",
+            async (entry?: ICdmRestSchemaEntry) => {
+                await createStatementAuthenticationAppSql(entry, true, false);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateUserSql",
+            async (entry?: ICdmRestSchemaEntry) => {
+                await createStatementUserSql(entry, false, false);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateUserSqlIncludeAllObjects",
+            async (entry?: ICdmRestSchemaEntry) => {
+                await createStatementUserSql(entry, true, false);
+            }));
+
+
         context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateDbObjectSql",
             async (entry?: ICdmRestDbObjectEntry) => {
-                if (!entry) {
-                    void window.showErrorMessage(`Error creating the SQL for this REST DB Object`);
-
-                    return;
-                }
-
-                try {
-                    const result = await entry.connection.backend.mrs.getDbObjectCreateStatement(entry.details.id);
-
-                    void env.clipboard.writeText(result).then(() => {
-                        showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
-                    });
-
-                } catch (reason) {
-                    void window.showErrorMessage(`Error getting the SQL for this REST DB Object`);
-                }
+                await createStatementDbObjectSql(entry, false);
             }));
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateContentSetSql",
-            async (entry?: ICdmRestDbObjectEntry) => {
+            async (entry?: ICdmRestContentSetEntry) => {
                 if (!entry) {
                     void window.showErrorMessage(`Error creating the SQL for this REST Content Set`);
 
@@ -411,8 +568,9 @@ export class MRSCommandHandler {
                 }
             }));
 
+
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.openContentSetRequestPath",
-            async (entry?: ICdmRestContentSetEntry) => {
+            async (entry?: ICdmRestDbObjectEntry) => {
                 if (!entry) {
                     void window.showErrorMessage(`No tree item given when calling msg.mrs.openContentSetRequestPath`);
 
@@ -430,30 +588,10 @@ export class MRSCommandHandler {
                     }
 
                     await env.openExternal(Uri.parse(url));
+
                 } catch (reason) {
                     void window.showErrorMessage(
                         `An error occurred while opening the REST Content Set request path. ${String(reason)}`);
-                }
-            }));
-
-        host.context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateContentFileSql",
-            async (entry?: ICdmRestDbObjectEntry) => {
-                if (!entry) {
-                    void window.showErrorMessage(`Error creating the SQL for this REST Content File`);
-
-                    return;
-                }
-
-                try {
-                    const result = await entry.connection.backend.mrs.getContentFileCreateStatement(entry.details.id);
-
-                    void env.clipboard.writeText(result).then(() => {
-                        showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
-                    });
-
-                } catch (reason) {
-                    void window.showErrorMessage(
-                        `Error getting the SQL for this REST Content File.  ${String(reason)}`);
                 }
             }));
 
@@ -675,7 +813,6 @@ export class MRSCommandHandler {
                     }
                 }
             }));
-
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.addAuthApp",
             (entry?: ICdmRestServiceEntry) => {
