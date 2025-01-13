@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,11 +25,10 @@
 
 import { mount } from "enzyme";
 
-import { changeInputValue, nextProcessTick, sendKeyPress } from "../../test-helpers.js";
-import { requisitions } from "../../../../supplement/Requisitions.js";
 import { IServicePasswordRequest } from "../../../../app-logic/general-types.js";
 import { PasswordDialog } from "../../../../components/Dialogs/PasswordDialog.js";
 import { KeyboardKeys } from "../../../../utilities/helpers.js";
+import { changeInputValue, nextProcessTick, sendKeyPress } from "../../test-helpers.js";
 
 describe("Password Dialog Tests", (): void => {
     it("Render Test", () => {
@@ -46,19 +45,6 @@ describe("Password Dialog Tests", (): void => {
             <PasswordDialog />,
         );
 
-        const acceptPassword = jest.fn(
-            (_result: { request: IServicePasswordRequest; password: string; }): Promise<boolean> => {
-                return Promise.resolve(true);
-            },
-        );
-
-        const cancelPassword = jest.fn((_request: IServicePasswordRequest): Promise<boolean> => {
-            return Promise.resolve(true);
-        });
-
-        requisitions.register("acceptPassword", acceptPassword);
-        requisitions.register("cancelPassword", cancelPassword);
-
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
 
@@ -70,21 +56,24 @@ describe("Password Dialog Tests", (): void => {
             user: "mike",
             payload: { extra: 123 },
         };
-        await requisitions.execute("requestPassword", request);
-        await nextProcessTick();
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(1);
-        expect(portals[0]).toMatchSnapshot();
+        const promise = component.instance().show(request);
 
-        sendKeyPress(KeyboardKeys.Escape);
-        await nextProcessTick();
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        setTimeout(async () => {
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+            expect(portals[0]).toMatchSnapshot();
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(0);
-        expect(acceptPassword).toHaveBeenCalledTimes(0);
-        expect(cancelPassword).toHaveBeenCalledTimes(1);
-        expect(cancelPassword).toHaveBeenCalledWith(request);
+            sendKeyPress(KeyboardKeys.Escape);
+            await nextProcessTick();
+
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        });
+
+        const password = await promise;
+        expect(password).toBeUndefined();
 
         component.unmount();
     });
@@ -93,19 +82,6 @@ describe("Password Dialog Tests", (): void => {
         const component = mount<PasswordDialog>(
             <PasswordDialog />,
         );
-
-        const acceptPassword = jest.fn(
-            (_result: { request: IServicePasswordRequest; password: string; }): Promise<boolean> => {
-                return Promise.resolve(true);
-            },
-        );
-
-        const cancelPassword = jest.fn((_request: IServicePasswordRequest): Promise<boolean> => {
-            return Promise.resolve(true);
-        });
-
-        requisitions.register("acceptPassword", acceptPassword);
-        requisitions.register("cancelPassword", cancelPassword);
 
         let portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
@@ -117,51 +93,32 @@ describe("Password Dialog Tests", (): void => {
             user: "mike",
             payload: { extra: 123 },
         };
-        await requisitions.execute("requestPassword", request);
-        await nextProcessTick();
 
-        expect(component.state().password).toBe("");
+        const promise = component.instance().show(request);
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(1);
-        expect(portals[0]).toMatchSnapshot();
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        setTimeout(async () => {
+            expect(component.state().password).toBe("");
 
-        const inputs = portals[0].getElementsByTagName("input");
-        expect(inputs).toHaveLength(1);
-        changeInputValue(inputs[0], "swordfish");
-        await nextProcessTick();
-        expect(component.state().password).toBe("swordfish");
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(1);
+            expect(portals[0]).toMatchSnapshot();
 
-        // Close dialog using the enter key in the password field.
-        sendKeyPress(KeyboardKeys.Enter, inputs[0]);
-        await nextProcessTick();
+            const inputs = portals[0].getElementsByTagName("input");
+            expect(inputs).toHaveLength(1);
+            changeInputValue(inputs[0], "swordfish");
+            expect(component.state().password).toBe("swordfish");
 
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(0);
-        expect(cancelPassword).toHaveBeenCalledTimes(0);
-        expect(acceptPassword).toHaveBeenCalledTimes(1);
+            // Close dialog using the enter key in the password field.
+            sendKeyPress(KeyboardKeys.Enter, inputs[0]);
+            await nextProcessTick();
 
-        expect(acceptPassword).toHaveBeenCalledWith({ request, password: "swordfish" });
+            portals = document.getElementsByClassName("portal");
+            expect(portals.length).toBe(0);
+        }, 100);
 
-        // Open the dialog again and close it using the OK button.
-        await requisitions.execute("requestPassword", request);
-        await nextProcessTick();
-
-        const buttons = portals[0].querySelectorAll("[role='button']");
-        expect(buttons).toHaveLength(3);
-        expect(buttons[1].id).toBe("ok");
-        expect(buttons[2].id).toBe("cancel");
-        (buttons[1] as HTMLButtonElement).click();
-        await nextProcessTick();
-
-        portals = document.getElementsByClassName("portal");
-        expect(portals.length).toBe(0);
-        expect(cancelPassword).toHaveBeenCalledTimes(0);
-        expect(acceptPassword).toHaveBeenCalledTimes(2);
-
-        // No password was set, so no password is returned.
-        expect(acceptPassword).toHaveBeenLastCalledWith({ request, password: "" });
-
+        const password = await promise;
+        expect(password).toBe("swordfish");
         component.unmount();
     });
 });

@@ -215,12 +215,12 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         const connectionProps = this.getClientConnectionInfo();
 
         const navigationItems = [...toolbarItems.navigation];
-        const auxillaryItems = [...toolbarItems.auxillary];
+        const auxiliaryItems = [...toolbarItems.auxiliary];
         const toolbar = <Toolbar id="clientConnectionToolbar" dropShadow={false} >
             {navigationItems}
             {this.toolbarContent()}
             <div className="expander" />
-            {auxillaryItems}
+            {auxiliaryItems}
         </Toolbar>;
 
         return (

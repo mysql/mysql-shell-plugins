@@ -367,7 +367,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             {toolbarItems.navigation}
             {this.toolbarContent()}
             <div className="expander" />
-            {toolbarItems.auxillary}
+            {toolbarItems.auxiliary}
         </Toolbar>;
 
         const pages = [

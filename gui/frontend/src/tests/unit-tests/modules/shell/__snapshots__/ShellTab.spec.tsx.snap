@@ -12,7 +12,7 @@ exports[`Shell tab tests Connection tests Test ShellModule instantiation 1`] = `
     language="msg"
     toolbarItems={
       {
-        "auxillary": [],
+        "auxiliary": [],
         "editor": [],
         "execution": [],
         "navigation": [],

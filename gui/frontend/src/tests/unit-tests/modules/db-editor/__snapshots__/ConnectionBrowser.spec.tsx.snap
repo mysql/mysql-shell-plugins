@@ -7,7 +7,7 @@ exports[`Connection browser tests Test ConnectionBrowser instantiation 1`] = `
   onUpdateConnection={[MockFunction]}
   toolbarItems={
     {
-      "auxillary": [],
+      "auxiliary": [],
       "editor": [],
       "execution": [],
       "navigation": [],

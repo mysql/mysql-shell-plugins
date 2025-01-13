@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -31,7 +31,7 @@ import { DataCallback } from "../../../../communication/MessageScheduler.js";
 import { IShellSimpleResult, ShellAPIGui } from "../../../../communication/ProtocolGui.js";
 import { IEditorPersistentState } from "../../../../components/ui/CodeEditor/CodeEditor.js";
 import type { IOdmShellSessionEntry } from "../../../../data-models/OpenDocumentDataModel.js";
-import { IShellTabPersistentState, IShellTabProperties, ShellTab } from "../../../../modules/shell/ShellTab.js";
+import { IShellTabPersistentState, ShellTab } from "../../../../modules/shell/ShellTab.js";
 import { ExecutionContext } from "../../../../script-execution/ExecutionContext.js";
 import { IExecutionResult } from "../../../../script-execution/index.js";
 import { ShellInterfaceShellSession } from "../../../../supplement/ShellInterface/ShellInterfaceShellSession.js";
@@ -41,7 +41,7 @@ describe("Shell tab tests", (): void => {
         navigation: [],
         execution: [],
         editor: [],
-        auxillary: [],
+        auxiliary: [],
     };
 
     describe("Connection tests", () => {
@@ -317,54 +317,6 @@ describe("Shell tab tests", (): void => {
             const result = await shellTabInstance["listSchemas"]();
 
             expect(result).toStrictEqual([]);
-
-            component.unmount();
-        });
-
-        it("Test acceptPassword function", async () => {
-            const savedState = tSavedState({ info: "" });
-            const component = shallow<ShellTab>(
-                <ShellTab
-                    savedState={savedState}
-                    toolbarItemsTemplate={toolbarItemsTemplate}
-                    onQuit={() => { }}
-                />,
-            );
-
-            const shellTabInstance = component.instance();
-
-            const result = await shellTabInstance["listSchemas"]();
-
-            expect(result).toStrictEqual([]);
-
-            component.unmount();
-        });
-
-        it("Test acceptPassword function", async () => {
-            const savedState = tSavedState({ info: "" });
-            const component = shallow<ShellTab>(
-                <ShellTab
-                    savedState={savedState}
-                    toolbarItemsTemplate={toolbarItemsTemplate}
-                    onQuit={() => { }}
-                />,
-            );
-
-            const shellTabInstance = component.instance();
-
-            const passwordData = {
-                request: {
-                    requestId: "1",
-                    prompt: "Enter password:",
-                },
-                password: "testPassword",
-            };
-
-            const result = await shellTabInstance["acceptPassword"](passwordData);
-
-            expect(result).toBe(false);
-            const props = shellTabInstance.props as IShellTabProperties;
-            expect(props.savedState.lastPassword).toBe("testPassword");
 
             component.unmount();
         });

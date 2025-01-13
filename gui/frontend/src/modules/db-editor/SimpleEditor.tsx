@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -105,7 +105,7 @@ export class SimpleEditor extends ComponentBase<ISimpleEditorProperties> {
             navigation: toolbarItemsTemplate.navigation.slice(),
             execution: toolbarItemsTemplate.execution,
             editor: toolbarItemsTemplate.editor,
-            auxillary: toolbarItemsTemplate.auxillary,
+            auxiliary: toolbarItemsTemplate.auxiliary,
         };
 
         toolbarItems.navigation.push(<Button

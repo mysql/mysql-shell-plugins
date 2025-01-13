@@ -31,7 +31,6 @@ import commitIcon from "../../assets/images/toolbar/toolbar-commit.svg";
 import executeCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret.svg";
 import executePrintTextIcon from "../../assets/images/toolbar/toolbar-execute_print_text.svg";
 
-//import executeExplainIcon from "../../assets/images/toolbar/execute-explain.svg";
 import executeIcon from "../../assets/images/toolbar/toolbar-execute.svg";
 import executeHeatWaveCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret_heatwave.svg";
 import executeHeatWaveIcon from "../../assets/images/toolbar/toolbar-execute_heatwave.svg";
@@ -416,7 +415,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                 {executionItems.length > 0 && <Divider vertical={true} thickness={1} />}
                 {editorItems}
                 <div className="expander" />
-                {toolbarItems.auxillary}
+                {toolbarItems.auxiliary}
             </Toolbar >
         );
     }

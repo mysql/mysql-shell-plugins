@@ -38,6 +38,7 @@ import {
 } from "../../components/Dialogs/ValueEditDialog.js";
 import { CheckState, ICheckboxProperties } from "../../components/ui/Checkbox/Checkbox.js";
 
+import { ui } from "../../app-logic/UILayer.js";
 import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase.js";
 import { Container, ContentAlignment, ContentWrap, Orientation } from "../../components/ui/Container/Container.js";
 import { Grid } from "../../components/ui/Grid/Grid.js";
@@ -52,7 +53,6 @@ import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/Shel
 import { DBConnectionEditorType, DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { basename, filterInt } from "../../utilities/string-helpers.js";
 import { DBEditorContext, type DBEditorContextType } from "./index.js";
-import { ui } from "../../app-logic/UILayer.js";
 
 const editorHeading = "Database Connection Configuration";
 
@@ -336,7 +336,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 if (port === undefined || isNaN(port) || port < 0) {
                     result.messages.timeout = "The port must be a valid integer >= 0";
                 }
-
             }
 
             if (typeof mysqlAdvancedSection.timeout.value === "number") {
@@ -1062,7 +1061,11 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 service: `${user}@${host}:${port}`,
                 user,
             };
-            void requisitions.execute("requestPassword", passwordRequest);
+            void ui.requestPassword(passwordRequest).then((password) => {
+                if (password !== undefined) {
+                    void ShellInterface.users.storePassword(`${user}@${host}:${port}`, password);
+                }
+            });
         } else {
             void ui.showErrorNotification("User, Host and port cannot be empty.");
         }

@@ -14,7 +14,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
   rowGap={3}
   toolbarItems={
     {
-      "auxillary": [],
+      "auxiliary": [],
       "editor": [],
       "execution": [],
       "navigation": [],
@@ -2503,7 +2503,7 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
   rowGap={3}
   toolbarItems={
     {
-      "auxillary": [],
+      "auxiliary": [],
       "editor": [],
       "execution": [],
       "navigation": [],

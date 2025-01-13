@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -35,7 +35,7 @@ describe("Server status module tests", (): void => {
         const backend = new ShellInterfaceSqlEditor();
         const component = mount<ServerStatus>(
             <ServerStatus backend={backend}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
         // Component updates.

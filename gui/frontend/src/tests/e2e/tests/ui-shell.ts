@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -79,7 +79,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             const dbConnectionOverview = new E2EDatabaseConnectionOverview();
             await dbConnectionOverview.openNewShellConsole();
-            shellConsole = await new E2EShellConsole().untilIsOpened();
+            shellConsole = await new E2EShellConsole().untilIsOpened(undefined);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_MYSQL_SHELL_CONSOLES");
             throw e;
@@ -217,7 +217,7 @@ describe("MYSQL SHELL CONSOLES", () => {
             try {
                 await new E2ETabContainer().closeAllTabs();
                 await openEditorsTreeSection.clickToolbarButton(constants.addConsole);
-                shellConsole = await new E2EShellConsole().untilIsOpened();
+                shellConsole = await new E2EShellConsole().untilIsOpened(undefined);
                 let uri = `\\c ${username}:${password}@${hostname}:${port}0/${schema}`;
                 const result = await shellConsole.codeEditor.execute(uri) as E2ECommandResultData;
                 uri = `Creating a session to '${username}@${hostname}:${port}0/${schema}'`;

@@ -352,55 +352,6 @@ exports[`Application tests Application readiness 1`] = `
         </div>
       </Container>
     </LoginPage>
-    <MessagePanel>
-      <Dialog
-        actions={
-          {
-            "end": [
-              <Button
-                caption="Close"
-                onClick={[Function]}
-              />,
-            ],
-          }
-        }
-        caption={
-          <g>
-            <Icon
-              disabled={false}
-              src={126}
-            />
-            <Label>
-              
-            </Label>
-          </g>
-        }
-        className="msg errorPanel"
-        container={
-          <body
-            theme="dark"
-          />
-        }
-        content={
-          <Container
-            orientation="column"
-          >
-            
-          </Container>
-        }
-        onClose={[Function]}
-      >
-        <Portal
-          container={
-            <body
-              theme="dark"
-            />
-          }
-          onClose={[Function]}
-          onOpen={[Function]}
-        />
-      </Dialog>
-    </MessagePanel>
     <TooltipProvider
       showDelay={200}
     />
@@ -430,6 +381,7 @@ exports[`Application tests Application readiness 1`] = `
         />
       </Container>
     </NotificationCenter>
+    <PasswordDialog />
     <StatusBar>
       <Container
         className="msg statusbar verticalCenterContent"

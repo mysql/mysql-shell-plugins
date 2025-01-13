@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General License: , version .=> 0,
@@ -202,7 +202,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
             if (typeof response.result === "string") {
                 callback?.(response.result);
             } else if (!ShellPromptHandler.handleShellPrompt(response.result as IShellPasswordFeedbackRequest,
-                requestId, this.backend, "Provide Password")) {
+                requestId, this.backend)) {
                 connectionData = response.result as IOpenConnectionData;
             }
         }));

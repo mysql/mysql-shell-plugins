@@ -2835,6 +2835,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                 this.#connectionSectionRef.current!.showProgress = false;
             } catch (error) {
                 clearTimeout(timer);
+                this.#connectionSectionRef.current!.showProgress = false;
                 void ui.showErrorNotification(convertErrorToString(error));
 
                 return;

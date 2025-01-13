@@ -8,7 +8,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
   language="js"
   toolbarItems={
     {
-      "auxillary": [],
+      "auxiliary": [],
       "editor": [],
       "execution": [],
       "navigation": [],
@@ -331,7 +331,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
   language="ts"
   toolbarItems={
     {
-      "auxillary": [],
+      "auxiliary": [],
       "editor": [],
       "execution": [],
       "navigation": [],
@@ -554,7 +554,7 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation language=msg 1
   language="msg"
   toolbarItems={
     {
-      "auxillary": [],
+      "auxiliary": [],
       "editor": [],
       "execution": [],
       "navigation": [],

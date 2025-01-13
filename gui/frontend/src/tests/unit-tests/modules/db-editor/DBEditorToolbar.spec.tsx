@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -39,7 +39,7 @@ describe("DBEditorToolbar tests", (): void => {
                 activeDocument={"DbEditor"}
                 heatWaveEnabled={false}
                 documentState={[]}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -57,7 +57,7 @@ describe("DBEditorToolbar tests", (): void => {
                 activeDocument={"DbEditor"}
                 heatWaveEnabled={true}
                 documentState={[]}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -75,7 +75,7 @@ describe("DBEditorToolbar tests", (): void => {
                 activeDocument={"DbEditor"}
                 heatWaveEnabled={false}
                 documentState={[]}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -93,7 +93,7 @@ describe("DBEditorToolbar tests", (): void => {
                 activeDocument={"DbEditor"}
                 heatWaveEnabled={false}
                 documentState={[]}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -113,7 +113,7 @@ describe("DBEditorToolbar tests", (): void => {
                 activeDocument={"DbEditor"}
                 heatWaveEnabled={false}
                 documentState={[]}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -131,7 +131,7 @@ describe("DBEditorToolbar tests", (): void => {
                 activeDocument={"DbEditor"}
                 heatWaveEnabled={false}
                 documentState={[]}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -147,7 +147,7 @@ describe("DBEditorToolbar tests", (): void => {
                 activeDocument={"DbEditor"}
                 heatWaveEnabled={false}
                 documentState={[]}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -178,7 +178,7 @@ describe("DBEditorToolbar tests", (): void => {
                 activeDocument={"DbEditor1"}
                 heatWaveEnabled={true}
                 documentState={[testEditorState]}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 

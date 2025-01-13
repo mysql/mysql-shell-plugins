@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,21 +25,20 @@
 
 import { ComponentChild, createRef } from "preact";
 
+import { ConfirmDialog } from "../components/Dialogs/ConfirmDialog.js";
+import {
+    CommonDialogValueOption, IChoiceDialogValue, IDialogSection, IDialogValues, ValueEditDialog,
+} from "../components/Dialogs/ValueEditDialog.js";
 import { ComponentBase } from "../components/ui/Component/ComponentBase.js";
+import { MdsEndpointDialog } from "../modules/mds/dialogs/MdsEndpointDialog.js";
+import { MdsHWClusterDialog } from "../modules/mds/dialogs/MdsHWClusterDialog.js";
+import { MdsHWLoadDataDialog } from "../modules/mds/dialogs/MdsHWLoadDataDialog.js";
+import { MrsAuthDialog } from "../modules/mrs/dialogs/MrsAuthDialog.js";
 import { requisitions } from "../supplement/Requisitions.js";
+import { Semaphore } from "../supplement/Semaphore.js";
 import {
     DialogResponseClosure, DialogType, IDialogRequest, IDialogResponse, IDictionary, MdsDialogType,
 } from "./general-types.js";
-import { ConfirmDialog } from "../components/Dialogs/ConfirmDialog.js";
-import { PasswordDialog } from "../components/Dialogs/PasswordDialog.js";
-import { MrsAuthDialog } from "../modules/mrs/dialogs/MrsAuthDialog.js";
-import {
-    ValueEditDialog, IDialogSection, CommonDialogValueOption, IDialogValues, IChoiceDialogValue,
-} from "../components/Dialogs/ValueEditDialog.js";
-import { Semaphore } from "../supplement/Semaphore.js";
-import { MdsHWClusterDialog } from "../modules/mds/dialogs/MdsHWClusterDialog.js";
-import { MdsHWLoadDataDialog } from "../modules/mds/dialogs/MdsHWLoadDataDialog.js";
-import { MdsEndpointDialog } from "../modules/mds/dialogs/MdsEndpointDialog.js";
 
 /**
  * A component to host certain application wide common dialogs in a central place.
@@ -126,9 +125,6 @@ export class DialogHost extends ComponentBase {
 
     public render(): ComponentChild {
         const dialogs: ComponentChild[] = [
-            // The password dialog has it's own command handling. Just host it here.
-            <PasswordDialog key="passwordDialog" />,
-
             // The MRS auth dialog has it's own command handling. Just host it here.
             <MrsAuthDialog key="mrsAuthDialog" />,
 

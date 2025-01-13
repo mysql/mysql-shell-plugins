@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -352,7 +352,7 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                 <DropdownItem caption="10 min" id="200" />
             </Dropdown>
             <div className="expander" />
-            {toolbarItems?.auxillary}
+            {toolbarItems?.auxiliary}
         </Toolbar>;
 
 
@@ -395,17 +395,17 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
         ];
 
         return <Container
-                className={className}
-                orientation={Orientation.TopDown}
-            >
-                {toolbar}
-                <Tabview
-                    showTabs={mleEnabled}
-                    pages={pages}
-                    selectedId={activeTabId}
-                    onSelectTab={this.handleSelectTab}
-                />
-            </Container>;
+            className={className}
+            orientation={Orientation.TopDown}
+        >
+            {toolbar}
+            <Tabview
+                showTabs={mleEnabled}
+                pages={pages}
+                selectedId={activeTabId}
+                onSelectTab={this.handleSelectTab}
+            />
+        </Container>;
     }
 
     private handleSelectTab = (id: string): void => {
@@ -1071,11 +1071,11 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                         style={{ padding: "0 25%" }}
                     >
                         <Label className="pieTitle" style={{ padding: "5% 0" }}>
-                        Heap Usage vs Unused heap
+                            Heap Usage vs Unused heap
                         </Label>
                         <GraphHost
-                        id="heapUsageGraph"
-                        options={heapUsageGraphOptions}
+                            id="heapUsageGraph"
+                            options={heapUsageGraphOptions}
                         />
                     </GridCell>
                     <GridCell
@@ -1083,16 +1083,16 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                         style={{ gridRow: 2 }}
                     >
                         {this.renderNameValuePair(
-                        "MLE status",
-                        `${mleStatus}`,
-                        MarkerType.None,
-                        "MLE status",
+                            "MLE status",
+                            `${mleStatus}`,
+                            MarkerType.None,
+                            "MLE status",
                         )}
                         {this.renderNameValuePair(
-                        "MLE max heap size",
-                        `${formatBytes(mleMemoryMax)}`,
-                        MarkerType.None,
-                        "MLE max heap size",
+                            "MLE max heap size",
+                            `${formatBytes(mleMemoryMax)}`,
+                            MarkerType.None,
+                            "MLE max heap size",
                         )}
                     </GridCell>
                 </Grid>
@@ -1104,10 +1104,10 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                 <Label className="subTitle">MLE Heap utilization</Label>
                 <GraphHost options={mleHeapUtilizationGraphOptions} />
                 {this.renderNameValuePair(
-                "Current Heap Usage",
-                this.formatValueToPercentage(mleMemoryUsed),
-                MarkerType.None,
-                "Current Heap Usage",
+                    "Current Heap Usage",
+                    this.formatValueToPercentage(mleMemoryUsed),
+                    MarkerType.None,
+                    "Current Heap Usage",
                 )}
             </GridCell>,
         );
@@ -1166,22 +1166,22 @@ export class PerformanceDashboard extends ComponentBase<IPerformanceDashboardPro
                     if (mleMemoryMax && mleMemoryMax.rows) {
                         const mleMemoryMaxValue = mleMemoryMax.rows as Array<[[number]]>;
                         variables.push([
-                          "mle_memory_max",
-                          mleMemoryMaxValue[0][0].toString(),
+                            "mle_memory_max",
+                            mleMemoryMaxValue[0][0].toString(),
                         ]);
                         this.setState({ mleEnabled: true });
                     }
                     variables.forEach((variable) => {
-                      if (variable[0] === "mle_memory_used") {
-                        const value = Number(variable[1]);
-                        if (value > 100) {
-                          variable[1] = "100";
+                        if (variable[0] === "mle_memory_used") {
+                            const value = Number(variable[1]);
+                            if (value > 100) {
+                                variable[1] = "100";
+                            }
                         }
-                      }
                     });
                 }
-                catch(_) {
-                  this.setState({ mleEnabled: false });
+                catch (_) {
+                    this.setState({ mleEnabled: false });
                 }
 
                 if (this.hasPSAccess) {
