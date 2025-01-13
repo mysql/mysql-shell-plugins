@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024 Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -838,13 +838,15 @@ describe("MYSQL REST SERVICE", () => {
             await dbTreeSection.tree.openContextMenuAndSelect(globalService.authenticationApps![0].treeName!,
                 constants.deleteAuthenticationApp);
             await (await new ConfirmDialog().untilExists()).accept();
-            await (await dbTreeSection.tree.getActionButton(globalConn.caption!, constants.refreshConnection))!.click();
+
             let ntf = `The MRS Authentication App "${globalService.authenticationApps![0].name}"`;
             ntf += ` has been deleted.`;
 
             const notification = await new E2EToastNotification().create();
             expect(notification!.message).toBe(ntf);
             await notification!.close();
+
+            await (await dbTreeSection.tree.getActionButton(globalConn.caption!, constants.refreshConnection))!.click();
 
             await driver.wait(dbTreeSection.tree.untilDoesNotExist(globalService.authenticationApps![0].treeName!),
                 constants.wait5seconds);

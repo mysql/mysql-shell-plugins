@@ -30,6 +30,7 @@ import menuIcon from "../../assets/images/toolbar/toolbar-menu.svg";
 import normalizeIcon from "../../assets/images/toolbar/toolbar-normalize.svg";
 import nextPageIcon from "../../assets/images/toolbar/toolbar-page_next.svg";
 import previousPageIcon from "../../assets/images/toolbar/toolbar-page_previous.svg";
+import refreshIcon from "../../assets/images/toolbar/toolbar-refresh.svg";
 import rollbackIcon from "../../assets/images/toolbar/toolbar-rollback.svg";
 
 import editIcon from "../../assets/images/toolbar/toolbar-edit.svg";
@@ -121,6 +122,8 @@ interface IResultTabViewProperties extends IComponentProperties {
      * @returns An error message or the number of affected rows if the update was successful.
      */
     onCommitChanges?: (resultSet: IResultSet, updateSql: string[]) => Promise<ISqlUpdateResult>;
+
+    updateRowsForResultId?: (resultSet: IResultSet) => Promise<void>;
 
     /** Called when the user wants to rollback all changes. */
     onRollbackChanges?: (resultSet: IResultSet) => void;
@@ -411,6 +414,15 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                                     onClick={this.cancelEditingAndRollbackChanges}
                                 >
                                     <Icon src={rollbackIcon} data-tooltip="inherit" />
+                                </Button>
+                                <Button
+                                    id="refreshButton"
+                                    imageOnly={true}
+                                    disabled={!!currentEditingInfo}
+                                    data-tooltip="Refresh"
+                                    onClick={this.refresh}
+                                >
+                                    <Icon src={refreshIcon} data-tooltip="inherit" />
                                 </Button>
                                 <Divider id="editSeparator" vertical={true} />
                                 {showMaximizeButton === "statusBar" && toggleStateButton}
@@ -1090,6 +1102,18 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             });
         }
     };
+
+    private refresh = (): void => {
+        const { updateRowsForResultId, onResultPageChange } = this.props;
+        const { currentResultSet } = this.state;
+        if (!updateRowsForResultId || !currentResultSet) {
+            return;
+        }
+        void updateRowsForResultId(currentResultSet).then(() => {
+            onResultPageChange?.(currentResultSet.resultId, currentResultSet.data.currentPage, currentResultSet.sql);
+        });
+    };
+
 
     private cancelEditingAndRollbackChanges = (): void => {
         const { onRollbackChanges } = this.props;

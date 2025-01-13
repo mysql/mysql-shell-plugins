@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -417,6 +417,7 @@ export class ExecutionContexts implements IContextProvider {
     private createContext(presentation: PresentationInterface, statementSpans?: IStatementSpan[]): ExecutionContext {
         presentation.onRemoveResult = this.onResultRemoval;
         presentation.onCommitChanges = this.onCommitChanges;
+        presentation.updateRowsForResultId = this.updateRowsForResultId;
         presentation.onRollbackChanges = this.rollbackChanges;
 
         if (presentation.isSQLLike) {
@@ -431,10 +432,14 @@ export class ExecutionContexts implements IContextProvider {
         return ApplicationDB.removeDataByResultIds(this.store, resultIds);
     };
 
+    private updateRowsForResultId = async (resultSet: IResultSet) => {
+        await ApplicationDB.updateRowsForResultId(StoreType.DbEditor, resultSet.resultId, resultSet.data.rows);
+    };
+
     private onCommitChanges = async (resultSet: IResultSet, updateSql: string[]): Promise<ISqlUpdateResult> => {
         const result = await this.runUpdates?.(updateSql) ?? { affectedRows: 0, errors: [] };
         if (typeof result.affectedRows === "number") {
-            await ApplicationDB.updateRowsForResultId(StoreType.DbEditor, resultSet.resultId, resultSet.data.rows);
+            await this.updateRowsForResultId(resultSet);
         }
 
         return result;

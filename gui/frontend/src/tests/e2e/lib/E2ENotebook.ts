@@ -70,7 +70,8 @@ export class E2ENotebook {
                     for (const notification of notifications) {
 
                         if (notification!.type === "error") {
-                            if (notification!.message.includes("The currently deployed schema version is 0.0.0")) {
+                            if (notification!.message
+                                .match(/The currently deployed schema version is 0.0.0/) !== null) {
                                 await notification!.close();
                             } else {
                                 throw new Error(notification!.message);

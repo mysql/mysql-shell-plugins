@@ -90,6 +90,7 @@ export class PresentationInterface {
     public onRemoveResult?: (resultIds: string[]) => Promise<void>;
 
     public onCommitChanges?: (resultSet: IResultSet, updateSql: string[]) => Promise<ISqlUpdateResult>;
+    public updateRowsForResultId?: (resultSet: IResultSet) => Promise<void>;
     public onRollbackChanges?: (resultSet: IResultSet) => Promise<void>;
 
     // The target HTML element to which we render the React nodes dynamically.
@@ -988,6 +989,7 @@ export class PresentationInterface {
                         onToggleResultPaneViewState={this.toggleResultPane}
                         onSelectTab={this.handleSelectTab}
                         onCommitChanges={this.commitChanges}
+                        updateRowsForResultId={this.updateRowsForResultId}
                         onRollbackChanges={this.rollbackChanges}
                         onRemoveResult={this.handleRemoveResult}
                     />;
@@ -1033,6 +1035,7 @@ export class PresentationInterface {
                     onToggleResultPaneViewState={this.toggleResultPane}
                     onSelectTab={this.handleSelectTab}
                     onCommitChanges={this.commitChanges}
+                    updateRowsForResultId={this.updateRowsForResultId}
                     onRollbackChanges={this.rollbackChanges}
                     onRemoveResult={this.handleRemoveResult}
                 />;
