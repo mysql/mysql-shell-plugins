@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -928,12 +928,14 @@ export class ScriptingLanguageServices {
 
             case "sql":
             case "mysql": {
+                const sqlContext = block as SQLExecutionContext;
                 const sql = code ?? context.code;
                 const splitData: ILanguageWorkerSplitData = {
                     language: context.language === "sql" ? ServiceLanguage.Sqlite : ServiceLanguage.MySQL,
                     api: "split",
                     sql,
                     delimiter,
+                    version: sqlContext.dbVersion,
                 };
 
                 this.workerPool.runTask(splitData)
