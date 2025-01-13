@@ -36,7 +36,7 @@ import {
     type ConnectionDataModel, type ICdmConnectionEntry,
 } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 
-import type { IDialogRequest, IServicePasswordRequest } from "../../../../frontend/src/app-logic/general-types.js";
+import type { IDialogRequest } from "../../../../frontend/src/app-logic/general-types.js";
 import { ShellPromptResponseType, type IPromptReplyBackend } from "../../../../frontend/src/communication/Protocol.js";
 import {
     systemSchemas, type AdminPageType, type ISubscriberActionType,
@@ -110,8 +110,6 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
         requisitions.register("refreshConnection", this.refreshConnection);
         requisitions.register("proxyRequest", this.proxyRequest);
 
-        // TODO: temporarily register the requestPassword method here, until we have the UI layer in place.
-        requisitions.register("requestPassword", this.requestPassword);
         requisitions.register("showDialog", this.handleShowDialog);
     }
 
@@ -643,19 +641,6 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
                 default:
             }
         });
-    };
-
-    private requestPassword = async (request: IServicePasswordRequest): Promise<boolean> => {
-        const value = await window.showInputBox(
-            { title: request.caption, password: true, prompt: "Enter the connection password" });
-        const backend = request.payload?.backend as IPromptReplyBackend;
-        if (value !== undefined) {
-            await backend.sendReply(request.requestId, ShellPromptResponseType.Ok, value);
-        } else {
-            await backend.sendReply(request.requestId, ShellPromptResponseType.Cancel, "");
-        }
-
-        return true;
     };
 
     private handleShowDialog = async (request: IDialogRequest): Promise<boolean> => {

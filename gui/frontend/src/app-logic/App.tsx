@@ -25,7 +25,7 @@
 
 import "./App.css";
 
-import { Component, createRef, VNode } from "preact";
+import { Component, VNode, createRef } from "preact";
 
 import { LoginPage } from "../components/Login/LoginPage.js";
 import { IThemeChangeData } from "../components/Theming/ThemeManager.js";
@@ -43,22 +43,22 @@ import { StandaloneServices } from "monaco-editor/esm/vs/editor/standalone/brows
 import { IStandaloneThemeService } from "monaco-editor/esm/vs/editor/standalone/common/standaloneTheme.js";
 import { MessageScheduler } from "../communication/MessageScheduler.js";
 import { IShellProfile } from "../communication/ProtocolGui.js";
-import { MessagePanel } from "../components/Dialogs/MessagePanel.js";
 import { ColorPopup } from "../components/ui/ColorPicker/ColorPopup.js";
 import { IComponentState } from "../components/ui/Component/ComponentBase.js";
 import { NotificationCenter, NotificationType } from "../components/ui/NotificationCenter/NotificationCenter.js";
 import { ProgressIndicator } from "../components/ui/ProgressIndicator/ProgressIndicator.js";
-import { renderStatusBar, StatusBar } from "../components/ui/Statusbar/Statusbar.js";
 import type {
     IStatusBarItem, IStatusBarItemOptions, StatusBarAlignment,
 } from "../components/ui/Statusbar/StatusBarItem.js";
+import { StatusBar, renderStatusBar } from "../components/ui/Statusbar/Statusbar.js";
 import { DBEditorModule } from "../modules/db-editor/DBEditorModule.js";
 import { InnoDBClusterModule } from "../modules/innodb-cluster/InnoDBClusterModule.js";
 import { ShellModule } from "../modules/shell/ShellModule.js";
 import { versionMatchesExpected } from "../utilities/helpers.js";
 import { ApplicationDB } from "./ApplicationDB.js";
+import { registerUiLayer } from "./UILayer.js";
 import { IDialogResponse, minimumShellVersion, type IServicePasswordRequest } from "./general-types.js";
-import { registerUiLayer, ui } from "./UILayer.js";
+import { PasswordDialog } from "../components/Dialogs/PasswordDialog.js";
 
 interface IAppState extends IComponentState {
     explorerIsVisible: boolean;
@@ -71,6 +71,8 @@ interface IAppState extends IComponentState {
 export class App extends Component<{}, IAppState> {
 
     private actionMenuRef = createRef<ProfileSelector>();
+    private passwordDialogRef = createRef<PasswordDialog>();
+
     private defaultProfile?: IShellProfile;
 
     #notificationCenterRef = createRef<NotificationCenter>();
@@ -217,9 +219,9 @@ export class App extends Component<{}, IAppState> {
             <ErrorBoundary>
                 {content}
 
-                <MessagePanel />
                 <TooltipProvider showDelay={200} />
                 <NotificationCenter ref={this.#notificationCenterRef} />
+                <PasswordDialog ref={this.passwordDialogRef} />
 
                 {!appParameters.embedded && (
                     <>
@@ -233,10 +235,6 @@ export class App extends Component<{}, IAppState> {
     }
 
     // IUILayer interface implementation
-
-    public showFatalError = (message: string, title?: string): void => {
-        void requisitions.execute("showFatalError", [`${(title ?? "Error")}: ${message}`]);
-    };
 
     public showInformationNotification = async (message: string, timeout?: number): Promise<string | undefined> => {
         // Forward info messages to the hosting application.
@@ -317,9 +315,12 @@ export class App extends Component<{}, IAppState> {
         return Promise.resolve(window.confirm(message) ? yes : no);
     };
 
-    public requestPassword = (values: IServicePasswordRequest): void => {
-        // Important: running a pw request from here requires the caller to handle the response.
-        void requisitions.execute("requestPassword", values);
+    public requestPassword = (values: IServicePasswordRequest): Promise<string | undefined> => {
+        if (this.passwordDialogRef.current) {
+            return this.passwordDialogRef.current.show(values);
+        }
+
+        return Promise.resolve(undefined);
     };
 
     // End of UILayer interface implementation

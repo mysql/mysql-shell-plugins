@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,6 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { ui } from "../../app-logic/UILayer.js";
 import {
     DialogResponseClosure, DialogType, IDialogRequest, IDialogResponse, IDictionary, IServicePasswordRequest,
 } from "../../app-logic/general-types.js";
@@ -44,19 +45,26 @@ export class ShellPromptHandler {
      * @param result The result to examine.
      * @param requestId The request ID for which this result was returned.
      * @param backend The backend to be used to send the reply to.
-     * @param title Use this as the title for the dialog, if no explicit title is given.
      * @param payload Any value to be passed on to the dialog and ultimately to the receiver of the dialog result.
      *
      * @returns True, if the result is a prompt request, otherwise false (and the result is not handled).
      */
     public static handleShellPrompt(result: IShellResultType | undefined, requestId: string,
-        backend: IPromptReplyBackend, title?: string, payload?: IDictionary): boolean {
+        backend: IPromptReplyBackend, payload?: IDictionary): boolean {
         if (this.isShellPromptResult(result)) {
             switch (result.type) {
                 case "password": {
                     const passwordRequest = ShellPromptHandler.splitAndBuildPasswdRequest(result,
-                        requestId, { ...payload, backend }, result.title, result.description);
-                    void requisitions.execute("requestPassword", passwordRequest);
+                        requestId, { ...payload, backend }, result.prompt, result.description);
+                    void ui.requestPassword(passwordRequest).then((password) => {
+                        if (password !== undefined) {
+                            void backend.sendReply(requestId, ShellPromptResponseType.Ok, password,
+                                result.moduleSessionId);
+                        } else {
+                            void backend.sendReply(requestId, ShellPromptResponseType.Cancel, "",
+                                result.moduleSessionId);
+                        }
+                    });
 
                     break;
                 }
@@ -138,36 +146,6 @@ export class ShellPromptHandler {
 
         return false;
     }
-
-    // TODO: Must be public for the registration below. Switch to a static init block once we can use ES 2022.
-    public static acceptPassword = (
-        data: { request: IServicePasswordRequest; password: string; }): Promise<boolean> => {
-        return new Promise((resolve) => {
-            const backend = data.request.payload?.backend as IPromptReplyBackend;
-            if (backend) {
-                backend.sendReply(data.request.requestId, ShellPromptResponseType.Ok, data.password,
-                    data.request.payload?.moduleSessionId as string)
-                    .then(() => { resolve(true); })
-                    .catch(() => { resolve(false); });
-            } else {
-                resolve(false);
-            }
-        });
-    };
-
-    public static cancelPassword = (request: IServicePasswordRequest): Promise<boolean> => {
-        return new Promise((resolve) => {
-            const backend = request.payload?.backend as IPromptReplyBackend;
-            if (backend) {
-                backend.sendReply(request.requestId, ShellPromptResponseType.Cancel, "",
-                    request.payload?.moduleSessionId as string)
-                    .then(() => { resolve(true); })
-                    .catch(() => { resolve(false); });
-            } else {
-                resolve(false);
-            }
-        });
-    };
 
     public static handleDialogResponse = (response: IDialogResponse): Promise<boolean> => {
         if (response.id !== "shellConfirm" && response.id !== "shellSelect" && response.id !== "shellText") {
@@ -280,6 +258,4 @@ export class ShellPromptHandler {
     }
 }
 
-requisitions.register("acceptPassword", ShellPromptHandler.acceptPassword);
-requisitions.register("cancelPassword", ShellPromptHandler.cancelPassword);
 requisitions.register("dialogResponse", ShellPromptHandler.handleDialogResponse);

@@ -28,7 +28,8 @@ import { SetIntervalAsyncTimer, clearIntervalAsync, setIntervalAsync } from "set
 
 import { ApplicationDB } from "../../app-logic/ApplicationDB.js";
 import {
-    IColumnInfo, IDictionary, IServicePasswordRequest, IStatusInfo, MessageType, uriPattern,
+    IColumnInfo, IDictionary,
+    IStatusInfo, MessageType, uriPattern,
 } from "../../app-logic/general-types.js";
 
 import { MySQLConnectionScheme } from "../../communication/MySQL.js";
@@ -596,13 +597,11 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                         }],
                     }, resultId);
                 } else {
-                    // Temporarily listen to password requests, to be able to record any new password for this
-                    // session.
-                    requisitions.register("acceptPassword", this.acceptPassword);
+                    // XXX: The password requisition is no longer available. Find a different way to capture
+                    //      the password.
+                    //requisitions.register("acceptPassword", this.acceptPassword);
 
                     if (!ShellPromptHandler.handleShellPrompt(result, requestId, savedState.backend)) {
-                        requisitions.unregister("acceptPassword", this.acceptPassword);
-
                         if (this.isShellObjectResult(result)) {
                             let text = "<" + result.class;
                             if (result.name) {
@@ -825,17 +824,6 @@ Execute \\help or \\? for help; \\quit to close the session.`;
             const message = reason instanceof Error ? reason.message : String(reason);
             void ui.showErrorNotification("Shell DB Session Error: " + message);
         }
-    };
-
-    private acceptPassword = (data: { request: IServicePasswordRequest; password: string; }): Promise<boolean> => {
-        // This password notification is a one-shot event, used only for handling password shell requests.
-        requisitions.unregister("acceptPassword", this.acceptPassword);
-
-        const { savedState } = this.props;
-
-        savedState.lastPassword = data.password;
-
-        return Promise.resolve(false);
     };
 
     private getPasswordFromLastCommand = (): string | undefined => {

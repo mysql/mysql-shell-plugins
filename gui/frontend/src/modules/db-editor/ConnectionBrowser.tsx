@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -36,7 +36,7 @@ import { Children } from "preact/compat";
 import { requisitions } from "../../supplement/Requisitions.js";
 
 import {
-    DialogResponseClosure, DialogType, IDialogResponse, IDictionary, IServicePasswordRequest,
+    DialogResponseClosure, DialogType, IDialogResponse, IDictionary,
 } from "../../app-logic/general-types.js";
 import { MySQLConnectionScheme } from "../../communication/MySQL.js";
 import { IMySQLDbSystem } from "../../communication/index.js";
@@ -56,7 +56,6 @@ import { IMenuItemProperties, MenuItem } from "../../components/ui/Menu/MenuItem
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
 import type { ConnectionDataModel, ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
-import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { DBType, IConnectionDetails, type IShellSessionDetails } from "../../supplement/ShellInterface/index.js";
 import { uuid } from "../../utilities/helpers.js";
 import { ConnectionEditor } from "./ConnectionEditor.js";
@@ -97,7 +96,6 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         requisitions.register("editConnection", this.editConnection);
         requisitions.register("removeConnection", this.removeConnection);
         requisitions.register("duplicateConnection", this.duplicateConnection);
-        requisitions.register("acceptPassword", this.acceptPassword);
         requisitions.register("dialogResponse", this.dialogResponse);
 
         const dataModel = this.dataModel;
@@ -119,7 +117,6 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         requisitions.unregister("editConnection", this.editConnection);
         requisitions.unregister("removeConnection", this.removeConnection);
         requisitions.unregister("duplicateConnection", this.duplicateConnection);
-        requisitions.unregister("acceptPassword", this.acceptPassword);
         requisitions.unregister("dialogResponse", this.dialogResponse);
     }
 
@@ -184,7 +181,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         const toolbar = <Toolbar id="connectionOverviewToolbar" dropShadow={false} >
             {toolbarItems.navigation}
             <div className="expander" />
-            {toolbarItems.auxillary}
+            {toolbarItems.auxiliary}
         </Toolbar>;
 
         return (
@@ -550,21 +547,6 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             this.setState({ connectionOrder });
         }
     };*/
-
-    private acceptPassword = async (
-        data: { request: IServicePasswordRequest; password: string; }): Promise<boolean> => {
-        if (data.request.service) {
-            try {
-                await ShellInterface.users.storePassword(data.request.service, data.password);
-            } catch (reason) {
-                void requisitions.execute("showFatalError", ["Accept Password Error", String(reason)]);
-            }
-
-            return true;
-        }
-
-        return false;
-    };
 
     private dialogResponse = async (response: IDialogResponse): Promise<boolean> => {
         if (response.id === "deleteConnection") {

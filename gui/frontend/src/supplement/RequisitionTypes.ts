@@ -23,9 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import type {
-    EditorLanguage, IExecutionContext, INewEditorRequest, IScriptRequest, ISqlPageRequest,
-} from "./index.js";
+import type { EditorLanguage, IExecutionContext, INewEditorRequest, IScriptRequest, ISqlPageRequest } from "./index.js";
 
 import type {
     IDialogRequest, IDialogResponse, IDictionary, IServicePasswordRequest,
@@ -552,10 +550,6 @@ export interface IRequestTypeMap {
     /** Do whatever default action is set for a connection data model entry. */
     "connectionItemDefaultAction": (entry: ConnectionDataModelEntry) => Promise<boolean>;
 
-    "requestPassword": (request: IServicePasswordRequest) => Promise<boolean>;
-    "acceptPassword": (data: { request: IServicePasswordRequest; password: string; }) => Promise<boolean>;
-    "cancelPassword": (request: IServicePasswordRequest) => Promise<boolean>;
-
     "requestMrsAuthentication": (request: IServicePasswordRequest) => Promise<boolean>;
     "acceptMrsAuthentication": (data: { request: IServicePasswordRequest; password: string; }) => Promise<boolean>;
     "cancelMrsAuthentication": (request: IServicePasswordRequest) => Promise<boolean>;
@@ -592,16 +586,13 @@ export interface IRequestTypeMap {
     /** Execute an embedded extension code block. */
     "executeCodeBlock": (options: ICodeBlockExecutionOptions) => Promise<boolean>;
 
-    /** Shows a blocking (modal) error panel. */
-    "showFatalError": (values: string[]) => Promise<boolean>;
-
-    /** Adds a new error notification notification. */
+    /** Adds a new error notification. */
     "showError": (message: string) => Promise<boolean>;
 
-    /** Adds a new warning notification notification. */
+    /** Adds a new warning notification. */
     "showWarning": (message: string) => Promise<boolean>;
 
-    /** Adds a new information notification notification. */
+    /** Adds a new information notification. */
     "showInfo": (message: string) => Promise<boolean>;
 
     "connectedToUrl": (url?: URL) => Promise<boolean>;

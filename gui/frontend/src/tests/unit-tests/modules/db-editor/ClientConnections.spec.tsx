@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -83,7 +83,7 @@ describe("Client connections module tests", (): void => {
         const component = mount<ClientConnections>(
             <ClientConnections
                 backend={backend}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
         // Component updates.
@@ -106,7 +106,7 @@ describe("Client connections module tests", (): void => {
         const component = mount<ClientConnections>(
             <ClientConnections
                 backend={backend}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -130,7 +130,7 @@ describe("Client connections module tests", (): void => {
         const component = mount<ClientConnections>(
             <ClientConnections
                 backend={backend}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
         const instance = new TestClientConnections(component.instance().props);
@@ -147,7 +147,7 @@ describe("Client connections module tests", (): void => {
         const component = mount<ClientConnections>(
             <ClientConnections
                 backend={backend}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
         const instance = new TestClientConnections(component.instance().props);
@@ -164,7 +164,7 @@ describe("Client connections module tests", (): void => {
         const component = mount<ClientConnections>(
             <ClientConnections
                 backend={backend}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
         const instance = new TestClientConnections(component.instance().props);
@@ -271,7 +271,7 @@ describe("Client connections module tests", (): void => {
         const component = mount<ClientConnections>(
             <ClientConnections
                 backend={backend}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
         const instance = new TestClientConnections(component.instance().props);
@@ -288,7 +288,7 @@ describe("Client connections module tests", (): void => {
         const component = mount<ClientConnections>(
             <ClientConnections
                 backend={backend}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
         const instance = new TestClientConnections(component.instance().props);
@@ -303,7 +303,7 @@ describe("Client connections module tests", (): void => {
         const component = mount<ClientConnections>(
             <ClientConnections
                 backend={backend}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
         const instance = new TestClientConnections(component.instance().props);

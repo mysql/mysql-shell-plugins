@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,14 +24,8 @@
  */
 
 import {
-    ExtensionContext,
-    ExtensionKind, ExtensionMode,
-    OutputChannel, StatusBarAlignment, StatusBarItem,
-    Uri,
-    commands,
-    env,
-    extensions,
-    window, workspace,
+    ExtensionContext, ExtensionKind, ExtensionMode, OutputChannel, StatusBarAlignment, StatusBarItem,
+    Uri, commands, env, extensions, window, workspace,
 } from "vscode";
 
 import * as childProcess from "child_process";
@@ -45,7 +39,10 @@ import {
     IShellLaunchConfiguration, LogLevel, MySQLShellLauncher,
 } from "../../frontend/src/utilities/MySQLShellLauncher.js";
 
+import { registerUiLayer, type IUILayer } from "../../frontend/src/app-logic/UILayer.js";
+import type { IServicePasswordRequest } from "../../frontend/src/app-logic/general-types.js";
 import { MessageScheduler } from "../../frontend/src/communication/MessageScheduler.js";
+import type { IStatusBarItem } from "../../frontend/src/components/ui/Statusbar/StatusBarItem.js";
 import { webSession } from "../../frontend/src/supplement/WebSession.js";
 import { waitFor } from "../../frontend/src/utilities/helpers.js";
 import { ExtensionHost } from "./ExtensionHost.js";
@@ -135,12 +132,58 @@ const forwardPortThroughSshSession = async (dynamicUrl: URL): Promise<URL> => {
     return new URL(localUri.toString().replace("%3D", "="));
 };
 
+const extensionUILayer: IUILayer = {
+    showInformationNotification: async (message: string, _timeout?: number): Promise<string | undefined> => {
+        return window.showInformationMessage(message, { modal: false });
+    },
+
+    showWarningNotification: async (message: string): Promise<string | undefined> => {
+        return window.showWarningMessage(message, { modal: false });
+    },
+
+    showErrorNotification: async (message: string): Promise<string | undefined> => {
+        return window.showErrorMessage(message, { modal: false });
+    },
+
+    createStatusBarItem: (...args: unknown[]): IStatusBarItem => {
+        if (typeof args[0] === "string") {
+            const [id, alignment, priority] = args as [string, StatusBarAlignment, number];
+
+            return window.createStatusBarItem(id, alignment, priority) as IStatusBarItem;
+        } else {
+            const [alignment, priority] = args as [StatusBarAlignment, number];
+
+            return window.createStatusBarItem(alignment, priority) as IStatusBarItem;
+        }
+    },
+
+    setStatusBarMessage: (message: string, timeout?: number): void => {
+        if (timeout !== undefined) {
+            window.setStatusBarMessage(message, timeout);
+        } else {
+            window.setStatusBarMessage(message);
+        }
+    },
+
+    confirm: async (message: string, yes: string, no: string): Promise<string | undefined> => {
+        const result = await window.showInformationMessage(message, { modal: true }, yes, no);
+
+        return Promise.resolve(result);
+    },
+
+    requestPassword: async (values: IServicePasswordRequest): Promise<string | undefined> => {
+        return window.showInputBox({ title: values.caption, password: true, prompt: "Please enter the password" });
+    },
+};
+
 /**
  * Entry function for the extension. Called when the extension is activated.
  *
  * @param context The extension context from VS Code.
  */
 export const activate = (context: ExtensionContext): void => {
+    registerUiLayer(extensionUILayer);
+
     outputChannel = window.createOutputChannel("MySQL Shell for VS Code");
     taskOutputChannel = window.createOutputChannel("MySQL Shell - Tasks");
 

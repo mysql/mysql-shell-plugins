@@ -203,7 +203,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                             navigation: [],
                             execution: [],
                             editor: [],
-                            auxillary: [],
+                            auxiliary: [],
                         }}
                         onQuit={this.handleQuit}
                     />,

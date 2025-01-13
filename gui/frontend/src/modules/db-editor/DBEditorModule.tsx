@@ -360,7 +360,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         const isEmbedded = appParameters.embedded;
 
         // Generate the main toolbar items based on the current display mode.
-        const toolbarItems: IToolbarItems = { navigation: [], execution: [], editor: [], auxillary: [] };
+        const toolbarItems: IToolbarItems = { navigation: [], execution: [], editor: [], auxiliary: [] };
         const dropDownItems = [
             <DropdownItem
                 id="connections"

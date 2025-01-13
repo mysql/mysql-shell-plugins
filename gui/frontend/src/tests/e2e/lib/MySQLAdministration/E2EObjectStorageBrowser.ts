@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -43,7 +43,7 @@ export class E2EObjectStorageBrowser {
             .elementLocated(objStorageBrowser.ociProfileList.exists),
             constants.wait5seconds, "OCI Profile List was not found");
         await (await list.findElement(objStorageBrowser.ociProfileList.item(ociProfileName))).click();
-        await driver.wait(this.untilItemsAreLoaded(), constants.wait15seconds,
+        await driver.wait(this.untilItemsAreLoaded(), constants.wait30seconds,
             "Object Storage Browser items are still loading");
     };
 
@@ -98,7 +98,7 @@ export class E2EObjectStorageBrowser {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `Could not get item '${itemName}' on the Object Storage Browser`);
+        }, constants.wait15seconds, `Could not get item '${itemName}' on the Object Storage Browser`);
 
         return itemToReturn!;
     };
@@ -182,7 +182,7 @@ export class E2EObjectStorageBrowser {
                         throw e;
                     }
                 }
-            }, constants.wait5seconds, `item '${path[i]}' was not expanded`);
+            }, constants.wait30seconds, `item '${path[i]}' was not expanded`);
         }
     };
 

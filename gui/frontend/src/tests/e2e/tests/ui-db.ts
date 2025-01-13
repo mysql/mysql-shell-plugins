@@ -621,7 +621,7 @@ describe("DATABASE CONNECTIONS", () => {
             try {
                 await driver.wait(until.elementLocated(locator.dbConnectionOverview.newConsoleButton),
                     constants.wait10seconds).click();
-                await driver.wait(new E2EShellConsole().untilIsOpened(),
+                await driver.wait(new E2EShellConsole().untilIsOpened(globalConn),
                     constants.wait15seconds, "Shell Console was not loaded");
             } catch (e) {
                 testFailed = true;
@@ -805,15 +805,12 @@ describe("DATABASE CONNECTIONS", () => {
                 await dbTreeSection.tree.expandElement([constants.mysqlAdministrationTreeElement]);
 
                 await (await dbTreeSection.tree.getElement(constants.performanceDashboard)).click();
-                await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn),
-                    constants.wait15seconds);
+                await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn), constants.wait15seconds);
                 expect((await toolbar.editorSelector.getCurrentEditor()).label).toBe(constants.performanceDashboard);
                 await driver.wait(mysqlAdministration.performanceDashboard.untilTabExists(constants.perfDashServerTab),
                     constants.wait3seconds);
-
                 await driver.wait(mysqlAdministration.performanceDashboard.untilTabExists(constants.perfDashMLETab),
                     constants.wait3seconds);
-
                 expect(await mysqlAdministration.performanceDashboard.tabIsSelected(constants.perfDashServerTab))
                     .toBe(true);
 
@@ -885,6 +882,8 @@ describe("DATABASE CONNECTIONS", () => {
                 expect(result1.status).toMatch(/OK/);
                 await new E2ETabContainer().closeAllTabs();
                 await (await dbTreeSection.tree.getElement(constants.performanceDashboard)).click();
+
+                await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn), constants.wait15seconds);
                 await (await mysqlAdministration.performanceDashboard.getTab(constants.perfDashMLETab))!.click();
                 await mysqlAdministration.performanceDashboard.loadMLEPerformance();
                 expect(mysqlAdministration.performanceDashboard.mlePerformance!.mleStatus).toBe("Active");
@@ -1219,7 +1218,7 @@ describe("DATABASE CONNECTIONS", () => {
             try {
                 await dbTreeSection.tree.openContextMenuAndSelect(globalConn.caption!,
                     constants.openNewMySQLShellConsoleForThisConnection);
-                await driver.wait(new E2EShellConsole().untilIsOpened(), constants.wait15seconds);
+                await driver.wait(new E2EShellConsole().untilIsOpened(globalConn), constants.wait15seconds);
                 const treeOpenEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
                 await treeOpenEditorsSection.focus();
 

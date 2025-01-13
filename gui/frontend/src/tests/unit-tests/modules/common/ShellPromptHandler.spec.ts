@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,18 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { registerUiLayer } from "../../../../app-logic/UILayer.js";
 import { DialogResponseClosure, DialogType } from "../../../../app-logic/general-types.js";
 import { ShellPromptResponseType } from "../../../../communication/Protocol.js";
 import { ShellPromptHandler } from "../../../../modules/common/ShellPromptHandler.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
 
 describe("Shell Prompt Handler Tests", (): void => {
+    beforeAll(() => {
+        registerUiLayer(uiLayerMock);
+    });
+
     it("ShellPrompt Base Test", () => {
         const handler = new ShellPromptHandler();
 
@@ -53,7 +59,7 @@ describe("Shell Prompt Handler Tests", (): void => {
         },
             "<requestId>", backend);
 
-        expect(result).toBeTruthy();
+        expect(result).toBe(true);
     });
 
     it("ShellPrompt 'confirm' prompt", () => {
@@ -113,103 +119,6 @@ describe("Shell Prompt Handler Tests", (): void => {
 
         expect(result).toBeTruthy();
     });
-
-    it("ShellPrompt 'acceptPassword' test", async () => {
-        const handler = new ShellPromptHandler();
-        const backend = new ShellInterfaceSqlEditor();
-
-        backend.sendReply = (requestId: string, type: ShellPromptResponseType, reply: string,
-            moduleSessionId?: string): Promise<void> => {
-            expect(requestId).toEqual("<requestId>");
-            expect(type).toEqual(ShellPromptResponseType.Ok);
-            expect(reply).toEqual("<password>");
-            expect(moduleSessionId).toEqual("<moduleSessionId>");
-
-            return Promise.resolve();
-        };
-
-        // The handler only implements specific requisition handlers, no properties or similar.
-        // Hence there's not much to test in this base test.
-        expect(handler).toBeDefined();
-        let result = await ShellPromptHandler.acceptPassword({
-            request: {
-                requestId: "<requestId>",
-                caption: "<Some Title>",
-                description: ["<This is a description>"],
-                service: "mysql",
-                user: "root",
-                payload: {
-                    moduleSessionId: "<moduleSessionId>",
-                },
-            },
-            password: "<password>",
-        });
-
-        expect(result).toBeFalsy();
-
-        result = await ShellPromptHandler.acceptPassword({
-            request: {
-                requestId: "<requestId>",
-                caption: "<Some Title>",
-                description: ["<This is a description>"],
-                service: "mysql",
-                user: "root",
-                payload: {
-                    moduleSessionId: "<moduleSessionId>",
-                    backend,
-                },
-            },
-            password: "<password>",
-        });
-
-        expect(result).toBeTruthy();
-    });
-
-    it("ShellPrompt 'cancelPassword' test", async () => {
-        const handler = new ShellPromptHandler();
-        const backend = new ShellInterfaceSqlEditor();
-
-        backend.sendReply = (requestId: string, type: ShellPromptResponseType, reply: string,
-            moduleSessionId?: string): Promise<void> => {
-            expect(requestId).toEqual("<requestId>");
-            expect(type).toEqual(ShellPromptResponseType.Cancel);
-            expect(reply).toEqual("");
-            expect(moduleSessionId).toEqual("<moduleSessionId>");
-
-            return Promise.resolve();
-        };
-
-        // The handler only implements specific requisition handlers, no properties or similar.
-        // Hence there's not much to test in this base test.
-        expect(handler).toBeDefined();
-        let result = await ShellPromptHandler.cancelPassword({
-            requestId: "<requestId>",
-            caption: "<Some Title>",
-            description: ["<This is a description>"],
-            service: "mysql",
-            user: "root",
-            payload: {
-                moduleSessionId: "<moduleSessionId>",
-            },
-        });
-
-        expect(result).toBeFalsy();
-
-        result = await ShellPromptHandler.cancelPassword({
-            requestId: "<requestId>",
-            caption: "<Some Title>",
-            description: ["<This is a description>"],
-            service: "mysql",
-            user: "root",
-            payload: {
-                moduleSessionId: "<moduleSessionId>",
-                backend,
-            },
-        });
-
-        expect(result).toBeTruthy();
-    });
-
 
     it("ShellPrompt 'handleDialogResponse' test failures", async () => {
         const handler = new ShellPromptHandler();

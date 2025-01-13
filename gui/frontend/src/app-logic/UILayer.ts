@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -33,9 +33,6 @@ import type { IServicePasswordRequest } from "./general-types.js";
  * up by the application logic layer (either the app host or the extension host).
  */
 export interface IUILayer {
-    /** Shows an error message (blocking). */
-    showFatalError(message: string): void;
-
     /**
      * Shows an information notification. The message is automatically hidden after the given timeout
      * (in milliseconds, default is 5000).
@@ -86,8 +83,10 @@ export interface IUILayer {
      * Triggers a password request.
      *
      * @param request The request with details about the password prompt.
+     *
+     * @returns The entered password or undefined if the password dialog was cancelled.
      */
-    requestPassword(request: IServicePasswordRequest): void;
+    requestPassword(request: IServicePasswordRequest): Promise<string | undefined>;
 }
 
 const defaultHandler = (): number => {
@@ -103,7 +102,6 @@ const asyncDefaultHandler = (): Promise<string | undefined> => {
 };
 
 export let ui: IUILayer = {
-    showFatalError: defaultHandler,
     showInformationNotification: asyncDefaultHandler,
     showWarningNotification: asyncDefaultHandler,
     showErrorNotification: asyncDefaultHandler,
@@ -114,7 +112,7 @@ export let ui: IUILayer = {
     },
     setStatusBarMessage: defaultHandler,
     confirm: asyncDefaultHandler,
-    requestPassword: defaultHandler,
+    requestPassword: asyncDefaultHandler,
 };
 
 export const registerUiLayer = (newLayer: IUILayer): void => {

@@ -102,9 +102,6 @@ exports[`DialogHost Tests Show Prompt Dialog (snapshot) 1`] = `
 
 exports[`DialogHost Tests Standard Rendering (snapshot) 1`] = `
 <DialogHost>
-  <PasswordDialog
-    key="passwordDialog"
-  />
   <MrsAuthDialog
     key="mrsAuthDialog"
   />

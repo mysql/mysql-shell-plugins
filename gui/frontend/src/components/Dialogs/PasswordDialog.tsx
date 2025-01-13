@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,17 +27,17 @@ import "./PasswordDialog.css";
 
 import { ComponentChild, createRef } from "preact";
 
-import { requisitions } from "../../supplement/Requisitions.js";
 import { IServicePasswordRequest } from "../../app-logic/general-types.js";
+import { Semaphore } from "../../supplement/Semaphore.js";
 import { Button, IButtonProperties } from "../ui/Button/Button.js";
 import { Codicon } from "../ui/Codicon.js";
-import { IComponentState, ComponentBase } from "../ui/Component/ComponentBase.js";
+import { ComponentBase, IComponentState } from "../ui/Component/ComponentBase.js";
 import { ContentAlignment } from "../ui/Container/Container.js";
 import { Dialog } from "../ui/Dialog/Dialog.js";
 import { Grid } from "../ui/Grid/Grid.js";
 import { GridCell } from "../ui/Grid/GridCell.js";
 import { Icon } from "../ui/Icon/Icon.js";
-import { Input, IInputChangeProperties } from "../ui/Input/Input.js";
+import { IInputChangeProperties, Input } from "../ui/Input/Input.js";
 import { Label } from "../ui/Label/Label.js";
 
 interface IPasswordDialogState extends IComponentState {
@@ -48,6 +48,7 @@ interface IPasswordDialogState extends IComponentState {
 export class PasswordDialog extends ComponentBase<{}, IPasswordDialogState> {
 
     private dialogRef = createRef<Dialog>();
+    private signal?: Semaphore<string | void>;
 
     public constructor(props: {}) {
         super(props);
@@ -57,12 +58,26 @@ export class PasswordDialog extends ComponentBase<{}, IPasswordDialogState> {
         };
     }
 
-    public override componentDidMount(): void {
-        requisitions.register("requestPassword", this.requestPassword);
-    }
+    /**
+     * Show the password dialog and wait until the user has entered a password or cancelled the dialog.
+     *
+     * @param values The details for the password dialog.
+     *
+     * @returns The entered password or undefined if the dialog was cancelled.
+     */
+    public async show(values: IServicePasswordRequest): Promise<string | undefined> {
+        await this.setStatePromise({ request: values, password: "" });
+        this.signal = new Semaphore();
+        this.dialogRef.current?.open();
 
-    public override componentWillUnmount(): void {
-        requisitions.unregister("requestPassword", this.requestPassword);
+        const result = await this.signal.wait();
+        this.signal = undefined;
+
+        if (typeof result === "string") {
+            return result;
+        }
+
+        return undefined;
     }
 
     public render(): ComponentChild {
@@ -156,28 +171,16 @@ export class PasswordDialog extends ComponentBase<{}, IPasswordDialogState> {
         this.dialogRef.current?.close(false);
     };
 
-    private requestPassword = (values: IServicePasswordRequest): Promise<boolean> => {
-        return new Promise((resolve) => {
-            this.setState({ request: values, password: "" }, () => {
-                this.dialogRef.current?.open();
-                resolve(true);
-            });
-        });
-    };
-
     private handleButtonClick = (_: MouseEvent | KeyboardEvent, props: IButtonProperties): void => {
         this.dialogRef.current?.close(props.id !== "ok");
     };
 
     private closeDialog = (cancelled: boolean): void => {
-        const { request, password } = this.state;
-
-        if (request) {
-            if (cancelled) {
-                void requisitions.execute("cancelPassword", request);
-            } else {
-                void requisitions.execute("acceptPassword", { request, password });
-            }
+        if (cancelled) {
+            this.signal?.notify(undefined);
+        } else {
+            const { password } = this.state;
+            this.signal?.notify(password);
         }
     };
 }

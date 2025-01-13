@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -200,25 +200,38 @@ export class E2ETree {
      * @returns A promise resolving with the element
      */
     public getOciElementByType = async (type: string): Promise<string> => {
+        let ociLabel = "";
 
-        if (type.match(/(ociDbSystem|ociBastion|ociCompute)/) !== null) {
-            const treeItems = await (await this.accordionSection.get())!
-                .findElements(locator.section.tree.element.ociTreeEntry);
+        await driver.wait(async () => {
+            try {
+                if (type.match(/(ociDbSystem|ociBastion|ociCompute)/) !== null) {
+                    const treeItems = await (await this.accordionSection.get())!
+                        .findElements(locator.section.tree.element.ociTreeEntry);
 
-            for (const treeItem of treeItems) {
-                const el = await treeItem.findElement(locator.section.tree.element.icon.exists);
-                const backImage = await el.getCssValue("mask-image");
-                if (backImage.match(new RegExp(type)) !== null) {
-                    const label = await treeItem.findElement(locator.section.tree.element.label);
+                    for (const treeItem of treeItems) {
+                        const el = await treeItem.findElement(locator.section.tree.element.icon.exists);
+                        const backImage = await el.getCssValue("mask-image");
+                        if (backImage.match(new RegExp(type)) !== null) {
+                            const label = await treeItem.findElement(locator.section.tree.element.label);
+                            ociLabel = await label.getText();
 
-                    return label.getText();
+                            return true;
+                        }
+                    }
+
+                    throw new Error(`Could not find the item type ${type} on section ${this
+                        .accordionSection.accordionSectionName}`);
+                } else {
+                    throw new Error(`Unknown type: ${type}`);
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
                 }
             }
-            throw new Error(`Could not find the item type ${type} on section ${this
-                .accordionSection.accordionSectionName}`);
-        } else {
-            throw new Error(`Unknown type: ${type}`);
-        }
+        }, constants.wait5seconds, `Could not get the oci element by type`);
+
+        return ociLabel;
     };
 
     /**

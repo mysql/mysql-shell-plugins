@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -132,7 +132,7 @@ describe("OCI", () => {
 
             const shellConsole = new E2EShellConsole();
             await shellConsole.openNewShellConsole();
-            await driver.wait(shellConsole.untilIsOpened(), constants.wait5seconds * 3,
+            await driver.wait(shellConsole.untilIsOpened(undefined), constants.wait5seconds * 3,
                 "Shell Console was not loaded");
             const result = await shellConsole.codeEditor
                 .execute("mds.get.currentCompartmentId()") as E2ECommandResultData;

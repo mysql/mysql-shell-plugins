@@ -15,7 +15,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
   }
   toolbarItems={
     {
-      "auxillary": [],
+      "auxiliary": [],
       "editor": [],
       "execution": [],
       "navigation": [],
@@ -715,7 +715,7 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
   }
   toolbarItems={
     {
-      "auxillary": [],
+      "auxiliary": [],
       "editor": [],
       "execution": [],
       "navigation": [],

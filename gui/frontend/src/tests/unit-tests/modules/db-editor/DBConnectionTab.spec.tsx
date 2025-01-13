@@ -181,7 +181,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -196,7 +196,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -216,7 +216,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -238,7 +238,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -269,7 +269,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -298,7 +298,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -330,7 +330,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -363,7 +363,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -398,7 +398,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -432,7 +432,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -451,7 +451,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -490,7 +490,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -516,7 +516,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -549,7 +549,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -588,7 +588,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -623,7 +623,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -665,7 +665,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -721,7 +721,7 @@ describe("DBConnectionTab tests", (): void => {
                     savedState={savedState}
                     workerPool={wp}
                     showAbout={false}
-                    toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                    toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
                     onSelectItem={onSelectItemMock}
                 />
             </DBEditorContext.Provider>,
@@ -749,7 +749,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 
@@ -772,7 +772,7 @@ describe("DBConnectionTab tests", (): void => {
                 savedState={savedState}
                 workerPool={wp}
                 showAbout={false}
-                toolbarItems={{ navigation: [], execution: [], editor: [], auxillary: [] }}
+                toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
             />,
         );
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -40,12 +40,11 @@ const statusBarItemMock: IStatusBarItem = {
 };
 
 export const uiLayerMock: IUILayer = {
-    showFatalError: jest.fn(),
     showInformationNotification: jest.fn().mockReturnValue(Promise.resolve(undefined)),
     showWarningNotification: jest.fn().mockReturnValue(Promise.resolve(undefined)),
     showErrorNotification: jest.fn().mockReturnValue(Promise.resolve(undefined)),
     createStatusBarItem: jest.fn().mockReturnValue(statusBarItemMock),
     setStatusBarMessage: jest.fn(),
     confirm: jest.fn(),
-    requestPassword: jest.fn(),
+    requestPassword: jest.fn().mockReturnValue(Promise.resolve(undefined)),
 };

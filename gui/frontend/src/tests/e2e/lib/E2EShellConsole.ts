@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -32,6 +32,8 @@ import { PasswordDialog } from "./Dialogs/PasswordDialog.js";
 import { Os } from "./os.js";
 import { E2ECommandResultData } from "./CommandResults/E2ECommandResultData.js";
 import { E2ECommandResultGrid } from "./CommandResults/E2ECommandResultGrid.js";
+import { ConfirmDialog } from "./Dialogs/ConfirmationDialog.js";
+import { Misc } from "./misc.js";
 
 /**
  * This class represents the Shell console
@@ -54,17 +56,54 @@ export class E2EShellConsole {
 
     /**
      * Waits until the shell session is opened
+     * @param connection The database connection
      * @param timeout The timeout
      * @returns A promise resolving when the shell session is opened
      */
-    public untilIsOpened = async (timeout = constants.wait5seconds): Promise<E2EShellConsole> => {
-        await driver.wait(async () => {
-            if ((await driver.findElements(locator.shellConsole.editor)).length > 0) {
-                this.codeEditor = await this.codeEditor.build();
+    public untilIsOpened = async (
+        connection: interfaces.IDBConnection | undefined,
+        timeout = constants.wait10seconds): Promise<E2EShellConsole> => {
 
-                return true;
+        await driver.wait(async () => {
+            const confirmDialog = new ConfirmDialog();
+            const existsFingerPrintDialog = await confirmDialog.exists();
+
+            if (existsFingerPrintDialog) {
+                await confirmDialog.accept();
             }
-        }, timeout, `Could not open shell session`);
+
+            const isOpened = async (): Promise<boolean> => {
+                const notifications = await Misc.getToastNotifications();
+
+                if (notifications.length > 0) {
+                    for (const notification of notifications) {
+
+                        if (notification!.type === "error") {
+                            throw new Error(notification!.message);
+                        } else {
+                            await Misc.dismissNotifications();
+                            break;
+                        }
+                    }
+                }
+
+                if ((await driver.findElements(locator.shellConsole.editor)).length > 0) {
+                    this.codeEditor = await this.codeEditor.build();
+
+                    return true;
+                } else {
+                    return false;
+                }
+            };
+
+            if (connection) {
+                if (await PasswordDialog.exists()) {
+                    await PasswordDialog.setCredentials(connection);
+                }
+            }
+
+            return isOpened();
+        }, timeout, `Could not open the notebook`);
 
         return this;
     };
