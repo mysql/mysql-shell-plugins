@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -178,6 +178,14 @@ export class E2ECommandResultGrid extends E2ECommandResult {
      */
     public edit = async (): Promise<void> => {
         await (await this.getEditButton())!.click();
+    };
+
+    /**
+     * Refreshes a result grid
+     * @returns A promise resolving when the refresh button is clicked
+     */
+    public refresh = async (): Promise<void> => {
+        await this.resultContext!.findElement(toolbarLocator.refreshButton).click();
     };
 
     /**
@@ -369,6 +377,19 @@ export class E2ECommandResultGrid extends E2ECommandResult {
         }, constants.wait5seconds, `Cell ${gridRowColumn} was always stale`);
 
         return toReturn;
+    };
+
+    /**
+     * Verifies if the cell value equals to @value
+     * @param gridRow The row number. If the row number is -1, the function returns the last added row
+     * @param gridRowColumn The column
+     * @param value The expected value
+     * @returns A condition resolving to true if the value equals to @value.
+     */
+    public untilCellValueIs = (gridRow: number, gridRowColumn: string, value: string): Condition<boolean> => {
+        return new Condition(`for cell value to be '${value}'`, async () => {
+            return (await this.getCellValue(gridRow, gridRowColumn)) === value;
+        });
     };
 
     /**
@@ -1185,12 +1206,20 @@ export class E2ECommandResultGrid extends E2ECommandResult {
     };
 
     /**
+     * Gets the rows of a result grid
+     * @returns A promise resolving with the rows
+     */
+    public getRows = async (): Promise<WebElement[]> => {
+        return this.resultContext!.findElements(gridLocator.row.exists);
+    };
+
+    /**
      * Gets a row of a result grid
      * @param gridRow The row number or the row as WebElement
      * @returns A promise resolving with the row
      */
     public getRow = async (gridRow: number): Promise<WebElement> => {
-        const rows = await this.resultContext!.findElements(gridLocator.row.exists);
+        const rows = await this.getRows();
 
         return rows[gridRow];
     };

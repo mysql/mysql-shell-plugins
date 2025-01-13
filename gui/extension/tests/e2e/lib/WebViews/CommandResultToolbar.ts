@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -122,6 +122,14 @@ export class CommandResultToolbar implements interfaces.ICommandResultToolbar {
         await driver.executeScript("arguments[0].click()",
             await this.result.context.findElement(toolbarLocator.applyButton));
         await this.result.loadResult();
+    };
+
+    /**
+     * Refreshes a result grid
+     * @returns A promise resolving when the refresh button is clicked
+     */
+    public refresh = async (): Promise<void> => {
+        await this.result.context.findElement(toolbarLocator.refreshButton).click();
     };
 
     /**

@@ -1291,6 +1291,68 @@ describe("RESULT GRIDS", () => {
 
         });
 
+        it("Refresh result grid after cell update", async () => {
+            await notebook.codeEditor.clean();
+            const result1 = await notebook.codeEditor.execute("select * from sakila.result_sets;");
+            expect(result1.toolbar.status).to.match(/OK/);
+
+            const result2 = await notebook.codeEditor.execute("select * from sakila.result_sets;");
+            expect(result2.toolbar.status).to.match(/OK/);
+
+            await result2.grid.editCells([
+                { rowNumber: 0, columnName: "text_field", value: "this value was edited" },
+            ], constants.doubleClick);
+            await result2.toolbar.applyChanges();
+
+            await result1.toolbar.refresh();
+            await driver.wait(result1.grid.untilCellValueIs(0, "text_field", "this value was edited"),
+                constants.wait5seconds);
+        });
+
+        it("Refresh result grid after adding a row", async () => {
+            await notebook.codeEditor.clean();
+            const result1 = await notebook.codeEditor.execute("select * from sakila.result_sets;");
+            expect(result1.toolbar.status).to.match(/OK/);
+
+            const result2 = await notebook.codeEditor.execute("select * from sakila.result_sets;");
+            expect(result2.toolbar.status).to.match(/OK/);
+
+            const rowToAdd: interfaces.IResultGridCell[] = [
+                { columnName: "text_field", value: "this is a new value" },
+            ];
+
+            const prevRows = await result1.grid.getRows();
+            await result2.grid.addRow(rowToAdd);
+            await result2.toolbar.applyChanges();
+            await driver.wait(result2.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait3seconds);
+
+            await result1.toolbar.refresh();
+
+            await driver.wait(async () => {
+                return ((await result1.grid.getRows()).length) > prevRows.length;
+            }, constants.wait3seconds, `Number of rows is still ${prevRows.length}`);
+        });
+
+        it("Refresh result grid after row deletion", async () => {
+            const deleteQuery = "delete from sakila.result_sets where text_field = 'this is a new value';";
+
+            const result1 = await notebook.codeEditor.execute("select * from sakila.result_sets;");
+            expect(result1.toolbar.status).to.match(/OK/);
+
+            const result2 = await notebook.codeEditor.execute("select * from sakila.result_sets;");
+            expect(result2.toolbar.status).to.match(/OK/);
+
+            const prevRows = await result1.grid.getRows();
+            const result3 = await notebook.codeEditor.execute(deleteQuery);
+            expect(result3.text).to.match(/OK/);
+            await (await notebook.toolbar.getButton(constants.commit)).click();
+
+            await result1.toolbar.refresh();
+            await driver.wait(async () => {
+                return ((await result1.grid.getRows()).length) < prevRows.length;
+            }, constants.wait3seconds, `Number of rows is still ${prevRows.length}`);
+        });
+
         it("Unsaved changes dialog on result grid", async () => {
 
             await Workbench.openMySQLShellForVSCode();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -1004,6 +1004,14 @@ export class CommandResultGrid {
     };
 
     /**
+     * Gets the rows of a result grid
+     * @returns A promise resolving with the rows
+     */
+    public getRows = (): Promise<WebElement[]> => {
+        return this.content.findElements(gridLocator.row.exists);
+    };
+
+    /**
      * Gets a row of a result grid
      * @param gridRow The row number or the row as WebElement
      * @returns A promise resolving with the row
@@ -1012,6 +1020,19 @@ export class CommandResultGrid {
         const rows = await this.content.findElements(gridLocator.row.exists);
 
         return rows[gridRow];
+    };
+
+    /**
+     * Verifies if the cell value equals to @value
+     * @param gridRow The row number. If the row number is -1, the function returns the last added row
+     * @param gridRowColumn The column
+     * @param value The expected value
+     * @returns A condition resolving to true if the value equals to @value.
+     */
+    public untilCellValueIs = (gridRow: number, gridRowColumn: string, value: string): Condition<boolean> => {
+        return new Condition(`for cell value to be '${value}'`, async () => {
+            return (await this.getCellValue(gridRow, gridRowColumn)) === value;
+        });
     };
 
     /**

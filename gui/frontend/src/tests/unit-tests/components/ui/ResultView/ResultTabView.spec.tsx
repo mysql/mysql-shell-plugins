@@ -367,7 +367,7 @@ describe("Result Tabview Tests", (): void => {
         expect(toolbars).toHaveLength(1);
 
         const buttons = component.getDOMNode().getElementsByClassName("button");
-        expect(buttons).toHaveLength(12);
+        expect(buttons).toHaveLength(13);
 
         const dividers = component.getDOMNode().getElementsByClassName("divider");
         expect(dividers).toHaveLength(3);
@@ -416,6 +416,12 @@ describe("Result Tabview Tests", (): void => {
         expect(button).toBeDefined();
         expect(button.classList.contains("disabled")).toBe(true); // The button is currently disabled.
         expect(button.getAttribute("data-tooltip")).toBe("Rollback Changes");
+
+        // Refresh.
+        button = buttons.namedItem("refreshButton") as HTMLButtonElement;
+        expect(button).toBeDefined();
+        expect(button.classList.contains("disabled")).toBe(false);
+        expect(button.getAttribute("data-tooltip")).toBe("Refresh");
 
         // Maximize.
         button = buttons.namedItem("toggleStateButton") as HTMLButtonElement;

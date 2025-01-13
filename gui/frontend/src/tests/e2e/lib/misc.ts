@@ -235,7 +235,11 @@ export class Misc {
                     if (notification!.type !== "error") {
                         await notification!.close();
                     } else {
-                        throw new Error(`Notification error: ${notification!.message}`);
+                        if (notification!.message.match(/The currently deployed schema version is 0.0.0/) !== null) {
+                            await notification!.close();
+                        } else {
+                            throw new Error(`Notification error: ${notification!.message}`);
+                        }
                     }
                 }
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -402,6 +402,7 @@ export const notebook = {
                     },
                     applyButton: By.id("applyButton"),
                     rollbackButton: By.id("rollbackButton"),
+                    refreshButton: By.id("refreshButton"),
                     previewButton: By.id("previewButton"),
                     editButton: By.id("editButton"),
                     addNewRowButton: By.id("addNewRow"),
