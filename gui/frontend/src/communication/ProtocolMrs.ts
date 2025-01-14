@@ -2153,8 +2153,8 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsDumpContentFileCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpAuthAppCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpUserCreateStatement]: { result: boolean; };
+    [ShellAPIMrs.MrsDumpAuditLog]: {};
     [ShellAPIMrs.MrsGetRoleCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpRoleCreateStatement]: { result: boolean; };
-    [ShellAPIMrs.MrsDumpAuditLog]: { result: boolean; };
 }
 
