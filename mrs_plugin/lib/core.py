@@ -947,6 +947,10 @@ def id_to_binary(id: str, context: str, allowNone=False):
     raise RuntimeError(f"Invalid id type for '{context}'.")
 
 
+def convert_id_to_base64_string(id) -> str:
+    return base64.b64encode(id).decode('ascii')
+
+
 def convert_ids_to_binary(id_options, kwargs):
     for id_option in id_options:
         id = kwargs.get(id_option)
