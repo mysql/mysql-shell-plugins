@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,8 +25,7 @@
 
 import { ConnectionBaseTreeItem } from "./ConnectionBaseTreeItem.js";
 import {
-    CdmEntityType,
-    type CdmTableGroupMemberType, type ICdmTableGroupEntry,
+    CdmEntityType, type CdmTableGroupMemberType, type ICdmTableGroupEntry,
 } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 
 export class SchemaTableGroupTreeItem<T extends CdmTableGroupMemberType>
@@ -37,7 +36,6 @@ export class SchemaTableGroupTreeItem<T extends CdmTableGroupMemberType>
     public constructor(dataModelEntry: ICdmTableGroupEntry<T>) {
         super(dataModelEntry, SchemaTableGroupTreeItem.getIconName(dataModelEntry.subType), true);
     }
-
 
     private static getIconName(type: CdmTableGroupMemberType): string {
         switch (type) {

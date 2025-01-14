@@ -1243,8 +1243,6 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         let overlayImage;
         let overlayImageMask;
 
-        let subCaption;
-
         switch (data.dataModelEntry.type) {
             case CdmEntityType.Connection: {
                 if (data.dataModelEntry.details.dbType === DBType.MySQL) {
@@ -1398,6 +1396,11 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
         let actionBox;
 
+        let subCaption;
+        if (data.dataModelEntry.description) {
+            subCaption = <Label id="subCaption" caption={data.dataModelEntry.description} />;
+        }
+
         switch (data.dataModelEntry.type) {
             case CdmEntityType.Connection: {
                 const connection = data.dataModelEntry;
@@ -1434,17 +1437,6 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
             case CdmEntityType.MrsService: {
                 const { onConnectionTreeCommand } = this.props;
-
-                const value = data.dataModelEntry.details;
-                const developers = value.inDevelopment?.developers?.join(",");
-
-                let text;
-                if (developers) {
-                    text = `In Development [${developers}]`;
-                } else {
-                    text = !value.enabled ? "Disabled" : (value.published ? "Published" : "Unpublished");
-                }
-                subCaption = <Label id="subCaption" caption={text} />;
 
                 const docButton = <Button
                     className="actionButton"
