@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -33,12 +33,6 @@ export class MrsRouterTreeItem extends MrsTreeBaseItem<ICdmRestRouterEntry> {
     public constructor(dataModelEntry: ICdmRestRouterEntry) {
         const value = dataModelEntry.details;
         super(dataModelEntry, MrsRouterTreeItem.getIconName(value, dataModelEntry.requiresUpgrade), true);
-
-        if (value.options && value.options.developer) {
-            this.description = `[${String(value.options.developer)}] ${value.version}`;
-        } else {
-            this.description = value.version;
-        }
 
         this.tooltip = dataModelEntry.requiresUpgrade
             ? "This MySQL Router requires an upgrade."

@@ -31,8 +31,7 @@ import type {
 import { requisitions } from "../../../../frontend/src/supplement/Requisitions.js";
 
 import {
-    CdmEntityType, ConnectionDataModelEntry, ICdmRestRootEntry, ICdmSchemaEntry,
-    cdmDbEntityTypes,
+    CdmEntityType, ConnectionDataModelEntry, ICdmRestRootEntry, ICdmSchemaEntry, cdmDbEntityTypes,
     type ConnectionDataModel, type ICdmConnectionEntry,
 } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 

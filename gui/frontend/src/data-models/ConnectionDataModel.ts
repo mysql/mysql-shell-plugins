@@ -35,7 +35,7 @@ import { ShellInterfaceSqlEditor } from "../supplement/ShellInterface/ShellInter
 import { DBType, type IConnectionDetails } from "../supplement/ShellInterface/index.js";
 import { webSession } from "../supplement/WebSession.js";
 import { convertErrorToString, uuid } from "../utilities/helpers.js";
-import { compareVersionStrings } from "../utilities/string-helpers.js";
+import { compareVersionStrings, formatBytes } from "../utilities/string-helpers.js";
 import { ConnectionEntryImpl } from "./ConnectionEntryImpl.js";
 import { createDataModelEntryState } from "./data-model-helpers.js";
 import {
@@ -194,6 +194,9 @@ export interface ICdmBaseEntry {
 
     /** The caption of the entry. */
     readonly caption: string;
+
+    /** A description with additional information about the entry. */
+    description?: string;
 
     /** The type of the entry. This is used a discriminator for the individual entries. */
     readonly type: CdmEntityType;
@@ -1727,9 +1730,17 @@ export class ConnectionDataModel implements ICdmInitializer {
                     return s.details.id === router.id;
                 });
 
+                let description: string;
+                if (router.options && router.options.developer) {
+                    description = `[${String(router.options.developer)}] ${router.version}`;
+                } else {
+                    description = router.version;
+                }
+
                 if (existing) {
                     existing.details = router;
                     existing.caption = router.address;
+                    existing.description = description;
 
                     newRouterList.push(existing as ICdmRestRouterEntry);
                     actions.push({ action: "update", entry: existing as ICdmRestRouterEntry });
@@ -1737,7 +1748,7 @@ export class ConnectionDataModel implements ICdmInitializer {
                     continue;
                 }
 
-                const routerEntry = this.createMrsRouterEntry(mrsRoot as ICdmRestRootEntry, router);
+                const routerEntry = this.createMrsRouterEntry(mrsRoot as ICdmRestRootEntry, router, description);
                 newRouterList.push(routerEntry as ICdmRestRouterEntry);
                 actions.push({ action: "add", entry: routerEntry });
             }
@@ -1763,6 +1774,17 @@ export class ConnectionDataModel implements ICdmInitializer {
             serviceEntry.details = await backend.mrs.getService(serviceEntry.details.id,
                 serviceEntry.details.urlContextRoot, serviceEntry.details.urlHostName, null, null);
             serviceEntry.caption = serviceEntry.details.urlContextRoot;
+
+            const developers = serviceEntry.details.inDevelopment?.developers?.join(",");
+            let description: string;
+            if (serviceEntry.details.enabled && serviceEntry.details.inDevelopment?.developers) {
+                description = `In Development [${developers}]`;
+            } else {
+                description = !serviceEntry.details.enabled
+                    ? "Disabled"
+                    : (serviceEntry.details.published ? "Published" : "Unpublished");
+            }
+            serviceEntry.description = description;
 
             // Get all MRS schemas.
             serviceEntry.schemas.length = 0;
@@ -1907,6 +1929,7 @@ export class ConnectionDataModel implements ICdmInitializer {
                     state: createDataModelEntryState(true, true),
                     details: file,
                     caption: `${file.requestPath}`,
+                    description: formatBytes(file.size),
                     connection: contentSetEntry.connection,
                 };
 
@@ -1948,7 +1971,8 @@ export class ConnectionDataModel implements ICdmInitializer {
                     id: uuid(),
                     state: createDataModelEntryState(true, true),
                     details: object,
-                    caption: `${object.requestPath} (${object.name})`,
+                    caption: object.requestPath,
+                    description: object.name,
                     connection: mrsSchemaEntry.connection,
                 };
 
@@ -1971,12 +1995,14 @@ export class ConnectionDataModel implements ICdmInitializer {
 
             router.services.length = 0;
             routerServices.forEach((service) => {
-                const developers = !service.sortedDevelopers ? "" : service.sortedDevelopers;
                 const urlHostName = !service.serviceUrlHostName ? "" : service.serviceUrlHostName;
+                const caption = urlHostName + service.serviceUrlContextRoot;
 
-                let label = urlHostName + service.serviceUrlContextRoot;
-                if (service.inDevelopment) {
-                    label = label + ` [${developers}]`;
+                let description: string;
+                if (service.inDevelopment?.developers) {
+                    description = `In Development`;
+                } else {
+                    description = service.published ? "Published" : "Unpublished";
                 }
 
                 router.services.push({
@@ -1984,7 +2010,8 @@ export class ConnectionDataModel implements ICdmInitializer {
                     id: uuid(),
                     parent: router,
                     connection: router.connection,
-                    caption: label,
+                    caption,
+                    description,
                     details: service,
                     state: createDataModelEntryState(true, true),
                 });
@@ -2007,6 +2034,15 @@ export class ConnectionDataModel implements ICdmInitializer {
 
     private createMrsServiceEntry(mrsRoot: ICdmRestRootEntry, service: IMrsServiceData,
         label: string): Mutable<ICdmRestServiceEntry> {
+
+        const developers = service.inDevelopment?.developers?.join(",");
+        let description: string;
+        if (service.enabled && service.inDevelopment?.developers) {
+            description = `In Development [${developers}]`;
+        } else {
+            description = !service.enabled ? "Disabled" : (service.published ? "Published" : "Unpublished");
+        }
+
         const serviceEntry: Mutable<ICdmRestServiceEntry> = {
             parent: mrsRoot,
             type: CdmEntityType.MrsService,
@@ -2014,6 +2050,7 @@ export class ConnectionDataModel implements ICdmInitializer {
             state: createDataModelEntryState(),
             details: service,
             caption: label,
+            description,
             schemas: [],
             contentSets: [],
             authApps: [],
@@ -2035,7 +2072,8 @@ export class ConnectionDataModel implements ICdmInitializer {
         return serviceEntry;
     }
 
-    private createMrsRouterEntry(mrsRoot: ICdmRestRootEntry, router: IMrsRouterData): Mutable<ICdmRestRouterEntry> {
+    private createMrsRouterEntry(mrsRoot: ICdmRestRootEntry, router: IMrsRouterData,
+        description: string): Mutable<ICdmRestRouterEntry> {
         const requiresUpgrade = mrsRoot.requiredRouterVersion !== undefined
             ? compareVersionStrings(mrsRoot.requiredRouterVersion, router.version) > 0
             : false;
@@ -2047,6 +2085,7 @@ export class ConnectionDataModel implements ICdmInitializer {
             state: createDataModelEntryState(),
             details: router,
             caption: router.address,
+            description,
             requiresUpgrade,
             connection: mrsRoot.parent,
             services: [],

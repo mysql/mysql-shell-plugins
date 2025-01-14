@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -36,13 +36,6 @@ export class MrsRouterServiceTreeItem extends MrsTreeBaseItem<ICdmRestRouterServ
         const iconName = value.inDevelopment?.developers ? "mrsServiceInDevelopment.svg" :
             (value.published ? "mrsServicePublished.svg" : "mrsService.svg");
 
-
         super(dataModelEntry, iconName, true);
-
-        if (value.inDevelopment?.developers) {
-            this.description = `In Development`;
-        } else {
-            this.description = value.published ? "Published" : "Unpublished";
-        }
     }
 }

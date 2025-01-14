@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,7 +24,6 @@
  */
 
 import type { ICdmRestContentFileEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
-import { formatBytes } from "../../../../frontend/src/utilities/string-helpers.js";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
 export class MrsContentFileTreeItem extends MrsTreeBaseItem<ICdmRestContentFileEntry> {
@@ -35,7 +34,6 @@ export class MrsContentFileTreeItem extends MrsTreeBaseItem<ICdmRestContentFileE
         super(dataModelEntry, value.enabled === 2 ? "mrsContentFilePrivate.svg" :
             value.enabled === 1 ? "mrsContentFile.svg" : "mrsContentFileDisabled.svg", false);
 
-        this.description = formatBytes(value.size);
         this.tooltip = value.requestPath + "\nAccess: " + (value.enabled === 2 ? "PRIVATE" :
             value.enabled === 1 ? "ENABLED" : "DISABLED") + "\nAuthentication: " +
             (!value.requiresAuth && "NOT ") + "REQUIRED";
