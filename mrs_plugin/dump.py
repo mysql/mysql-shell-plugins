@@ -20,10 +20,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
-import json
 
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
+import json
+import sys
+import time
+import re
 
 
 def dump(path, **kwargs):
@@ -270,5 +273,13 @@ def export_audit_log(file_path, **kwargs):
     """
     session = kwargs.get('session', None)
 
-    with lib.core.MrsDbSession(session=session) as session:
-        lib.dump.export_audit_log(file_path=file_path, session=session, **kwargs)
+    try:
+        with lib.core.MrsDbSession(session=session) as session:
+            lib.dump.export_audit_log(file_path=file_path, session=session, **kwargs)
+
+        # Print successful check/dump to stdout
+        print(time.strftime("%Y-%m-%d %H:%M:%S") + " All audit log events have been dumped.\n")
+    except Exception as e:
+        # Print the error to stderr and re-raise it
+        print(time.strftime("%Y-%m-%d %H:%M:%S") + " " + re.sub(r"/n", "\\n", str(e)) + "\n", file=sys.stderr)
+        raise e

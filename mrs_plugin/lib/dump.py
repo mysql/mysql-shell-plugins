@@ -25,6 +25,7 @@ from mrs_plugin import lib
 from mrs_plugin.lib import core, db_objects
 import os
 import json
+import time
 
 
 def get_object_fields(session, id):
@@ -217,6 +218,13 @@ def export_audit_log(file_path, audit_log_position_file=None, audit_log_position
         raise ValueError("No file_path for the audit log file given.")
     file_path = os.path.expanduser(file_path)
 
+    # Check if MRS is available
+    sql = "SELECT COUNT(*) AS mrs_available FROM information_schema.TABLES " + \
+        "WHERE table_schema = 'mysql_rest_service_metadata' and table_name='audit_log'"
+    row = core.MrsDbExec(sql).exec(session).first
+    if row["mrs_available"] == 0:
+        return
+
     if when_server_is_writeable:
         # Check if the server is in offline mode or super read only, if so, do not write the log
         sql = "SELECT @@global.offline_mode as offline_mode, @@global.super_read_only as super_read_only"
@@ -225,7 +233,8 @@ def export_audit_log(file_path, audit_log_position_file=None, audit_log_position
             return
 
     if audit_log_position_file is None:
-        audit_log_position_file = os.path.join(os.path.dirname(file_path), "mrs_audit_log_position.json")
+        audit_log_position_file = os.path.join(
+            os.path.dirname(file_path), "mrs_audit_log_position.json")
 
     # Read the audit_log_position from the audit_log_position_file if it has not been given explicitly
     # and the audit_log_position_file already exists
@@ -235,10 +244,10 @@ def export_audit_log(file_path, audit_log_position_file=None, audit_log_position
                 audit_log_position = json.loads(f.read()).get("position", None)
                 if audit_log_position is None:
                     raise ValueError(f"Invalid audit log position in file {
-                                    audit_log_position}")
+                        audit_log_position}")
             except json.JSONDecodeError:
                 raise ValueError(f"Invalid audit log position in file {
-                                audit_log_position}")
+                    audit_log_position}")
     else:
         audit_log_position = 0
 
@@ -264,4 +273,6 @@ def export_audit_log(file_path, audit_log_position_file=None, audit_log_position
     # Write the new audit log position to the audit_log_position_path file
     if audit_log_position_file is not None and audit_log_position > 0:
         with open(audit_log_position_file, 'w') as f:
-            f.write(json.dumps({"position": audit_log_position}))
+            f.write(json.dumps({
+                "position": audit_log_position,
+                "updateTime": time.strftime("%Y-%m-%d %H:%M:%S")}, indent=4))
