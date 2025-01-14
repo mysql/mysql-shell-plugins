@@ -33,7 +33,7 @@ import os
 import shutil
 import json
 import datetime
-import re
+import base64
 
 
 def verify_value_keys(**kwargs):
@@ -210,7 +210,7 @@ def file_name_using_language_convention(name, sdk_language):
 
 
 def default_copyright_header(sdk_language):
-    header = "Copyright (c) 2023, 2024, Oracle and/or its affiliates."
+    header = "Copyright (c) 2023, 2025, Oracle and/or its affiliates."
 
     if sdk_language == "TypeScript":
         return f"// {header}"
@@ -918,7 +918,7 @@ def dump_sdk_service_files(**kwargs):
         True on success
     """
     directory = kwargs.get("directory")
-    options = kwargs.get("options")
+    options = kwargs.get("options", {})
 
     if not directory:
         if lib.core.get_interactive_default():
@@ -942,31 +942,37 @@ def dump_sdk_service_files(**kwargs):
     if mrs_config is None:
         mrs_config = {}
 
-    if options is not None:
-        mrs_config["serviceId"] = options.get("service_id")
-        mrs_config["sdkLanguage"] = options.get("sdk_language", "TypeScript")
-        mrs_config["serviceUrl"] = options.get("service_url")
-        mrs_config["addAppBaseClass"] = options.get("add_app_base_class")
-        mrs_config["dbConnectionUri"] = options.get("db_connection_uri")
-        mrs_config["header"] = options.get(
-            "header", default_copyright_header(mrs_config["sdkLanguage"]))
+    mrs_config["serviceId"] = options.get("service_id", mrs_config.get("serviceId"))
+    mrs_config["sdkLanguage"] = options.get("sdk_language", mrs_config.get("sdkLanguage", "TypeScript"))
+    mrs_config["serviceUrl"] = options.get("service_url", mrs_config.get("serviceUrl"))
+    mrs_config["addAppBaseClass"] = options.get("add_app_base_class", mrs_config.get("addAppBaseClass"))
+    mrs_config["dbConnectionUri"] = options.get("db_connection_uri", mrs_config.get("dbConnectionUri"))
 
     mrs_config["generationDate"] = datetime.datetime.now(
         datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
-    serviceId = lib.core.id_to_binary(
-        mrs_config.get("serviceId"), "mrs.config.json", True)
-    if serviceId is None:
-        raise Exception(
-            "No serviceId defined in mrs.config.json. Please export the MRS SDK again.")
+    if mrs_config.get("serviceUrl") is None:
+        raise Exception("The service URL is required.")
 
-    if mrs_config.get("sdkLanguage") is None:
-        raise Exception("No SDK Language given.")
+    mrs_config["header"] = options.get(
+        "header", default_copyright_header(mrs_config["sdkLanguage"]))
 
-    sdk_language = mrs_config.get("sdkLanguage")
+    sdk_language = mrs_config["sdkLanguage"]
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        if mrs_config.get("serviceId") is None:
+            mrs_config["serviceId"] = lib.core.convert_id_to_base64_string(
+                    lib.services.get_current_service_id(session))
+
+        serviceId = lib.core.id_to_binary(
+            mrs_config.get("serviceId"), "mrs.config.json", True)
+
+        if serviceId is None:
+            raise Exception(
+                "No serviceId defined in mrs.config.json. Please export the MRS SDK again.")
+
         service = resolve_service(session, serviceId, True, True)
+
         service_name = lib.core.convert_path_to_camel_case(
             service.get("url_context_root"))
 
@@ -986,7 +992,7 @@ def dump_sdk_service_files(**kwargs):
             service_name, sdk_language)
 
         service_classes = get_sdk_service_classes(
-            service_id=serviceId, service_url=mrs_config.get("serviceUrl"),
+            service_id=serviceId, service_url=mrs_config["serviceUrl"],
             sdk_language=sdk_language, session=session)
         with open(os.path.join(directory, f"{file_name}.{file_type}"), 'w') as f:
             f.write(service_classes)

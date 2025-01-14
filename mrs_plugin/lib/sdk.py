@@ -303,16 +303,6 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
                 name=f"{service_class_name}AuthApp", sdk_language=sdk_language
             )
 
-    # If no explicit service_url is given, use the service's host_ctx and url_context_root
-    if not service_url:
-        host_ctx = service.get("host_ctx")
-        url_context_root = service.get("url_context_root")
-        # If no host_ctx starting with http is given, default to https://localhost:8443
-        if not host_ctx.lower().startswith("http"):
-            service_url = "https://localhost:8443" + url_context_root
-        else:
-            service_url = host_ctx
-
     mapping = {
         "service_level_constants": service_level_constants,
         "service_level_type_definitions": service_level_type_definitions,
