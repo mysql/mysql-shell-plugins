@@ -24,6 +24,7 @@
  */
 
 import type { ConnectionDataModelEntry } from "./ConnectionDataModel.js";
+import type { IDictionary } from "../app-logic/general-types.js";
 
 /** A list of names for schemas we consider being system schemas. */
 export const systemSchemas = new Set(["mysql", "mysql_innodb_cluster_metadata", "mysql_rest_service_metadata"]);

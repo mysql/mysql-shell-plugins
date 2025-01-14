@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,6 +30,7 @@ import { createRef } from "preact";
 
 import { mount } from "enzyme";
 import { CellComponent, RowComponent } from "tabulator-tables";
+import { registerUiLayer } from "../../../../../app-logic/UILayer.js";
 import {
     IMrsDbObjectData, IMrsDbObjectParameterData, IMrsObject, IMrsObjectFieldWithReference, IMrsObjectReference,
     IMrsTableColumnWithReference,
@@ -43,6 +44,7 @@ import { ShellInterfaceSqlEditor } from "../../../../../supplement/ShellInterfac
 import { MySQLShellLauncher } from "../../../../../utilities/MySQLShellLauncher.js";
 import { CellComponentMock } from "../../../__mocks__/CellComponentMock.js";
 import { RowComponentMock } from "../../../__mocks__/RowComponentMock.js";
+import { uiLayerMock } from "../../../__mocks__/UILayerMock.js";
 import {
     JestReactWrapper, createBackend, nextRunLoop, recreateMrsData, setupShellForTests,
 } from "../../../test-helpers.js";
@@ -787,6 +789,7 @@ describe("MRS Object field editor tests", () => {
 
 
     beforeAll(async () => {
+        registerUiLayer(uiLayerMock);
         launcher = await setupShellForTests(false, true, "DEBUG2");
 
         await recreateMrsData();

@@ -522,22 +522,22 @@ export class MRSCommandHandler {
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateAuthAppSql",
-            async (entry?: ICdmRestSchemaEntry) => {
+            async (entry?: ICdmRestAuthAppEntry) => {
                 await createStatementAuthenticationAppSql(entry, false, false);
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateAuthAppSqlIncludeAllObjects",
-            async (entry?: ICdmRestSchemaEntry) => {
+            async (entry?: ICdmRestAuthAppEntry) => {
                 await createStatementAuthenticationAppSql(entry, true, false);
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateUserSql",
-            async (entry?: ICdmRestSchemaEntry) => {
+            async (entry?: ICdmRestUserEntry) => {
                 await createStatementUserSql(entry, false, false);
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateUserSqlIncludeAllObjects",
-            async (entry?: ICdmRestSchemaEntry) => {
+            async (entry?: ICdmRestUserEntry) => {
                 await createStatementUserSql(entry, true, false);
             }));
 

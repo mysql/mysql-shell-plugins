@@ -1930,7 +1930,7 @@ export class ConnectionDataModel implements ICdmInitializer {
 
             // MRS schemas can be moved between services. If that's the case here initialize the MRS root instead.
             // Check the host context without the host name filter applied to it.
-            const hostCtx = schema.hostCtx.substring(schema.hostCtx.lastIndexOf("/"));
+            const hostCtx = schema.hostCtx.substring(schema.hostCtx.indexOf("/"));
             if (hostCtx !== mrsSchemaEntry.parent.caption) {
                 return this.updateMrsRoot(mrsSchemaEntry.parent.parent as Mutable<ICdmRestRootEntry>);
             }

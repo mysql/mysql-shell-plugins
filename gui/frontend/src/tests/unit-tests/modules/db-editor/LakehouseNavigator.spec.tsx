@@ -61,7 +61,7 @@ describe("LakehouseNavigator tests", () => {
             navigation: [],
             execution: [],
             editor: [],
-            auxillary: [],
+            auxiliary: [],
         },
         onLakehouseNavigatorStateChange: jest.fn(),
     };
@@ -923,7 +923,7 @@ describe("LakehouseNavigator tests", () => {
                     navigation: [],
                     execution: [],
                     editor: [],
-                    auxillary: [],
+                    auxiliary: [],
                 },
                 onLakehouseNavigatorStateChange: jest.fn(),
             };
@@ -1138,7 +1138,7 @@ describe("LakehouseNavigator tests", () => {
                     navigation: [],
                     execution: [],
                     editor: [],
-                    auxillary: [],
+                    auxiliary: [],
                 },
                 onLakehouseNavigatorStateChange: jest.fn(),
             };
