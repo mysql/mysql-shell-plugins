@@ -43,6 +43,7 @@ import { StandaloneServices } from "monaco-editor/esm/vs/editor/standalone/brows
 import { IStandaloneThemeService } from "monaco-editor/esm/vs/editor/standalone/common/standaloneTheme.js";
 import { MessageScheduler } from "../communication/MessageScheduler.js";
 import { IShellProfile } from "../communication/ProtocolGui.js";
+import { PasswordDialog } from "../components/Dialogs/PasswordDialog.js";
 import { ColorPopup } from "../components/ui/ColorPicker/ColorPopup.js";
 import { IComponentState } from "../components/ui/Component/ComponentBase.js";
 import { NotificationCenter, NotificationType } from "../components/ui/NotificationCenter/NotificationCenter.js";
@@ -56,9 +57,8 @@ import { InnoDBClusterModule } from "../modules/innodb-cluster/InnoDBClusterModu
 import { ShellModule } from "../modules/shell/ShellModule.js";
 import { versionMatchesExpected } from "../utilities/helpers.js";
 import { ApplicationDB } from "./ApplicationDB.js";
-import { registerUiLayer } from "./UILayer.js";
+import { registerUiLayer, ui } from "./UILayer.js";
 import { IDialogResponse, minimumShellVersion, type IServicePasswordRequest } from "./general-types.js";
-import { PasswordDialog } from "../components/Dialogs/PasswordDialog.js";
 
 interface IAppState extends IComponentState {
     explorerIsVisible: boolean;

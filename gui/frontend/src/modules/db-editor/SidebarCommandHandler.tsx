@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -157,7 +157,9 @@ export class SidebarCommandHandler {
                 case "msg.mrs.copyCreateServiceSql": {
                     const object = entry as ICdmRestDbObjectEntry;
                     try {
-                        const result = await entry.connection.backend.mrs.getServiceCreateStatement(object.details.id);
+                        const result = await entry.connection.backend.mrs.getServiceCreateStatement(object.details.id,
+                            true,
+                        );
                         requisitions.writeToClipboard(result);
                         void ui.showInformationNotification("The CREATE statement was copied to the system clipboard");
                         success = true;
@@ -429,7 +431,8 @@ export class SidebarCommandHandler {
                 case "msg.mrs.copyCreateSchemaSql": {
                     try {
                         const schema = entry as ICdmRestSchemaEntry;
-                        const result = await entry.connection.backend.mrs.getSchemaCreateStatement(schema.details.id);
+                        const result = await entry.connection.backend.mrs.getSchemaCreateStatement(schema.details.id,
+                            true);
                         requisitions.writeToClipboard(result);
                         success = true;
                         void ui.showInformationNotification("The CREATE statement was copied to the system clipboard");
