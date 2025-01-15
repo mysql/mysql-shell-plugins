@@ -86,13 +86,13 @@ const globalService: interfaces.IRestService = {
             },
             restObjects: [
                 {
-                    treeName: `/actor (actor)`,
+                    treeName: `/actor`,
                     jsonRelDuality: {
                         dbObject: "actor",
                     },
                 },
                 {
-                    treeName: `/city (city)`,
+                    treeName: `/city`,
                     jsonRelDuality: {
                         dbObject: "city",
                     },
@@ -111,7 +111,7 @@ const globalService: interfaces.IRestService = {
             },
             restObjects: [
                 {
-                    treeName: `/city (city)`,
+                    treeName: `/city`,
                     jsonRelDuality: {
                         dbObject: "city",
                     },
@@ -219,13 +219,13 @@ let otherService: interfaces.IRestService = {
             },
             restObjects: [
                 {
-                    treeName: `/actor (actor)`,
+                    treeName: `/actor`,
                     jsonRelDuality: {
                         dbObject: "actor",
                     },
                 },
                 {
-                    treeName: `/city (city)`,
+                    treeName: `/city`,
                     jsonRelDuality: {
                         dbObject: "city",
                     },
@@ -244,7 +244,7 @@ let otherService: interfaces.IRestService = {
             },
             restObjects: [
                 {
-                    treeName: `/city (city)`,
+                    treeName: `/city`,
                     jsonRelDuality: {
                         dbObject: "city",
                     },
@@ -529,7 +529,7 @@ describe("MYSQL REST SERVICE", () => {
                 ]);
 
                 await dbTreeSection.tree.expandElement([globalService.restSchemas![0].treeName!]);
-                await driver.wait(dbTreeSection.tree.untilExists(`/${table} (${table})`), constants.wait5seconds);
+                await driver.wait(dbTreeSection.tree.untilExists(`/${table}`), constants.wait5seconds);
             }
         } catch (e) {
             testFailed = true;
@@ -540,7 +540,7 @@ describe("MYSQL REST SERVICE", () => {
     it("Edit REST Object", async () => {
         try {
             const editedObject: interfaces.IRestObject = {
-                treeName: `/editedObject (${globalService.restSchemas![0].restObjects![1].jsonRelDuality?.dbObject})`,
+                treeName: `/editedObject`,
                 restServicePath: globalService.treeName,
                 restSchemaPath: globalService.restSchemas![0].restSchemaPath,
                 restObjectPath: `/editedObject`,
