@@ -20,6 +20,7 @@
         "coverage:report": "istanbul-merge --out coverage/coverage-final.json coverage/coverage-generic/coverage-final.json coverage/coverage-mrs/coverage-final.json && nyc report",
         "update-snapshots:generic": "clear && node --no-compilation-cache --expose-gc --max_old_space_size=4096 node_modules/.bin/jest -c=unit-tests.jest.config.ts --no-coverage  --watchAll=false -u",
         "update-snapshots:mrs": "clear && node --no-compilation-cache --expose-gc --max_old_space_size=4096 node_modules/.bin/jest -c=unit-tests-mrs.jest.config.ts --no-coverage  --watchAll=false -u  --runInBand",
+        "clear": "rm -rf node_modules && rm -f package-lock.json && rm -rf build && rm -rf src/oci-typings",
         "e2e-tests-setup-and-run": "mysqlsh --py -f src/tests/e2e/setup_local_env_and_run.py",
         "e2e-tests-run": "jest -c e2e.jest.config.ts",
         "e2e-tests-report": "node src/tests/e2e/postActions.mjs"
