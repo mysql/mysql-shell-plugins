@@ -2,7 +2,7 @@
 title: MRS Scripts Example
 ---
 
-<!-- Copyright (c) 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -41,7 +41,7 @@ The following steps need to be taken to setup, build and deploy the MRS Scripts 
 4. Ensure a bootstrapped MySQL Router instance is running (if not, start it).
 5. Build and deploy the MRS Scripts by following the steps below.
 
-#### Deploying the MRS Script Examples
+#### Deploying the MRS Scripts Examples
 
 The MRS Script Examples are written in TypeScript and need to be built before they can be uploaded to MRS. Please follow these steps to deploy the examples.
 
@@ -51,3 +51,11 @@ The MRS Script Examples are written in TypeScript and need to be built before th
 4. Right click on the background below the last file in the Folders view and select `Upload Folder to MySQL REST Service` from the popup menu.
 5. In the REST Content Set dialog make sure that the `Enable MRS Scripts` checkbox is checked and click `OK` to upload the files to the MRS service.
 6. Open a web browser and access the full path specified in the previous step to open the app, e.g. `https://localhost:8444/myService/testScripts/preactTestPage.html`
+
+#### Using MySQL Shell to Deploy the MRS Scripts Examples
+
+Apart from using the MySQL Shell for VS Code extension it is also possible to use the MySQL Shell to upload the MRS Scripts to MRS.
+
+```bash
+~/.mysqlsh-gui/mysqlsh dba@localhost --sql -e 'CREATE OR REPLACE REST CONTENT SET /mrsScriptsContent ON SERVICE /myService FROM "~/path_to_project_folder/mrs_scripts" LOAD SCRIPTS'
+```
