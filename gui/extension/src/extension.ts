@@ -29,8 +29,8 @@ import {
 } from "vscode";
 
 import * as childProcess from "child_process";
-import { existsSync, rmSync } from "fs";
-import { arch, platform } from "os";
+import { existsSync, mkdirSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from "fs";
+import { arch, homedir, platform } from "os";
 import { join } from "path";
 
 import { appParameters, requisitions } from "../../frontend/src/supplement/Requisitions.js";
@@ -335,16 +335,16 @@ export const activate = (context: ExtensionContext): void => {
 
     // Check if this is the initial run of the MySQL Shell extension after an update
     const lastRunVersion = context.globalState.get("MySQLShellLastRunVersion");
+    const osName = platform();
     if (!lastRunVersion || lastRunVersion === "" || lastRunVersion !== currentVersion) {
         void context.globalState.update("MySQLShellLastRunVersion", currentVersion);
-        const osName = platform();
+        const extensionShellDir = join(context.extensionPath, "shell");
 
         // Reset extended attributes on macOS
         if (osName === "darwin") {
-            const shellDir = join(context.extensionPath, "shell");
-            if (existsSync(shellDir)) {
+            if (existsSync(extensionShellDir)) {
                 // cSpell:ignore xattr
-                void childProcess.execSync(`xattr -rc ${shellDir}`);
+                void childProcess.execSync(`xattr -rc ${extensionShellDir}`);
             }
             const routerDir = join(context.extensionPath, "router");
             if (existsSync(routerDir)) {
@@ -374,6 +374,39 @@ export const activate = (context: ExtensionContext): void => {
                 printChannelOutput(String(reason), true);
                 promptForVcUpdate();
             });
+        }
+
+        if (existsSync(extensionShellDir)) {
+            const shellHomeDir = osName !== "win32"
+                ? join(homedir(), ".mysqlsh-gui")
+                : join(process.env.APPDATA!, "MySQL", "mysqlsh-gui");
+            if (!existsSync(shellHomeDir)) {
+                mkdirSync(shellHomeDir, { recursive: true });
+            }
+
+            if (osName !== "win32") {
+                // Create a direct link to the mysqlsh binary in the shell extension folder on MacOS/Linux
+                const mysqlshLinkPath = join(shellHomeDir, "mysqlsh");
+                if (existsSync(mysqlshLinkPath)) {
+                    unlinkSync(mysqlshLinkPath);
+                }
+                symlinkSync(join(extensionShellDir, "bin", "mysqlsh"), mysqlshLinkPath, "file");
+            } else {
+                // Create a mysqlsh.bat that calls the mysqlsh binary located in the shell extension folder on Windows
+                const shellBatFilePath = join(shellHomeDir, "mysqlsh.bat");
+                try {
+                    writeFileSync(shellBatFilePath, `@echo off\n"${join(extensionShellDir, "bin", "mysqlsh.exe")}" %*`);
+                } catch (err) {
+                    outputChannel.appendLine(`Error while writing to '${shellBatFilePath}'. Error: ${String(err)}`);
+                }
+
+                // Link the shell home folder as .mysqlsh-gui into the user's home folder to mimic MacOS/Linux
+                const shellUserHomeDir = join(homedir(), ".mysqlsh-gui");
+                if (existsSync(shellUserHomeDir)) {
+                    unlinkSync(shellUserHomeDir);
+                }
+                symlinkSync(shellHomeDir, shellUserHomeDir, "junction");
+            }
         }
     }
 

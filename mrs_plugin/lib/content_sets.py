@@ -276,6 +276,8 @@ def add_content_set(session, service_id, request_path, requires_auth=False, comm
                 raise ValueError(
                     "The MRS scripting language has no been specified and cannot be detected.")
 
+            options["mrs_scripts_folder_name"] = os.path.basename(os.path.normpath(content_dir))
+
     # Check if the open_api_ui should be downloaded and if so, download it, extract and patch it and
     # update the content_dir to point to the temporary directory holding it
     open_api_ui = False
