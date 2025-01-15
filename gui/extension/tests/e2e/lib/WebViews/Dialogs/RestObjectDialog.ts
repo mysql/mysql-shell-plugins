@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -378,7 +378,7 @@ export class RestObjectDialog {
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The MRS Object dialog was not closed");
 
-        restObject.treeName = `${restObject.restObjectPath} (${restObject.dataMapping?.dbObject})`;
+        restObject.treeName = `${restObject.restObjectPath}`;
 
         return restObject;
     };
@@ -519,7 +519,7 @@ export class RestObjectDialog {
             }, constants.wait10seconds, "The MRS Object dialog was not closed");
         }
 
-        restObject.treeName = `${restObject.restObjectPath} (${restObject.dataMapping?.dbObject})`;
+        restObject.treeName = `${restObject.restObjectPath}`;
 
         return restObject;
     };

@@ -1229,7 +1229,9 @@ describe("DATABASE CONNECTIONS", () => {
         it("Set this DB Connection as Default", async () => {
 
             await dbTreeSection.tree.openContextMenuAndSelect(treeGlobalConn, constants.setDBConnDefault);
-            await Workbench.getNotification(`"${globalConn.caption}" has been set as default DB Connection`);
+            await driver.wait(Workbench
+                .untilNotificationExists(`"${globalConn.caption}" has been set as default DB Connection`),
+                constants.wait10seconds);
 
         });
 

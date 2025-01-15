@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -71,7 +71,7 @@ export class E2ERestObject {
 
     public constructor(parentSchema: E2ERestSchema, object: interfaces.IRestObject) {
         this.parentSchema = parentSchema;
-        object.treeName = object.treeName ?? `/${object.dataMapping?.dbObject} (${object.dataMapping?.dbObject})`;
+        object.treeName = object.treeName ?? `/${object.dataMapping?.dbObject}`;
         this.set(object);
     }
 
@@ -99,7 +99,7 @@ export class E2ERestObject {
             });
 
         if (!restObject.treeName || restObject.treeName.includes("undefined")) {
-            restObject.treeName = `/${restObject.dataMapping?.dbObject} (${restObject.dataMapping?.dbObject})`;
+            restObject.treeName = `/${restObject.dataMapping?.dbObject}`;
         }
 
         this.set(restObject);

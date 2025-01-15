@@ -722,7 +722,7 @@ describe("MySQL REST Service", () => {
             const abcTable = restGlobalService.restSchemas[0].restObjects[2];
 
             const editedObject: interfaces.IRestObject = {
-                treeName: "/editedObject (abc)",
+                treeName: "/editedObject",
                 restServicePath: abcTable.parentSchema.restServicePath,
                 restSchemaPath: sakilaRestSchema.restSchemaPath,
                 restObjectPath: `/editedObject`,
