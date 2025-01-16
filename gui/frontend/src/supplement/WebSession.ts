@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { requisitions } from "./Requisitions.js";
+import { appParameters, requisitions } from "./Requisitions.js";
 import { IShellProfile } from "../communication/ProtocolGui.js";
 import { ShellInterface } from "./ShellInterface/ShellInterface.js";
 import { Cookies } from "./Storage/Cookies.js";
@@ -179,7 +179,9 @@ class WebSession {
     public saveProfile(): void {
         // Notify the shell for profile updates
         ShellInterface.users.updateProfile(this.shellProfile).then(() => {
-            void ui.showInformationNotification("Profile updated successfully.");
+            if (!appParameters.embedded) {
+                void ui.showInformationNotification("Profile updated successfully.");
+            }
         }).catch((reason) => {
             const message = reason instanceof Error ? reason.message : String(reason);
             void ui.showErrorNotification("Profile Update Error: " + message);
