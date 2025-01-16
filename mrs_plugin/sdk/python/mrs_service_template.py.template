@@ -1,4 +1,4 @@
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 
 import asyncio
 from dataclasses import asdict, dataclass
@@ -31,9 +31,11 @@ from .mrs_base_classes import (
     MrsBaseObjectQuery,
     # --- importReadOnlyEnd
     # --- importUpdateOnlyStart
+    _MrsDocumentUpdateMixin,
     MrsBaseObjectUpdate,
     # --- importUpdateOnlyEnd
     # --- importDeleteOnlyStart
+    _MrsDocumentDeleteMixin,
     DeleteOptions,
     MrsBaseObjectDelete,
     # --- importDeleteOnlyEnd
@@ -52,6 +54,7 @@ from .mrs_base_classes import (
     MrsBaseSchema,
     MrsBaseService,
     Order,
+    MrsDocumentBase,
     MrsDocument,
     MrsDocumentNotFoundError,
     UndefinedDataClassField,

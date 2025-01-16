@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -30,107 +30,30 @@ from string import Template
 import json
 
 
-# TODO: this skeleton should be extracted into a template file.
-# |--------------- CREATE'S EXECUTION PATH ---------------|
-# Primary key may or not be `None`, therefore, `rest_document_id`
-# may or not be defined. If `rest_document_id` is defined, then the
-# update's execution path will be added where defined values are handled.
-SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_CREATE = '''
-        if rest_document_id is UndefinedField:
-            request = MrsBaseObjectCreate[
-                INew{name}, I{name}Details
-            ](
-                schema=self._schema,
-                request_path=self._request_path,
-                data=cast(INew{name}, asdict(self)),
-            )
-            return self.__load_fields(
-                cast(I{name}Data, await request.submit())
-            )
-'''
-
-# TODO: this skeleton should be extracted into a template file.
-# |--------------- UPDATE'S EXECUTION PATH ---------------|
-# Primary key name isn't `None`, otherwise this
-# execution path wouldn't have been added to `upsert()`.
-# Therefore, `rest_document_id` is defined.
-SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_UPDATE = '''
-        await MrsBaseObjectUpdate[I{name}, I{name}Details](
-            schema=self._schema,
-            request_path=f"{{self._request_path}}/{{rest_document_id}}",
-            data=self,
-        ).submit()
-'''
-
-# TODO: this skeleton should be extracted into a template file.
-SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT = '''
-
-    async def upsert(self) -> None:
-        """Create or update a new resource represented by the data class instance.
-
-        If the specified primary key already exists an `update`
-        will happen, otherwise a `create`.
-        """
-        prk_name = self.get_primary_key_name()
-        rest_document_id = UndefinedField
-
-        if prk_name is not None and hasattr(self, prk_name):
-            rest_document_id = getattr(self, prk_name){create_snippet}{update_snippet}
-'''
-
-# TODO: this skeleton should be extracted into a template file.
-# |--------------- DELETE'S EXECUTION PATH ---------------|
-# If primary key name is `None`, this execution path shouldn't be added.
-# NOTE: We should add `type: ignore[misc]` (see below) because `prk_name`
-# is expected to be a literal string but it should be determined on-the-fly
-# if we want to rely on `get_primary_key_name()` to get it.
-SDK_PYTHON_DATACLASS_TEMPLATE_DELETE = '''
-
-    async def delete(self, read_own_writes: bool = False) -> None:
-        """Deletes the resource represented by the data class instance."""
-        prk_name = cast(str, self.get_primary_key_name())
-        rest_document_id = getattr(self, prk_name)
-        options = {{
-            "where": {{prk_name: f"{{rest_document_id}}"}},
-            "read_own_writes": read_own_writes
-        }}
-
-        _ = await MrsBaseObjectDelete[I{name}Filterable](
-            schema=self._schema,
-            request_path=f"{{self._request_path}}",
-            options=cast(DeleteOptions, options),
-        ).submit()
-'''
-
-# TODO: this skeleton should be extracted into a template file.
 SDK_PYTHON_DATACLASS_TEMPLATE = '''@dataclass(init=False, repr=True)
-class I{name}(MrsDocument):
+class I{name}({mixins}MrsDocument[I{name}Data]
+):
 
     # For data attributes, `None` means "NULL" and
     # `UndefinedField` means "not set or undefined"
 {join_field_block}
 
-    def __init__(self, schema: MrsBaseSchema, data: I{name}Data) -> None:
-        """Actor data class."""
-        self._schema: MrsBaseSchema = schema
-        self._request_path: str = "{obj_endpoint}"
-        self.__load_fields(data)
+    def __init__(  # type: ignore[override]
+        self, schema: MrsBaseSchema, data: I{name}Data
+    ) -> None:
+        super().__init__(schema, data, obj_endpoint="{obj_endpoint}")
 
-    def __load_fields(self, data: I{name}Data) -> None:
-        """Refresh data fields based on the input data."""
+    def _load_fields(self, data: I{name}Data) -> None:
 {join_assignment_block}
 
-        for key in MrsDocument._reserved_keys:
+        for key in MrsDocumentBase._reserved_keys:
             self.__dict__.update({{key: data.get(key)}})
 
     @classmethod
     def get_primary_key_name(cls) -> Optional[str]:
-        """Get primary key name.
+        return {primary_key_name}
 
-        Returns:
-            `str` when there is a primary key, `None` otherwise.
-        """
-        return {primary_key_name}{upsert_method}{delete_method}
+
 '''
 
 
@@ -1105,28 +1028,14 @@ def generate_data_class(
             ]
         ]
 
-        create_snippet = ""
-        update_snippet = ""
-        upsert_method = ""
-        delete_method = ""
-
-        if "UPDATE" in db_object_crud_ops:
-            update_snippet = SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_UPDATE.format(
-                name=name
-            )
-        if "CREATE" in db_object_crud_ops:
-            create_snippet = SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_CREATE.format(
-                name=name
-            )
-        if update_snippet or create_snippet:
-            upsert_method = SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT.format(
-                create_snippet=create_snippet,
-                update_snippet=update_snippet,
-            )
-        if "DELETE" in db_object_crud_ops and obj_primary_key is not None:
-            delete_method = SDK_PYTHON_DATACLASS_TEMPLATE_DELETE.format(name=name)
-            if upsert_method:
-                delete_method = " " * 4 + delete_method.lstrip()
+        mixins = []
+        if obj_primary_key is not None:
+            if "UPDATE" in db_object_crud_ops:
+                mixins.append(f'\n\t_MrsDocumentUpdateMixin["I{name}Data", "I{name}", "I{name}Details"],')
+            if "DELETE" in db_object_crud_ops:
+                mixins.append(f'\n\t_MrsDocumentDeleteMixin["I{name}Data", "I{name}Filterable"],')
+            if mixins:
+                mixins.append("\n\t")
 
         return SDK_PYTHON_DATACLASS_TEMPLATE.format(
             name=name,
@@ -1136,9 +1045,8 @@ def generate_data_class(
             primary_key_name=(
                 None if obj_primary_key is None else f'"{obj_primary_key}"'
             ),
-            upsert_method=upsert_method,
-            delete_method=delete_method,
-        ) + ("" if upsert_method or delete_method else "\n\n")
+            mixins="".join(mixins),
+        )
 
 
 def generate_field_enum(name, fields=None, sdk_language="TypeScript"):

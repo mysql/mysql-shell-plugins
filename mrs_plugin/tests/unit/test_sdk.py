@@ -1,4 +1,4 @@
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -420,19 +420,14 @@ export interface IFooCursors {
     obj_primary_key = None
     join_field_block = "    bar: str | UndefinedDataClassField"
     join_assignment_block = '        self.bar = data.get("bar", UndefinedField)'
-    update_snippet = SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_UPDATE.format(name=class_name)
-    create_snippet = SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_CREATE.format(name=class_name)
-    upsert_method = SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT.format(
-        create_snippet=create_snippet,
-        update_snippet=update_snippet,
-    )
-    delete_method = (
-        SDK_PYTHON_DATACLASS_TEMPLATE_DELETE.format(name=class_name)
-        if obj_primary_key
-        else ""
-    )
-    if upsert_method and delete_method:
-        delete_method = " " * 4 + delete_method.lstrip()
+
+    mixins = []
+    if obj_primary_key:
+        mixins.extend([
+            f'\n\t_MrsDocumentUpdateMixin["I{class_name}Data", "I{class_name}", "I{class_name}Details"],',
+            f'\n\t_MrsDocumentDeleteMixin["I{class_name}Data", "I{class_name}Filterable"],',
+            "\n\t"
+        ])
 
     want = """class I{name}Details(IMrsResourceDetails, total=False):
     bar: str
@@ -483,8 +478,7 @@ class I{name}Cursors(TypedDict, total=False):
             primary_key_name=(
                 None if obj_primary_key is None else f'"{obj_primary_key}"'
             ),
-            upsert_method=upsert_method,
-            delete_method=delete_method,
+            mixins="".join(mixins),
         ).rstrip(),
     )
 
@@ -718,7 +712,6 @@ def test_generate_type_declaration():
 
 
 def test_generate_data_class():
-
     # TypeScript
     fields = {"foo": "baz", "bar": "qux"}
     data_class = generate_data_class(
@@ -740,44 +733,28 @@ def test_generate_data_class():
         + '        self.bar_baz = data.get("bar_baz", UndefinedField)'
     )
 
-    permutations = [
-        ("", "", []),
-        (
-            SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_UPDATE.format(name="Foobar"),
-            "",
-            ["UPDATE"],
-        ),
-        (
-            "",
-            SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_CREATE.format(name="Foobar"),
-            ["CREATE"],
-        ),
-        (
-            SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_UPDATE.format(name="Foobar"),
-            SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT_CREATE.format(name="Foobar"),
-            ["UPDATE", "CREATE"],
-        ),
+    test_cases_db_object_crud_ops = [
+        [],
+        ["UPDATE"],
+        ["DELETE"],
+        ["UPDATE", "DELETE"],
     ]
-
-    for update_snippet, create_snippet, db_object_crud_ops in permutations:
-        for obj_prk, add_delete in [(None, False), (None, True), ("foo_id", True), ("foo_id", False)]:
-            upsert_method = ""
-            delete_method = ""
+    name = "Foobar"
+    for db_object_crud_ops in test_cases_db_object_crud_ops:
+        for obj_prk in [None, None, "foo_id", "foo_id"]:
             db_object_delete_op = []
+            mixins = []
 
-            if update_snippet or create_snippet:
-                upsert_method = SDK_PYTHON_DATACLASS_TEMPLATE_UPSERT.format(
-                    create_snippet=create_snippet,
-                    update_snippet=update_snippet,
-                )
-            if add_delete and obj_prk:
-                delete_method = SDK_PYTHON_DATACLASS_TEMPLATE_DELETE.format(name="Foobar")
-                db_object_delete_op.append("DELETE")
-                if upsert_method:
-                    delete_method = " "*4 + delete_method.lstrip()
+            if obj_prk is not None:
+                if "UPDATE" in db_object_crud_ops:
+                    mixins.append(f'\n\t_MrsDocumentUpdateMixin["I{name}Data", "I{name}", "I{name}Details"],')
+                if "DELETE" in db_object_crud_ops:
+                    mixins.append(f'\n\t_MrsDocumentDeleteMixin["I{name}Data", "I{name}Filterable"],')
+                if mixins:
+                    mixins.append("\n\t")
 
             data_class = generate_data_class(
-                "Foobar",
+                name,
                 {"foo": "baz", "barBaz": "qux"},
                 "Python",
                 db_object_crud_ops+db_object_delete_op,
@@ -786,14 +763,13 @@ def test_generate_data_class():
             )
 
             assert data_class == SDK_PYTHON_DATACLASS_TEMPLATE.format(
-                name="Foobar",
+                name=name,
                 join_field_block=join_field_block,
                 obj_endpoint=obj_endpoint,
                 join_assignment_block=join_assignment_block,
                 primary_key_name=f'"{obj_prk}"' if obj_prk is not None else obj_prk,
-                upsert_method=upsert_method,
-                delete_method=delete_method
-            ) + ("" if upsert_method or delete_method else "\n\n")
+                mixins="".join(mixins),
+            )
 
 
 def test_generate_literal_type():

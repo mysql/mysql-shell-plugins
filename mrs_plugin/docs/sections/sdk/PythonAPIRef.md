@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -806,74 +806,72 @@ assert actors_updated[1].last_name == "Yeung"
 
 ## REST Documents
 
-A *REST document* behaves like a [Python data class](https://docs.python.org/3/library/dataclasses.html) instance, and implements an extended interface which includes the `upsert` and `delete` methods.
+A *REST document* behaves like a [Python data class](https://docs.python.org/3/library/dataclasses.html) instance, and implements an extended interface which includes the `update` and `delete` methods.
 
-### upsert
+> **Python data classes defining REST documents are public elements of the *Service* module, however, we advise you to not produce (instantiate) *REST documents* directly. Instead, we recommend doing so indirectly; by calling specific Python SDK commands such as `find*()` or `create*()`. See [REST Views](#rest-views) to know more about these commands.**
 
-`upsert` creates or updates the REST document represented by the data class instance.
+### update (document)
 
-> If the specified primary key already exists, an *update* happens, otherwise a *create*.
+`update` updates the REST document represented by the data class instance.
 
-After completing the operation, the data class instance fields are updated in-place.
-
-#### Options (upsert)
+#### Options (update - document)
 
 No options are implemented because the data required to complete the operation is assumed to be already included in the data class instance itself.
 
-#### Return Type (upsert)
+#### Return Type (update - document)
 
 `None`.
 
-#### Example (upsert)
-
-Showcasing a *create*.
+#### Example (update - document)
 
 ```python
-from sdk.python.my_service import IMyServiceSakilaActor as Actor, MyService
-
-my_service = MyService()
-
-# The `actor_id` and `last_update` columns from the `sakila` table on the
-# sample [sakila database](https://dev.mysql.com/doc/sakila/en/) are
-# automatically generated on each insert, which means they can be omitted.
-actor = Actor(
-    schema=self.my_service.sakila,
-    data={
-        "first_name": "CHARLY",
-        "last_name": "BROWN"
-    },
+import asyncio
+from datetime import datetime
+from typing import Optional
+from sdk.python.my_service import (
+    IMyServiceSakilaActor as Actor,
+    MyService,
+    MrsDocumentNotFoundError,
 )
-await actor.upsert()
 
-print(actor)
-# Actor(actor_id=6753, first_name='CHARLY', last_name='BROWN', last_update='2024-06-04 10:14:33.000000')
-```
 
-Showcasing an *update*.
+async def get_actor_document_by_id(service: MyService, doc_id: int) -> Actor:
+    try:
+        actor: Actor = await service.sakila.actor.find_first_or_throw(
+                where={"actor_id": doc_id}
+            )
+    except MrsDocumentNotFoundError:
+        raise MrsDocumentNotFoundError(msg=f"No actor document exists matching actor_id={doc_id}")
+    return actor
 
-```python
-from sdk.python.my_service import IMyServiceSakilaActor as Actor, MyService
 
-my_service = MyService()
+async def main() -> None:
+    # Create service
+    my_service = MyService()
 
-actor: Optional[Actor] = await my_service.sakila.actor.find_first(
-        where={"actor_id": 3}
-    )
-if actor is None:
-    print("Ups, Invalid document ID")
-    sys.exit()
-print("Before:", actor)
+    # Get a document
+    doc_id = 3
+    actor = await get_actor_document_by_id(service=my_service, doc_id=doc_id)
+    print("Before:", actor)
 
-actor.first_name = "RODOLFO"
-actor.last_name = "CHASE"
-actor.last_update = str(datetime.now())
+    # Modify the data class instance representing a REST document
+    actor.first_name = "DESIRE"
+    actor.last_name = "LEE"
+    actor.last_update = str(datetime.now())
 
-await actor.upsert()
+    # Commit an update
+    await actor.update()
 
-print(actor)
+    # Peak the REST document to see if it was updated accordingly
+    actor_after = await get_actor_document_by_id(service=my_service, doc_id=doc_id)
+    print("After:", actor_after)
 
-# Before: Actor(actor_id=3, first_name='ED', last_name='SMITH', last_update='2023-04-13 15:11:22.000000')
-# After: Actor(actor_id=3, first_name='RODOLFO', last_name='CHASE', last_update='2024-06-04 10:14:33.000000')
+    # Before: IMyServiceSakilaActor(last_name='CHASE', last_update='2023-04-13 15:11:22.000000', first_name='ED', actor_id=3)
+    # After: IMyServiceSakilaActor(last_name='LEE', last_update='2025-01-09 13:07:50.000000', first_name='DESIRE', actor_id=3)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 
@@ -892,27 +890,42 @@ No options are implemented because the data required to complete the operation i
 #### Example (delete - document)
 
 ```python
-from sdk.python.my_service import IMyServiceSakilaActor as Actor, MyService
+import asyncio
+from typing import Optional, cast
+from sdk.python.my_service import (
+    IMyServiceSakilaActor as Actor,
+    MyService,
+)
 
-my_service = MyService()
 
-actor: Optional[Actor] = await my_service.sakila.actor.find_first(
-        where={"actor_id": 3}
+async def main():
+    # Create service
+    my_service = MyService()
+
+    # Create a document
+    #
+    # The `actor_id` and `last_update` columns from the `sakila`
+    # table on the sample [sakila database](https://dev.mysql.com/doc/sakila/en/)
+    # are automatically generated on each insert, which means they can be omitted.
+    actor = await my_service.sakila.actor.create(
+        {"first_name": "GRACO", "last_name": "WALKER"}
     )
-if actor is None:
-    print("Ups, no document found")
-    sys.exit()
+    print(actor)
 
-print(actor)
-await actor.delete()
+    # Commit a delete
+    await actor.delete()
 
-actor: Optional[Actor] = await my_service.sakila.actor.find_first(
-        where={"actor_id": 3}
+    actor_after: Optional[Actor] = await my_service.sakila.actor.find_first(
+        where={"actor_id": cast(int, actor.actor_id)}
     )
-print("deleted?", actor is None)
+    print("deleted?", actor_after is None)
 
-# Actor(actor_id=3, first_name='ED', last_name='SMITH', last_update='2023-04-13 15:11:22.000000')
-# deleted? True
+    # IMyServiceSakilaActor(last_name='WALKER', last_update='2025-01-09 13:31:16.000000', first_name='GRACO', actor_id=37171)
+    # deleted? True
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 
