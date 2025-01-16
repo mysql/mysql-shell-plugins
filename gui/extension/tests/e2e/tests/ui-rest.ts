@@ -43,6 +43,7 @@ import { TestQueue } from "../lib/TestQueue";
 import { E2ERestService } from "../lib/SideBar/E2ERestService";
 import { E2ERestSchema } from "../lib/SideBar/E2ERestSchema";
 import { E2ERestObject } from "../lib/SideBar/E2ERestObject";
+import { existsSync } from "fs";
 
 describe("MySQL REST Service", () => {
 
@@ -179,8 +180,14 @@ describe("MySQL REST Service", () => {
 
             const treeMySQLRestService = await dbTreeSection.tree.getElement(constants.mysqlRestService);
             await treeMySQLRestService.expand();
-            await fs.truncate(await Os.getRouterLogFile());
+            const logFile = await Os.getRouterLogFile();
+
+            if (existsSync(logFile)) {
+                await fs.truncate(logFile);
+            }
+
             await dbTreeSection.tree.openContextMenuAndSelect(treeMySQLRestService, constants.startRouter);
+            await driver.wait(Os.untilRouterLogFileExists(), constants.wait5seconds);
             await driver.wait(Os.untilRouterIsActive(), constants.wait20seconds);
         });
 

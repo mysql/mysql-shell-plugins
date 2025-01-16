@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -22,8 +22,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { until, By } from "vscode-extension-tester";
-import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
+import { until, By, Key } from "vscode-extension-tester";
 import { driver, Misc } from "../../Misc";
 import * as constants from "../../constants";
 import * as interfaces from "../../interfaces";
@@ -60,18 +59,23 @@ export class RestUserDialog {
             await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.email, restUser.email);
         }
         if (restUser.assignedRoles) {
-            await dialog.findElement(locator.mrsUserDialog.roles).click();
+            await driver.executeScript("arguments[0].click()", await dialog.findElement(locator.mrsUserDialog.roles));
             await driver.wait(until.elementLocated(locator.mrsUserDialog.rolesList),
                 constants.wait5seconds, "Roles drop down list was not displayed");
 
             const roles = await driver.findElement(By.id(restUser.assignedRoles));
             const rolesLabel = await roles.findElement(locator.htmlTag.label);
+
             const rolesLabelClass = await rolesLabel.getAttribute("class");
             if (rolesLabelClass.includes("unchecked")) {
-                await roles.click();
+                await driver.executeScript("arguments[0].click()", roles);
             } else {
                 await driver.wait(async () => {
-                    await keyboard.type(nutKey.Escape);
+                    await driver.wait(async () => {
+                        await driver.actions().keyDown(Key.ESCAPE).keyUp(Key.ESCAPE).perform();
+
+                        return (await driver.findElements(locator.mrsUserDialog.rolesList)).length === 0;
+                    }, constants.wait5seconds, "Roles drop down list was not closed");
 
                     return (await driver.findElements(locator.mrsUserDialog.rolesList)).length === 0;
                 }, constants.wait5seconds, "Roles drop down list was not closed");

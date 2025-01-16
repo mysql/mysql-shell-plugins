@@ -253,6 +253,16 @@ export class Os {
     };
 
     /**
+     * Verifies if the router log file exists
+     * @returns A condition resolving to true if the file exists, false otherwise
+     */
+    public static untilRouterLogFileExists = (): Condition<boolean> => {
+        return new Condition(`for router log file to exist`, async () => {
+            return existsSync(await this.getRouterLogFile());
+        });
+    };
+
+    /**
      * Gets the location of the mysqlsh log file
      * @returns A promise resolving with the location of the mysqlsh log file
      */
@@ -436,11 +446,16 @@ export class Os {
      */
     public static untilRouterIsInactive = (): Condition<boolean> => {
         return new Condition(`for router to be INACTIVE`, async () => {
-            const logFile = await Os.getRouterLogFile();
-            const fileContent = await fs.readFile(logFile, "utf-8");
+            if (Os.isWindows()) {
+                return execSync("tasklist").indexOf("mysqlrouter") === -1;
+            } else {
+                const logFile = await Os.getRouterLogFile();
+                const fileContent = await fs.readFile(logFile, "utf-8");
 
-            return fileContent
-                .match(/Stop accepting connections for routing/) !== null;
+                return fileContent
+                    .match(/Stop accepting connections for routing/) !== null;
+            }
+
         });
 
     };

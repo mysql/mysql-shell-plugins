@@ -28,6 +28,7 @@ import { driver } from "../../lib/driver.js";
 import * as constants from "../constants.js";
 import * as locator from "../locators.js";
 import { E2EObjectStorageBrowser } from "./E2EObjectStorageBrowser.js";
+import { Os } from "../os.js";
 
 export class E2EUploadToObjectStorage {
 
@@ -57,8 +58,9 @@ export class E2EUploadToObjectStorage {
         await driver.wait(until.elementLocated(locator.fileSelect),
             constants.wait5seconds, "Could not find the input file box").sendKeys(path);
 
-        const splittedPath = path.split("/");
-        await driver.wait(this.untilExistsFileForUploadFile(splittedPath[splittedPath.length - 1]));
+        const splittedPath = Os.isWindows() ? path.split("\\") : path.split("/");
+        await driver.wait(this.untilExistsFileForUploadFile(splittedPath[splittedPath.length - 1]),
+            constants.wait10seconds);
     };
 
     /**

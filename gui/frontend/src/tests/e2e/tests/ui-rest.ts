@@ -92,9 +92,9 @@ const globalService: interfaces.IRestService = {
                     },
                 },
                 {
-                    treeName: `/city`,
+                    treeName: `/address`,
                     jsonRelDuality: {
-                        dbObject: "city",
+                        dbObject: "address",
                     },
                 },
             ],
@@ -111,9 +111,9 @@ const globalService: interfaces.IRestService = {
             },
             restObjects: [
                 {
-                    treeName: `/city`,
+                    treeName: `/address`,
                     jsonRelDuality: {
-                        dbObject: "city",
+                        dbObject: "address",
                     },
                 },
             ],
@@ -225,9 +225,9 @@ let otherService: interfaces.IRestService = {
                     },
                 },
                 {
-                    treeName: `/city`,
+                    treeName: `/address`,
                     jsonRelDuality: {
-                        dbObject: "city",
+                        dbObject: "address",
                     },
                 },
             ],
@@ -507,7 +507,7 @@ describe("MYSQL REST SERVICE", () => {
             await dbTreeSection.tree.expandElement([treeSakila!]);
             await dbTreeSection.tree.expandElement(["Tables"]);
 
-            const tables = ["actor", "city"];
+            const tables = ["actor", "address"];
 
             for (const table of tables) {
                 await Misc.dismissNotifications();
@@ -644,8 +644,8 @@ describe("MYSQL REST SERVICE", () => {
     it("Open REST Object Request Path in Browser", async () => {
         try {
             let browserTabs: string[] = [];
-            const cityTree = globalService.restSchemas![0].restObjects![1].treeName!;
-            await dbTreeSection.tree.openContextMenuAndSelect(cityTree, constants.openRESTObjReqPathInBrowser);
+            const addressTree = globalService.restSchemas![0].restObjects![1].treeName!;
+            await dbTreeSection.tree.openContextMenuAndSelect(addressTree, constants.openRESTObjReqPathInBrowser);
             await driver.wait(async () => {
                 browserTabs = await driver.getAllWindowHandles();
                 if (browserTabs.length > 1) {
@@ -657,9 +657,9 @@ describe("MYSQL REST SERVICE", () => {
 
             const service = globalService.servicePath;
             const sakila = globalService.restSchemas![0].settings?.schemaName;
-            const city = globalService.restSchemas![0].restObjects![1].jsonRelDuality?.dbObject;
+            const address = globalService.restSchemas![0].restObjects![1].jsonRelDuality?.dbObject;
 
-            const regex = new RegExp(`localhost:(\\d+)${service}/${sakila}/${city}`);
+            const regex = new RegExp(`localhost:(\\d+)${service}/${sakila}/${address}`);
             expect(await driver.getCurrentUrl()).toMatch(regex);
             await driver.switchTo().window(browserTabs[0]);
         } catch (e) {
