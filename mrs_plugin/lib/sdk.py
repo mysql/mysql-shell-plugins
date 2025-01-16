@@ -240,7 +240,7 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
     )
 
     template = code.get("template")
-    requires_auth = code.get("requires_auth") or len(auth_apps) > 0
+    requires_auth = code.get("requires_auth") and len(auth_apps) > 0
 
     # if no db object requires auth and there are no authentication apps enabled for the service,
     # the SDK authentication command should not be generated
@@ -263,7 +263,10 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
 
     service_id = service.get("id")
     # Auth App infrastructure should only be generated if the service contains a
-    # db object that requires authentication
+    # db object that requires authentication and there is at least one authentication app available
+    # TODO: although this is ok now that from the user standpoint, an authentication app exists in
+    # the scope of a service, in the future, if an authentication app can span different services
+    # it would not make sense to force the SDK to be re-generated
     if requires_auth:
         # TODO: include apps from all vendors.
         # For now, only include MRS and MySQL-Internal vendor auth apps

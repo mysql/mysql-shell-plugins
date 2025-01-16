@@ -1,4 +1,4 @@
-/* Copyright (c) 2023, 2024, Oracle and/or its affiliates. */
+/* Copyright (c) 2023, 2025, Oracle and/or its affiliates. */
 
 /* eslint-disable max-len */
 /* eslint-disable max-classes-per-file */
@@ -99,10 +99,10 @@ export interface IChatAppChatHeatwaveChatAsyncResultParams {
 }
 
 export interface IChatAppChatHeatwaveChatAsyncResultParamsOut {
-    response?: MaybeNull<string>,
-    progress?: MaybeNull<number>,
-    chatOptions?: MaybeNull<JsonValue>,
     status?: MaybeNull<string>,
+    progress?: MaybeNull<number>,
+    response?: MaybeNull<string>,
+    chatOptions?: MaybeNull<JsonValue>,
 }
 
 export type IChatAppChatHeatwaveChatAsyncResultResultSet = JsonObject;
@@ -146,5 +146,6 @@ export class ChatApp extends MrsBaseService {
 
         return this.#chat;
     }
+
 }
 

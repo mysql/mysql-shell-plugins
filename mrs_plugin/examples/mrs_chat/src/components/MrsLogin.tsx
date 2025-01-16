@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/no-autofocus */
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -94,7 +94,7 @@ export default class MrsLogin extends Component<IMrsLoginProps, IMrsLoginState> 
 
         this.setStateClassStyle("userNameBtn", styles.loading);
         try {
-            await myService.session.verifyUserName(authApp, userName);
+            await myService.session.sendClientFirst(authApp, userName);
 
             this.setState({
                 userNameVerified: true,
@@ -111,7 +111,7 @@ export default class MrsLogin extends Component<IMrsLoginProps, IMrsLoginState> 
         if (password !== undefined && password !== "") {
             this.setStateClassStyle("passwordBtn", styles.loading);
 
-            const response = await myService.session.verifyPassword(password);
+            const response = await myService.session.sendClientFinal(password);
 
             if (response.errorCode !== null && response.errorCode !== undefined) {
                 this.showLoginError(response.errorMessage as string);
