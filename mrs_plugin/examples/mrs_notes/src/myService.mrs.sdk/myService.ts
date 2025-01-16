@@ -1,4 +1,4 @@
-/* Copyright (c) 2023, 2024, Oracle and/or its affiliates. */
+/* Copyright (c) 2023, 2025, Oracle and/or its affiliates. */
 
 /* eslint-disable max-len */
 /* eslint-disable max-classes-per-file */
@@ -31,8 +31,6 @@ import {
 export type { IMrsAuthUser, IMrsAuthStatus } from "./MrsBaseClasses";
 // --- MySQL Shell for VS Code Extension Remove --- End
 
-
-type IMyServiceAuthApp = never;
 
 
 /* -----------------------------------------------------------------------------
@@ -877,5 +875,6 @@ export class MyService extends MrsBaseService {
 
         return this.#mrsNotes;
     }
+
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -127,7 +127,6 @@ export abstract class MrsBaseApp<Service extends MrsBaseService, State extends I
             // TODO: maybe we need a public API to add a token in the SDK
             this.mrsService.session.accessToken = accessToken;
         } else {
-            this.mrsService.session.accessToken = accessToken;
             // If it was specified, store it in the globalThis.localStorage
             globalThis.localStorage.setItem(`${this.appName}JwtAccessToken`, accessToken);
             // Clean Browser URL without reloading the page

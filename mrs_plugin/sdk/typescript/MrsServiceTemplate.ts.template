@@ -1,4 +1,4 @@
-/* Copyright (c) 2023, 2024, Oracle and/or its affiliates. */
+/* Copyright (c) 2023, 2025, Oracle and/or its affiliates. */
 
 /* eslint-disable max-len */
 /* eslint-disable max-classes-per-file */
@@ -314,8 +314,9 @@ export class ${service_class_name} extends MrsBaseService {
             return ${service_class_name}.authenticate({ username, authApp });
         }
         // --- MySQL Shell for VS Code Extension Only --- End
-
+        // @ts-expect-error when this function is generated, AUTH_APPS always contains the corresponding authentication app details
         const { vendorId } = AUTH_APPS.find((app) => {
+            // @ts-expect-error same as reason as before
             return app.name === authApp;
         });
         const request = new MrsAuthenticate(this.session, authApp, vendorId, username, password);
