@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.-->
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.-->
 
 <head>
     <meta charset="UTF-8" />
@@ -150,7 +150,7 @@
                 <nav class="section-nav">
                     <div class="bookToc">
                         <br>
-                        <h3>MRS SDK Reference 1.19.0</h3>
+                        <h3>MRS SDK Reference </h3>
                                                 <ul>
                                                 <li><a
                                                 href="#introduction-to-the-mrs-sdk"
@@ -3639,76 +3639,88 @@ Reference
                 <p>A <em>REST document</em> behaves like a <a
                 href="https://docs.python.org/3/library/dataclasses.html">Python
                 data class</a> instance, and implements an extended
-                interface which includes the <code>upsert</code> and
+                interface which includes the <code>update</code> and
                 <code>delete</code> methods.</p>
-                <h3 data-number="9.4.1" id="upsert"><span
-                class="header-section-number">9.4.1</span> upsert</h3>
-                <p><code>upsert</code> creates or updates the REST
-                document represented by the data class instance.</p>
                 <blockquote>
-                <p>If the specified primary key already exists, an
-                <em>update</em> happens, otherwise a
-                <em>create</em>.</p>
+                <p><strong>Python data classes defining REST documents
+                are public elements of the <em>Service</em> module,
+                however, we advise you to not produce (instantiate)
+                <em>REST documents</em> directly. Instead, we recommend
+                doing so indirectly; by calling specific Python SDK
+                commands such as <code>find*()</code> or
+                <code>create*()</code>. See <a href="#rest-views">REST
+                Views</a> to know more about these
+                commands.</strong></p>
                 </blockquote>
-                <p>After completing the operation, the data class
-                instance fields are updated in-place.</p>
-                <h4 data-number="9.4.1.1" id="options-upsert"><span
+                <h3 data-number="9.4.1" id="update-document"><span
+                class="header-section-number">9.4.1</span> update
+                (document)</h3>
+                <p><code>update</code> updates the REST document
+                represented by the data class instance.</p>
+                <h4 data-number="9.4.1.1"
+                id="options-update---document"><span
                 class="header-section-number">9.4.1.1</span> Options
-                (upsert)</h4>
+                (update - document)</h4>
                 <p>No options are implemented because the data required
                 to complete the operation is assumed to be already
                 included in the data class instance itself.</p>
-                <h4 data-number="9.4.1.2" id="return-type-upsert"><span
+                <h4 data-number="9.4.1.2"
+                id="return-type-update---document"><span
                 class="header-section-number">9.4.1.2</span> Return Type
-                (upsert)</h4>
+                (update - document)</h4>
                 <p><code>None</code>.</p>
-                <h4 data-number="9.4.1.3" id="example-upsert"><span
+                <h4 data-number="9.4.1.3"
+                id="example-update---document"><span
                 class="header-section-number">9.4.1.3</span> Example
-                (upsert)</h4>
-                <p>Showcasing a <em>create</em>.</p>
+                (update - document)</h4>
                 <div class="sourceCode" id="cb74"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
-<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb74-4"><a href="#cb74-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb74-5"><a href="#cb74-5" aria-hidden="true" tabindex="-1"></a><span class="co"># The `actor_id` and `last_update` columns from the `sakila` table on the</span></span>
-<span id="cb74-6"><a href="#cb74-6" aria-hidden="true" tabindex="-1"></a><span class="co"># sample [sakila database](https://dev.mysql.com/doc/sakila/en/) are</span></span>
-<span id="cb74-7"><a href="#cb74-7" aria-hidden="true" tabindex="-1"></a><span class="co"># automatically generated on each insert, which means they can be omitted.</span></span>
-<span id="cb74-8"><a href="#cb74-8" aria-hidden="true" tabindex="-1"></a>actor <span class="op">=</span> Actor(</span>
-<span id="cb74-9"><a href="#cb74-9" aria-hidden="true" tabindex="-1"></a>    schema<span class="op">=</span><span class="va">self</span>.my_service.sakila,</span>
-<span id="cb74-10"><a href="#cb74-10" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>{</span>
-<span id="cb74-11"><a href="#cb74-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;CHARLY&quot;</span>,</span>
-<span id="cb74-12"><a href="#cb74-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;BROWN&quot;</span></span>
-<span id="cb74-13"><a href="#cb74-13" aria-hidden="true" tabindex="-1"></a>    },</span>
-<span id="cb74-14"><a href="#cb74-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb74-15"><a href="#cb74-15" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> actor.upsert()</span>
-<span id="cb74-16"><a href="#cb74-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb74-17"><a href="#cb74-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actor)</span>
-<span id="cb74-18"><a href="#cb74-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Actor(actor_id=6753, first_name=&#39;CHARLY&#39;, last_name=&#39;BROWN&#39;, last_update=&#39;2024-06-04 10:14:33.000000&#39;)</span></span></code></pre></div>
-                <p>Showcasing an <em>update</em>.</p>
-                <div class="sourceCode" id="cb75"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
-<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb75-5"><a href="#cb75-5" aria-hidden="true" tabindex="-1"></a>actor: Optional[Actor] <span class="op">=</span> <span class="cf">await</span> my_service.sakila.actor.find_first(</span>
-<span id="cb75-6"><a href="#cb75-6" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: <span class="dv">3</span>}</span>
-<span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb75-8"><a href="#cb75-8" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> actor <span class="kw">is</span> <span class="va">None</span>:</span>
-<span id="cb75-9"><a href="#cb75-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;Ups, Invalid document ID&quot;</span>)</span>
-<span id="cb75-10"><a href="#cb75-10" aria-hidden="true" tabindex="-1"></a>    sys.exit()</span>
-<span id="cb75-11"><a href="#cb75-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;Before:&quot;</span>, actor)</span>
-<span id="cb75-12"><a href="#cb75-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb75-13"><a href="#cb75-13" aria-hidden="true" tabindex="-1"></a>actor.first_name <span class="op">=</span> <span class="st">&quot;RODOLFO&quot;</span></span>
-<span id="cb75-14"><a href="#cb75-14" aria-hidden="true" tabindex="-1"></a>actor.last_name <span class="op">=</span> <span class="st">&quot;CHASE&quot;</span></span>
-<span id="cb75-15"><a href="#cb75-15" aria-hidden="true" tabindex="-1"></a>actor.last_update <span class="op">=</span> <span class="bu">str</span>(datetime.now())</span>
-<span id="cb75-16"><a href="#cb75-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb75-17"><a href="#cb75-17" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> actor.upsert()</span>
-<span id="cb75-18"><a href="#cb75-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb75-19"><a href="#cb75-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actor)</span>
-<span id="cb75-20"><a href="#cb75-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb75-21"><a href="#cb75-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Before: Actor(actor_id=3, first_name=&#39;ED&#39;, last_name=&#39;SMITH&#39;, last_update=&#39;2023-04-13 15:11:22.000000&#39;)</span></span>
-<span id="cb75-22"><a href="#cb75-22" aria-hidden="true" tabindex="-1"></a><span class="co"># After: Actor(actor_id=3, first_name=&#39;RODOLFO&#39;, last_name=&#39;CHASE&#39;, last_update=&#39;2024-06-04 10:14:33.000000&#39;)</span></span></code></pre></div>
+                class="sourceCode python"><code class="sourceCode python"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> asyncio</span>
+<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datetime <span class="im">import</span> datetime</span>
+<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Optional</span>
+<span id="cb74-4"><a href="#cb74-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> (</span>
+<span id="cb74-5"><a href="#cb74-5" aria-hidden="true" tabindex="-1"></a>    IMyServiceSakilaActor <span class="im">as</span> Actor,</span>
+<span id="cb74-6"><a href="#cb74-6" aria-hidden="true" tabindex="-1"></a>    MyService,</span>
+<span id="cb74-7"><a href="#cb74-7" aria-hidden="true" tabindex="-1"></a>    MrsDocumentNotFoundError,</span>
+<span id="cb74-8"><a href="#cb74-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb74-9"><a href="#cb74-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-10"><a href="#cb74-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-11"><a href="#cb74-11" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> get_actor_document_by_id(service: MyService, doc_id: <span class="bu">int</span>) <span class="op">-&gt;</span> Actor:</span>
+<span id="cb74-12"><a href="#cb74-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb74-13"><a href="#cb74-13" aria-hidden="true" tabindex="-1"></a>        actor: Actor <span class="op">=</span> <span class="cf">await</span> service.sakila.actor.find_first_or_throw(</span>
+<span id="cb74-14"><a href="#cb74-14" aria-hidden="true" tabindex="-1"></a>                where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: doc_id}</span>
+<span id="cb74-15"><a href="#cb74-15" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb74-16"><a href="#cb74-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> MrsDocumentNotFoundError:</span>
+<span id="cb74-17"><a href="#cb74-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> MrsDocumentNotFoundError(msg<span class="op">=</span><span class="ss">f&quot;No actor document exists matching actor_id=</span><span class="sc">{</span>doc_id<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb74-18"><a href="#cb74-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> actor</span>
+<span id="cb74-19"><a href="#cb74-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-20"><a href="#cb74-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-21"><a href="#cb74-21" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> main() <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="cb74-22"><a href="#cb74-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create service</span></span>
+<span id="cb74-23"><a href="#cb74-23" aria-hidden="true" tabindex="-1"></a>    my_service <span class="op">=</span> MyService()</span>
+<span id="cb74-24"><a href="#cb74-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-25"><a href="#cb74-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Get a document</span></span>
+<span id="cb74-26"><a href="#cb74-26" aria-hidden="true" tabindex="-1"></a>    doc_id <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb74-27"><a href="#cb74-27" aria-hidden="true" tabindex="-1"></a>    actor <span class="op">=</span> <span class="cf">await</span> get_actor_document_by_id(service<span class="op">=</span>my_service, doc_id<span class="op">=</span>doc_id)</span>
+<span id="cb74-28"><a href="#cb74-28" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;Before:&quot;</span>, actor)</span>
+<span id="cb74-29"><a href="#cb74-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-30"><a href="#cb74-30" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Modify the data class instance representing a REST document</span></span>
+<span id="cb74-31"><a href="#cb74-31" aria-hidden="true" tabindex="-1"></a>    actor.first_name <span class="op">=</span> <span class="st">&quot;DESIRE&quot;</span></span>
+<span id="cb74-32"><a href="#cb74-32" aria-hidden="true" tabindex="-1"></a>    actor.last_name <span class="op">=</span> <span class="st">&quot;LEE&quot;</span></span>
+<span id="cb74-33"><a href="#cb74-33" aria-hidden="true" tabindex="-1"></a>    actor.last_update <span class="op">=</span> <span class="bu">str</span>(datetime.now())</span>
+<span id="cb74-34"><a href="#cb74-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-35"><a href="#cb74-35" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Commit an update</span></span>
+<span id="cb74-36"><a href="#cb74-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> actor.update()</span>
+<span id="cb74-37"><a href="#cb74-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-38"><a href="#cb74-38" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Peak the REST document to see if it was updated accordingly</span></span>
+<span id="cb74-39"><a href="#cb74-39" aria-hidden="true" tabindex="-1"></a>    actor_after <span class="op">=</span> <span class="cf">await</span> get_actor_document_by_id(service<span class="op">=</span>my_service, doc_id<span class="op">=</span>doc_id)</span>
+<span id="cb74-40"><a href="#cb74-40" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;After:&quot;</span>, actor_after)</span>
+<span id="cb74-41"><a href="#cb74-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-42"><a href="#cb74-42" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Before: IMyServiceSakilaActor(last_name=&#39;CHASE&#39;, last_update=&#39;2023-04-13 15:11:22.000000&#39;, first_name=&#39;ED&#39;, actor_id=3)</span></span>
+<span id="cb74-43"><a href="#cb74-43" aria-hidden="true" tabindex="-1"></a>    <span class="co"># After: IMyServiceSakilaActor(last_name=&#39;LEE&#39;, last_update=&#39;2025-01-09 13:07:50.000000&#39;, first_name=&#39;DESIRE&#39;, actor_id=3)</span></span>
+<span id="cb74-44"><a href="#cb74-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-45"><a href="#cb74-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-46"><a href="#cb74-46" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&quot;__main__&quot;</span>:</span>
+<span id="cb74-47"><a href="#cb74-47" aria-hidden="true" tabindex="-1"></a>    asyncio.run(main())</span></code></pre></div>
                 <h3 data-number="9.4.2" id="delete-document"><span
                 class="header-section-number">9.4.2</span> delete
                 (document)</h3>
@@ -3730,28 +3742,43 @@ Reference
                 id="example-delete---document"><span
                 class="header-section-number">9.4.2.3</span> Example
                 (delete - document)</h4>
-                <div class="sourceCode" id="cb76"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
-<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb76-4"><a href="#cb76-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-5"><a href="#cb76-5" aria-hidden="true" tabindex="-1"></a>actor: Optional[Actor] <span class="op">=</span> <span class="cf">await</span> my_service.sakila.actor.find_first(</span>
-<span id="cb76-6"><a href="#cb76-6" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: <span class="dv">3</span>}</span>
-<span id="cb76-7"><a href="#cb76-7" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb76-8"><a href="#cb76-8" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> actor <span class="kw">is</span> <span class="va">None</span>:</span>
-<span id="cb76-9"><a href="#cb76-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;Ups, no document found&quot;</span>)</span>
-<span id="cb76-10"><a href="#cb76-10" aria-hidden="true" tabindex="-1"></a>    sys.exit()</span>
-<span id="cb76-11"><a href="#cb76-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-12"><a href="#cb76-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actor)</span>
-<span id="cb76-13"><a href="#cb76-13" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> actor.delete()</span>
-<span id="cb76-14"><a href="#cb76-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-15"><a href="#cb76-15" aria-hidden="true" tabindex="-1"></a>actor: Optional[Actor] <span class="op">=</span> <span class="cf">await</span> my_service.sakila.actor.find_first(</span>
-<span id="cb76-16"><a href="#cb76-16" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: <span class="dv">3</span>}</span>
-<span id="cb76-17"><a href="#cb76-17" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb76-18"><a href="#cb76-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">&quot;deleted?&quot;</span>, actor <span class="kw">is</span> <span class="va">None</span>)</span>
-<span id="cb76-19"><a href="#cb76-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-20"><a href="#cb76-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Actor(actor_id=3, first_name=&#39;ED&#39;, last_name=&#39;SMITH&#39;, last_update=&#39;2023-04-13 15:11:22.000000&#39;)</span></span>
-<span id="cb76-21"><a href="#cb76-21" aria-hidden="true" tabindex="-1"></a><span class="co"># deleted? True</span></span></code></pre></div>
+                <div class="sourceCode" id="cb75"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> asyncio</span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Optional, cast</span>
+<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> (</span>
+<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a>    IMyServiceSakilaActor <span class="im">as</span> Actor,</span>
+<span id="cb75-5"><a href="#cb75-5" aria-hidden="true" tabindex="-1"></a>    MyService,</span>
+<span id="cb75-6"><a href="#cb75-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-8"><a href="#cb75-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-9"><a href="#cb75-9" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> main():</span>
+<span id="cb75-10"><a href="#cb75-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create service</span></span>
+<span id="cb75-11"><a href="#cb75-11" aria-hidden="true" tabindex="-1"></a>    my_service <span class="op">=</span> MyService()</span>
+<span id="cb75-12"><a href="#cb75-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-13"><a href="#cb75-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create a document</span></span>
+<span id="cb75-14"><a href="#cb75-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">#</span></span>
+<span id="cb75-15"><a href="#cb75-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The `actor_id` and `last_update` columns from the `sakila`</span></span>
+<span id="cb75-16"><a href="#cb75-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># table on the sample [sakila database](https://dev.mysql.com/doc/sakila/en/)</span></span>
+<span id="cb75-17"><a href="#cb75-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># are automatically generated on each insert, which means they can be omitted.</span></span>
+<span id="cb75-18"><a href="#cb75-18" aria-hidden="true" tabindex="-1"></a>    actor <span class="op">=</span> <span class="cf">await</span> my_service.sakila.actor.create(</span>
+<span id="cb75-19"><a href="#cb75-19" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;GRACO&quot;</span>, <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;WALKER&quot;</span>}</span>
+<span id="cb75-20"><a href="#cb75-20" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb75-21"><a href="#cb75-21" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(actor)</span>
+<span id="cb75-22"><a href="#cb75-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-23"><a href="#cb75-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Commit a delete</span></span>
+<span id="cb75-24"><a href="#cb75-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> actor.delete()</span>
+<span id="cb75-25"><a href="#cb75-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-26"><a href="#cb75-26" aria-hidden="true" tabindex="-1"></a>    actor_after: Optional[Actor] <span class="op">=</span> <span class="cf">await</span> my_service.sakila.actor.find_first(</span>
+<span id="cb75-27"><a href="#cb75-27" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: cast(<span class="bu">int</span>, actor.actor_id)}</span>
+<span id="cb75-28"><a href="#cb75-28" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb75-29"><a href="#cb75-29" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;deleted?&quot;</span>, actor_after <span class="kw">is</span> <span class="va">None</span>)</span>
+<span id="cb75-30"><a href="#cb75-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-31"><a href="#cb75-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># IMyServiceSakilaActor(last_name=&#39;WALKER&#39;, last_update=&#39;2025-01-09 13:31:16.000000&#39;, first_name=&#39;GRACO&#39;, actor_id=37171)</span></span>
+<span id="cb75-32"><a href="#cb75-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># deleted? True</span></span>
+<span id="cb75-33"><a href="#cb75-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-34"><a href="#cb75-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-35"><a href="#cb75-35" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&quot;__main__&quot;</span>:</span>
+<span id="cb75-36"><a href="#cb75-36" aria-hidden="true" tabindex="-1"></a>    asyncio.run(main())</span></code></pre></div>
                 <h2 data-number="9.5" id="rest-functions"><span
                 class="header-section-number">9.5</span> REST
                 Functions</h2>
@@ -3787,36 +3814,36 @@ Reference
                 (function)</h3>
                 <p>Calling a REST function in the Python SDK is exactly
                 like calling a local Python function.</p>
-                <div class="sourceCode" id="cb77"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
-<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb77-4"><a href="#cb77-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb77-5"><a href="#cb77-5" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.hello_func(name<span class="op">=</span><span class="st">&quot;Rui&quot;</span>)</span>
-<span id="cb77-6"><a href="#cb77-6" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; Hello, Rui!</span></span>
-<span id="cb77-7"><a href="#cb77-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb77-8"><a href="#cb77-8" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.sum_func(a<span class="op">=</span><span class="dv">3</span>, b<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb77-9"><a href="#cb77-9" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; 5</span></span>
-<span id="cb77-10"><a href="#cb77-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb77-11"><a href="#cb77-11" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.my_birthday_func()</span>
-<span id="cb77-12"><a href="#cb77-12" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; 2024-07-18 00:00:00</span></span></code></pre></div>
+                <div class="sourceCode" id="cb76"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
+<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb76-4"><a href="#cb76-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-5"><a href="#cb76-5" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.hello_func(name<span class="op">=</span><span class="st">&quot;Rui&quot;</span>)</span>
+<span id="cb76-6"><a href="#cb76-6" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; Hello, Rui!</span></span>
+<span id="cb76-7"><a href="#cb76-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-8"><a href="#cb76-8" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.sum_func(a<span class="op">=</span><span class="dv">3</span>, b<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb76-9"><a href="#cb76-9" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; 5</span></span>
+<span id="cb76-10"><a href="#cb76-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-11"><a href="#cb76-11" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.my_birthday_func()</span>
+<span id="cb76-12"><a href="#cb76-12" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; 2024-07-18 00:00:00</span></span></code></pre></div>
                 <p>where <code>hello_func</code>, <code>sum_func</code>
                 and <code>my_birthday_func</code> are:</p>
-                <div class="sourceCode" id="cb78"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- one input</span></span>
-<span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a>mysql<span class="op">&gt;</span> <span class="kw">CREATE</span> <span class="kw">FUNCTION</span> hello_func (name <span class="dt">CHAR</span>(<span class="dv">20</span>))</span>
-<span id="cb78-3"><a href="#cb78-3" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> RETURNS <span class="dt">CHAR</span>(<span class="dv">50</span>) DETERMINISTIC</span>
-<span id="cb78-4"><a href="#cb78-4" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="kw">RETURN</span> <span class="fu">CONCAT</span>(<span class="st">&#39;Hello, &#39;</span>, name, <span class="st">&#39;!&#39;</span>);</span>
-<span id="cb78-5"><a href="#cb78-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb78-6"><a href="#cb78-6" aria-hidden="true" tabindex="-1"></a><span class="co">-- many input</span></span>
-<span id="cb78-7"><a href="#cb78-7" aria-hidden="true" tabindex="-1"></a>mysql<span class="op">&gt;</span> <span class="kw">CREATE</span> <span class="kw">FUNCTION</span> sum_func (a <span class="dt">INT</span>, b <span class="dt">INT</span>)</span>
-<span id="cb78-8"><a href="#cb78-8" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> RETURNS <span class="dt">INT</span> DETERMINISTIC</span>
-<span id="cb78-9"><a href="#cb78-9" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="kw">RETURN</span> a <span class="op">+</span> b;</span>
-<span id="cb78-10"><a href="#cb78-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb78-11"><a href="#cb78-11" aria-hidden="true" tabindex="-1"></a><span class="co">-- no input</span></span>
-<span id="cb78-12"><a href="#cb78-12" aria-hidden="true" tabindex="-1"></a>mysql<span class="op">&gt;</span> <span class="kw">CREATE</span> <span class="kw">FUNCTION</span> my_birthday_func ()</span>
-<span id="cb78-13"><a href="#cb78-13" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> RETURNS DATETIME DETERMINISTIC</span>
-<span id="cb78-14"><a href="#cb78-14" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="kw">RETURN</span> CURDATE();</span></code></pre></div>
+                <div class="sourceCode" id="cb77"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- one input</span></span>
+<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>mysql<span class="op">&gt;</span> <span class="kw">CREATE</span> <span class="kw">FUNCTION</span> hello_func (name <span class="dt">CHAR</span>(<span class="dv">20</span>))</span>
+<span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> RETURNS <span class="dt">CHAR</span>(<span class="dv">50</span>) DETERMINISTIC</span>
+<span id="cb77-4"><a href="#cb77-4" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="kw">RETURN</span> <span class="fu">CONCAT</span>(<span class="st">&#39;Hello, &#39;</span>, name, <span class="st">&#39;!&#39;</span>);</span>
+<span id="cb77-5"><a href="#cb77-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb77-6"><a href="#cb77-6" aria-hidden="true" tabindex="-1"></a><span class="co">-- many input</span></span>
+<span id="cb77-7"><a href="#cb77-7" aria-hidden="true" tabindex="-1"></a>mysql<span class="op">&gt;</span> <span class="kw">CREATE</span> <span class="kw">FUNCTION</span> sum_func (a <span class="dt">INT</span>, b <span class="dt">INT</span>)</span>
+<span id="cb77-8"><a href="#cb77-8" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> RETURNS <span class="dt">INT</span> DETERMINISTIC</span>
+<span id="cb77-9"><a href="#cb77-9" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="kw">RETURN</span> a <span class="op">+</span> b;</span>
+<span id="cb77-10"><a href="#cb77-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb77-11"><a href="#cb77-11" aria-hidden="true" tabindex="-1"></a><span class="co">-- no input</span></span>
+<span id="cb77-12"><a href="#cb77-12" aria-hidden="true" tabindex="-1"></a>mysql<span class="op">&gt;</span> <span class="kw">CREATE</span> <span class="kw">FUNCTION</span> my_birthday_func ()</span>
+<span id="cb77-13"><a href="#cb77-13" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> RETURNS DATETIME DETERMINISTIC</span>
+<span id="cb77-14"><a href="#cb77-14" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="kw">RETURN</span> CURDATE();</span></code></pre></div>
                 <h2 data-number="9.6" id="rest-procedures"><span
                 class="header-section-number">9.6</span> REST
                 Procedures</h2>
@@ -3863,72 +3890,72 @@ Reference
                 class="header-section-number">9.6.3</span> Example
                 (procedure)</h3>
                 <p>Consider the following dummy procedures:</p>
-                <div class="sourceCode" id="cb79"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Assuming the database `mrs_tests` exists</span></span>
-<span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- You can use the MySQL Client console to run this script</span></span>
-<span id="cb79-3"><a href="#cb79-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb79-4"><a href="#cb79-4" aria-hidden="true" tabindex="-1"></a>DELIMITER <span class="op">//</span></span>
-<span id="cb79-5"><a href="#cb79-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb79-6"><a href="#cb79-6" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">PROCEDURE</span> mrs_tests.mirror_proc (INOUT channel <span class="dt">CHAR</span>(<span class="dv">4</span>))</span>
-<span id="cb79-7"><a href="#cb79-7" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
-<span id="cb79-8"><a href="#cb79-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="kw">REVERSE</span>(channel) <span class="kw">INTO</span> channel;</span>
-<span id="cb79-9"><a href="#cb79-9" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span><span class="op">//</span></span>
-<span id="cb79-10"><a href="#cb79-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb79-11"><a href="#cb79-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb79-12"><a href="#cb79-12" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">PROCEDURE</span> mrs_tests.twice_proc (<span class="kw">IN</span> <span class="dt">number</span> <span class="dt">INT</span>, <span class="kw">OUT</span> number_twice <span class="dt">INT</span>)</span>
-<span id="cb79-13"><a href="#cb79-13" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
-<span id="cb79-14"><a href="#cb79-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="dt">number</span><span class="op">*</span><span class="dv">2</span> <span class="kw">INTO</span> number_twice;</span>
-<span id="cb79-15"><a href="#cb79-15" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span><span class="op">//</span></span>
-<span id="cb79-16"><a href="#cb79-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb79-17"><a href="#cb79-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb79-18"><a href="#cb79-18" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">PROCEDURE</span> mrs_tests.sample_proc(</span>
-<span id="cb79-19"><a href="#cb79-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">IN</span> arg1 <span class="dt">CHAR</span>(<span class="dv">5</span>), INOUT arg2 <span class="dt">CHAR</span>(<span class="dv">5</span>), <span class="kw">OUT</span> arg3 <span class="dt">FLOAT</span></span>
-<span id="cb79-20"><a href="#cb79-20" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb79-21"><a href="#cb79-21" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
-<span id="cb79-22"><a href="#cb79-22" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="ot">&quot;foo&quot;</span> <span class="kw">as</span> name, <span class="dv">42</span> <span class="kw">as</span> age;</span>
-<span id="cb79-23"><a href="#cb79-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="ot">&quot;bar&quot;</span> <span class="kw">as</span> something;</span>
-<span id="cb79-24"><a href="#cb79-24" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span><span class="op">//</span></span>
-<span id="cb79-25"><a href="#cb79-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb79-26"><a href="#cb79-26" aria-hidden="true" tabindex="-1"></a>DELIMITER ;</span></code></pre></div>
+                <div class="sourceCode" id="cb78"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Assuming the database `mrs_tests` exists</span></span>
+<span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- You can use the MySQL Client console to run this script</span></span>
+<span id="cb78-3"><a href="#cb78-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb78-4"><a href="#cb78-4" aria-hidden="true" tabindex="-1"></a>DELIMITER <span class="op">//</span></span>
+<span id="cb78-5"><a href="#cb78-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb78-6"><a href="#cb78-6" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">PROCEDURE</span> mrs_tests.mirror_proc (INOUT channel <span class="dt">CHAR</span>(<span class="dv">4</span>))</span>
+<span id="cb78-7"><a href="#cb78-7" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb78-8"><a href="#cb78-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="kw">REVERSE</span>(channel) <span class="kw">INTO</span> channel;</span>
+<span id="cb78-9"><a href="#cb78-9" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span><span class="op">//</span></span>
+<span id="cb78-10"><a href="#cb78-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb78-11"><a href="#cb78-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb78-12"><a href="#cb78-12" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">PROCEDURE</span> mrs_tests.twice_proc (<span class="kw">IN</span> <span class="dt">number</span> <span class="dt">INT</span>, <span class="kw">OUT</span> number_twice <span class="dt">INT</span>)</span>
+<span id="cb78-13"><a href="#cb78-13" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb78-14"><a href="#cb78-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="dt">number</span><span class="op">*</span><span class="dv">2</span> <span class="kw">INTO</span> number_twice;</span>
+<span id="cb78-15"><a href="#cb78-15" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span><span class="op">//</span></span>
+<span id="cb78-16"><a href="#cb78-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb78-17"><a href="#cb78-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb78-18"><a href="#cb78-18" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">PROCEDURE</span> mrs_tests.sample_proc(</span>
+<span id="cb78-19"><a href="#cb78-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">IN</span> arg1 <span class="dt">CHAR</span>(<span class="dv">5</span>), INOUT arg2 <span class="dt">CHAR</span>(<span class="dv">5</span>), <span class="kw">OUT</span> arg3 <span class="dt">FLOAT</span></span>
+<span id="cb78-20"><a href="#cb78-20" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb78-21"><a href="#cb78-21" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb78-22"><a href="#cb78-22" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="ot">&quot;foo&quot;</span> <span class="kw">as</span> name, <span class="dv">42</span> <span class="kw">as</span> age;</span>
+<span id="cb78-23"><a href="#cb78-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="ot">&quot;bar&quot;</span> <span class="kw">as</span> something;</span>
+<span id="cb78-24"><a href="#cb78-24" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span><span class="op">//</span></span>
+<span id="cb78-25"><a href="#cb78-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb78-26"><a href="#cb78-26" aria-hidden="true" tabindex="-1"></a>DELIMITER ;</span></code></pre></div>
                 <p>Calling a REST procedure in the Python SDK is exactly
                 like calling a local Python function.</p>
-                <div class="sourceCode" id="cb80"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
-<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb80-4"><a href="#cb80-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb80-5"><a href="#cb80-5" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.mirror_proc(channel<span class="op">=</span><span class="st">&quot;roma&quot;</span>)</span>
-<span id="cb80-6"><a href="#cb80-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(procedure_result)</span>
-<span id="cb80-7"><a href="#cb80-7" aria-hidden="true" tabindex="-1"></a><span class="co"># IMrsProcedureResponse(</span></span>
-<span id="cb80-8"><a href="#cb80-8" aria-hidden="true" tabindex="-1"></a><span class="co">#     result_sets=[],</span></span>
-<span id="cb80-9"><a href="#cb80-9" aria-hidden="true" tabindex="-1"></a><span class="co">#     out_parameters={&quot;channel&quot;: &quot;amor&quot;}</span></span>
-<span id="cb80-10"><a href="#cb80-10" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span>
-<span id="cb80-11"><a href="#cb80-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb80-12"><a href="#cb80-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb80-13"><a href="#cb80-13" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.twice_proc(number<span class="op">=</span><span class="dv">13</span>)</span>
-<span id="cb80-14"><a href="#cb80-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(procedure_result)</span>
-<span id="cb80-15"><a href="#cb80-15" aria-hidden="true" tabindex="-1"></a><span class="co"># IMrsProcedureResponse(</span></span>
-<span id="cb80-16"><a href="#cb80-16" aria-hidden="true" tabindex="-1"></a><span class="co">#     result_sets=[],</span></span>
-<span id="cb80-17"><a href="#cb80-17" aria-hidden="true" tabindex="-1"></a><span class="co">#     out_parameters={&quot;number_twice&quot;: 26}</span></span>
-<span id="cb80-18"><a href="#cb80-18" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span>
-<span id="cb80-19"><a href="#cb80-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb80-20"><a href="#cb80-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb80-21"><a href="#cb80-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Note how `arg1` is not provided, and `arg2` is set to null.</span></span>
-<span id="cb80-22"><a href="#cb80-22" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.sample_proc(arg2<span class="op">=</span><span class="va">None</span>)</span>
-<span id="cb80-23"><a href="#cb80-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(procedure_result)</span>
-<span id="cb80-24"><a href="#cb80-24" aria-hidden="true" tabindex="-1"></a><span class="co"># IMrsProcedureResponse(</span></span>
-<span id="cb80-25"><a href="#cb80-25" aria-hidden="true" tabindex="-1"></a><span class="co">#     result_sets=[</span></span>
-<span id="cb80-26"><a href="#cb80-26" aria-hidden="true" tabindex="-1"></a><span class="co">#         MrsProcedureResultSet(</span></span>
-<span id="cb80-27"><a href="#cb80-27" aria-hidden="true" tabindex="-1"></a><span class="co">#             type=&quot;items0&quot;,</span></span>
-<span id="cb80-28"><a href="#cb80-28" aria-hidden="true" tabindex="-1"></a><span class="co">#             items=[{&quot;name&quot;: &quot;foo&quot;, &quot;age&quot;: 42}],</span></span>
-<span id="cb80-29"><a href="#cb80-29" aria-hidden="true" tabindex="-1"></a><span class="co">#         ),</span></span>
-<span id="cb80-30"><a href="#cb80-30" aria-hidden="true" tabindex="-1"></a><span class="co">#         MrsProcedureResultSet(</span></span>
-<span id="cb80-31"><a href="#cb80-31" aria-hidden="true" tabindex="-1"></a><span class="co">#             type=&quot;items1&quot;,</span></span>
-<span id="cb80-32"><a href="#cb80-32" aria-hidden="true" tabindex="-1"></a><span class="co">#             items=[{&quot;something&quot;: &quot;bar&quot;}],</span></span>
-<span id="cb80-33"><a href="#cb80-33" aria-hidden="true" tabindex="-1"></a><span class="co">#         ),</span></span>
-<span id="cb80-34"><a href="#cb80-34" aria-hidden="true" tabindex="-1"></a><span class="co">#     ],</span></span>
-<span id="cb80-35"><a href="#cb80-35" aria-hidden="true" tabindex="-1"></a><span class="co">#     out_parameters={&#39;arg2&#39;: None, &#39;arg3&#39;: None}</span></span>
-<span id="cb80-36"><a href="#cb80-36" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span></code></pre></div>
+                <div class="sourceCode" id="cb79"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
+<span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb79-3"><a href="#cb79-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb79-4"><a href="#cb79-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb79-5"><a href="#cb79-5" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.mirror_proc(channel<span class="op">=</span><span class="st">&quot;roma&quot;</span>)</span>
+<span id="cb79-6"><a href="#cb79-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(procedure_result)</span>
+<span id="cb79-7"><a href="#cb79-7" aria-hidden="true" tabindex="-1"></a><span class="co"># IMrsProcedureResponse(</span></span>
+<span id="cb79-8"><a href="#cb79-8" aria-hidden="true" tabindex="-1"></a><span class="co">#     result_sets=[],</span></span>
+<span id="cb79-9"><a href="#cb79-9" aria-hidden="true" tabindex="-1"></a><span class="co">#     out_parameters={&quot;channel&quot;: &quot;amor&quot;}</span></span>
+<span id="cb79-10"><a href="#cb79-10" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span>
+<span id="cb79-11"><a href="#cb79-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb79-12"><a href="#cb79-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb79-13"><a href="#cb79-13" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.twice_proc(number<span class="op">=</span><span class="dv">13</span>)</span>
+<span id="cb79-14"><a href="#cb79-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(procedure_result)</span>
+<span id="cb79-15"><a href="#cb79-15" aria-hidden="true" tabindex="-1"></a><span class="co"># IMrsProcedureResponse(</span></span>
+<span id="cb79-16"><a href="#cb79-16" aria-hidden="true" tabindex="-1"></a><span class="co">#     result_sets=[],</span></span>
+<span id="cb79-17"><a href="#cb79-17" aria-hidden="true" tabindex="-1"></a><span class="co">#     out_parameters={&quot;number_twice&quot;: 26}</span></span>
+<span id="cb79-18"><a href="#cb79-18" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span>
+<span id="cb79-19"><a href="#cb79-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb79-20"><a href="#cb79-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb79-21"><a href="#cb79-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Note how `arg1` is not provided, and `arg2` is set to null.</span></span>
+<span id="cb79-22"><a href="#cb79-22" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.sample_proc(arg2<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb79-23"><a href="#cb79-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(procedure_result)</span>
+<span id="cb79-24"><a href="#cb79-24" aria-hidden="true" tabindex="-1"></a><span class="co"># IMrsProcedureResponse(</span></span>
+<span id="cb79-25"><a href="#cb79-25" aria-hidden="true" tabindex="-1"></a><span class="co">#     result_sets=[</span></span>
+<span id="cb79-26"><a href="#cb79-26" aria-hidden="true" tabindex="-1"></a><span class="co">#         MrsProcedureResultSet(</span></span>
+<span id="cb79-27"><a href="#cb79-27" aria-hidden="true" tabindex="-1"></a><span class="co">#             type=&quot;items0&quot;,</span></span>
+<span id="cb79-28"><a href="#cb79-28" aria-hidden="true" tabindex="-1"></a><span class="co">#             items=[{&quot;name&quot;: &quot;foo&quot;, &quot;age&quot;: 42}],</span></span>
+<span id="cb79-29"><a href="#cb79-29" aria-hidden="true" tabindex="-1"></a><span class="co">#         ),</span></span>
+<span id="cb79-30"><a href="#cb79-30" aria-hidden="true" tabindex="-1"></a><span class="co">#         MrsProcedureResultSet(</span></span>
+<span id="cb79-31"><a href="#cb79-31" aria-hidden="true" tabindex="-1"></a><span class="co">#             type=&quot;items1&quot;,</span></span>
+<span id="cb79-32"><a href="#cb79-32" aria-hidden="true" tabindex="-1"></a><span class="co">#             items=[{&quot;something&quot;: &quot;bar&quot;}],</span></span>
+<span id="cb79-33"><a href="#cb79-33" aria-hidden="true" tabindex="-1"></a><span class="co">#         ),</span></span>
+<span id="cb79-34"><a href="#cb79-34" aria-hidden="true" tabindex="-1"></a><span class="co">#     ],</span></span>
+<span id="cb79-35"><a href="#cb79-35" aria-hidden="true" tabindex="-1"></a><span class="co">#     out_parameters={&#39;arg2&#39;: None, &#39;arg3&#39;: None}</span></span>
+<span id="cb79-36"><a href="#cb79-36" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span></code></pre></div>
                 <p>The first two procedures do not generate result sets,
                 however the third one does. By omission, result sets are
                 untyped meaning generic type names are used for the
@@ -3936,38 +3963,38 @@ Reference
                 <p>If you want a typed result set, meaning you wish to
                 specify a type, you can do so at the MRS procedure level
                 via the MySQL Shell:</p>
-                <div class="sourceCode" id="cb81"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">PROCEDURE</span> <span class="op">/</span>sampleProc</span>
-<span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>mrsTests</span>
-<span id="cb81-3"><a href="#cb81-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">AS</span> mrs_tests.sample_proc</span>
-<span id="cb81-4"><a href="#cb81-4" aria-hidden="true" tabindex="-1"></a>    RESULT IMyServiceMrsTestsSampleProcResultSet1 {</span>
-<span id="cb81-5"><a href="#cb81-5" aria-hidden="true" tabindex="-1"></a>        name: name @DATATYPE(<span class="ot">&quot;CHAR(3)&quot;</span>),</span>
-<span id="cb81-6"><a href="#cb81-6" aria-hidden="true" tabindex="-1"></a>        age: age @DATATYPE(<span class="ot">&quot;TINYINT&quot;</span>)</span>
-<span id="cb81-7"><a href="#cb81-7" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb81-8"><a href="#cb81-8" aria-hidden="true" tabindex="-1"></a>    RESULT IMyServiceMrsTestsSampleProcResultSet2 {</span>
-<span id="cb81-9"><a href="#cb81-9" aria-hidden="true" tabindex="-1"></a>        something: something @DATATYPE(<span class="ot">&quot;CHAR(3)&quot;</span>)</span>
-<span id="cb81-10"><a href="#cb81-10" aria-hidden="true" tabindex="-1"></a>    };</span></code></pre></div>
+                <div class="sourceCode" id="cb80"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">PROCEDURE</span> <span class="op">/</span>sampleProc</span>
+<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>mrsTests</span>
+<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">AS</span> mrs_tests.sample_proc</span>
+<span id="cb80-4"><a href="#cb80-4" aria-hidden="true" tabindex="-1"></a>    RESULT IMyServiceMrsTestsSampleProcResultSet1 {</span>
+<span id="cb80-5"><a href="#cb80-5" aria-hidden="true" tabindex="-1"></a>        name: name @DATATYPE(<span class="ot">&quot;CHAR(3)&quot;</span>),</span>
+<span id="cb80-6"><a href="#cb80-6" aria-hidden="true" tabindex="-1"></a>        age: age @DATATYPE(<span class="ot">&quot;TINYINT&quot;</span>)</span>
+<span id="cb80-7"><a href="#cb80-7" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb80-8"><a href="#cb80-8" aria-hidden="true" tabindex="-1"></a>    RESULT IMyServiceMrsTestsSampleProcResultSet2 {</span>
+<span id="cb80-9"><a href="#cb80-9" aria-hidden="true" tabindex="-1"></a>        something: something @DATATYPE(<span class="ot">&quot;CHAR(3)&quot;</span>)</span>
+<span id="cb80-10"><a href="#cb80-10" aria-hidden="true" tabindex="-1"></a>    };</span></code></pre></div>
                 <p>Calling the REST procedure again from the Python SDK
                 leads to:</p>
-                <div class="sourceCode" id="cb82"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
-<span id="cb82-2"><a href="#cb82-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-3"><a href="#cb82-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb82-4"><a href="#cb82-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-5"><a href="#cb82-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-6"><a href="#cb82-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Note how `arg1` is not provided, and `arg2` is set to null.</span></span>
-<span id="cb82-7"><a href="#cb82-7" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.sample_proc(arg2<span class="op">=</span><span class="va">None</span>)</span>
-<span id="cb82-8"><a href="#cb82-8" aria-hidden="true" tabindex="-1"></a><span class="co"># print(procedure_result.result_sets)</span></span>
-<span id="cb82-9"><a href="#cb82-9" aria-hidden="true" tabindex="-1"></a><span class="co"># [</span></span>
-<span id="cb82-10"><a href="#cb82-10" aria-hidden="true" tabindex="-1"></a><span class="co">#     MrsProcedureResultSet(</span></span>
-<span id="cb82-11"><a href="#cb82-11" aria-hidden="true" tabindex="-1"></a><span class="co">#         type=&quot;IMyServiceMrsTestsSampleProcResultSet1&quot;,</span></span>
-<span id="cb82-12"><a href="#cb82-12" aria-hidden="true" tabindex="-1"></a><span class="co">#         items=[{&quot;name&quot;: &quot;foo&quot;, &quot;age&quot;: 42}],</span></span>
-<span id="cb82-13"><a href="#cb82-13" aria-hidden="true" tabindex="-1"></a><span class="co">#     ),</span></span>
-<span id="cb82-14"><a href="#cb82-14" aria-hidden="true" tabindex="-1"></a><span class="co">#     MrsProcedureResultSet(</span></span>
-<span id="cb82-15"><a href="#cb82-15" aria-hidden="true" tabindex="-1"></a><span class="co">#         type=&quot;IMyServiceMrsTestsSampleProcResultSet2&quot;,</span></span>
-<span id="cb82-16"><a href="#cb82-16" aria-hidden="true" tabindex="-1"></a><span class="co">#         items=[{&quot;something&quot;: &quot;bar&quot;}],</span></span>
-<span id="cb82-17"><a href="#cb82-17" aria-hidden="true" tabindex="-1"></a><span class="co">#     ),</span></span>
-<span id="cb82-18"><a href="#cb82-18" aria-hidden="true" tabindex="-1"></a><span class="co"># ],</span></span></code></pre></div>
+                <div class="sourceCode" id="cb81"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
+<span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-3"><a href="#cb81-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb81-4"><a href="#cb81-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-5"><a href="#cb81-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-6"><a href="#cb81-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Note how `arg1` is not provided, and `arg2` is set to null.</span></span>
+<span id="cb81-7"><a href="#cb81-7" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.sample_proc(arg2<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb81-8"><a href="#cb81-8" aria-hidden="true" tabindex="-1"></a><span class="co"># print(procedure_result.result_sets)</span></span>
+<span id="cb81-9"><a href="#cb81-9" aria-hidden="true" tabindex="-1"></a><span class="co"># [</span></span>
+<span id="cb81-10"><a href="#cb81-10" aria-hidden="true" tabindex="-1"></a><span class="co">#     MrsProcedureResultSet(</span></span>
+<span id="cb81-11"><a href="#cb81-11" aria-hidden="true" tabindex="-1"></a><span class="co">#         type=&quot;IMyServiceMrsTestsSampleProcResultSet1&quot;,</span></span>
+<span id="cb81-12"><a href="#cb81-12" aria-hidden="true" tabindex="-1"></a><span class="co">#         items=[{&quot;name&quot;: &quot;foo&quot;, &quot;age&quot;: 42}],</span></span>
+<span id="cb81-13"><a href="#cb81-13" aria-hidden="true" tabindex="-1"></a><span class="co">#     ),</span></span>
+<span id="cb81-14"><a href="#cb81-14" aria-hidden="true" tabindex="-1"></a><span class="co">#     MrsProcedureResultSet(</span></span>
+<span id="cb81-15"><a href="#cb81-15" aria-hidden="true" tabindex="-1"></a><span class="co">#         type=&quot;IMyServiceMrsTestsSampleProcResultSet2&quot;,</span></span>
+<span id="cb81-16"><a href="#cb81-16" aria-hidden="true" tabindex="-1"></a><span class="co">#         items=[{&quot;something&quot;: &quot;bar&quot;}],</span></span>
+<span id="cb81-17"><a href="#cb81-17" aria-hidden="true" tabindex="-1"></a><span class="co">#     ),</span></span>
+<span id="cb81-18"><a href="#cb81-18" aria-hidden="true" tabindex="-1"></a><span class="co"># ],</span></span></code></pre></div>
                 <p>Copyright (c) 2022, 2024, Oracle and/or its
                 affiliates.</p>
             </div>

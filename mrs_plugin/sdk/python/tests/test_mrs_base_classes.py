@@ -1,4 +1,4 @@
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -28,6 +28,7 @@ from dataclasses import asdict, dataclass
 from typing import (
     Any,
     Callable,
+    Generic,
     Literal,
     Optional,
     TypeAlias,
@@ -42,6 +43,8 @@ from urllib.request import HTTPError
 import pytest  # type: ignore[import-not-found]
 
 from ..mrs_base_classes import (
+    _MrsDocumentDeleteMixin,
+    _MrsDocumentUpdateMixin,
     AuthAppNotFoundError,
     AuthenticateOptions,
     BoolField,
@@ -63,6 +66,7 @@ from ..mrs_base_classes import (
     MrsBaseObjectUpdate,
     MrsBaseSchema,
     MrsBaseService,
+    MrsDocumentBase,
     MrsJSONDataDecoder,
     MrsJSONDataEncoder,
     MrsProcedureResultSet,
@@ -79,7 +83,7 @@ from ..mrs_base_classes import (
 ####################################################################################
 #                               Sample Data
 ####################################################################################
-MRS_SERVICE_PORT = os.environ.get("MRS_SERVICE_PORT", "8445")
+MRS_SERVICE_PORT = os.environ.get("MRS_SERVICE_PORT", "8444")
 MRS_SERVICE_NAME = os.environ.get("MRS_SERVICE_NAME", "myService")
 DATABASE = os.environ.get("MRS_SERVICE_NAME", "sakila")
 
@@ -202,8 +206,15 @@ class ActorData(TypedDict, total=False):
     last_update: str
 
 
+class ActorFilterable(Generic[Filterable], HighOrderOperator[Filterable], total=False):
+    last_name: StringField
+    last_update: StringField
+    first_name: StringField
+    actor_id: IntField
+
+
 @dataclass(init=False, repr=True)
-class Actor(MrsDocument):
+class Actor(MrsDocument[ActorData]):
 
     # For data attributes, `None` means "NULL" and
     # `UndefinedField` means "not set or undefined"
@@ -212,25 +223,51 @@ class Actor(MrsDocument):
     last_name: str | UndefinedDataClassField
     last_update: str | UndefinedDataClassField
 
-    def __init__(self, data: ActorData) -> None:
+    def __init__(self, schema: MrsBaseSchema, data: ActorData) -> None:
         """Actor data class."""
-        self._request_path: str = "https://localhost:8444/myService/sakila/actor"
-        self.__load_fields(data)
+        super().__init__(
+            schema, data, obj_endpoint="https://localhost:8444/myService/sakila/actor"
+        )
 
-    def __load_fields(self, data: ActorData) -> None:
+    def _load_fields(self, data: ActorData) -> None:
         """Refresh data fields based on the input data."""
         self.actor_id = data.get("actor_id", UndefinedField)
         self.first_name = data.get("first_name", UndefinedField)
         self.last_name = data.get("last_name", UndefinedField)
         self.last_update = data.get("last_update", UndefinedField)
 
-        for key in MrsDocument._reserved_keys:
+        for key in MrsDocumentBase._reserved_keys:
             self.__dict__.update({key: data.get(key)})
 
     @classmethod
     def get_primary_key_name(cls) -> Optional[str]:
         """Get primary key name (Class Method)."""
         return "actor_id"
+
+
+@dataclass(init=False, repr=True)
+class ActorWithUpdateBehavior(
+    _MrsDocumentUpdateMixin[ActorData, Actor, ActorDetails],
+    Actor,
+):
+    """Add `update()` to data class."""
+
+
+@dataclass(init=False, repr=True)
+class ActorWithDeleteBehavior(
+    _MrsDocumentDeleteMixin[ActorData, ActorFilterable],
+    Actor,
+):
+    """Add `delete()` to data class."""
+
+
+@dataclass(init=False, repr=True)
+class ActorWithUpdateAndDeleteBehavior(
+    _MrsDocumentUpdateMixin[ActorData, Actor, ActorDetails],
+    _MrsDocumentDeleteMixin[ActorData, ActorFilterable],
+    Actor,
+):
+    """Add `delete()` to data class."""
 
 
 class Obj1Details(IMrsResourceDetails, total=False):
@@ -431,7 +468,7 @@ async def validate_url(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    request: MrsBaseObjectQuery | MrsBaseObjectDelete,
+    request: MrsBaseObjectQuery | MrsBaseObjectDelete | ActorWithDeleteBehavior,
     expected_url: str,
     mock_request_class: MagicMock,
     expected_header: Optional[dict] = None,
@@ -466,10 +503,17 @@ async def validate_url(
         mock_request_class.assert_called_with(
             url=expected_url, headers=expected_header, method="GET"
         )
-    else:
+    elif isinstance(request, MrsBaseObjectDelete):
         # Returns `fictional_response_from_router` because urlopen was mocked to return it.
         # The returned data is not important in this case.
         _ = await request.submit()
+
+        mock_request_class.assert_called_with(
+            url=expected_url, headers=expected_header, method="DELETE"
+        )
+    else:
+        # request is a MRS document
+        await request.delete()
 
         mock_request_class.assert_called_with(
             url=expected_url, headers=expected_header, method="DELETE"
@@ -580,7 +624,8 @@ async def test_gtid_track_and_sync(
     # dummy data
     data_create: ActorData = {"first_name": "Shigeru", "last_name": "Miyamoto"}
     data_update = Actor(
-        cast(
+        schema=schema,
+        data=cast(
             ActorData,
             ActorDetails(
                 {
@@ -592,7 +637,7 @@ async def test_gtid_track_and_sync(
                     },
                 }
             ),
-        )
+        ),
     )
 
     for cls_ in (
@@ -960,23 +1005,18 @@ async def test_create_submit(
 #                      Test "submit" Method (update*'s backbone)
 ####################################################################################
 @pytest.mark.parametrize(
-    "data, urlopen_read",
+    "data_details, urlopen_read",
     [
         (
-            Actor(
-                cast(
-                    ActorData,
-                    ActorDetails(
-                        {
-                            "links": [],
-                            "first_name": "Shigeru",
-                            "last_name": "Miyamoto",
-                            "_metadata": {
-                                "etag": "33ED258BECDF269717782F5569C69F88CCCA2DF11936108C68C44100FF063D4D"
-                            },
-                        }
-                    ),
-                )
+            ActorDetails(
+                {
+                    "links": [],
+                    "first_name": "Shigeru",
+                    "last_name": "Miyamoto",
+                    "_metadata": {
+                        "etag": "33ED258BECDF269717782F5569C69F88CCCA2DF11936108C68C44100FF063D4D"
+                    },
+                }
             ),
             {
                 "actorId": 65,
@@ -995,12 +1035,14 @@ async def test_update_submit(
     mock_request_class: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    data: Actor,
+    data_details: ActorDetails,
     urlopen_read: dict[str, Any],
     schema: MrsBaseSchema,
     schema_on_service_with_session: MrsBaseSchema,
 ):
     """Check `MrsBaseObjectUpdate.submit()`."""
+    data = Actor(schema=schema, data=cast(ActorData, data_details))
+
     prk = cast(str, data.get_primary_key_name())
     rest_document_id = getattr(data, prk)
     request_path = f"{schema._request_path}/actor/{rest_document_id}"
@@ -1015,7 +1057,10 @@ async def test_update_submit(
 
     mock_request_class.assert_called_once_with(
         url=request_path,
-        headers={"Accept": "application/json", "If-Match": data.__dict__["_metadata"]["etag"]},
+        headers={
+            "Accept": "application/json",
+            "If-Match": data.__dict__["_metadata"]["etag"],
+        },
         data=json.dumps(obj=asdict(data), cls=MrsJSONDataEncoder).encode(),
         method="PUT",
     )
@@ -1793,12 +1838,160 @@ async def test_fetch_all(
 
 
 ####################################################################################
-#           Test "MrsDocument" Abstract Class (Data Class Objects' backbone)
+#                    Test Data Classes (table records)
+####################################################################################
+@pytest.mark.parametrize(
+    "data_details, urlopen_read",
+    [
+        (
+            ActorDetails(
+                {
+                    "links": [],
+                    "actor_id": 65,
+                    "first_name": "Shigeru",
+                    "last_name": "Miyamoto",
+                    "_metadata": {
+                        "etag": "33ED258BECDF269717782F5569C69F88CCCA2DF11936108C68C44100FF063D4D"
+                    },
+                }
+            ),
+            {
+                "actorId": 65,
+                "firstName": "Foo",
+                "lastName": "Miyamoto",
+                "lastUpdate": "2006-02-15 04:34:33.000000",
+                "_metadata": {
+                    "etag": "33ED258BECDF269717782F5569C69F88CCCA2DF11936108C68C44100FF063D4D"
+                },
+            },
+        ),
+    ],
+)
+async def test_dataclass_update(
+    mock_urlopen: MagicMock,
+    mock_request_class: MagicMock,
+    urlopen_simulator: MagicMock,
+    mock_create_default_context: MagicMock,
+    data_details: ActorDetails,
+    urlopen_read: dict[str, Any],
+    schema: MrsBaseSchema,
+    schema_on_service_with_session: MrsBaseSchema,
+):
+    """Check `DataClass.update()`."""
+    # Produce table record
+    document = ActorWithUpdateBehavior(
+        schema=schema, data=cast(ActorData, data_details)
+    )
+
+    # get request path
+    rest_document_id = getattr(document, cast(str, document.get_primary_key_name()))
+    request_path = f"{schema._request_path}/actor/{rest_document_id}"
+
+    # mock request
+    mock_urlopen.return_value = urlopen_simulator(urlopen_read=urlopen_read)
+    mock_create_default_context.return_value = ssl.create_default_context()
+
+    # update document
+    document.first_name = "Foo"
+    await document.update()
+
+    # verify
+    mock_request_class.assert_called_once_with(
+        url=request_path,
+        headers={
+            "Accept": "application/json",
+            "If-Match": document.__dict__["_metadata"]["etag"],
+        },
+        data=json.dumps(obj=asdict(document), cls=MrsJSONDataEncoder).encode(),
+        method="PUT",
+    )
+    mock_urlopen.assert_called_once()
+
+    assert (
+        document.first_name
+        == MrsJSONDataDecoder.convert_keys(urlopen_read)["first_name"]
+    )
+    assert (
+        document.last_name == MrsJSONDataDecoder.convert_keys(urlopen_read)["last_name"]
+    )
+
+    # Check authenticated
+    document = ActorWithUpdateBehavior(
+        schema=schema_on_service_with_session, data=cast(ActorData, data_details)
+    )
+    document.first_name = "Foo"
+    await document.update()
+
+    mock_request_class.assert_called_with(
+        url=request_path,
+        headers={
+            "Accept": "application/json",
+            "If-Match": document.__dict__["_metadata"]["etag"],
+            "Authorization": "Bearer foo",
+        },
+        data=json.dumps(obj=asdict(document), cls=MrsJSONDataEncoder).encode(),
+        method="PUT",
+    )
+    assert mock_urlopen.call_count == 2
+
+
+@pytest.mark.parametrize(
+    "data_details, expected_q_url",
+    [
+        (
+            ActorDetails(
+                {
+                    "links": [],
+                    "actor_id": 65,
+                    "first_name": "Shigeru",
+                    "last_name": "Miyamoto",
+                    "_metadata": {
+                        "etag": "33ED258BECDF269717782F5569C69F88CCCA2DF11936108C68C44100FF063D4D"
+                    },
+                }
+            ),
+            "q=%7B%22actorId%22%3A65%7D",
+        ),
+    ],
+)
+async def test_dataclass_delete(
+    mock_urlopen: MagicMock,
+    urlopen_simulator: MagicMock,
+    mock_create_default_context: MagicMock,
+    data_details: ActorDetails,
+    expected_q_url: str,
+    mock_request_class: MagicMock,
+    schema: MrsBaseSchema,
+):
+    """Specifying `where`. Checking implicit filter."""
+    document = ActorWithDeleteBehavior(
+        schema=schema, data=cast(ActorData, data_details)
+    )
+
+    await validate_url(
+        mock_urlopen=mock_urlopen,
+        urlopen_simulator=urlopen_simulator,
+        mock_create_default_context=mock_create_default_context,
+        request=document,
+        expected_url=f"{schema._request_path}/actor?{expected_q_url}",
+        mock_request_class=mock_request_class,
+    )
+
+    # Misc: simply verify the ultimate mixin works
+    document2 = ActorWithUpdateAndDeleteBehavior(
+        schema=schema, data=cast(ActorData, data_details)
+    )
+    assert hasattr(document2, "update") == True
+    assert hasattr(document2, "delete") == True
+
+
+####################################################################################
+#           Test "MrsDocumentBase" Abstract Class (Data Class Objects' backbone)
 ####################################################################################
 def test_hypermedia_property_access():
     """Check hypermedia information is inaccessible."""
 
-    class SubjectUnderTest(MrsDocument):
+    class SubjectUnderTest(MrsDocumentBase):
         def __init__(self) -> None:
             self.__dict__.update({"_metadata": "foo", "links": "bar"})
 
@@ -1822,7 +2015,7 @@ def test_hypermedia_property_access():
 def test_hypermedia_property_modifications():
     """Check hypermedia information cannot be modified."""
 
-    class SubjectUnderTest(MrsDocument):
+    class SubjectUnderTest(MrsDocumentBase):
         def __init__(self) -> None:
             self.__dict__.update({"_metadata": "foo", "links": "bar"})
 
@@ -1848,7 +2041,7 @@ def test_hypermedia_property_modifications():
 def test_hypermedia_property_removal():
     """Check hypermedia information cannot be deleted."""
 
-    class SubjectUnderTest(MrsDocument):
+    class SubjectUnderTest(MrsDocumentBase):
         def __init__(self) -> None:
             self.__dict__.update({"_metadata": "foo", "links": "bar"})
 
@@ -1874,7 +2067,7 @@ def test_hypermedia_property_removal():
 def test_hypermedia_property_indexing():
     """Check hypermedia information is hidden."""
 
-    class SubjectUnderTest(MrsDocument):
+    class SubjectUnderTest(MrsDocumentBase):
         def __init__(self) -> None:
             self.__dict__.update({"_metadata": "foo", "links": "bar"})
 

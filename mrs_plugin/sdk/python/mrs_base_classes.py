@@ -1,4 +1,4 @@
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -58,10 +58,10 @@ from urllib.request import HTTPError, Request, urlopen
 
 
 ####################################################################################
-#                               Base Classes
+#                              Base Classes
 ####################################################################################
 @dataclass
-class MrsDocument(ABC):
+class MrsDocumentBase(ABC):
     """Data classes produced by the SDK generator inherit from this base class.
 
     Relevant dunder methods are customized to achieve the wanted behavior where
@@ -76,7 +76,7 @@ class MrsDocument(ABC):
 
         def __getattribute__(self, name: str) -> Any:
             """Hypermedia-related fields cannot be accessed."""
-            if name in MrsDocument._reserved_keys:
+            if name in MrsDocumentBase._reserved_keys:
                 raise AttributeError(
                     f"'{type(self).__name__}' object has no attribute '{name}'"
                 )
@@ -84,7 +84,7 @@ class MrsDocument(ABC):
 
         def __setattr__(self, name: str, value: Any) -> None:
             """Hypermedia-related fields cannot be modified."""
-            if name in MrsDocument._reserved_keys:
+            if name in MrsDocumentBase._reserved_keys:
                 raise AttributeError(
                     f"Attribute '{name}' of '{type(self).__name__}' object cannot be changed."
                 )
@@ -92,20 +92,18 @@ class MrsDocument(ABC):
 
         def __delattr__(self, name: str) -> None:
             """Hypermedia-related fields cannot be deleted."""
-            if name in MrsDocument._reserved_keys:
+            if name in MrsDocumentBase._reserved_keys:
                 raise AttributeError(
                     f"Attribute '{name}' of '{type(self).__name__}' object cannot be deleted."
                 )
             super().__delattr__(name)
 
-    @abstractmethod
-    def __init__(self, schema: "MrsBaseSchema", data: Any) -> None:
-        """Constructor."""
-
     def __dir__(self) -> Iterable[str]:
         """Hypermedia-related fields should be hidden."""
         return [
-            key for key in super().__dir__() if key not in MrsDocument._reserved_keys
+            key
+            for key in super().__dir__()
+            if key not in MrsDocumentBase._reserved_keys
         ]
 
 
@@ -203,6 +201,78 @@ IMrsFunctionResult = TypeVar(
 AuthAppName = TypeVar("AuthAppName", bound=Optional[str])
 
 
+####################################################################################
+#                              Base and Mixin Classes
+####################################################################################
+class MrsDocument(Generic[Data], MrsDocumentBase):
+    """Data classes (representing table records) produced by the SDK
+    generator inherit from base class.
+
+    Relevant dunder methods are customized to achieve the wanted behavior where
+    hypermedia-related information remains hidden and inaccessible publicly.
+
+    This base class is not instantiable.
+    """
+
+    def __init__(
+        self, schema: MrsBaseSchema, data: Data, obj_endpoint: str = ""
+    ) -> None:
+        """Data class."""
+        self._schema: MrsBaseSchema = schema
+        self._request_path: str = obj_endpoint
+        self._load_fields(data)
+
+    @abstractmethod
+    def _load_fields(self, data: Data) -> None:
+        """Refresh data fields based on the input data."""
+
+    @classmethod
+    @abstractmethod
+    def get_primary_key_name(cls) -> Optional[str]:
+        """Get primary key name.
+
+        Returns:
+            `str` when there is a primary key, `None` otherwise.
+        """
+
+
+class _MrsDocumentUpdateMixin(Generic[Data, DataClass, DataDetails], MrsDocument[Data]):
+    """Adds the `update()` command to REST Document API."""
+
+    async def update(self) -> None:
+        """Update a resource represented by the data class instance."""
+        prk_name = cast(str, self.get_primary_key_name())
+        rest_document_id = getattr(self, prk_name)
+
+        await MrsBaseObjectUpdate[DataClass, DataDetails](
+            schema=self._schema,
+            request_path=f"{self._request_path}/{rest_document_id}",
+            data=cast(DataClass, self),
+        ).submit()
+
+
+class _MrsDocumentDeleteMixin(Generic[Data, Filterable], MrsDocument[Data]):
+    """Adds the `delete()` command to REST Document API."""
+
+    async def delete(self, read_own_writes: bool = False) -> None:
+        """Deletes the resource represented by the data class instance."""
+        prk_name = cast(str, self.get_primary_key_name())
+        rest_document_id = getattr(self, prk_name)
+        options = {
+            "where": {prk_name: rest_document_id},
+            "read_own_writes": read_own_writes,
+        }
+
+        _ = await MrsBaseObjectDelete[Filterable](
+            schema=self._schema,
+            request_path=self._request_path,
+            options=cast(DeleteOptions, options),
+        ).submit()
+
+
+####################################################################################
+#                                 Custom Types
+####################################################################################
 class MrsResourceLink(TypedDict):
     """Available keys for the `links` field."""
 
@@ -264,7 +334,7 @@ class IMrsProcedureResponseDetails(
 
 @dataclass(init=False, repr=True)
 class IMrsProcedureResponse(
-    Generic[IMrsProcedureOutParameters, IMrsProcedureResultSet], MrsDocument
+    Generic[IMrsProcedureOutParameters, IMrsProcedureResultSet], MrsDocumentBase
 ):
 
     result_sets: list[IMrsProcedureResultSet]
@@ -286,13 +356,13 @@ class IMrsProcedureResponse(
         ]
         self.out_parameters = data["out_parameters"]
 
-        for key in MrsDocument._reserved_keys:
+        for key in MrsDocumentBase._reserved_keys:
             self.__dict__.update({key: data.get(key)})
 
 
 @dataclass(init=False, repr=True)
 class MrsProcedureResultSet(
-    Generic[ResultSetType, ResultSetItem, ResultSetDetails], MrsDocument
+    Generic[ResultSetType, ResultSetItem, ResultSetDetails], MrsDocumentBase
 ):
 
     type: ResultSetType
@@ -303,7 +373,7 @@ class MrsProcedureResultSet(
         self.type = data["type"]
         self.items = data["items"]
 
-        for key in MrsDocument._reserved_keys:
+        for key in MrsDocumentBase._reserved_keys:
             self.__dict__.update({key: data.get(key)})
 
 
