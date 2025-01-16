@@ -332,7 +332,7 @@ export class ExtensionHost {
         this.context.subscriptions.push(workspace.onDidChangeConfiguration((event: ConfigurationChangeEvent) => {
             if (event.affectsConfiguration("msg")) {
                 updateLogLevel();
-                this.updateProfileSettings();
+                this.updateProfileSettings(event);
             }
         }));
 
@@ -474,38 +474,30 @@ export class ExtensionHost {
 
     /**
      * Triggered when the user changed a VS Code setting. Updates the current profile.
+     *
+     * @param event The configuration change event triggered by workspace.onDidChangeConfiguration.
      */
-    private updateProfileSettings(): void {
+    private updateProfileSettings(event: ConfigurationChangeEvent): void {
         if (!this.updatingSettings) {
             this.updatingSettings = true;
 
-            const handleChildren = (children?: ISettingCategory[], configuration?: WorkspaceConfiguration): void => {
-                children?.forEach((child) => {
-                    child.values.forEach((value) => {
-                        const configValue = configuration?.get(`${child.key}.${value.key}`);
-                        if (configValue != null) {
-                            Settings.set(value.id, configValue);
+            const processCategories = (categories?: ISettingCategory[], baseConfigKey = "msg"): void => {
+                categories?.forEach(({ key, values, children }) => {
+                    const fullKey = `${baseConfigKey}.${key}`;
+                    const configuration = workspace.getConfiguration(fullKey);
+
+                    values.forEach(({ id, key: valueKey }) => {
+                        const configValue = configuration.get(valueKey);
+                        if (event.affectsConfiguration(fullKey) && Settings.get(id) !== configValue) {
+                            Settings.set(id, configValue);
                         }
                     });
 
-                    handleChildren(child.children, configuration);
+                    processCategories(children, `${baseConfigKey}.${key}`);
                 });
             };
 
-            const categories = settingCategories.children;
-            if (categories) {
-                categories.forEach((category) => {
-                    const configuration = workspace.getConfiguration(`msg.${category.key}`);
-                    category.values.forEach((value) => {
-                        const configValue = configuration.get(value.key);
-                        if (configValue != null) {
-                            Settings.set(value.id, configValue);
-                        }
-                    });
-
-                    handleChildren(category.children, configuration);
-                });
-            }
+            processCategories(settingCategories.children);
 
             Settings.saveSettings();
 
