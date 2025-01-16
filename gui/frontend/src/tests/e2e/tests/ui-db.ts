@@ -540,8 +540,7 @@ describe("DATABASE CONNECTIONS", () => {
                     constants.wait5seconds, "confirm dialog was not found");
 
                 await dialog.findElement(locator.confirmDialog.accept).click();
-                await driver.navigate().refresh();
-                await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+                await new E2EToolbar().editorSelector.selectEditor(/DB Connection Overview/);
                 expect(await dbConnectionOverview.existsConnection(connectionToRemove.caption!)).toBe(false);
             } catch (e) {
                 testFailed = true;

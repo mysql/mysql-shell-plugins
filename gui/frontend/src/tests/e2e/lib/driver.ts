@@ -64,7 +64,7 @@ export const loadDriver = async (runInBackground: boolean): Promise<void> => {
     });
 
     if (!process.env.E2E_DEBUG && runInBackground) {
-        options.headless().windowSize({ width: 1300, height: 768 });
+        options.headless().windowSize({ width: 1300, height: 850 });
     }
 
     const createDriver = async (): Promise<WebDriver> => {

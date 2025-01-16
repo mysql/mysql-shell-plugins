@@ -178,6 +178,14 @@ export class Os {
     };
 
     /**
+     * Verifies if the current os is windows
+     * @returns A promise resolving with true if the current os is windows, false otherwise
+     */
+    public static isWindows = (): boolean => {
+        return platform() === "win32";
+    };
+
+    /**
      * Presses CTRL+V
      * @param el The element to perform the action on
      * @returns A promise resolving when the command is executed
@@ -255,7 +263,7 @@ export class Os {
         const params = ["--js", "-e", "shell.deleteAllCredentials()"];
         const response = spawnSync("mysqlsh", params);
 
-        if (response.status !== 0) {
+        if (response.status !== 0 && !this.isWindows()) {
             throw response.error;
         }
     };
