@@ -414,21 +414,3 @@ export const deactivate = (): void => {
     MessageScheduler.get.disconnect();
     void shellLauncher.exitProcess();
 };
-
-let statusBarTimer: ReturnType<typeof setTimeout>;
-
-/**
- * Let's other parts of the extension show a text in the status bar.
- *
- * @param text The text to show.
- */
-export const showStatusText = (text: string): void => {
-    clearTimeout(statusBarTimer);
-    statusBarItem.text = `MySQL Shell: ${text}`;
-    statusBarItem.show();
-
-    // Automatically hide the item after the timeout.
-    setTimeout(() => {
-        statusBarItem.hide();
-    }, 5000);
-};

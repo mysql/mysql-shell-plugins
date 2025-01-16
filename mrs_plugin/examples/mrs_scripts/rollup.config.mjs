@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,6 +27,11 @@ import typescript from '@rollup/plugin-typescript';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { defineConfig } from 'rollup';
 
+// Get the project folder from the current file path
+const path = new URL(import.meta.url).pathname;
+const folder = path.substring(0, path.lastIndexOf('/'));
+console.warn(`Building in project folder ${folder}...`);
+
 export default defineConfig([
     {
         input: 'src/MrsScriptModule.ts',
@@ -37,7 +42,9 @@ export default defineConfig([
         },
         plugins: [typescript({
             compilerOptions: {
-                sourceRoot: '../.'
+                // Force the sourceRoot to be in the actual project folder, to ensure map files use the right paths,
+                // e.g.: '/Users/user/git/shell-plugins/mrs_plugin/examples/mrs_scripts'
+                sourceRoot: folder
             }
         }), nodeResolve()]
     },
