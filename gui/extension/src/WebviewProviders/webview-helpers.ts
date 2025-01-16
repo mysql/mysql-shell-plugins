@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -239,6 +239,13 @@ export const prepareWebviewContent = (panel: WebviewPanel, url: URL): void => {
 
             // Send initial theme change message.
             sendThemeMessage();
+
+            // An additional call after a timeout is necessary to ensure listeners
+            // have sufficient time to initialize during the first execution.
+            // However, relying solely on the delayed call without the immediate
+            // initial call can result in a light-to-dark flicker
+            // when the OS prefers a light theme, but VS Code uses a dark one.
+            setTimeout(sendThemeMessage, 100);
         }
 
         if (event.data.source === "host") {
