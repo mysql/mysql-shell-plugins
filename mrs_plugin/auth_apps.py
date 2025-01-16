@@ -28,6 +28,7 @@
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
 from .interactive import resolve_service, resolve_auth_app, resolve_file_path, resolve_overwrite_file, auth_app_query_selection, service_query_selection
+import sys
 
 def generate_create_statement(**kwargs) -> str:
     lib.core.convert_ids_to_binary(["service_id", "auth_app_id"], kwargs)
@@ -394,3 +395,46 @@ def store_create_statement(**kwargs):
         return f"File created in {file_path}."
 
     return True
+
+@plugin_function('mrs.get.ociDomainAppSecret', shell=True, cli=True, web=False)
+def get_oci_domain_secret(domain_endpoint, app_name, **kwargs):
+    """Prints the client secret for the given OCI domain app to stdout
+
+    Args:
+        domain_endpoint (str): The OCI domain HTTPS endpoint URL.
+        app_name (str): The OCI domain app name.
+        **kwargs: Additional options.
+
+    Keyword Args:
+        oci_profile (str): The name of the OCI profile to use. If omitted, the resource principal will be used.
+
+    Returns:
+        None
+    """
+    import oci.auth.signers
+    import oci.config
+    import oci.identity_domains
+
+    oci_profile = kwargs.get("oci_profile", None)
+
+    try:
+        if oci_profile is None:
+            rps = oci.auth.signers.get_resource_principals_signer()
+            domainsClient = oci.identity_domains.IdentityDomainsClient(
+                config={}, service_endpoint=domain_endpoint, signer=rps)
+        else:
+            config = oci.config.from_file("~/.oci/config", oci_profile)
+            domainsClient = oci.identity_domains.IdentityDomainsClient(
+                config=config, service_endpoint=domain_endpoint)
+
+        # Lookup the app by name
+        response = domainsClient.list_apps(filter=f'name eq "{app_name}"')
+
+        # Check if the app was found
+        if not response.data or len(response.data.resources) < 1:
+            raise ValueError('The App could not be found.')
+
+        # Print the client_secret to stdout
+        print(response.data.resources[0].client_secret)
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
