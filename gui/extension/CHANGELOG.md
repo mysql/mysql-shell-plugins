@@ -4,13 +4,15 @@
 
 ### Additions
 
--
+- Enhanced SHOW CREATE SERVICE to support INCLUDE ALL OBJECTS and to include
+  user and role information on the output
+- Python SDK: Renamed the upsert() API command to update()
+- Added support for dollar quoting for JavaScript stored programs
 
 ### Fixes
 
 - BUG#37053871 Unable to generate the MRS SDK for the current service by omission
 - BUG#37052936 mrs.dump.sdkServiceFiles() reports no service_id in JSON - but it is there
--
 
 
 ## Changes in 1.19.0+9.1.0
