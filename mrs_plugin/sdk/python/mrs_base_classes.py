@@ -189,7 +189,7 @@ Order: TypeAlias = Literal["ASC", "DESC"]
 
 IMrsRoutineResponse = TypeVar("IMrsRoutineResponse", bound=Any)
 IMrsRoutineInParameters = TypeVar("IMrsRoutineInParameters", bound=Mapping)
-IMrsProcedureOutParameters = TypeVar("IMrsProcedureOutParameters", bound=Mapping)
+IMrsProcedureOutParameters = TypeVar("IMrsProcedureOutParameters", bound=Optional[Mapping])
 IMrsProcedureResultSet = TypeVar("IMrsProcedureResultSet", bound=object)
 ResultSetType = TypeVar("ResultSetType", bound=str)
 ResultSetItem = TypeVar("ResultSetItem", bound=Mapping)
