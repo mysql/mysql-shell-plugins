@@ -4,11 +4,12 @@
 
 ### Additions
 
-- 
+-
 
 ### Fixes
 
-- 
+- BUG#37498176 Type checking errors for REST procedure without output parameters
+-
 
 ## Changes in 1.19.1+9.1.0
 
@@ -23,7 +24,6 @@
 
 - BUG#37053871 Unable to generate the MRS SDK for the current service by omission
 - BUG#37052936 mrs.dump.sdkServiceFiles() reports no service_id in JSON - but it is there
-
 
 ## Changes in 1.19.0+9.1.0
 

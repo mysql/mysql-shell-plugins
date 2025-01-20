@@ -920,11 +920,12 @@ def generate_type_declaration(
     ignore_base_types=False,
     non_mandatory_fields: Set[str] = set(),  # Users may or not specify them
     requires_placeholder=False,
+    is_unpacked=False,
 ):
     if len(fields) == 0:
         if not requires_placeholder:
             return ""
-        return generate_type_declaration_placeholder(name, sdk_language)
+        return generate_type_declaration_placeholder(name, sdk_language, is_unpacked)
     if sdk_language == "TypeScript":
         field_block = [
             generate_type_declaration_field(
@@ -965,8 +966,7 @@ def generate_type_declaration(
             inheritance_block = f"({', '.join(ordered_parents)}, total=False)"
         else:
             inheritance_block = f"({', '.join(ordered_parents)})"
-        param_block = "".join(field_block) if len(field_block) > 0 else "    pass\n"
-        return f"class I{name}{inheritance_block}:\n" + param_block + "\n\n"
+        return f"class I{name}{inheritance_block}:\n" + "".join(field_block) + "\n\n"
 
 
 def generate_type_declaration_field(
@@ -1064,11 +1064,14 @@ def generate_enum(name, values, sdk_language):
         return f"I{name}: TypeAlias = {enum_def}\n\n\n"
 
 
-def generate_type_declaration_placeholder(name, sdk_language):
+def generate_type_declaration_placeholder(name, sdk_language, is_unpacked=False):
     if sdk_language == "TypeScript":
         return f"type I{name} = never;\n\n"
     if sdk_language == "Python":
-        return f"I{name}: TypeAlias = None\n\n\n"
+        if not is_unpacked:
+            return f"I{name}: TypeAlias = None\n\n\n"
+        # Using an empty TypedDict helps to avoid issues with Unpack
+        return f"class I{name}(TypedDict):\n    pass\n\n\n"
 
 
 def generate_literal_type(values, sdk_language):
@@ -1430,6 +1433,7 @@ def generate_interfaces(
                 non_mandatory_fields=set(param_interface_fields),
                 # To avoid conditional logic in the template, we should generate a void type declaration.
                 requires_placeholder=True,
+                is_unpacked=True,
             )
         )
 

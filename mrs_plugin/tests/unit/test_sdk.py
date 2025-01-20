@@ -575,11 +575,25 @@ def test_generate_type_declaration_field():
 
 
 def test_generate_type_declaration_placeholder():
-    type_declaration_placeholder = generate_type_declaration_placeholder("Foo", "TypeScript")
+    type_declaration_placeholder = generate_type_declaration_placeholder(
+        name="Foo", sdk_language="TypeScript"
+    )
     assert type_declaration_placeholder == "type IFoo = never;\n\n"
 
-    type_declaration_placeholder = generate_type_declaration_placeholder("Foo", "Python")
+    type_declaration_placeholder = generate_type_declaration_placeholder(
+        name="Foo", sdk_language="Python"
+    )
     assert type_declaration_placeholder == "IFoo: TypeAlias = None\n\n\n"
+
+    type_declaration_placeholder = generate_type_declaration_placeholder(
+        name="Foo", sdk_language="Python", is_unpacked=False
+    )
+    assert type_declaration_placeholder == "IFoo: TypeAlias = None\n\n\n"
+
+    type_declaration_placeholder = generate_type_declaration_placeholder(
+        name="Foo", sdk_language="Python", is_unpacked=True
+    )
+    assert type_declaration_placeholder == "class IFoo(TypedDict):\n    pass\n\n\n"
 
 
 def test_generate_type_declaration():
@@ -610,7 +624,10 @@ def test_generate_type_declaration():
     )
 
     type_declaration = generate_type_declaration(
-        name="Foo", fields={"bar": "baz", "qux": "quux"}, sdk_language="Python", non_mandatory_fields={"qux"}
+        name="Foo",
+        fields={"bar": "baz", "qux": "quux"},
+        sdk_language="Python",
+        non_mandatory_fields={"qux"},
     )
     assert type_declaration == (
         """class IFoo(TypedDict):
@@ -704,10 +721,14 @@ def test_generate_type_declaration():
     type_declaration = generate_type_declaration(name="Foo", fields=[])
     assert type_declaration == ""
 
-    type_declaration = generate_type_declaration(name="Foo", fields=[], requires_placeholder=True, sdk_language="TypeScript")
+    type_declaration = generate_type_declaration(
+        name="Foo", fields=[], requires_placeholder=True, sdk_language="TypeScript"
+    )
     assert type_declaration == "type IFoo = never;\n\n"
 
-    type_declaration = generate_type_declaration(name="Foo", fields=[], requires_placeholder=True, sdk_language="Python")
+    type_declaration = generate_type_declaration(
+        name="Foo", fields=[], requires_placeholder=True, sdk_language="Python"
+    )
     assert type_declaration == "IFoo: TypeAlias = None\n\n\n"
 
 
@@ -718,7 +739,10 @@ def test_generate_data_class():
         "Foobar", fields, "TypeScript", ["CREATE", "READ", "UPDATE", "DELETE"]
     )
     assert data_class == generate_type_declaration(
-        name="Foobar", fields=fields, sdk_language="TypeScript", non_mandatory_fields=set(fields)
+        name="Foobar",
+        fields=fields,
+        sdk_language="TypeScript",
+        non_mandatory_fields=set(fields),
     )
 
     # Python
@@ -747,9 +771,13 @@ def test_generate_data_class():
 
             if obj_prk is not None:
                 if "UPDATE" in db_object_crud_ops:
-                    mixins.append(f'\n\t_MrsDocumentUpdateMixin["I{name}Data", "I{name}", "I{name}Details"],')
+                    mixins.append(
+                        f'\n\t_MrsDocumentUpdateMixin["I{name}Data", "I{name}", "I{name}Details"],'
+                    )
                 if "DELETE" in db_object_crud_ops:
-                    mixins.append(f'\n\t_MrsDocumentDeleteMixin["I{name}Data", "I{name}Filterable"],')
+                    mixins.append(
+                        f'\n\t_MrsDocumentDeleteMixin["I{name}Data", "I{name}Filterable"],'
+                    )
                 if mixins:
                     mixins.append("\n\t")
 
@@ -757,7 +785,7 @@ def test_generate_data_class():
                 name,
                 {"foo": "baz", "barBaz": "qux"},
                 "Python",
-                db_object_crud_ops+db_object_delete_op,
+                db_object_crud_ops + db_object_delete_op,
                 obj_endpoint=obj_endpoint,
                 obj_primary_key=obj_prk,
             )
@@ -777,30 +805,37 @@ def test_generate_literal_type():
     assert literal == '"foo" | "bar"'
 
     literal = generate_literal_type(["foo", "bar"], "Python")
-    assert literal == """Literal[
+    assert (
+        literal
+        == """Literal[
     "foo",
     "bar",
 ]"""
+    )
 
 
 def test_generate_selectable():
-    selectable = generate_selectable("Foo", { "bar": "baz", "qux": "quux" }, "TypeScript")
+    selectable = generate_selectable("Foo", {"bar": "baz", "qux": "quux"}, "TypeScript")
     assert selectable == ""
 
-    selectable = generate_selectable("Foo", { "bar": "baz", "qux": "quux" }, "Python")
-    assert selectable == ("class IFooSelectable(TypedDict, total=False):\n" +
-                          "    bar: bool\n" +
-                          "    qux: bool\n\n\n")
+    selectable = generate_selectable("Foo", {"bar": "baz", "qux": "quux"}, "Python")
+    assert selectable == (
+        "class IFooSelectable(TypedDict, total=False):\n"
+        + "    bar: bool\n"
+        + "    qux: bool\n\n\n"
+    )
 
 
 def test_generate_sortable():
-    sortable = generate_sortable("Foo", { "bar": "baz", "qux": "quux" }, "TypeScript")
+    sortable = generate_sortable("Foo", {"bar": "baz", "qux": "quux"}, "TypeScript")
     assert sortable == ""
 
-    sortable = generate_sortable("Foo", { "bar": "baz", "qux": "quux" }, "Python")
-    assert sortable == ("class IFooSortable(TypedDict, total=False):\n" +
-                          "    bar: Order\n" +
-                          "    qux: Order\n\n\n")
+    sortable = generate_sortable("Foo", {"bar": "baz", "qux": "quux"}, "Python")
+    assert sortable == (
+        "class IFooSortable(TypedDict, total=False):\n"
+        + "    bar: Order\n"
+        + "    qux: Order\n\n\n"
+    )
 
 
 def test_generate_union():
@@ -820,8 +855,12 @@ def test_generate_sequence_constant():
 
 
 def test_field_is_required():
-    obj = { "row_ownership_field_id": None }
-    field = { "id": 42, "lev": 1, "db_column": { "not_null": True, "id_generation": None, "column_default": None } }
+    obj = {"row_ownership_field_id": None}
+    field = {
+        "id": 42,
+        "lev": 1,
+        "db_column": {"not_null": True, "id_generation": None, "column_default": None},
+    }
     is_required = field_is_required(field, obj)
     assert is_required == True
 
@@ -904,5 +943,3 @@ def test_apply_language_convention():
 
     value = apply_language_convention(value="FooBar", sdk_language="Python")
     assert value == "foo_bar"
-
-
