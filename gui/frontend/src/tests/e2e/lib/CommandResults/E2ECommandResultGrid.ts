@@ -48,6 +48,9 @@ export class E2ECommandResultGrid extends E2ECommandResult {
     /** The result status*/
     #status: string | undefined;
 
+    /** Result tabs*/
+    #tabs: interfaces.ICommandResultTab[] | undefined;
+
     /**
      * Gets the columnsMap
      * @returns The columnsMap
@@ -62,6 +65,14 @@ export class E2ECommandResultGrid extends E2ECommandResult {
      */
     public get status(): string | undefined {
         return this.#status;
+    }
+
+    /**
+     * Gets the tabs
+     * @returns The tabs
+     */
+    public get tabs(): interfaces.ICommandResultTab[] | undefined {
+        return this.#tabs;
     }
 
     /**
@@ -110,6 +121,35 @@ export class E2ECommandResultGrid extends E2ECommandResult {
         this.#status = await status!.getAttribute("innerHTML");
     };
 
+    /**
+     * Sets the result tabs
+     * @returns A promise resolving with the graph
+     */
+    public setTabs = async (): Promise<void> => {
+        const tabLocator = locator.notebook.codeEditor.editor.result.tabs;
+
+        const tabContext = await driver.wait(async () => {
+            const tabs = await this.resultContext!.findElements(tabLocator.exists);
+            if (tabs.length > 0) {
+                return tabs[0];
+            }
+        }, constants.wait5seconds, `Could not find the tabs for cmd ${this.command}`);
+
+        const tabsToGrab: interfaces.ICommandResultTab[] = [];
+        const existingTabs = await tabContext!.findElements(tabLocator.tab);
+        for (const existingTab of existingTabs) {
+            tabsToGrab.push({
+                name: await (await existingTab.findElement(locator.htmlTag.label)).getText(),
+                element: existingTab,
+            });
+        }
+
+        if (tabsToGrab.length > 0) {
+            this.#tabs = tabsToGrab;
+        } else {
+            throw new Error(`The number of tabs should be at least 1, for cmd ${this.command}`);
+        }
+    };
 
     /**
      * Verifies if the grid is editable
@@ -1340,6 +1380,24 @@ export class E2ECommandResultGrid extends E2ECommandResult {
         }, constants.wait10seconds, "Show actions button was not interactable");
 
         this.id--;
+    };
+
+    /**
+     * Selects a result grid tab
+     * @param tabName The tab name to select
+     */
+    public selectTab = async (tabName: string): Promise<void> => {
+        if (this.#tabs!.length > 0) {
+            await this.tabs!.find((item: interfaces.ICommandResultTab) => {
+                return item.name === tabName;
+            })!.element.click();
+        } else {
+            throw new Error(`The result grid does not have tabs to select`);
+        }
+
+        const result = await new E2ECodeEditor().getResult(this.command, this.id);
+        this.resultContext = result;
+        await this.setColumnsMap();
     };
 
     /**

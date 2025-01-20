@@ -260,19 +260,17 @@ describe("NOTEBOOKS", () => {
         it("Switch between search tabs", async () => {
             try {
                 const query = "select * from sakila.actor limit 1; select * from sakila.address limit 1;";
-                let result = await notebook.codeEditor
+                const result = await notebook.codeEditor
                     // eslint-disable-next-line max-len
-                    .execute(query) as E2ECommandResultData;
+                    .execute(query) as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
                 expect(result.tabs!.length).toBe(2);
                 expect(result.tabs![0].name).toBe("Result #1");
                 expect(result.tabs![1].name).toBe("Result #2");
-                expect(await result.resultContext!.getAttribute("innerHTML"))
-                    .toMatch(/actor_id.*first_name.*last_name.*last_update/);
+                expect(Array.from(result.columnsMap!.keys())).toStrictEqual(["actor_id", "first_name", "last_name", "last_update"]);
                 await result.selectTab(result.tabs![1].name);
-                result = await notebook.codeEditor.refreshResult(query, result.id) as E2ECommandResultData;
-                expect(await result.resultContext!.getAttribute("innerHTML"))
-                    .toMatch(/address.*address2.*district.*city_id.*postal_code.*phone.*last_update/);
+                expect(Array.from(result.columnsMap!.keys())).toStrictEqual(["address_id", "address", "address2", "district", "city_id", "postal_code",
+                    "phone", "last_update"]);
             } catch (e) {
                 testFailed = true;
                 throw e;

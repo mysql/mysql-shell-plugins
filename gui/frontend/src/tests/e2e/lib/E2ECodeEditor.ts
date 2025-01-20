@@ -218,24 +218,25 @@ export class E2ECodeEditor {
         const result = await this.getResult(cmd, resultId);
         const resultType = await this.getResultType(cmd, result);
 
-        if (this.expectTabs(cmd) === true) {
-            const commandResult = new E2ECommandResultData(cmd, resultId!);
-            commandResult.resultContext = result;
-            await commandResult.setStatus();
-            await commandResult.setTabs();
-
-            return commandResult;
-        }
-
         let commandResult: E2ECommandResultGrid | E2ECommandResultData | undefined;
+
         if (resultType === constants.isGrid) {
             commandResult = new E2ECommandResultGrid(cmd, resultId!);
             commandResult.resultContext = result;
+
+            if (this.expectTabs(cmd) === true) {
+                await commandResult.setTabs();
+            }
+
             await commandResult.setStatus();
             await commandResult.setColumnsMap();
         } else {
             commandResult = new E2ECommandResultData(cmd, resultId!);
             commandResult.resultContext = result;
+
+            if (this.expectTabs(cmd) === true) {
+                await commandResult.setTabs();
+            }
 
             switch (resultType) {
 

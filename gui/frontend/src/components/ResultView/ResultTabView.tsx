@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -129,8 +129,6 @@ interface IResultTabViewProperties extends IComponentProperties {
 }
 
 interface IResultTabViewState extends IComponentState {
-    /** Set to true when a result set was selected by the user. */
-    manualTab: boolean;
 
     currentResultSet?: IResultSet;
 }
@@ -156,7 +154,6 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         super(props);
 
         this.state = {
-            manualTab: false,
             currentResultSet: props.resultSets.sets.length > 0 ? props.resultSets.sets[0] : undefined,
         };
 
@@ -169,46 +166,26 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         oldState: IResultTabViewState): Partial<IResultTabViewState> {
 
         const { currentSet, resultSets } = newProps;
-        const { manualTab, currentResultSet } = oldState;
+        const { currentResultSet } = oldState;
 
-        if (manualTab) {
-            return {
-                manualTab: false,
-            };
-        }
-
-        if (resultSets.sets.length === 0) {
+        if (resultSets.sets.length === 0 || currentSet === undefined) {
             return {
                 currentResultSet: undefined,
             };
         }
 
-        // If a current set is specified, select that. Otherwise keep what was selected before, if it still exists.
-        if (currentSet !== undefined) {
-            // Convert the tab index into a value used to select a specific tab.
-            let currentResultSet;
-            if (currentSet > 0) { // Index 0 is the output page.
-                currentResultSet = (currentSet - 1) < resultSets.sets.length
-                    ? resultSets.sets[currentSet - 1]
-                    : resultSets.sets[resultSets.sets.length - 1];
-            }
+        // Convert the tab index into a value used to select a specific tab.
+        const newCurrentResultSet = (currentSet - 1) < resultSets.sets.length
+            ? resultSets.sets[currentSet - 1]
+            : resultSets.sets[resultSets.sets.length - 1];
 
-            return {
-                currentResultSet,
-            };
-        }
-
-        const found = resultSets.sets.find((candidate) => {
-            return candidate === currentResultSet;
-        });
-
-        if (found) {
-            return {
-            };
+        if (newCurrentResultSet === currentResultSet) {
+            // Keep what was selected before, if it still exists.
+            return {};
         }
 
         return {
-            currentResultSet: resultSets.sets.length > 0 ? newProps.resultSets.sets[0] : undefined,
+            currentResultSet: newCurrentResultSet,
         };
     }
 
@@ -544,23 +521,14 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
     private handleTabSelection = (id: string): void => {
         let currentIndex = 0;
-        if (id === "output") {
-            this.setState({ currentResultSet: undefined, manualTab: true });
-        } else {
-            const { resultSets } = this.props;
+        this.props.resultSets.sets.forEach((candidate, index) => {
+            if (candidate.resultId === id) {
+                currentIndex = index + 1; // Account for the output page.
+            }
+        });
 
-            const currentResultSet = resultSets.sets.find((candidate, index) => {
-                if (candidate.resultId === id) {
-                    currentIndex = index + 1; // Account for the output page.
-
-                    return true;
-                }
-
-                return false;
-            });
-
-            this.setState({ currentResultSet, manualTab: true });
-        }
+        const viewRef = this.viewRefs.get(this.state.currentResultSet?.resultId ?? "")?.current;
+        viewRef?.cellEditCancelled();
 
         const { onSelectTab } = this.props;
 
@@ -631,7 +599,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             const info = this.#editingInfo.get(currentResultSet.resultId ?? "");
             if (info) {
                 // The user is currently editing the result set, so we need to commit or rollback the changes first.
-                void this.confirmCommitOrRollback(info).then((result) => {
+                void this.confirmCommitOrRollback(info, true).then((result) => {
                     if (result) {
                         switchPage();
                     }
@@ -660,7 +628,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             const info = this.#editingInfo.get(currentResultSet.resultId ?? "");
             if (info) {
                 // The user is currently editing the result set, so we need to commit or rollback the changes first.
-                void this.confirmCommitOrRollback(info).then((result) => {
+                void this.confirmCommitOrRollback(info, true).then((result) => {
                     if (result) {
                         switchPage();
                     }
@@ -676,10 +644,11 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
      * This includes changing the active page, removing the result set or closing the tab.
      *
      * @param info The editing info for the result set.
+     * @param refreshResults Whether data needs to be refreshed.
      *
      * @returns true if the user can navigate away, false otherwise.
      */
-    private confirmCommitOrRollback = async (info: IEditingInfo): Promise<boolean> => {
+    private confirmCommitOrRollback = async (info: IEditingInfo, refreshResults = false): Promise<boolean> => {
         if (info.rowChanges.length === 0) {
             return true;
         }
@@ -701,18 +670,17 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
         switch (response.closure) {
             case DialogResponseClosure.Accept: {
-                this.commitChanges(info);
+                this.commitChanges(info, refreshResults);
 
                 return true;
             }
 
             case DialogResponseClosure.Decline: {
                 const { onRollbackChanges } = this.props;
-                const { currentResultSet } = this.state;
-                if (currentResultSet) {
-                    onRollbackChanges?.(currentResultSet);
-
-                    this.#editingInfo.delete(currentResultSet.resultId);
+                const { resultSet } = info;
+                if (resultSet) {
+                    this.#editingInfo.delete(resultSet.resultId);
+                    onRollbackChanges?.(resultSet);
                 }
 
                 return true;
@@ -1089,7 +1057,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         }
     };
 
-    private commitChanges = (info?: IEditingInfo): void => {
+    private commitChanges = (info?: IEditingInfo, refreshResults = true): void => {
         const { onCommitChanges, onResultPageChange } = this.props;
         const { currentResultSet } = this.state;
 
@@ -1113,10 +1081,11 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                 } else {
                     this.#editingInfo.delete(info.resultSet.resultId);
 
-                    // Use the page switch callback to refresh the result set.
-                    onResultPageChange?.(info.resultSet.resultId, info.resultSet.data.currentPage,
-                        info.resultSet.sql);
-
+                    if (refreshResults) {
+                        // Use the page switch callback to refresh the result set.
+                        onResultPageChange?.(info.resultSet.resultId, info.resultSet.data.currentPage,
+                            info.resultSet.sql);
+                    }
                 }
             });
         }
