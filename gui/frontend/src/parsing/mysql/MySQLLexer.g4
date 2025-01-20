@@ -1,7 +1,7 @@
 lexer grammar MySQLLexer;
 
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,19 +26,19 @@ lexer grammar MySQLLexer;
  */
 
 /*
- * Merged in all changes up to mysql-trunk git revision [d2c9971] (24. January 2024).
+ * I've merged in all changes up to mysql-trunk git revision [8107c1e] (tagged mysql-9.2.0)  (15. Dec 2024).
  *
- * MySQL grammar for ANTLR 4.5+ with language features from MySQL 8.0 and up.
+ * This is a MySQL grammar for ANTLR 4.5+ with language features from MySQL 8.0 and up.
  * The server version in the generated parser can be switched at runtime, making it so possible
  * to switch the supported feature set dynamically.
  *
- * The coverage of the MySQL language should be 100%, but there might still be bugs or omissions.
+ * The coverage of the MySQL language should be 100%, but there might still be some bugs or omissions.
  *
- * To use this grammar you will need a few support classes (which should be close to where you found this grammar).
- * These classes implement the target specific action code, so we don't clutter the grammar with that
+ * To use this grammar you'll need a few support classes (which should be close to where you found this grammar).
+ * These classes implement the target-specific action code, so we don't clutter up the grammar with that
  * and make it simpler to adjust it for other targets. See the demo/test project for further details.
  *
- * Written by Mike Lischke. Direct all bug reports, omissions etc. to mike.lischke@oracle.com.
+ * Written by Mike Lischke. Please email mike.lischke@oracle.com if you spot any bugs or omissions.
  */
 
 //-------------------------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ tokens {
 //-------------------------------------------------------------------------------------------------
 
 @header {/*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
@@ -1048,6 +1048,13 @@ AUTO_SYMBOL:                        A U T O                                     
 MANUAL_SYMBOL:                      M A N U A L                                         {this.serverVersion >= 80200}?; // MYSQL
 BERNOULLI_SYMBOL:                   B E R N O U L L I                                   {this.serverVersion >= 80200}?; // MYSQL
 TABLESAMPLE_SYMBOL:                 T A B L E S A M P L E                               {this.serverVersion >= 80200}?; // MYSQL
+
+VECTOR_SYMBOL:                      V E C T O R                                         {this.serverVersion >= 80300}?; // MYSQL
+
+PARAMETERS_SYMBOL:                  P A R A M E T E R S                                 {this.serverVersion >= 90100}?; // MYSQL
+HEADER_SYMBOL:                      H E A D E R                                         {this.serverVersion >= 90100}?; // MYSQL
+
+LIBRARY_SYMBOL:                     L I B R A R Y                                       {this.serverVersion >= 90200}?; // MYSQL
 
 // $antlr-format groupedAlignments on, alignTrailers off, alignLexerCommands on
 

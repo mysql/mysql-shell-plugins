@@ -1,7 +1,7 @@
 parser grammar MySQLParser;
 
 /*
- * Copyright (c) 2012, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,19 +26,19 @@ parser grammar MySQLParser;
  */
 
 /*
- * Merged in all changes up to mysql-trunk git revision [d2c9971] (24. January 2024).
+ * I've merged in all changes up to mysql-trunk git revision [8107c1e] (tagged mysql-9.2.0)  (15. Dec 2024).
  *
- * MySQL grammar for ANTLR 4.5+ with language features from MySQL 8.0 and up.
+ * This is a MySQL grammar for ANTLR 4.5+ with language features from MySQL 8.0 and up.
  * The server version in the generated parser can be switched at runtime, making it so possible
  * to switch the supported feature set dynamically.
  *
- * The coverage of the MySQL language should be 100%, but there might still be bugs or omissions.
+ * The coverage of the MySQL language should be 100%, but there might still be some bugs or omissions.
  *
- * To use this grammar you will need a few support classes (which should be close to where you found this grammar).
- * These classes implement the target specific action code, so we don't clutter the grammar with that
+ * To use this grammar you'll need a few support classes (which should be close to where you found this grammar).
+ * These classes implement the target-specific action code, so we don't clutter up the grammar with that
  * and make it simpler to adjust it for other targets. See the demo/test project for further details.
  *
- * Written by Mike Lischke. Direct all bug reports, omissions etc. to mike.lischke@oracle.com.
+ * Written by Mike Lischke. Please email mike.lischke@oracle.com if you spot any bugs or omissions.
  */
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ options {
     tokenVocab = MySQLLexer;
 }
 
-@header {/* Copyright (c) 2020, 2024, Oracle and/or its affiliates. */
+@header {/* Copyright (c) 2020, 2025, Oracle and/or its affiliates.*/
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-useless-escape, no-lone-blocks */
@@ -234,8 +234,8 @@ standaloneAlterCommands:
     | IMPORT_SYMBOL TABLESPACE_SYMBOL
     | alterPartition
     | {this.serverVersion >= 80014}? (
-        SECONDARY_LOAD_SYMBOL
-        | SECONDARY_UNLOAD_SYMBOL
+        SECONDARY_LOAD_SYMBOL ({this.serverVersion >= 80200}? usePartition)?
+        | SECONDARY_UNLOAD_SYMBOL ({this.serverVersion >= 80200}? usePartition)?
     )
 ;
 
@@ -402,7 +402,9 @@ changeTablespaceOption:
 ;
 
 alterView:
-    viewAlgorithm? definerClause? viewSuid? VIEW_SYMBOL viewRef viewTail
+    viewAlgorithm? definerClause? viewSuid? VIEW_SYMBOL (
+        {this.serverVersion >= 80300}? ifNotExists // Doesn't make much sense, but that's how the server grammar defines it.
+    )? viewRef viewTail
 ;
 
 // This is not the full view_tail from sql_yacc.yy as we have either a view name or a view reference,
@@ -452,6 +454,7 @@ createStatement:
         | createRole
         | {this.serverVersion >= 80011}? createSpatialReference
         | {this.serverVersion >= 80014}? createUndoTablespace
+        | {this.serverVersion >= 90200}? createLibrary
     )
 ;
 
@@ -538,6 +541,15 @@ createUdf:
 routineCreateOption:
     routineOption
     | NOT_SYMBOL? DETERMINISTIC_SYMBOL
+    | {this.serverVersion >= 90200}? USING_SYMBOL OPEN_PAR_SYMBOL libraryList CLOSE_PAR_SYMBOL
+;
+
+libraryList:
+    libraryNameWithAlias (COMMA_SYMBOL libraryNameWithAlias)*
+;
+
+libraryNameWithAlias:
+    libraryName (AS_SYMBOL? identifier)?
 ;
 
 // sp_a_chistics in the server grammar.
@@ -626,6 +638,10 @@ createUndoTablespace:
     UNDO_SYMBOL TABLESPACE_SYMBOL tablespaceName ADD_SYMBOL tsDataFile undoTableSpaceOptions?
 ;
 
+createLibrary:
+    LIBRARY_SYMBOL ifNotExists? libraryName LANGUAGE_SYMBOL identifier AS_SYMBOL routineString
+;
+
 tsDataFileName:
     ADD_SYMBOL tsDataFile
     | {this.serverVersion >= 80014}? (ADD_SYMBOL tsDataFile)? // now optional
@@ -700,7 +716,9 @@ tsOptionEngineAttribute:
 ;
 
 createView:
-    viewReplaceOrAlgorithm? definerClause? viewSuid? VIEW_SYMBOL viewName viewTail
+    viewReplaceOrAlgorithm? definerClause? viewSuid? VIEW_SYMBOL (
+        {this.serverVersion >= 80300}? ifNotExists
+    )? viewName viewTail
 ;
 
 viewReplaceOrAlgorithm:
@@ -775,6 +793,7 @@ dropStatement:
         | dropRole
         | {this.serverVersion >= 80011}? dropSpatialReference
         | {this.serverVersion >= 80014}? dropUndoTablespace
+        | {this.serverVersion >= 90200}? dropLibrary
     )
 ;
 
@@ -844,6 +863,10 @@ dropSpatialReference:
 
 dropUndoTablespace:
     UNDO_SYMBOL TABLESPACE_SYMBOL tablespaceRef undoTableSpaceOptions?
+;
+
+dropLibrary:
+    DROP_SYMBOL LIBRARY_SYMBOL ifExists libraryRef
 ;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -983,8 +1006,9 @@ loadStatement:
     LOAD_SYMBOL dataOrXml loadDataLock? loadFrom? LOCAL_SYMBOL? loadSourceType? textStringLiteral sourceCount? sourceOrder? (
         REPLACE_SYMBOL
         | IGNORE_SYMBOL
-    )? INTO_SYMBOL TABLE_SYMBOL tableRef usePartition? charsetClause? xmlRowsIdentifiedBy? fieldsClause? linesClause?
-        loadDataFileTail loadParallel? loadMemory? loadAlgorithm?
+    )? INTO_SYMBOL TABLE_SYMBOL tableRef usePartition? (
+        { this.serverVersion >= 80300}? compressionAlgorithm
+    )? charsetClause? xmlRowsIdentifiedBy? fieldsClause? linesClause? loadDataFileTail loadParallel? loadMemory? loadAlgorithm?
 ;
 
 dataOrXml:
@@ -1008,7 +1032,7 @@ loadSourceType:
 
 sourceCount:
     {this.serverVersion >= 80200}? (
-        COUNT_SYMBOL INT_NUMBER
+        {this.serverVersion < 80300}? COUNT_SYMBOL INT_NUMBER
         | pureIdentifier INT_NUMBER
     )
 ;
@@ -1044,6 +1068,10 @@ fieldOrVariableList:
 
 loadAlgorithm:
     {this.serverVersion >= 80200}? ALGORITHM_SYMBOL EQUAL_OPERATOR BULK_SYMBOL
+;
+
+compressionAlgorithm:
+    {this.serverVersion >= 80300}? COMPRESSION_SYMBOL EQUAL_OPERATOR textStringLiteral
 ;
 
 loadParallel:
@@ -1141,9 +1169,33 @@ limitOption:
     | (PARAM_MARKER | ULONGLONG_NUMBER | LONG_NUMBER | INT_NUMBER)
 ;
 
+outfileURI:
+    URL_SYMBOL textString
+;
+
+outfileFileInfo:
+    outfileFileInfoList
+;
+
+outfileFileInfoList:
+    outfileFileInfoElem+
+;
+
+outfileFileInfoElem:
+    FORMAT_SYMBOL identifier
+    | COMPRESSION_SYMBOL textString
+    | HEADER_SYMBOL ON_SYMBOL
+    | HEADER_SYMBOL OFF_SYMBOL
+    | charsetClause
+;
+
 intoClause:
     INTO_SYMBOL (
-        OUTFILE_SYMBOL textStringLiteral charsetClause? fieldsClause? linesClause?
+        OUTFILE_SYMBOL (
+            {this.serverVersion < 90100}? textStringLiteral charsetClause?
+            | {this.serverVersion >= 90100}? (textStringLiteral | outfileURI) outfileFileInfo?
+            | {this.serverVersion >= 90100}? WITH_SYMBOL PARAMETERS_SYMBOL jsonAttribute
+        ) fieldsClause? linesClause?
         | DUMPFILE_SYMBOL textStringLiteral
         | (textOrIdentifier | userVariable) (
             COMMA_SYMBOL (textOrIdentifier | userVariable)
@@ -1520,7 +1572,7 @@ lockItem:
 
 lockOption:
     READ_SYMBOL LOCAL_SYMBOL?
-    | LOW_PRIORITY_SYMBOL? WRITE_SYMBOL // low priority deprecated since 5.7
+    | {this.serverVersion < 80200}? LOW_PRIORITY_SYMBOL? WRITE_SYMBOL
 ;
 
 xaStatement:
@@ -1546,12 +1598,12 @@ xid:
 
 replicationStatement:
     PURGE_SYMBOL purgeOptions
-    | changeSource
+    | changeReplicationSource
+    | changeReplicationFilter
     | RESET_SYMBOL resetOption (COMMA_SYMBOL resetOption)*
     | RESET_SYMBOL PERSIST_SYMBOL ifExistsIdentifier?
     | startReplicaStatement
     | stopReplicaStatement
-    | changeReplication
     | replicationLoad
     | groupReplication
 ;
@@ -1581,13 +1633,13 @@ replicationLoad:
     LOAD_SYMBOL (DATA_SYMBOL | TABLE_SYMBOL tableRef) FROM_SYMBOL MASTER_SYMBOL
 ;
 
-changeReplicationSource:
+replicationSource:
     MASTER_SYMBOL
     | {this.serverVersion >= 80024}? REPLICATION_SYMBOL SOURCE_SYMBOL
 ;
 
-changeSource:
-    CHANGE_SYMBOL changeReplicationSource TO_SYMBOL sourceDefinitions channel?
+changeReplicationSource:
+    CHANGE_SYMBOL replicationSource TO_SYMBOL sourceDefinitions channel?
 ;
 
 sourceDefinitions:
@@ -1801,7 +1853,7 @@ serverIdList:
     OPEN_PAR_SYMBOL (ulong_number (COMMA_SYMBOL ulong_number)*)? CLOSE_PAR_SYMBOL
 ;
 
-changeReplication:
+changeReplicationFilter:
     CHANGE_SYMBOL REPLICATION_SYMBOL FILTER_SYMBOL filterDefinition (
         COMMA_SYMBOL filterDefinition
     )* channel?
@@ -2158,6 +2210,7 @@ aclType:
     TABLE_SYMBOL
     | FUNCTION_SYMBOL
     | PROCEDURE_SYMBOL
+    | LIBRARY_SYMBOL
 ;
 
 roleOrPrivilegesList:
@@ -2562,6 +2615,10 @@ showCreateFunctionStatement:
     SHOW_SYMBOL CREATE_SYMBOL FUNCTION_SYMBOL functionRef
 ;
 
+show_create_library_stmt:
+    SHOW_SYMBOL CREATE_SYMBOL LIBRARY_SYMBOL libraryRef
+;
+
 showCreateTriggerStatement:
     SHOW_SYMBOL CREATE_SYMBOL TRIGGER_SYMBOL triggerRef
 ;
@@ -2675,12 +2732,8 @@ keyUsageList:
 ;
 
 flushOption:
-    option = (
-        HOSTS_SYMBOL
-        | PRIVILEGES_SYMBOL
-        | STATUS_SYMBOL
-        | USER_RESOURCES_SYMBOL
-    )
+    option = (PRIVILEGES_SYMBOL | STATUS_SYMBOL | USER_RESOURCES_SYMBOL)
+    | {this.serverVersion < 80200}? option = HOSTS_SYMBOL
     | logType? option = LOGS_SYMBOL
     | option = RELAY_SYMBOL LOGS_SYMBOL channel?
     | option = OPTIMIZER_COSTS_SYMBOL
@@ -2798,7 +2851,7 @@ explainStatement:
 
 explainOptions:
     FORMAT_SYMBOL EQUAL_OPERATOR textOrIdentifier (
-        {this.serverVersion >= 80032}? explainInto
+        {this.serverVersion >= 80300}? explainInto
     )?
     | {this.serverVersion < 80012}? EXTENDED_SYMBOL
     | {this.serverVersion >= 80018}? ANALYZE_SYMBOL
@@ -3750,6 +3803,7 @@ dataType: // type in sql_yacc.yy
         | type = NCHAR_SYMBOL VARYING_SYMBOL
     ) fieldLength BINARY_SYMBOL?
     | type = VARBINARY_SYMBOL fieldLength
+    | type = VECTOR_SYMBOL fieldLength?
     | type = YEAR_SYMBOL fieldLength? fieldOptions?
     | type = DATE_SYMBOL
     | type = TIME_SYMBOL typeDatetimePrecision?
@@ -4059,7 +4113,7 @@ charsetClause:
     charset charsetName
 ;
 
-fieldsClause:
+fieldsClause: // opt_field_term in sql_yacc.yy
     COLUMNS_SYMBOL fieldTerm+
 ;
 
@@ -4067,9 +4121,16 @@ fieldTerm:
     TERMINATED_SYMBOL BY_SYMBOL textString
     | OPTIONALLY_SYMBOL? ENCLOSED_SYMBOL BY_SYMBOL textString
     | ESCAPED_SYMBOL BY_SYMBOL textString
+    | {this.serverVersion >= 80400}? (
+        NOT_SYMBOL ENCLOSED_SYMBOL
+        | DATE_SYMBOL FORMAT_SYMBOL textString
+        | TIME_SYMBOL FORMAT_SYMBOL textString
+        | NULL_SYMBOL AS_SYMBOL textString
+        | EMPTY_SYMBOL AS_SYMBOL textString
+    )
 ;
 
-linesClause:
+linesClause: // opt_line_term in sql_yacc.yy
     LINES_SYMBOL lineTerm+
 ;
 
@@ -4379,6 +4440,14 @@ resourceGroupRef:
 
 windowName:
     identifier
+;
+
+libraryName:
+    qualifiedIdentifier
+;
+
+libraryRef:
+    qualifiedIdentifier
 ;
 
 //----------------- Common basic rules ---------------------------------------------------------------------------------
@@ -4692,6 +4761,7 @@ identifierKeywordsAmbiguous2Labels:
     | UNICODE_SYMBOL
     | UNINSTALL_SYMBOL
     | XA_SYMBOL
+    | ({this.serverVersion >= 90200}? BINLOG_SYMBOL)
 ;
 
 // Keywords that we allow for labels in SPs in the unquoted form.
@@ -5180,7 +5250,9 @@ identifierKeywordsUnambiguous:
         | PARSE_TREE_SYMBOL
         | S3_SYMBOL
         | BERNOULLI_SYMBOL
+        | AUTO_SYMBOL
     )
+    | {this.serverVersion >= 80300}? (VECTOR_SYMBOL)
     /* INSERT OTHER KEYWORDS HERE */
 ;
 
