@@ -621,6 +621,7 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
 exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
 <ResultTabView
   contextId="ec123"
+  currentSet={1}
   hideTabs="single"
   resultSets={
     {

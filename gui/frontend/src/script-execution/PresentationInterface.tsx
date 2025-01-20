@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -955,6 +955,15 @@ export class PresentationInterface {
         if (options.currentSet !== undefined) {
             this.currentSet = options.currentSet;
         }
+
+        // Query execution triggers tab re-creation,
+        // requiring currentSet to be reset or adjusted to prevent an out-of-bounds index
+        // when the new query(ies) produces fewer tabs than the previous one.
+        // This has no impact on cases with output-only results.
+        if (this.resultData?.type === "resultSets" && this.currentSet > this.resultData.sets.length) {
+            this.currentSet = 1;
+        }
+
         this.maximizedResult = options.maximized;
 
         let element: ComponentChild | undefined;
@@ -1005,6 +1014,13 @@ export class PresentationInterface {
             }
 
             case "resultSets": {
+                const hasOutput = this.resultData?.output && this.resultData.output.length > 0;
+                // Switch the tab if we're currently on the output tab re-running the query,
+                // results are present but output is missing.
+                if (!hasOutput && this.resultData.sets.length > 0 && this.currentSet === 0) {
+                    this.currentSet = 1;
+                }
+
                 element = <ResultTabView
                     ref={this.resultRef}
                     resultSets={this.resultData}
@@ -1098,10 +1114,7 @@ export class PresentationInterface {
     };
 
     private handleSelectTab = (index: number): void => {
-        this.currentSet = index;
-        setTimeout(() => {
-            this.renderResults();
-        }, 0);
+        this.renderResults({currentSet: index});
     };
 
     private changeLoadingState = (newState: LoadingState): void => {

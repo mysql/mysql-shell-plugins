@@ -705,6 +705,76 @@ describe("RESULT GRIDS", () => {
             }
         });
 
+        it("Edit a result grid under result tabs", async () => {
+
+            try {
+                let result = await notebook.codeEditor
+                    .execute("select * from sakila.actor; select * from sakila.address;") as E2ECommandResultGrid;
+                expect(result.status).toMatch(/OK/);
+
+                const lastNameEdited = "edited";
+                const districtEdited = "New York";
+
+                const rowToEdit = 0;
+
+                await result.editCells([{ rowNumber: rowToEdit, columnName: "last_name", value: lastNameEdited }],
+                    constants.doubleClick);
+                result = await notebook.codeEditor.refreshResult(result.command, result.id) as E2ECommandResultGrid;
+
+                await result.selectTab(result.tabs![1].name);
+
+                await result.editCells([{ rowNumber: rowToEdit, columnName: "district", value: districtEdited }],
+                    constants.doubleClick);
+                result = await notebook.codeEditor.refreshResult(result.command, result.id) as E2ECommandResultGrid;
+
+                let expectedSqlPreview = [
+                    /UPDATE sakila.address SET/,
+                    new RegExp(`district = '${districtEdited}'`),
+                    /WHERE address_id = 1;/,
+                ];
+
+                await result.selectSqlPreview();
+                let sqlPreview = await notebook.codeEditor
+                    .refreshResult(result.command, result.id) as E2ECommandResultData;
+                for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
+                    expect(sqlPreview.preview!.text).toMatch(expectedSqlPreview[i]);
+                }
+
+                await sqlPreview.clickSqlPreviewContent();
+                result = await notebook.codeEditor
+                    .refreshResult(result.command, result.id) as E2ECommandResultGrid;
+                await driver.wait(result.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
+
+                await result.selectTab(result.tabs![0].name);
+
+                expectedSqlPreview = [
+                    /UPDATE sakila.actor SET/,
+                    new RegExp(`last_name = '${lastNameEdited}'`),
+                    /WHERE actor_id = 1;/,
+                ];
+
+                await result.selectSqlPreview();
+                sqlPreview = await notebook.codeEditor
+                    .refreshResult(result.command, result.id) as E2ECommandResultData;
+                for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
+                    expect(sqlPreview.preview!.text).toMatch(expectedSqlPreview[i]);
+                }
+
+                await sqlPreview.clickSqlPreviewContent();
+                result = await notebook.codeEditor
+                    .refreshResult(result.command, result.id) as E2ECommandResultGrid;
+                await driver.wait(result.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
+
+
+                await result.applyChanges();
+                await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait3seconds);
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+
+        });
+
         it("Result grid context menu - Capitalize, Convert to lower, upper case and mark for deletion", async () => {
             try {
                 let result = await notebook.codeEditor
@@ -1123,6 +1193,38 @@ describe("RESULT GRIDS", () => {
                 expect(testGeomCollection).toBe(constants.geometry);
                 const testBit = await result1.getCellValue(row, "test_bit");
                 expect(testBit).toBe("16127");
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
+        it("Add new row on result grid under result tabs", async () => {
+            try {
+                await notebook.codeEditor.clean();
+                const result = await notebook.codeEditor
+                    .execute("select * from sakila.actor; select * from sakila.address;") as E2ECommandResultGrid;
+                expect(result.status).toMatch(/OK/);
+
+                let rowToAdd: interfaces.IResultGridCell[] = [
+                    { columnName: "first_name", value: "Oscar" },
+                    { columnName: "last_name", value: "Smith" },
+                ];
+
+                await result.addRow(rowToAdd);
+                await result.selectTab(result.tabs![1].name);
+
+                rowToAdd = [
+                    { columnName: "address", value: "this is an address" },
+                    { columnName: "address2", value: "another address" },
+                    { columnName: "district", value: "Hill Valley" },
+                    { columnName: "city_id", value: "300" },
+                    { columnName: "postal_code", value: "35200" },
+                ];
+
+                await result.addRow(rowToAdd);
+                await result.applyChanges();
+                await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait3seconds);
             } catch (e) {
                 testFailed = true;
                 throw e;

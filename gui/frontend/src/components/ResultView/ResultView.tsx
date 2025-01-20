@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -374,6 +374,20 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         }
     }
 
+    /**
+     * Triggered when the user cancelled editing a cell value.
+     */
+    public cellEditCancelled = (): void => {
+        const { onFieldEditCancel } = this.props;
+
+        if (this.editingCell) {
+            onFieldEditCancel?.(this.editingCell.getRow().getPosition() as number - 1,
+                this.editingCell.getColumn().getField());
+            this.editingCell.getElement().focus();
+            this.editingCell = undefined;
+        }
+    };
+
     private generateColumnDefinitions = (columns: IColumnInfo[], editable: boolean): ColumnDefinition[] => {
         // Map column info from the backend to column definitions for
         return columns.map((info): ColumnDefinition => {
@@ -549,20 +563,6 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         });
 
         this.editingCell = undefined;
-    };
-
-    /**
-     * Triggered when the user cancelled editing a cell value.
-     */
-    private cellEditCancelled = (): void => {
-        const { onFieldEditCancel } = this.props;
-
-        if (this.editingCell) {
-            onFieldEditCancel?.(this.editingCell.getRow().getPosition() as number - 1,
-                this.editingCell.getColumn().getField());
-            this.editingCell.getElement().focus();
-            this.editingCell = undefined;
-        }
     };
 
     private handleColumnResized = (column: ColumnComponent): void => {

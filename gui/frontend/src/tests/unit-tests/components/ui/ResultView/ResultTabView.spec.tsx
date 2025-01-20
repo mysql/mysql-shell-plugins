@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -29,8 +29,23 @@ import { MessageType } from "../../../../../app-logic/general-types.js";
 import { ResultStatus } from "../../../../../components/ResultView/ResultStatus.js";
 import { ResultTabView } from "../../../../../components/ResultView/ResultTabView.js";
 import { Button } from "../../../../../components/ui/Button/Button.js";
-import { IResultSets } from "../../../../../script-execution/index.js";
+import { IResultSet, IResultSets } from "../../../../../script-execution/index.js";
 import { nextProcessTick, nextRunLoop } from "../../../test-helpers.js";
+
+const createResultSet = (resultId: string): IResultSet => {
+    return {
+        type: "resultSet",
+        resultId,
+        fullTableName: "bar",
+        sql: "baz",
+        updatable: true,
+        columns: [],
+        data: {
+            rows: [],
+            currentPage: 1,
+        },
+    };
+};
 
 describe("Result Tabview Tests", (): void => {
 
@@ -77,6 +92,7 @@ describe("Result Tabview Tests", (): void => {
     it("Tabview With Result Sets", () => {
         const component = mount<ResultTabView>(
             <ResultTabView
+                currentSet={1}
                 resultSets={{
                     type: "resultSets",
                     sets: [{
@@ -128,6 +144,7 @@ describe("Result Tabview Tests", (): void => {
     it("Update Data", async () => {
         const component = mount<ResultTabView>(
             <ResultTabView
+                currentSet={1}
                 resultSets={{
                     type: "resultSets",
                     sets: [{
@@ -204,10 +221,13 @@ describe("Result Tabview Tests", (): void => {
         status = component.find(ResultStatus);
         expect(status).toHaveLength(0);
 
+        const onSelectTab = jest.fn();
+
         // Now update the component with data that has an executionInfo field to create a status.
         // We keep the original result set by intention, to keep it selected.
         // Also add output text to the set, while we are at it, to add an output tab to the set.
         component.setProps({
+            onSelectTab,
             resultSets: {
                 type: "resultSets",
                 output: [
@@ -264,7 +284,7 @@ describe("Result Tabview Tests", (): void => {
             }
         });
         expect(found).toBe(true);
-        expect(component.state().currentResultSet).not.toBeDefined(); // No result set is selected anymore.
+        expect(onSelectTab).toHaveBeenCalledWith(0);
 
         component.unmount();
     });
@@ -316,6 +336,7 @@ describe("Result Tabview Tests", (): void => {
 
         const component = mount<ResultTabView>(
             <ResultTabView
+                currentSet={1}
                 resultSets={resultSets}
                 contextId="ec123"
                 hideTabs="single"
@@ -337,6 +358,7 @@ describe("Result Tabview Tests", (): void => {
                 tab.getDOMNode<HTMLButtonElement>().click();
             }
         });
+        component.setProps({currentSet: 2});
         expect(found).toBe(true);
         expect(component.state().currentResultSet).toBeDefined();
         await nextRunLoop();
@@ -425,5 +447,106 @@ describe("Result Tabview Tests", (): void => {
         (items[3] as HTMLButtonElement).click();
 
         component.unmount();
+    });
+
+    describe("Test getDerivedStateFromProps", () => {
+        it("Removes currentResultSet when sets are empty", () => {
+            // const newProps: IResultTabViewProperties = {};
+            // const oldState: IResultTabViewState = {};
+            const newState = ResultTabView.getDerivedStateFromProps({
+                contextId: "",
+                showMaximizeButton: "never",
+                hideTabs: "never",
+                resultSets: {
+                    type: "resultSets",
+                    sets: [],
+                },
+            }, {});
+
+            expect(newState.currentResultSet).toBeUndefined();
+        });
+
+        it("Removes currentResultSet when currentSet is undefined", () => {
+            // const newProps: IResultTabViewProperties = {};
+            // const oldState: IResultTabViewState = {};
+            const newState = ResultTabView.getDerivedStateFromProps({
+                contextId: "",
+                showMaximizeButton: "never",
+                hideTabs: "never",
+                resultSets: {
+                    type: "resultSets",
+                    sets: [],
+                },
+                currentSet: undefined,
+            }, {});
+
+            expect(newState.currentResultSet).toBeUndefined();
+        });
+
+        it("Sets currentResultSet from previously undefined", () => {
+            const nextResultSet = createResultSet("123");
+            const newState = ResultTabView.getDerivedStateFromProps({
+                contextId: "",
+                showMaximizeButton: "never",
+                hideTabs: "never",
+                resultSets: {
+                    type: "resultSets",
+                    sets: [nextResultSet],
+                },
+                currentSet: 1,
+            }, {currentResultSet: undefined});
+
+            expect(newState.currentResultSet).toEqual(nextResultSet);
+        });
+
+        it("Keeps currentResultSet if it has not changed", () => {
+            const resultSet = createResultSet("123");
+            const newState = ResultTabView.getDerivedStateFromProps({
+                contextId: "",
+                showMaximizeButton: "never",
+                hideTabs: "never",
+                resultSets: {
+                    type: "resultSets",
+                    sets: [resultSet, createResultSet("234")],
+                },
+                currentSet: 1,
+            }, {currentResultSet: resultSet});
+
+            expect(newState).toEqual({});
+        });
+
+        it("Changes currentResultSet to the nextResultSet according to currentSet index", () => {
+            const currentResultSet = createResultSet("123");
+            const nextResultSet = createResultSet("234");
+            const newState = ResultTabView.getDerivedStateFromProps({
+                contextId: "",
+                showMaximizeButton: "never",
+                hideTabs: "never",
+                resultSets: {
+                    type: "resultSets",
+                    sets: [currentResultSet, nextResultSet],
+                },
+                currentSet: 2,
+            }, {currentResultSet});
+
+            expect(newState.currentResultSet).toEqual(nextResultSet);
+        });
+
+        it("Selects last currentResultSet if currentSet index is out of bounds", () => {
+            const currentResultSet = createResultSet("123");
+            const lastResultSet = createResultSet("234");
+            const newState = ResultTabView.getDerivedStateFromProps({
+                contextId: "",
+                showMaximizeButton: "never",
+                hideTabs: "never",
+                resultSets: {
+                    type: "resultSets",
+                    sets: [currentResultSet, lastResultSet],
+                },
+                currentSet: 99,
+            }, {currentResultSet});
+
+            expect(newState.currentResultSet).toEqual(lastResultSet);
+        });
     });
 });
