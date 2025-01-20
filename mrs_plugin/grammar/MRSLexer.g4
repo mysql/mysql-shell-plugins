@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify it under the terms of the
  * GNU General Public License, version 2.0, as published by the Free Software Foundation.
@@ -97,7 +97,6 @@ SERVICES_SYMBOL:    S E R V I C E S;
 SERVICE_SYMBOL:     S E R V I C E;
 VIEWS_SYMBOL:       V I E W S;
 PROCEDURES_SYMBOL:  P R O C E D U R E S;
-PARAMETERS_SYMBOL:  P A R A M E T E R S;
 FUNCTIONS_SYMBOL:   F U N C T I O N S;
 RESULT_SYMBOL:      R E S U L T;
 ENABLED_SYMBOL:     E N A B L E D;

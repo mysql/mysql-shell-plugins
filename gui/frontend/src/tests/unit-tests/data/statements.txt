@@ -2200,7 +2200,7 @@ start transaction with consistent snapshot$$
 commit work and no chain release$$
 savepoint blah$$
 release savepoint blah$$
-lock tables sakila.actor a read local, payment write$$
+[<80200]lock tables sakila.actor a read local, payment write$$
 unlock tables$$
 xa start '123456789' resume$$
 xa commit '1'$$
@@ -2240,7 +2240,8 @@ show collation like 'blah'$$
 show full columns from customer in sakila where customer_id in (1, 2, 3)$$
 
 binlog 'blah'$$
-flush local hosts, binary logs$$
+[<80200]flush local hosts, binary logs$$
+flush local status, binary logs$$
 cache index actor partition (all) index (idx_actor_last_name, primary, primary) in sakila$$
 cache index actor index (idx_actor_last_name, primary, primary), category key (primary) in default$$
 kill query 1$$
@@ -2875,3 +2876,9 @@ CREATE TABLE func_index (
 [>=80200]load xml concurrent from S3 'blah' count 10 in primary key order into table dummy ignore 10 lines parallel=10 memory =100 algorithm = bulk $$
 [>=80200]select * qualify 1 + 1 $$
 [>=80200]analyze table a, b, c update histogram on x with 10 buckets manual update $$
+[>=80400]select *, "ABC" into outfile 'abc' columns escaped by ';' time format 'yyy' not enclosed$$
+[>=80400]select *, "ABC" into outfile 'abc' fields empty as 'null'$$
+[>=90100]select *, "ABC" into outfile url '123.456.0.1' header on fields empty as 'null'$$
+[>=90100]select *, "ABC" into outfile with parameters '{ value: true}' fields empty as 'null'$$
+[>=90200]create library if not exists myLibrary language typescript as $TS$console.log("done");$TS$ $$
+[>=90200]create procedure myProc () using (myOtherLibrary as MOL, sys.lodash lodash) begin end$$

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -35,10 +35,10 @@ interface ITestFile {
     initialDelimiter: string;
 }
 
-interface IDollarQuoteTestFile {
-    name: string;
+interface IDollarQuoteTestEntry {
+    title: string;
     data: string;
-    rangeLength: number;
+    delimiter?: string;
     expectedResult: string[];
     finishState: StatementFinishState[];
     version: number;
@@ -66,7 +66,7 @@ const runParserTests = () => {
             const statement = sql.substring(range.span.start, end).trim();
 
             // The parser only supports syntax from 8.0 onwards. So we expect errors for older statements.
-            const checkResult = checkStatementVersion(statement, 80200);
+            const checkResult = checkStatementVersion(statement, 90200);
             if (checkResult.matched) {
                 const result = services.errorCheck(checkResult.statement, MySQLParseUnit.Generic,
                     checkResult.version, "ANSI_QUOTES");
@@ -136,163 +136,152 @@ describe("MySQL Parsing Services Tests", () => {
 });
 
 describe("MySQL Parsing Service test for dollar quote", () => {
-    const testFiles: IDollarQuoteTestFile[] = [
-      //Large set of all possible query types in different combinations and versions.
-      {
-        name: "Statement splitter for $$",
-        data: "CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $$ console.log('mle'); $$;",
-        rangeLength: 1,
-        expectedResult:
-          ["CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $$ console.log('mle'); $$;"],
+    const queryStart = "CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS ";
+
+    const testEntries: IDollarQuoteTestEntry[] = [{
+        title: "Statement splitter for $$",
+        data: queryStart + "$$ console.log('mle'); $$;",
+        expectedResult: [queryStart + "$$ console.log('mle'); $$;"],
         finishState: [StatementFinishState.Complete],
         version: 80100,
-      },
-      {
-        name: "Statement splitter for $string$",
-        data: "CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $mle$ console.log('mle'); $mle$;",
-        rangeLength: 1,
-        expectedResult:
-          ["CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $mle$ console.log('mle'); $mle$;"],
+    },
+    {
+        title: "Statement splitter for $string$",
+        data: queryStart + "$mle$ console.log('mle'); $mle$;",
+        expectedResult: [queryStart + "$mle$ console.log('mle'); $mle$;"],
         finishState: [StatementFinishState.Complete],
         version: 80100,
-      },
-      {
-        name: "Statement splitter for $$ in the start and $string$ in the sql body",
-        data:
-          "CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $$ console.log('mle $js$ $test$'); $$;",
-        rangeLength: 1,
-        expectedResult:
-          ["CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $$ console.log('mle $js$ $test$'); $$;"],
+    },
+    {
+        title: "Statement splitter for $$ in the start and $string$ in the sql body",
+        data: queryStart + "$$ console.log('mle $js$ $test$'); $$;",
+        expectedResult: [queryStart + "$$ console.log('mle $js$ $test$'); $$;"],
         finishState: [StatementFinishState.Complete],
         version: 80100,
-      },
-      {
-        name: "Statement splitter for $string$ in the start and $$ in the sql body",
-        data:
-          "CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $mle$ console.log('mle $$'); $mle$;",
-        rangeLength: 1,
-        expectedResult:
-          ["CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $mle$ console.log('mle $$'); $mle$;"],
+    },
+    {
+        title: "Statement splitter for $string$ in the start and $$ in the sql body",
+        data: queryStart + "$mle$ console.log('mle $$'); $mle$;",
+        expectedResult: [queryStart + "$mle$ console.log('mle $$'); $mle$;"],
         finishState: [StatementFinishState.Complete],
         version: 80100,
-      },
-      {
-        name: "Statement splitter for $$ in start and $$ in the sql body",
-        data: "CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $$ console.log('$$'); $$;",
-        rangeLength: 1,
-        expectedResult:
-          [`CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $$ console.log('$$'); $$;`],
+    },
+    {
+        title: "Statement splitter for $$ in start and $$ in the sql body",
+        data: queryStart + "$$ console.log('$$'); $$;",
+        expectedResult: [queryStart + "$$ console.log('$$'); $$;"],
         finishState: [StatementFinishState.OpenString],
         version: 80100,
-      },
-      {
-        name: "Statement splitter for $string$ in the start and $string$ in the sql body are different",
-        data:
-          "CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $mle$ console.log('mle $test$'); $mle$;",
-        rangeLength: 1,
-        expectedResult:
-          ["CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $mle$ console.log('mle $test$'); $mle$;"],
+    },
+    {
+        title: "Statement splitter for $string$ in the start and $string$ in the sql body are different",
+        data: queryStart + "$mle$ console.log('mle $test$'); $mle$;",
+        expectedResult: [queryStart + "$mle$ console.log('mle $test$'); $mle$;"],
         finishState: [StatementFinishState.Complete],
         version: 80100,
-      },
-      {
-        name: "Statement splitter for $string$ in the start and $string$ in the end is different",
-        data:
-          "CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $xyz$ console.log('mle'); $abc$;",
-        rangeLength: 1,
-        expectedResult:
-          ["CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $xyz$ console.log('mle'); $abc$;"],
+    },
+    {
+        title: "Statement splitter for $string$ in the start and $string$ in the end is different",
+        data: queryStart + "$xyz$ console.log('mle'); $abc$;",
+        expectedResult: [queryStart + "$xyz$ console.log('mle'); $abc$;"],
         finishState: [StatementFinishState.OpenString],
         version: 80100,
-      },
-      {
-        name: "Statement splitter for $string$ in the start and $string$ in the sql body are same",
-        data:
-          "CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $mle$ console.log('mle $mle$'); $mle$;",
-        rangeLength: 1,
-        expectedResult:
-          ["CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $mle$ console.log('mle $mle$'); $mle$;"],
+    },
+    {
+        title: "Statement splitter for $string$ in the start and $string$ in the sql body are same",
+        data: queryStart + "$mle$ console.log('mle $mle$'); $mle$;",
+        expectedResult: [queryStart + "$mle$ console.log('mle $mle$'); $mle$;"],
         finishState: [StatementFinishState.OpenString],
         version: 80100,
-      },
-      {
-        name: "Statement splitter for $$ in start and no $$",
-        data: `CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $$ console.log("mle $$"); ;`,
-        rangeLength: 1,
-        expectedResult:
-          [`CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $$ console.log("mle $$"); ;`],
+    },
+    {
+        title: "Statement splitter for $$ in start and no $$",
+        data: queryStart + '$$ console.log("mle $$"); ;',
+        expectedResult: [queryStart + '$$ console.log("mle $$"); ;'],
         finishState: [StatementFinishState.OpenString],
         version: 80100,
-      },
-      {
-        name: `Statement splitter for " in start, sql body and in end`,
+    },
+    {
+        title: `Statement splitter for " in start, sql body and in end`,
         data: `CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS " console.log('mle " "'); ";`,
-        rangeLength: 1,
-        expectedResult:
-          [`CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS " console.log('mle " "'); ";`],
+        expectedResult: [queryStart + `" console.log('mle " "'); ";`],
         finishState: [StatementFinishState.Complete],
         version: 80100,
-      },
-      {
-        name: "Statement splitter for $string in the start",
-        data: "CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $mle console.log('mle'); $mle$;",
-        rangeLength: 1,
-        expectedResult:
-          ["CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $mle console.log('mle'); $mle$;"],
+    },
+    {
+        title: "Statement splitter for $string in the start",
+        data: queryStart + "$mle console.log('mle'); $mle$;",
+        expectedResult: [queryStart + "$mle console.log('mle'); $mle$;"],
         finishState: [StatementFinishState.OpenString],
         version: 80100,
-      },
-      {
-        name: "Statement splitter for $string in the start and delimiter in the body",
-        data:
-          "CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $mle$ console.log('$mle$;'); $mle$;",
-        rangeLength: 2,
-        expectedResult:
-          ["CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $mle$ console.log('$mle$;", "'); $mle$;"],
+    },
+    {
+        title: "Statement splitter for $string in the start and delimiter in the body",
+        data: queryStart + "$mle$ console.log('$mle$;'); $mle$;",
+        expectedResult: [queryStart + "$mle$ console.log('$mle$;", "'); $mle$;"],
         finishState: [StatementFinishState.Complete, StatementFinishState.OpenString],
         version: 80100,
-      },
-      {
-        name: "Statement splitter for $$, version 8.0",
-        data: "CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $$ console.log('mle'); $$;",
-        rangeLength: 2,
-        expectedResult:
-          ["CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $$ console.log('mle');", "$$;"],
+    },
+    {
+        title: "Statement splitter for $$, version 8.0",
+        data: queryStart + "$$ console.log('mle'); $$;",
+        expectedResult: [
+            queryStart + "$$ console.log('mle');",
+            "$$;",
+        ],
         finishState: [StatementFinishState.Complete, StatementFinishState.Complete],
         version: 80000,
-      },
-      {
-        name: "Statement splitter for $string$, version 8.0",
-        data: "CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $mle$ console.log('js'); $mle$;",
-        rangeLength: 2,
-        expectedResult:
-          ["CREATE PROCEDURE my_proc() DETERMINISTIC LANGUAGE JAVASCRIPT AS $mle$ console.log('js');", "$mle$;"],
+    },
+    {
+        title: "Statement splitter for $string$, version 8.0",
+        data: queryStart + "$mle$ console.log('js'); $mle$;",
+        expectedResult: [
+            queryStart + "$mle$ console.log('js');",
+            "$mle$;",
+        ],
         finishState: [StatementFinishState.Complete, StatementFinishState.Complete],
         version: 80000,
-      },
-    ];
+    },
+    {
+        title: "Multiple statements mixed, version 9.2",
+        delimiter: "$$",
+        data: `
+            select *, "ABC" into outfile with parameters '{ value: true}' fields empty as 'null'$$
+            create library if not exists 'myLibrary' language 'typescript' as $TS$console.log("done");$TS$ $$
+            create procedure 'myProc' () using ('myOtherLibrary' as MOL, 'lodash' lodash)$$\n`,
+        expectedResult: [
+            "select *, \"ABC\" into outfile with parameters '{ value: true}' fields empty as 'null'$$",
+            "create library if not exists 'myLibrary' language 'typescript' as $TS$console.log(\"done\");$TS$ $$",
+            "create procedure 'myProc' () using ('myOtherLibrary' as MOL, 'lodash' lodash)$$",
+            "\n",
+        ],
+        finishState: [
+            StatementFinishState.Complete,
+            StatementFinishState.Complete,
+            StatementFinishState.Complete,
+            StatementFinishState.NoDelimiter,
+        ],
+        version: 90200,
+    }];
 
-    testFiles.forEach((entry) => {
-      it(entry.name, () => {
-        const data = entry.data;
+    testEntries.forEach((entry) => {
+        it(entry.title, () => {
+            const data = entry.data;
 
-        // Code to be measured check the number of statement ranges
-        const ranges = services.determineStatementRanges(data, ";", entry.version);
-        expect(ranges.length).toBe(entry.rangeLength);
+            // Code to be measured check the number of statement ranges.
+            const ranges = services.determineStatementRanges(data, entry.delimiter ?? ";", entry.version);
+            expect(ranges.length).toBe(entry.expectedResult.length);
 
-        // Check the first statement/range if the start and ending position are expected
-        const r = ranges[0];
-        const s = data.substring(r.contentStart, r.span.start + r.span.length);
-        expect(s).toBe(entry.expectedResult[0]);
-        expect(r.state).toBe(entry.finishState[0]);
-
-        if (entry.rangeLength === 2) {
-          // Check the second statement/range if the start and ending position are expected
-          const r2 = ranges[1];
-          const s2 = data.substring(r2.contentStart, r2.span.start + r2.span.length);
-          expect(s2).toBe(entry.expectedResult[1]);
-          expect(r2.state).toBe(entry.finishState[1]);
-        }
-      });
+            ranges.forEach((range, index) => {
+                if (range.state === StatementFinishState.Complete) {
+                    const s = data.substring(range.contentStart, range.span.start + range.span.length);
+                    expect(s).toBe(entry.expectedResult[index]);
+                } else {
+                    const s = data.substring(range.span.start, range.span.start + range.span.length);
+                    expect(s).toBe(entry.expectedResult[index]);
+                }
+                expect(range.state).toBe(entry.finishState[index]);
+            });
+        });
     });
 });
