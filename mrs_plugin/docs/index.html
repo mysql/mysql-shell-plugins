@@ -2652,10 +2652,12 @@ router_id=16</code></pre>
                 class="header-section-number">8.2.2</span> MySQL
                 Internal Authentication</h3>
                 <p>Authentication is handled my MRS against MySQL server
-                user accounts. Applications use SCRAM (Salted Challenge
-                Response Authentication Mechanism) to securely
-                authenticate a user.</p>
-                <p>This authentication method is suitable for
+                user accounts. Applications send the credentials
+                (username and password) in clear text as part of a JSON
+                request payload to the MySQL Router for authenticating a
+                user.</p>
+                <p>This authentication method is recommended for
+                HTTPS-only REST services and is most suitable for
                 applications that are not exposed publicly.</p>
                 <h3 data-number="8.2.3" id="oauth2-authentication"><span
                 class="header-section-number">8.2.3</span> OAuth2
