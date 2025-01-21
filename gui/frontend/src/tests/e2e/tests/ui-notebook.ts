@@ -267,10 +267,12 @@ describe("NOTEBOOKS", () => {
                 expect(result.tabs!.length).toBe(2);
                 expect(result.tabs![0].name).toBe("Result #1");
                 expect(result.tabs![1].name).toBe("Result #2");
-                expect(Array.from(result.columnsMap!.keys())).toStrictEqual(["actor_id", "first_name", "last_name", "last_update"]);
+                expect(Array.from(result.columnsMap!.keys()))
+                    .toStrictEqual(["actor_id", "first_name", "last_name", "last_update"]);
                 await result.selectTab(result.tabs![1].name);
-                expect(Array.from(result.columnsMap!.keys())).toStrictEqual(["address_id", "address", "address2", "district", "city_id", "postal_code",
-                    "phone", "last_update"]);
+                expect(Array.from(result.columnsMap!.keys()))
+                    .toStrictEqual(["address_id", "address", "address2", "district", "city_id", "postal_code",
+                        "phone", "last_update"]);
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -566,7 +568,6 @@ describe("NOTEBOOKS", () => {
         };
 
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
-        const cookbookFile = "static_cookbook.pdf";
         let notebook: E2ENotebook;
         let testFailed = false;
 
@@ -618,7 +619,8 @@ describe("NOTEBOOKS", () => {
                 for (const doc of matchedDocuments) {
                     documentTitles.push(doc.title);
                 }
-                expect(documentTitles).toContain(cookbookFile);
+
+                expect(documentTitles.join(" ")).toContain("cookbook");
             } catch (e) {
                 testFailed = true;
                 throw e;

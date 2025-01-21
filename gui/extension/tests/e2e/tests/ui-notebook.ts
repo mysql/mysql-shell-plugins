@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024 Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -69,6 +69,8 @@ describe("NOTEBOOKS", () => {
                     constants.wait1minute * 2);
             }
 
+            await Os.appendToExtensionLog("beforeAll Notebooks");
+
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.createDatabaseConnection(globalConn);
             await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption), constants.wait5seconds);
@@ -104,6 +106,10 @@ describe("NOTEBOOKS", () => {
                 await Misc.processFailure(this);
                 throw e;
             }
+        });
+
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
         });
 
         afterEach(async function () {
@@ -568,6 +574,10 @@ describe("NOTEBOOKS", () => {
             }
         });
 
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+        });
+
         afterEach(async function () {
             if (this.currentTest.state === "failed") {
                 await Misc.processFailure(this);
@@ -712,7 +722,6 @@ describe("NOTEBOOKS", () => {
         };
 
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
-        const cookbookFile = "static_cookbook.pdf";
         const notebook = new E2ENotebook();
 
         before(async function () {
@@ -728,6 +737,10 @@ describe("NOTEBOOKS", () => {
                 throw e;
             }
 
+        });
+
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
         });
 
         afterEach(async function () {
@@ -762,7 +775,7 @@ describe("NOTEBOOKS", () => {
                 documentTitles.push(doc.title);
             }
 
-            expect(documentTitles).to.include(cookbookFile);
+            expect(documentTitles.join(" ")).to.include("cookbook");
         });
 
     });

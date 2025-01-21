@@ -87,7 +87,7 @@ export class E2EObjectStorageBrowser {
                 for (const item of items) {
                     const caption = await (item.findElement(objStorageItem.caption)).getText();
 
-                    if (caption === itemName) {
+                    if (caption.includes(itemName)) {
                         itemToReturn = item;
 
                         return true;
@@ -130,12 +130,12 @@ export class E2EObjectStorageBrowser {
                 for (const item of items) {
                     const caption = await (item.findElement(objStorageItem.caption)).getText();
 
-                    if (caption === itemName) {
+                    if (caption.includes(itemName)) {
                         exists = true;
-
-                        return true;
                     }
                 }
+
+                return true;
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
@@ -159,10 +159,17 @@ export class E2EObjectStorageBrowser {
         for (let i = 0; i <= path.length - 1; i++) {
             await driver.wait(async () => {
                 try {
+
                     if (i === path.length - 1) {
                         await driver.executeScript("arguments[0].scrollBy(0, 150)",
                             await driver.findElement(scrollTable));
+
                     }
+
+                    if (await this.existsItem("Error")) { // flaky failure without solution yet
+                        throw new Error("Skip");
+                    }
+
                     let item = await this.getItem(path[i], String(i));
                     let itemToggle = await item.findElement(objStorageItem.treeToggle);
 

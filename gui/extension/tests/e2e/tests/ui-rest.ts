@@ -108,6 +108,10 @@ describe("MySQL REST Service", () => {
             await Os.deleteCredentials();
         });
 
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+        });
+
         afterEach(async function () {
             if (this.currentTest.state === "failed") {
                 await Misc.processFailure(this);
@@ -347,6 +351,7 @@ describe("MySQL REST Service", () => {
         });
 
         beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
             try {
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
                     `${constants.dbTreeSection} is still loading`);
@@ -1307,6 +1312,7 @@ describe("MySQL REST Service", () => {
 
         before(async function () {
             try {
+                await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
                 crudService.advanced.hostNameFilter = `127.0.0.1:${routerPort}`;
                 crudSchema.restServicePath = `${crudService.advanced.hostNameFilter}${crudService.servicePath}`;
                 crudObject.restServicePath = `${crudService.advanced.hostNameFilter}${crudService.servicePath}`;
@@ -1335,6 +1341,10 @@ describe("MySQL REST Service", () => {
                 await Misc.processFailure(this);
                 throw e;
             }
+        });
+
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
         });
 
         after(async function () {

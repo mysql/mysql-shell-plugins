@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024 Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -73,6 +73,10 @@ describe("OPEN EDITORS", () => {
             await Misc.processFailure(this);
             throw e;
         }
+    });
+
+    beforeEach(async function () {
+        await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
     });
 
     after(async function () {
