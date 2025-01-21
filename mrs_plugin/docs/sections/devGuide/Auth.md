@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -113,9 +113,9 @@ Authentication is handled my MRS against MRS REST Service specific accounts. App
 
 ### MySQL Internal Authentication
 
-Authentication is handled my MRS against MySQL server user accounts. Applications use SCRAM (Salted Challenge Response Authentication Mechanism) to securely authenticate a user.
+Authentication is handled my MRS against MySQL server user accounts. Applications send the credentials (username and password) in clear text as part of a JSON request payload to the MySQL Router for authenticating a user.
 
-This authentication method is suitable for applications that are not exposed publicly.
+This authentication method is recommended for HTTPS-only REST services and is most suitable for applications that are not exposed publicly.
 
 ### OAuth2 Authentication
 

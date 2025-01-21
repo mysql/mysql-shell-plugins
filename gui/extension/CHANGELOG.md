@@ -10,6 +10,7 @@
 
 - BUG#37498176 Type checking errors for REST procedure without output parameters
 - BUG#37549793 Unexpected MRS authentication error in the Python SDK
+- BUG#37492003 MySQL Internal auth: not using SCRAM
 -
 
 ## Changes in 1.19.1+9.1.0
