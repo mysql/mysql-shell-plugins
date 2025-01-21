@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -96,6 +96,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         let existsInQueue = false;
 
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+        });
+
         afterEach(async function () {
             if (this.currentTest?.state === "failed") {
                 await Misc.processFailure(this);
@@ -145,6 +149,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.processFailure(this);
                 throw e;
             }
+        });
+
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
         });
 
         afterEach(async function () {
@@ -223,6 +231,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.processFailure(this);
                 throw e;
             }
+        });
+
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
         });
 
         afterEach(async function () {
@@ -404,6 +416,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             }
         });
 
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+        });
+
         afterEach(async function () {
             if (this.currentTest?.state === "failed") {
                 await Misc.processFailure(this);
@@ -541,6 +557,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 await Misc.processFailure(this);
                 throw e;
             }
+        });
+
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
         });
 
         afterEach(async function () {

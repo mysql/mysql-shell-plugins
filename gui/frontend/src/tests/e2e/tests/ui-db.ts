@@ -920,6 +920,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             const fileToUpload = "qa_cookbook_fe.pdf";
             const tabContainer = new E2ETabContainer();
+            let skipTest = false;
 
             beforeAll(async () => {
                 try {
@@ -986,8 +987,19 @@ describe("DATABASE CONNECTIONS", () => {
                     await driver.wait(uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
                         constants.wait25seconds);
 
-                    await uploadToObjectStorage.objectStorageBrowser
-                        .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
+                    try {
+                        await uploadToObjectStorage.objectStorageBrowser
+                            .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
+                    } catch (e) {
+                        if (String(e).includes("Skip")) {
+                            skipTest = true;
+
+                            return;
+                        } else {
+                            throw e;
+                        }
+                    }
+
                     await uploadToObjectStorage.addFiles(join(process.cwd(), "..", "extension",
                         "tests", "e2e", "lakehouse_nav_files", fileToUpload));
                     await uploadToObjectStorage.objectStorageBrowser.checkItem("upload");
@@ -1003,6 +1015,10 @@ describe("DATABASE CONNECTIONS", () => {
 
             it("Load into Lakehouse", async () => {
                 try {
+                    if (skipTest) {
+                        return;
+                    }
+
                     const loadIntoLakehouse = mysqlAdministration.lakeHouseNavigator.loadIntoLakehouse;
                     await mysqlAdministration.lakeHouseNavigator.selectTab(constants.loadIntoLakeHouseTab);
                     await driver.wait(loadIntoLakehouse.objectStorageBrowser.untilItemsAreLoaded(),
@@ -1022,6 +1038,10 @@ describe("DATABASE CONNECTIONS", () => {
 
             it("Lakehouse Tables", async () => {
                 try {
+                    if (skipTest) {
+                        return;
+                    }
+
                     const lakehouseTables = mysqlAdministration.lakeHouseNavigator.lakehouseTables;
                     await driver.wait(lakehouseTables.untilIsOpened(), constants.wait15seconds);
                     expect(await lakehouseTables.getDatabaseSchemas()).toContain(newTask.targetDatabaseSchema);

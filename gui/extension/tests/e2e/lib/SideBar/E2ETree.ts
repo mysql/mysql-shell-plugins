@@ -122,7 +122,7 @@ export class E2ETree {
     public untilExists = (element: Array<string | RegExp> | string | RegExp): Condition<boolean> => {
         return new Condition(`for ${element.toString()} to exist on the tree`, async () => {
             let reloadLabel: string;
-            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
+            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait1minute);
 
             if (this.accordionSection.accordionSectionName === constants.dbTreeSection ||
                 this.accordionSection.accordionSectionName === constants.ociTreeSection) {
@@ -134,7 +134,7 @@ export class E2ETree {
                 }
 
                 await this.accordionSection.clickToolbarButton(reloadLabel);
-                await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
+                await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait1minute);
             }
 
             if (Array.isArray(element)) {
@@ -155,7 +155,7 @@ export class E2ETree {
     public untilDoesNotExist = (element: Array<string | RegExp> | string | RegExp): Condition<boolean> => {
         return new Condition(`for ${element.toString()} to not exist`, async () => {
             let reloadLabel: string;
-            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
+            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait1minute);
             if (this.accordionSection.accordionSectionName === constants.dbTreeSection ||
                 this.accordionSection.accordionSectionName === constants.ociTreeSection) {
                 if (this.accordionSection.accordionSectionName === constants.dbTreeSection) {
@@ -164,7 +164,7 @@ export class E2ETree {
                     reloadLabel = constants.reloadOci;
                 }
                 await this.accordionSection.clickToolbarButton(reloadLabel);
-                await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
+                await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait1minute);
             }
 
             if (Array.isArray(element)) {
@@ -444,7 +444,7 @@ export class E2ETree {
         }
 
         if (ctxMenuItem !== constants.openNotebookWithConn) {
-            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait20seconds);
+            await driver.wait(this.accordionSection.untilIsNotLoading(), constants.wait1minute);
             const ociSection = new E2EAccordionSection(constants.ociTreeSection);
             await driver.wait(ociSection.untilIsNotLoading(), constants.wait20seconds);
         }

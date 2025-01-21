@@ -209,7 +209,16 @@ export class Os {
         } catch (e) {
             // continue
         }
+    };
 
+    /**
+     * Appends a value to the extension logs folder
+     * @param value The value to append
+     */
+    public static appendToExtensionLog = async (value: string): Promise<void> => {
+        value = `-----------------------${value}-----------------------------------\r\n`;
+        const logPathFolder = await Os.getExtensionOutputLogsFolder();
+        await fs.appendFile(join(logPathFolder, constants.feLogFile), value);
     };
 
     /**

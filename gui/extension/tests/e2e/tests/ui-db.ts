@@ -77,6 +77,8 @@ describe("DATABASE CONNECTIONS", () => {
                     constants.wait1minute * 2);
             }
 
+            await Os.appendToExtensionLog("beforeAll DATABASE CONNECTIONS");
+
             const activityBare = new ActivityBar();
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
             await Workbench.dismissNotifications();
@@ -110,6 +112,10 @@ describe("DATABASE CONNECTIONS", () => {
     describe("Toolbar", () => {
 
         let treeConn: TreeItem;
+
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+        });
 
         afterEach(async function () {
             if (this.currentTest.state === "failed") {
@@ -210,7 +216,7 @@ describe("DATABASE CONNECTIONS", () => {
         let existsInQueue = false;
 
         before(async function () {
-
+            await Os.appendToExtensionLog("beforeAll DB Connection Overview");
             try {
                 await new BottomBarPanel().toggle(false);
                 await Os.deleteCredentials();
@@ -233,7 +239,7 @@ describe("DATABASE CONNECTIONS", () => {
         let sslConn: interfaces.IDBConnection;
 
         beforeEach(async function () {
-
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
             try {
                 await dbConnectionOverview.toolbar.editorSelector
                     .selectEditor(new RegExp(constants.dbConnectionsLabel));
@@ -741,7 +747,7 @@ describe("DATABASE CONNECTIONS", () => {
         const toolbar = new Toolbar();
 
         before(async function () {
-
+            await Os.appendToExtensionLog("beforeAll MySQL Administration");
             try {
                 await Os.deleteCredentials();
                 await Workbench.closeAllEditors();
@@ -758,6 +764,10 @@ describe("DATABASE CONNECTIONS", () => {
                 throw e;
             }
 
+        });
+
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
         });
 
         afterEach(async function () {
@@ -1013,7 +1023,7 @@ describe("DATABASE CONNECTIONS", () => {
             const fileToUpload = "qa_cookbook_ext.pdf";
 
             before(async function () {
-
+                await Os.appendToExtensionLog("beforeAll Lakehouse Navigator");
                 try {
                     await Workbench.closeAllEditors();
                     await dbTreeSection.clickToolbarButton(constants.collapseAll);
@@ -1045,6 +1055,10 @@ describe("DATABASE CONNECTIONS", () => {
                     throw e;
                 }
 
+            });
+
+            beforeEach(async function () {
+                await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
             });
 
             after(async function () {
@@ -1191,7 +1205,7 @@ describe("DATABASE CONNECTIONS", () => {
         let existsInQueue = false;
 
         before(async function () {
-
+            await Os.appendToExtensionLog("beforeAll Tree context menu items");
             try {
                 await Os.deleteCredentials();
                 await dbTreeSection.focus();
@@ -1206,6 +1220,10 @@ describe("DATABASE CONNECTIONS", () => {
                 throw e;
             }
 
+        });
+
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
         });
 
         afterEach(async function () {

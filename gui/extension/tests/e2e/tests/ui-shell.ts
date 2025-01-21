@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -93,6 +93,10 @@ describe("MYSQL SHELL CONSOLES", () => {
         (shellConn.basic as interfaces.IConnBasicMySQL).username = String(process.env.DBUSERNAME2);
         (shellConn.basic as interfaces.IConnBasicMySQL).password = String(process.env.DBPASSWORD2);
         const shellUsername = String((shellConn.basic as interfaces.IConnBasicMySQL).username);
+
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+        });
 
         afterEach(async function () {
             if (this.currentTest?.state === "failed") {
@@ -234,6 +238,10 @@ describe("MYSQL SHELL CONSOLES", () => {
                 await Misc.processFailure(this);
                 throw e;
             }
+        });
+
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
         });
 
         afterEach(async function () {
