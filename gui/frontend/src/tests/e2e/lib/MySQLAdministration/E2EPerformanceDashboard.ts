@@ -221,11 +221,13 @@ export class E2EPerformanceDashboard {
     public loadMLEPerformance = async (): Promise<void> => {
         const performanceDashboardLocator = locator.mysqlAdministration.performanceDashboard;
 
+        const mleStatus = await driver.findElement(performanceDashboardLocator.mleStatus.mleStatus);
+        await driver.wait(until.elementTextMatches(mleStatus, /(Active|Inactive)/), constants.wait3seconds);
+
         this.mlePerformance = {
             heapUsageGraph: await driver
                 .findElement(performanceDashboardLocator.mleStatus.heapUsageGraph),
-            mleStatus: await (await driver
-                .findElement(performanceDashboardLocator.mleStatus.mleStatus)).getText(),
+            mleStatus: await mleStatus.getText(),
             mleMaxHeapSize: await (await driver
                 .findElement(performanceDashboardLocator.mleStatus.mleMaxHeapSize)).getText(),
             mleHeapUtilizationGraph: await driver
