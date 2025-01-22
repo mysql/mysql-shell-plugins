@@ -177,6 +177,8 @@ describe("MySQL REST Service", () => {
             expect(await dbTreeSection.tree.routerHasError(router), "Please update Router").to.be.false;
             await Os.setRouterConfigFile({
                 sinks: "filelog",
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                logging_folder: process.cwd(),
             });
         });
 

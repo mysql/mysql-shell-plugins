@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -138,15 +138,15 @@ def test_add_auth_apps(phone_book, table_contents):
         "options": None,
     }
 
-    assert auth_apps_table.count == 3
+    assert auth_apps_table.count == 4
 
     delete_auth_app(session=phone_book["session"], service_id=phone_book["service_id"], app_id=result1["auth_app_id"])
 
-    assert auth_apps_table.count == 2
+    assert auth_apps_table.count == 3
 
     delete_auth_app(session=phone_book["session"], service_id=phone_book["service_id"], app_id=result2["auth_app_id"])
 
-    assert auth_apps_table.count == 1
+    assert auth_apps_table.count == 2
 
 
 def test_get_auth_apps(phone_book):

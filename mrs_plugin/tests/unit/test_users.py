@@ -25,7 +25,7 @@ import pytest
 
 from ...users import *
 from ... import lib
-from .helpers import UserCT, get_default_user_init
+from .helpers import UserCT, get_default_user_init, TableContents
 
 import hashlib
 import hmac
@@ -33,7 +33,7 @@ import base64
 
 
 def test_add_users(phone_book, table_contents):
-    users_table = table_contents("mrs_user")
+    users_table: TableContents = table_contents("mrs_user")
     users_has_role_table = table_contents("mrs_user_has_role")
     user_init = {
         "name": "User 2",
@@ -72,7 +72,7 @@ def test_add_users(phone_book, table_contents):
     assert users_table.count == users_table.snapshot.count + 1
     assert users_has_role_table.count == users_has_role_table.snapshot.count + 1
 
-    user_auth_string = users_table.items[1]["auth_string"]
+    user_auth_string = users_table.get("id", user["id"])["auth_string"]
     assert user_auth_string.startswith("$A$005")
 
     salt_base64 = user_auth_string.split("$")[3]
@@ -425,10 +425,10 @@ def test_user_sql_service(phone_book):
     script = [
         "CREATE REST SERVICE localhost/one",
         "CREATE REST SERVICE localhost/two",
-        'create rest auth app "app" on service localhost/one vendor MySQL comments "svc1"',
-        'create rest auth app "app" on service localhost/two vendor MySQL comments "svc2"',
-        'CREATE REST USER "usr"@"app" on service localhost/one options {"email": "one"}',
-        'CREATE REST USER "usr"@"app" on service localhost/two options {"email": "two"}',
+        'CREATE REST AUTH APP "app1" ON SERVICE localhost/one VENDOR MySQL COMMENTS "svc1"',
+        'CREATE REST AUTH APP "app2" ON SERVICE localhost/two VENDOR MySQL COMMENTS "svc2"',
+        'CREATE REST USER "usr"@"app1" ON SERVICE localhost/one OPTIONS {"email": "one"}',
+        'CREATE REST USER "usr"@"app2" ON SERVICE localhost/two OPTIONS {"email": "two"}',
     ]
     for sql in script:
         try:
@@ -440,17 +440,17 @@ def test_user_sql_service(phone_book):
     id_one = lib.services.get_service(session=session, url_host_name="localhost", url_context_root="/one")["id"]
     id_two = lib.services.get_service(session=session, url_host_name="localhost",url_context_root="/two")["id"]
 
-    user = lib.users.get_user(session=session, user_name="usr", auth_app_name="app", service_id=id_one)
+    user = lib.users.get_user(session=session, user_name="usr", auth_app_name="app1", service_id=id_one)
     assert user["email"] == "one"
-    user = lib.users.get_user(session=session, user_name="usr", auth_app_name="app", service_id=id_two)
+    user = lib.users.get_user(session=session, user_name="usr", auth_app_name="app2", service_id=id_two)
     assert user["email"] == "two"
 
-    session.run_sql('ALTER REST USER "usr"@"app" on service localhost/one options {"email": "ONE"}')
-    session.run_sql('ALTER REST USER "usr"@"app" on service localhost/two options {"email": "TWO"}')
-    user = lib.users.get_user(session=session, user_name="usr", auth_app_name="app", service_id=id_one)
+    session.run_sql('ALTER REST USER "usr"@"app1" ON SERVICE localhost/one OPTIONS {"email": "ONE"}')
+    session.run_sql('ALTER REST USER "usr"@"app2" ON SERVICE localhost/two OPTIONS {"email": "TWO"}')
+    user = lib.users.get_user(session=session, user_name="usr", auth_app_name="app1", service_id=id_one)
     assert user["email"] == "ONE"
-    user = lib.users.get_user(session=session, user_name="usr", auth_app_name="app", service_id=id_two)
+    user = lib.users.get_user(session=session, user_name="usr", auth_app_name="app2", service_id=id_two)
     assert user["email"] == "TWO"
 
-    session.run_sql("drop rest service localhost/one")
-    session.run_sql("drop rest service localhost/two")
+    session.run_sql("DROP REST SERVICE localhost/one")
+    session.run_sql("DROP REST SERVICE localhost/two")

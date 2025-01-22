@@ -25,8 +25,7 @@
 
 import {
     commands, ConfigurationChangeEvent, ConfigurationTarget, ExtensionContext, StatusBarItem, window, workspace,
-    WorkspaceConfiguration, Disposable,
-    type StatusBarAlignment,
+    WorkspaceConfiguration, Disposable, type StatusBarAlignment,
 } from "vscode";
 
 import { ShellTask } from "../../frontend/src/shell-tasks/ShellTask.js";
@@ -54,9 +53,7 @@ import { NotebookEditorProvider } from "./editor-providers/NotebookEditorProvide
 import { MDSCommandHandler } from "./MDSCommandHandler.js";
 import { MRSCommandHandler } from "./MRSCommandHandler.js";
 import { ShellConsoleCommandHandler } from "./ShellConsoleCommandHandler.js";
-import {
-    ConnectionsTreeDataProvider,
-} from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider.js";
+import { ConnectionsTreeDataProvider } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider.js";
 import { DBConnectionViewProvider } from "./WebviewProviders/DBConnectionViewProvider.js";
 import { WebviewProvider } from "./WebviewProviders/WebviewProvider.js";
 

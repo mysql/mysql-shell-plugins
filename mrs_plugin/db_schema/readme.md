@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,7 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 # MRS Metadata Schema
 
-MySQL Workbench is used to design the MRS Metadata Schema and must be used to change the mrs_metadata_schema.mwb and generate the SQL CREATE script.
+MySQL Workbench is used to design the MRS Metadata Schema and must be used to change the mrs_metadata_schema.mwb and generate the core SQL CREATE script.
 
 Please ensure to closely follow the process documented below to avoid manual changes to the SQL files being overwritten by the MySQL Workbench forward engineering function.
 
@@ -31,7 +31,7 @@ Please ensure to closely follow the process documented below to avoid manual cha
 
 MRS relies on a dedicated audit log table that tracks all changes to the MRS metadata. The audit log is implemented via triggers on each table that holds relevant data.
 
-Instead of having to manually adjust the triggers for every change to the metadata schema, a MySQL Workbench script is used to generate the `Audit Log Triggers` SQL script instead that is later on added to the final `shell-plugins/mrs_plugin/db_schema/mrs_metadata_schema.sql` file.
+Instead of having to manually adjust the triggers for every change to the metadata schema, a MySQL Workbench script is used to generate the `Audit Log Triggers` SQL script instead that is later on added to the final `shell-plugins/mrs_plugin/db_schema/mrs_metadata/mrs_metadata_schema.sql` file.
 
 Install the `./scripts/Audit_Log_Triggers_grt.py` script in `~/Library/Application Support/MySQL/Workbench/modules/Audit_Log_Triggers_grt.py` and in `~/Library/Application Support/MySQL/Workbench/scripts/` on MacOS. Use the corresponding paths on Linux and Windows.
 
@@ -41,9 +41,9 @@ In order to serve a welcome landing page when the root URI of a MySQL Router con
 
 These static files are stored in the `./default_static_content/` directory.
 
-Please Note: Whenever changes are made to any of those files the MySQL Workbench model needs to be updated.
+Please Note: Whenever changes are made to any of those files the following script needs the be run.
 
-The script `../scripts/prepare_default_static_content.sh` and the corresponding NPM SCRIPTS entry can be used to generate a `./default_static_content/insert.sql` file. The MySQL Workbench model script `4. Insert Default Content` content needs to be replaced with the content of this `./default_static_content/insert.sql` file.
+The script `../scripts/prepare_default_static_content.sh` and the corresponding NPM SCRIPTS entry can be used to generate a `../script_sections/06_insert_default_static_content.sql` file.
 
 Please note, that the `../scripts/prepare_default_static_content.sh` script requires the installation of the following dependencies.
 
@@ -57,19 +57,18 @@ $ brew link --force gettext
 
 1. Open the `shell-plugins/mrs_plugin/db_schema/mrs_metadata_schema.mwb` file in MySQL Workbench, make the required changes to the model.
 2. If there are changes to a table tracked in the audit log (check the existing `TRIGGER`s), select `Scripting > Run Script File > Audit_Log_Triggers_grt.py` to re-generate the embedded `Audit Log Triggers` SQL script.
-3. Update the `mrs_user_schema_version` VIEW following the semantic versioning scheme if needed.
-4. Update the SQL Script `5. Create Schema Version VIEW` and set the version of the `schema_version` VIEW to the new version using the semantic versioning scheme and apply changes.
-5. Save the model.
-6. Select `File > Export > Forward Engineer SQL CREATE Script...` and store in `shell-plugins/mrs_plugin/db_schema/mrs_metadata_schema_x.y.z.sql`.
-7. Using the `SQL Scripts` available in the Workbench model, update the exported file as follows:
-   1. Replace the header (including the schema creation statements) with the contents of `0. Script Header Replacement`
-   2. Append the contents of the following scripts (in this specific order) to the file:
-      1. `1. Additional SQL`
-      2. `Audit Log Triggers`
-      3. `3. Create Roles`
-      4. `4. Insert Default Content`
-      5. `5. Create Schema Version VIEW`
-8. Copy `shell-plugins/mrs_plugin/db_schema/mrs_metadata_schema_x.y.z.sql` to `shell-plugins/mrs_plugin/db_schema/mrs_metadata_schema.sql`
-9. Create a `shell-plugins/mrs_plugin/db_schema/mrs_metadata_schema_a.b.c_to_x.y.z.sql` file and write all the ALTER statements required to get the latest metadata schema version a.b.c to the new state of x.y.z.
+3. Save the model.
+4. Select `File > Export > Forward Engineer SQL CREATE Script...` and store in `shell-plugins/mrs_plugin/db_schema/mrs_metadata/script_sections/02_mrs_metadata_schema.sql`.
+5. Go to the MySQL Model tab sheet and open the `SQL Scripts` section. Double-click on the `Audit Log Triggers` script, select and copy the contents of that script. Open the `shell-plugins/mrs_plugin/db_schema/mrs_metadata/script_sections/04_audit_log_triggers.sql` file and replace its content with the one from the clipboard.
+6. Run the `build-mrs-metadata-sql-scripts` NPM script and enter the new version string to build the MRS metadata SQL scripts.
 
-In order for the changes to be picked up by the plugin when the Shell GUI Extension runs, the `DB_VERSION` constant in the `mrs_plugin/lib/general.py` file should also specify the new version numbers.
+The `DB_VERSION` constant in the `mrs_plugin/lib/general.py` will be updated to reflect the new version and the following two files will be created or overwritten.
+
+- `shell-plugins/mrs_plugin/db_schema/mrs_metadata/mrs_metadata_schema.sql`
+- `shell-plugins/mrs_plugin/db_schema/mrs_metadata/versions/mrs_metadata_schema_x.y.z.sql`
+
+An update script will be created if it does not yet exist.
+
+- `shell-plugins/mrs_plugin/db_schema/mrs_metadata/updates/mrs_metadata_schema_a.b.c_to_x.y.z.sql`
+
+Please ensure to include all SQL statements to update the schemas from the previous version to the new version.
