@@ -54,16 +54,20 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
 
     public schemaNames: string[] = [];
 
-    #open: boolean = false;
+    public mrsEntry?: ICdmRestRootEntry;
+    public adminEntry?: ICdmAdminEntry;
+
+    private open: boolean = false;
+    private initializer: ICdmInitializer;
+
+    private ignoreMrsUpgrade: boolean = false;
+
     #currentSchema: string = "";
-    #mrsEntry?: ICdmRestRootEntry;
-    #adminEntry?: ICdmAdminEntry;
-    #initializer: ICdmInitializer;
 
     public constructor(name: string, details: IConnectionDetails, initializer: ICdmInitializer) {
         this.caption = name;
         this.details = details;
-        this.#initializer = initializer;
+        this.initializer = initializer;
     }
 
     public get connection(): ICdmConnectionEntry {
@@ -71,7 +75,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
     }
 
     public get isOpen(): boolean {
-        return this.#open;
+        return this.open;
     }
 
     public async close(): Promise<void> {
@@ -89,14 +93,6 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         }
     }
 
-    public get mrsEntry(): ICdmRestRootEntry | undefined {
-        return this.#mrsEntry;
-    }
-
-    public get adminEntry(): ICdmAdminEntry | undefined {
-        return this.#adminEntry;
-    }
-
     public async initialize(callback?: ProgressCallback): Promise<boolean> {
         callback?.("Starting editor session...");
         await this.backend.startSession(String(this.details.id) + "ConnectionDataModel");
@@ -108,17 +104,17 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
 
                 // Before opening the connection check the DB file, if this is an sqlite connection.
                 if (await ShellInterface.core.validatePath(options.dbFile)) {
-                    this.#open = await this.openConnection(callback);
-                    if (this.#open) {
+                    this.open = await this.openConnection(callback);
+                    if (this.open) {
                         await this.updateChildren(callback);
-                        await this.#initializer.initializeEntry(this, callback);
+                        await this.initializer.initializeEntry(this, callback);
                     }
                 } else {
                     // If the path is not ok then we might have to create the DB file first.
                     try {
                         await ShellInterface.core.createDatabaseFile(options.dbFile);
                         await this.updateChildren(callback);
-                        await this.#initializer.initializeEntry(this, callback);
+                        await this.initializer.initializeEntry(this, callback);
                     } catch (reason) {
                         const error = new Error("DB Creation Error", { cause: reason });
                         if (callback) {
@@ -131,10 +127,10 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                     }
                 }
             } else {
-                this.#open = await this.openConnection(callback);
-                if (this.#open) {
+                this.open = await this.openConnection(callback);
+                if (this.open) {
                     await this.updateChildren(callback);
-                    await this.#initializer.initializeEntry(this, callback);
+                    await this.initializer.initializeEntry(this, callback);
                 }
             }
 
@@ -142,7 +138,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
 
             (this.state as Mutable<IDataModelEntryState>).initialized = true;
 
-            return this.#open;
+            return this.open;
         } catch (reason) {
             // Something went wrong. Close the session but keep the connection initialized.
             await this.backend.closeSession();
@@ -160,13 +156,13 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         }
 
         await this.updateChildren(callback);
-        await this.#initializer.initializeEntry(this, callback);
+        await this.initializer.initializeEntry(this, callback);
 
         return true;
     }
 
     public async duplicate(): Promise<ICdmConnectionEntry> {
-        const newEntry = new ConnectionEntryImpl(this.caption, this.details, this.#initializer);
+        const newEntry = new ConnectionEntryImpl(this.caption, this.details, this.initializer);
         await newEntry.initialize();
 
         return newEntry;
@@ -174,12 +170,12 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
 
     public getChildren(): ConnectionDataModelEntry[] {
         const children: ConnectionDataModelEntry[] = [];
-        if (this.#mrsEntry) {
-            children.push(this.#mrsEntry);
+        if (this.mrsEntry) {
+            children.push(this.mrsEntry);
         }
 
-        if (this.#adminEntry) {
-            children.push(this.#adminEntry);
+        if (this.adminEntry) {
+            children.push(this.adminEntry);
         }
 
         children.push(...this.schemaEntries);
@@ -240,11 +236,11 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
     private async closeConnection(): Promise<void> {
         await this.backend.closeSession();
 
-        this.#open = false;
+        this.open = false;
         this.#currentSchema = "";
         (this.state as Mutable<IDataModelEntryState>).initialized = false;
-        this.#mrsEntry = undefined;
-        this.#adminEntry = undefined;
+        this.mrsEntry = undefined;
+        this.adminEntry = undefined;
         this.schemaEntries.length = 0;
     }
 
@@ -256,8 +252,8 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
      * @returns A promise that resolves once the work is done.
      */
     private async updateChildren(callback?: ProgressCallback): Promise<void> {
-        if (this.details.dbType === DBType.MySQL && !this.#adminEntry) {
-            this.#adminEntry = {
+        if (this.details.dbType === DBType.MySQL && !this.adminEntry) {
+            this.adminEntry = {
                 parent: this,
                 id: uuid(),
                 type: CdmEntityType.Admin,
@@ -266,11 +262,11 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                 connection: this,
                 pages: [],
                 refresh: async (): Promise<boolean> => { return Promise.resolve(true); },
-                getChildren: () => { return this.#adminEntry?.pages ?? []; },
+                getChildren: () => { return this.adminEntry?.pages ?? []; },
             };
 
-            if (this.#adminEntry) {
-                this.addAdminSections(this.#adminEntry);
+            if (this.adminEntry) {
+                this.addAdminSections(this.adminEntry);
             }
         }
 
@@ -280,71 +276,126 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         // If the MRS metadata schema exists, add the MRS item in the parent entry.
         if (this.details.dbType === DBType.MySQL && this.schemaNames.includes("mysql_rest_service_metadata")) {
             try {
-                if (!this.#mrsEntry) {
+                if (!this.mrsEntry) {
                     let addMrsItem = true;
                     const status = await this.backend.mrs.status();
-                    const mrsEntry: Partial<ICdmRestRootEntry> = {
-                        parent: this,
-                        caption: "MySQL REST Service",
-                        type: CdmEntityType.MrsRoot,
-                        id: uuid(),
-                        state: createDataModelEntryState(false, true),
-                        requiredRouterVersion: status.requiredRouterVersion,
-                        serviceEnabled: status.serviceEnabled,
-                        services: [],
-                        routers: [],
-                        connection: this,
-                    };
 
-                    mrsEntry.getChildren = () => {
-                        return [
-                            ...mrsEntry.services!,
-                            ...mrsEntry.routers!,
-                        ];
-                    };
+                    if (status.serviceBeingUpgraded) {
+                        void ui.showInformationNotification(
+                            "The MySQL REST Service is currently being updated. Please refresh the list of " +
+                            "DB Connections after the update has been completed for check the error log at " +
+                            "~/.mysqlsh-gui/plugin_data/mrs_plugin/mrs_metadata_schema_update_log.txt");
 
-                    mrsEntry.refresh = (callback?: ProgressCallback) => {
-                        return this.#initializer.initializeEntry(mrsEntry as ICdmRestRootEntry, callback);
-                    };
-
-                    if (status.majorUpgradeRequired) {
-                        // If a major MRS metadata schema upgrade is required, the MRS tree item should
-                        // only be displayed if the user agrees to upgrade i.e. drop and re-create the
-                        // schema.
-                        addMrsItem = false;
-                        const answer = await ui.confirm(
-                            "This MySQL Shell version requires a new minor version of the MRS metadata " +
-                            `schema, ${String(status.minimumVersionRequired)}. The currently deployed ` +
-                            `schema version is ${String(status.currentMetadataVersion)}. Do you want to ` +
-                            "update the MRS metadata schema?"
-                            , "Yes", "No");
-                        if (answer === "Yes") {
-                            addMrsItem = true;
-                            const statusbarItem = ui.createStatusBarItem();
-                            try {
-                                statusbarItem.text = "$(loading~spin) Updating the MySQL REST " +
-                                    "Service Metadata Schema ...";
-                                await this.backend.mrs.configure(true, false, true);
-
-                                void ui.showInformationNotification("The MySQL REST Service Metadata Schema has been " +
-                                    "updated.", 5000);
-                            } finally {
-                                statusbarItem.dispose();
-                            }
-                        }
+                        return;
                     }
 
-                    if (addMrsItem) {
-                        this.#mrsEntry = mrsEntry as ICdmRestRootEntry;
+                    if (!this.ignoreMrsUpgrade) {
+                        // Only do the upgrade check if there wasn't any before, which the user wanted to ignore.
+                        if (status.majorUpgradeRequired) {
+                            // If a major MRS metadata schema upgrade is required, the MRS tree item should
+                            // only be displayed if the user agrees to upgrade i.e. drop and re-create the
+                            // schema.
+                            addMrsItem = false;
+                            let answer = await ui.confirm(
+                                "This MySQL Shell version requires a new major version of the MRS metadata " +
+                                "schema. The latest available version is " +
+                                `${String(status.availableMetadataVersion)}. The currently deployed ` +
+                                `schema version is ${String(status.currentMetadataVersion)}. You need to ` +
+                                "downgrade the MySQL Shell version or drop and recreate the MRS metadata " +
+                                "schema. Do you want to drop and recreate the MRS metadata schema? " +
+                                "WARNING: All existing MRS data will be lost.",
+                                "Drop and Recreate", "Disable MRS features");
+
+                            if (answer === "Drop and Recreate") {
+                                answer = await ui.confirm(
+                                    "Are you really sure you want to drop and recreate the MRS metadata " +
+                                    "schema? WARNING: All existing MRS data will be lost."
+                                    , "Yes", "No");
+
+                                if (answer === "Yes") {
+                                    const statusbarItem = ui.createStatusBarItem();
+                                    try {
+                                        statusbarItem.text = "$(loading~spin) Updating the MySQL REST " +
+                                            "Service Metadata Schema ...";
+                                        await this.backend.mrs.configure(true, true);
+
+                                        void ui.showInformationNotification("The MySQL REST Service Metadata Schema " +
+                                            "has been updated.");
+
+                                        addMrsItem = true;
+                                    } finally {
+                                        statusbarItem.dispose();
+                                    }
+                                }
+                            }
+                        } else if (status.serviceUpgradeable && !status.serviceUpgradeIgnored) {
+                            addMrsItem = false;
+
+                            const answer = await ui.confirm(
+                                "A new MRS metadata schema update to version " +
+                                `${String(status.availableMetadataVersion)} is available. The currently deployed ` +
+                                `schema version is ${String(status.currentMetadataVersion)}. Do you want to ` +
+                                "update the MRS metadata schema, skip this version for now or permanently ignore " +
+                                "this version upgrade going forward?",
+                                "Upgrade", "Skip", "Permanently Ignore");
+                            if (answer === "Upgrade") {
+                                addMrsItem = true;
+                                const statusbarItem = ui.createStatusBarItem();
+                                try {
+                                    statusbarItem.text = "$(loading~spin) Updating the MySQL REST Service " +
+                                        "Metadata Schema ...";
+                                    statusbarItem.show();
+
+                                    await this.backend.mrs.configure(true, false, true);
+
+                                    void ui.showInformationNotification("The MySQL REST Service Metadata Schema has " +
+                                        "been updated.");
+                                } finally {
+                                    statusbarItem.hide();
+                                }
+                            } else if (answer === "Permanently Ignore") {
+                                await this.backend.mrs.ignoreVersionUpgrade();
+                            } else {
+                                this.ignoreMrsUpgrade = true;
+                            }
+                        }
+
+                        if (addMrsItem) {
+                            const mrsEntry: Partial<ICdmRestRootEntry> = {
+                                parent: this,
+                                caption: "MySQL REST Service",
+                                type: CdmEntityType.MrsRoot,
+                                id: uuid(),
+                                state: createDataModelEntryState(false, true),
+                                requiredRouterVersion: status.requiredRouterVersion,
+                                serviceEnabled: status.serviceEnabled,
+                                services: [],
+                                routers: [],
+                                connection: this,
+                            };
+
+                            mrsEntry.getChildren = () => {
+                                return [
+                                    ...mrsEntry.services!,
+                                    ...mrsEntry.routers!,
+                                ];
+                            };
+
+                            mrsEntry.refresh = (callback?: ProgressCallback) => {
+                                return this.initializer.initializeEntry(mrsEntry as ICdmRestRootEntry, callback);
+                            };
+
+                            this.mrsEntry = mrsEntry as ICdmRestRootEntry;
+                        }
                     }
                 }
             } catch (reason) {
-                void ui.showErrorNotification(
-                    "Failed to check and upgrade the MySQL REST Service Schema. " +
-                    `Error: ${reason instanceof Error ? reason.message : String(reason)}`);
+                const message = convertErrorToString(reason);
+                void ui.showErrorNotification(`Failed to check and upgrade the MySQL REST Service Schema. ` +
+                    `Error: ${message}`);
             }
         } else {
-            this.#mrsEntry = undefined;
+            this.mrsEntry = undefined;
         }
     }
 

@@ -165,7 +165,7 @@ const extensionUILayer: IUILayer = {
         }
     },
 
-    confirm: async (message: string, yes: string, no: string): Promise<string | undefined> => {
+    confirm: async (message: string, yes: string, no: string, _extra?: string): Promise<string | undefined> => {
         const result = await window.showInformationMessage(message, { modal: true }, yes, no);
 
         return Promise.resolve(result);

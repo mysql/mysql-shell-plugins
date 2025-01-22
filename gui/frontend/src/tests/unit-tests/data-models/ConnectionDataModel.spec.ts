@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -199,14 +199,17 @@ describe("ConnectionDataModel", () => {
         expect(dataModel.isValidConnectionId(connections[0].details.id)).toBe(true);
 
         // Run the MRS timer at least once. For this we need to expand the MRS item in the connection.
-        connections[0].mrsEntry!.state.expanded = true;
+        // This test cannot be used when an MRS database upgrade is due.
+        if (connections[0].mrsEntry) {
+            connections[0].mrsEntry.state.expanded = true;
 
-        expect(dataModel.autoRouterRefresh).toBe(false);
-        dataModel.autoRouterRefresh = true;
-        expect(dataModel.autoRouterRefresh).toBe(true);
-        await sleep(1000); // Wait for the router auto refresh to happen.
-        dataModel.autoRouterRefresh = false;
-        expect(dataModel.autoRouterRefresh).toBe(false);
+            expect(dataModel.autoRouterRefresh).toBe(false);
+            dataModel.autoRouterRefresh = true;
+            expect(dataModel.autoRouterRefresh).toBe(true);
+            await sleep(1000); // Wait for the router auto refresh to happen.
+            dataModel.autoRouterRefresh = false;
+            expect(dataModel.autoRouterRefresh).toBe(false);
+        }
 
         // We only opened the first connection. Check that again and then close all connections.
         expect(connections[0].isOpen).toBe(true);
@@ -281,9 +284,12 @@ describe("ConnectionDataModel", () => {
         }
 
         // Now check if everything was loaded. We don't check everything here, just a few examples.
-        expect(connections[0].mrsEntry).toBeDefined();
-        expect(connections[0].mrsEntry!.services).toHaveLength(1);
-        expect(connections[0].mrsEntry!.routers).toHaveLength(1);
+        // Also here, if there's an MRS db upgrade pending, we don't have an MRS item to check.
+        if (connections[0].mrsEntry) {
+            expect(connections[0].mrsEntry).toBeDefined();
+            expect(connections[0].mrsEntry.services).toHaveLength(1);
+            expect(connections[0].mrsEntry.routers).toHaveLength(1);
+        }
 
         expect(connections[0].adminEntry).toBeDefined();
         expect(connections[1].schemaEntries).toHaveLength(2);

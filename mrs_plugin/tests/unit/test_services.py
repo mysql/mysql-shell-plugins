@@ -549,12 +549,12 @@ CREATE OR REPLACE REST AUTH APP "Test Auth App 2"
     with ServiceCT(session, "/test2", "localhost") as service_id:
         with SchemaCT(session, service_id, "PhoneBook", "/PhoneBook2") as schema_id:
             auth_app_init = {
-                "name": "Test Auth App 2",
+                "name": "Test Auth App 3",
                 "service_id": service_id,
                 "auth_vendor_id": lib.core.id_to_binary("0x31000000000000000000000000000000", "auth_vendor_id"),
                 "default_role_id": lib.core.id_to_binary("0x31000000000000000000000000000000", "default_role_id"),
-                "description": "Authentication via MySQL accounts 2",
-                "url": "/test_auth2",
+                "description": "Authentication via MySQL accounts 3",
+                "url": "/test_auth3",
                 "access_token": "test_token",
                 "limit_to_registered_users": False,
                 "registered_users": None,
@@ -573,7 +573,7 @@ CREATE OR REPLACE REST AUTH APP "Test Auth App 2"
 
     with open(os.path.expanduser(full_path_file), "r+") as f:
         script = f.read()
-        assert script == create_statement
+        assert script == create_statement.replace("Test Auth App 2", "Test Auth App 3").replace("Authentication via MySQL accounts 2", "Authentication via MySQL accounts 3")
 
 
     services = lib.services.get_services(session)

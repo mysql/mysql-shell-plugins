@@ -57,8 +57,11 @@ import { InnoDBClusterModule } from "../modules/innodb-cluster/InnoDBClusterModu
 import { ShellModule } from "../modules/shell/ShellModule.js";
 import { versionMatchesExpected } from "../utilities/helpers.js";
 import { ApplicationDB } from "./ApplicationDB.js";
+import { DialogHost } from "./DialogHost.js";
 import { registerUiLayer, ui } from "./UILayer.js";
-import { IDialogResponse, minimumShellVersion, type IServicePasswordRequest } from "./general-types.js";
+import {
+    DialogResponseClosure, DialogType, IDialogResponse, minimumShellVersion, type IServicePasswordRequest,
+} from "./general-types.js";
 
 interface IAppState extends IComponentState {
     explorerIsVisible: boolean;
@@ -311,8 +314,33 @@ export class App extends Component<{}, IAppState> {
         return StatusBar.setStatusBarMessage(message, timeout);
     };
 
-    public confirm = (message: string, yes: string, no: string): Promise<string | undefined> => {
-        return Promise.resolve(window.confirm(message) ? yes : no);
+    public confirm = async (message: string, yes: string, no: string, extra?: string): Promise<string | undefined> => {
+        const response = await DialogHost.showDialog({
+            id: "msg.general.confirm",
+            type: DialogType.Confirm,
+            parameters: {
+                title: "Confirmation",
+                prompt: message,
+                accept: yes,
+                refuse: no,
+                alternative: extra,
+                default: "No",
+            },
+        });
+
+        if (response.closure === DialogResponseClosure.Accept) {
+            return yes;
+        }
+
+        if (response.closure === DialogResponseClosure.Cancel) {
+            return no;
+        }
+
+        if (extra !== undefined && response.closure === DialogResponseClosure.Alternative) {
+            return extra;
+        }
+
+        return undefined;
     };
 
     public requestPassword = (values: IServicePasswordRequest): Promise<string | undefined> => {

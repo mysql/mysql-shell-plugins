@@ -372,7 +372,7 @@ def update_mrs_metadata_schema(session, current_db_version_str):
     if interactive:
         print("Updating MRS metadata schema...")
 
-    script_dir_path = script_path("db_schema")
+    script_dir_path = script_path("db_schema", "mrs_metadata", "updates")
 
     version_to_update = current_db_version_str
     update_to_version = ""
@@ -493,7 +493,7 @@ def create_mrs_metadata_schema(session, drop_existing=False):
     """
     latest_version_val = [0, 0, 0]
 
-    script_dir = sql_file_path = script_path("db_schema")
+    script_dir = sql_file_path = script_path("db_schema", "mrs_metadata", "versions")
 
     # find the latest version of the database file available
     for f in os.listdir(script_dir):
@@ -512,7 +512,7 @@ def create_mrs_metadata_schema(session, drop_existing=False):
     version_str = ".".join(map(str, latest_version_val))
 
     sql_file_path = script_path(
-        "db_schema", f'mrs_metadata_schema_{version_str}.sql'
+        "db_schema", "mrs_metadata", "versions", f'mrs_metadata_schema_{version_str}.sql'
     )
 
     write_to_metadata_schema_update_log(

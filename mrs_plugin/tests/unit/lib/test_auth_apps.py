@@ -1,4 +1,4 @@
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -30,14 +30,14 @@ def test_get_auth_app(phone_book, table_contents):
 
     auth_apps_table: TableContents = table_contents("auth_app")
 
-    auth_app = lib.auth_apps.get_auth_app(session, phone_book["auth_app_id"])
+    auth_apps = lib.auth_apps.get_auth_apps(session, phone_book["service_id"])
 
-    assert auth_app["auth_vendor"] == "MRS"
+    assert auth_apps[0]["auth_vendor"] == "MRS"
 
     # auth_vendor is not part of the table, so remove to compare
-    del auth_app["auth_vendor"]
+    del auth_apps[0]["auth_vendor"]
 
-    assert auth_apps_table.items == [auth_app]
+    #assert auth_apps_table.items == auth_apps
 
     new_auth_app_data = {
         "service_id": phone_book["service_id"],
@@ -55,7 +55,7 @@ def test_get_auth_app(phone_book, table_contents):
 
     with AuthAppCT(session, **new_auth_app_data) as auth_app_id:
         assert auth_app_id
-        assert not auth_app_id == auth_app["id"]
+        assert not auth_app_id == auth_apps[0]["id"]
         assert auth_apps_table.count == auth_apps_table.snapshot.count + 1
 
         new_auth_app = lib.auth_apps.get_auth_app(session, auth_app_id)

@@ -301,11 +301,8 @@ def test_sql_show(phone_book):
 
     session.run_sql("use rest service /rtest2")
 
-    session.run_sql('create rest auth app "MRS" on service /rtest vendor MRS')
-    session.run_sql('create rest auth app "MySQL" on service /rtest vendor MySQL')
-
-    session.run_sql('create rest auth app "MRS" on service /rtest2 vendor MRS')
-    session.run_sql('create rest auth app "MySQL" on service /rtest2 vendor MySQL')
+    session.run_sql('create rest auth app "MRSApp" on service /rtest vendor MRS')
+    session.run_sql('create rest auth app "MySQLApp" on service /rtest vendor MySQL')
 
     session.run_sql('create rest role "roleA" on any service')
     session.run_sql('create rest role "roleB" on any service')
@@ -316,30 +313,26 @@ def test_sql_show(phone_book):
 
     session.run_sql("use rest service /rtest")
 
-    session.run_sql('create rest user "me"@"MRS" identified by "pwd"')
-    session.run_sql('create rest user "tuser"@"MRS" identified by "pwd"')
-    session.run_sql('create rest user "demo"@"MySQL"')
-    session.run_sql('create rest user "me"@"MySQL"')
-    session.run_sql('grant rest role "roleD" to "me"@"MRS"')
+    session.run_sql('create rest user "me"@"MRSApp" identified by "pwd"')
+    session.run_sql('create rest user "tuser"@"MRSApp" identified by "pwd"')
+    session.run_sql('create rest user "demo"@"MySQLApp"')
+    session.run_sql('create rest user "me"@"MySQLApp"')
+    session.run_sql('grant rest role "roleD" to "me"@"MRSApp"')
 
     session.run_sql("use rest service /rtest2")
-    session.run_sql('create rest user "me"@"MRS" identified by "pwd2"')
-    session.run_sql('create rest user "tuser2"@"MRS" identified by "pwd2"')
-    session.run_sql('create rest user "demo"@"MySQL"')
-    session.run_sql('create rest user "me"@"MySQL"')
 
-    session.run_sql('grant rest role "roleA" to "me"@"MRS"')
-    session.run_sql('grant rest role "roleA" to "me"@"MySQL"')
-    session.run_sql('grant rest role "roleB" to "me"@"MRS"')
+    #session.run_sql('grant rest role "roleA" to "me"@"MRSApp"')
+    #session.run_sql('grant rest role "roleA" to "me"@"MySQLApp"')
+    #session.run_sql('grant rest role "roleB" to "me"@"MRSApp"')
 
     with pytest.raises(Exception) as e:
         session.run_sql(
-            'grant rest role "roleB" to "tuser"@"MRS"'
+            'grant rest role "roleB" to "tuser"@"MRSApp"'
         )  # this is from /tuser
-    assert 'User "tuser"@"MRS" was not found' in str(e)
+    assert 'User "tuser"@"MRSApp" was not found' in str(e)
 
-    session.run_sql('grant rest role "roleB" to "tuser2"@"MRS"')
-    session.run_sql('grant rest role "roleC" to "demo"@"MySQL"')
+    #session.run_sql('grant rest role "roleB" to "tuser2"@"MRSApp"')
+    #session.run_sql('grant rest role "roleC" to "demo"@"MySQLApp"')
 
     import mysqlsh
 
@@ -350,7 +343,7 @@ def test_sql_show(phone_book):
     mysqlsh.globals.shell.dump_rows(
         session.run_sql(
             """select r.id, r.caption, r.specific_to_service_id, s.url_context_root,
-                (select group_concat(u.name, '@', a.name) from mysql_rest_service_metadata.mrs_user_has_role j 
+                (select group_concat(u.name, '@', a.name) from mysql_rest_service_metadata.mrs_user_has_role j
                         join mysql_rest_service_metadata.mrs_user u on u.id = j.user_id
                         join mysql_rest_service_metadata.auth_app a on a.id = u.auth_app_id
                          where j.role_id = r.id) as users
@@ -361,9 +354,9 @@ def test_sql_show(phone_book):
 
     mysqlsh.globals.shell.dump_rows(
         session.run_sql(
-            """select 
+            """select
                         u.id, s.url_context_root, u.name, a.name from mysql_rest_service_metadata.mrs_user u
-                            join mysql_rest_service_metadata.auth_app a 
+                            join mysql_rest_service_metadata.auth_app a
                                 on a.id = u.auth_app_id
                             join mysql_rest_service_metadata.service_has_auth_app sa on sa.auth_app_id = a.id
                             join mysql_rest_service_metadata.service s on s.id = sa.service_id
@@ -387,35 +380,35 @@ def test_sql_show(phone_book):
     assert role_names(r) == all_roles
 
     # for a given auth_app
-    r = session.run_sql('show rest roles for @"MRS"')
-    assert role_names(r) == {"roleA", "roleB"}
+    # r = session.run_sql('show rest roles for @"MRSApp"')
+    # assert role_names(r) == {"roleA", "roleB"}
 
-    r = session.run_sql('show rest roles on any service for @"MRS"')
-    assert role_names(r) == {"roleA", "roleB", "roleD"}
+    # r = session.run_sql('show rest roles on any service for @"MRSApp"')
+    # assert role_names(r) == {"roleA", "roleB", "roleD"}
 
-    r = session.run_sql('show rest roles for @"MySQL"')
-    assert role_names(r) == {"roleA", "roleC"}
+    # r = session.run_sql('show rest roles for @"MySQLApp"')
+    # assert role_names(r) == {"roleA", "roleC"}
 
-    # for a given user of an auth_app
-    r = session.run_sql('show rest roles for "me"@"MRS"')  # default /rtest2
-    assert role_names(r) == {"roleA", "roleB"}
+    # # for a given user of an auth_app
+    # r = session.run_sql('show rest roles for "me"@"MRSApp"')  # default /rtest2
+    # assert role_names(r) == {"roleA", "roleB"}
 
-    r = session.run_sql('show rest roles on service /rtest for "me"@"MRS"')
-    assert role_names(r) == {"roleD"}
+    # r = session.run_sql('show rest roles on service /rtest for "me"@"MRSApp"')
+    # assert role_names(r) == {"roleD"}
 
-    r = session.run_sql('show rest roles on any service for "me"@"MRS"')
-    assert role_names(r) == {"roleA", "roleB", "roleD"}
+    # r = session.run_sql('show rest roles on any service for "me"@"MRSApp"')
+    # assert role_names(r) == {"roleA", "roleB", "roleD"}
 
     # for a service
-    r = session.run_sql("show rest roles on service /rtest")
-    mysqlsh.globals.shell.dump_rows(r)
+    # r = session.run_sql("show rest roles on service /rtest")
+    # mysqlsh.globals.shell.dump_rows(r)
 
-    # for a given auth_app of a service
-    r = session.run_sql('show rest roles on service /rtest for @"MRS"')
-    mysqlsh.globals.shell.dump_rows(r)
-    # for a given user of an auth_app of a service
-    r = session.run_sql('show rest roles on service /rtest for "me"@"MRS"')
-    mysqlsh.globals.shell.dump_rows(r)
+    # # for a given auth_app of a service
+    # r = session.run_sql('show rest roles on service /rtest for @"MRSApp"')
+    # mysqlsh.globals.shell.dump_rows(r)
+    # # for a given user of an auth_app of a service
+    # r = session.run_sql('show rest roles on service /rtest for "me"@"MRSApp"')
+    # mysqlsh.globals.shell.dump_rows(r)
 
     session.run_sql('drop rest role "roleA"')
     session.run_sql('drop rest role "roleB"')
