@@ -633,13 +633,14 @@ describe("MYSQL REST SERVICE", () => {
             await dbTreeSection.clickToolbarButton(constants.refreshConnectionList);
             await dbTreeSection.tree.openContextMenuAndSelect(globalService.restSchemas![0].restObjects![0].treeName!,
                 constants.editRESTObj).catch(async (e) => {
+                    console.log(`Catch: ${e}`);
                     if (String(e).includes("Could not find")) {
                         await dbTreeSection.tree
                             .openContextMenuAndSelect(/\/actor\/edited/, constants.editRESTObj);
                         await driver.sleep(3000);
                         throw new Error("Check screenshot. Flaky test not replicable locally. Remove code after fix");
                     } else {
-                        throw e;
+                        throw new Error(`Different: ${String(e)}`);
                     }
                 });
             const thisObject = await RestObjectDialog.get();

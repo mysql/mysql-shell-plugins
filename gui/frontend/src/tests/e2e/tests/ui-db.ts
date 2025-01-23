@@ -318,7 +318,7 @@ describe("DATABASE CONNECTIONS", () => {
                     basic: {
                         hostname: "localhost",
                         username: String(process.env.DBUSERNAME1),
-                        port: 3308,
+                        port: parseInt(process.env.MYSQL_PORT!, 10),
                         schema: "sakila",
                         password: String(process.env.DBUSERNAME1PWD),
                     },
@@ -636,7 +636,7 @@ describe("DATABASE CONNECTIONS", () => {
                 basic: {
                     hostname: "localhost",
                     username: String(process.env.DBUSERNAME1),
-                    port: 3308,
+                    port: parseInt(process.env.MYSQL_PORT!, 10),
                     schema: "sakila",
                     password: String(process.env.DBUSERNAME1PWD),
                 },
@@ -649,7 +649,7 @@ describe("DATABASE CONNECTIONS", () => {
                 basic: {
                     hostname: "localhost",
                     username: String(process.env.DBUSERNAME1),
-                    port: 3308,
+                    port: parseInt(process.env.MYSQL_PORT!, 10),
                     schema: "sakila",
                     password: String(process.env.DBUSERNAME1PWD),
                 },
@@ -687,7 +687,7 @@ describe("DATABASE CONNECTIONS", () => {
 
                 // Close others
                 await tabContainer.selectTabContextMenu(e2eConn1.caption!, constants.closeOthers);
-                expect(await tabContainer.tabExists(e2eConn2.caption!)).toBe(false);
+                await driver.wait(tabContainer.untilTabDoesNotExists(e2eConn2.caption!), constants.wait3seconds);
                 expect(await tabContainer.tabExists(globalConn.caption!)).toBe(false);
                 await driver.executeScript("arguments[0].click();",
                     await dbConnectionOverview.getConnection(globalConn.caption!));
