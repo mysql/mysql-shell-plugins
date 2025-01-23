@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -41,6 +41,9 @@ export interface ICheckboxProperties extends IComponentProperties {
     disabled?: boolean;
     caption?: string;
 
+    /** Allows the parent component to handle onClick or Space/Enter key toggling. */
+    ignoreExternalEvents?: boolean;
+
     onChange?: (checkState: CheckState, props: ICheckboxProperties) => void;
 }
 
@@ -56,8 +59,10 @@ export class Checkbox extends ComponentBase<ICheckboxProperties> {
     public constructor(props: ICheckboxProperties) {
         super(props);
 
-        this.addHandledProperties("checkState", "caption", "disabled", "onChange");
-        this.connectEvents("onClick");
+        this.addHandledProperties("checkState", "caption", "disabled", "onChange", "ignoreExternalEvents");
+        if (!props.ignoreExternalEvents) {
+            this.connectEvents("onClick");
+        }
     }
 
     public override componentDidMount(): void {
@@ -68,7 +73,7 @@ export class Checkbox extends ComponentBase<ICheckboxProperties> {
     }
 
     public render(): ComponentChild {
-        const { children, caption, disabled, checkState } = this.props;
+        const { children, caption, disabled, checkState, ignoreExternalEvents } = this.props;
 
         const className = this.getEffectiveClassNames([
             "checkbox",
@@ -81,7 +86,7 @@ export class Checkbox extends ComponentBase<ICheckboxProperties> {
             <label
                 ref={this.#labelRef}
                 className={className}
-                tabIndex={0}
+                tabIndex={!ignoreExternalEvents ? 0 : undefined}
                 onKeyPress={this.handleKeyPress}
                 {...this.unhandledProperties}
             >
@@ -93,7 +98,7 @@ export class Checkbox extends ComponentBase<ICheckboxProperties> {
 
     protected override handleMouseEvent(type: MouseEventType, e: MouseEvent): boolean {
         const { disabled } = this.props;
-        if (disabled) {
+        if (this.props.ignoreExternalEvents || disabled) {
             e.preventDefault();
 
             return false;
@@ -109,7 +114,7 @@ export class Checkbox extends ComponentBase<ICheckboxProperties> {
 
     private handleKeyPress = (e: KeyboardEvent): void => {
         const { disabled } = this.props;
-        if (disabled) {
+        if (this.props.ignoreExternalEvents || disabled) {
             e.preventDefault();
 
             return;

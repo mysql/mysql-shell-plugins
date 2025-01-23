@@ -1707,7 +1707,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     };
 
     private handleCloseDocument = async (details: { connectionId?: number, documentId: string; }): Promise<boolean> => {
-        const { connectionTabs, documentTabs, shellSessionTabs } = this.state;
+        const { connectionTabs } = this.state;
 
         const tab = connectionTabs.find((tab) => {
             return tab.connection.details.id === details.connectionId;

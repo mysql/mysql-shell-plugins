@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -94,6 +94,7 @@ export interface IDropdownProperties extends IComponentProperties {
 
 interface IDropdownState extends IComponentState {
     hotId?: string;
+    selectedId?: string;
 }
 
 export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState> {
@@ -148,8 +149,6 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
             const boundingRect = this.containerRef.current.getBoundingClientRect();
             this.popupRef.current?.updatePosition(boundingRect);
         }
-
-        this.currentSelectionIndex = this.indexOfFirstSelectedEntry;
     }
 
     public render(): ComponentChild {
@@ -191,7 +190,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 onMouseLeave: this.handleItemMouseLeave,
                 onClick: this.handleItemClick,
                 className: itemClassName,
-                selected: !multiSelect && currentSelection?.has(childId as string),
+                selected: childId === this.state.selectedId,
                 checked: multiSelect ? checked : undefined,
             } as IComponentProperties);
         });
@@ -317,7 +316,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
     };
 
     private readonly handleKeydown = (e: KeyboardEvent): void => {
-        const { children } = this.props;
+        const { children, multiSelect } = this.props;
         const childArray = collectVNodes<IDropdownItemProperties>(children);
 
         const element = e.currentTarget as HTMLElement;
@@ -327,7 +326,9 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 if (this.popupRef.current?.isOpen) {
                     // The dropdown is already open, which means the user accepts the current selection.
                     this.saveSelection();
-                    this.popupRef.current.close(false);
+                    if (!multiSelect) {
+                        this.popupRef.current.close(false);
+                    }
 
                     const current = childArray[this.currentSelectionIndex];
                     const id = current.props.id;
@@ -355,10 +356,12 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 }
 
                 const current = childArray[this.currentSelectionIndex];
-                const id = current.props.id;
-                if (id) {
-                    this.toggleSelectedItem(id, true, false, current.props.payload);
+                const id = current?.props.id;
+                if (id && !this.popupRef.current?.isOpen) {
+                    this.toggleSelectedItem(id, false, true, current.props.payload);
                 }
+                this.setState({ selectedId: id });
+
                 e.stopPropagation();
                 e.preventDefault();
 
@@ -377,10 +380,11 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
                 }
 
                 const current = childArray[this.currentSelectionIndex];
-                const id = current.props.id;
-                if (id) {
-                    this.toggleSelectedItem(id, true, false, current.props.payload);
+                const id = current?.props.id;
+                if (id && !this.popupRef.current?.isOpen) {
+                    this.toggleSelectedItem(id, false, true, current.props.payload);
                 }
+                this.setState({ selectedId: id });
 
                 e.stopPropagation();
                 e.preventDefault();
@@ -403,20 +407,15 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
 
     private readonly handleItemMouseEnter = (e: MouseEvent, props: IDropdownItemProperties): void => {
         const { showDescription } = this.props;
+        const { id: selectedId } = props;
 
+        const newState: Partial<IDropdownState> = { selectedId };
         if (showDescription) {
-            this.setState({ hotId: props.id });
+            newState.hotId = selectedId;
         }
+        this.currentSelectionIndex = this.findSelectedIndex(selectedId);
 
-        // First remove the selection from the currently selected item. Can be the one initially set.
-        // Then set it to the element the mouse enters.
-        const children: HTMLCollection | undefined = (e.currentTarget as HTMLElement).parentElement?.children;
-        [].forEach.call(children, (child: HTMLElement): void => {
-            child.classList.remove("selected");
-        });
-
-        const element = e.currentTarget as HTMLElement;
-        element.classList.add("selected");
+        this.setState(newState);
     };
 
     private readonly handleItemMouseLeave = (e: MouseEvent, props: IDropdownItemProperties): void => {
@@ -425,8 +424,7 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
             this.setState({ hotId: props.id });
         }
 
-        const element = e.currentTarget as HTMLElement;
-        element.classList.remove("selected");
+        this.setState({ selectedId: undefined });
     };
 
     private readonly handleItemClick = (e: MouseEvent | KeyboardEvent, props: IDropdownItemProperties): void => {
@@ -538,16 +536,12 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
      */
     private get indexOfFirstSelectedEntry(): number {
         const { selection } = this.props;
-        const { children } = this.props;
-        const childArray = collectVNodes<IDropdownItemProperties>(children);
 
         const currentSelection = typeof selection === "string" ? new Set<string>([selection]) : selection;
         if ((currentSelection != null) && currentSelection.size > 0) {
             const selectedId = currentSelection.keys().next().value;
 
-            return childArray.findIndex((element) => {
-                return element.props.id === selectedId;
-            });
+            return this.findSelectedIndex(selectedId as string);
         } else {
             return -1;
         }
@@ -563,4 +557,11 @@ export class Dropdown extends ComponentBase<IDropdownProperties, IDropdownState>
         this.selectionBackup = typeof selection === "string" ? new Set<string>([selection]) : selection;
     };
 
+    private findSelectedIndex = (selectedId?: string): number => {
+        const childArray = collectVNodes<IDropdownItemProperties>(this.props.children);
+
+        return childArray.findIndex((element) => {
+            return element.props.id === selectedId;
+        });
+    };
 }
