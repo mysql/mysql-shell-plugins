@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { WebElement, until, Condition, error } from "selenium-webdriver";
+import { WebElement, until, Condition, error, Key } from "selenium-webdriver";
 import { driver } from "./driver.js";
 import * as locator from "./locators.js";
 import * as constants from "./constants.js";
@@ -95,6 +95,14 @@ export class E2EToastNotification implements interfaces.INotification {
     };
 
     /**
+     * Verifies if the notification exists
+     * @returns A promise resolving to true if exists, false otherwise
+     */
+    public exists = async (): Promise<boolean> => {
+        return (await driver.findElements(locator.toastNotification.existsById(this.id))).length === 0;
+    };
+
+    /**
      * Closes the notification
      * @returns The notification message as string
      */
@@ -102,15 +110,21 @@ export class E2EToastNotification implements interfaces.INotification {
         const notificationMessage = this.message;
         await driver.wait(async () => {
             try {
-                const closeButton = await this.webElement!.findElement(locator.toastNotification.close);
-                await closeButton.click();
-
-                return (await driver.findElements(locator.toastNotification.existsById(this.id))).length === 0;
+                if (!(await this.exists())) {
+                    const closeButton = await this.webElement!.findElement(locator.toastNotification.close);
+                    await closeButton.click();
+                } else {
+                    return true;
+                }
             } catch (e) {
                 if (e instanceof error.StaleElementReferenceError || e instanceof error.ElementNotInteractableError) {
                     return true;
                 } else {
-                    throw e;
+                    if (e instanceof error.ElementClickInterceptedError) {
+                        await driver.actions().keyDown(Key.ESCAPE).keyUp(Key.ESCAPE).perform();
+                    } else {
+                        throw e;
+                    }
                 }
             }
         }, constants.wait2seconds, `Could not close notification '${notificationMessage}'`);
