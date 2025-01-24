@@ -1654,7 +1654,7 @@ BEGIN
             DATE_FORMAT(SUBDATE(CURRENT_DATE(), 1), '%Y%m%d'),
             '.log" FIELDS TERMINATED BY "," OPTIONALLY ENCLOSED BY "\\\"" LINES TERMINATED BY "\\\n" ',
             'FROM `mysql_rest_service_metadata`.`audit_log` ',
-            'WHERE `changed_at` <= SUBDATE(CURRENT_DATE(), 1) AND `changed_at` < CURRENT_DATE() ',
+            'WHERE `changed_at` >= SUBDATE(CURRENT_DATE(), 1) AND `changed_at` < CURRENT_DATE() ',
             'ORDER BY `id`');
 
         CALL sys.execute_prepared_stmt(@sql);
@@ -4423,8 +4423,8 @@ CREATE TABLE IF NOT EXISTS `mysql_tasks`.`task_impl` (
   `data_json_schema` JSON COMMENT 'A JSON schema defining the structure of the data field for the given task.',
   `log_data_json_schema` JSON COMMENT 'A JSON schema defining the structure of the task_log_impl.data field for the given task.',
   PRIMARY KEY(`id`),
-  INDEX(`mysql_user`),
-  INDEX(`mysql_user`, `alias`),
+  INDEX(`mysql_user`(192)),
+  INDEX(`mysql_user`(176), `alias`),
   INDEX(`task_type`)
 ) ENGINE=InnoDB;
 
@@ -4441,7 +4441,7 @@ CREATE TABLE IF NOT EXISTS `mysql_tasks`.`task_log_impl` (
   `progress` SMALLINT NOT NULL DEFAULT 0 COMMENT 'A task completion progress between 0 and 100%.',
   `status` ENUM('SCHEDULED', 'RUNNING', 'COMPLETED', 'ERROR', 'CANCELLED') DEFAULT 'SCHEDULED' COMMENT 'The task state. When created, a task goes in the SCHEDULED state, then is moved to RUNNING and finally COMPLETED state. In case of ERROR, the task status becomes ERROR. When task is killed by the user or by the garbage collector, it gets the CANCELLED status.',
   PRIMARY KEY(`id`),
-  INDEX(`mysql_user`),
+  INDEX(`mysql_user`(192)),
   INDEX(`log_time`),
   INDEX(`status`),
   CONSTRAINT `fk_task_log_task_id`
