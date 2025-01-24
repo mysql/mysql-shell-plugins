@@ -171,7 +171,7 @@ BEGIN
             DATE_FORMAT(SUBDATE(CURRENT_DATE(), 1), '%Y%m%d'),
             '.log" FIELDS TERMINATED BY "," OPTIONALLY ENCLOSED BY "\\\"" LINES TERMINATED BY "\\\n" ',
             'FROM `mysql_rest_service_metadata`.`audit_log` ',
-            'WHERE `changed_at` <= SUBDATE(CURRENT_DATE(), 1) AND `changed_at` < CURRENT_DATE() ',
+            'WHERE `changed_at` >= SUBDATE(CURRENT_DATE(), 1) AND `changed_at` < CURRENT_DATE() ',
             'ORDER BY `id`');
 
         CALL sys.execute_prepared_stmt(@sql);
