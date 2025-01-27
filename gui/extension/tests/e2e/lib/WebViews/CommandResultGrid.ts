@@ -114,15 +114,16 @@ export class CommandResultGrid {
 
             if (!isDateTime) {
                 if (method === constants.editButton) {
-                    await driver.actions().keyDown(Key.TAB).keyUp(Key.TAB).perform();
+                    await keyboard.type(nutKey.Tab);
                 } else {
-                    await driver.actions().keyDown(Key.ENTER).keyUp(Key.ENTER).perform();
+                    await this.result.context
+                        .findElement(locator.notebook.codeEditor.editor.result.toolbar.exists).click();
                 }
 
             } else {
                 isDate = true;
                 if (method === constants.editButton) {
-                    await driver.actions().keyDown(Key.TAB).keyUp(Key.TAB).perform();
+                    await keyboard.type(nutKey.Tab);
                 } else {
                     await this.result.context
                         .findElement(locator.notebook.codeEditor.editor.result.toolbar.exists).click();
@@ -135,6 +136,7 @@ export class CommandResultGrid {
                         cellRef.columnName)) !== "Invalid Date";
                 }, constants.wait2seconds, `Invalid Date was found after inserting value '${cellRef.value}'`);
             }
+
             await driver.wait(async () => {
                 const cell = await this.getCell(cellRef.rowNumber, cellRef.columnName);
 
@@ -161,7 +163,7 @@ export class CommandResultGrid {
                             }
 
                         } else {
-                            await driver.actions().keyDown(Key.TAB).keyUp(Key.TAB).perform();
+                            await keyboard.type(nutKey.Tab);
                         }
 
                         return true;
@@ -1299,7 +1301,7 @@ export class CommandResultGrid {
             if (await isFocused()) {
                 return;
             } else {
-                await driver.actions().keyDown(Key.TAB).keyUp(Key.TAB).perform();
+                await keyboard.type(nutKey.Tab);
             }
         }
 
@@ -1343,7 +1345,7 @@ export class CommandResultGrid {
 
                         case constants.pressEnter: {
                             await this.focusCell(rowNumber, columnName);
-                            await driver.actions().keyDown(Key.ENTER).keyUp(Key.ENTER).perform();
+                            await keyboard.type(nutKey.Enter);
                             break;
                         }
 

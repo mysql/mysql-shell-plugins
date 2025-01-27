@@ -490,10 +490,12 @@ export interface IShellDocumentData extends IShellResultData {
     documents: unknown[];
 }
 
+export interface ITableColumn { name: string; type: string; length: number; }
+
 export interface IDbEditorResultSetData {
     executionTime?: number;
     rows?: unknown[];
-    columns?: Array<{ name: string; type: string; length: number; }>;
+    columns?: ITableColumn[];
     totalRowCount?: number;
     rowsAffected?: number;
 }
@@ -685,6 +687,12 @@ export interface ITableObjectInfo {
     autoIncrement?: number,
 }
 
+export type IGetColumnsMetadataItem = ITableObjectInfo & {
+    type: string;
+    schema: string;
+    table: string;
+};
+
 export interface ISqlEditorHistoryEntry {
     index: number;
     code: string;
@@ -731,7 +739,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiDbGetCatalogObjectNames]: { result: string[]; };
     [ShellAPIGui.GuiDbGetSchemaObjectNames]: { result: string[]; };
     [ShellAPIGui.GuiDbGetTableObjectNames]: { result: string[]; };
-    [ShellAPIGui.GuiDbGetColumnsMetadata]: { result: string[]; };
+    [ShellAPIGui.GuiDbGetColumnsMetadata]: { result: IGetColumnsMetadataItem[]; };
     [ShellAPIGui.GuiDbGetCatalogObject]: {};
     [ShellAPIGui.GuiDbGetSchemaObject]: {};
     [ShellAPIGui.GuiDbGetTableObject]: { result: ITableObjectInfo; };

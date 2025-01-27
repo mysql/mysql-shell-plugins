@@ -191,16 +191,19 @@ export abstract class E2ECommandResult {
                 throw new Error(`Unknown context menu item ${menuItem}`);
             }
 
-            this.resultContext = await new E2ECodeEditor().getResult(this.command, this.id);
-            const tabLocator = locator.notebook.codeEditor.editor.result.tabs;
-            const tabs = await this.resultContext.findElements(tabLocator.exists);
+            if (menuItem !== constants.closeAll) {
+                const tabLocator = locator.notebook.codeEditor.editor.result.tabs;
+                this.resultContext = await new E2ECodeEditor().getResult(this.command, this.id);
+                const tabs = await this.resultContext.findElements(tabLocator.exists);
 
-            if (tabs.length > 0) {
-                await this.setTabs();
+                if (tabs.length > 0) {
+                    await this.setTabs();
+                } else {
+                    this.#tabs = undefined;
+                }
             } else {
                 this.#tabs = undefined;
             }
-
         } else {
             throw new Error(`The result has no tabs`);
         }

@@ -27,7 +27,7 @@ import { ComponentChild, createRef, render } from "preact";
 
 import { ResultTabView } from "../components/ResultView/ResultTabView.js";
 import { Monaco } from "../components/ui/CodeEditor/index.js";
-import { DiagnosticSeverity, IDiagnosticEntry, TextSpan } from "../parsing/parser-common.js";
+import { DiagnosticSeverity, IDiagnosticEntry, QueryType, TextSpan } from "../parsing/parser-common.js";
 import { type IColumnDetails } from "../supplement/RequisitionTypes.js";
 import { requisitions } from "../supplement/Requisitions.js";
 import { EditorLanguage } from "../supplement/index.js";
@@ -426,7 +426,7 @@ export class PresentationInterface {
      * @returns A promise resolving to true if the operation was concluded successfully, otherwise false.
      */
     public async addResultData(data: IExecutionResult, dataOptions: IResponseDataOptions,
-        presentationOptions?: IPresentationOptions): Promise<void> {
+        presentationOptions?: IPresentationOptions, queryType?: QueryType): Promise<void> {
 
         // If this is the first result we receive, switch to the loading state.
         const isBusy = this.loadingState === LoadingState.Loading || this.loadingState === LoadingState.Waiting;
@@ -497,7 +497,7 @@ export class PresentationInterface {
 
             case "resultSetRows": {
                 if (!this.resultData) {
-                    if (data.rows.length === 0) {
+                    if (data.rows.length === 0 && queryType !== QueryType.Select) {
                         this.addEmptyResultSetAsText(data, dataOptions);
                     } else {
                         this.resultData = {
@@ -569,10 +569,10 @@ export class PresentationInterface {
                                         dataOptions.replaceData);
                                 }
                             } else {
-                                // No existing result set tab found - create it.
-                                if (data.rows.length === 0) {
+                                if (data.rows.length === 0 && queryType !== QueryType.Select) {
                                     this.addEmptyResultSetAsText(data, dataOptions);
                                 } else {
+                                    // No existing result set tab found - create it.
                                     this.resultData.sets.push({
                                         type: "resultSet",
                                         index: dataOptions.index,
@@ -1017,6 +1017,7 @@ export class PresentationInterface {
 
             case "resultSets": {
                 const hasOutput = this.resultData?.output && this.resultData.output.length > 0;
+
                 // Switch the tab if we're currently on the output tab re-running the query,
                 // results are present but output is missing.
                 if (!hasOutput && this.resultData.sets.length > 0 && this.currentSet === 0) {

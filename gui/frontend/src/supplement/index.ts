@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,7 +25,11 @@
 
 import { mysqlInfo, sqliteInfo } from "../app-logic/RdbmsInfo.js";
 import { DBDataType, type IColumnInfo, type IDBDataTypeDetails, type IDictionary } from "../app-logic/general-types.js";
+import { ITableColumn, IGetColumnsMetadataItem } from "../communication/ProtocolGui.js";
+import { QueryType } from "../parsing/parser-common.js";
 import { Base64Convert } from "../utilities/Base64Convert.js";
+import { unquote } from "../utilities/string-helpers.js";
+import { ShellInterfaceSqlEditor } from "./ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType } from "./ShellInterface/index.js";
 
 export { Stack } from "./Stack.js";
@@ -168,6 +172,14 @@ export type ValueType<T> = T extends string
     ? T
     : object;
 
+export const getDataTypeDetails = (dbType: DBType, dataType: string): IDBDataTypeDetails => {
+    const dataTypes = dbType === DBType.MySQL ? mysqlInfo.dataTypes : sqliteInfo.dataTypes;
+
+    return { // Make a copy of the data type details.
+        ...dataTypes.get(dataType.toLowerCase()) ?? { type: DBDataType.Unknown },
+    };
+};
+
 /**
  * Generates a generic column info record for each raw column returned from a request. The format of the
  * raw columns depends on the used RDBMS.
@@ -178,18 +190,14 @@ export type ValueType<T> = T extends string
  *
  * @returns A list of columns with RDBMS-agnostic details.
  */
-export const generateColumnInfo = (dbType: DBType, rawColumns?: Array<{ name: string; type: string; length: number; }>,
+export const generateColumnInfo = (dbType: DBType, rawColumns?: ITableColumn[],
     useName?: boolean): IColumnInfo[] => {
     if (!rawColumns) {
         return [];
     }
 
-    const dataTypes = dbType === DBType.MySQL ? mysqlInfo.dataTypes : sqliteInfo.dataTypes;
-
     return rawColumns.map((entry, index) => {
-        const dataType: IDBDataTypeDetails = { // Make a copy of the data type details.
-            ...dataTypes.get(entry.type.toLowerCase()) ?? { type: DBDataType.Unknown },
-        };
+        const dataType: IDBDataTypeDetails = getDataTypeDetails(dbType, entry.type);
         const typeName = entry.type.toLowerCase();
         switch (typeName) {
             case "bytes": {
@@ -233,12 +241,21 @@ export const generateColumnInfo = (dbType: DBType, rawColumns?: Array<{ name: st
                 break;
             }
 
+            case "timestamp": {
+                dataType.type = DBDataType.DateTime;
+
+                break;
+            }
+
+            case "string":
             case "str": {
                 dataType.type = DBDataType.String;
+
                 break;
             }
 
             default:
+                break;
         }
 
         return {
@@ -298,4 +315,108 @@ export const convertRows = (columns: IColumnInfo[], rows?: unknown[]): IDictiona
     }
 
     return rows as IDictionary[];
+};
+
+const dataTypeRegex = /^(\w+)(\(([^)]+)\))?/;
+
+export const parseDataTypeFromRaw = (dbType: DBType, rawType: string): string => {
+    const normalizedType = rawType.toLowerCase().trim();
+
+    // Match the main type and parentheses content (if any).
+    const match = normalizedType.match(dataTypeRegex);
+
+    if (!match) {
+        return rawType;
+    }
+
+    const mainType = match[1];
+    const details = getDataTypeDetails(dbType, mainType);
+
+    return details ? mainType : rawType;
+};
+
+const parseColumnLengthFromRaw = (rawType: string): number | undefined => {
+    const normalizedType = rawType.toLowerCase().trim();
+
+    // Match the main type and parentheses content (if any).
+    const match = normalizedType.match(dataTypeRegex);
+
+    if (!match || match[3] === undefined) {
+        return undefined;
+    }
+
+    return parseInt(match[3], 10);
+};
+
+export const parseColumnLength = (rawType: string, characterMaximumLength?: number): number => {
+    let length = 65535;
+    const parsedLength = parseColumnLengthFromRaw(rawType);
+    if (parsedLength) {
+        length = parsedLength;
+    } else if (characterMaximumLength) {
+        length = characterMaximumLength;
+    }
+
+    return length;
+};
+
+export const parseSchemaTable = async (fullTableName: string, backend?: ShellInterfaceSqlEditor):
+    Promise<{schema: string; table: string}> => {
+
+    const parts = fullTableName.split(".");
+    const table = unquote(parts.pop()!);
+    let schema = "";
+    if (parts.length > 0) {
+        schema = unquote(parts.pop()!);
+    }
+
+    if (schema.length === 0) {
+        schema = await backend?.getCurrentSchema() ?? "";
+    }
+
+    return { schema, table };
+};
+
+export const getColumnsMetadataForEmptyResultSet = async (
+    fullTableName: string | undefined, queryType: QueryType, dbType: DBType, backend?: ShellInterfaceSqlEditor,
+): Promise<Array<IGetColumnsMetadataItem & { length: number; }>> => {
+
+    const metadata: Array<IGetColumnsMetadataItem & { length: number; }> = [];
+    if (queryType !== QueryType.Select || !fullTableName || !backend) {
+        return metadata;
+    }
+
+    const { schema, table } = await parseSchemaTable(fullTableName);
+
+    const columnNames = await backend.getTableObjectNames(schema, table, "Column");
+    const request = columnNames.map((column) => {
+        return {
+            schema,
+            table,
+            column,
+        };
+    });
+    const response = await backend.getColumnsMetadata(request);
+
+    // We need to preserve the same columns order as in getTableObjectNames,
+    // therefore cannot iterate through getColumnsMetadata response directly.
+    columnNames.forEach((column) => {
+        const data = response.find((data) => {
+            return data.name === column;
+        });
+        if (!data) {
+            return;
+        }
+
+        const details = getDataTypeDetails(dbType, data.type);
+        const type = parseDataTypeFromRaw(dbType, data.type);
+
+        metadata.push({
+            ...data,
+            type,
+            length: parseColumnLength(data.type, details.characterMaximumLength),
+        });
+    });
+
+    return metadata;
 };

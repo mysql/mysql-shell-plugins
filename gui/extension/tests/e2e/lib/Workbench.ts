@@ -109,6 +109,7 @@ export class Workbench {
 
         let notification: Notification;
         const escapedText = text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+        await Misc.switchBackToTopFrame();
 
         await driver.wait(async () => {
             try {

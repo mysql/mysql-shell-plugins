@@ -1316,6 +1316,84 @@ describe("RESULT GRIDS", () => {
             }
         });
 
+        it("Add new row on empty result grid", async () => {
+            try {
+                const result = await notebook.codeEditor
+                    .execute("truncate sakila.result_sets;") as E2ECommandResultData;
+                expect(result.text).toMatch(/OK/);
+
+                let result1 = await notebook.codeEditor
+                    .execute("select * from sakila.result_sets;") as E2ECommandResultGrid;
+                expect(result1.status).toMatch(/OK/);
+
+                const textField = "this is text";
+                const intField = "35";
+
+                const rowToAdd: interfaces.IResultGridCell[] = [
+                    { columnName: "text_field", value: textField },
+                    { columnName: "int_field", value: intField },
+                ];
+
+                await result1.addRow(rowToAdd);
+                await result1.applyChanges();
+                await driver.wait(result1.untilStatusMatches(/(\d+).*updated/), constants.wait3seconds);
+
+                result1 = await notebook.codeEditor
+                    .execute("select * from sakila.result_sets;") as E2ECommandResultGrid;
+                expect(result1.status).toMatch(/OK/);
+
+                const row = 0;
+                const testChar = await result1.getCellValue(row, "text_field");
+                expect(testChar).toBe(textField);
+                const testVarChar = await result1.getCellValue(row, "int_field");
+                expect(testVarChar).toBe(intField);
+
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
+        it("Add new row on empty result grid under result tabs", async () => {
+            try {
+                const result = await notebook.codeEditor
+                    .execute("truncate sakila.result_sets;") as E2ECommandResultData;
+                expect(result.text).toMatch(/OK/);
+
+                let result1 = await notebook.codeEditor
+                    .execute("select 1; select * from sakila.result_sets;") as E2ECommandResultGrid;
+                expect(result1.status).toMatch(/OK/);
+
+                const textField = "this is text";
+                const intField = "35";
+
+                const rowToAdd: interfaces.IResultGridCell[] = [
+                    { columnName: "text_field", value: textField },
+                    { columnName: "int_field", value: intField },
+                ];
+
+                await result1.selectTab(result1.tabs![1].name);
+                await result1.addRow(rowToAdd);
+                await result1.applyChanges();
+                await driver.wait(result1.untilStatusMatches(/(\d+).*updated/), constants.wait3seconds);
+
+                result1 = await notebook.codeEditor
+                    .execute("select 1; select * from sakila.result_sets;") as E2ECommandResultGrid;
+                expect(result1.status).toMatch(/OK/);
+
+                await result1.selectTab(result1.tabs![1].name);
+                const row = 0;
+                const testChar = await result1.getCellValue(row, "text_field");
+                expect(testChar).toBe(textField);
+                const testVarChar = await result1.getCellValue(row, "int_field");
+                expect(testVarChar).toBe(intField);
+
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
         it("Close a result set", async () => {
             try {
                 const result = await notebook.codeEditor

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,10 +24,17 @@
  */
 
 import { MessageScheduler } from "../../communication/MessageScheduler.js";
-import { IShellDbConnection, ITableObjectInfo, ShellAPIGui } from "../../communication/ProtocolGui.js";
+import { IGetColumnsMetadataItem, IShellDbConnection, ITableObjectInfo,
+    ShellAPIGui } from "../../communication/ProtocolGui.js";
 import { webSession } from "../WebSession.js";
 
 export type RoutineType = "function" | "procedure";
+
+interface IGetColumnsMetadataRequest {
+    schema: string;
+    table: string;
+    column: string;
+}
 
 /**
  * This interface serves as utility for DB related work (DB object retrieval and so on).
@@ -196,6 +203,24 @@ export class ShellInterfaceDb {
                     schemaName: schema,
                     tableName: table,
                     name,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async getColumnsMetadata(names: IGetColumnsMetadataRequest[]): Promise<IGetColumnsMetadataItem[]> {
+        if (!this.moduleSessionId) {
+            return [];
+        }
+
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbGetColumnsMetadata,
+            parameters: {
+                args: {
+                    names,
                     moduleSessionId: this.moduleSessionId,
                 },
             },

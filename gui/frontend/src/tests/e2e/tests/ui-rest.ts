@@ -632,17 +632,7 @@ describe("MYSQL REST SERVICE", () => {
 
             await dbTreeSection.clickToolbarButton(constants.refreshConnectionList);
             await dbTreeSection.tree.openContextMenuAndSelect(globalService.restSchemas![0].restObjects![0].treeName!,
-                constants.editRESTObj).catch(async (e) => {
-                    console.log(`Catch: ${e}`);
-                    if (String(e).includes("Could not find")) {
-                        await dbTreeSection.tree
-                            .openContextMenuAndSelect(/\/actor\/edited/, constants.editRESTObj);
-                        await driver.sleep(3000);
-                        throw new Error("Check screenshot. Flaky test not replicable locally. Remove code after fix");
-                    } else {
-                        throw new Error(`Different: ${String(e)}`);
-                    }
-                });
+                constants.editRESTObj);
             const thisObject = await RestObjectDialog.get();
             expect(thisObject).toStrictEqual(editedObject);
         } catch (e) {
@@ -935,8 +925,10 @@ describe("MYSQL REST SERVICE - CLIPBOARD", () => {
             await dbTreeSection.tree.expandElement(["Tables"]);
 
             await driver.wait(dbTreeSection.tree.untilElementHasChildren("Tables"), constants.wait5seconds);
-            await dbTreeSection.tree.openContextMenuAndSelect("actor", constants.addDBObjToREST);
+            await dbTreeSection.tree.openContextMenuAndSelect("address", constants.addDBObjToREST);
             await RestObjectDialog.set({ restServicePath: otherService.treeName });
+            await driver.wait(dbTreeSection.tree
+                .untilExists(otherService.restSchemas![0].restObjects![1].treeName!), constants.wait3seconds);
             notification = await new E2EToastNotification().create();
             const notifications = await Misc.getToastNotifications();
 
@@ -1030,7 +1022,7 @@ describe("MYSQL REST SERVICE - CLIPBOARD", () => {
     it("Copy CREATE REST OBJECT Statement", async () => {
         try {
             await dbTreeSection.tree
-                .openContextMenuAndSelect(otherService.restSchemas![0].restObjects![0].treeName!,
+                .openContextMenuAndSelect(otherService.restSchemas![0].restObjects![1].treeName!,
                     constants.copyCreateRestObjSt);
             let notification = await new E2EToastNotification().create();
 
@@ -1057,18 +1049,18 @@ describe("MYSQL REST SERVICE - CLIPBOARD", () => {
         try {
             const service = otherService.servicePath;
             const sakila = otherService.restSchemas![0].settings?.schemaName;
-            const actor = otherService.restSchemas![0].restObjects![0].jsonRelDuality?.dbObject;
-            const regex = new RegExp(`(localhost:(\\d+)${service}/${sakila}/${actor}|${constants.jsError})`);
+            const address = otherService.restSchemas![0].restObjects![1].jsonRelDuality?.dbObject;
+            const regex = new RegExp(`(localhost:(\\d+)${service}/${sakila}/${address}|${constants.jsError})`);
 
             await dbTreeSection.tree
-                .openContextMenuAndSelect(otherService.restSchemas![0].restObjects![0].treeName!,
+                .openContextMenuAndSelect(otherService.restSchemas![0].restObjects![1].treeName!,
                     constants.copyRESTObjReqPath);
             let notification = await new E2EToastNotification().create();
 
             if (notification?.message.includes("SDK")) {
                 await notification.close();
                 await dbTreeSection.tree
-                    .openContextMenuAndSelect(otherService.restSchemas![0].restObjects![0].treeName!,
+                    .openContextMenuAndSelect(otherService.restSchemas![0].restObjects![1].treeName!,
                         constants.copyRESTObjReqPath);
                 notification = await new E2EToastNotification().create();
             }

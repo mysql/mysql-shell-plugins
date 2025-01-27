@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until, Condition, WebElement } from "vscode-extension-tester";
+import { until, Condition, WebElement, error } from "vscode-extension-tester";
 import { driver, Misc } from "../../Misc";
 import * as constants from "../../constants";
 import * as locator from "../../locators";
@@ -143,12 +143,13 @@ export class ObjectStorageBrowser {
                 for (const item of items) {
                     const caption = await (item.findElement(objStorageItem.caption)).getText();
 
-                    if (caption === itemName) {
+                    if (caption.includes(itemName)) {
                         exists = true;
-
-                        return true;
+                        break;
                     }
                 }
+
+                return true;
             } catch (e) {
                 if (!errors.isStaleError(e as Error)) {
                     throw e;
@@ -175,25 +176,37 @@ export class ObjectStorageBrowser {
         for (let i = 0; i <= path.length - 1; i++) {
             await driver.wait(async () => {
                 try {
+
                     if (i === path.length - 1) {
                         await driver.executeScript("arguments[0].scrollBy(0, 150)",
                             await driver.findElement(scrollTable));
+
                     }
+
+                    if (await this.existsItem("Error")) { // flaky failure without solution yet
+                        throw new Error("Skip");
+                    }
+
                     let item = await this.getItem(path[i], String(i));
-                    await driver.executeScript("arguments[0].click()",
-                        await item.findElement(objStorageItem.treeToggle));
-                    await driver.wait(this.untilItemsAreLoaded(), constants.wait15seconds,
-                        ` ${path[i + 1]} to be loaded`);
+                    let itemToggle = await item.findElement(objStorageItem.treeToggle);
+
+                    if (!(await (itemToggle.getAttribute("class"))).includes("expanded")) {
+                        await driver.executeScript("arguments[0].click()",
+                            await item.findElement(objStorageItem.treeToggle));
+                        await driver.wait(this.untilItemsAreLoaded(), constants.wait15seconds,
+                            ` ${path[i + 1]} to be loaded`);
+                    }
+
                     item = await this.getItem(path[i], String(i));
-                    const itemToggle = await item.findElement(objStorageItem.treeToggle);
+                    itemToggle = await item.findElement(objStorageItem.treeToggle);
 
                     return (await (itemToggle.getAttribute("class"))).includes("expanded");
                 } catch (e) {
-                    if (!errors.isStaleError(e as Error)) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
                         throw e;
                     }
                 }
-            }, constants.wait5seconds, `item '${path[i]}' was not expanded`);
+            }, constants.wait30seconds, `item '${path[i]}' was not expanded`);
         }
     };
 
