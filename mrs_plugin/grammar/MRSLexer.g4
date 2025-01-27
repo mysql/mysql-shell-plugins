@@ -86,6 +86,7 @@ URL_SYMBOL:            U R L;
 NAME_SYMBOL:           N A M E;
 DO_SYMBOL:             D O;
 ALL_SYMBOL:            A L L;
+PARAMETERS_SYMBOL:     P A R A M E T E R S;
 
 // Used for auto merging this grammar and the standard MySQL grammar.
 /* START OF MERGE PART */
