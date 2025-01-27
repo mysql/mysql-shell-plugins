@@ -308,27 +308,27 @@ describe("NOTEBOOKS", () => {
                 await driver.wait(until.elementIsEnabled(rollBackBtn!),
                     constants.wait3seconds, "Commit button should be enabled");
 
-                let result = await notebook.codeEditor
+                let resultData = await notebook.codeEditor
                     // eslint-disable-next-line max-len
                     .execute(`INSERT INTO sakila.actor (first_name, last_name) VALUES ("${random}","${random}");`) as E2ECommandResultData;
-                expect(result.text).toMatch(/OK/);
+                expect(resultData.text).toMatch(/OK/);
 
                 await rollBackBtn!.click();
 
                 // eslint-disable-next-line max-len
-                result = await notebook.codeEditor.execute(`SELECT * FROM sakila.actor WHERE first_name="${random}";`) as E2ECommandResultData;
-                expect(result.text).toMatch(/OK/);
+                let resultGrid = await notebook.codeEditor.execute(`SELECT * FROM sakila.actor WHERE first_name='${random}';`) as E2ECommandResultGrid;
+                expect(resultGrid.status).toMatch(/OK/);
 
-                result = await notebook.codeEditor
+                resultData = await notebook.codeEditor
                     // eslint-disable-next-line max-len
                     .execute(`INSERT INTO sakila.actor (first_name, last_name) VALUES ("${random}","${random}");`) as E2ECommandResultData;
-                expect(result.text).toMatch(/OK/);
+                expect(resultData.text).toMatch(/OK/);
 
                 await commitBtn!.click();
 
                 // eslint-disable-next-line max-len
-                const result1 = await notebook.codeEditor.execute(`SELECT * FROM sakila.actor WHERE first_name="${random}";`) as E2ECommandResultGrid;
-                expect(result1.status).toMatch(/OK/);
+                resultGrid = await notebook.codeEditor.execute(`SELECT * FROM sakila.actor WHERE first_name="${random}";`) as E2ECommandResultGrid;
+                expect(resultGrid.status).toMatch(/OK/);
 
                 await autoCommitBtn!.click();
 

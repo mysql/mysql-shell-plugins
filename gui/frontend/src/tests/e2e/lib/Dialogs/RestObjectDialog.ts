@@ -208,6 +208,7 @@ export class RestObjectDialog {
 
         if (restObject.restObjectPath) {
             await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.requestPath, restObject.restObjectPath);
+            restObject.restObjectPath = await DialogHelper.getFieldValue(dialog, locator.mrsDbObjectDialog.requestPath);
         }
 
         if (restObject.accessControl !== undefined) {

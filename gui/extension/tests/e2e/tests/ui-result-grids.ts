@@ -316,6 +316,7 @@ describe("RESULT GRIDS", () => {
 
             await result.toolbar.applyChanges();
             await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await Workbench.getNotification("Changes committed successfully.");
 
             const result1 = await notebook.codeEditor.execute("select * from sakila.all_data_types_ints where id = 1;");
             expect(result1.toolbar.status).to.match(/OK/);
@@ -382,6 +383,7 @@ describe("RESULT GRIDS", () => {
             await driver.wait(result.grid.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
             await result.toolbar.applyChanges();
             await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await Workbench.getNotification("Changes committed successfully.");
 
             const result1 = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_dates where id = 1;");
@@ -455,6 +457,7 @@ describe("RESULT GRIDS", () => {
             await driver.wait(result.grid.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
             await result.toolbar.applyChanges();
             await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await Workbench.getNotification("Changes committed successfully.");
 
             const result1 = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_chars where id = 2;");
@@ -530,6 +533,7 @@ describe("RESULT GRIDS", () => {
             await driver.wait(result.grid.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
             await result.toolbar.applyChanges();
             await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await Workbench.getNotification("Changes committed successfully.");
 
             const result1 = await notebook.codeEditor
                 .execute("select * from sakila.all_data_types_geometries where id = 1;");

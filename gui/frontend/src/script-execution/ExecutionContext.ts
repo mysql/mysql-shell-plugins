@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,7 +30,7 @@ import {
 } from "../components/ui/CodeEditor/index.js";
 import { isTextSpan } from "../utilities/ts-helpers.js";
 import { ScriptingLanguageServices } from "./ScriptingLanguageServices.js";
-import { IDiagnosticEntry, IStatementSpan, TextSpan } from "../parsing/parser-common.js";
+import { IDiagnosticEntry, IStatementSpan, QueryType, TextSpan } from "../parsing/parser-common.js";
 import { PresentationInterface } from "./PresentationInterface.js";
 import {
     IExecuteResultReference, IExecutionResult, IExecutionResultData, IPresentationOptions,
@@ -440,7 +440,7 @@ export class ExecutionContext implements IExecutionContext {
      * @returns A promise resolving to true if the operation was concluded successfully, otherwise false.
      */
     public async addResultData(data: IExecutionResult, dataOptions: IResponseDataOptions,
-        presentationOptions?: IPresentationOptions): Promise<void> {
+        presentationOptions?: IPresentationOptions, queryType?: QueryType): Promise<void> {
         if (!this.disposed) {
             if (this.#frozen && data.type === "resultSetRows") {
                 this.#cachedResultIds.add(dataOptions.resultId);
@@ -452,7 +452,7 @@ export class ExecutionContext implements IExecutionContext {
                 this.#showNextResultMaximized = false;
             }
 
-            return this.presentation.addResultData(data, dataOptions, options);
+            return this.presentation.addResultData(data, dataOptions, options, queryType);
         }
     }
 

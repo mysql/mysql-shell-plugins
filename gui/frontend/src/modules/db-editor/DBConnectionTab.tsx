@@ -34,7 +34,8 @@ import { ui } from "../../app-logic/UILayer.js";
 import {
     DBDataType, IColumnInfo, IDictionary, IServicePasswordRequest, IStatusInfo, MessageType,
 } from "../../app-logic/general-types.js";
-import { IDbEditorResultSetData, type ISqlEditorHistoryEntry } from "../../communication/ProtocolGui.js";
+import { ITableColumn, IDbEditorResultSetData,
+    type ISqlEditorHistoryEntry } from "../../communication/ProtocolGui.js";
 import { IMdsChatData, IMdsChatStatus } from "../../communication/ProtocolMds.js";
 import { ResponseError } from "../../communication/ResponseError.js";
 import { ChatOptionAction, ChatOptions, IChatOptionsState } from "../../components/Chat/ChatOptions.js";
@@ -63,9 +64,11 @@ import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import {
     EditorLanguage, IScriptRequest, ISqlPageRequest, convertRows, generateColumnInfo,
+    getColumnsMetadataForEmptyResultSet,
+    parseSchemaTable,
 } from "../../supplement/index.js";
 import { convertErrorToString, saveTextAsFile, selectFile, uuid } from "../../utilities/helpers.js";
-import { formatBase64ToHex, formatTime, formatWithNumber, unquote } from "../../utilities/string-helpers.js";
+import { formatBase64ToHex, formatTime, formatWithNumber } from "../../utilities/string-helpers.js";
 import { IMrsLoginResult } from "../mrs/sdk/MrsBaseClasses.js";
 import { IMrsAuthRequestPayload } from "../mrs/types.js";
 import { ClientConnections } from "./ClientConnections.js";
@@ -198,7 +201,7 @@ interface IDBConnectionTabState extends IComponentState {
 }
 
 /** A list of parameters/options used for query execution. */
-interface IQueryExecutionOptions {
+export interface IQueryExecutionOptions {
     /** The context to send result to. */
     context: SQLExecutionContext;
 
@@ -1245,6 +1248,9 @@ Execute \\help or \\? for help;`;
                     void ApplicationDB.removeDataByResultIds(StoreType.DbEditor, [resultId]);
                 }
             }
+            const columnsMetadata = await getColumnsMetadataForEmptyResultSet(
+                options.fullTableName, options.queryType, connection!.details.dbType, connection!.backend,
+            );
 
             // Have to keep the column definition around for all data packages, for row conversion,
             // but must store it only once (when they come in, which happens only once).
@@ -1286,10 +1292,10 @@ Execute \\help or \\? for help;`;
                                 `${formatTime(data.result.executionTime)}`,
                         };
                     }
+                }
 
-                    if (rowCount === 0) {
-                        status.type = MessageType.Response;
-                    }
+                if (!data.result.columns && rowCount === 0 && columnsMetadata.length) {
+                    data.result.columns = columnsMetadata;
                 }
 
                 if (data.result.columns) {
@@ -1375,7 +1381,7 @@ Execute \\help or \\? for help;`;
                         replaceData,
                         updatable: options.updatable,
                         fullTableName: options.fullTableName,
-                    });
+                    }, undefined, options.queryType);
                 }
 
                 if (resultSummary) {
@@ -1759,16 +1765,7 @@ Execute \\help or \\? for help;`;
         columnNames: string[]): Promise<void> {
         const { connection } = this.props;
 
-        const parts = fullTableName.split(".");
-        const table = unquote(parts.pop()!);
-        let schema = "";
-        if (parts.length > 0) {
-            schema = unquote(parts.pop()!);
-        }
-
-        if (schema.length === 0) {
-            schema = await connection?.backend.getCurrentSchema() ?? "";
-        }
+        const { schema, table } = await parseSchemaTable(fullTableName, connection?.backend);
 
         // Get all column names.
         const tableColumns = await connection?.backend.getTableObjectNames(schema, table, "Column");
@@ -1806,16 +1803,7 @@ Execute \\help or \\? for help;`;
     private async getPrimaryKeyColumns(fullTableName: string): Promise<string[]> {
         const { connection } = this.props;
 
-        const parts = fullTableName.split(".");
-        const table = unquote(parts.pop()!);
-        let schema = "";
-        if (parts.length > 0) {
-            schema = unquote(parts.pop()!);
-        }
-
-        if (schema.length === 0) {
-            schema = await connection?.backend.getCurrentSchema() ?? "";
-        }
+        const { schema, table } = await parseSchemaTable(fullTableName, connection?.backend);
 
         return connection?.backend.getTableObjectNames(schema, table, "Primary Key") ?? [];
     }
@@ -2250,7 +2238,7 @@ Execute \\help or \\? for help;`;
                         // Make sure the task we are running currently on, stays assigned to this loop.
                         workerPool.retainTask(taskId);
 
-                        let columns: Array<{ name: string; type: string; length: number; }> = [];
+                        let columns: ITableColumn[] = [];
                         let rows: Array<Record<string, unknown>> = [];
 
                         const handleResult = (data: IDbEditorResultSetData): void => {

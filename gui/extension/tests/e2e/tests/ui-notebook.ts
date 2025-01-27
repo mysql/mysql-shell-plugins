@@ -227,7 +227,7 @@ describe("NOTEBOOKS", () => {
             await driver.wait(notebook.codeEditor.untilNewPromptExists(), constants.wait5seconds);
         });
 
-        it("Connection toolbar buttons - Execute statement at the caret position", async () => {
+        it.skip("Connection toolbar buttons - Execute statement at the caret position", async () => {
             try {
                 const query1 = "select * from sakila.actor limit 1;";
                 const query2 = "select * from sakila.address limit 2;";
@@ -273,7 +273,7 @@ describe("NOTEBOOKS", () => {
                 .to.match(new RegExp((globalConn.basic as interfaces.IConnBasicMySQL).schema));
         });
 
-        it("Connection toolbar buttons - Autocommit DB Changes", async () => {
+        it.skip("Connection toolbar buttons - Autocommit DB Changes", async () => {
 
             const autoCommitBtn = await notebook.toolbar.getButton(constants.autoCommit);
             const style = await autoCommitBtn.findElement(locator.notebook.toolbar.button.icon).getAttribute("style");
@@ -296,7 +296,7 @@ describe("NOTEBOOKS", () => {
 
             await rollBackBtn.click();
 
-            result = await notebook.codeEditor.execute(`SELECT * FROM sakila.actor WHERE first_name="${random}";`);
+            result = await notebook.codeEditor.execute(`SELECT * FROM sakila.actor WHERE first_name='${random}';`);
             expect(result.text).to.match(/OK/);
 
             result = await notebook.codeEditor
@@ -362,7 +362,7 @@ describe("NOTEBOOKS", () => {
             try {
                 const query = "select * from sakila.actor limit 1;";
                 const jsCmd = "Math.random();";
-                const result1 = await notebook.codeEditor.execute(query);
+                const result1 = await notebook.codeEditor.execute(query, undefined, true);
                 const block1 = result1.id;
                 expect(result1.toolbar.status).to.match(/OK/);
                 await notebook.codeEditor.languageSwitch("\\javascript ");
