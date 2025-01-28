@@ -157,11 +157,156 @@ class AuthAppNotFoundError(MrsError):
 #                                 Custom Types
 ####################################################################################
 # pylint: disable=too-few-public-methods
+# JSON data type
 JsonPrimitive = bool | float | int | str | None
 JsonObject = Mapping[str, "JsonValue"]
 JsonArray = list["JsonValue"]
 JsonValue = JsonPrimitive | JsonObject | JsonArray
 
+# Spatial data type
+Position = list[float] | tuple[float, float]  # two dimensional vector
+TwoOrMorePositions: TypeAlias = list[Position]  # two or more positions
+LinearRing: TypeAlias = list[Position]  # four or more positions
+LinearRings: TypeAlias = list[LinearRing]
+
+
+class Point(TypedDict):
+    """Stores a MySQL single X and Y coordinate value.
+
+    Example:
+    ```
+    POINT(-74.044514 40.689244)
+    ```
+    """
+
+    type: Literal["Point"]
+    coordinates: Position
+
+
+class LineString(TypedDict):
+    """Stores a set of points that form a curve. An ordered list of
+    points connected by edges.
+
+    Example:
+    ```
+    LINESTRING(0 0, 0 1, 1 1)
+    ```
+    """
+
+    type: Literal["LineString"]
+    coordinates: TwoOrMorePositions
+
+
+class Polygon(TypedDict):
+    """Stores a set of points in a multi-sided geometry. Similar to a
+    linestring, but closed (must have at least three unique points,
+    and the first and last point-pairs must be equal).
+
+    Example:
+    ```
+    POLYGON((0 0, 10 0, 10 10, 0 10, 0 0), (5 5, 7 5, 7 7, 5 7, 5 5))
+    ```
+    """
+
+    type: Literal["Polygon"]
+    coordinates: LinearRings
+
+
+Geometry = Point | LineString | Polygon
+"""Stores any type of geometry value. It is a `noninstantiable` class
+but has a number of properties common to all geometry values.
+
+See `Geometry` class hierarchy:
+https://dev.mysql.com/doc/refman/8.4/en/gis-geometry-class-hierarchy.html
+"""
+
+
+class MultiPoint(TypedDict):
+    """Stores a set of multiple point values.
+
+    Example:
+    ```
+    MULTIPOINT(0 0, 20 20, 60 60)
+    ```
+    """
+    type: Literal["MultiPoint"]
+    coordinates: list[Position]
+
+
+class MultiLineString(TypedDict):
+    """Stores a set of multiple LINESTRING values.
+
+    Example:
+    ```
+    MULTILINESTRING((10 10, 20 20), (15 15, 30 15))
+    ```
+    """
+    type: Literal["MultiLineString"]
+    coordinates: list[TwoOrMorePositions]
+
+
+class MultiPolygon(TypedDict):
+    """Stores a set of multiple POLYGON values.
+
+    Example:
+    ```
+    MULTIPOLYGON(((0 0,10 0,10 10,0 10,0 0)),((5 5,7 5,7 7,5 7, 5 5)))
+    ```
+    """
+    type: Literal["MultiPolygon"]
+    coordinates: list[LinearRings]
+
+
+GeometryCollectionSubClass = MultiPoint | MultiLineString | MultiPolygon
+
+
+class GeometryCollectionBaseClass(TypedDict):
+    """`GeometryCollection` is an `instantiable` class.
+
+    Note that if a column is of type `GEOMETRYCOLLECTION` with value:
+    ```
+    mysql> GEOMETRYCOLLECTION(POINT(10 10), POINT(30 30), LINESTRING(15 15, 20 20))
+    ```
+
+    Router sends:
+    ```
+    {
+        "type": "GeometryCollection",
+        "geometries": [
+            {"type": "Point", "coordinates": [10.0, 10.0]},
+            {"type": "Point", "coordinates": [30.0, 30.0]},
+            {"type": "LineString", "coordinates": [[15.0, 15.0], [20.0, 20.0]]},
+        ],
+    }
+    ```
+
+    This structure differs from subclasses.
+
+    Furthermore, a `GeometryCollection` can hold multiple geometries, including
+    other `GeometryCollections`, a.k.a. nesting capability.
+    """
+
+    type: Literal["GeometryCollection"]
+    geometries: list[Geometry | GeometryCollection]
+
+
+GeometryCollection = GeometryCollectionBaseClass | GeometryCollectionSubClass
+"""Stores a set of multiple GEOMETRY values. It is an `instantiable` class.
+
+Note that MySQL does NOT support empty GeometryCollections
+except for the single GeometryCollection object itself.
+
+See `GeometryCollection` class hierarchy:
+https://dev.mysql.com/doc/refman/8.4/en/gis-geometry-class-hierarchy.html
+
+Example:
+```
+GEOMETRYCOLLECTION(POINT(10 10), POINT(30 30), LINESTRING(15 15, 20 20))
+```
+"""
+
+
+# Misc types
 UndefinedField = UndefinedDataClassField()
 
 Data = TypeVar("Data", bound=Mapping)

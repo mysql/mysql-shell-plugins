@@ -113,6 +113,14 @@ def test_get_datatype_mapping():
             ): "float",
             ("json",): "JsonValue",
             ("varchar",): "str",
+            ("GEOMETRY",): "Geometry",
+            ("GEOMCOLLECTION",): "GeometryCollection",
+            ("POINT",): "Point",
+            ("MULTIPOINT",): "MultiPoint",
+            ("LINESTRING",): "LineString",
+            ("MULTILINESTRING",): "MultiLineString",
+            ("POLYGON",): "Polygon",
+            ("MULTIPOLYGON",): "MultiPolygon",
         },
         "Unknown": {
             ("varchar",): "unknown",
@@ -132,53 +140,56 @@ def test_datatype_is_primitive():
         "client_datatype": "boolean",
         "sdk_language": "TypeScript"
     }
-
     is_native = datatype_is_primitive(**args)
     assert is_native is True
 
     args["client_datatype"] = "number"
-
     is_native = datatype_is_primitive(**args)
     assert is_native is True
 
     args["client_datatype"] = "string"
-
     is_native = datatype_is_primitive(**args)
     assert is_native is True
 
     args["client_datatype"] = "Unknown"
-
     is_native = datatype_is_primitive(**args)
     assert is_native is False
 
     args["client_datatype"] = "bool"
     args["sdk_language"] = "Python"
-
     is_native = datatype_is_primitive(**args)
     assert is_native is True
 
     args["client_datatype"] = "float"
-
     is_native = datatype_is_primitive(**args)
     assert is_native is True
 
     args["client_datatype"] = "int"
-
     is_native = datatype_is_primitive(**args)
     assert is_native is True
 
     args["client_datatype"] = "str"
+    is_native = datatype_is_primitive(**args)
+    assert is_native is True
 
+    args["client_datatype"] = "list"
+    is_native = datatype_is_primitive(**args)
+    assert is_native is True
+
+    args["client_datatype"] = "tuple"
+    is_native = datatype_is_primitive(**args)
+    assert is_native is True
+
+    args["client_datatype"] = "dict"
     is_native = datatype_is_primitive(**args)
     assert is_native is True
 
     args["client_datatype"] = "Unknown"
-
     is_native = datatype_is_primitive(**args)
     assert is_native is False
 
+    # Feed an unknown SDK language
     args["sdk_language"] = "Unknown"
-
     is_native = datatype_is_primitive(**args)
     assert is_native is False
 

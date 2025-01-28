@@ -692,6 +692,22 @@ def get_datatype_mapping(db_datatype, sdk_language):
             return "float"
         if db_datatype.startswith("json"):
             return "JsonValue"
+        if db_datatype.startswith("geometry"):
+            return "Geometry"
+        if db_datatype.startswith("point"):
+            return "Point"
+        if db_datatype.startswith("linestring"):
+            return "LineString"
+        if db_datatype.startswith("polygon"):
+            return "Polygon"
+        if db_datatype.startswith("multipoint"):
+            return "MultiPoint"
+        if db_datatype.startswith("multilinestring"):
+            return "MultiLineString"
+        if db_datatype.startswith("multipolygon"):
+            return "MultiPolygon"
+        if db_datatype.startswith("geomcollection"):
+            return "GeometryCollection"
         return "str"
 
     return "unknown"
@@ -777,7 +793,9 @@ def datatype_is_primitive(client_datatype, sdk_language):
             return True
         return False
     if sdk_language == "Python":
-        if client_datatype.startswith(("bool", "float", "int", "str")):
+        if client_datatype.startswith(
+            ("bool", "float", "int", "str", "list", "tuple", "dict")
+        ):
             return True
         return False
 
