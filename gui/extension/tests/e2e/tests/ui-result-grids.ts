@@ -37,6 +37,8 @@ import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import * as errors from "../lib/errors";
 import { TestQueue } from "../lib/TestQueue";
+import { E2ECommandResultGrid } from "../lib/WebViews/CommandResults/E2ECommandResultGrid";
+import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
 
 describe("RESULT GRIDS", () => {
 
@@ -85,7 +87,6 @@ describe("RESULT GRIDS", () => {
             await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption), constants.wait5seconds);
             await (await new DatabaseConnectionOverview().getConnection(globalConn.caption)).click();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
-            await notebook.codeEditor.create();
             await dbTreeSection.focus();
         } catch (e) {
             await Misc.processFailure(this);
@@ -124,7 +125,6 @@ describe("RESULT GRIDS", () => {
         afterEach(async function () {
             if (this.currentTest.state === "failed") {
                 await Misc.processFailure(this);
-                await notebook.codeEditor.loadCommandResults();
             }
 
             if (existsInQueue) {
@@ -153,17 +153,18 @@ describe("RESULT GRIDS", () => {
         it("Verify mysql data types - integer columns", async () => {
 
             await Workbench.toggleSideBar(false);
-            const result = await notebook.codeEditor.execute("SELECT * from sakila.all_data_types_ints;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("SELECT * from sakila.all_data_types_ints;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
             const row = 0;
-            const smallIntField = await result.grid.getCellValue(row, "test_smallint");
-            const mediumIntField = await result.grid.getCellValue(row, "test_mediumint");
-            const intField = await result.grid.getCellValue(row, "test_integer");
-            const bigIntField = await result.grid.getCellValue(row, "test_bigint");
-            const decimalField = await result.grid.getCellValue(row, "test_decimal");
-            const floatFIeld = await result.grid.getCellValue(row, "test_float");
-            const doubleField = await result.grid.getCellValue(row, "test_double");
-            const booleanCell = await result.grid.getCellValue(row, "test_boolean");
+            const smallIntField = await result.getCellValue(row, "test_smallint");
+            const mediumIntField = await result.getCellValue(row, "test_mediumint");
+            const intField = await result.getCellValue(row, "test_integer");
+            const bigIntField = await result.getCellValue(row, "test_bigint");
+            const decimalField = await result.getCellValue(row, "test_decimal");
+            const floatFIeld = await result.getCellValue(row, "test_float");
+            const doubleField = await result.getCellValue(row, "test_double");
+            const booleanCell = await result.getCellValue(row, "test_boolean");
 
             expect(smallIntField, errors.incorrectCellValue("SMALLINT")).to.match(/(\d+)/);
             expect(mediumIntField, errors.incorrectCellValue("MEDIUMINT")).to.match(/(\d+)/);
@@ -177,15 +178,16 @@ describe("RESULT GRIDS", () => {
         });
 
         it("Verify mysql data types - date columns", async () => {
-            const result = await notebook.codeEditor.execute("SELECT * from sakila.all_data_types_dates;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("SELECT * from sakila.all_data_types_dates;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
             const row = 0;
-            const dateField = await result.grid.getCellValue(row, "test_date");
-            const dateTimeField = await result.grid.getCellValue(row, "test_datetime");
-            const timeStampField = await result.grid.getCellValue(row, "test_timestamp");
-            const timeField = await result.grid.getCellValue(row, "test_time");
-            const yearField = await result.grid.getCellValue(row, "test_year");
+            const dateField = await result.getCellValue(row, "test_date");
+            const dateTimeField = await result.getCellValue(row, "test_datetime");
+            const timeStampField = await result.getCellValue(row, "test_timestamp");
+            const timeField = await result.getCellValue(row, "test_time");
+            const yearField = await result.getCellValue(row, "test_year");
 
             expect(dateField, errors.incorrectCellValue("DATE")).to.match(/(\d+)\/(\d+)\/(\d+)/);
             expect(dateTimeField, errors.incorrectCellValue("DATETIME")).to.match(/(\d+)\/(\d+)\/(\d+)/);
@@ -195,19 +197,20 @@ describe("RESULT GRIDS", () => {
         });
 
         it("Verify mysql data types - char columns", async () => {
-            const result = await notebook.codeEditor.execute("SELECT * from sakila.all_data_types_chars;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("SELECT * from sakila.all_data_types_chars;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
             const row = 0;
-            const charField = await result.grid.getCellValue(row, "test_char");
-            const varCharField = await result.grid.getCellValue(row, "test_varchar");
-            const tinyTextField = await result.grid.getCellValue(row, "test_tinytext");
-            const textField = await result.grid.getCellValue(row, "test_text");
-            const mediumTextField = await result.grid.getCellValue(row, "test_mediumtext");
-            const longTextField = await result.grid.getCellValue(row, "test_longtext");
-            const enumField = await result.grid.getCellValue(row, "test_enum");
-            const setFIeld = await result.grid.getCellValue(row, "test_set");
-            const jsonField = await result.grid.getCellValue(row, "test_json");
+            const charField = await result.getCellValue(row, "test_char");
+            const varCharField = await result.getCellValue(row, "test_varchar");
+            const tinyTextField = await result.getCellValue(row, "test_tinytext");
+            const textField = await result.getCellValue(row, "test_text");
+            const mediumTextField = await result.getCellValue(row, "test_mediumtext");
+            const longTextField = await result.getCellValue(row, "test_longtext");
+            const enumField = await result.getCellValue(row, "test_enum");
+            const setFIeld = await result.getCellValue(row, "test_set");
+            const jsonField = await result.getCellValue(row, "test_json");
 
             expect(charField, errors.incorrectCellValue("CHAR")).to.match(/([a-z]|[A-Z])/);
             expect(varCharField, errors.incorrectCellValue("VARCHAR")).to.match(/([a-z]|[A-Z])/);
@@ -221,44 +224,46 @@ describe("RESULT GRIDS", () => {
         });
 
         it("Verify mysql data types - blob columns", async () => {
-            const result = await notebook.codeEditor.execute("SELECT * from sakila.all_data_types_blobs;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("SELECT * from sakila.all_data_types_blobs;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
             const row = 0;
-            const binaryField = await result.grid.getCellValue(row, "test_binary");
-            const varBinaryField = await result.grid.getCellValue(row, "test_varbinary");
+            const binaryField = await result.getCellValue(row, "test_binary");
+            const varBinaryField = await result.getCellValue(row, "test_varbinary");
 
-            expect(await result.grid.getCellIconType(row, "test_tinyblob")).to.equals(constants.blob);
-            expect(await result.grid.getCellIconType(row, "test_blob")).to.equals(constants.blob);
-            expect(await result.grid.getCellIconType(row, "test_mediumblob")).to.equals(constants.blob);
-            expect(await result.grid.getCellIconType(row, "test_longblob")).to.equals(constants.blob);
+            expect(await result.getCellIconType(row, "test_tinyblob")).to.equals(constants.blob);
+            expect(await result.getCellIconType(row, "test_blob")).to.equals(constants.blob);
+            expect(await result.getCellIconType(row, "test_mediumblob")).to.equals(constants.blob);
+            expect(await result.getCellIconType(row, "test_longblob")).to.equals(constants.blob);
             expect(binaryField, errors.incorrectCellValue("BINARY")).to.match(/0x/);
             expect(varBinaryField, errors.incorrectCellValue("BINARY")).to.match(/0x/);
         });
 
         it("Verify mysql data types - geometry columns", async () => {
-            const result = await notebook.codeEditor.execute("SELECT * from sakila.all_data_types_geometries;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("SELECT * from sakila.all_data_types_geometries;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
             const row = 0;
-            const bitCell = await result.grid.getCellValue(row, "test_bit");
-            expect(await result.grid.getCellIconType(row, "test_point"), "The cell should have a GEOMETRY icon")
+            const bitCell = await result.getCellValue(row, "test_bit");
+            expect(await result.getCellIconType(row, "test_point"), "The cell should have a GEOMETRY icon")
                 .to.equals(constants.geometry);
-            expect(await result.grid.getCellIconType(row, "test_linestring"),
+            expect(await result.getCellIconType(row, "test_linestring"),
                 "The cell should have a GEOMETRY icon")
                 .to.equals(constants.geometry);
-            expect(await result.grid.getCellIconType(row, "test_polygon"), "The cell should have a GEOMETRY icon")
+            expect(await result.getCellIconType(row, "test_polygon"), "The cell should have a GEOMETRY icon")
                 .to.equals(constants.geometry);
-            expect(await result.grid.getCellIconType(row, "test_multipoint"),
+            expect(await result.getCellIconType(row, "test_multipoint"),
                 "The cell should have a GEOMETRY icon")
                 .to.equals(constants.geometry);
-            expect(await result.grid.getCellIconType(row, "test_multilinestring"),
+            expect(await result.getCellIconType(row, "test_multilinestring"),
                 "The cell should have a GEOMETRY icon")
                 .to.equals(constants.geometry);
-            expect(await result.grid.getCellIconType(row, "test_multipolygon"),
+            expect(await result.getCellIconType(row, "test_multipolygon"),
                 "The cell should have a GEOMETRY icon")
                 .to.equals(constants.geometry);
-            expect(await result.grid.getCellIconType(row, "test_geometrycollection"),
+            expect(await result.getCellIconType(row, "test_geometrycollection"),
                 "The cell should have a GEOMETRY icon")
                 .to.equals(constants.geometry);
             expect(bitCell, errors.incorrectCellValue("BIT")).to.match(/(\d+)/);
@@ -266,9 +271,9 @@ describe("RESULT GRIDS", () => {
 
         it("Edit a result grid, verify query preview and commit - integer columns", async () => {
 
-            await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_ints;");
-            expect(result.toolbar.status).to.match(/OK/);
+            let result = await notebook.codeEditor
+                .execute("select * from sakila.all_data_types_ints;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
             const booleanEdited = false;
             const smallIntEdited = "32761";
@@ -291,7 +296,8 @@ describe("RESULT GRIDS", () => {
                 { rowNumber: rowToEdit, columnName: "test_boolean", value: booleanEdited },
             ];
 
-            await result.grid.editCells(cellsToEdit, constants.doubleClick);
+            await result.editCells(cellsToEdit, constants.doubleClick);
+            result = await notebook.codeEditor.refreshResult(result.command, result.id) as E2ECommandResultGrid;
             const booleanField = booleanEdited ? 1 : 0;
             const expectedSqlPreview = [
                 /UPDATE sakila.all_data_types_ints SET/,
@@ -306,44 +312,50 @@ describe("RESULT GRIDS", () => {
                 /WHERE id = 1;/,
             ];
 
-            await result.toolbar.selectSqlPreview();
+            await result.selectSqlPreview();
+            const result1 = await notebook.codeEditor
+                .refreshResult(result.command, result.id) as E2ECommandResultData;
             for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
-                expect(result.preview.text).to.match(expectedSqlPreview[i]);
+                expect(result1.preview.text).to.match(expectedSqlPreview[i]);
             }
 
-            await result.clickSqlPreviewContent();
-            await driver.wait(result.grid.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
+            await result1.clickSqlPreviewContent();
+            const result2 = await notebook.codeEditor
+                .refreshResult(result1.command, result1.id) as E2ECommandResultGrid;
+            await driver.wait(result2.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
 
-            await result.toolbar.applyChanges();
-            await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await result2.applyChanges();
+            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait3seconds);
             await Workbench.getNotification("Changes committed successfully.");
 
-            const result1 = await notebook.codeEditor.execute("select * from sakila.all_data_types_ints where id = 1;");
-            expect(result1.toolbar.status).to.match(/OK/);
-            const testBoolean = await result1.grid.getCellValue(rowToEdit, "test_boolean");
-            expect(testBoolean, errors.incorrectCellValue("BOOLEAN")).to.equals(booleanEdited.toString());
-            const testSmallInt = await result1.grid.getCellValue(rowToEdit, "test_smallint");
-            expect(testSmallInt, errors.incorrectCellValue("SMALLINT")).to.equals(smallIntEdited);
-            const testMediumInt = await result1.grid.getCellValue(rowToEdit, "test_mediumint");
-            expect(testMediumInt, errors.incorrectCellValue("MEDIUMINT")).to.equals(mediumIntEdited);
-            const testInteger = await result1.grid.getCellValue(rowToEdit, "test_integer");
-            expect(testInteger, errors.incorrectCellValue("INT")).to.equals(intEdited);
-            const testBigInt = await result1.grid.getCellValue(rowToEdit, "test_bigint");
-            expect(testBigInt, errors.incorrectCellValue("BIGINT")).to.equals(bigIntEdited);
-            const testDecimal = await result1.grid.getCellValue(rowToEdit, "test_decimal");
-            expect(testDecimal, errors.incorrectCellValue("DECIMAL")).to.equals(decimalEdited);
-            const testFloat = await result1.grid.getCellValue(rowToEdit, "test_float");
-            expect(testFloat, errors.incorrectCellValue("FLOAT")).to.equals(floatEdited);
-            const testDouble = await result1.grid.getCellValue(rowToEdit, "test_double");
-            expect(testDouble, errors.incorrectCellValue("DOUBLE")).to.equals(doubleEdited);
+            const result3 = await notebook.codeEditor
+                .execute("select * from sakila.all_data_types_ints where id = 1;") as E2ECommandResultGrid;
+            expect(result3.status).to.match(/OK/);
+            const testBoolean = await result3.getCellValue(rowToEdit, "test_boolean");
+            expect(testBoolean).to.equals(booleanEdited.toString());
+            const testSmallInt = await result3.getCellValue(rowToEdit, "test_smallint");
+            expect(testSmallInt).to.equals(smallIntEdited);
+            const testMediumInt = await result3.getCellValue(rowToEdit, "test_mediumint");
+            expect(testMediumInt).to.equals(mediumIntEdited);
+            const testInteger = await result3.getCellValue(rowToEdit, "test_integer");
+            expect(testInteger).to.equals(intEdited);
+            const testBigInt = await result3.getCellValue(rowToEdit, "test_bigint");
+            expect(testBigInt).to.equals(bigIntEdited);
+            const testDecimal = await result3.getCellValue(rowToEdit, "test_decimal");
+            expect(testDecimal).to.equals(decimalEdited);
+            const testFloat = await result3.getCellValue(rowToEdit, "test_float");
+            expect(testFloat).to.equals(floatEdited);
+            const testDouble = await result3.getCellValue(rowToEdit, "test_double");
+            expect(testDouble).to.equals(doubleEdited);
 
         });
 
         it("Edit a result grid, verify query preview and commit - date columns", async () => {
 
             await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_dates;");
-            expect(result.toolbar.status).to.match(/OK/);
+            let result = await notebook.codeEditor
+                .execute("select * from sakila.all_data_types_dates;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
             const dateEdited = "2024-01-01";
             const dateTimeEdited = "2024-01-01 15:00";
@@ -359,7 +371,8 @@ describe("RESULT GRIDS", () => {
                 { rowNumber: rowToEdit, columnName: "test_time", value: timeEdited },
                 { rowNumber: rowToEdit, columnName: "test_year", value: yearEdited },
             ];
-            await result.grid.editCells(cellsToEdit, constants.doubleClick);
+            await result.editCells(cellsToEdit, constants.doubleClick);
+            result = await notebook.codeEditor.refreshResult(result.command, result.id) as E2ECommandResultGrid;
             const dateTimeToISO = Misc.convertDateToISO(dateTimeEdited);
             const timeStampToISO = Misc.convertDateToISO(timeStampEdited);
             const timeTransformed = Misc.convertTimeTo12H(timeEdited);
@@ -374,41 +387,43 @@ describe("RESULT GRIDS", () => {
                 /WHERE id = 1;/,
             ];
 
-            await result.toolbar.selectSqlPreview();
+            await result.selectSqlPreview();
+            const result1 = await notebook.codeEditor
+                .refreshResult(result.command, result.id) as E2ECommandResultData;
             for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
-                expect(result.preview.text).to.match(expectedSqlPreview[i]);
+                expect(result1.preview.text).to.match(expectedSqlPreview[i]);
             }
 
-            await result.clickSqlPreviewContent();
-            await driver.wait(result.grid.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
-            await result.toolbar.applyChanges();
-            await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await result1.clickSqlPreviewContent();
+            const result2 = await notebook.codeEditor
+                .refreshResult(result1.command, result1.id) as E2ECommandResultGrid;
+
+            await driver.wait(result2.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
+            await result.applyChanges();
+            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait3seconds);
             await Workbench.getNotification("Changes committed successfully.");
 
-            const result1 = await notebook.codeEditor
-                .execute("select * from sakila.all_data_types_dates where id = 1;");
-            expect(result1.toolbar.status).to.match(/OK/);
+            const result3 = await notebook.codeEditor
+                .execute("select * from sakila.all_data_types_dates where id = 1;") as E2ECommandResultGrid;
+            expect(result3.status).to.match(/OK/);
 
-            const testDate = await result1.grid.getCellValue(rowToEdit, "test_date");
-            expect(testDate, errors.incorrectCellValue("DATE")).to.equals("01/01/2024");
-            const testDateTime = await result1.grid.getCellValue(rowToEdit, "test_datetime");
-            expect(testDateTime, errors.incorrectCellValue("DATETIME")).to.equals("01/01/2024");
-            const testTimeStamp = await result1.grid.getCellValue(rowToEdit, "test_timestamp");
-            expect(testTimeStamp, errors.incorrectCellValue("TIMESTAMP")).to.equals("01/01/2024");
-            const testTime = await result1.grid.getCellValue(rowToEdit, "test_time");
+            const testDate = await result3.getCellValue(rowToEdit, "test_date");
+            expect(testDate).to.equals("01/01/2024");
+            const testDateTime = await result3.getCellValue(rowToEdit, "test_datetime");
+            expect(testDateTime).to.equals("01/01/2024");
+            const testTimeStamp = await result3.getCellValue(rowToEdit, "test_timestamp");
+            expect(testTimeStamp).to.equals("01/01/2024");
+            const testTime = await result3.getCellValue(rowToEdit, "test_time");
             const convertedTime = Misc.convertTimeTo12H(timeEdited);
-            expect(testTime === `${timeEdited}:00` || testTime === convertedTime,
-                errors.incorrectCellValue("TIME")).to.equals(true);
-            const testYear = await result1.grid.getCellValue(rowToEdit, "test_year");
-            expect(testYear, errors.incorrectCellValue("YEAR")).to.equals(yearEdited);
-
+            expect(testTime === `${timeEdited}:00` || testTime === convertedTime).to.equals(true);
+            const testYear = await result3.getCellValue(rowToEdit, "test_year");
+            expect(testYear).to.equals(yearEdited);
         });
 
         it("Edit a result grid, verify query preview and commit - char columns", async () => {
-
-            await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_chars where id = 2;");
-            expect(result.toolbar.status).to.match(/OK/);
+            let result = await notebook.codeEditor
+                .execute("select * from sakila.all_data_types_chars where id = 2;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
             const charEdited = "test_char_edited";
             const varCharEdited = "test_varchar_edited";
@@ -432,8 +447,8 @@ describe("RESULT GRIDS", () => {
                 { rowNumber: rowToEdit, columnName: "test_set", value: setEdited },
                 { rowNumber: rowToEdit, columnName: "test_json", value: jsonEdited },
             ];
-            await result.grid.editCells(cellsToEdit, constants.doubleClick);
-
+            await result.editCells(cellsToEdit, constants.doubleClick);
+            result = await notebook.codeEditor.refreshResult(result.command, result.id) as E2ECommandResultGrid;
             const expectedSqlPreview = [
                 /UPDATE sakila.all_data_types_chars SET/,
                 new RegExp(`test_char = '${charEdited}'`),
@@ -448,46 +463,48 @@ describe("RESULT GRIDS", () => {
                 /WHERE id = 2;/,
             ];
 
-            await result.toolbar.selectSqlPreview();
+            await result.selectSqlPreview();
+            const result1 = await notebook.codeEditor
+                .refreshResult(result.command, result.id) as E2ECommandResultData;
             for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
-                expect(result.preview.text).to.match(expectedSqlPreview[i]);
+                expect(result1.preview.text).to.match(expectedSqlPreview[i]);
             }
 
-            await result.clickSqlPreviewContent();
-            await driver.wait(result.grid.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
-            await result.toolbar.applyChanges();
-            await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await result1.clickSqlPreviewContent();
+            const result2 = await notebook.codeEditor
+                .refreshResult(result1.command, result1.id) as E2ECommandResultGrid;
+            await driver.wait(result.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
+            await result.applyChanges();
+            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait3seconds);
             await Workbench.getNotification("Changes committed successfully.");
 
-            const result1 = await notebook.codeEditor
-                .execute("select * from sakila.all_data_types_chars where id = 2;");
-            expect(result1.toolbar.status).to.match(/OK/);
-            const testChar = await result1.grid.getCellValue(rowToEdit, "test_char");
-            expect(testChar, errors.incorrectCellValue("CHAR")).to.equals(charEdited);
-            const testVarChar = await result1.grid.getCellValue(rowToEdit, "test_varchar");
-            expect(testVarChar, errors.incorrectCellValue("VARCHAR")).to.equals(varCharEdited);
-            const testTinyText = await result1.grid.getCellValue(rowToEdit, "test_tinytext");
-            expect(testTinyText, errors.incorrectCellValue("TINYTEXT")).to.equals(tinyTextEdited);
-            const testText = await result1.grid.getCellValue(rowToEdit, "test_text");
-            expect(testText, errors.incorrectCellValue("TINYTEXT")).to.equals(textEdited);
-            const testMediumText = await result1.grid.getCellValue(rowToEdit, "test_mediumtext");
-            expect(testMediumText, errors.incorrectCellValue("MEDIUMTEXT")).to.equals(textMediumEdited);
-            const testLongText = await result1.grid.getCellValue(rowToEdit, "test_longtext");
-            expect(testLongText, errors.incorrectCellValue("LONGTEXT")).to.equals(longTextEdited);
-            const testEnum = await result1.grid.getCellValue(rowToEdit, "test_enum");
-            expect(testEnum, errors.incorrectCellValue("ENUM")).to.equals(enumEdited);
-            const testSet = await result1.grid.getCellValue(rowToEdit, "test_set");
-            expect(testSet, errors.incorrectCellValue("SET")).to.equals(setEdited);
-            const testJson = await result1.grid.getCellValue(rowToEdit, "test_json");
-            expect(testJson, errors.incorrectCellValue("JSON")).to.equals(jsonEdited);
-
+            const result3 = await notebook.codeEditor
+                .execute("select * from sakila.all_data_types_chars where id = 2;") as E2ECommandResultGrid;
+            expect(result3.status).to.match(/OK/);
+            const testChar = await result3.getCellValue(rowToEdit, "test_char");
+            expect(testChar).to.equals(charEdited);
+            const testVarChar = await result3.getCellValue(rowToEdit, "test_varchar");
+            expect(testVarChar).to.equals(varCharEdited);
+            const testTinyText = await result3.getCellValue(rowToEdit, "test_tinytext");
+            expect(testTinyText).to.equals(tinyTextEdited);
+            const testText = await result3.getCellValue(rowToEdit, "test_text");
+            expect(testText).to.equals(textEdited);
+            const testMediumText = await result3.getCellValue(rowToEdit, "test_mediumtext");
+            expect(testMediumText).to.equals(textMediumEdited);
+            const testLongText = await result3.getCellValue(rowToEdit, "test_longtext");
+            expect(testLongText).to.equals(longTextEdited);
+            const testEnum = await result3.getCellValue(rowToEdit, "test_enum");
+            expect(testEnum).to.equals(enumEdited);
+            const testSet = await result3.getCellValue(rowToEdit, "test_set");
+            expect(testSet).to.equals(setEdited);
+            const testJson = await result3.getCellValue(rowToEdit, "test_json");
+            expect(testJson).to.equals(jsonEdited);
         });
 
         it("Edit a result grid, verify query preview and commit - geometry columns", async () => {
-
-            await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_geometries;");
-            expect(result.toolbar.status).to.match(/OK/);
+            let result = await notebook.codeEditor
+                .execute("select * from sakila.all_data_types_geometries;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
             const pointEdited = "ST_GeomFromText('POINT(1 2)')";
             const lineStringEdited = "ST_LineStringFromText('LINESTRING(0 0,1 1,2 1)')";
@@ -509,7 +526,8 @@ describe("RESULT GRIDS", () => {
                 { rowNumber: rowToEdit, columnName: "test_multipolygon", value: multiPoly },
                 { rowNumber: rowToEdit, columnName: "test_geometrycollection", value: geoCollEd },
             ];
-            await result.grid.editCells(cellsToEdit, constants.doubleClick);
+            await result.editCells(cellsToEdit, constants.doubleClick);
+            result = await notebook.codeEditor.refreshResult(result.command, result.id) as E2ECommandResultGrid;
 
             const expectedSqlPreview = [
                 /UPDATE sakila.all_data_types_geometries SET/,
@@ -524,82 +542,81 @@ describe("RESULT GRIDS", () => {
                 new RegExp(`WHERE id = 1;`),
             ];
 
-            await result.toolbar.selectSqlPreview();
+            await result.selectSqlPreview();
+            const result1 = await notebook.codeEditor
+                .refreshResult(result.command, result.id) as E2ECommandResultData;
             for (let i = 0; i <= expectedSqlPreview.length - 1; i++) {
-                expect(result.preview.text).to.match(expectedSqlPreview[i]);
+                expect(result1.preview.text).to.match(expectedSqlPreview[i]);
             }
 
-            await result.clickSqlPreviewContent();
-            await driver.wait(result.grid.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
-            await result.toolbar.applyChanges();
-            await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await result1.clickSqlPreviewContent();
+            const result2 = await notebook.codeEditor
+                .refreshResult(result1.command, result1.id) as E2ECommandResultGrid;
+            await driver.wait(result.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
+            await result.applyChanges();
+            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait3seconds);
             await Workbench.getNotification("Changes committed successfully.");
 
-            const result1 = await notebook.codeEditor
-                .execute("select * from sakila.all_data_types_geometries where id = 1;");
-            expect(result1.toolbar.status).to.match(/OK/);
+            const result3 = await notebook.codeEditor
+                .execute("select * from sakila.all_data_types_geometries where id = 1;") as E2ECommandResultGrid;
+            expect(result3.status).to.match(/OK/);
 
-            const testPoint = await result1.grid.getCellValue(rowToEdit, "test_point");
-            expect(testPoint, errors.incorrectCellValue("GEOMETRY")).to.equals(constants.geometry);
-            const testLineString = await result1.grid.getCellValue(rowToEdit, "test_linestring");
-            expect(testLineString, errors.incorrectCellValue("LINESTRING")).to.equals(constants.geometry);
-            const testPolygon = await result1.grid.getCellValue(rowToEdit, "test_polygon");
-            expect(testPolygon, errors.incorrectCellValue("POLYGON")).to.equals(constants.geometry);
-            const testMultiPoint = await result1.grid.getCellValue(rowToEdit, "test_multipoint");
-            expect(testMultiPoint, errors.incorrectCellValue("MULTIPOINT")).to.equals(constants.geometry);
-            const testMultiLineString = await result1.grid.getCellValue(rowToEdit,
-                "test_multilinestring");
-            expect(testMultiLineString, errors.incorrectCellValue("MULTILINESTRING")).to.equals(constants.geometry);
-            const testMultiPolygon = await result1.grid.getCellValue(rowToEdit,
-                "test_multipolygon");
-            expect(testMultiPolygon, errors.incorrectCellValue("MULTIPOLYGON")).to.equals(constants.geometry);
-            const testGeomCollection = await result1.grid.getCellValue(rowToEdit,
-                "test_geometrycollection");
-            expect(testGeomCollection, errors.incorrectCellValue("GEOMCOLLECTION")).to.equals(constants.geometry);
-            const testBit = await result.grid.getCellValue(rowToEdit, "test_bit");
-            expect(testBit, errors.incorrectCellValue("BIT")).to.equals("16383");
+            const testPoint = await result3.getCellValue(rowToEdit, "test_point");
+            expect(testPoint).to.equals(constants.geometry);
+            const testLineString = await result3.getCellValue(rowToEdit, "test_linestring");
+            expect(testLineString).to.equals(constants.geometry);
+            const testPolygon = await result3.getCellValue(rowToEdit, "test_polygon");
+            expect(testPolygon).to.equals(constants.geometry);
+            const testMultiPoint = await result3.getCellValue(rowToEdit, "test_multipoint");
+            expect(testMultiPoint).to.equals(constants.geometry);
+            const testMultiLineString = await result3.getCellValue(rowToEdit, "test_multilinestring");
+            expect(testMultiLineString).to.equals(constants.geometry);
+            const testMultiPolygon = await result3.getCellValue(rowToEdit, "test_multipolygon");
+            expect(testMultiPolygon).to.equals(constants.geometry);
+            const testGeomCollection = await result3.getCellValue(rowToEdit, "test_geometrycollection");
+            expect(testGeomCollection).to.equals(constants.geometry);
+            const testBit = await result.getCellValue(rowToEdit, "test_bit");
+            expect(testBit).to.equals("16383");
         });
 
         it("Result grid context menu - Capitalize, Convert to lower, upper case and mark for deletion", async () => {
 
-            await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.openEditorsDBNotebook),
-                globalConn.caption);
-            await Workbench.toggleSideBar(false);
             await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("select * from sakila.result_sets;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("select * from sakila.result_sets;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
             const rowNumber = 0;
             const rowColumn = "text_field";
 
-            const originalCellValue = await result.grid.getCellValue(rowNumber, rowColumn);
-            await result.grid.openCellContextMenuAndSelect(0, rowColumn,
+            const originalCellValue = await result.getCellValue(rowNumber, rowColumn);
+            await result.openCellContextMenuAndSelect(0, rowColumn,
                 constants.resultGridContextMenu.capitalizeText);
-            await driver.wait(result.grid.untilCellsWereChanged(1), constants.wait5seconds);
+            await driver.wait(result.untilCellsWereChanged(1), constants.wait5seconds);
 
-            const capitalizedCellValue = await result.grid.getCellValue(rowNumber, rowColumn);
+            const capitalizedCellValue = await result.getCellValue(rowNumber, rowColumn);
             expect(capitalizedCellValue,
                 `The cell value was not capitalized`).to.equals(`${originalCellValue.charAt(0)
                     .toUpperCase()
                     }${originalCellValue.slice(1)}`);
 
-            await result.grid.openCellContextMenuAndSelect(0, rowColumn,
+            await result.openCellContextMenuAndSelect(0, rowColumn,
                 constants.resultGridContextMenu.convertTextToLowerCase);
 
-            const lowerCaseCellValue = await result.grid.getCellValue(rowNumber, rowColumn);
+            const lowerCaseCellValue = await result.getCellValue(rowNumber, rowColumn);
             expect(lowerCaseCellValue, "The cell value was not converted to lower case")
                 .to.equals(capitalizedCellValue.toLowerCase());
 
-            await result.grid.openCellContextMenuAndSelect(0, rowColumn,
+            await result.openCellContextMenuAndSelect(0, rowColumn,
                 constants.resultGridContextMenu.convertTextToUpperCase);
 
-            const upperCaseCellValue = await result.grid.getCellValue(rowNumber, rowColumn);
+            const upperCaseCellValue = await result.getCellValue(rowNumber, rowColumn);
             expect(upperCaseCellValue, "The cell value was not converted to upper case")
                 .to.equals(lowerCaseCellValue.toUpperCase());
 
-            await result.grid.openCellContextMenuAndSelect(0, rowColumn,
+            await result.openCellContextMenuAndSelect(0, rowColumn,
                 constants.resultGridContextMenu.toggleForDeletion);
-            await driver.wait(result.grid.untilRowIsMarkedForDeletion(rowNumber), constants.wait5seconds);
-            await result.toolbar.rollbackChanges();
+            await driver.wait(result.untilRowIsMarkedForDeletion(rowNumber), constants.wait5seconds);
+            await result.rollbackChanges();
         });
 
         it("Result grid context menu - Copy single row", async function () {
@@ -608,15 +625,16 @@ describe("RESULT GRIDS", () => {
             existsInQueue = true;
             await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
-            const result = await notebook.codeEditor.execute("select * from sakila.actor limit 1;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("select * from sakila.actor limit 1;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
             const row = 0;
             const column = "first_name";
 
             // Copy row.
             await driver.wait(async () => {
-                const copy = await result.grid.copyRow(row, column);
+                const copy = await result.copyRow(row, column);
                 const clipboard = Os.getClipboardContent();
 
                 if (copy.toString() === clipboard.toString()) {
@@ -628,7 +646,7 @@ describe("RESULT GRIDS", () => {
 
             // Copy row with names.
             await driver.wait(async () => {
-                const copy = await result.grid.copyRowWithNames(row, column);
+                const copy = await result.copyRowWithNames(row, column);
                 const clipboard = Os.getClipboardContent();
 
                 if (copy.toString() === clipboard.toString()) {
@@ -640,7 +658,7 @@ describe("RESULT GRIDS", () => {
 
             // Copy row unquoted.
             await driver.wait(async () => {
-                const copy = await result.grid.copyRowUnquoted(row, column);
+                const copy = await result.copyRowUnquoted(row, column);
                 const clipboard = Os.getClipboardContent();
 
                 if (copy.toString() === clipboard.toString()) {
@@ -652,7 +670,7 @@ describe("RESULT GRIDS", () => {
 
             // Copy row with names, unquoted.
             await driver.wait(async () => {
-                const copy = await result.grid.copyRowWithNamesUnquoted(row, column);
+                const copy = await result.copyRowWithNamesUnquoted(row, column);
                 const clipboard = Os.getClipboardContent();
 
                 if (copy.toString() === clipboard.toString()) {
@@ -664,7 +682,7 @@ describe("RESULT GRIDS", () => {
 
             // Copy row with names, tab separated.
             await driver.wait(async () => {
-                const copy = await result.grid.copyRowWithNamesTabSeparated(row, column);
+                const copy = await result.copyRowWithNamesTabSeparated(row, column);
                 const clipboard = Os.getClipboardContent();
 
                 if (copy.toString() === clipboard.toString()) {
@@ -676,7 +694,7 @@ describe("RESULT GRIDS", () => {
 
             // Copy row, tab separated.
             await driver.wait(async () => {
-                const copy = await result.grid.copyRowTabSeparated(row, column);
+                const copy = await result.copyRowTabSeparated(row, column);
                 const clipboard = Os.getClipboardContent();
 
                 if (copy.toString() === clipboard.toString()) {
@@ -696,15 +714,15 @@ describe("RESULT GRIDS", () => {
 
             const maxRows = 2;
             const result = await notebook.codeEditor
-                .execute(`select * from sakila.actor limit ${maxRows};`);
-            expect(result.toolbar.status).to.match(/OK/);
+                .execute(`select * from sakila.actor limit ${maxRows};`) as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
             const row = 0;
             const column = "first_name";
 
             // Copy all rows.
             await driver.wait(async () => {
-                const copy = await result.grid.copyAllRows(row, column);
+                const copy = await result.copyAllRows(row, column);
                 const clipboard = Os.getClipboardContent();
 
                 if (copy.toString() === clipboard.toString()) {
@@ -716,7 +734,7 @@ describe("RESULT GRIDS", () => {
 
             // Copy all rows with names.
             await driver.wait(async () => {
-                const copy = await result.grid.copyAllRowsWithNames(row, column);
+                const copy = await result.copyAllRowsWithNames(row, column);
                 const clipboard = Os.getClipboardContent();
 
                 if (copy.toString() === clipboard.toString()) {
@@ -728,7 +746,7 @@ describe("RESULT GRIDS", () => {
 
             // Copy all rows unquoted.
             await driver.wait(async () => {
-                const copy = await result.grid.copyAllRowsUnquoted(row, column);
+                const copy = await result.copyAllRowsUnquoted(row, column);
                 const clipboard = Os.getClipboardContent();
 
                 if (copy.toString() === clipboard.toString()) {
@@ -740,7 +758,7 @@ describe("RESULT GRIDS", () => {
 
             // Copy all rows with names unquoted.
             await driver.wait(async () => {
-                const copy = await result.grid.copyAllRowsWithNamesUnquoted(row, column);
+                const copy = await result.copyAllRowsWithNamesUnquoted(row, column);
                 const clipboard = Os.getClipboardContent();
 
                 if (copy.toString() === clipboard.toString()) {
@@ -752,7 +770,7 @@ describe("RESULT GRIDS", () => {
 
             // Copy all rows with names tab separated.
             await driver.wait(async () => {
-                const copy = await result.grid.copyAllRowsWithNamesTabSeparated(row, column);
+                const copy = await result.copyAllRowsWithNamesTabSeparated(row, column);
                 const clipboard = Os.getClipboardContent();
 
                 if (copy.toString() === clipboard.toString()) {
@@ -771,16 +789,17 @@ describe("RESULT GRIDS", () => {
             await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
             await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("select * from sakila.result_sets;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("select * from sakila.result_sets;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
             const row = 0;
-            const allColumns = Array.from(result.grid.columnsMap.keys());
+            const allColumns = Array.from(result.columnsMap.keys());
 
             for (let i = 1; i <= allColumns.length - 1; i++) {
 
                 await driver.wait(async () => {
-                    const copy = await result.grid.copyField(row, String(allColumns[i]));
+                    const copy = await result.copyField(row, String(allColumns[i]));
                     const clip = clipboard.readSync();
 
                     if (copy.toString().match(new RegExp(clip.toString()))) {
@@ -791,7 +810,7 @@ describe("RESULT GRIDS", () => {
                 }, constants.wait10seconds, "Copy field failed");
 
                 await driver.wait(async () => {
-                    const copy = await result.grid.copyFieldUnquoted(row, String(allColumns[i]));
+                    const copy = await result.copyFieldUnquoted(row, String(allColumns[i]));
                     const clip = clipboard.readSync();
 
                     if (copy.toString() === clip.toString()) {
@@ -801,44 +820,50 @@ describe("RESULT GRIDS", () => {
                     }
                 }, constants.wait10seconds, "Copy field unquoted failed");
 
-                await result.grid.openCellContextMenuAndSelect(row, String(allColumns[i]),
+                await result.openCellContextMenuAndSelect(row, String(allColumns[i]),
                     constants.resultGridContextMenu.setFieldToNull);
-                expect(await result.grid.getCellValue(row, String(allColumns[i])),
+                expect(await result.getCellValue(row, String(allColumns[i])),
                     `Set field to null (${String(allColumns[i])})`)
                     .to.equals(constants.isNull);
             }
 
-            await result.toolbar.rollbackChanges();
+            await result.rollbackChanges();
 
         });
 
         it("Select a Result Grid View", async () => {
 
-            const result = await notebook.codeEditor.execute("select * from sakila.actor;");
-            expect(result.toolbar.status).to.match(/OK/);
-            await result.grid.editCells([{
+            let result = await notebook.codeEditor.execute("select * from sakila.actor;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
+            await result.editCells([{
                 rowNumber: 0,
                 columnName: "first_name",
                 value: "changed",
             }], constants.doubleClick);
+            result = await notebook.codeEditor.refreshResult(result.command, result.id) as E2ECommandResultGrid;
 
-            await result.toolbar.selectView(constants.previewView);
-            expect(result.preview).to.exist;
-            await result.toolbar.selectView(constants.gridView);
-            expect(result.preview).to.not.exist;
-            expect(result.grid).to.exist;
-            await result.toolbar?.rollbackChanges();
+            await result.selectView(constants.previewView);
+            const result1 = await notebook.codeEditor
+                .refreshResult(result.command, result.id) as E2ECommandResultData;
+
+            expect(result1.preview).to.exist;
+            await result.selectView(constants.gridView);
+            const result2 = await notebook.codeEditor
+                .refreshResult(result.command, result.id) as E2ECommandResultGrid;
+            expect(result2).to.exist;
+            await result.rollbackChanges();
 
         });
 
         it("Edit a result grid using the keyboard", async () => {
 
             await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("select * from sakila.result_sets;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("select * from sakila.result_sets;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
-            await result.grid.startFocus();
-            await result.grid.editCells([
+            await result.startFocus();
+            await result.editCells([
                 { rowNumber: 0, columnName: "text_field", value: "edited" },
             ], constants.pressEnter);
 
@@ -858,9 +883,9 @@ describe("RESULT GRIDS", () => {
                 constants.wait2seconds);
 
             await Misc.switchToFrame();
-            await result.grid.startFocus();
+            await result.startFocus();
 
-            await result.grid.editCells([
+            await result.editCells([
                 { rowNumber: 0, columnName: "int_field", value: "25" },
             ], constants.pressEnter);
 
@@ -876,10 +901,11 @@ describe("RESULT GRIDS", () => {
         it("Edit a result grid using the Start Editing button", async () => {
 
             await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("select * from sakila.result_sets;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("select * from sakila.result_sets;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
-            await result.grid.editCells([
+            await result.editCells([
                 { rowNumber: 0, columnName: "text_field", value: "other edited" },
                 { rowNumber: 0, columnName: "int_field", value: "30" },
             ], constants.editButton);
@@ -905,27 +931,29 @@ describe("RESULT GRIDS", () => {
 
             const rowNumber = 0;
             const tableColumns: string[] = [];
-
-            await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.openEditorsDBNotebook),
-                globalConn.caption);
-            await Workbench.toggleSideBar(false);
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about");
-            const result = await notebook.codeEditor.execute("SELECT * from sakila.all_data_types_ints limit 1;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("SELECT * from sakila.all_data_types_ints limit 1;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
-            for (const key of result.grid.columnsMap.keys()) {
+            for (const key of result.columnsMap.keys()) {
                 tableColumns.push(key);
             }
 
             for (let i = 1; i <= tableColumns.length - 1; i++) {
                 if (i === tableColumns.length - 1) {
-                    await result.grid.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                    await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
                 } else {
-                    await result.grid.reduceCellWidth(rowNumber, tableColumns[i]);
+                    await result.reduceCellWidth(rowNumber, tableColumns[i]).catch(async (e) => {
+                        if (String(e).includes("The cell width was not reduced")) {
+                            console.log(`Error, trying to reduce with js on '${tableColumns[i]}'`);
+                            await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                        }
+                    });
                 }
-                const cellText = await result.grid.getCellValue(rowNumber, tableColumns[i]);
-                await driver.wait(result.grid.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
                     constants.wait3seconds);
             }
 
@@ -936,23 +964,29 @@ describe("RESULT GRIDS", () => {
             const rowNumber = 0;
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about");
-            const result = await notebook.codeEditor.execute("SELECT * from sakila.all_data_types_dates where id = 1;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("SELECT * from sakila.all_data_types_dates where id = 1;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
             const tableColumns: string[] = [];
-            for (const key of result.grid.columnsMap.keys()) {
+            for (const key of result.columnsMap.keys()) {
                 tableColumns.push(key);
             }
 
             for (let i = 1; i <= tableColumns.length - 1; i++) {
                 if (i === tableColumns.length - 1) {
-                    await result.grid.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                    await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
                 } else {
-                    await result.grid.reduceCellWidth(rowNumber, tableColumns[i]);
+                    await result.reduceCellWidth(rowNumber, tableColumns[i]).catch(async (e) => {
+                        if (String(e).includes("The cell width was not reduced")) {
+                            console.log(`Error, trying to reduce with js on '${tableColumns[i]}'`);
+                            await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                        }
+                    });
                 }
 
-                const cellText = await result.grid.getCellValue(rowNumber, tableColumns[i]);
-                await driver.wait(result.grid.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
                     constants.wait3seconds);
             }
 
@@ -963,19 +997,25 @@ describe("RESULT GRIDS", () => {
             const rowNumber = 0;
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about");
-            const result = await notebook.codeEditor.execute("SELECT * from sakila.all_data_types_chars where id = 1;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("SELECT * from sakila.all_data_types_chars where id = 1;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
             const tableColumns: string[] = [];
-            for (const key of result.grid.columnsMap.keys()) {
+            for (const key of result.columnsMap.keys()) {
                 tableColumns.push(key);
             }
 
             for (let i = 1; i <= tableColumns.length - 1; i++) {
-                await result.grid.reduceCellWidth(rowNumber, tableColumns[i]);
+                await result.reduceCellWidth(rowNumber, tableColumns[i]).catch(async (e) => {
+                    if (String(e).includes("The cell width was not reduced")) {
+                        console.log(`Error, trying to reduce with js on '${tableColumns[i]}'`);
+                        await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                    }
+                });
 
-                const cellText = await result.grid.getCellValue(rowNumber, tableColumns[i]);
-                await driver.wait(result.grid.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
                     constants.wait3seconds);
             }
 
@@ -986,23 +1026,29 @@ describe("RESULT GRIDS", () => {
             const rowNumber = 0;
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about");
-            const result = await notebook.codeEditor.execute("SELECT * from sakila.all_data_types_blobs limit 1;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("SELECT * from sakila.all_data_types_blobs limit 1;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
             const tableColumns: string[] = [];
-            for (const key of result.grid.columnsMap.keys()) {
+            for (const key of result.columnsMap.keys()) {
                 tableColumns.push(key);
             }
 
             for (let i = 5; i <= tableColumns.length - 1; i++) {
                 if (i === tableColumns.length - 1) {
-                    await result.grid.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                    await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
                 } else {
-                    await result.grid.reduceCellWidth(rowNumber, tableColumns[i]);
+                    await result.reduceCellWidth(rowNumber, tableColumns[i]).catch(async (e) => {
+                        if (String(e).includes("The cell width was not reduced")) {
+                            console.log(`Error, trying to reduce with js on '${tableColumns[i]}'`);
+                            await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                        }
+                    });
                 }
 
-                const cellText = await result.grid.getCellValue(rowNumber, tableColumns[i]);
-                await driver.wait(result.grid.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
                     constants.wait3seconds);
 
             }
@@ -1014,30 +1060,32 @@ describe("RESULT GRIDS", () => {
             const rowNumber = 0;
             await notebook.codeEditor.clean();
             await notebook.codeEditor.execute("\\about");
-            const result = await notebook.codeEditor.execute("SELECT * from sakila.all_data_types_geometries;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("SELECT * from sakila.all_data_types_geometries;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
             const column = "test_bit";
-            await result.grid.reduceCellWidth(rowNumber, column);
-            const cellText = await result.grid.getCellValue(rowNumber, column);
-            await driver.wait(result.grid.untilCellTooltipIs(rowNumber, column, cellText), constants.wait3seconds);
+            await result.reduceCellWidth(rowNumber, column);
+            const cellText = await result.getCellValue(rowNumber, column);
+            await driver.wait(result.untilCellTooltipIs(rowNumber, column, cellText), constants.wait3seconds);
 
         });
 
         it("Edit a result grid and rollback", async () => {
             const modifiedText = "56";
             await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_ints;");
-            expect(result.toolbar.status).to.match(/OK/);
-            await result.grid.editCells(
+            const result = await notebook.codeEditor
+                .execute("select * from sakila.all_data_types_ints;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
+            await result.editCells(
                 [{
                     rowNumber: 0,
                     columnName: "test_integer",
                     value: modifiedText,
                 }], constants.doubleClick);
 
-            await result.toolbar.rollbackChanges();
-            expect((await result.grid.content.getAttribute("innerHTML")).match(/rollbackTest/) === null,
+            await result.rollbackChanges();
+            expect((await result.resultContext.getAttribute("innerHTML")).match(/rollbackTest/) === null,
                 `${modifiedText} should not exist on the cell`).to.be.true;
 
         });
@@ -1057,9 +1105,9 @@ describe("RESULT GRIDS", () => {
             ];
             await notebook.codeEditor.clean();
             for (const query of queries) {
-                const result = await notebook.codeEditor.execute(query);
-                expect(result.toolbar.status).to.match(/OK/);
-                const editBtn = await result.toolbar.getEditButton();
+                const result = await notebook.codeEditor.execute(query) as E2ECommandResultGrid;
+                expect(result.status).to.match(/OK/);
+                const editBtn = await result.getEditButton();
                 expect(await editBtn.getAttribute("data-tooltip"),
                     `'${query}' should not be editable`).to.equal("Data not editable");
             }
@@ -1070,8 +1118,9 @@ describe("RESULT GRIDS", () => {
 
             await Workbench.toggleSideBar(false);
             await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_ints;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("select * from sakila.all_data_types_ints;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
             const booleanEdited = true;
             const smallIntEdited = "32761";
             const mediumIntEdited = "8388601";
@@ -1092,32 +1141,32 @@ describe("RESULT GRIDS", () => {
                 { columnName: "test_boolean", value: booleanEdited },
             ];
 
-            await result.grid.addRow(rowToAdd);
-            await result.toolbar.applyChanges();
+            await result.addRow(rowToAdd);
+            await result.applyChanges();
 
-            await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
             const result1 = await notebook.codeEditor
                 // eslint-disable-next-line max-len
-                .execute("select * from sakila.all_data_types_ints where id = (select max(id) from sakila.all_data_types_ints);");
-            expect(result1.toolbar.status).to.match(/OK/);
+                .execute("select * from sakila.all_data_types_ints where id = (select max(id) from sakila.all_data_types_ints);") as E2ECommandResultGrid;
+            expect(result1.status).to.match(/OK/);
 
             const row = 0;
 
-            const testBoolean = await result1.grid.getCellValue(row, "test_boolean");
+            const testBoolean = await result1.getCellValue(row, "test_boolean");
             expect(testBoolean, errors.incorrectCellValue("BOOLEAN")).to.equals(booleanEdited.toString());
-            const testSmallInt = await result1.grid.getCellValue(row, "test_smallint");
+            const testSmallInt = await result1.getCellValue(row, "test_smallint");
             expect(testSmallInt, errors.incorrectCellValue("SMALLINT")).to.equals(smallIntEdited);
-            const testMediumInt = await result1.grid.getCellValue(row, "test_mediumint");
+            const testMediumInt = await result1.getCellValue(row, "test_mediumint");
             expect(testMediumInt, errors.incorrectCellValue("MEDIUMINT")).to.equals(mediumIntEdited);
-            const testInteger = await result1.grid.getCellValue(row, "test_integer");
+            const testInteger = await result1.getCellValue(row, "test_integer");
             expect(testInteger, errors.incorrectCellValue("INT")).to.equals(intEdited);
-            const testBigInt = await result1.grid.getCellValue(row, "test_bigint");
+            const testBigInt = await result1.getCellValue(row, "test_bigint");
             expect(testBigInt, errors.incorrectCellValue("BIGINT")).to.equals(bigIntEdited);
-            const testDecimal = await result1.grid.getCellValue(row, "test_decimal");
+            const testDecimal = await result1.getCellValue(row, "test_decimal");
             expect(testDecimal, errors.incorrectCellValue("DECIMAL")).to.equals(decimalEdited);
-            const testFloat = await result1.grid.getCellValue(row, "test_float");
+            const testFloat = await result1.getCellValue(row, "test_float");
             expect(testFloat, errors.incorrectCellValue("FLOAT")).to.equals(floatEdited);
-            const testDouble = await result1.grid.getCellValue(row, "test_double");
+            const testDouble = await result1.getCellValue(row, "test_double");
             expect(testDouble, errors.incorrectCellValue("DOUBLE")).to.equals(doubleEdited);
 
         });
@@ -1125,8 +1174,9 @@ describe("RESULT GRIDS", () => {
         it("Add new row on result grid - date columns", async () => {
 
             await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_dates;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("select * from sakila.all_data_types_dates;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
             const dateEdited = "2024-01-01";
             const dateTimeEdited = "2024-01-01 15:00";
             const timeStampEdited = "2024-01-01 15:00";
@@ -1141,26 +1191,26 @@ describe("RESULT GRIDS", () => {
                 { columnName: "test_year", value: yearEdited },
             ];
 
-            await result.grid.addRow(rowToAdd);
-            await result.toolbar.applyChanges();
-            await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await result.addRow(rowToAdd);
+            await result.applyChanges();
+            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
 
             const result1 = await notebook.codeEditor
                 // eslint-disable-next-line max-len
-                .execute("select * from sakila.all_data_types_dates where id = (select max(id) from sakila.all_data_types_dates);");
-            expect(result1.toolbar.status).to.match(/OK/);
+                .execute("select * from sakila.all_data_types_dates where id = (select max(id) from sakila.all_data_types_dates);") as E2ECommandResultGrid;
+            expect(result1.status).to.match(/OK/);
             const row = 0;
-            const testDate = await result1.grid.getCellValue(row, "test_date");
+            const testDate = await result1.getCellValue(row, "test_date");
             expect(testDate, errors.incorrectCellValue("DATE")).to.equals("01/01/2024");
-            const testDateTime = await result1.grid.getCellValue(row, "test_datetime");
+            const testDateTime = await result1.getCellValue(row, "test_datetime");
             expect(testDateTime, errors.incorrectCellValue("DATETIME")).to.equals("01/01/2024");
-            const testTimeStamp = await result1.grid.getCellValue(row, "test_timestamp");
+            const testTimeStamp = await result1.getCellValue(row, "test_timestamp");
             expect(testTimeStamp, errors.incorrectCellValue("TIMESTAMP")).to.equals("01/01/2024");
-            const testTime = await result1.grid.getCellValue(row, "test_time");
+            const testTime = await result1.getCellValue(row, "test_time");
             const convertedTime = Misc.convertTimeTo12H(timeEdited);
             expect(testTime === `${timeEdited}:00` || testTime === convertedTime,
                 errors.incorrectCellValue("TIME")).to.equals(true);
-            const testYear = await result1.grid.getCellValue(row, "test_year");
+            const testYear = await result1.getCellValue(row, "test_year");
             expect(testYear, errors.incorrectCellValue("YEAR")).to.equals(yearEdited);
 
         });
@@ -1168,8 +1218,9 @@ describe("RESULT GRIDS", () => {
         it("Add new row on result grid - char columns", async () => {
 
             await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("select * from sakila.all_data_types_chars;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("select * from sakila.all_data_types_chars;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
             const charEdited = "test_char_edited";
             const varCharEdited = "test_varchar_edited";
@@ -1193,33 +1244,33 @@ describe("RESULT GRIDS", () => {
                 { columnName: "test_json", value: jsonEdited },
             ];
 
-            await result.grid.addRow(rowToAdd);
-            await result.toolbar.applyChanges();
+            await result.addRow(rowToAdd);
+            await result.applyChanges();
 
-            await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
             const result1 = await notebook.codeEditor
                 // eslint-disable-next-line max-len
-                .execute("select * from sakila.all_data_types_chars where id = (select max(id) from sakila.all_data_types_chars);");
-            expect(result1.toolbar.status).to.match(/OK/);
+                .execute("select * from sakila.all_data_types_chars where id = (select max(id) from sakila.all_data_types_chars);") as E2ECommandResultGrid;
+            expect(result1.status).to.match(/OK/);
 
             const row = 0;
-            const testChar = await result1.grid.getCellValue(row, "test_char");
+            const testChar = await result1.getCellValue(row, "test_char");
             expect(testChar, errors.incorrectCellValue("CHAR")).to.equals(charEdited);
-            const testVarChar = await result1.grid.getCellValue(row, "test_varchar");
+            const testVarChar = await result1.getCellValue(row, "test_varchar");
             expect(testVarChar, errors.incorrectCellValue("VARCHAR")).to.equals(varCharEdited);
-            const testTinyText = await result1.grid.getCellValue(row, "test_tinytext");
+            const testTinyText = await result1.getCellValue(row, "test_tinytext");
             expect(testTinyText, errors.incorrectCellValue("TINYTEXT")).to.equals(tinyTextEdited);
-            const testText = await result1.grid.getCellValue(row, "test_text");
+            const testText = await result1.getCellValue(row, "test_text");
             expect(testText, errors.incorrectCellValue("TINYTEXT")).to.equals(textEdited);
-            const testMediumText = await result1.grid.getCellValue(row, "test_mediumtext");
+            const testMediumText = await result1.getCellValue(row, "test_mediumtext");
             expect(testMediumText, errors.incorrectCellValue("MEDIUMTEXT")).to.equals(textMediumEdited);
-            const testLongText = await result1.grid.getCellValue(row, "test_longtext");
+            const testLongText = await result1.getCellValue(row, "test_longtext");
             expect(testLongText, errors.incorrectCellValue("LONGTEXT")).to.equals(longTextEdited);
-            const testEnum = await result1.grid.getCellValue(row, "test_enum");
+            const testEnum = await result1.getCellValue(row, "test_enum");
             expect(testEnum, errors.incorrectCellValue("ENUM")).to.equals(enumEdited);
-            const testSet = await result1.grid.getCellValue(row, "test_set");
+            const testSet = await result1.getCellValue(row, "test_set");
             expect(testSet, errors.incorrectCellValue("SET")).to.equals(setEdited);
-            const testJson = await result1.grid.getCellValue(row, "test_json");
+            const testJson = await result1.getCellValue(row, "test_json");
             expect(testJson, errors.incorrectCellValue("JSON")).to.equals(jsonEdited);
 
         });
@@ -1227,8 +1278,9 @@ describe("RESULT GRIDS", () => {
         it("Add new row on result grid - geometry columns", async () => {
 
             await notebook.codeEditor.clean();
-            let result = await notebook.codeEditor.execute("select * from sakila.all_data_types_geometries;");
-            expect(result.toolbar.status).to.match(/OK/);
+            let result = await notebook.codeEditor
+                .execute("select * from sakila.all_data_types_geometries;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
             const pointEdited = "ST_GeomFromText('POINT(1 2)')";
             const lineStringEdited = "ST_LineStringFromText('LINESTRING(0 0,1 1,2 1)')";
@@ -1250,30 +1302,30 @@ describe("RESULT GRIDS", () => {
                 { columnName: "test_geometrycollection", value: geoCollEdited },
             ];
 
-            await result.grid.addRow(rowToAdd);
-            await result.toolbar.applyChanges();
+            await result.addRow(rowToAdd);
+            await result.applyChanges();
 
-            await driver.wait(result.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
             result = await notebook.codeEditor
                 // eslint-disable-next-line max-len
-                .execute("select * from sakila.all_data_types_geometries where id = (select max(id) from sakila.all_data_types_geometries);");
-            expect(result.toolbar.status).to.match(/OK/);
+                .execute("select * from sakila.all_data_types_geometries where id = (select max(id) from sakila.all_data_types_geometries);") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
             const row = 0;
-            const testPoint = await result.grid.getCellValue(row, "test_point");
+            const testPoint = await result.getCellValue(row, "test_point");
             expect(testPoint, errors.incorrectCellValue("GEOMETRY")).to.equals(constants.geometry);
-            const testLineString = await result.grid.getCellValue(row, "test_linestring");
+            const testLineString = await result.getCellValue(row, "test_linestring");
             expect(testLineString, errors.incorrectCellValue("LINESTRING")).to.equals(constants.geometry);
-            const testPolygon = await result.grid.getCellValue(row, "test_polygon");
+            const testPolygon = await result.getCellValue(row, "test_polygon");
             expect(testPolygon, errors.incorrectCellValue("POLYGON")).to.equals(constants.geometry);
-            const testMultiPoint = await result.grid.getCellValue(row, "test_multipoint");
+            const testMultiPoint = await result.getCellValue(row, "test_multipoint");
             expect(testMultiPoint, errors.incorrectCellValue("MULTIPOINT")).to.equals(constants.geometry);
-            const testMultiLineString = await result.grid.getCellValue(row, "test_multilinestring");
+            const testMultiLineString = await result.getCellValue(row, "test_multilinestring");
             expect(testMultiLineString, errors.incorrectCellValue("MULTILINESTRING")).to.equals(constants.geometry);
-            const testMultiPolygon = await result.grid.getCellValue(row, "test_multipolygon");
+            const testMultiPolygon = await result.getCellValue(row, "test_multipolygon");
             expect(testMultiPolygon, errors.incorrectCellValue("MULTIPOLYGON")).to.equals(constants.geometry);
-            const testGeomCollection = await result.grid.getCellValue(row, "test_geometrycollection");
+            const testGeomCollection = await result.getCellValue(row, "test_geometrycollection");
             expect(testGeomCollection, errors.incorrectCellValue("GEOMCOLLECTION")).to.equals(constants.geometry);
-            const testBit = await result.grid.getCellValue(row, "test_bit");
+            const testBit = await result.getCellValue(row, "test_bit");
             expect(testBit, errors.incorrectCellValue("BIT")).to.equals("16127");
 
         });
@@ -1281,14 +1333,15 @@ describe("RESULT GRIDS", () => {
         it("Close a result set", async () => {
 
             await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("select * from sakila.actor limit 1;");
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await notebook.codeEditor
+                .execute("select * from sakila.actor limit 1;") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
             const id = result.id;
-            await result.toolbar.closeResultSet();
+            await result.closeResultSet();
 
             await driver.wait(async () => {
-                return (await driver.findElements(locator.notebook.codeEditor.editor.result.existsById(id)))
+                return (await driver.findElements(locator.notebook.codeEditor.editor.result.existsById(String(id))))
                     .length === 0;
             }, constants.wait5seconds, `The result set was not closed`);
             await notebook.codeEditor.clean();
@@ -1297,63 +1350,69 @@ describe("RESULT GRIDS", () => {
 
         it("Refresh result grid after cell update", async () => {
             await notebook.codeEditor.clean();
-            const result1 = await notebook.codeEditor.execute("select * from sakila.result_sets;");
-            expect(result1.toolbar.status).to.match(/OK/);
+            const result1 = await notebook.codeEditor
+                .execute("select * from sakila.result_sets;") as E2ECommandResultGrid;
+            expect(result1.status).to.match(/OK/);
 
-            const result2 = await notebook.codeEditor.execute("select * from sakila.result_sets;");
-            expect(result2.toolbar.status).to.match(/OK/);
+            const result2 = await notebook.codeEditor
+                .execute("select * from sakila.result_sets;") as E2ECommandResultGrid;
+            expect(result2.status).to.match(/OK/);
 
-            await result2.grid.editCells([
+            await result2.editCells([
                 { rowNumber: 0, columnName: "text_field", value: "this value was edited" },
             ], constants.doubleClick);
-            await result2.toolbar.applyChanges();
+            await result2.applyChanges();
 
-            await result1.toolbar.refresh();
-            await driver.wait(result1.grid.untilCellValueIs(0, "text_field", "this value was edited"),
+            await result1.refresh();
+            await driver.wait(result1.untilCellValueIs(0, "text_field", "this value was edited"),
                 constants.wait5seconds);
         });
 
         it("Refresh result grid after adding a row", async () => {
             await notebook.codeEditor.clean();
-            const result1 = await notebook.codeEditor.execute("select * from sakila.result_sets;");
-            expect(result1.toolbar.status).to.match(/OK/);
+            const result1 = await notebook.codeEditor
+                .execute("select * from sakila.result_sets;") as E2ECommandResultGrid;
+            expect(result1.status).to.match(/OK/);
 
-            const result2 = await notebook.codeEditor.execute("select * from sakila.result_sets;");
-            expect(result2.toolbar.status).to.match(/OK/);
+            const result2 = await notebook.codeEditor
+                .execute("select * from sakila.result_sets;") as E2ECommandResultGrid;
+            expect(result2.status).to.match(/OK/);
 
             const rowToAdd: interfaces.IResultGridCell[] = [
                 { columnName: "text_field", value: "this is a new value" },
             ];
 
-            const prevRows = await result1.grid.getRows();
-            await result2.grid.addRow(rowToAdd);
-            await result2.toolbar.applyChanges();
-            await driver.wait(result2.toolbar.untilStatusMatches(/(\d+).*updated/), constants.wait3seconds);
+            const prevRows = await result1.getRows();
+            await result2.addRow(rowToAdd);
+            await result2.applyChanges();
+            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait3seconds);
 
-            await result1.toolbar.refresh();
+            await result1.refresh();
 
             await driver.wait(async () => {
-                return ((await result1.grid.getRows()).length) > prevRows.length;
+                return ((await result1.getRows()).length) > prevRows.length;
             }, constants.wait3seconds, `Number of rows is still ${prevRows.length}`);
         });
 
         it("Refresh result grid after row deletion", async () => {
             const deleteQuery = "delete from sakila.result_sets where text_field = 'this is a new value';";
 
-            const result1 = await notebook.codeEditor.execute("select * from sakila.result_sets;");
-            expect(result1.toolbar.status).to.match(/OK/);
+            const result1 = await notebook.codeEditor
+                .execute("select * from sakila.result_sets;") as E2ECommandResultGrid;
+            expect(result1.status).to.match(/OK/);
 
-            const result2 = await notebook.codeEditor.execute("select * from sakila.result_sets;");
-            expect(result2.toolbar.status).to.match(/OK/);
+            const result2 = await notebook.codeEditor
+                .execute("select * from sakila.result_sets;") as E2ECommandResultGrid;
+            expect(result2.status).to.match(/OK/);
 
-            const prevRows = await result1.grid.getRows();
-            const result3 = await notebook.codeEditor.execute(deleteQuery);
+            const prevRows = await result1.getRows();
+            const result3 = await notebook.codeEditor.execute(deleteQuery) as E2ECommandResultData;
             expect(result3.text).to.match(/OK/);
             await (await notebook.toolbar.getButton(constants.commit)).click();
 
-            await result1.toolbar.refresh();
+            await result1.refresh();
             await driver.wait(async () => {
-                return ((await result1.grid.getRows()).length) < prevRows.length;
+                return ((await result1.getRows()).length) < prevRows.length;
             }, constants.wait3seconds, `Number of rows is still ${prevRows.length}`);
         });
 
@@ -1376,20 +1435,18 @@ describe("RESULT GRIDS", () => {
             await dbTreeSection.tree.expandElement([new RegExp(constants.mysqlAdmin)]);
             await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.openEditorsDBNotebook),
                 globalConn.caption);
-            await driver.wait(anotherConnNotebook.untilIsOpened(anotherConn), constants.wait5seconds);
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor
-                .execute("select * from sakila.all_data_types_ints where id = 1;",
-                    (parseInt(notebook.codeEditor.resultIds[notebook.codeEditor.resultIds.length - 1],
-                        10) - 2) as unknown as string);
-            expect(result.toolbar.status).to.match(/OK/);
+                .execute("select * from sakila.all_data_types_ints where id = 1;") as E2ECommandResultGrid;
+
+            expect(result.status).to.match(/OK/);
             const cellsToEdit: interfaces.IResultGridCell[] = [
                 {
                     rowNumber: 0,
                     columnName: "test_smallint",
                     value: "32751",
                 }];
-            await result.grid.editCells(cellsToEdit, constants.doubleClick);
+            await result.editCells(cellsToEdit, constants.doubleClick);
 
             await (await dbTreeSection.tree.getElement(constants.serverStatus)).click();
             let dialog = await driver
@@ -1445,7 +1502,6 @@ describe("RESULT GRIDS", () => {
             await driver.wait(until.stalenessOf(dialog), constants.wait3seconds, "The dialog was not closed");
 
         });
-
     });
 
 });

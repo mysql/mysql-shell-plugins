@@ -34,6 +34,8 @@ import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import * as errors from "../lib/errors";
 import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
+import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
+import { E2ECommandResultGrid } from "../lib/WebViews/CommandResults/E2ECommandResultGrid";
 
 describe("MYSQL SHELL CONSOLES", () => {
 
@@ -56,7 +58,7 @@ describe("MYSQL SHELL CONSOLES", () => {
     const port = String((globalConn.basic as interfaces.IConnBasicMySQL).port);
     const schema = String((globalConn.basic as interfaces.IConnBasicMySQL).schema);
     const openEditorsTreeSection = new E2EAccordionSection(constants.openEditorsTreeSection);
-    const shellConsole = new E2EShellConsole();
+    let shellConsole = new E2EShellConsole();
 
     before(async function () {
 
@@ -68,7 +70,7 @@ describe("MYSQL SHELL CONSOLES", () => {
             await Misc.switchToFrame();
             await driver.wait(until.elementLocated(locator.dbConnectionOverview.newConsoleButton),
                 constants.wait10seconds).click();
-            await driver.wait(new E2EShellConsole().untilIsOpened(), constants.wait15seconds,
+            await driver.wait(shellConsole.untilIsOpened(globalConn), constants.wait15seconds,
                 "Shell Console was not loaded");
         } catch (e) {
             await Misc.processFailure(this);
@@ -105,10 +107,9 @@ describe("MYSQL SHELL CONSOLES", () => {
         });
 
         it("Connect to host", async () => {
-            await shellConsole.codeEditor.loadCommandResults();
             let connUri = `\\c ${username}:${password}@${hostname}:${port}/${schema}`;
-            await driver.wait(new E2EShellConsole().untilIsOpened(shellConn), constants.wait15seconds);
-            const result = await shellConsole.codeEditor.execute(connUri);
+            shellConsole = await driver.wait(new E2EShellConsole().untilIsOpened(shellConn), constants.wait15seconds);
+            const result = await shellConsole.codeEditor.execute(connUri) as E2ECommandResultData;
             connUri = `Creating a session to '${username}@${hostname}:${port}/${schema}'`;
             expect(result.text).to.match(new RegExp(connUri));
             expect(result.text,
@@ -143,7 +144,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             await Os.deleteCredentials();
             let uri = `\\c ${shellUsername}@${hostname}:${port}/${schema}`;
-            const result = await shellConsole.codeEditor.executeExpectingCredentials(uri, shellConn);
+            const result = await shellConsole.executeExpectingCredentials(uri, shellConn) as E2ECommandResultData;
             uri = `Creating a session to '${shellUsername}@${hostname}:${port}/${schema}'`;
             expect(result.text, errors.queryResultError(uri,
                 result.text)).to.match(new RegExp(uri));
@@ -165,13 +166,13 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         it("Connect using shell global variable", async () => {
 
-            let result = await shellConsole.codeEditor.execute("shell.status()");
+            let result = await shellConsole.codeEditor.execute("shell.status()") as E2ECommandResultData;
             expect(result.text,
                 errors.queryResultError("MySQL Shell version (\\d+).(\\d+).(\\d+)",
                     result.text)).to.match(/MySQL Shell version (\d+).(\d+).(\d+)/);
 
             let uri = `shell.connect('${username}:${password}@${hostname}:${port}0/${schema}')`;
-            result = await shellConsole.codeEditor.execute(uri);
+            result = await shellConsole.codeEditor.execute(uri) as E2ECommandResultData;
             uri = `Creating a session to '${username}@${hostname}:${port}0/${schema}'`;
             expect(result.text, errors.queryResultError(uri,
                 result.text)).to.match(new RegExp(uri));
@@ -194,11 +195,11 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Connect using mysql mysqlx global variable", async () => {
 
             let cmd = `mysql.getClassicSession('${username}:${password}@${hostname}:${port}/${schema}')`;
-            let result = await shellConsole.codeEditor.execute(cmd);
+            let result = await shellConsole.codeEditor.execute(cmd) as E2ECommandResultData;
             expect(result.text, errors.queryResultError("ClassicSession",
                 result.text)).to.match(/ClassicSession/);
             cmd = `mysqlx.getSession('${username}:${password}@${hostname}:${port}0/${schema}')`;
-            result = await shellConsole.codeEditor.execute(cmd);
+            result = await shellConsole.codeEditor.execute(cmd) as E2ECommandResultData;
             expect(result.text, errors.queryResultError("Session",
                 result.text)).to.match(/Session/);
 
@@ -210,16 +211,17 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         before(async function () {
             try {
+
                 await Workbench.closeAllEditors();
                 const treeDBConnections = await openEditorsTreeSection.tree.getElement(constants.dbConnectionsLabel);
                 await openEditorsTreeSection.tree.openContextMenuAndSelect(treeDBConnections,
                     constants.openNewShellConsole);
-                await driver.wait(new E2EShellConsole().untilIsOpened(), constants.wait15seconds,
+                shellConsole = new E2EShellConsole();
+                await driver.wait(shellConsole.untilIsOpened(globalConn), constants.wait15seconds,
                     "Shell Console was not loaded");
 
-                await shellConsole.codeEditor.loadCommandResults();
                 let uri = `\\c ${username}:${password}@${hostname}:${port}0/${schema}`;
-                const result = await shellConsole.codeEditor.execute(uri);
+                const result = await shellConsole.codeEditor.execute(uri) as E2ECommandResultData;
                 uri = `Creating a session to '${username}@${hostname}:${port}0/${schema}'`;
                 expect(result.text, errors.queryResultError(uri,
                     result.text)).to.match(new RegExp(uri));
@@ -252,7 +254,7 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         it("Verify help command", async () => {
 
-            const result = await shellConsole.codeEditor.execute("\\help ");
+            const result = await shellConsole.codeEditor.execute("\\help ") as E2ECommandResultData;
             const regex = [
                 /The Shell Help is organized in categories and topics/,
                 /SHELL COMMANDS/,
@@ -292,19 +294,17 @@ describe("MYSQL SHELL CONSOLES", () => {
 
             await driver.wait(until.elementLocated(locator.shellConsole.editor),
                 constants.wait10seconds, "Console was not loaded");
-            let result = await shellConsole.codeEditor.languageSwitch("\\py");
-            expect(result.text, errors.queryResultError("Python",
-                result.text)).to.match(/Python/);
-            result = await shellConsole.codeEditor.languageSwitch("\\js");
-            expect(result.text, errors.queryResultError("JavaScript",
-                result.text)).to.match(/JavaScript/);
+            let result = await shellConsole.languageSwitch("\\py ");
+            expect(result.text).to.match(/Python/);
+            result = await shellConsole.languageSwitch("\\js ");
+            expect(result.text).to.match(/JavaScript/);
 
         });
 
         it("Using db global variable", async () => {
 
             const result = await shellConsole.codeEditor.execute("db.actor.select().limit(1)");
-            expect(await result.grid.content.getAttribute("innerHTML"),
+            expect(await result.resultContext.getAttribute("innerHTML"),
                 errors.queryDataSetError("PENELOPE"))
                 .to.match(/PENELOPE/);
 
@@ -312,7 +312,8 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         it("Using util global variable", async () => {
 
-            const result = await shellConsole.codeEditor.execute('util.exportTable("actor", "test.txt")');
+            const result = await shellConsole.codeEditor
+                .execute('util.exportTable("actor", "test.txt")') as E2ECommandResultData;
             expect(result.text, errors.queryResultError("Running data dump using 1 thread",
                 result.text)).to.match(/Running data dump using 1 thread/);
             const matches = [
@@ -331,40 +332,36 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         it("Verify collections - json format", async () => {
             await shellConsole.changeSchema("world_x_cst");
-            const result = await shellConsole.codeEditor.execute("db.countryinfo.find()");
+            const result = await shellConsole.codeEditor.execute("db.countryinfo.find()") as E2ECommandResultData;
             expect(result.json, errors.queryDataSetError("Yugoslavia")).to.match(/Yugoslavia/);
         });
 
         it("Check query result content", async () => {
 
-            await shellConsole.codeEditor.languageSwitch("\\sql ");
-            let result = await shellConsole.codeEditor.execute("SHOW DATABASES;");
-            expect(await result.grid.content.getAttribute("innerHTML"), errors.queryDataSetError("sakila"))
-                .to.match(/sakila/);
-
-            expect(await result.grid.content.getAttribute("innerHTML"), errors.queryDataSetError("mysql"))
-                .to.match(/mysql/);
-            await shellConsole.codeEditor.languageSwitch("\\js ");
-            result = await shellConsole.codeEditor.execute(`shell.options.resultFormat="json/raw" `);
-            expect(result.text, errors.queryResultError("json\\/raw",
-                result.text)).to.match(/json\/raw/);
-            result = await shellConsole.codeEditor.execute(`shell.options.showColumnTypeInfo=false `);
-            expect(result.text, errors.queryResultError("false",
-                result.text)).to.match(/false/);
-            result = await shellConsole.codeEditor.execute(`shell.options.resultFormat="json/pretty" `);
-            expect(result.text, errors.queryResultError("json\\/pretty",
-                result.text)).to.match(/json\/pretty/);
-            result = await shellConsole.changeSchema("sakila");
-            expect(result.text,
-                errors.queryResultError("Default schema `sakila` accessible through db",
-                    result.text)).to.match(/Default schema `sakila` accessible through db/);
-            result = await shellConsole.codeEditor.execute("db.category.select().limit(1)");
-            expect(result.json, errors.queryDataSetError("Action")).to.match(/Action/);
-            result = await shellConsole.codeEditor.execute(`shell.options.resultFormat="table" `);
-            expect(result.text).to.match(/table/);
-            result = await shellConsole.codeEditor.execute("db.category.select().limit(1)");
-            expect(await result.grid.content.getAttribute("innerHTML"), errors.queryDataSetError("Action"))
-                .to.match(/Action/);
+            await shellConsole.languageSwitch("\\sql");
+            let result = await shellConsole.codeEditor.execute("SHOW DATABASES;") as E2ECommandResultGrid;
+            expect(await result.resultContext.getAttribute("innerHTML")).to.match(/sakila/);
+            expect(await result.resultContext.getAttribute("innerHTML")).to.match(/mysql/);
+            await shellConsole.languageSwitch("\\js");
+            let result1 = await shellConsole.codeEditor
+                .execute(`shell.options.resultFormat="json/raw" `) as E2ECommandResultData;
+            expect(result1.text).to.match(/json\/raw/);
+            result1 = await shellConsole.codeEditor
+                .execute(`shell.options.showColumnTypeInfo=false `) as E2ECommandResultData;
+            expect(result1.text).to.match(/false/);
+            result1 = await shellConsole.codeEditor
+                .execute(`shell.options.resultFormat="json/pretty" `) as E2ECommandResultData;
+            expect(result1.text).to.match(/json\/pretty/);
+            result1 = await shellConsole.changeSchema("sakila");
+            expect(result1.text).to.match(/Default schema `sakila` accessible through db/);
+            result1 = await shellConsole.codeEditor
+                .execute("db.category.select().limit(1)") as E2ECommandResultData;
+            expect(result1.json).to.match(/Action/);
+            result1 = await shellConsole.codeEditor
+                .execute(`shell.options.resultFormat="table" `) as E2ECommandResultData;
+            expect(result1.text).to.match(/table/);
+            result = await shellConsole.codeEditor.execute("db.category.select().limit(1)") as E2ECommandResultGrid;
+            expect(await result.resultContext.getAttribute("innerHTML")).to.match(/Action/);
         });
 
     });

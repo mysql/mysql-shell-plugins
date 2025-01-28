@@ -66,6 +66,11 @@ export const tasksMaxLevel = 1;
 
 export const darkModern = "Dark Modern";
 
+export const close = "Close";
+export const closeAll = "Close All";
+export const closeOthers = "Close Others";
+export const closeToTheRight = "Close to the Right";
+
 // BUTTONS
 export const execFullBlockSql = "Execute the selection or everything in the current block and create a new block";
 export const execFullBlockJs = "Execute everything in the current block and create a new block";

@@ -20,16 +20,19 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { Condition, until, Workbench as extWorkbench, NotificationType } from "vscode-extension-tester";
-import { driver, Misc } from "../Misc";
-import * as constants from "../constants";
-import * as locator from "../locators";
-import * as errors from "../errors";
-import { E2ECodeEditor } from "./E2ECodeEditor";
-import { Toolbar } from "./Toolbar";
-import * as interfaces from "../interfaces";
-import { PasswordDialog } from "./Dialogs/PasswordDialog";
-import { Workbench } from "../Workbench";
+import { until, WebElement, Workbench as extWorkbench, NotificationType } from "vscode-extension-tester";
+import { driver, Misc } from "../Misc.js";
+import * as constants from "../constants.js";
+import * as locator from "../locators.js";
+import { E2ECodeEditor } from "./E2ECodeEditor.js";
+import { E2EToolbar } from "./E2EToolbar.js";
+import * as interfaces from "../interfaces.js";
+import { PasswordDialog } from "./Dialogs/PasswordDialog.js";
+import { E2ECommandResultGrid } from "./CommandResults/E2ECommandResultGrid.js";
+import { E2ECommandResultData } from "./CommandResults/E2ECommandResultData.js";
+import * as errors from "../errors.js";
+import { Workbench } from "../Workbench.js";
+import { ConfirmDialog } from "./Dialogs/ConfirmationDialog.js";
 
 /**
  * This class aggregates the functions that perform operations inside notebooks
@@ -37,25 +40,28 @@ import { Workbench } from "../Workbench";
 export class E2ENotebook {
 
     /** The toolbar*/
-    public toolbar = new Toolbar();
+    public toolbar = new E2EToolbar();
 
     /** The code editor*/
-    public codeEditor = new E2ECodeEditor(this);
+    public codeEditor = new E2ECodeEditor(1);
 
     /**
      * Verifies if the Notebook is opened and fully loaded
      * @param connection The database connection
+     * @param timeout The timeout
      * @returns A condition resolving to true if the page is opened, false otherwise
      */
-    public untilIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
-        return new Condition(`for connection ${connection.caption} to be opened`, async () => {
+    public untilIsOpened = async (
+        connection: interfaces.IDBConnection,
+        timeout = constants.wait10seconds): Promise<E2ENotebook> => {
+
+        await driver.wait(async () => {
             await Misc.switchBackToTopFrame();
             await Misc.switchToFrame();
-
-            const existsFingerPrintDialog = (await driver.findElements(locator.confirmDialog.exists)).length > 0;
-
+            const confirmDialog = new ConfirmDialog();
+            const existsFingerPrintDialog = await confirmDialog.exists();
             if (existsFingerPrintDialog) {
-                await driver.findElement(locator.confirmDialog.accept).click();
+                await confirmDialog.accept();
             }
 
             const isOpened = async (): Promise<boolean> => {
@@ -63,12 +69,11 @@ export class E2ENotebook {
                 const notifications = await new extWorkbench().getNotifications();
 
                 if (notifications.length > 0) {
-
                     for (const notification of notifications) {
 
                         if (await notification.getType() === NotificationType.Error) {
                             if ((await notification.getMessage())
-                                .includes("The currently deployed schema version is 0.0.0")) {
+                                .match(/The currently deployed schema version is 0.0.0/) !== null) {
 
                                 await notification.dismiss();
                             } else {
@@ -76,17 +81,25 @@ export class E2ENotebook {
                             }
                         } else {
                             await Workbench.dismissNotifications();
+                            break;
                         }
                     }
-                } else {
-                    await Misc.switchToFrame();
                 }
 
-                const existsScript = (await driver.findElements(locator.notebook.codeEditor.editor.host))
-                    .length > 0;
-                const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
+                const activeTab = await Workbench.getActiveTab();
 
-                return existsScript || existsNotebook;
+                if ((await activeTab.getTitle()).includes(connection.caption)) {
+                    this.codeEditor = await this.codeEditor.build();
+
+                    return true;
+                } else if ((await activeTab.getTitle()).includes(".mysql-notebook")) {
+                    await Misc.switchToFrame();
+                    const notebookIsOpened = (await driver.findElements(locator.notebook.exists)).length > 0;
+
+                    return notebookIsOpened;
+                } else {
+                    return false;
+                }
             };
 
             if (await PasswordDialog.exists()) {
@@ -94,7 +107,9 @@ export class E2ENotebook {
             }
 
             return isOpened();
-        });
+        }, timeout, `Could not open notebook for ${connection.caption}`);
+
+        return this;
     };
 
     /**
@@ -134,4 +149,115 @@ export class E2ENotebook {
         return commands.toString().match(regex) !== null;
     };
 
+    /**
+     * Executes a command on the editor using a toolbar button
+     *
+     * @param cmd The command
+     * @param button The button to click, to trigger the execution
+     * @returns A promise resolving when the command is executed
+     */
+    public executeWithButton = async (cmd: string, button: string):
+        Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
+
+        if (this.codeEditor.isSpecialCmd(cmd)) {
+            throw new Error("Please use the function 'this.codeEditor.languageSwitch()'");
+        }
+
+        if (button === constants.execCaret) {
+            throw new Error("Please use the function 'this.codeEditor.findCmdAndExecute()'");
+        }
+
+        await this.codeEditor.write(cmd);
+        await (await this.toolbar.getButton(button)).click();
+        const commandResult = await this.codeEditor.buildResult(cmd, this.codeEditor.lastResultId + 1);
+        this.codeEditor.lastResultId++;
+
+        return commandResult;
+    };
+
+    /**
+     * Searches for a command on the editor, and execute it,
+     * using the Exec Caret button Verify the result on this result id
+     * @param cmd The command
+     * @param resultId Verify the result on this result id
+     * @returns A promise resolving when the command is executed
+     */
+    public findAndExecute = async (cmd: string, resultId: number):
+        Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
+
+        if (this.codeEditor.isSpecialCmd(cmd)) {
+            throw new Error("Please use the function 'this.languageSwitch()'");
+        }
+
+        await this.codeEditor.setMouseCursorAt(cmd);
+
+        if (await this.toolbar.existsButton(constants.execCaret)) {
+            const toolbarButton = await this.toolbar.getButton(constants.execCaret);
+            await driver.executeScript("arguments[0].click()", toolbarButton);
+        } else {
+            const button = await this.toolbar.getButton(constants.execFullBlockJs);
+            await driver.executeScript("arguments[0].click()", button);
+        }
+
+        return this.codeEditor.buildResult(cmd, resultId);
+    };
+
+    /**
+     * Executes a command on the editor using a context menu item
+     *
+     * @param cmd The command
+     * @param item The context menu item to click, to trigger the execution
+     * @returns A promise resolving when the command is executed
+     */
+    public executeWithContextMenu = async (cmd: string, item: string):
+        Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
+
+        if (this.codeEditor.isSpecialCmd(cmd)) {
+            throw new Error("Please use the function 'this.codeEditor.languageSwitch()'");
+        }
+
+        await this.codeEditor.write(cmd);
+        await this.clickContextItem(item);
+        const id = this.codeEditor.lastResultId + 1;
+        const commandResult = this.codeEditor.buildResult(cmd, id);
+        this.codeEditor.lastResultId++;
+
+        return commandResult;
+    };
+
+    /**
+     * Clicks on a context menu item
+     * @param item The item
+     * @returns A promise resolving when the click is performed
+     */
+    public clickContextItem = async (item: string): Promise<void> => {
+        const isCtxMenuDisplayed = async (): Promise<boolean> => {
+            const el = await driver.executeScript(`return document.querySelector(".shadow-root-host").
+                shadowRoot.querySelector("span[aria-label='${item}']")`);
+
+            return el !== null;
+        };
+
+        await driver.wait(async () => {
+            const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
+            await driver.actions().contextClick(textArea).perform();
+
+            return isCtxMenuDisplayed();
+
+        }, constants.wait5seconds, `Expected context menu for "${item}" was not displayed`);
+
+        await driver.wait(async () => {
+            try {
+                const el: WebElement = await driver.executeScript(`return document.querySelector(".shadow-root-host").
+                shadowRoot.querySelector("span[aria-label='${item}']")`);
+                await el.click();
+
+                return !(await isCtxMenuDisplayed());
+            } catch (e) {
+                if (e instanceof TypeError) {
+                    return true;
+                }
+            }
+        }, constants.wait5seconds, `Unexpected context menu continues displayed after selecting "${item}"`);
+    };
 }

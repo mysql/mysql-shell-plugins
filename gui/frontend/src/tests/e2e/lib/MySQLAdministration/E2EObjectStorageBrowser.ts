@@ -168,10 +168,6 @@ export class E2EObjectStorageBrowser {
 
                     }
 
-                    if (await this.existsItem("Error")) { // flaky failure without solution yet
-                        throw new Error("Skip");
-                    }
-
                     let item = await this.getItem(path[i], String(i));
                     let itemToggle = await item.findElement(objStorageItem.treeToggle);
 

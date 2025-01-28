@@ -472,7 +472,6 @@ describe("NOTEBOOKS", () => {
                     .findElements(locator.notebook.codeEditor.editor.result.graphHost.column);
                 for (const col of chartColumns) {
                     expect(parseInt(await col.getAttribute("width"), 10)).toBeGreaterThan(0);
-
                 }
             } catch (e) {
                 testFailed = true;

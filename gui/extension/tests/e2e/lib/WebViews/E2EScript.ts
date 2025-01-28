@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,20 +27,20 @@ import * as locator from "../locators";
 import * as interfaces from "../interfaces";
 import { driver, Misc } from "../Misc";
 import { E2ECodeEditor } from "./E2ECodeEditor";
-import { Toolbar } from "./Toolbar";
+import { E2EToolbar } from "./E2EToolbar";
 import { PasswordDialog } from "./Dialogs/PasswordDialog";
-import { CommandResult } from "./CommandResult";
+import { E2ECommandResultData } from "./CommandResults/E2ECommandResultData";
+import { E2ECommandResultGrid } from "./CommandResults/E2ECommandResultGrid";
 
 /**
  * This class represents the Script page
  */
-export class Script {
+export class E2EScript {
 
     /** The toolbar*/
-    public toolbar = new Toolbar();
+    public toolbar = new E2EToolbar();
 
-    /** The code editor*/
-    public codeEditor = new E2ECodeEditor(this);
+    public codeEditor = new E2ECodeEditor();
 
     /**
      * Waits until the shell session is opened
@@ -51,8 +51,10 @@ export class Script {
 
         return new Condition(`for script to be opened`, async () => {
             const editorSelectorLocator = locator.notebook.toolbar.editorSelector.exists;
-            await Misc.switchBackToTopFrame();
-            await Misc.switchToFrame();
+
+            if (!(await Misc.insideIframe())) {
+                await Misc.switchToFrame();
+            }
 
             if (await PasswordDialog.exists()) {
                 await PasswordDialog.setCredentials(connection);
@@ -65,26 +67,49 @@ export class Script {
                 }, constants.wait15seconds, `Could not connect to '${connection.caption}'`);
             }
 
-            return ((await this.toolbar.editorSelector.getCurrentEditor()).label).match(/Script/) !== null;
+            const currentEditor = (await this.toolbar.editorSelector.getCurrentEditor()).label;
+            const regex = /(Script|.sql|.ts|.js|Data)/;
+
+            return (currentEditor).match(regex) !== null;
         });
 
     };
 
     /**
-     * Returns the last existing script result on the editor
+     * Executes a command on the editor using a toolbar button
+     *
+     * @param cmd The command
+     * @param button The button to click, to trigger the execution
+     * @returns A promise resolving when the command is executed
+     */
+    public executeWithButton = async (cmd: string, button: string):
+        Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
+
+        if (this.codeEditor.isSpecialCmd(cmd)) {
+            throw new Error("Please use the function 'this.languageSwitch()'");
+        }
+
+        if (button === constants.execCaret) {
+            throw new Error("Please use the function 'this.findCmdAndExecute()'");
+        }
+
+        await this.codeEditor.write(cmd);
+        await (await this.toolbar.getButton(button)).click();
+
+        return this.codeEditor.buildResult(cmd, undefined);
+    };
+
+    /**
+     * Returns the result on the editor
      *
      * @returns A promise resolving with the script result
      */
-    public getLastResult = async (): Promise<interfaces.ICommandResult> => {
+    public getResult = async (): Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();
         }
 
-        const codeEditor = new E2ECodeEditor(this);
-        const commandResult = new CommandResult(codeEditor);
-        await commandResult.loadResult(true);
-
-        return commandResult;
+        return this.codeEditor.buildResult("", undefined);
     };
 
 }

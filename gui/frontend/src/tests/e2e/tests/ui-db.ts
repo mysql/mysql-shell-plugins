@@ -1081,8 +1081,8 @@ describe("DATABASE CONNECTIONS", () => {
                         await uploadToObjectStorage.objectStorageBrowser
                             .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
                     } catch (e) {
-                        if (String(e).includes("Skip")) {
-                            skipTest = true;
+                        if (String(e).includes("Could not get item 'HeatwaveAutoML' on the Object Storage Browser")) {
+                            skipTest = true; // flaky failure without fix yet
 
                             return;
                         } else {

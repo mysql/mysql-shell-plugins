@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,7 +30,7 @@ import { Overview } from "./overview";
 import { UploadToObjectStorage } from "./uploadToObjectStorage";
 import { LoadIntoLakehouse } from "./loadIntoLakeHouse";
 import { LakehouseTables } from "./lakehouseTables";
-import { Toolbar } from "../Toolbar";
+import { E2EToolbar } from "../E2EToolbar";
 
 /**
  * This class represents the LakeHouse Navigator page, and all its related functions
@@ -38,7 +38,7 @@ import { Toolbar } from "../Toolbar";
 export class LakeHouseNavigator {
 
     /** The Toolbar for the LakeHouse Navigator page*/
-    public toolbar = new Toolbar();
+    public toolbar = new E2EToolbar();
 
     /** The Overview page*/
     public overview = new Overview();

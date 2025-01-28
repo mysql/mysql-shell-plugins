@@ -44,10 +44,12 @@ import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import * as errors from "../lib/errors";
 import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
-import { Script } from "../lib/WebViews/Script";
-import { Toolbar } from "../lib/WebViews/Toolbar";
+import { E2EScript } from "../lib/WebViews/E2EScript";
+import { E2EToolbar } from "../lib/WebViews/E2EToolbar";
 import { TestQueue } from "../lib/TestQueue";
 import { E2EMySQLAdministration } from "../lib/WebViews/MySQLAdministration/E2EMySQLAdministration";
+import { E2ECommandResultGrid } from "../lib/WebViews/CommandResults/E2ECommandResultGrid";
+import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
 
 describe("DATABASE CONNECTIONS", () => {
 
@@ -360,7 +362,7 @@ describe("DATABASE CONNECTIONS", () => {
             );
 
             const notebook = new E2ENotebook();
-            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
+            await driver.wait(notebook.untilIsOpened(sqliteConn), constants.wait15seconds);
             await dbTreeSection.focus();
             await dbTreeSection.clickToolbarButton(constants.reloadConnections);
             await driver.wait(new Condition("", async () => {
@@ -386,10 +388,10 @@ describe("DATABASE CONNECTIONS", () => {
 
             const treeDBConn = await dbTreeSection.tree.getElement("db_connection");
             await dbTreeSection.tree.openContextMenuAndSelect(treeDBConn, constants.selectRowsInNotebook);
-            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
-            await notebook.codeEditor.loadCommandResults();
-            const result = await notebook.codeEditor.getLastExistingCommandResult(true);
-            expect(result.toolbar.status).to.match(/OK/);
+            await driver.wait(notebook.untilIsOpened(sqliteConn), constants.wait15seconds);
+            const result = await notebook.executeWithButton("SELECT * FROM main.db_connection;",
+                constants.execFullBlockSql) as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
         });
 
         it("Connect to MySQL database using SSL", async () => {
@@ -410,14 +412,13 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.executeScript("arguments[0].click();", dbConn);
             const notebook = new E2ENotebook();
-            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
+            await driver.wait(notebook.untilIsOpened(sslConn), constants.wait15seconds);
             const query =
                 `select * from performance_schema.session_status where variable_name in
                 ("ssl_cipher") and variable_value like "%TLS%";`;
 
-            await notebook.codeEditor.create();
-            const result = await notebook.codeEditor.execute(query);
-            expect(result.toolbar.status).to.match(/1 record retrieved/);
+            const result = await notebook.codeEditor.execute(query) as E2ECommandResultGrid;
+            expect(result.status).to.match(/1 record retrieved/);
         });
 
         it("Copy paste and cut paste into the DB Connection dialog", async function () {
@@ -722,7 +723,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(until.elementIsVisible(newScript), constants.wait5seconds,
                 "New script button was not visible");
             await driver.executeScript("arguments[0].click()", newScript);
-            await driver.wait(new Script().untilIsOpened(globalConn), constants.wait5seconds);
+            await driver.wait(new E2EScript().untilIsOpened(globalConn), constants.wait5seconds);
             const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
             await openEditorsSection.focus();
             const script = await openEditorsSection.tree.getElement("Script");
@@ -734,7 +735,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.wait(until.elementLocated(locator.dbConnectionOverview.newConsoleButton),
                 constants.wait10seconds).click();
-            await driver.wait(new E2EShellConsole().untilIsOpened(),
+            await driver.wait(new E2EShellConsole().untilIsOpened(globalConn),
                 constants.wait15seconds, "Shell Console was not loaded");
 
         });
@@ -744,7 +745,7 @@ describe("DATABASE CONNECTIONS", () => {
     describe("MySQL Administration", () => {
 
         const mysqlAdministration = new E2EMySQLAdministration();
-        const toolbar = new Toolbar();
+        const toolbar = new E2EToolbar();
 
         before(async function () {
             await Os.appendToExtensionLog("beforeAll MySQL Administration");
@@ -909,10 +910,9 @@ describe("DATABASE CONNECTIONS", () => {
             await (await dbTreeSection.tree.getActionButton(host, constants.openNewConnectionUsingNotebook)).click();
             let notebook = new E2ENotebook();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
-            await notebook.codeEditor.loadCommandResults();
-            let result = await notebook.codeEditor.execute(`INSTALL COMPONENT "file://component_mle";`);
+            let result = await notebook.codeEditor
+                .execute(`INSTALL COMPONENT "file://component_mle";`) as E2ECommandResultData;
             expect(result.text).to.match(/OK/);
-
             await (await dbTreeSection.tree.getElement(constants.perfDash)).click();
             await driver.wait(mysqlAdministration.untilPageIsOpened(globalConn, constants.perfDash),
                 constants.wait15seconds);
@@ -958,7 +958,6 @@ describe("DATABASE CONNECTIONS", () => {
             expect(mysqlAdministration.performanceDashboard.innoDBStatus.innoDBDiskReadsGraph).to.exist;
             expect(mysqlAdministration.performanceDashboard.innoDBStatus.bufferWrites).to.match(/(\d+) (KB|B)\/s/);
             expect(mysqlAdministration.performanceDashboard.innoDBStatus.reading).to.match(/(\d+) (KB|B)\/s/);
-
             await (await mysqlAdministration.performanceDashboard.getTab(constants.perfDashMLETab)).click();
             await mysqlAdministration.performanceDashboard.loadMLEPerformance();
             expect(mysqlAdministration.performanceDashboard.mlePerformance.heapUsageGraph).to.exist;
@@ -971,7 +970,6 @@ describe("DATABASE CONNECTIONS", () => {
             await (await dbTreeSection.tree.getActionButton(host, constants.openNewConnectionUsingNotebook)).click();
             notebook = new E2ENotebook();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
-            await notebook.codeEditor.loadCommandResults();
 
             const jsFunction =
                 `CREATE FUNCTION IF NOT EXISTS js_pow(arg1 INT, arg2 INT)
@@ -983,10 +981,11 @@ describe("DATABASE CONNECTIONS", () => {
                     $$;`;
 
 
-            result = await notebook.codeEditor.executeWithButton(jsFunction, constants.execFullBlockSql);
+            result = await notebook.executeWithButton(jsFunction, constants.execFullBlockSql) as E2ECommandResultData;
             expect(result.text).to.match(/OK/);
-            result = await notebook.codeEditor.execute("SELECT js_pow(2,3);");
-            expect(result.toolbar.status).to.match(/OK/);
+
+            const result1 = await notebook.codeEditor.execute("SELECT js_pow(2,3);") as E2ECommandResultGrid;
+            expect(result1.status).to.match(/OK/);
             await Workbench.closeEditor(new RegExp(constants.dbDefaultEditor));
             await (await dbTreeSection.tree.getElement(constants.perfDash)).click();
             await (await mysqlAdministration.performanceDashboard.getTab(constants.perfDashMLETab)).click();
@@ -1315,24 +1314,23 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Load SQL Script from Disk", async () => {
 
-            const notebook = new E2ENotebook();
+            const e2eScript = new E2EScript();
             const script = "sakila_cst.sql";
             const destFile = join(constants.workspace, "gui", "frontend", "src", "tests", "e2e", "sql", script);
             await dbTreeSection.tree.openContextMenuAndSelect(treeGlobalConn, constants.loadScriptFromDisk);
             await Workbench.setInputPath(destFile);
-            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
+            await driver.wait(e2eScript.untilIsOpened(globalConn), constants.wait15seconds);
             await driver.wait(async () => {
-                return ((await notebook.toolbar.editorSelector.getCurrentEditor()).label) === script;
+                return ((await e2eScript.toolbar.editorSelector.getCurrentEditor()).label) === script;
             }, constants.wait5seconds, `Current editor is not ${script}`);
             let error = `The current editor type should be 'Mysql',`;
-            error += ` but found ${(await notebook.toolbar.editorSelector.getCurrentEditor()).icon}`;
-            expect((await notebook.toolbar.editorSelector.getCurrentEditor()).icon, error)
+            error += ` but found ${(await e2eScript.toolbar.editorSelector.getCurrentEditor()).icon}`;
+            expect((await e2eScript.toolbar.editorSelector.getCurrentEditor()).icon, error)
                 .to.include(constants.mysqlScriptIcon);
             const scriptLines = await driver.findElements(locator.notebook.codeEditor.editor.line);
             expect(scriptLines.length, "The script was not loaded. No lines found on the editor").to.be.greaterThan(0);
-            await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.openEditorsDBNotebook),
+            await e2eScript.toolbar.editorSelector.selectEditor(new RegExp(constants.openEditorsDBNotebook),
                 globalConn.caption);
-            await notebook.codeEditor.loadCommandResults();
 
         });
 
@@ -1347,11 +1345,11 @@ describe("DATABASE CONNECTIONS", () => {
             await (await dbTreeSection.tree.getActionButton(treeGlobalConn,
                 constants.openNewConnectionUsingNotebook)).click();
             await Workbench.openEditor(globalConn.caption);
-            const notebook = new E2ENotebook();
-            await notebook.codeEditor.create();
-            let result = await notebook.codeEditor.execute("select database();");
-            expect(result.toolbar.status).to.match(/OK/);
-            expect(await result.grid.content.getAttribute("innerHTML"))
+
+            const notebook = await new E2ENotebook().untilIsOpened(globalConn);
+            let result = await notebook.codeEditor.execute("select database();") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
+            expect(await result.resultContext.getAttribute("innerHTML"))
                 .to.match(new RegExp((globalConn.basic as interfaces.IConnBasicMySQL).schema));
             const otherSchema = await dbTreeSection.tree.getElement("world_x_cst");
             await dbTreeSection.tree.openContextMenuAndSelect(otherSchema, constants.setCurrentDBSchema, undefined);
@@ -1360,9 +1358,9 @@ describe("DATABASE CONNECTIONS", () => {
                 errors.notDefault("sakila")).to.be.false;
             await Workbench.openEditor(globalConn.caption);
             await notebook.codeEditor.clean();
-            result = await notebook.codeEditor.execute("select database();");
-            expect(result.toolbar.status).to.match(/OK/);
-            expect(await result.grid.content.getAttribute("innerHTML")).to.match(/world_x_cst/);
+            result = await notebook.codeEditor.execute("select database();") as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
+            expect(await result.resultContext.getAttribute("innerHTML")).to.match(/world_x_cst/);
             await Workbench.closeAllEditors();
             await driver.wait(async () => {
                 return !(await dbTreeSection.tree.isElementDefault("world_x_cst", "schema"));
@@ -1517,11 +1515,9 @@ describe("DATABASE CONNECTIONS", () => {
             await treeGlobalSchemaTables.expand();
             const actorTable = await dbTreeSection.tree.getElement("actor");
             await dbTreeSection.tree.openContextMenuAndSelect(actorTable, constants.selectRowsInNotebook);
-            const notebook = new E2ENotebook();
-            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
-            await notebook.codeEditor.create();
-            const result = await notebook.codeEditor.getLastExistingCommandResult(true);
-            expect(result.toolbar.status).to.match(/OK/);
+            const notebook = await new E2ENotebook().untilIsOpened(globalConn);
+            const result = await notebook.codeEditor.getLastExistingCommandResult(true) as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
 
         });
 
@@ -1584,10 +1580,10 @@ describe("DATABASE CONNECTIONS", () => {
             await treeGlobalSchemaViews.expand();
             const treeTestView = await dbTreeSection.tree.getElement(testView);
             await dbTreeSection.tree.openContextMenuAndSelect(treeTestView, constants.selectRowsInNotebook);
-            const notebook = new E2ENotebook();
-            await notebook.codeEditor.create();
-            const result = await notebook.codeEditor.getLastExistingCommandResult(true);
-            expect(result.toolbar.status).to.match(/OK, (\d+) records/);
+            const notebook = await new E2ENotebook().untilIsOpened(globalConn);
+            const result = await notebook.codeEditor.getLastExistingCommandResult(true) as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
+            expect(result.status).to.match(/OK, (\d+) records/);
         });
 
         it("View - Copy name and create statement to clipboard", async function () {
@@ -1648,8 +1644,8 @@ describe("DATABASE CONNECTIONS", () => {
 
             const actorTable = await dbTreeSection.tree.getElement("actor");
             await dbTreeSection.tree.openContextMenuAndSelect(actorTable, constants.showData);
-            const result = await new Script().getLastResult();
-            expect(result.toolbar.status).to.match(/OK/);
+            const result = await new E2EScript().getResult() as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
             await driver.wait(result.untilIsMaximized(), constants.wait5seconds);
 
         });
@@ -1659,9 +1655,10 @@ describe("DATABASE CONNECTIONS", () => {
             await dbTreeSection.focus();
             const treeTestView = await dbTreeSection.tree.getElement(testView);
             await dbTreeSection.tree.openContextMenuAndSelect(treeTestView, constants.showData);
-            await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait15seconds);
-            const result = await new Script().getLastResult();
-            expect(result.toolbar.status).to.match(/OK/);
+            const script = new E2EScript();
+            await driver.wait(script.untilIsOpened(globalConn), constants.wait15seconds);
+            const result = await script.getResult() as E2ECommandResultGrid;
+            expect(result.status).to.match(/OK/);
             await driver.wait(result.untilIsMaximized(), constants.wait5seconds);
         });
 

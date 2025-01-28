@@ -34,7 +34,7 @@ import * as constants from "../lib/constants";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import * as errors from "../lib/errors";
-import { Script } from "../lib/WebViews/Script";
+import { E2EScript } from "../lib/WebViews/E2EScript";
 import { E2ENotebook } from "../lib/WebViews/E2ENotebook";
 import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
 
@@ -101,7 +101,7 @@ describe("OPEN EDITORS", () => {
         await openEditorsTreeSection.expand();
         const treeDBConnections = await openEditorsTreeSection.tree.getElement(constants.dbConnectionsLabel);
         await openEditorsTreeSection.tree.openContextMenuAndSelect(treeDBConnections, constants.openNewShellConsole);
-        await driver.wait(new E2EShellConsole().untilIsOpened(), constants.wait15seconds,
+        await driver.wait(new E2EShellConsole().untilIsOpened(globalConn), constants.wait15seconds,
             "Shell Console was not loaded");
         const treeOEShellConsoles = await openEditorsTreeSection.tree.getElement(constants.mysqlShellConsoles);
         expect(await treeOEShellConsoles.findChildItem("Session 1"), errors.doesNotExistOnTree("Session 1")).to.exist;
@@ -119,7 +119,7 @@ describe("OPEN EDITORS", () => {
             constants.newMySQLScript);
         await driver.executeScript("arguments[0].click()", newMySQLScript);
         await driver.wait(Workbench.untilCurrentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
-        expect((await new Script().toolbar.editorSelector.getCurrentEditor()).icon,
+        expect((await new E2EScript().toolbar.editorSelector.getCurrentEditor()).icon,
             `The current editor icon should be 'Mysql'`)
             .to.include(constants.mysqlScriptIcon);
         const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, constants.mysqlType);
@@ -137,7 +137,7 @@ describe("OPEN EDITORS", () => {
         await Workbench.setInputPath(join(process.cwd(), "sql", sqlScript));
         await driver.wait(Workbench.untilCurrentEditorIs(new RegExp(sqlScript)), constants.wait5seconds);
         await driver.wait(openEditorsTreeSection.tree.untilExists(sqlScript), constants.wait5seconds);
-        expect((await new Script().codeEditor.existsText("GEOMETRYCOLLECTION"))).to.be.true;
+        expect((await new E2EScript().codeEditor.existsText("GEOMETRYCOLLECTION"))).to.be.true;
         const treeItem = await openEditorsTreeSection.tree.getScript(new RegExp(sqlScript), constants.mysqlType);
         await (await openEditorsTreeSection.tree.getActionButton(treeItem, constants.closeEditor)).click();
 
@@ -149,7 +149,7 @@ describe("OPEN EDITORS", () => {
         const item = await openEditorsTreeSection.tree.getElement(globalConn.caption);
         await openEditorsTreeSection.tree.openContextMenuAndSelect(item, constants.newMySQLScript);
         await driver.wait(Workbench.untilCurrentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
-        expect((await new Script().toolbar.editorSelector.getCurrentEditor()).icon,
+        expect((await new E2EScript().toolbar.editorSelector.getCurrentEditor()).icon,
             `The current editor icon should be 'Mysql'`)
             .to.include(constants.mysqlScriptIcon);
         const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, constants.mysqlType);
@@ -162,7 +162,7 @@ describe("OPEN EDITORS", () => {
         const item = await openEditorsTreeSection.tree.getElement(globalConn.caption);
         await openEditorsTreeSection.tree.openContextMenuAndSelect(item, constants.newJS);
         await driver.wait(Workbench.untilCurrentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
-        expect((await new Script().toolbar.editorSelector.getCurrentEditor()).icon,
+        expect((await new E2EScript().toolbar.editorSelector.getCurrentEditor()).icon,
             `The current editor icon should be 'scriptJs'`)
             .to.include(constants.jsScriptIcon);
         const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, constants.jsType);
@@ -175,7 +175,7 @@ describe("OPEN EDITORS", () => {
         const item = await openEditorsTreeSection.tree.getElement(globalConn.caption);
         await openEditorsTreeSection.tree.openContextMenuAndSelect(item, constants.newTS);
         await driver.wait(Workbench.untilCurrentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
-        expect((await new Script().toolbar.editorSelector.getCurrentEditor()).icon,
+        expect((await new E2EScript().toolbar.editorSelector.getCurrentEditor()).icon,
             `The current editor icon should be 'scriptTs'`)
             .to.include(constants.tsScriptIcon);
         const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, constants.tsType);
@@ -215,7 +215,7 @@ describe("OPEN EDITORS", () => {
         const item = await openEditorsTreeSection.tree.getElement(constants.mysqlShellConsoles);
         await item.expand();
         await (await openEditorsTreeSection.tree.getElement("Session 1")).click();
-        await driver.wait(new E2EShellConsole().untilIsOpened(), constants.wait15seconds,
+        await driver.wait(new E2EShellConsole().untilIsOpened(globalConn), constants.wait15seconds,
             "Shell Console was not loaded");
         await Workbench.closeEditor(new RegExp(constants.mysqlShellConsoles));
     });
@@ -228,7 +228,7 @@ describe("OPEN EDITORS", () => {
             const treeDBConnections = await openEditorsTreeSection.tree.getElement(constants.dbConnectionsLabel);
             await openEditorsTreeSection.tree.openContextMenuAndSelect(treeDBConnections,
                 constants.openNewShellConsole);
-            await driver.wait(new E2EShellConsole().untilIsOpened(), constants.wait15seconds,
+            await driver.wait(new E2EShellConsole().untilIsOpened(globalConn), constants.wait15seconds,
                 "Shell Console was not loaded");
             await driver.wait(openEditorsTreeSection.tree.untilExists(`Session ${i}`), constants.wait5seconds);
             openedSessions.push(i);
