@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,11 +24,11 @@
  */
 
 import { WebElement, Condition, until } from "selenium-webdriver";
-import { driver } from "../driver.js";
-import * as constants from "../constants.js";
-import * as locator from "../locators.js";
+import { driver } from "../../Misc";
+import * as constants from "../../constants.js";
+import * as locator from "../../locators.js";
 import { E2ECommandResult } from "./E2ECommandResult.js";
-import * as interfaces from "../interfaces.js";
+import * as interfaces from "../../interfaces.js";
 
 const resultLocator = locator.notebook.codeEditor.editor.result;
 
@@ -128,7 +128,7 @@ export class E2ECommandResultData extends E2ECommandResult {
     public setText = async (): Promise<void> => {
         const resultLocator = locator.notebook.codeEditor.editor.result;
         const text = async (): Promise<string> => {
-            const words = await this.resultContext!.findElements(resultLocator.singleOutput.text.words);
+            const words = await this.resultContext.findElements(resultLocator.singleOutput.text.words);
 
             if (words.length > 1) {
                 let sentence = "";
@@ -170,12 +170,12 @@ export class E2ECommandResultData extends E2ECommandResult {
         const toolbarLocator = locator.notebook.codeEditor.editor.result.toolbar;
 
         await driver.wait(async () => {
-            status = await this.resultContext!.findElement(toolbarLocator.status.text);
+            status = await this.resultContext.findElement(toolbarLocator.status.text);
 
             return (await status.getAttribute("innerHTML")) !== "";
         }, constants.wait5seconds, `The status is empty for cmd ${this.command}`);
 
-        this.#status = await status!.getAttribute("innerHTML");
+        this.#status = await status.getAttribute("innerHTML");
     };
 
     /**
@@ -184,8 +184,8 @@ export class E2ECommandResultData extends E2ECommandResult {
      */
     public setJson = async (): Promise<void> => {
         const resultLocator = locator.notebook.codeEditor.editor.result;
-        const rawJson = await this.resultContext!.findElements(resultLocator.json.raw);
-        const prettyJson = await this.resultContext!.findElements(resultLocator.json.pretty);
+        const rawJson = await this.resultContext.findElements(resultLocator.json.raw);
+        const prettyJson = await this.resultContext.findElements(resultLocator.json.pretty);
 
         if (prettyJson.length > 0) {
             await this.setStatus();
@@ -204,7 +204,7 @@ export class E2ECommandResultData extends E2ECommandResult {
     public setGraph = async (): Promise<void> => {
         const resultLocator = locator.notebook.codeEditor.editor.result;
 
-        this.#graph = await this.resultContext!.findElement(resultLocator.graphHost.column);
+        this.#graph = await this.resultContext.findElement(resultLocator.graphHost.column);
     };
 
     /**
@@ -212,8 +212,8 @@ export class E2ECommandResultData extends E2ECommandResult {
      * @returns A promise resolving when the sql preview is set
      */
     public setPreview = async (): Promise<void> => {
-        const previewLink = await this.resultContext!.findElement(resultLocator.previewChanges.link);
-        const words = await this.resultContext!.findElements(resultLocator.previewChanges.words);
+        const previewLink = await this.resultContext.findElement(resultLocator.previewChanges.link);
+        const words = await this.resultContext.findElements(resultLocator.previewChanges.words);
         let previewText = "";
         for (const word of words) {
             previewText += (await word.getAttribute("innerHTML")).replace("&nbsp;", " ");
@@ -235,12 +235,12 @@ export class E2ECommandResultData extends E2ECommandResult {
         const resultLocator = locator.notebook.codeEditor.editor.result;
         const chatResultIsProcessed = (): Condition<boolean> => {
             return new Condition(` for the chat result to be processed for cmd ${this.command}`, async () => {
-                return (await this.resultContext!.findElements(resultLocator.chat.isProcessingResult)).length === 0;
+                return (await this.resultContext.findElements(resultLocator.chat.isProcessingResult)).length === 0;
             });
         };
 
         await driver.wait(chatResultIsProcessed(), constants.wait1minute);
-        const text = await this.resultContext!.findElement(resultLocator.chat.resultText);
+        const text = await this.resultContext.findElement(resultLocator.chat.resultText);
         this.#chat = await text.getText();
     };
 
@@ -249,10 +249,10 @@ export class E2ECommandResultData extends E2ECommandResult {
      * @returns A promise resolving when the button is clicked
      */
     public copyToClipboard = async (): Promise<void> => {
-        const output = await this.resultContext!
+        const output = await this.resultContext
             .findElement(locator.notebook.codeEditor.editor.result.singleOutput.exists);
         await driver.actions().move({ origin: output }).perform();
-        await this.resultContext!.findElement(locator.notebook.codeEditor.editor.result.singleOutput.copy).click();
+        await this.resultContext.findElement(locator.notebook.codeEditor.editor.result.singleOutput.copy).click();
     };
 
     /**
@@ -278,8 +278,8 @@ export class E2ECommandResultData extends E2ECommandResult {
      * @returns A promise resolving when the sql preview is clicked
      */
     public clickSqlPreviewContent = async (): Promise<void> => {
-        await driver.actions().move({ origin: this.preview!.link })
-            .doubleClick(this.preview!.link).perform();
+        await driver.actions().move({ origin: this.preview.link })
+            .doubleClick(this.preview.link).perform();
     };
 
 }

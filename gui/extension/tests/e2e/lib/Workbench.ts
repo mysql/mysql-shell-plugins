@@ -37,7 +37,7 @@ import * as locator from "./locators";
 import { Os } from "./Os";
 import { Misc, driver } from "./Misc";
 import * as errors from "../lib/errors";
-import { Toolbar } from "./WebViews/Toolbar";
+import { E2EToolbar } from "./WebViews/E2EToolbar";
 
 export let credentialHelperOk = true;
 
@@ -617,17 +617,56 @@ export class Workbench {
      */
     public static toggleSideBar = async (open: boolean): Promise<void> => {
         await Misc.switchBackToTopFrame();
+
+        const primarySidebar = await driver.findElement(locator.togglePrimarySideBar);
+
+        const isOpened = async (): Promise<boolean> => {
+            const primarySidebar = await driver.findElement(locator.togglePrimarySideBar);
+
+            return (await primarySidebar.getAttribute("aria-checked")).includes("true");
+        };
+
+        const untilIsOpened = (): Condition<boolean> => {
+            return new Condition("for Side Bar to be opened", async () => {
+                const primarySidebar = await driver.findElement(locator.togglePrimarySideBar);
+
+                return (await primarySidebar.getAttribute("aria-checked")).includes("true");
+            });
+        };
+
+        const untilIsClosed = (): Condition<boolean> => {
+            return new Condition("for Side Bar to be opened", async () => {
+                const primarySidebar = await driver.findElement(locator.togglePrimarySideBar);
+
+                return !(await primarySidebar.getAttribute("aria-checked")).includes("true");
+            });
+        };
+
         await driver.wait(async () => {
             try {
-                const primarySidebar = await driver.findElement(locator.togglePrimarySideBar);
-                const isOpened = (await primarySidebar.getAttribute("aria-checked")).includes("true");
                 if (open === true) {
-                    if (!isOpened) {
-                        await primarySidebar.click();
+                    if (!(await isOpened())) {
+                        await driver.wait(async () => {
+                            await primarySidebar.click();
+
+                            return driver.wait(untilIsOpened(), constants.wait1second)
+                                .then(() => { return true; })
+                                .catch(() => {
+                                    // continue
+                                });
+                        }, constants.wait3seconds, "Could not open the side bar");
                     }
                 } else {
-                    if (isOpened) {
-                        await primarySidebar.click();
+                    if (await isOpened()) {
+                        await driver.wait(async () => {
+                            await primarySidebar.click();
+
+                            return driver.wait(untilIsClosed(), constants.wait1second)
+                                .then(() => { return true; })
+                                .catch(() => {
+                                    // continue
+                                });
+                        }, constants.wait3seconds, "Could not close the side bar");
                     }
                 }
 
@@ -692,7 +731,7 @@ export class Workbench {
             await Misc.switchBackToTopFrame();
             await Misc.switchToFrame();
 
-            return ((await new Toolbar().editorSelector.getCurrentEditor()).label).match(editor) !== null;
+            return ((await new E2EToolbar().editorSelector.getCurrentEditor()).label).match(editor) !== null;
         });
     };
 

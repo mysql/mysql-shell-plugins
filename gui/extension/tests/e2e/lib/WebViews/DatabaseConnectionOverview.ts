@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,7 +26,7 @@ import { WebElement, until, Condition } from "vscode-extension-tester";
 import { driver, Misc } from "../Misc";
 import * as constants from "../constants";
 import * as locator from "../locators";
-import { Toolbar } from "./Toolbar";
+import { E2EToolbar } from "./E2EToolbar";
 import * as errors from "../errors";
 
 /**
@@ -35,7 +35,7 @@ import * as errors from "../errors";
 export class DatabaseConnectionOverview {
 
     /** The toolbar*/
-    public toolbar = new Toolbar();
+    public toolbar = new E2EToolbar();
 
     /**
      * Gets a Database connection from the DB Connection Overview

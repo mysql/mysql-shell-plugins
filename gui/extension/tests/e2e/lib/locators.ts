@@ -205,6 +205,13 @@ export const notebook = {
                     exists: By.className("tabAreaContainer"),
                     tab: By.css(".tabArea div.tabItem"),
                     body: By.className("tabArea"),
+                    contextMenu: {
+                        exists: By.css("#tabMenu .visible"),
+                        close: By.id("closeTab"),
+                        closeOthers: By.id("closeOthers"),
+                        closeRight: By.id("closeRight"),
+                        closeAll: By.id("closeAll"),
+                    },
                 },
                 graphHost: {
                     exists: By.className("graphHost"),
@@ -231,40 +238,6 @@ export const notebook = {
                 },
                 script: By.className("standaloneScriptHost"),
                 textOutput: By.css(".actionOutput span > span"),
-                /*cellContextMenu: {
-                    exists: By.css("#cellContextMenu .popup.visible"),
-                    capitalize: By.id("capitalizeMenuItem"),
-                    lowerCase: By.id("lowerCaseMenuItem"),
-                    upperCase: By.id("upperCaseMenuItem"),
-                    toggleForDeletion: By.id("deleteRowMenuItem"),
-                    copySingleRow: {
-                        exists: By.id("copyRowSubmenu"),
-                        subMenu: {
-                            exists: By.css("#copyRowSubmenu .popup.visible"),
-                            copyRow: By.id("copyRowMenuItem1"),
-                            copyRowWithNames: By.id("copyRowMenuItem2"),
-                            copyRowUnquoted: By.id("copyRowMenuItem3"),
-                            copyRowWithNamesUnquoted: By.id("copyRowMenuItem4"),
-                            copyRowWithNamesTabSeparated: By.id("copyRowMenuItem5"),
-                            copyRowTabSeparated: By.id("copyRowMenuItem6"),
-                        },
-                    },
-                    copyAllRows: {
-                        exists: By.id("copyRowsSubmenu"),
-                        subMenu: {
-                            exists: By.css("#copyRowsSubmenu .popup.visible"),
-                            copyAllRows: By.id("copyRowsMenuItem1"),
-                            copyAllRowsWithNames: By.id("copyRowsMenuItem2"),
-                            copyAllRowsUnquoted: By.id("copyRowsMenuItem3"),
-                            copyAllRowsWithNamesUnquoted: By.id("copyRowsMenuItem4"),
-                            copyAllRowsWithNamesTabSeparated: By.id("copyRowsMenuItem5"),
-                            copyAllRowsTabSeparated: By.id("copyRowsMenuItem6"),
-                        },
-                    },
-                    setFieldToNull: By.id("setNullMenuItem"),
-                    copyField: By.id("copyFieldMenuItem"),
-                    copyFieldUnquoted: By.id("copyFieldUnquotedMenuItem"),
-                },*/
                 chat: {
                     aboutInfo: By.className("aboutResultPanel"),
                     isProcessingResult: By.className("chatResultInfo"),

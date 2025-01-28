@@ -41,6 +41,7 @@ import * as interfaces from "../lib/interfaces";
 import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
 import { E2ENotebook } from "../lib/WebViews/E2ENotebook";
 import { TestQueue } from "../lib/TestQueue";
+import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
 
 let ociConfig: interfaces.IOciProfileConfig;
 let ociTree: RegExp[];
@@ -211,9 +212,10 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await opedEditorsTreeSection.tree.openContextMenuAndSelect(treeDBConnections,
                 constants.openNewShellConsole);
             const shellConsole = new E2EShellConsole();
-            await driver.wait(shellConsole.untilIsOpened(), constants.wait5seconds * 3, "Shell Console was not loaded");
-            await shellConsole.codeEditor.create();
-            const result = await shellConsole.codeEditor.execute("mds.get.currentCompartmentId()");
+            await driver.wait(shellConsole.untilIsOpened(),
+                constants.wait5seconds * 3, "Shell Console was not loaded");
+            const result = await shellConsole.codeEditor
+                .execute("mds.get.currentCompartmentId()") as E2ECommandResultData;
             expect(result.text).to.equal(compartmentId);
 
         });
@@ -315,9 +317,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 }
 
                 const notebook = new E2ENotebook();
-                await notebook.codeEditor.create();
                 const result = await notebook.codeEditor.execute("select version();");
-                expect(result.toolbar.status).to.match(/OK/);
+                expect(result.status).to.match(/OK/);
             } else {
                 await ociTreeSection.tree.openContextMenuAndSelect(treeDbSystem, constants.startDBSystem);
                 const ntf = await Workbench.getNotification("Are you sure you want to start the DB System", false);
@@ -463,9 +464,9 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await opedEditorsTreeSection.tree.openContextMenuAndSelect(treeDBConnections,
                 constants.openNewShellConsole);
             const shellConsole = new E2EShellConsole();
-            await driver.wait(shellConsole.untilIsOpened(), constants.wait15seconds, "Shell Console was not loaded");
-            await shellConsole.codeEditor.create();
-            const result = await shellConsole.codeEditor.execute("mds.get.currentBastionId()");
+            await driver.wait(shellConsole.untilIsOpened(),
+                constants.wait15seconds, "Shell Console was not loaded");
+            const result = await shellConsole.codeEditor.execute("mds.get.currentBastionId()") as E2ECommandResultData;
             expect(result.text).to.equal(bastionId);
 
         });
@@ -537,9 +538,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const notebook = new E2ENotebook();
             await driver.wait(notebook.untilIsOpened(localConn),
                 constants.wait25seconds, "MDS Connection was not opened");
-            await notebook.codeEditor.create();
             const result = await notebook.codeEditor.execute("select version();");
-            expect(result.toolbar.status).to.match(/OK/);
+            expect(result.status).to.match(/OK/);
 
         });
 

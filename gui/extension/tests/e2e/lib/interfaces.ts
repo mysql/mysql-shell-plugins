@@ -22,7 +22,6 @@
  */
 
 import { WebElement, Condition } from "selenium-webdriver";
-import { CommandResultGrid } from "./WebViews/CommandResultGrid";
 import { ExTester } from "vscode-extension-tester";
 
 export interface IE2ECli {
@@ -267,26 +266,6 @@ export interface IOciProfileConfig {
     tenancy?: string;
     region?: string;
     keyFile?: string;
-}
-
-export interface ICommandResult {
-    id?: string;
-    text?: string;
-    json?: string;
-    graph?: WebElement;
-    tabs?: ICommandResultTab[];
-    grid?: CommandResultGrid;
-    preview?: ICommandResultPreview;
-    toolbar?: ICommandResultToolbar;
-    context?: WebElement;
-    chat?: string;
-    isHWAboutInfo?: boolean;
-    copyToClipboard(): Promise<void>;
-    selectTab(name: string): Promise<void>;
-    clickSqlPreviewContent(): Promise<void>;
-    normalize(): Promise<void>;
-    untilIsMaximized(): Condition<boolean>;
-    heatWaveChatIsDisplayed(): Condition<boolean>;
 }
 
 export interface ICommandResultToolbar {

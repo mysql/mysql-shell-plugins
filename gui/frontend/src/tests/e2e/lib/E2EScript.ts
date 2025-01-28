@@ -93,11 +93,6 @@ export class E2EScript {
 
         await this.codeEditor.write(cmd);
         await (await this.toolbar.getButton(button))!.click();
-        //const id = searchOnExistingId ?? await this.codeEditor
-        //    .getNextResultId(this.codeEditor.resultIds[this.codeEditor.resultIds.length - 1]);
-        //const commandResult = new CommandResult(this.codeEditor, cmd, id);
-        //await commandResult.loadResult();
-        //this.codeEditor.resultIds.push(commandResult.id!);
 
         return this.codeEditor.buildResult(cmd, undefined);
     };
