@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -103,6 +103,7 @@ class MrsScriptModule {
         requestPath: "/helloUser",
         comments: "A simple test script that returns a personalized greeting and a timestamp.",
         rowOwnershipParameter: "userId",
+        grants: { privileges: "SELECT", schema: "mysql_rest_service_metadata", object: "mrs_user" },
     })
     public static async helloUser(userId: string): Promise<IMrsTimedGreeting> {
         const now = new Date();
@@ -123,12 +124,17 @@ class MrsScriptModule {
     @Mrs.script({
         requestPath: "/getMrsVersions",
         comments: "Returns the current version of both, the MRS metadata schema and the MRS user schema.",
+        grants: [
+            { privileges: "SELECT", schema: "mysql_rest_service_metadata", object: "schema_version" },
+            { privileges: "SELECT", schema: "mysql_rest_service_metadata", object: "mrs_user_schema_version" },
+        ],
     })
     public static async getMrsVersions(): Promise<IMrsSchemaVersions> {
         let versions: IMrsVersion[] = [];
 
         for (const view of ["schema_version", "mrs_user_schema_version"]) {
-            const rows = (await getSession().runSql(`SELECT major, minor, patch FROM mysql_rest_service_metadata.${view}`)).rows;
+            const rows = (await getSession().runSql(
+                `SELECT major, minor, patch FROM mysql_rest_service_metadata.${view}`)).rows;
             if (rows?.length > 0) {
                 const row = rows[0];
 

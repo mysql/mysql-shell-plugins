@@ -70,13 +70,22 @@ class MrsDdlListener(MRSListener):
     # Common handlers
 
     def enterJsonOptions(self, ctx):
-        self.mrs_object["options"] = ctx.jsonValue().getText()
+        try:
+            self.mrs_object["options"] = json.loads(ctx.jsonValue().getText())
+        except:
+            pass
 
     def enterAppOptions(self, ctx):
-        self.mrs_object["app_options"] = ctx.jsonValue().getText()
+        try:
+            self.mrs_object["app_options"] = json.loads(ctx.jsonValue().getText())
+        except:
+            pass
 
     def enterMetadata(self, ctx):
-        self.mrs_object["metadata"] = ctx.jsonValue().getText()
+        try:
+            self.mrs_object["metadata"] = json.loads(ctx.jsonValue().getText())
+        except:
+            pass
 
     def enterComments(self, ctx):
         self.mrs_object["comments"] = get_text_without_quotes(

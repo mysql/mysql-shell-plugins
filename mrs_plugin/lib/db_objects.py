@@ -381,16 +381,24 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     if not grant_privileges:
         raise ValueError("No valid CRUD Operation specified")
 
+    # Ensure that the explicit grants lookup with get does not fail
+    if options is None:
+        options = {}
+
     if db_object_type == "SCRIPT":
-        return db_object_id
+        return db_object_id, database.get_grant_statements_for_explicit_grants(
+            options.get("grants", None)
+        )
     else:
         return db_object_id, database.get_grant_statements(
-            session,
-            schema["name"],
-            db_object_name,
-            grant_privileges,
-            objects,
-            db_object_type,
+            session=session,
+            schema_name=schema["name"],
+            db_object_name=db_object_name,
+            grant_privileges=grant_privileges,
+            objects=objects,
+            db_object_type=db_object_type,
+            explicit_grants=options.get("grants", None),
+            disable_automatic_grants=options.get("disableAutomaticGrants", False),
         )
 
 
@@ -450,10 +458,16 @@ def update_db_objects(session, db_object_ids, value):
         database.revoke_all_from_db_object(
             session, schema["name"], db_object["name"], db_object["object_type"])
 
+        options = value.get("options", {})
+        # Ensure that the explicit grants lookup with get does not fail, when options actually stores None
+        if options is None:
+            options = {}
+
         # Grant privilege to the 'mysql_rest_service_data_provider' role
-        if grant_privileges:
-            database.grant_db_object(
-                session, schema.get("name"), db_object['name'], grant_privileges, objects, db_object["object_type"])
+        database.grant_db_object(
+            session, schema.get("name"), db_object['name'], grant_privileges, objects, db_object["object_type"],
+            explicit_grants=options.get("grants", None),
+            disable_automatic_grants=options.get("disableAutomaticGrants", False))
 
         if objects is not None:
             set_objects(session, db_object_id, objects)
@@ -693,7 +707,8 @@ def calculate_crud_operations(db_object_type, objects=None, options=None):
 
 def get_create_statement(session, db_object) -> str:
     executor = MrsDdlExecutor(session=session)
-    db_object_type = "VIEW" if db_object["object_type"] in ["TABLE", "VIEW"] else db_object["object_type"]
+    db_object_type = "VIEW" if db_object["object_type"] in [
+        "TABLE", "VIEW"] else db_object["object_type"]
 
     executor.showCreateRestDbObject({
         "current_operation": "SHOW CREATE REST DB_OBJECT",

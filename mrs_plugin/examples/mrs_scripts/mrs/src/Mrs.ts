@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -40,6 +40,24 @@ export type IMrsSchemaType = "DATABASE_SCHEMA" | "SCRIPT_MODULE";
 
 export type IMrsScriptResponseFormat = "FEED" | "ITEM" | "MEDIA";
 
+export type IMrsGrantPrivilegeType = "ALTER" | "ALTER ROUTINE" | "CREATE" | "CREATE ROUTINE"
+    | "CREATE TEMPORARY TABLES" | "CREATE VIEW" | "DELETE" | "DROP" | "EVENT" | "EXECUTE" | "INDEX" | "INSERT"
+    | "LOCK TABLES" | "REFERENCES" | "SELECT" | "SHOW DATABASES" | "SHOW VIEW" | "TRIGGER" | "UPDATE" | "USAGE";
+
+export type IMrsGrantObjectType = "TABLE" | "FUNCTION" | "PROCEDURE";
+
+export interface IMrsGrantPrivilege {
+    privilege: IMrsGrantPrivilegeType;
+    columnList?: string[];
+}
+
+export interface IMrsGrant {
+    privileges?: IMrsGrantPrivilegeType | IMrsGrantPrivilegeType[] | IMrsGrantPrivilege[],
+    objectType?: IMrsGrantObjectType,
+    schema: string,
+    object: string,
+}
+
 export interface IMrsSchemaProperties {
     className?: string;
     name?: string;
@@ -52,6 +70,7 @@ export interface IMrsSchemaProperties {
     metadata?: IDictionary;
     type?: IMrsSchemaType;
     outputFilePath?: string;
+    grants?: IMrsGrant | IMrsGrant[];
 }
 
 export interface IMrsMethodProperties {
@@ -62,6 +81,7 @@ export interface IMrsMethodProperties {
     rowOwnershipParameter?: string;
     options?: IDictionary;
     comments?: string;
+    grants?: IMrsGrant | IMrsGrant[];
 }
 
 export interface IMrsScriptProperties extends IMrsMethodProperties {
