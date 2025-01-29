@@ -91,6 +91,10 @@ interface IResultTimer {
     results: Array<[IExecutionResult, IResponseDataOptions]>;
 }
 
+type QueryResult = {
+    rows?: string[][];
+};
+
 /**
  * Just the minimal information about existing editors.
  */
@@ -1009,6 +1013,46 @@ Execute \\help or \\? for help;`;
         return Promise.resolve(true);
     };
 
+    private static shiftMLEStacktraceLineNumbers = (stackTrace: QueryResult, jsStartLine: number): string | undefined => {
+        if (stackTrace?.rows && stackTrace.rows.length > 0) {
+            const stackTraceRow = stackTrace.rows[0][0];
+
+            if (stackTraceRow) {
+                let rowValue = stackTraceRow.split("\n").filter((val) => { return val !== ""; });
+
+                if (rowValue.length > 50) {
+                    rowValue = rowValue.slice(0, 50);
+                }
+
+                for (let index = 0; index < rowValue.length; index++) {
+                    // Keep same line numbers for stacktrace lines that contain /mysql/sql or ml
+                    if (rowValue[index].includes("/mysql/sql") || rowValue[index].includes("/mysql/ml")) {
+                        continue;
+                    }
+
+                    // Extract the line number and offset it with jsStartLine
+                    const rowInfo = rowValue[index].split(":");
+
+                    // Check if this is a multiline error
+                    if (!rowInfo[1].includes("-")) {
+                        rowInfo[1] = `${Number(rowInfo[1]) + jsStartLine}`;
+                    } else {
+                        const multiLineError = rowInfo[1].split("-").map((val) => {
+                            return `${Number(val) + jsStartLine}`;
+                        });
+
+                        rowInfo[1] = multiLineError.join("-");
+                    }
+
+                    rowValue[index] = rowInfo.join(":");
+                }
+
+                return `Exception Stack Trace: \n${rowValue.join("\n")}`.trim();
+            }
+        }
+        return undefined;
+    }
+
     /**
      * Called for SQL code from a code editor. All result sets start at 0 offset in this scenario.
      *
@@ -1036,6 +1080,7 @@ Execute \\help or \\? for help;`;
         let statementCount = 0;
         let errorCount = 0;
         const startTime = Date.now();
+        let jsStartLine = 0;
 
         if (options.source) {
             const sql = (await context.getStatementAtPosition(options.source))?.text;
@@ -1063,49 +1108,102 @@ Execute \\help or \\? for help;`;
                         options, statement.text);
                 } catch (e) {
                     errorCount += 1;
+                    if (savedState.mleEnabled) {
+                        // currentStatement is the one calling the procedure/function
+                        const currentStatement = nonEmptyStatements.indexOf(statement);
+                        // Assume that before the call is the routine definition, hence - 1
+                        const jsDefinitionStatements = nonEmptyStatements[currentStatement - 1]?.text.split("\n") || [];
+
+                        // Find the line where the js body starts
+                        // This line contains $ from AS $...$
+                        for (const jsDefinitionStatement of jsDefinitionStatements) {
+                            ++jsStartLine;
+                            if (jsDefinitionStatement.includes("$")) {
+                                break;
+                            }
+                        }
+                    }
                     if (stopOnErrors) {
                         break;
                     } // Else ignore the error and continue.
                 }
-
             }
         }
 
-        // If MLE is enabled, collect all console.log() output and all errors.
+        // If MLE is enabled, collect all stack trace, console.log() output and all errors.
         if (savedState.mleEnabled) {
-            const consoleLog = await connection.backend.execute(`SELECT mle_session_state("stdout")`);
-            if (consoleLog && consoleLog.rows && consoleLog.rows.length > 0
-                && (consoleLog.rows[0] as string[])[0] !== "") {
-                for (const row of consoleLog.rows) {
-                    const outString = String((row as string[])[0]);
-                    void await context.addResultData({
-                        type: "text",
-                        text: [{
-                            type: MessageType.Info,
-                            index: -1,
-                            content: outString.trim() + "\n",
-                            language: "json",
-                        }],
-                    }, { resultId: "" });
+            const resultData: ITextResultEntry[] = [];
+
+            try {
+                const stackTrace: QueryResult = await connection?.backend?.execute(
+                    `SELECT mle_session_state("stack_trace")`) as QueryResult;
+
+                const updatedStacktrace = ConnectionTab.shiftMLEStacktraceLineNumbers(stackTrace, jsStartLine);
+
+                if (updatedStacktrace) {
+                    resultData.push({
+                        type: MessageType.Error,
+                        index: -1,
+                        content: updatedStacktrace + "\n",
+                        language: "ini",
+                    });
                 }
+            } catch (error) {
+                console.error("Error while getting stack trace:\n " + String(error));
             }
 
-            const stackTrace = await connection?.backend?.execute(`SELECT mle_session_state("stack_trace")`);
-            if (stackTrace && stackTrace.rows && stackTrace.rows.length > 0
-                && (stackTrace.rows[0] as string[])[0] !== "") {
-                for (const row of stackTrace.rows) {
-                    const outString = String((row as string[])[0]);
-                    void await context.addResultData({
-                        type: "text",
-                        text: [{
-                            type: MessageType.Error,
-                            index: -1,
-                            content: outString.replace("<js> ", "Exception Stack Trace: ").trim() + "\n",
-                            language: "ini",
-                        }],
-                    }, { resultId: "" });
+            try {
+                const consoleLog: QueryResult = await connection.backend.execute(
+                    `SELECT mle_session_state("stdout")`) as QueryResult;
+
+                if (consoleLog?.rows && consoleLog.rows.length > 0) {
+                    const consoleLogRow = consoleLog.rows[0][0];
+
+                    if (consoleLogRow) {
+                        for (const row of consoleLog.rows) {
+                            const consoleLogInfo: string = `${row[0]}`.trim();
+
+                            resultData.push({
+                                type: MessageType.Info,
+                                index: -1,
+                                content: consoleLogInfo + "\n",
+                                language: "json",
+                            });
+                        }
+                    }
                 }
+            } catch (error) {
+                console.error("Error while getting console log:\n " + String(error));
             }
+
+            try {
+                const consoleError: QueryResult = await connection.backend?.execute(
+                    `SELECT mle_session_state("stderr")`) as QueryResult;
+
+                if (consoleError?.rows && consoleError.rows.length > 0) {
+                    const consoleErrorRow = consoleError.rows[0][0];
+
+                    if (consoleErrorRow) {
+                        for (const row of consoleError.rows) {
+                            const consoleErrorInfo: string = `${row[0]}`.trim();
+
+                            resultData.push({
+                                type: MessageType.Warning,
+                                index: -1,
+                                content: consoleErrorInfo + "\n",
+                                language: "json",
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Error while getting console error:\n " + String(error));
+            }
+
+            void await context.addResultData({
+                type: "text",
+                text: resultData,
+            }, { resultId: uuid() });
         }
 
         const activeEditor = this.findActiveEditor();
