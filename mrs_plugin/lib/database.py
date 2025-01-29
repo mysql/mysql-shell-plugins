@@ -25,7 +25,14 @@
 Module that deals with the "real" database schema instead of the MRS objects
 """
 
+import json
 from mrs_plugin.lib import core
+import traceback
+
+
+def quote_identifier(identifier):
+    return f"`{identifier.replace('`', '``')}`"
+
 
 def get_schemas(session, ignore_system_schemas=True):
     ignore = ['.%', 'mysql_%', 'mysql'] if ignore_system_schemas else []
@@ -97,7 +104,6 @@ def get_db_object(session, schema_name, db_object_name, db_object_type):
                                   "ROUTINE_TYPE='FUNCTION'", "ROUTINE_NAME=?"]
                            ).exec(session, [schema_name, db_object_name]).first
 
-
     raise ValueError('Invalid db_object_type. Only valid types are '
                      'TABLE, VIEW, PROCEDURE, FUNCTION and SCHEMA.')
 
@@ -161,7 +167,8 @@ def get_db_function_return_type(session, db_schema_name, db_object_name):
             AND ROUTINE_NAME = ?
     """
 
-    row = core.MrsDbExec(sql).exec(session, [db_schema_name, db_object_name]).first
+    row = core.MrsDbExec(sql).exec(
+        session, [db_schema_name, db_object_name]).first
 
     return row["DATA_TYPE"] if row else None
 
@@ -204,7 +211,8 @@ def get_tables_used_in_view_including_required_grants(
         WHERE VIEW_SCHEMA = ? AND VIEW_NAME = ?
     """
 
-    rows = core.MrsDbExec(sql).exec(session, [schema_name, db_object_name]).items
+    rows = core.MrsDbExec(sql).exec(
+        session, [schema_name, db_object_name]).items
 
     return [
         (row["OBJ_NAME"], "TABLE", ["SELECT", "INSERT", "UPDATE", "DELETE"])
@@ -223,7 +231,8 @@ def get_routines_used_in_view_including_required_grants(
         WHERE t1.TABLE_SCHEMA = ? AND t1.TABLE_NAME = ?;
     """
 
-    rows = core.MrsDbExec(sql).exec(session, [schema_name, db_object_name]).items
+    rows = core.MrsDbExec(sql).exec(
+        session, [schema_name, db_object_name]).items
 
     return [(row["OBJ_NAME"], row["OBJ_TYPE"], ["EXECUTE"]) for row in rows]
 
@@ -243,59 +252,152 @@ def get_objects_used_in_view_including_required_grants(
     return objects_with_grants
 
 
-def get_grant_statements(session, schema_name, db_object_name, grant_privileges, objects, db_object_type=None):
+def verify_privilege(privilege):
+    valid_privileges = [
+        'ALTER', 'ALTER ROUTINE', 'CREATE', 'CREATE ROUTINE',
+        'CREATE TEMPORARY TABLES', 'CREATE VIEW', 'DELETE', 'DROP', 'EVENT', 'EXECUTE', 'INDEX', 'INSERT',
+        'LOCK TABLES', 'REFERENCES', 'SELECT', 'SHOW DATABASES', 'SHOW VIEW', 'TRIGGER', 'UPDATE', 'USAGE']
+    if privilege.upper() not in valid_privileges:
+        raise ValueError(
+            f'Invalid privilege {privilege} specified. Valid privileges are {", ".join(valid_privileges)}.')
+    return privilege
+
+
+def get_normalized_grant_privileges(privileges):
+    norm_privileges = []
+
+    if isinstance(privileges, str):
+        norm_privileges = [{
+            "privilege": verify_privilege(privileges),
+        }]
+    elif isinstance(privileges, list):
+        for priv in privileges:
+            if isinstance(priv, str):
+                norm_privileges.append({
+                    "privilege": verify_privilege(priv),
+                })
+            elif isinstance(priv, dict):
+                norm_privileges.append({
+                    "privilege": verify_privilege(priv.get("privilege")),
+                    "columnList": priv.get("columnList")
+                })
+
+    return norm_privileges
+
+
+def get_grant_statements_for_explicit_grants(grants):
+    if grants is None:
+        return []
+
+    # Normalize privileges
+    norm_grants = []
+    if isinstance(grants, dict):
+        norm_grants = [{
+            "object": grants.get("object"),
+            "schema": grants.get("schema"),
+            "objectType": grants.get("objectType", None),
+            "privileges": get_normalized_grant_privileges(grants.get("privileges"))
+        }]
+
+    elif isinstance(grants, list):
+        norm_grants = []
+        for grant in grants:
+            norm_grants.append({
+                "object": grant.get("object"),
+                "schema": grant.get("schema"),
+                "objectType": grant.get("objectType", None),
+                "privileges": get_normalized_grant_privileges(grant.get("privileges"))
+            })
+
+    # Build grant statements
+    grant_statements = []
+    for grant in norm_grants:
+        privileges = []
+        for privilege in grant["privileges"]:
+            if privilege.get("columnList", None) is not None:
+                privileges.append(privilege.get(
+                    "privilege") + " (" + ", ".join(privilege.get("columnList")) + ")")
+            else:
+                privileges.append(privilege.get("privilege"))
+
+        privileges = ", ".join(privileges)
+        object_type = grant.get("objectType", None)
+        if object_type not in ["PROCEDURE", "FUNCTION"]:
+            object_type = ""
+
+        grant_statements.append(
+            f"GRANT {privileges} ON {object_type}"
+            f"{quote_identifier(grant['schema'])}.{quote_identifier(grant['object'])} " +
+            "TO 'mysql_rest_service_data_provider'@'%'")
+
+    return grant_statements
+
+
+def get_grant_statements(
+        session, schema_name, db_object_name, grant_privileges, objects, db_object_type=None, explicit_grants=None,
+        disable_automatic_grants=False):
     # We can not grant/revoke the information_schema
     if schema_name.lower() == "information_schema":
         return []
 
-    # We can only grant select on the performance_schema
-    if schema_name.lower() == "performance_schema":
-        grant_privileges = ["SELECT"]
+    if grant_privileges and not disable_automatic_grants:
+        # We can only grant select on the performance_schema
+        if schema_name.lower() == "performance_schema":
+            grant_privileges = ["SELECT"]
 
-    if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION":
-        grant_privileges = ["EXECUTE"]
+        if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION":
+            grant_privileges = ["EXECUTE"]
 
-    db_objects = [(db_object_name, db_object_type, grant_privileges)]
+        db_objects = [(db_object_name, db_object_type, grant_privileges)]
 
-    # A view that executes in invoker security context can perform only operations for which the invoker has
-    # privileges. This means the MRS user needs the additional grants for the underlying tables.
-    if db_object_type == "VIEW" and stored_object_executes_as_invoker(
-        session, schema_name, db_object_name
-    ):
-        db_objects.extend(
-            [
-                (obj_name, obj_type, obj_grants)
-                for obj_name, obj_type, obj_grants in get_objects_used_in_view_including_required_grants(
-                    session, schema_name, db_object_name
-                )
-            ]
-        )
+        # A view that executes in invoker security context can perform only operations for which the invoker has
+        # privileges. This means the MRS user needs the additional grants for the underlying tables.
+        if db_object_type == "VIEW" and stored_object_executes_as_invoker(
+            session, schema_name, db_object_name
+        ):
+            db_objects.extend(
+                [
+                    (obj_name, obj_type, obj_grants)
+                    for obj_name, obj_type, obj_grants in get_objects_used_in_view_including_required_grants(
+                        session, schema_name, db_object_name
+                    )
+                ]
+            )
 
-    grants = [
-        f"""GRANT {','.join(obj_grants)}
-        ON {obj_type if obj_type == "PROCEDURE" or obj_type == "FUNCTION" else ''}
-        {schema_name}.{obj_name}
-        TO 'mysql_rest_service_data_provider'@'%'"""
-        for obj_name, obj_type, obj_grants in db_objects
-    ]
+        grants = [
+            f"""GRANT {','.join(obj_grants)}
+            ON {obj_type if obj_type == "PROCEDURE" or obj_type == "FUNCTION" else ''}
+            {quote_identifier(schema_name)}.{quote_identifier(obj_name)}
+            TO 'mysql_rest_service_data_provider'@'%'"""
+            for obj_name, obj_type, obj_grants in db_objects
+        ]
 
-    # If the object is not a procedure, also add all referenced tables and views
-    if db_object_type != "PROCEDURE" and db_object_type != "FUNCTION" and objects is not None:
-        for obj in objects:
-            for field in obj.get("fields"):
-                if (field.get("object_reference") and
-                    (field["object_reference"].get("unnest") or field["enabled"])):
-                    ref_table = (f'{field["object_reference"]["reference_mapping"]["referenced_schema"]}' +
-                        f'.{field["object_reference"]["reference_mapping"]["referenced_table"]}')
-                    grants.append(f"""GRANT {','.join(grant_privileges)}
-                        ON {ref_table}
-                        TO 'mysql_rest_service_data_provider'@'%'""")
+        # If the object is not a procedure, also add all referenced tables and views
+        if db_object_type != "PROCEDURE" and db_object_type != "FUNCTION" and objects is not None:
+            for obj in objects:
+                for field in obj.get("fields"):
+                    if (field.get("object_reference") and
+                            (field["object_reference"].get("unnest") or field["enabled"])):
+                        ref_table = (f'{field["object_reference"]["reference_mapping"]["referenced_schema"]}' +
+                                    f'.{field["object_reference"]["reference_mapping"]["referenced_table"]}')
+                        grants.append(f"""GRANT {','.join(grant_privileges)}
+                            ON {ref_table}
+                            TO 'mysql_rest_service_data_provider'@'%'""")
+    else:
+        grants = []
+
+    if explicit_grants is not None:
+        grants.extend(
+            get_grant_statements_for_explicit_grants(explicit_grants))
 
     return grants
 
 
-def grant_db_object(session, schema_name, db_object_name, grant_privileges, objects=None, db_object_type=None):
-    grants = get_grant_statements(session, schema_name, db_object_name, grant_privileges, objects, db_object_type)
+def grant_db_object(session, schema_name, db_object_name, grant_privileges, objects=None, db_object_type=None,
+                    explicit_grants=None, disable_automatic_grants=False):
+    grants = get_grant_statements(
+        session, schema_name, db_object_name, grant_privileges, objects, db_object_type,
+        explicit_grants, disable_automatic_grants)
     for grant in grants:
         session.run_sql(grant)
 
@@ -315,11 +417,13 @@ def revoke_all_from_db_object(session, schema_name, db_object_name, db_object_ty
     else:
         sql = f"""
             REVOKE IF EXISTS
-            {'EXECUTE ON PROCEDURE' if db_object_type == "PROCEDURE" else 'ALL PRIVILEGES ON'}
+            {'EXECUTE ON PROCEDURE' if db_object_type ==
+             "PROCEDURE" else 'ALL PRIVILEGES ON'}
             {schema_name}.{db_object_name}
             FROM 'mysql_rest_service_data_provider'@'%'
         """
     session.run_sql(sql)
+
 
 def get_table_columns_with_references(session, schema_name, db_object_name, db_object_type):
     sql = """
@@ -372,6 +476,7 @@ def get_object_fields_with_references(session, object_id, binary_formatter=None)
     """
 
     return core.MrsDbExec(sql, binary_formatter=binary_formatter).exec(session, [object_id]).items
+
 
 def crud_mapping(crud_operations):
     crud_to_grant_mapping = {

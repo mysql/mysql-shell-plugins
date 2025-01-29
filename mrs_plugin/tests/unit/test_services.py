@@ -666,5 +666,3 @@ def test_service_selection(phone_book, table_contents):
                                     include_all_objects=False, session=phone_book["session"])
 
             assert sql == item["result"]
-
-

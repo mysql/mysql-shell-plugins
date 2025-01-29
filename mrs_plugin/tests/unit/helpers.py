@@ -173,7 +173,7 @@ class SchemaCT(object):
 
 
 class ServiceCT(object):
-    def __init__(self, session, url_context_root, url_host_name, **kwargs):
+    def __init__(self, session, url_context_root, url_host_name=None, **kwargs):
         self._session = session
         self._args = kwargs
         self._args["url_context_root"] = url_context_root

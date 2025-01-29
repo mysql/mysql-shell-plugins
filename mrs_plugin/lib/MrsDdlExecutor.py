@@ -998,8 +998,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         full_path = f':"{name}"@"{authAppName}"'
         app_options = mrs_object.get("app_options", None)
         options = mrs_object.get("options", None)
-        if options:
-            options = json.loads(options)
 
         email = options.pop("email", None) if options else None
         vendor_user_id = options.pop("vendor_user_id", None) if options else None
@@ -1503,8 +1501,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         full_path = f':"{name}"@"{authAppName}"'
         app_options = mrs_object.get("app_options", None)
         options = mrs_object.get("options", None)
-        if options:
-            options = json.loads(options)
 
         email = options.pop("email", None) if options else None
         vendor_user_id = options.pop("vendor_user_id", None) if options else None

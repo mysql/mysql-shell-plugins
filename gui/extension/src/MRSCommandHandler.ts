@@ -994,8 +994,9 @@ export class MRSCommandHandler {
                                 },
                                 {
                                     requestType: "showMrsContentSetDialog", parameter: {
-                                        directory: "$open-api-ui$",
-                                        requestPath: "/openApi-Ui",
+                                        // eslint-disable-next-line no-template-curly-in-string
+                                        directory: "${openApiUi}",
+                                        requestPath: "/openApiUi",
                                     },
                                 },
                             ], "newConnection");

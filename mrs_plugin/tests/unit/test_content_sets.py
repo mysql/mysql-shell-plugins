@@ -26,9 +26,9 @@ import tempfile
 import json
 import mysqlsh
 
-from lib.core import MrsDbSession
+from lib.core import MrsDbSession, MrsDbExec
 from ... content_sets import *
-from .helpers import ContentSetCT, get_default_content_set_init, TableContents, string_replace
+from .helpers import ServiceCT, ContentSetCT, get_default_content_set_init, TableContents, string_replace
 
 def test_add_content_set(phone_book, table_contents):
     table_content_set = table_contents("content_set")
@@ -240,3 +240,26 @@ CREATE OR REPLACE REST CONTENT FILE "/somebinaryfile.bin"
     content_sets = lib.content_sets.get_content_sets(session, service_id)
     assert len(content_sets) == 1
 
+
+def test_auth_app_grant_options(phone_book, table_contents):
+    session = phone_book["session"]
+
+    with ServiceCT(session, "/myService2") as service_id:
+        session.run_sql("""
+            CREATE OR REPLACE REST CONTENT SET /mrsScriptsContent ON SERVICE /myService2
+            FROM './examples/mrs_scripts/' LOAD SCRIPTS""")
+
+        res = MrsDbExec("SHOW GRANTS FOR 'mysql_rest_service_data_provider'").exec(session).items
+
+        grants = [
+            "GRANT SELECT ON `mysql_rest_service_metadata`.`mrs_user` TO `mysql_rest_service_data_provider`@`%`",
+            "GRANT SELECT ON `mysql_rest_service_metadata`.`schema_version` TO `mysql_rest_service_data_provider`@`%`",
+            "GRANT SELECT ON `mysql_rest_service_metadata`.`mrs_user_schema_version` TO `mysql_rest_service_data_provider`@`%`",
+        ]
+        found = 0
+        for row in res:
+            key = next(iter(row))
+            if row[key] in grants:
+                found += 1
+
+        assert found == 3

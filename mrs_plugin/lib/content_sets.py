@@ -44,6 +44,10 @@ OPENAPI_DARK_CSS_URL = "https://github.com/Amoenus/SwaggerDark/releases/download
 MATCHING_CURLY_BRACKETS_REGEX = \
     r"({(?:(?:{(?:(?:{(?:(?:{(?:(?:{(?:(?:{(?:(?:{(?:(?:{(?:(?:{[^}{]*})|[^}{])*})|[^}{])*})|[^}{])*})|[^}{])*})|[^}{])*})|[^}{])*})|[^}{])*})|[^}{])*})"
 
+# Regex to match 9 levels of matching square brackets { }
+MATCHING_SQUARE_BRACKETS_REGEX = \
+    r"(\[(?:(?:\[(?:(?:\[(?:(?:\[(?:(?:\[(?:(?:\[(?:(?:\[(?:(?:\[(?:(?:\[[^\]\[]*\])|[^\]\[])*\])|[^\]\[])*\])|[^\]\[])*\])|[^\]\[])*\])|[^\]\[])*\])|[^\]\[])*\])|[^\]\[])*\])|[^\]\[])*\])"
+
 # Regex to match MRS schema decorator and class content
 TS_SCHEMA_DECORATOR_REGEX = \
     r"@Mrs\.(schema|module)\s*\(\s*{(.*?)}\)\s*class\s*([\w$]+)\s*" + \
@@ -53,8 +57,9 @@ TS_SCHEMA_DECORATOR_REGEX = \
 # e.g. name: "mrs_notes_scripts", enabled: true, triggerType: MrsScriptFunctionType.BeforeUpdate,
 TS_DECORATOR_PROPS_REGEX = \
     r"\s*(\w*)\s*:\s*((\"[^\"\\]*(?:\\.[^\"\\]*)*\")|(\'[^\'\\]*(?:\\.[^\'\\]*)*\')|(\`[^\`\\]*(?:\\.[^\`\\]*)*\`)|" + \
-    MATCHING_CURLY_BRACKETS_REGEX + \
-    r"|([\w\.]*))"
+    MATCHING_CURLY_BRACKETS_REGEX + "|" + \
+    MATCHING_SQUARE_BRACKETS_REGEX + "|" + \
+    r"([\w\.]*))"
 
 # Regex to match MRS script/trigger decorator and function content
 TS_SCRIPT_DECORATOR_REGEX = \
@@ -260,10 +265,17 @@ def get_content_set_count(session, service_id: bytes):
 def add_content_set(session, service_id, request_path, requires_auth=False, comments="", options=None, enabled=1,
                     content_dir=None, send_gui_message=None, service=None, ignore_list=None):
 
+    # Example usage:
+    # mysqlsh dba@localhost --sql -e "CREATE OR REPLACE REST CONTENT SET /mrsScriptsContent ON SERVICE /myService FROM '~/git/shell-plugins/mrs_plugin/examples/mrs_scripts/' LOAD SCRIPTS"
+
     core.Validations.request_path(request_path, session=session)
 
     if ignore_list is None:
         ignore_list = "*node_modules/*, */.*"
+
+    if content_dir is not None and os.path.isdir(os.path.expanduser(content_dir)) is False:
+        raise ValueError(
+            f"The given path {content_dir} does not exist.")
 
     contains_mrs_scripts = False
     if options is not None:
@@ -274,15 +286,16 @@ def add_content_set(session, service_id, request_path, requires_auth=False, comm
                 path=content_dir, ignore_list=ignore_list)
             if mrs_script_language is None:
                 raise ValueError(
-                    "The MRS scripting language has no been specified and cannot be detected.")
+                    "The MRS scripting language has not been specified and cannot be detected.")
 
-            options["mrs_scripts_folder_name"] = os.path.basename(os.path.normpath(content_dir))
+            options["mrs_scripts_folder_name"] = os.path.basename(
+                os.path.normpath(content_dir))
 
     # Check if the open_api_ui should be downloaded and if so, download it, extract and patch it and
     # update the content_dir to point to the temporary directory holding it
     open_api_ui = False
     if content_dir is not None:
-        if content_dir.lower() == "$open-api-ui$":
+        if content_dir.lower() == "${openApiUi}":
             open_api_ui = True
             content_dir = prepare_open_api_ui(
                 service=service, request_path=request_path, send_gui_message=send_gui_message)
@@ -532,20 +545,21 @@ def get_folder_mrs_scripts_language(path, ignore_list):
 def get_decorator_param_value(param_value):
     if param_value.startswith('"') or param_value.startswith("'") or param_value.startswith("`"):
         param_value = param_value[1:-1]
-    elif param_value.startswith("{"):
+    elif param_value.startswith("{") or param_value.startswith("["):
         # Make sure to match on a version of param_value with blanked out strings
         param_value_blanked = blank_quoted_js_strings(param_value)
 
         # Remove comma on last item if present
+        bracket_char = r"}" if param_value.startswith("{") else r"]"
 
         # Instead of a simple re.sub() perform the replacement on the original param_value, not the one with
         # blanked strings. Also, do the replacement from bottom up, since the chars are removed and the matched
         # positions would get out of sync with the original param_value
-        matches = re.finditer(r",\s*}", param_value_blanked,
+        matches = re.finditer(r",\s*" + bracket_char, param_value_blanked,
                               re.MULTILINE | re.DOTALL)
         for match in reversed(list(matches)):
             param_value = param_value[0:match.start(
-            )] + "}" + param_value[match.end():]
+            )] + bracket_char + param_value[match.end():]
 
         # since the original param_value was changed, get a new blanked version
         param_value_blanked = blank_quoted_js_strings(param_value)
@@ -1029,7 +1043,7 @@ def is_common_build_folder(dir):
 
 def is_common_static_content_folder(dir):
     if (dir.lower() == "static" or dir.lower() == "assets" or dir.lower() == "media" or dir.lower() == "web"
-        or dir.lower() == "js" or dir.lower() == "css" or dir.lower() == "images"):
+            or dir.lower() == "js" or dir.lower() == "css" or dir.lower() == "images"):
         return True
 
     return False
@@ -1220,7 +1234,8 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
                 })
 
     if language == "TypeScript" and build_folder is None:
-        raise Exception("The projects build directory was not found. Please build the project before adding the content set.")
+        raise Exception(
+            "The projects build directory was not found. Please build the project before adding the content set.")
 
     if len(code_files) == 0:
         if send_gui_message is not None:
@@ -1287,6 +1302,14 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
             send_gui_message(
                 "info", f"Creating new REST schema `{name}` at {request_path} ...")
 
+            # Add the grants for the given module to the options
+            options = get_mrs_script_property(properties, "options", None)
+            grants = get_mrs_script_property(properties, "grants", None)
+            if grants is not None:
+                if options is None:
+                    options = {}
+                options["grants"] = grants
+
             schema_id = schemas.add_schema(
                 session=session, schema_name=name,
                 service_id=content_set["service_id"], request_path=request_path,
@@ -1294,7 +1317,7 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
                 internal=get_mrs_script_property(properties, "internal", True),
                 requires_auth=get_mrs_script_property(
                     properties, "requiresAuth", False),
-                options=get_mrs_script_property(properties, "options", None),
+                options=options,
                 metadata=get_mrs_script_property(properties, "metadata", None),
                 comments=get_mrs_script_property(properties, "comments", None),
                 schema_type="SCRIPT_MODULE",
@@ -1427,7 +1450,15 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
                 }
             })
 
-            db_object_id = db_objects.add_db_object(
+            # Add the grants for the given endpoint to the options
+            options = get_mrs_script_property(func_props, "options", None)
+            grants = get_mrs_script_property(func_props, "grants", None)
+            if grants is not None:
+                if options is None:
+                    options = {}
+                options["grants"] = grants
+
+            db_object_id, grants = db_objects.add_db_object(
                 session=session,
                 schema_id=schema["id"],
                 db_object_id=db_object_id,
@@ -1439,7 +1470,7 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
                 internal=get_mrs_script_property(func_props, "internal", True),
                 requires_auth=get_mrs_script_property(
                     func_props, "requiresAuth", True),
-                options=get_mrs_script_property(func_props, "options", None),
+                options=options,
                 metadata=get_mrs_script_property(func_props, "metadata", None),
                 comments=get_mrs_script_property(func_props, "comments", None),
                 crud_operation_format=get_mrs_script_property(
@@ -1465,7 +1496,8 @@ def update_scripts_from_content_set(session, content_set_id, language, content_d
                 }
             }).exec(session)
 
-            # Insert interfaces as object/object_field/object_reference
+            for grant in grants:
+                core.MrsDbExec(grant).exec(session)
 
         for trigger in script_module["triggers"]:
             print(f"{trigger["function_name"]=}")
@@ -1688,14 +1720,14 @@ def prepare_open_api_ui(service, request_path, send_gui_message=None) -> str:
             file2.write("\n#swagger-ui {\npadding-top: 20px;\n}\n")
             # Authorize Btn
             file2.write("\n.swagger-ui .scheme-container {\nposition: absolute;\nright: 0px;\ntop: 0px;\n"
-                "height: 58px;\npadding: 10px 0px;\nbackground: unset;\nbox-shadow: unset;\n}\n")
+                        "height: 58px;\npadding: 10px 0px;\nbackground: unset;\nbox-shadow: unset;\n}\n")
             file2.write(
                 "\n.swagger-ui .btn.authorize span {\npadding: 4px 10px 0 0;\n}\n")
             # Explore Area
             file2.write("\n.swagger-ui .topbar {\nbackground-color: unset;\npadding: 10px 0;\n"
-                "position: absolute;\ntop: 0px;\nright: 170px;\nwidth: 300px;\nfont-size: 0.75em;\n}\n")
+                        "position: absolute;\ntop: 0px;\nright: 170px;\nwidth: 300px;\nfont-size: 0.75em;\n}\n")
             file2.write("\n.swagger-ui .topbar .download-url-wrapper .download-url-button {\n"
-                "padding: 3px 10px 0px 10px;\nfont-size: 1.2em;\n}\n")
+                        "padding: 3px 10px 0px 10px;\nfont-size: 1.2em;\n}\n")
             file2.write("\n.swagger-ui .topbar .wrapper {\npadding: 0;\n}\n")
     # Delete dark css file
     pathlib.Path.unlink(swagger_ui_dark_css_path)

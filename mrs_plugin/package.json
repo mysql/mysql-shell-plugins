@@ -8,7 +8,8 @@
         "fix-rrd-svg-files": "scripts/fix_rrd_svg_files.sh",
         "update-html-docs": "scripts/generate_html_docs.sh",
         "run-grammar-test": "scripts/run_grammar_test.sh",
-        "prepare-static-content": "scripts/prepare_default_static_content.sh"
+        "prepare-static-content": "scripts/prepare_default_static_content.sh",
+        "run-pytest": "clear; mysqlsh --log-level=debug3 --verbose=4 --py -f run_tests.py #-k test_auth_app_grant_options"
     },
     "publisher": "Oracle",
     "devDependencies": {
