@@ -132,9 +132,8 @@ export class MrsBaseSession {
             method = method ?? "GET";
         }
 
-        const controller = new AbortController();
-        const timeoutTimer = setTimeout(() => { controller.abort(); }, timeout ?? this.defaultTimeout);
         let response;
+        const signal = AbortSignal.timeout(timeout ?? this.defaultTimeout);
 
         try {
             response = await fetch(`${this.serviceUrl ?? ""}${input}`, {
@@ -142,13 +141,22 @@ export class MrsBaseSession {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 headers: (this.accessToken !== undefined) ? { Authorization: "Bearer " + this.accessToken } : undefined,
                 body: (body !== undefined) ? JSON.stringify(body) : undefined,
-                signal: controller.signal,
+                signal,
             });
         } catch (e) {
-            throw new Error(`${errorMsg}\n\nPlease check if MySQL Router is running and the REST endpoint ` +
-                `${this.serviceUrl ?? ""}${input} does exist.\n\n${(e instanceof Error) ? e.message : String(e)}`);
-        } finally {
-            clearTimeout(timeoutTimer);
+            if (e instanceof Error) {
+                if (e.name === "TimeoutError" && signal.aborted) {
+                    throw new Error(`${errorMsg}\n\nRequest to endpoint ` +
+                        `${this.serviceUrl ?? ""}${input} timed out.`);
+                }
+                if (e.name === "TypeError" && e.message.includes("Failed to fetch")) {
+                    throw new Error(`${errorMsg}\n\nNetwork error during request to endpoint ` +
+                        `${this.serviceUrl ?? ""}${input}.\nPlease check if MySQL Router is running and its SSL ` +
+                        `certificates are valid.\n\n${e.message}`);
+                }
+            }
+            throw new Error(`${errorMsg}\n\nError during request to endpoint ` +
+                `${this.serviceUrl ?? ""}${input}.\n\n${(e instanceof Error) ? e.message : String(e)}`);
         }
 
         if (!response.ok && autoResponseCheck) {
