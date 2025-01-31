@@ -19,6 +19,7 @@ from .mrs_base_classes import (
     AuthenticateOptions,
     AuthAppNotFoundError,
     MrsAuthenticate,
+    MrsDeauthenticate,
     # --- importAuthenticateOnlyEnd
     # --- importCreateOnlyStart
     MrsBaseObjectCreate,
@@ -353,6 +354,7 @@ class ${service_class_name}(MrsBaseService):
         super().__init__(
             service_url="${service_url}",
             auth_path="/authentication/login",
+            deauth_path="/authentication/logout",
         )
         # --- schemaLoopStart
         self.${schema_name} = ${schema_class_name}(service=self, request_path=self._service_url)
@@ -379,4 +381,11 @@ class ${service_class_name}(MrsBaseService):
         )
 
         await request.submit()
+
+    async def deauthenticate(self) -> None:
+        request = MrsDeauthenticate(
+            service=self,
+            request_path=f"{self._service_url}{self._deauth_path}"
+        )
+        return await request.submit()
     # --- serviceAuthenticateEnd

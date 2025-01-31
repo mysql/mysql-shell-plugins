@@ -2511,6 +2511,7 @@ Reference
                 namespace:</p>
                 <ul>
                 <li><a href="#authenticate">authenticate</a></li>
+                <li><a href="#deauthenticate">deauthenticate</a></li>
                 </ul>
                 <h3 data-number="9.1.1" id="authenticate"><span
                 class="header-section-number">9.1.1</span>
@@ -2597,6 +2598,56 @@ Reference
 <span id="cb61-13"><a href="#cb61-13" aria-hidden="true" tabindex="-1"></a><span class="co"># E.g., calling a function</span></span>
 <span id="cb61-14"><a href="#cb61-14" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.hello_func(name<span class="op">=</span><span class="st">&quot;Rui&quot;</span>)</span>
 <span id="cb61-15"><a href="#cb61-15" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; Hello, Rui!</span></span></code></pre></div>
+                <h3 data-number="9.1.2" id="deauthenticate"><span
+                class="header-section-number">9.1.2</span>
+                deauthenticate</h3>
+                <p><code>deauthenticate</code> is a service-level
+                command that logs you out from authenticated MySQL REST
+                Services.</p>
+                <h4 data-number="9.1.2.1"
+                id="options-deauthenticate"><span
+                class="header-section-number">9.1.2.1</span> Options
+                (deauthenticate)</h4>
+                <p><code>None</code>.</p>
+                <h4 data-number="9.1.2.2"
+                id="return-type-deauthenticate"><span
+                class="header-section-number">9.1.2.2</span> Return Type
+                (deauthenticate)</h4>
+                <p><code>None</code>.</p>
+                <h4 data-number="9.1.2.3"
+                id="raises-deauthenticate"><span
+                class="header-section-number">9.1.2.3</span> Raises
+                (deauthenticate)</h4>
+                <p><code>ServiceNotAuthenticatedError</code> if no user
+                is currently authenticated.</p>
+                <h4 data-number="9.1.2.4"
+                id="example-deauthenticate"><span
+                class="header-section-number">9.1.2.4</span> Example
+                (deauthenticate)</h4>
+                <div class="sourceCode" id="cb62"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Log in - `authenticate` will account for authentication</span></span>
+<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a> <span class="cf">await</span> my_service.authenticate(</span>
+<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a>    app_name<span class="op">=</span><span class="st">&quot;$</span><span class="sc">{app_name}</span><span class="st">&quot;</span>,</span>
+<span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a>    user<span class="op">=</span><span class="st">&quot;Lucas&quot;</span>,</span>
+<span id="cb62-9"><a href="#cb62-9" aria-hidden="true" tabindex="-1"></a>    password<span class="op">=</span><span class="st">&quot;S3cr3t&quot;</span></span>
+<span id="cb62-10"><a href="#cb62-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb62-11"><a href="#cb62-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-12"><a href="#cb62-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Call a function</span></span>
+<span id="cb62-13"><a href="#cb62-13" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.hello_func(name<span class="op">=</span><span class="st">&quot;Oscar&quot;</span>)</span>
+<span id="cb62-14"><a href="#cb62-14" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; Hello, Oscar!</span></span>
+<span id="cb62-15"><a href="#cb62-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-16"><a href="#cb62-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Log out</span></span>
+<span id="cb62-17"><a href="#cb62-17" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> my_service.deauthenticate()</span>
+<span id="cb62-18"><a href="#cb62-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-19"><a href="#cb62-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Calling the function again - you should get an HTTP 401 (Unauthorized) error</span></span>
+<span id="cb62-20"><a href="#cb62-20" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.hello_func(name<span class="op">=</span><span class="st">&quot;Rui&quot;</span>)</span>
+<span id="cb62-21"><a href="#cb62-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-22"><a href="#cb62-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Log out again - you should get an `ServiceNotAuthenticatedError` exception</span></span>
+<span id="cb62-23"><a href="#cb62-23" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> my_service.deauthenticate()</span></code></pre></div>
                 <h2 data-number="9.2" id="rest-schemas"><span
                 class="header-section-number">9.2</span> REST
                 Schemas</h2>
@@ -2668,20 +2719,20 @@ Reference
                 <h4 data-number="9.3.1.3" id="example-create"><span
                 class="header-section-number">9.3.1.3</span> Example
                 (create)</h4>
-                <div class="sourceCode" id="cb62"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
-<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>actor: Actor <span class="op">=</span> <span class="cf">await</span> my_service.sakila.actor.create(</span>
-<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>{</span>
-<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;FOO&quot;</span>,</span>
-<span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;BAR&quot;</span>,</span>
-<span id="cb62-9"><a href="#cb62-9" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb62-10"><a href="#cb62-10" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb62-11"><a href="#cb62-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-12"><a href="#cb62-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actor)</span>
-<span id="cb62-13"><a href="#cb62-13" aria-hidden="true" tabindex="-1"></a><span class="co"># IMyServiceSakilaActor(actor_id=35000, first_name=&#39;FOO&#39;, last_name=&#39;BAR&#39;, last_update=&#39;2024-06-04 10:14:33.000000&#39;)</span></span></code></pre></div>
+                <div class="sourceCode" id="cb63"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>actor: Actor <span class="op">=</span> <span class="cf">await</span> my_service.sakila.actor.create(</span>
+<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>{</span>
+<span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;FOO&quot;</span>,</span>
+<span id="cb63-8"><a href="#cb63-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;BAR&quot;</span>,</span>
+<span id="cb63-9"><a href="#cb63-9" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb63-10"><a href="#cb63-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb63-11"><a href="#cb63-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-12"><a href="#cb63-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actor)</span>
+<span id="cb63-13"><a href="#cb63-13" aria-hidden="true" tabindex="-1"></a><span class="co"># IMyServiceSakilaActor(actor_id=35000, first_name=&#39;FOO&#39;, last_name=&#39;BAR&#39;, last_update=&#39;2024-06-04 10:14:33.000000&#39;)</span></span></code></pre></div>
                 <p>The <code>actor_id</code> and
                 <code>last_update</code> columns from the
                 <code>sakila</code> table on the sample <a
@@ -2746,39 +2797,39 @@ Reference
                 <h4 data-number="9.3.2.3" id="example-create_many"><span
                 class="header-section-number">9.3.2.3</span> Example
                 (create_many)</h4>
-                <div class="sourceCode" id="cb63"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
-<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>actors: <span class="bu">list</span>[Actor] <span class="op">=</span> <span class="cf">await</span> my_service.sakila.actor.create_many(</span>
-<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>[</span>
-<span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a>        {</span>
-<span id="cb63-8"><a href="#cb63-8" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;FOO&quot;</span>,</span>
-<span id="cb63-9"><a href="#cb63-9" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;BAR&quot;</span>,</span>
-<span id="cb63-10"><a href="#cb63-10" aria-hidden="true" tabindex="-1"></a>        },</span>
-<span id="cb63-11"><a href="#cb63-11" aria-hidden="true" tabindex="-1"></a>        {</span>
-<span id="cb63-12"><a href="#cb63-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;OOF&quot;</span>,</span>
-<span id="cb63-13"><a href="#cb63-13" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;RAB&quot;</span>,</span>
-<span id="cb63-14"><a href="#cb63-14" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb63-15"><a href="#cb63-15" aria-hidden="true" tabindex="-1"></a>    ]</span>
-<span id="cb63-16"><a href="#cb63-16" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb63-17"><a href="#cb63-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb63-18"><a href="#cb63-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actors)</span>
-<span id="cb63-19"><a href="#cb63-19" aria-hidden="true" tabindex="-1"></a><span class="co"># [</span></span>
-<span id="cb63-20"><a href="#cb63-20" aria-hidden="true" tabindex="-1"></a><span class="co">#     IMyServiceSakilaActor(</span></span>
-<span id="cb63-21"><a href="#cb63-21" aria-hidden="true" tabindex="-1"></a><span class="co">#         actor_id=35000,</span></span>
-<span id="cb63-22"><a href="#cb63-22" aria-hidden="true" tabindex="-1"></a><span class="co">#         first_name=&#39;FOO&#39;,</span></span>
-<span id="cb63-23"><a href="#cb63-23" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_name=&#39;BAR&#39;,</span></span>
-<span id="cb63-24"><a href="#cb63-24" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_update=&#39;2024-06-04 10:14:33.000000&#39;</span></span>
-<span id="cb63-25"><a href="#cb63-25" aria-hidden="true" tabindex="-1"></a><span class="co">#     ),</span></span>
-<span id="cb63-26"><a href="#cb63-26" aria-hidden="true" tabindex="-1"></a><span class="co">#     IMyServiceSakilaActor(</span></span>
-<span id="cb63-27"><a href="#cb63-27" aria-hidden="true" tabindex="-1"></a><span class="co">#         actor_id=36000,</span></span>
-<span id="cb63-28"><a href="#cb63-28" aria-hidden="true" tabindex="-1"></a><span class="co">#         first_name=&#39;OOF&#39;,</span></span>
-<span id="cb63-29"><a href="#cb63-29" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_name=&#39;RAB&#39;,</span></span>
-<span id="cb63-30"><a href="#cb63-30" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_update=&#39;2024-08-04 10:14:33.000000&#39;</span></span>
-<span id="cb63-31"><a href="#cb63-31" aria-hidden="true" tabindex="-1"></a><span class="co">#     )</span></span>
-<span id="cb63-32"><a href="#cb63-32" aria-hidden="true" tabindex="-1"></a><span class="co"># ]</span></span></code></pre></div>
+                <div class="sourceCode" id="cb64"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb64-4"><a href="#cb64-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb64-5"><a href="#cb64-5" aria-hidden="true" tabindex="-1"></a>actors: <span class="bu">list</span>[Actor] <span class="op">=</span> <span class="cf">await</span> my_service.sakila.actor.create_many(</span>
+<span id="cb64-6"><a href="#cb64-6" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>[</span>
+<span id="cb64-7"><a href="#cb64-7" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb64-8"><a href="#cb64-8" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;FOO&quot;</span>,</span>
+<span id="cb64-9"><a href="#cb64-9" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;BAR&quot;</span>,</span>
+<span id="cb64-10"><a href="#cb64-10" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb64-11"><a href="#cb64-11" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb64-12"><a href="#cb64-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;OOF&quot;</span>,</span>
+<span id="cb64-13"><a href="#cb64-13" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;RAB&quot;</span>,</span>
+<span id="cb64-14"><a href="#cb64-14" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb64-15"><a href="#cb64-15" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb64-16"><a href="#cb64-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb64-17"><a href="#cb64-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb64-18"><a href="#cb64-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actors)</span>
+<span id="cb64-19"><a href="#cb64-19" aria-hidden="true" tabindex="-1"></a><span class="co"># [</span></span>
+<span id="cb64-20"><a href="#cb64-20" aria-hidden="true" tabindex="-1"></a><span class="co">#     IMyServiceSakilaActor(</span></span>
+<span id="cb64-21"><a href="#cb64-21" aria-hidden="true" tabindex="-1"></a><span class="co">#         actor_id=35000,</span></span>
+<span id="cb64-22"><a href="#cb64-22" aria-hidden="true" tabindex="-1"></a><span class="co">#         first_name=&#39;FOO&#39;,</span></span>
+<span id="cb64-23"><a href="#cb64-23" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_name=&#39;BAR&#39;,</span></span>
+<span id="cb64-24"><a href="#cb64-24" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_update=&#39;2024-06-04 10:14:33.000000&#39;</span></span>
+<span id="cb64-25"><a href="#cb64-25" aria-hidden="true" tabindex="-1"></a><span class="co">#     ),</span></span>
+<span id="cb64-26"><a href="#cb64-26" aria-hidden="true" tabindex="-1"></a><span class="co">#     IMyServiceSakilaActor(</span></span>
+<span id="cb64-27"><a href="#cb64-27" aria-hidden="true" tabindex="-1"></a><span class="co">#         actor_id=36000,</span></span>
+<span id="cb64-28"><a href="#cb64-28" aria-hidden="true" tabindex="-1"></a><span class="co">#         first_name=&#39;OOF&#39;,</span></span>
+<span id="cb64-29"><a href="#cb64-29" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_name=&#39;RAB&#39;,</span></span>
+<span id="cb64-30"><a href="#cb64-30" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_update=&#39;2024-08-04 10:14:33.000000&#39;</span></span>
+<span id="cb64-31"><a href="#cb64-31" aria-hidden="true" tabindex="-1"></a><span class="co">#     )</span></span>
+<span id="cb64-32"><a href="#cb64-32" aria-hidden="true" tabindex="-1"></a><span class="co"># ]</span></span></code></pre></div>
                 <p>The <code>actor_id</code> and
                 <code>last_update</code> columns from the
                 <code>sakila</code> table on the sample <a
@@ -2888,77 +2939,77 @@ Reference
                 (find_first)</h4>
                 <p>Consider the following generic usage snippet of
                 <code>find_first</code>:</p>
-                <div class="sourceCode" id="cb64"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
-<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb64-4"><a href="#cb64-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb64-5"><a href="#cb64-5" aria-hidden="true" tabindex="-1"></a>actor: Optional[Actor] <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_first(</span>
-<span id="cb64-6"><a href="#cb64-6" aria-hidden="true" tabindex="-1"></a>    select<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: <span class="va">False</span>},</span>
-<span id="cb64-7"><a href="#cb64-7" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">ED</span><span class="sc">%%</span><span class="st">&quot;</span>}},</span>
-<span id="cb64-8"><a href="#cb64-8" aria-hidden="true" tabindex="-1"></a>    .</span>
-<span id="cb64-9"><a href="#cb64-9" aria-hidden="true" tabindex="-1"></a>    .</span>
-<span id="cb64-10"><a href="#cb64-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+                <div class="sourceCode" id="cb65"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a>actor: Optional[Actor] <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_first(</span>
+<span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a>    select<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: <span class="va">False</span>},</span>
+<span id="cb65-7"><a href="#cb65-7" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">ED</span><span class="sc">%%</span><span class="st">&quot;</span>}},</span>
+<span id="cb65-8"><a href="#cb65-8" aria-hidden="true" tabindex="-1"></a>    .</span>
+<span id="cb65-9"><a href="#cb65-9" aria-hidden="true" tabindex="-1"></a>    .</span>
+<span id="cb65-10"><a href="#cb65-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
                 <p>In the following subsections, a small usage example
                 is included for each option.</p>
                 <h5 data-number="9.3.3.3.1" id="select-find_first"><span
                 class="header-section-number">9.3.3.3.1</span> Select
                 (find_first)</h5>
-                <div class="sourceCode" id="cb65"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Only include the fields specified (`list` use case)</span></span>
-<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>select<span class="op">=</span>[<span class="st">&quot;last_update&quot;</span>]</span>
-<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Only include the fields specified (`dict` use case)</span></span>
-<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a>select<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: <span class="va">True</span>}</span>
-<span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb65-7"><a href="#cb65-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Include all fields but the specified</span></span>
-<span id="cb65-8"><a href="#cb65-8" aria-hidden="true" tabindex="-1"></a>select<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: <span class="va">False</span>}</span></code></pre></div>
+                <div class="sourceCode" id="cb66"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Only include the fields specified (`list` use case)</span></span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>select<span class="op">=</span>[<span class="st">&quot;last_update&quot;</span>]</span>
+<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Only include the fields specified (`dict` use case)</span></span>
+<span id="cb66-5"><a href="#cb66-5" aria-hidden="true" tabindex="-1"></a>select<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: <span class="va">True</span>}</span>
+<span id="cb66-6"><a href="#cb66-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-7"><a href="#cb66-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Include all fields but the specified</span></span>
+<span id="cb66-8"><a href="#cb66-8" aria-hidden="true" tabindex="-1"></a>select<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: <span class="va">False</span>}</span></code></pre></div>
                 <h5 data-number="9.3.3.3.2" id="where-find_first"><span
                 class="header-section-number">9.3.3.3.2</span> Where
                 (find_first)</h5>
-                <div class="sourceCode" id="cb66"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Equality - these two are equivalent</span></span>
-<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: <span class="dv">3</span>}</span>
-<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;equals&quot;</span>: <span class="dv">3</span>}}</span>
-<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb66-5"><a href="#cb66-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Difference</span></span>
-<span id="cb66-6"><a href="#cb66-6" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: {<span class="st">&quot;ne&quot;</span>: <span class="st">&quot;Pacheco&quot;</span>}}</span>
-<span id="cb66-7"><a href="#cb66-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb66-8"><a href="#cb66-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Greater than</span></span>
-<span id="cb66-9"><a href="#cb66-9" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;gt&quot;</span>: <span class="dv">3</span>}}</span>
-<span id="cb66-10"><a href="#cb66-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb66-11"><a href="#cb66-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Greater than or equal</span></span>
-<span id="cb66-12"><a href="#cb66-12" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;gte&quot;</span>: <span class="dv">3</span>}}</span>
-<span id="cb66-13"><a href="#cb66-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb66-14"><a href="#cb66-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Lower than</span></span>
-<span id="cb66-15"><a href="#cb66-15" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;lt&quot;</span>: <span class="dv">3</span>}}</span>
-<span id="cb66-16"><a href="#cb66-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb66-17"><a href="#cb66-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Lower than or equal</span></span>
-<span id="cb66-18"><a href="#cb66-18" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;lte&quot;</span>: <span class="dv">3</span>}}</span>
-<span id="cb66-19"><a href="#cb66-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb66-20"><a href="#cb66-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Leads to a match when the field is not NULL.</span></span>
-<span id="cb66-21"><a href="#cb66-21" aria-hidden="true" tabindex="-1"></a><span class="co"># In this case, we would get documents where the</span></span>
-<span id="cb66-22"><a href="#cb66-22" aria-hidden="true" tabindex="-1"></a><span class="co"># field `last_update` is not NULL.</span></span>
-<span id="cb66-23"><a href="#cb66-23" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;last_updated&quot;</span>: {<span class="st">&quot;not&quot;</span>: <span class="va">None</span>}}</span>
-<span id="cb66-24"><a href="#cb66-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb66-25"><a href="#cb66-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Pattern</span></span>
-<span id="cb66-26"><a href="#cb66-26" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">ED</span><span class="sc">%%</span><span class="st">&quot;</span>}}</span>
-<span id="cb66-27"><a href="#cb66-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb66-28"><a href="#cb66-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Union of conditions</span></span>
-<span id="cb66-29"><a href="#cb66-29" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{</span>
-<span id="cb66-30"><a href="#cb66-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;AND&quot;</span>: [</span>
-<span id="cb66-31"><a href="#cb66-31" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;PENELOPE&quot;</span>},</span>
-<span id="cb66-32"><a href="#cb66-32" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;gte&quot;</span>: <span class="dv">3</span>}}</span>
-<span id="cb66-33"><a href="#cb66-33" aria-hidden="true" tabindex="-1"></a>    ]</span>
-<span id="cb66-34"><a href="#cb66-34" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb66-35"><a href="#cb66-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb66-36"><a href="#cb66-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Intersection of conditions</span></span>
-<span id="cb66-37"><a href="#cb66-37" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{</span>
-<span id="cb66-38"><a href="#cb66-38" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;OR&quot;</span>: [</span>
-<span id="cb66-39"><a href="#cb66-39" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;MICHAEL&quot;</span>},</span>
-<span id="cb66-40"><a href="#cb66-40" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;last_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">AB</span><span class="sc">%%</span><span class="st">&quot;</span>}}</span>
-<span id="cb66-41"><a href="#cb66-41" aria-hidden="true" tabindex="-1"></a>    ]</span>
-<span id="cb66-42"><a href="#cb66-42" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <div class="sourceCode" id="cb67"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Equality - these two are equivalent</span></span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: <span class="dv">3</span>}</span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;equals&quot;</span>: <span class="dv">3</span>}}</span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Difference</span></span>
+<span id="cb67-6"><a href="#cb67-6" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: {<span class="st">&quot;ne&quot;</span>: <span class="st">&quot;Pacheco&quot;</span>}}</span>
+<span id="cb67-7"><a href="#cb67-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-8"><a href="#cb67-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Greater than</span></span>
+<span id="cb67-9"><a href="#cb67-9" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;gt&quot;</span>: <span class="dv">3</span>}}</span>
+<span id="cb67-10"><a href="#cb67-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-11"><a href="#cb67-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Greater than or equal</span></span>
+<span id="cb67-12"><a href="#cb67-12" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;gte&quot;</span>: <span class="dv">3</span>}}</span>
+<span id="cb67-13"><a href="#cb67-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-14"><a href="#cb67-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Lower than</span></span>
+<span id="cb67-15"><a href="#cb67-15" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;lt&quot;</span>: <span class="dv">3</span>}}</span>
+<span id="cb67-16"><a href="#cb67-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-17"><a href="#cb67-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Lower than or equal</span></span>
+<span id="cb67-18"><a href="#cb67-18" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;lte&quot;</span>: <span class="dv">3</span>}}</span>
+<span id="cb67-19"><a href="#cb67-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-20"><a href="#cb67-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Leads to a match when the field is not NULL.</span></span>
+<span id="cb67-21"><a href="#cb67-21" aria-hidden="true" tabindex="-1"></a><span class="co"># In this case, we would get documents where the</span></span>
+<span id="cb67-22"><a href="#cb67-22" aria-hidden="true" tabindex="-1"></a><span class="co"># field `last_update` is not NULL.</span></span>
+<span id="cb67-23"><a href="#cb67-23" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;last_updated&quot;</span>: {<span class="st">&quot;not&quot;</span>: <span class="va">None</span>}}</span>
+<span id="cb67-24"><a href="#cb67-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-25"><a href="#cb67-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Pattern</span></span>
+<span id="cb67-26"><a href="#cb67-26" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">ED</span><span class="sc">%%</span><span class="st">&quot;</span>}}</span>
+<span id="cb67-27"><a href="#cb67-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-28"><a href="#cb67-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Union of conditions</span></span>
+<span id="cb67-29"><a href="#cb67-29" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{</span>
+<span id="cb67-30"><a href="#cb67-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;AND&quot;</span>: [</span>
+<span id="cb67-31"><a href="#cb67-31" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;PENELOPE&quot;</span>},</span>
+<span id="cb67-32"><a href="#cb67-32" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;actor_id&quot;</span>: {<span class="st">&quot;gte&quot;</span>: <span class="dv">3</span>}}</span>
+<span id="cb67-33"><a href="#cb67-33" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb67-34"><a href="#cb67-34" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb67-35"><a href="#cb67-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-36"><a href="#cb67-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Intersection of conditions</span></span>
+<span id="cb67-37"><a href="#cb67-37" aria-hidden="true" tabindex="-1"></a>where<span class="op">=</span>{</span>
+<span id="cb67-38"><a href="#cb67-38" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;OR&quot;</span>: [</span>
+<span id="cb67-39"><a href="#cb67-39" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;MICHAEL&quot;</span>},</span>
+<span id="cb67-40"><a href="#cb67-40" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;last_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">AB</span><span class="sc">%%</span><span class="st">&quot;</span>}}</span>
+<span id="cb67-41"><a href="#cb67-41" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb67-42"><a href="#cb67-42" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
                 <h5 data-number="9.3.3.3.3" id="skip-find_first"><span
                 class="header-section-number">9.3.3.3.3</span> Skip
                 (find_first)</h5>
@@ -2969,26 +3020,26 @@ Reference
                 as shown in <a href="#cursor-find_first">Cursor
                 Example</a>. Then, the <code>skip</code> option can be
                 used as follows:</p>
-                <div class="sourceCode" id="cb67"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>actor: Optional[Actor] <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_first(</span>
-<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">HA</span><span class="sc">%%</span><span class="st">&quot;</span>}}, skip<span class="op">=</span><span class="dv">2</span></span>
-<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> actor <span class="kw">is</span> <span class="va">None</span>:</span>
-<span id="cb67-6"><a href="#cb67-6" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="ss">f&quot;Actor not found&quot;</span>)</span>
-<span id="cb67-7"><a href="#cb67-7" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
-<span id="cb67-8"><a href="#cb67-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(actor.actor_id)</span></code></pre></div>
+                <div class="sourceCode" id="cb68"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>actor: Optional[Actor] <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_first(</span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">HA</span><span class="sc">%%</span><span class="st">&quot;</span>}}, skip<span class="op">=</span><span class="dv">2</span></span>
+<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> actor <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb68-6"><a href="#cb68-6" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="ss">f&quot;Actor not found&quot;</span>)</span>
+<span id="cb68-7"><a href="#cb68-7" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb68-8"><a href="#cb68-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(actor.actor_id)</span></code></pre></div>
                 <p>The printed actor ID would be <code>32</code>.</p>
                 <h5 data-number="9.3.3.3.4"
                 id="order-by-find_first"><span
                 class="header-section-number">9.3.3.3.4</span> Order By
                 (find_first)</h5>
-                <div class="sourceCode" id="cb68"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Descending order</span></span>
-<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>order_by<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;DESC&quot;</span>}</span>
-<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Ascending order</span></span>
-<span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a>order_by<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: <span class="st">&quot;ASC&quot;</span>}</span></code></pre></div>
+                <div class="sourceCode" id="cb69"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Descending order</span></span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>order_by<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;DESC&quot;</span>}</span>
+<span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Ascending order</span></span>
+<span id="cb69-5"><a href="#cb69-5" aria-hidden="true" tabindex="-1"></a>order_by<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: <span class="st">&quot;ASC&quot;</span>}</span></code></pre></div>
                 <h5 data-number="9.3.3.3.5" id="cursor-find_first"><span
                 class="header-section-number">9.3.3.3.5</span> Cursor
                 (find_first)</h5>
@@ -3000,56 +3051,56 @@ Reference
                 In the following snippet, only those records where
                 <code>last_name</code> matches the pattern
                 <code>%%HA%%</code> are shown:</p>
-                <div class="sourceCode" id="cb69"><pre
-                class="sourceCode json"><code class="sourceCode json"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;actorId&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
-<span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastName&quot;</span><span class="fu">:</span> <span class="er">...</span><span class="fu">,</span></span>
-<span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;firstName&quot;</span><span class="fu">:</span> <span class="er">...</span><span class="fu">,</span></span>
-<span id="cb69-5"><a href="#cb69-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span> <span class="er">...</span><span class="fu">,</span></span>
-<span id="cb69-6"><a href="#cb69-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span><span class="er">,</span></span>
-<span id="cb69-7"><a href="#cb69-7" aria-hidden="true" tabindex="-1"></a><span class="er">...,</span></span>
-<span id="cb69-8"><a href="#cb69-8" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb69-9"><a href="#cb69-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;actorId&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
-<span id="cb69-10"><a href="#cb69-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastName&quot;</span><span class="fu">:</span> <span class="st">&quot;CHASE&quot;</span><span class="fu">,</span></span>
-<span id="cb69-11"><a href="#cb69-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;firstName&quot;</span><span class="fu">:</span> <span class="st">&quot;ED&quot;</span><span class="fu">,</span></span>
-<span id="cb69-12"><a href="#cb69-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span> <span class="st">&quot;2006-02-15 04:34:33.000000&quot;</span><span class="fu">,</span></span>
-<span id="cb69-13"><a href="#cb69-13" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span><span class="er">,</span></span>
-<span id="cb69-14"><a href="#cb69-14" aria-hidden="true" tabindex="-1"></a><span class="er">...,</span></span>
-<span id="cb69-15"><a href="#cb69-15" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb69-16"><a href="#cb69-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;actorId&quot;</span><span class="fu">:</span> <span class="dv">8</span><span class="fu">,</span></span>
-<span id="cb69-17"><a href="#cb69-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastName&quot;</span><span class="fu">:</span> <span class="st">&quot;JOHANSSON&quot;</span><span class="fu">,</span></span>
-<span id="cb69-18"><a href="#cb69-18" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;firstName&quot;</span><span class="fu">:</span> <span class="st">&quot;MATTHEW&quot;</span><span class="fu">,</span></span>
-<span id="cb69-19"><a href="#cb69-19" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span> <span class="st">&quot;2006-02-15 04:34:33.000000&quot;</span><span class="fu">,</span></span>
-<span id="cb69-20"><a href="#cb69-20" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span><span class="er">,</span></span>
-<span id="cb69-21"><a href="#cb69-21" aria-hidden="true" tabindex="-1"></a><span class="er">...,</span></span>
-<span id="cb69-22"><a href="#cb69-22" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb69-23"><a href="#cb69-23" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;actorId&quot;</span><span class="fu">:</span> <span class="dv">32</span><span class="fu">,</span></span>
-<span id="cb69-24"><a href="#cb69-24" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastName&quot;</span><span class="fu">:</span> <span class="st">&quot;HACKMAN&quot;</span><span class="fu">,</span></span>
-<span id="cb69-25"><a href="#cb69-25" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;firstName&quot;</span><span class="fu">:</span> <span class="st">&quot;TIM&quot;</span><span class="fu">,</span></span>
-<span id="cb69-26"><a href="#cb69-26" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span> <span class="st">&quot;2006-02-15 04:34:33.000000&quot;</span><span class="fu">,</span></span>
-<span id="cb69-27"><a href="#cb69-27" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
-                <p>The cursor option can be used as follows:</p>
                 <div class="sourceCode" id="cb70"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>actor: Optional[Actor] <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_first(</span>
-<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">HA</span><span class="sc">%%</span><span class="st">&quot;</span>}},</span>
-<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>    cursor<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: <span class="dv">3</span>},  <span class="co"># cursor is exclusive</span></span>
-<span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb70-5"><a href="#cb70-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-6"><a href="#cb70-6" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> actor <span class="kw">is</span> <span class="va">None</span>:</span>
-<span id="cb70-7"><a href="#cb70-7" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="ss">f&quot;Actor not found&quot;</span>)</span>
-<span id="cb70-8"><a href="#cb70-8" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
-<span id="cb70-9"><a href="#cb70-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(actor.actor_id)</span></code></pre></div>
+                class="sourceCode json"><code class="sourceCode json"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;actorId&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastName&quot;</span><span class="fu">:</span> <span class="er">...</span><span class="fu">,</span></span>
+<span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;firstName&quot;</span><span class="fu">:</span> <span class="er">...</span><span class="fu">,</span></span>
+<span id="cb70-5"><a href="#cb70-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span> <span class="er">...</span><span class="fu">,</span></span>
+<span id="cb70-6"><a href="#cb70-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span><span class="er">,</span></span>
+<span id="cb70-7"><a href="#cb70-7" aria-hidden="true" tabindex="-1"></a><span class="er">...,</span></span>
+<span id="cb70-8"><a href="#cb70-8" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb70-9"><a href="#cb70-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;actorId&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
+<span id="cb70-10"><a href="#cb70-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastName&quot;</span><span class="fu">:</span> <span class="st">&quot;CHASE&quot;</span><span class="fu">,</span></span>
+<span id="cb70-11"><a href="#cb70-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;firstName&quot;</span><span class="fu">:</span> <span class="st">&quot;ED&quot;</span><span class="fu">,</span></span>
+<span id="cb70-12"><a href="#cb70-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span> <span class="st">&quot;2006-02-15 04:34:33.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb70-13"><a href="#cb70-13" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span><span class="er">,</span></span>
+<span id="cb70-14"><a href="#cb70-14" aria-hidden="true" tabindex="-1"></a><span class="er">...,</span></span>
+<span id="cb70-15"><a href="#cb70-15" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb70-16"><a href="#cb70-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;actorId&quot;</span><span class="fu">:</span> <span class="dv">8</span><span class="fu">,</span></span>
+<span id="cb70-17"><a href="#cb70-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastName&quot;</span><span class="fu">:</span> <span class="st">&quot;JOHANSSON&quot;</span><span class="fu">,</span></span>
+<span id="cb70-18"><a href="#cb70-18" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;firstName&quot;</span><span class="fu">:</span> <span class="st">&quot;MATTHEW&quot;</span><span class="fu">,</span></span>
+<span id="cb70-19"><a href="#cb70-19" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span> <span class="st">&quot;2006-02-15 04:34:33.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb70-20"><a href="#cb70-20" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span><span class="er">,</span></span>
+<span id="cb70-21"><a href="#cb70-21" aria-hidden="true" tabindex="-1"></a><span class="er">...,</span></span>
+<span id="cb70-22"><a href="#cb70-22" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb70-23"><a href="#cb70-23" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;actorId&quot;</span><span class="fu">:</span> <span class="dv">32</span><span class="fu">,</span></span>
+<span id="cb70-24"><a href="#cb70-24" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastName&quot;</span><span class="fu">:</span> <span class="st">&quot;HACKMAN&quot;</span><span class="fu">,</span></span>
+<span id="cb70-25"><a href="#cb70-25" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;firstName&quot;</span><span class="fu">:</span> <span class="st">&quot;TIM&quot;</span><span class="fu">,</span></span>
+<span id="cb70-26"><a href="#cb70-26" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span> <span class="st">&quot;2006-02-15 04:34:33.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb70-27"><a href="#cb70-27" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <p>The cursor option can be used as follows:</p>
+                <div class="sourceCode" id="cb71"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>actor: Optional[Actor] <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_first(</span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">HA</span><span class="sc">%%</span><span class="st">&quot;</span>}},</span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>    cursor<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: <span class="dv">3</span>},  <span class="co"># cursor is exclusive</span></span>
+<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb71-6"><a href="#cb71-6" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> actor <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb71-7"><a href="#cb71-7" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="ss">f&quot;Actor not found&quot;</span>)</span>
+<span id="cb71-8"><a href="#cb71-8" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb71-9"><a href="#cb71-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(actor.actor_id)</span></code></pre></div>
                 <p>The printed actor ID would be <code>8</code>.</p>
                 <h5 data-number="9.3.3.3.6"
                 id="read-own-writes-find_first"><span
                 class="header-section-number">9.3.3.3.6</span> Read Own
                 Writes (find_first)</h5>
-                <div class="sourceCode" id="cb71"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ON</span></span>
-<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>read_own_writes<span class="op">=</span><span class="va">True</span></span>
-<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a><span class="co"># OFF</span></span>
-<span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a>read_own_writes<span class="op">=</span><span class="va">False</span></span></code></pre></div>
+                <div class="sourceCode" id="cb72"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ON</span></span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>read_own_writes<span class="op">=</span><span class="va">True</span></span>
+<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a><span class="co"># OFF</span></span>
+<span id="cb72-5"><a href="#cb72-5" aria-hidden="true" tabindex="-1"></a>read_own_writes<span class="op">=</span><span class="va">False</span></span></code></pre></div>
                 <h3 data-number="9.3.4" id="find_first_or_throw"><span
                 class="header-section-number">9.3.4</span>
                 find_first_or_throw</h3>
@@ -3092,19 +3143,19 @@ Reference
                 (find_first_or_throw)</h4>
                 <p>Usage is similar to <code>find_first</code>, however,
                 now you should account for a possible exception:</p>
-                <div class="sourceCode" id="cb72"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
-<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService, MrsDocumentNotFoundError</span>
-<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb72-5"><a href="#cb72-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb72-6"><a href="#cb72-6" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
-<span id="cb72-7"><a href="#cb72-7" aria-hidden="true" tabindex="-1"></a>    actor: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_first_or_throw(</span>
-<span id="cb72-8"><a href="#cb72-8" aria-hidden="true" tabindex="-1"></a>        select<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: <span class="va">False</span>},</span>
-<span id="cb72-9"><a href="#cb72-9" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">ED</span><span class="sc">%%</span><span class="st">&quot;</span>}},</span>
-<span id="cb72-10"><a href="#cb72-10" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb72-11"><a href="#cb72-11" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> MrsDocumentNotFoundError:</span>
-<span id="cb72-12"><a href="#cb72-12" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="st">&quot;Ups, no matches found&quot;</span>)</span></code></pre></div>
+                <div class="sourceCode" id="cb73"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService, MrsDocumentNotFoundError</span>
+<span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb73-6"><a href="#cb73-6" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb73-7"><a href="#cb73-7" aria-hidden="true" tabindex="-1"></a>    actor: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_first_or_throw(</span>
+<span id="cb73-8"><a href="#cb73-8" aria-hidden="true" tabindex="-1"></a>        select<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: <span class="va">False</span>},</span>
+<span id="cb73-9"><a href="#cb73-9" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">ED</span><span class="sc">%%</span><span class="st">&quot;</span>}},</span>
+<span id="cb73-10"><a href="#cb73-10" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb73-11"><a href="#cb73-11" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> MrsDocumentNotFoundError:</span>
+<span id="cb73-12"><a href="#cb73-12" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="st">&quot;Ups, no matches found&quot;</span>)</span></code></pre></div>
                 <p>See <a href="#example-find_first">Example
                 (find_first)</a> for additional usage options.</p>
                 <h3 data-number="9.3.5" id="find_unique"><span
@@ -3179,20 +3230,20 @@ Reference
                 <h4 data-number="9.3.5.3" id="example-find_unique"><span
                 class="header-section-number">9.3.5.3</span> Example
                 (find_unique)</h4>
-                <div class="sourceCode" id="cb73"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
-<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
-<span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb73-6"><a href="#cb73-6" aria-hidden="true" tabindex="-1"></a>aid <span class="op">=</span> <span class="dv">3</span></span>
-<span id="cb73-7"><a href="#cb73-7" aria-hidden="true" tabindex="-1"></a>actor: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_unique(</span>
-<span id="cb73-8"><a href="#cb73-8" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: aid}, select<span class="op">=</span>[<span class="st">&quot;last_update&quot;</span>], read_own_writes<span class="op">=</span><span class="va">False</span></span>
-<span id="cb73-9"><a href="#cb73-9" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb73-10"><a href="#cb73-10" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> actor <span class="kw">is</span> <span class="va">None</span>:</span>
-<span id="cb73-11"><a href="#cb73-11" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="ss">f&quot;Actor with id=</span><span class="sc">{</span>aid<span class="sc">}</span><span class="ss"> not found&quot;</span>)</span>
-<span id="cb73-12"><a href="#cb73-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb73-13"><a href="#cb73-13" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actor.actor_id <span class="op">==</span> aid</span></code></pre></div>
+                <div class="sourceCode" id="cb74"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-4"><a href="#cb74-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb74-5"><a href="#cb74-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-6"><a href="#cb74-6" aria-hidden="true" tabindex="-1"></a>aid <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb74-7"><a href="#cb74-7" aria-hidden="true" tabindex="-1"></a>actor: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_unique(</span>
+<span id="cb74-8"><a href="#cb74-8" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: aid}, select<span class="op">=</span>[<span class="st">&quot;last_update&quot;</span>], read_own_writes<span class="op">=</span><span class="va">False</span></span>
+<span id="cb74-9"><a href="#cb74-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb74-10"><a href="#cb74-10" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> actor <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb74-11"><a href="#cb74-11" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="ss">f&quot;Actor with id=</span><span class="sc">{</span>aid<span class="sc">}</span><span class="ss"> not found&quot;</span>)</span>
+<span id="cb74-12"><a href="#cb74-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-13"><a href="#cb74-13" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actor.actor_id <span class="op">==</span> aid</span></code></pre></div>
                 <p>See <a href="#example-find_first">Example
                 (find_first)</a> for additional usage options.</p>
                 <h3 data-number="9.3.6" id="find_unique_or_throw"><span
@@ -3234,19 +3285,19 @@ Reference
                 id="example-find_unique_or_throw"><span
                 class="header-section-number">9.3.6.3</span> Example
                 (find_unique_or_throw)</h4>
-                <div class="sourceCode" id="cb74"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
-<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService, MrsDocumentNotFoundError</span>
-<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb74-4"><a href="#cb74-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb74-5"><a href="#cb74-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb74-6"><a href="#cb74-6" aria-hidden="true" tabindex="-1"></a>aid <span class="op">=</span> <span class="dv">3</span></span>
-<span id="cb74-7"><a href="#cb74-7" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
-<span id="cb74-8"><a href="#cb74-8" aria-hidden="true" tabindex="-1"></a>    actor: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_unique_or_throw(</span>
-<span id="cb74-9"><a href="#cb74-9" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: aid}, select<span class="op">=</span>[<span class="st">&quot;last_update&quot;</span>], read_own_writes<span class="op">=</span><span class="va">False</span></span>
-<span id="cb74-10"><a href="#cb74-10" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb74-11"><a href="#cb74-11" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> MrsDocumentNotFoundError:</span>
-<span id="cb74-12"><a href="#cb74-12" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="st">&quot;Ups, no matches found&quot;</span>)</span></code></pre></div>
+                <div class="sourceCode" id="cb75"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService, MrsDocumentNotFoundError</span>
+<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb75-5"><a href="#cb75-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-6"><a href="#cb75-6" aria-hidden="true" tabindex="-1"></a>aid <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb75-8"><a href="#cb75-8" aria-hidden="true" tabindex="-1"></a>    actor: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_unique_or_throw(</span>
+<span id="cb75-9"><a href="#cb75-9" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: aid}, select<span class="op">=</span>[<span class="st">&quot;last_update&quot;</span>], read_own_writes<span class="op">=</span><span class="va">False</span></span>
+<span id="cb75-10"><a href="#cb75-10" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb75-11"><a href="#cb75-11" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> MrsDocumentNotFoundError:</span>
+<span id="cb75-12"><a href="#cb75-12" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="st">&quot;Ups, no matches found&quot;</span>)</span></code></pre></div>
                 <p>See <a href="#example-find_first">Example
                 (find_first)</a> for additional usage options.</p>
                 <h3 data-number="9.3.7" id="find_many"><span
@@ -3360,32 +3411,32 @@ Reference
                 <h4 data-number="9.3.7.3" id="example-find_many"><span
                 class="header-section-number">9.3.7.3</span> Example
                 (find_many)</h4>
-                <div class="sourceCode" id="cb75"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
-<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb75-5"><a href="#cb75-5" aria-hidden="true" tabindex="-1"></a>actors: <span class="bu">list</span>[Actor] <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_many(</span>
-<span id="cb75-6"><a href="#cb75-6" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;PENELOPE&quot;</span>},</span>
-<span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a>    take<span class="op">=</span><span class="dv">2</span>,</span>
-<span id="cb75-8"><a href="#cb75-8" aria-hidden="true" tabindex="-1"></a>    skip<span class="op">=</span><span class="dv">2</span>,</span>
-<span id="cb75-9"><a href="#cb75-9" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb75-10"><a href="#cb75-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb75-11"><a href="#cb75-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actors)</span>
-<span id="cb75-12"><a href="#cb75-12" aria-hidden="true" tabindex="-1"></a><span class="co"># [</span></span>
-<span id="cb75-13"><a href="#cb75-13" aria-hidden="true" tabindex="-1"></a><span class="co">#     IMyServiceSakilaActor(</span></span>
-<span id="cb75-14"><a href="#cb75-14" aria-hidden="true" tabindex="-1"></a><span class="co">#         actor_id=35000,</span></span>
-<span id="cb75-15"><a href="#cb75-15" aria-hidden="true" tabindex="-1"></a><span class="co">#         first_name=&#39;PENELOPE&#39;,</span></span>
-<span id="cb75-16"><a href="#cb75-16" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_name=&#39;BAR&#39;,</span></span>
-<span id="cb75-17"><a href="#cb75-17" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_update=&#39;2024-06-04 10:14:33.000000&#39;</span></span>
-<span id="cb75-18"><a href="#cb75-18" aria-hidden="true" tabindex="-1"></a><span class="co">#     ),</span></span>
-<span id="cb75-19"><a href="#cb75-19" aria-hidden="true" tabindex="-1"></a><span class="co">#     IMyServiceSakilaActor(</span></span>
-<span id="cb75-20"><a href="#cb75-20" aria-hidden="true" tabindex="-1"></a><span class="co">#         actor_id=36000,</span></span>
-<span id="cb75-21"><a href="#cb75-21" aria-hidden="true" tabindex="-1"></a><span class="co">#         first_name=&#39;PENELOPE&#39;,</span></span>
-<span id="cb75-22"><a href="#cb75-22" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_name=&#39;FOO&#39;,</span></span>
-<span id="cb75-23"><a href="#cb75-23" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_update=&#39;2024-08-04 10:14:33.000000&#39;</span></span>
-<span id="cb75-24"><a href="#cb75-24" aria-hidden="true" tabindex="-1"></a><span class="co">#     )</span></span>
-<span id="cb75-25"><a href="#cb75-25" aria-hidden="true" tabindex="-1"></a><span class="co"># ]</span></span></code></pre></div>
+                <div class="sourceCode" id="cb76"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb76-4"><a href="#cb76-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-5"><a href="#cb76-5" aria-hidden="true" tabindex="-1"></a>actors: <span class="bu">list</span>[Actor] <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_many(</span>
+<span id="cb76-6"><a href="#cb76-6" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;PENELOPE&quot;</span>},</span>
+<span id="cb76-7"><a href="#cb76-7" aria-hidden="true" tabindex="-1"></a>    take<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb76-8"><a href="#cb76-8" aria-hidden="true" tabindex="-1"></a>    skip<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb76-9"><a href="#cb76-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb76-10"><a href="#cb76-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-11"><a href="#cb76-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(actors)</span>
+<span id="cb76-12"><a href="#cb76-12" aria-hidden="true" tabindex="-1"></a><span class="co"># [</span></span>
+<span id="cb76-13"><a href="#cb76-13" aria-hidden="true" tabindex="-1"></a><span class="co">#     IMyServiceSakilaActor(</span></span>
+<span id="cb76-14"><a href="#cb76-14" aria-hidden="true" tabindex="-1"></a><span class="co">#         actor_id=35000,</span></span>
+<span id="cb76-15"><a href="#cb76-15" aria-hidden="true" tabindex="-1"></a><span class="co">#         first_name=&#39;PENELOPE&#39;,</span></span>
+<span id="cb76-16"><a href="#cb76-16" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_name=&#39;BAR&#39;,</span></span>
+<span id="cb76-17"><a href="#cb76-17" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_update=&#39;2024-06-04 10:14:33.000000&#39;</span></span>
+<span id="cb76-18"><a href="#cb76-18" aria-hidden="true" tabindex="-1"></a><span class="co">#     ),</span></span>
+<span id="cb76-19"><a href="#cb76-19" aria-hidden="true" tabindex="-1"></a><span class="co">#     IMyServiceSakilaActor(</span></span>
+<span id="cb76-20"><a href="#cb76-20" aria-hidden="true" tabindex="-1"></a><span class="co">#         actor_id=36000,</span></span>
+<span id="cb76-21"><a href="#cb76-21" aria-hidden="true" tabindex="-1"></a><span class="co">#         first_name=&#39;PENELOPE&#39;,</span></span>
+<span id="cb76-22"><a href="#cb76-22" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_name=&#39;FOO&#39;,</span></span>
+<span id="cb76-23"><a href="#cb76-23" aria-hidden="true" tabindex="-1"></a><span class="co">#         last_update=&#39;2024-08-04 10:14:33.000000&#39;</span></span>
+<span id="cb76-24"><a href="#cb76-24" aria-hidden="true" tabindex="-1"></a><span class="co">#     )</span></span>
+<span id="cb76-25"><a href="#cb76-25" aria-hidden="true" tabindex="-1"></a><span class="co"># ]</span></span></code></pre></div>
                 <p>See <a href="#example-find_first">Example
                 (find_first)</a> for additional usage options.</p>
                 <h3 data-number="9.3.8" id="find_all"><span
@@ -3488,26 +3539,26 @@ Reference
                 <h4 data-number="9.3.8.3" id="example-find_all"><span
                 class="header-section-number">9.3.8.3</span> Example
                 (find_all)</h4>
-                <div class="sourceCode" id="cb76"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
-<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> (</span>
-<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a>    IMyServiceSakilaActorData <span class="im">as</span> ActorData,</span>
-<span id="cb76-4"><a href="#cb76-4" aria-hidden="true" tabindex="-1"></a>    IMyServiceSakilaActor <span class="im">as</span> Actor,</span>
-<span id="cb76-5"><a href="#cb76-5" aria-hidden="true" tabindex="-1"></a>    MyService</span>
-<span id="cb76-6"><a href="#cb76-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb76-7"><a href="#cb76-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-8"><a href="#cb76-8" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb76-9"><a href="#cb76-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-10"><a href="#cb76-10" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> my_progress(data: <span class="bu">list</span>[ActorData]) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
-<span id="cb76-11"><a href="#cb76-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;Test Progress Option&quot;</span>)</span>
-<span id="cb76-12"><a href="#cb76-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, item <span class="kw">in</span> <span class="bu">enumerate</span>(data):</span>
-<span id="cb76-13"><a href="#cb76-13" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f&quot;</span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> of </span><span class="sc">{</span><span class="bu">len</span>(data)<span class="sc">}</span><span class="ss">: actor_id=</span><span class="sc">{</span>item[<span class="st">&quot;actor_id&quot;</span>]<span class="sc">}</span><span class="ss">&quot;</span>)</span>
-<span id="cb76-14"><a href="#cb76-14" aria-hidden="true" tabindex="-1"></a>        time.sleep(<span class="fl">0.1</span>)</span>
-<span id="cb76-15"><a href="#cb76-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb76-16"><a href="#cb76-16" aria-hidden="true" tabindex="-1"></a><span class="co"># get all documents that first name matches &#39;PENELOPE&#39;</span></span>
-<span id="cb76-17"><a href="#cb76-17" aria-hidden="true" tabindex="-1"></a>actors: <span class="bu">list</span>[Actor] <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_all(</span>
-<span id="cb76-18"><a href="#cb76-18" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;PENELOPE&quot;</span>}, progress<span class="op">=</span>my_progress</span>
-<span id="cb76-19"><a href="#cb76-19" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+                <div class="sourceCode" id="cb77"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> (</span>
+<span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>    IMyServiceSakilaActorData <span class="im">as</span> ActorData,</span>
+<span id="cb77-4"><a href="#cb77-4" aria-hidden="true" tabindex="-1"></a>    IMyServiceSakilaActor <span class="im">as</span> Actor,</span>
+<span id="cb77-5"><a href="#cb77-5" aria-hidden="true" tabindex="-1"></a>    MyService</span>
+<span id="cb77-6"><a href="#cb77-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb77-7"><a href="#cb77-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb77-8"><a href="#cb77-8" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb77-9"><a href="#cb77-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb77-10"><a href="#cb77-10" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> my_progress(data: <span class="bu">list</span>[ActorData]) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="cb77-11"><a href="#cb77-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;Test Progress Option&quot;</span>)</span>
+<span id="cb77-12"><a href="#cb77-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, item <span class="kw">in</span> <span class="bu">enumerate</span>(data):</span>
+<span id="cb77-13"><a href="#cb77-13" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f&quot;</span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> of </span><span class="sc">{</span><span class="bu">len</span>(data)<span class="sc">}</span><span class="ss">: actor_id=</span><span class="sc">{</span>item[<span class="st">&quot;actor_id&quot;</span>]<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb77-14"><a href="#cb77-14" aria-hidden="true" tabindex="-1"></a>        time.sleep(<span class="fl">0.1</span>)</span>
+<span id="cb77-15"><a href="#cb77-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb77-16"><a href="#cb77-16" aria-hidden="true" tabindex="-1"></a><span class="co"># get all documents that first name matches &#39;PENELOPE&#39;</span></span>
+<span id="cb77-17"><a href="#cb77-17" aria-hidden="true" tabindex="-1"></a>actors: <span class="bu">list</span>[Actor] <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.find_all(</span>
+<span id="cb77-18"><a href="#cb77-18" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;PENELOPE&quot;</span>}, progress<span class="op">=</span>my_progress</span>
+<span id="cb77-19"><a href="#cb77-19" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
                 <p>See <a href="#example-find_first">Example
                 (find_first)</a> for additional usage options.</p>
                 <h3 data-number="9.3.9" id="delete"><span
@@ -3566,20 +3617,20 @@ Reference
                 <h4 data-number="9.3.9.3" id="example-delete"><span
                 class="header-section-number">9.3.9.3</span> Example
                 (delete)</h4>
-                <div class="sourceCode" id="cb77"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
-<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
-<span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb77-4"><a href="#cb77-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb77-5"><a href="#cb77-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb77-6"><a href="#cb77-6" aria-hidden="true" tabindex="-1"></a>aid <span class="op">=</span> <span class="dv">3</span></span>
-<span id="cb77-7"><a href="#cb77-7" aria-hidden="true" tabindex="-1"></a>ans: <span class="bu">bool</span> <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.delete(</span>
-<span id="cb77-8"><a href="#cb77-8" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: aid}</span>
-<span id="cb77-9"><a href="#cb77-9" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb77-10"><a href="#cb77-10" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> ans <span class="kw">is</span> <span class="va">False</span>:</span>
-<span id="cb77-11"><a href="#cb77-11" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="ss">f&quot;Actor not deleted - actor_id=</span><span class="sc">{</span>aid<span class="sc">}</span><span class="ss"> not found&quot;</span>)</span>
-<span id="cb77-12"><a href="#cb77-12" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
-<span id="cb77-13"><a href="#cb77-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;Actor document with ID=</span><span class="sc">{</span>aid<span class="sc">}</span><span class="ss"> was deleted&quot;</span>)</span></code></pre></div>
+                <div class="sourceCode" id="cb78"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb78-3"><a href="#cb78-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb78-4"><a href="#cb78-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb78-5"><a href="#cb78-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb78-6"><a href="#cb78-6" aria-hidden="true" tabindex="-1"></a>aid <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb78-7"><a href="#cb78-7" aria-hidden="true" tabindex="-1"></a>ans: <span class="bu">bool</span> <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.delete(</span>
+<span id="cb78-8"><a href="#cb78-8" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: aid}</span>
+<span id="cb78-9"><a href="#cb78-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb78-10"><a href="#cb78-10" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> ans <span class="kw">is</span> <span class="va">False</span>:</span>
+<span id="cb78-11"><a href="#cb78-11" aria-hidden="true" tabindex="-1"></a>    warnings.warn(<span class="ss">f&quot;Actor not deleted - actor_id=</span><span class="sc">{</span>aid<span class="sc">}</span><span class="ss"> not found&quot;</span>)</span>
+<span id="cb78-12"><a href="#cb78-12" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb78-13"><a href="#cb78-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;Actor document with ID=</span><span class="sc">{</span>aid<span class="sc">}</span><span class="ss"> was deleted&quot;</span>)</span></code></pre></div>
                 <h3 data-number="9.3.10" id="delete_many"><span
                 class="header-section-number">9.3.10</span>
                 delete_many</h3>
@@ -3635,16 +3686,16 @@ Reference
                 <p>Suppose the actor table contains a bunch of records
                 as shown in <a href="#cursor-find_first">Cursor
                 Example</a>.</p>
-                <div class="sourceCode" id="cb78"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
-<span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb78-3"><a href="#cb78-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb78-4"><a href="#cb78-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb78-5"><a href="#cb78-5" aria-hidden="true" tabindex="-1"></a>num_items_removed <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.delete_many(</span>
-<span id="cb78-6"><a href="#cb78-6" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">HA</span><span class="sc">%%</span><span class="st">&quot;</span>}}</span>
-<span id="cb78-7"><a href="#cb78-7" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb78-8"><a href="#cb78-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(num_items_removed)</span>
-<span id="cb78-9"><a href="#cb78-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 3</span></span></code></pre></div>
+                <div class="sourceCode" id="cb79"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb79-3"><a href="#cb79-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb79-4"><a href="#cb79-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb79-5"><a href="#cb79-5" aria-hidden="true" tabindex="-1"></a>num_items_removed <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.delete_many(</span>
+<span id="cb79-6"><a href="#cb79-6" aria-hidden="true" tabindex="-1"></a>    where<span class="op">=</span>{<span class="st">&quot;last_name&quot;</span>: {<span class="st">&quot;like&quot;</span>: <span class="st">&quot;</span><span class="sc">%%</span><span class="st">HA</span><span class="sc">%%</span><span class="st">&quot;</span>}}</span>
+<span id="cb79-7"><a href="#cb79-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb79-8"><a href="#cb79-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(num_items_removed)</span>
+<span id="cb79-9"><a href="#cb79-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 3</span></span></code></pre></div>
                 <h3 data-number="9.3.11" id="update"><span
                 class="header-section-number">9.3.11</span> update</h3>
                 <p><code>update</code> is used to update a REST document
@@ -3691,31 +3742,31 @@ Reference
                 <h4 data-number="9.3.11.3" id="example-update"><span
                 class="header-section-number">9.3.11.3</span> Example
                 (update)</h4>
-                <div class="sourceCode" id="cb79"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datetime <span class="im">import</span> datetime</span>
-<span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
-<span id="cb79-3"><a href="#cb79-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb79-4"><a href="#cb79-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb79-5"><a href="#cb79-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb79-6"><a href="#cb79-6" aria-hidden="true" tabindex="-1"></a><span class="co"># The `actor_id` and `last_update` columns from the `sakila` table on the</span></span>
-<span id="cb79-7"><a href="#cb79-7" aria-hidden="true" tabindex="-1"></a><span class="co"># sample [sakila database](https://dev.mysql.com/doc/sakila/en/) are</span></span>
-<span id="cb79-8"><a href="#cb79-8" aria-hidden="true" tabindex="-1"></a><span class="co"># automatically generated on each insert, which means they can be omitted.</span></span>
-<span id="cb79-9"><a href="#cb79-9" aria-hidden="true" tabindex="-1"></a>actor: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.create(</span>
-<span id="cb79-10"><a href="#cb79-10" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;Foo&quot;</span>, <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;Bar&quot;</span>, <span class="st">&quot;actor_id&quot;</span>: <span class="dv">345</span>}</span>
-<span id="cb79-11"><a href="#cb79-11" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb79-12"><a href="#cb79-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb79-13"><a href="#cb79-13" aria-hidden="true" tabindex="-1"></a>actor_updated: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.update(</span>
-<span id="cb79-14"><a href="#cb79-14" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>{</span>
-<span id="cb79-15"><a href="#cb79-15" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;actor_id&quot;</span>: cast(<span class="bu">int</span>, actor.actor_id),</span>
-<span id="cb79-16"><a href="#cb79-16" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;Rodolfo&quot;</span>,</span>
-<span id="cb79-17"><a href="#cb79-17" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;Smith&quot;</span>,</span>
-<span id="cb79-18"><a href="#cb79-18" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_update&quot;</span>: <span class="bu">str</span>(datetime.now()),</span>
-<span id="cb79-19"><a href="#cb79-19" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb79-20"><a href="#cb79-20" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb79-21"><a href="#cb79-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb79-22"><a href="#cb79-22" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actor_updated.first_name <span class="op">==</span> <span class="st">&quot;Rodolfo&quot;</span></span>
-<span id="cb79-23"><a href="#cb79-23" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actor_updated.last_name <span class="op">==</span> <span class="st">&quot;Smith&quot;</span></span>
-<span id="cb79-24"><a href="#cb79-24" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actor.actor_id <span class="op">==</span> actor_updated.actor_id</span></code></pre></div>
+                <div class="sourceCode" id="cb80"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datetime <span class="im">import</span> datetime</span>
+<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-4"><a href="#cb80-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb80-5"><a href="#cb80-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-6"><a href="#cb80-6" aria-hidden="true" tabindex="-1"></a><span class="co"># The `actor_id` and `last_update` columns from the `sakila` table on the</span></span>
+<span id="cb80-7"><a href="#cb80-7" aria-hidden="true" tabindex="-1"></a><span class="co"># sample [sakila database](https://dev.mysql.com/doc/sakila/en/) are</span></span>
+<span id="cb80-8"><a href="#cb80-8" aria-hidden="true" tabindex="-1"></a><span class="co"># automatically generated on each insert, which means they can be omitted.</span></span>
+<span id="cb80-9"><a href="#cb80-9" aria-hidden="true" tabindex="-1"></a>actor: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.create(</span>
+<span id="cb80-10"><a href="#cb80-10" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>{<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;Foo&quot;</span>, <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;Bar&quot;</span>, <span class="st">&quot;actor_id&quot;</span>: <span class="dv">345</span>}</span>
+<span id="cb80-11"><a href="#cb80-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb80-12"><a href="#cb80-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-13"><a href="#cb80-13" aria-hidden="true" tabindex="-1"></a>actor_updated: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.update(</span>
+<span id="cb80-14"><a href="#cb80-14" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>{</span>
+<span id="cb80-15"><a href="#cb80-15" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;actor_id&quot;</span>: cast(<span class="bu">int</span>, actor.actor_id),</span>
+<span id="cb80-16"><a href="#cb80-16" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;Rodolfo&quot;</span>,</span>
+<span id="cb80-17"><a href="#cb80-17" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;Smith&quot;</span>,</span>
+<span id="cb80-18"><a href="#cb80-18" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_update&quot;</span>: <span class="bu">str</span>(datetime.now()),</span>
+<span id="cb80-19"><a href="#cb80-19" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb80-20"><a href="#cb80-20" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb80-21"><a href="#cb80-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb80-22"><a href="#cb80-22" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actor_updated.first_name <span class="op">==</span> <span class="st">&quot;Rodolfo&quot;</span></span>
+<span id="cb80-23"><a href="#cb80-23" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actor_updated.last_name <span class="op">==</span> <span class="st">&quot;Smith&quot;</span></span>
+<span id="cb80-24"><a href="#cb80-24" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actor.actor_id <span class="op">==</span> actor_updated.actor_id</span></code></pre></div>
                 <h3 data-number="9.3.12" id="update_many"><span
                 class="header-section-number">9.3.12</span>
                 update_many</h3>
@@ -3767,45 +3818,45 @@ Reference
                 id="example-update_many"><span
                 class="header-section-number">9.3.12.3</span> Example
                 (update_many)</h4>
-                <div class="sourceCode" id="cb80"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datetime <span class="im">import</span> datetime</span>
-<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
-<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb80-4"><a href="#cb80-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb80-5"><a href="#cb80-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb80-6"><a href="#cb80-6" aria-hidden="true" tabindex="-1"></a><span class="co"># The `actor_id` and `last_update` columns from the `sakila` table on the</span></span>
-<span id="cb80-7"><a href="#cb80-7" aria-hidden="true" tabindex="-1"></a><span class="co"># sample [sakila database](https://dev.mysql.com/doc/sakila/en/) are</span></span>
-<span id="cb80-8"><a href="#cb80-8" aria-hidden="true" tabindex="-1"></a><span class="co"># automatically generated on each insert, which means they can be omitted.</span></span>
-<span id="cb80-9"><a href="#cb80-9" aria-hidden="true" tabindex="-1"></a>actors: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.create(</span>
-<span id="cb80-10"><a href="#cb80-10" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>[</span>
-<span id="cb80-11"><a href="#cb80-11" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;Foo&quot;</span>, <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;Bar&quot;</span>, <span class="st">&quot;actor_id&quot;</span>: <span class="dv">345</span>},</span>
-<span id="cb80-12"><a href="#cb80-12" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;Bruh&quot;</span>, <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;Baz&quot;</span>, <span class="st">&quot;actor_id&quot;</span>: <span class="dv">346</span>},</span>
-<span id="cb80-13"><a href="#cb80-13" aria-hidden="true" tabindex="-1"></a>    ]</span>
-<span id="cb80-14"><a href="#cb80-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb80-15"><a href="#cb80-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb80-16"><a href="#cb80-16" aria-hidden="true" tabindex="-1"></a>actors_updated: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.update(</span>
-<span id="cb80-17"><a href="#cb80-17" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>[</span>
-<span id="cb80-18"><a href="#cb80-18" aria-hidden="true" tabindex="-1"></a>        {</span>
-<span id="cb80-19"><a href="#cb80-19" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;actor_id&quot;</span>: cast(<span class="bu">int</span>, actors[<span class="dv">0</span>].actor_id),</span>
-<span id="cb80-20"><a href="#cb80-20" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;Rodolfo&quot;</span>,</span>
-<span id="cb80-21"><a href="#cb80-21" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;Smith&quot;</span>,</span>
-<span id="cb80-22"><a href="#cb80-22" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_update&quot;</span>: <span class="bu">str</span>(datetime.now()),</span>
-<span id="cb80-23"><a href="#cb80-23" aria-hidden="true" tabindex="-1"></a>        },</span>
-<span id="cb80-24"><a href="#cb80-24" aria-hidden="true" tabindex="-1"></a>        {</span>
-<span id="cb80-25"><a href="#cb80-25" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;actor_id&quot;</span>: cast(<span class="bu">int</span>, actors[<span class="dv">1</span>].actor_id),</span>
-<span id="cb80-26"><a href="#cb80-26" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;Ma&quot;</span>,</span>
-<span id="cb80-27"><a href="#cb80-27" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;Yeung&quot;</span>,</span>
-<span id="cb80-28"><a href="#cb80-28" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_update&quot;</span>: <span class="bu">str</span>(datetime.now()),</span>
-<span id="cb80-29"><a href="#cb80-29" aria-hidden="true" tabindex="-1"></a>        },</span>
-<span id="cb80-30"><a href="#cb80-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb80-31"><a href="#cb80-31" aria-hidden="true" tabindex="-1"></a>    ]</span>
-<span id="cb80-32"><a href="#cb80-32" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb80-33"><a href="#cb80-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb80-34"><a href="#cb80-34" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actors_updated[<span class="dv">0</span>].first_name <span class="op">==</span> <span class="st">&quot;Rodolfo&quot;</span></span>
-<span id="cb80-35"><a href="#cb80-35" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actors_updated[<span class="dv">0</span>].last_name <span class="op">==</span> <span class="st">&quot;Smith&quot;</span></span>
-<span id="cb80-36"><a href="#cb80-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb80-37"><a href="#cb80-37" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actors_updated[<span class="dv">1</span>].first_name <span class="op">==</span> <span class="st">&quot;Ma&quot;</span></span>
-<span id="cb80-38"><a href="#cb80-38" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actors_updated[<span class="dv">1</span>].last_name <span class="op">==</span> <span class="st">&quot;Yeung&quot;</span></span></code></pre></div>
+                <div class="sourceCode" id="cb81"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datetime <span class="im">import</span> datetime</span>
+<span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> IMyServiceSakilaActor <span class="im">as</span> Actor, MyService</span>
+<span id="cb81-3"><a href="#cb81-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-4"><a href="#cb81-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb81-5"><a href="#cb81-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-6"><a href="#cb81-6" aria-hidden="true" tabindex="-1"></a><span class="co"># The `actor_id` and `last_update` columns from the `sakila` table on the</span></span>
+<span id="cb81-7"><a href="#cb81-7" aria-hidden="true" tabindex="-1"></a><span class="co"># sample [sakila database](https://dev.mysql.com/doc/sakila/en/) are</span></span>
+<span id="cb81-8"><a href="#cb81-8" aria-hidden="true" tabindex="-1"></a><span class="co"># automatically generated on each insert, which means they can be omitted.</span></span>
+<span id="cb81-9"><a href="#cb81-9" aria-hidden="true" tabindex="-1"></a>actors: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.create(</span>
+<span id="cb81-10"><a href="#cb81-10" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>[</span>
+<span id="cb81-11"><a href="#cb81-11" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;Foo&quot;</span>, <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;Bar&quot;</span>, <span class="st">&quot;actor_id&quot;</span>: <span class="dv">345</span>},</span>
+<span id="cb81-12"><a href="#cb81-12" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;Bruh&quot;</span>, <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;Baz&quot;</span>, <span class="st">&quot;actor_id&quot;</span>: <span class="dv">346</span>},</span>
+<span id="cb81-13"><a href="#cb81-13" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb81-14"><a href="#cb81-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb81-15"><a href="#cb81-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-16"><a href="#cb81-16" aria-hidden="true" tabindex="-1"></a>actors_updated: Actor <span class="op">=</span> <span class="cf">await</span> <span class="va">self</span>.my_service.sakila.actor.update(</span>
+<span id="cb81-17"><a href="#cb81-17" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>[</span>
+<span id="cb81-18"><a href="#cb81-18" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb81-19"><a href="#cb81-19" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;actor_id&quot;</span>: cast(<span class="bu">int</span>, actors[<span class="dv">0</span>].actor_id),</span>
+<span id="cb81-20"><a href="#cb81-20" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;Rodolfo&quot;</span>,</span>
+<span id="cb81-21"><a href="#cb81-21" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;Smith&quot;</span>,</span>
+<span id="cb81-22"><a href="#cb81-22" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_update&quot;</span>: <span class="bu">str</span>(datetime.now()),</span>
+<span id="cb81-23"><a href="#cb81-23" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb81-24"><a href="#cb81-24" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb81-25"><a href="#cb81-25" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;actor_id&quot;</span>: cast(<span class="bu">int</span>, actors[<span class="dv">1</span>].actor_id),</span>
+<span id="cb81-26"><a href="#cb81-26" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;Ma&quot;</span>,</span>
+<span id="cb81-27"><a href="#cb81-27" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;Yeung&quot;</span>,</span>
+<span id="cb81-28"><a href="#cb81-28" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;last_update&quot;</span>: <span class="bu">str</span>(datetime.now()),</span>
+<span id="cb81-29"><a href="#cb81-29" aria-hidden="true" tabindex="-1"></a>        },</span>
+<span id="cb81-30"><a href="#cb81-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-31"><a href="#cb81-31" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb81-32"><a href="#cb81-32" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb81-33"><a href="#cb81-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-34"><a href="#cb81-34" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actors_updated[<span class="dv">0</span>].first_name <span class="op">==</span> <span class="st">&quot;Rodolfo&quot;</span></span>
+<span id="cb81-35"><a href="#cb81-35" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actors_updated[<span class="dv">0</span>].last_name <span class="op">==</span> <span class="st">&quot;Smith&quot;</span></span>
+<span id="cb81-36"><a href="#cb81-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb81-37"><a href="#cb81-37" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actors_updated[<span class="dv">1</span>].first_name <span class="op">==</span> <span class="st">&quot;Ma&quot;</span></span>
+<span id="cb81-38"><a href="#cb81-38" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> actors_updated[<span class="dv">1</span>].last_name <span class="op">==</span> <span class="st">&quot;Yeung&quot;</span></span></code></pre></div>
                 <h2 data-number="9.4" id="rest-documents"><span
                 class="header-section-number">9.4</span> REST
                 Documents</h2>
@@ -3846,54 +3897,54 @@ Reference
                 id="example-update---document"><span
                 class="header-section-number">9.4.1.3</span> Example
                 (update - document)</h4>
-                <div class="sourceCode" id="cb81"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> asyncio</span>
-<span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datetime <span class="im">import</span> datetime</span>
-<span id="cb81-3"><a href="#cb81-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Optional</span>
-<span id="cb81-4"><a href="#cb81-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> (</span>
-<span id="cb81-5"><a href="#cb81-5" aria-hidden="true" tabindex="-1"></a>    IMyServiceSakilaActor <span class="im">as</span> Actor,</span>
-<span id="cb81-6"><a href="#cb81-6" aria-hidden="true" tabindex="-1"></a>    MyService,</span>
-<span id="cb81-7"><a href="#cb81-7" aria-hidden="true" tabindex="-1"></a>    MrsDocumentNotFoundError,</span>
-<span id="cb81-8"><a href="#cb81-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb81-9"><a href="#cb81-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-10"><a href="#cb81-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-11"><a href="#cb81-11" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> get_actor_document_by_id(service: MyService, doc_id: <span class="bu">int</span>) <span class="op">-&gt;</span> Actor:</span>
-<span id="cb81-12"><a href="#cb81-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
-<span id="cb81-13"><a href="#cb81-13" aria-hidden="true" tabindex="-1"></a>        actor: Actor <span class="op">=</span> <span class="cf">await</span> service.sakila.actor.find_first_or_throw(</span>
-<span id="cb81-14"><a href="#cb81-14" aria-hidden="true" tabindex="-1"></a>                where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: doc_id}</span>
-<span id="cb81-15"><a href="#cb81-15" aria-hidden="true" tabindex="-1"></a>            )</span>
-<span id="cb81-16"><a href="#cb81-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> MrsDocumentNotFoundError:</span>
-<span id="cb81-17"><a href="#cb81-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> MrsDocumentNotFoundError(msg<span class="op">=</span><span class="ss">f&quot;No actor document exists matching actor_id=</span><span class="sc">{</span>doc_id<span class="sc">}</span><span class="ss">&quot;</span>)</span>
-<span id="cb81-18"><a href="#cb81-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> actor</span>
-<span id="cb81-19"><a href="#cb81-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-20"><a href="#cb81-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-21"><a href="#cb81-21" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> main() <span class="op">-&gt;</span> <span class="va">None</span>:</span>
-<span id="cb81-22"><a href="#cb81-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create service</span></span>
-<span id="cb81-23"><a href="#cb81-23" aria-hidden="true" tabindex="-1"></a>    my_service <span class="op">=</span> MyService()</span>
-<span id="cb81-24"><a href="#cb81-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-25"><a href="#cb81-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Get a document</span></span>
-<span id="cb81-26"><a href="#cb81-26" aria-hidden="true" tabindex="-1"></a>    doc_id <span class="op">=</span> <span class="dv">3</span></span>
-<span id="cb81-27"><a href="#cb81-27" aria-hidden="true" tabindex="-1"></a>    actor <span class="op">=</span> <span class="cf">await</span> get_actor_document_by_id(service<span class="op">=</span>my_service, doc_id<span class="op">=</span>doc_id)</span>
-<span id="cb81-28"><a href="#cb81-28" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;Before:&quot;</span>, actor)</span>
-<span id="cb81-29"><a href="#cb81-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-30"><a href="#cb81-30" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Modify the data class instance representing a REST document</span></span>
-<span id="cb81-31"><a href="#cb81-31" aria-hidden="true" tabindex="-1"></a>    actor.first_name <span class="op">=</span> <span class="st">&quot;DESIRE&quot;</span></span>
-<span id="cb81-32"><a href="#cb81-32" aria-hidden="true" tabindex="-1"></a>    actor.last_name <span class="op">=</span> <span class="st">&quot;LEE&quot;</span></span>
-<span id="cb81-33"><a href="#cb81-33" aria-hidden="true" tabindex="-1"></a>    actor.last_update <span class="op">=</span> <span class="bu">str</span>(datetime.now())</span>
-<span id="cb81-34"><a href="#cb81-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-35"><a href="#cb81-35" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Commit an update</span></span>
-<span id="cb81-36"><a href="#cb81-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> actor.update()</span>
-<span id="cb81-37"><a href="#cb81-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-38"><a href="#cb81-38" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Peak the REST document to see if it was updated accordingly</span></span>
-<span id="cb81-39"><a href="#cb81-39" aria-hidden="true" tabindex="-1"></a>    actor_after <span class="op">=</span> <span class="cf">await</span> get_actor_document_by_id(service<span class="op">=</span>my_service, doc_id<span class="op">=</span>doc_id)</span>
-<span id="cb81-40"><a href="#cb81-40" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;After:&quot;</span>, actor_after)</span>
-<span id="cb81-41"><a href="#cb81-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-42"><a href="#cb81-42" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Before: IMyServiceSakilaActor(last_name=&#39;CHASE&#39;, last_update=&#39;2023-04-13 15:11:22.000000&#39;, first_name=&#39;ED&#39;, actor_id=3)</span></span>
-<span id="cb81-43"><a href="#cb81-43" aria-hidden="true" tabindex="-1"></a>    <span class="co"># After: IMyServiceSakilaActor(last_name=&#39;LEE&#39;, last_update=&#39;2025-01-09 13:07:50.000000&#39;, first_name=&#39;DESIRE&#39;, actor_id=3)</span></span>
-<span id="cb81-44"><a href="#cb81-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-45"><a href="#cb81-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb81-46"><a href="#cb81-46" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&quot;__main__&quot;</span>:</span>
-<span id="cb81-47"><a href="#cb81-47" aria-hidden="true" tabindex="-1"></a>    asyncio.run(main())</span></code></pre></div>
+                <div class="sourceCode" id="cb82"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> asyncio</span>
+<span id="cb82-2"><a href="#cb82-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datetime <span class="im">import</span> datetime</span>
+<span id="cb82-3"><a href="#cb82-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Optional</span>
+<span id="cb82-4"><a href="#cb82-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> (</span>
+<span id="cb82-5"><a href="#cb82-5" aria-hidden="true" tabindex="-1"></a>    IMyServiceSakilaActor <span class="im">as</span> Actor,</span>
+<span id="cb82-6"><a href="#cb82-6" aria-hidden="true" tabindex="-1"></a>    MyService,</span>
+<span id="cb82-7"><a href="#cb82-7" aria-hidden="true" tabindex="-1"></a>    MrsDocumentNotFoundError,</span>
+<span id="cb82-8"><a href="#cb82-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb82-9"><a href="#cb82-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-10"><a href="#cb82-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-11"><a href="#cb82-11" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> get_actor_document_by_id(service: MyService, doc_id: <span class="bu">int</span>) <span class="op">-&gt;</span> Actor:</span>
+<span id="cb82-12"><a href="#cb82-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb82-13"><a href="#cb82-13" aria-hidden="true" tabindex="-1"></a>        actor: Actor <span class="op">=</span> <span class="cf">await</span> service.sakila.actor.find_first_or_throw(</span>
+<span id="cb82-14"><a href="#cb82-14" aria-hidden="true" tabindex="-1"></a>                where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: doc_id}</span>
+<span id="cb82-15"><a href="#cb82-15" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb82-16"><a href="#cb82-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> MrsDocumentNotFoundError:</span>
+<span id="cb82-17"><a href="#cb82-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> MrsDocumentNotFoundError(msg<span class="op">=</span><span class="ss">f&quot;No actor document exists matching actor_id=</span><span class="sc">{</span>doc_id<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb82-18"><a href="#cb82-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> actor</span>
+<span id="cb82-19"><a href="#cb82-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-20"><a href="#cb82-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-21"><a href="#cb82-21" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> main() <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="cb82-22"><a href="#cb82-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create service</span></span>
+<span id="cb82-23"><a href="#cb82-23" aria-hidden="true" tabindex="-1"></a>    my_service <span class="op">=</span> MyService()</span>
+<span id="cb82-24"><a href="#cb82-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-25"><a href="#cb82-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Get a document</span></span>
+<span id="cb82-26"><a href="#cb82-26" aria-hidden="true" tabindex="-1"></a>    doc_id <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb82-27"><a href="#cb82-27" aria-hidden="true" tabindex="-1"></a>    actor <span class="op">=</span> <span class="cf">await</span> get_actor_document_by_id(service<span class="op">=</span>my_service, doc_id<span class="op">=</span>doc_id)</span>
+<span id="cb82-28"><a href="#cb82-28" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;Before:&quot;</span>, actor)</span>
+<span id="cb82-29"><a href="#cb82-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-30"><a href="#cb82-30" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Modify the data class instance representing a REST document</span></span>
+<span id="cb82-31"><a href="#cb82-31" aria-hidden="true" tabindex="-1"></a>    actor.first_name <span class="op">=</span> <span class="st">&quot;DESIRE&quot;</span></span>
+<span id="cb82-32"><a href="#cb82-32" aria-hidden="true" tabindex="-1"></a>    actor.last_name <span class="op">=</span> <span class="st">&quot;LEE&quot;</span></span>
+<span id="cb82-33"><a href="#cb82-33" aria-hidden="true" tabindex="-1"></a>    actor.last_update <span class="op">=</span> <span class="bu">str</span>(datetime.now())</span>
+<span id="cb82-34"><a href="#cb82-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-35"><a href="#cb82-35" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Commit an update</span></span>
+<span id="cb82-36"><a href="#cb82-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> actor.update()</span>
+<span id="cb82-37"><a href="#cb82-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-38"><a href="#cb82-38" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Peak the REST document to see if it was updated accordingly</span></span>
+<span id="cb82-39"><a href="#cb82-39" aria-hidden="true" tabindex="-1"></a>    actor_after <span class="op">=</span> <span class="cf">await</span> get_actor_document_by_id(service<span class="op">=</span>my_service, doc_id<span class="op">=</span>doc_id)</span>
+<span id="cb82-40"><a href="#cb82-40" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;After:&quot;</span>, actor_after)</span>
+<span id="cb82-41"><a href="#cb82-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-42"><a href="#cb82-42" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Before: IMyServiceSakilaActor(last_name=&#39;CHASE&#39;, last_update=&#39;2023-04-13 15:11:22.000000&#39;, first_name=&#39;ED&#39;, actor_id=3)</span></span>
+<span id="cb82-43"><a href="#cb82-43" aria-hidden="true" tabindex="-1"></a>    <span class="co"># After: IMyServiceSakilaActor(last_name=&#39;LEE&#39;, last_update=&#39;2025-01-09 13:07:50.000000&#39;, first_name=&#39;DESIRE&#39;, actor_id=3)</span></span>
+<span id="cb82-44"><a href="#cb82-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-45"><a href="#cb82-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb82-46"><a href="#cb82-46" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&quot;__main__&quot;</span>:</span>
+<span id="cb82-47"><a href="#cb82-47" aria-hidden="true" tabindex="-1"></a>    asyncio.run(main())</span></code></pre></div>
                 <h3 data-number="9.4.2" id="delete-document"><span
                 class="header-section-number">9.4.2</span> delete
                 (document)</h3>
@@ -3915,43 +3966,43 @@ Reference
                 id="example-delete---document"><span
                 class="header-section-number">9.4.2.3</span> Example
                 (delete - document)</h4>
-                <div class="sourceCode" id="cb82"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> asyncio</span>
-<span id="cb82-2"><a href="#cb82-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Optional, cast</span>
-<span id="cb82-3"><a href="#cb82-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> (</span>
-<span id="cb82-4"><a href="#cb82-4" aria-hidden="true" tabindex="-1"></a>    IMyServiceSakilaActor <span class="im">as</span> Actor,</span>
-<span id="cb82-5"><a href="#cb82-5" aria-hidden="true" tabindex="-1"></a>    MyService,</span>
-<span id="cb82-6"><a href="#cb82-6" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb82-7"><a href="#cb82-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-8"><a href="#cb82-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-9"><a href="#cb82-9" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> main():</span>
-<span id="cb82-10"><a href="#cb82-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create service</span></span>
-<span id="cb82-11"><a href="#cb82-11" aria-hidden="true" tabindex="-1"></a>    my_service <span class="op">=</span> MyService()</span>
-<span id="cb82-12"><a href="#cb82-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-13"><a href="#cb82-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create a document</span></span>
-<span id="cb82-14"><a href="#cb82-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">#</span></span>
-<span id="cb82-15"><a href="#cb82-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The `actor_id` and `last_update` columns from the `sakila`</span></span>
-<span id="cb82-16"><a href="#cb82-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># table on the sample [sakila database](https://dev.mysql.com/doc/sakila/en/)</span></span>
-<span id="cb82-17"><a href="#cb82-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># are automatically generated on each insert, which means they can be omitted.</span></span>
-<span id="cb82-18"><a href="#cb82-18" aria-hidden="true" tabindex="-1"></a>    actor <span class="op">=</span> <span class="cf">await</span> my_service.sakila.actor.create(</span>
-<span id="cb82-19"><a href="#cb82-19" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;GRACO&quot;</span>, <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;WALKER&quot;</span>}</span>
-<span id="cb82-20"><a href="#cb82-20" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb82-21"><a href="#cb82-21" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(actor)</span>
-<span id="cb82-22"><a href="#cb82-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-23"><a href="#cb82-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Commit a delete</span></span>
-<span id="cb82-24"><a href="#cb82-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> actor.delete()</span>
-<span id="cb82-25"><a href="#cb82-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-26"><a href="#cb82-26" aria-hidden="true" tabindex="-1"></a>    actor_after: Optional[Actor] <span class="op">=</span> <span class="cf">await</span> my_service.sakila.actor.find_first(</span>
-<span id="cb82-27"><a href="#cb82-27" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: cast(<span class="bu">int</span>, actor.actor_id)}</span>
-<span id="cb82-28"><a href="#cb82-28" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb82-29"><a href="#cb82-29" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;deleted?&quot;</span>, actor_after <span class="kw">is</span> <span class="va">None</span>)</span>
-<span id="cb82-30"><a href="#cb82-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-31"><a href="#cb82-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># IMyServiceSakilaActor(last_name=&#39;WALKER&#39;, last_update=&#39;2025-01-09 13:31:16.000000&#39;, first_name=&#39;GRACO&#39;, actor_id=37171)</span></span>
-<span id="cb82-32"><a href="#cb82-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># deleted? True</span></span>
-<span id="cb82-33"><a href="#cb82-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-34"><a href="#cb82-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb82-35"><a href="#cb82-35" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&quot;__main__&quot;</span>:</span>
-<span id="cb82-36"><a href="#cb82-36" aria-hidden="true" tabindex="-1"></a>    asyncio.run(main())</span></code></pre></div>
+                <div class="sourceCode" id="cb83"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> asyncio</span>
+<span id="cb83-2"><a href="#cb83-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Optional, cast</span>
+<span id="cb83-3"><a href="#cb83-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python.my_service <span class="im">import</span> (</span>
+<span id="cb83-4"><a href="#cb83-4" aria-hidden="true" tabindex="-1"></a>    IMyServiceSakilaActor <span class="im">as</span> Actor,</span>
+<span id="cb83-5"><a href="#cb83-5" aria-hidden="true" tabindex="-1"></a>    MyService,</span>
+<span id="cb83-6"><a href="#cb83-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb83-7"><a href="#cb83-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb83-8"><a href="#cb83-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb83-9"><a href="#cb83-9" aria-hidden="true" tabindex="-1"></a><span class="cf">async</span> <span class="kw">def</span> main():</span>
+<span id="cb83-10"><a href="#cb83-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create service</span></span>
+<span id="cb83-11"><a href="#cb83-11" aria-hidden="true" tabindex="-1"></a>    my_service <span class="op">=</span> MyService()</span>
+<span id="cb83-12"><a href="#cb83-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb83-13"><a href="#cb83-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create a document</span></span>
+<span id="cb83-14"><a href="#cb83-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">#</span></span>
+<span id="cb83-15"><a href="#cb83-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The `actor_id` and `last_update` columns from the `sakila`</span></span>
+<span id="cb83-16"><a href="#cb83-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># table on the sample [sakila database](https://dev.mysql.com/doc/sakila/en/)</span></span>
+<span id="cb83-17"><a href="#cb83-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># are automatically generated on each insert, which means they can be omitted.</span></span>
+<span id="cb83-18"><a href="#cb83-18" aria-hidden="true" tabindex="-1"></a>    actor <span class="op">=</span> <span class="cf">await</span> my_service.sakila.actor.create(</span>
+<span id="cb83-19"><a href="#cb83-19" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;first_name&quot;</span>: <span class="st">&quot;GRACO&quot;</span>, <span class="st">&quot;last_name&quot;</span>: <span class="st">&quot;WALKER&quot;</span>}</span>
+<span id="cb83-20"><a href="#cb83-20" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb83-21"><a href="#cb83-21" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(actor)</span>
+<span id="cb83-22"><a href="#cb83-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb83-23"><a href="#cb83-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Commit a delete</span></span>
+<span id="cb83-24"><a href="#cb83-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> actor.delete()</span>
+<span id="cb83-25"><a href="#cb83-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb83-26"><a href="#cb83-26" aria-hidden="true" tabindex="-1"></a>    actor_after: Optional[Actor] <span class="op">=</span> <span class="cf">await</span> my_service.sakila.actor.find_first(</span>
+<span id="cb83-27"><a href="#cb83-27" aria-hidden="true" tabindex="-1"></a>        where<span class="op">=</span>{<span class="st">&quot;actor_id&quot;</span>: cast(<span class="bu">int</span>, actor.actor_id)}</span>
+<span id="cb83-28"><a href="#cb83-28" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb83-29"><a href="#cb83-29" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">&quot;deleted?&quot;</span>, actor_after <span class="kw">is</span> <span class="va">None</span>)</span>
+<span id="cb83-30"><a href="#cb83-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb83-31"><a href="#cb83-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># IMyServiceSakilaActor(last_name=&#39;WALKER&#39;, last_update=&#39;2025-01-09 13:31:16.000000&#39;, first_name=&#39;GRACO&#39;, actor_id=37171)</span></span>
+<span id="cb83-32"><a href="#cb83-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># deleted? True</span></span>
+<span id="cb83-33"><a href="#cb83-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb83-34"><a href="#cb83-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb83-35"><a href="#cb83-35" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&quot;__main__&quot;</span>:</span>
+<span id="cb83-36"><a href="#cb83-36" aria-hidden="true" tabindex="-1"></a>    asyncio.run(main())</span></code></pre></div>
                 <h2 data-number="9.5" id="rest-functions"><span
                 class="header-section-number">9.5</span> REST
                 Functions</h2>
@@ -3987,36 +4038,36 @@ Reference
                 (function)</h3>
                 <p>Calling a REST function in the Python SDK is exactly
                 like calling a local Python function.</p>
-                <div class="sourceCode" id="cb83"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
-<span id="cb83-2"><a href="#cb83-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb83-3"><a href="#cb83-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb83-4"><a href="#cb83-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb83-5"><a href="#cb83-5" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.hello_func(name<span class="op">=</span><span class="st">&quot;Rui&quot;</span>)</span>
-<span id="cb83-6"><a href="#cb83-6" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; Hello, Rui!</span></span>
-<span id="cb83-7"><a href="#cb83-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb83-8"><a href="#cb83-8" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.sum_func(a<span class="op">=</span><span class="dv">3</span>, b<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb83-9"><a href="#cb83-9" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; 5</span></span>
-<span id="cb83-10"><a href="#cb83-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb83-11"><a href="#cb83-11" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.my_birthday_func()</span>
-<span id="cb83-12"><a href="#cb83-12" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; 2024-07-18 00:00:00</span></span></code></pre></div>
+                <div class="sourceCode" id="cb84"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
+<span id="cb84-2"><a href="#cb84-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-3"><a href="#cb84-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb84-4"><a href="#cb84-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-5"><a href="#cb84-5" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.hello_func(name<span class="op">=</span><span class="st">&quot;Rui&quot;</span>)</span>
+<span id="cb84-6"><a href="#cb84-6" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; Hello, Rui!</span></span>
+<span id="cb84-7"><a href="#cb84-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-8"><a href="#cb84-8" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.sum_func(a<span class="op">=</span><span class="dv">3</span>, b<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb84-9"><a href="#cb84-9" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; 5</span></span>
+<span id="cb84-10"><a href="#cb84-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-11"><a href="#cb84-11" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> <span class="cf">await</span> my_service.sakila.my_birthday_func()</span>
+<span id="cb84-12"><a href="#cb84-12" aria-hidden="true" tabindex="-1"></a><span class="co"># print(res) -&gt; 2024-07-18 00:00:00</span></span></code></pre></div>
                 <p>where <code>hello_func</code>, <code>sum_func</code>
                 and <code>my_birthday_func</code> are:</p>
-                <div class="sourceCode" id="cb84"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- one input</span></span>
-<span id="cb84-2"><a href="#cb84-2" aria-hidden="true" tabindex="-1"></a>mysql<span class="op">&gt;</span> <span class="kw">CREATE</span> <span class="kw">FUNCTION</span> hello_func (name <span class="dt">CHAR</span>(<span class="dv">20</span>))</span>
-<span id="cb84-3"><a href="#cb84-3" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> RETURNS <span class="dt">CHAR</span>(<span class="dv">50</span>) DETERMINISTIC</span>
-<span id="cb84-4"><a href="#cb84-4" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="kw">RETURN</span> <span class="fu">CONCAT</span>(<span class="st">&#39;Hello, &#39;</span>, name, <span class="st">&#39;!&#39;</span>);</span>
-<span id="cb84-5"><a href="#cb84-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb84-6"><a href="#cb84-6" aria-hidden="true" tabindex="-1"></a><span class="co">-- many input</span></span>
-<span id="cb84-7"><a href="#cb84-7" aria-hidden="true" tabindex="-1"></a>mysql<span class="op">&gt;</span> <span class="kw">CREATE</span> <span class="kw">FUNCTION</span> sum_func (a <span class="dt">INT</span>, b <span class="dt">INT</span>)</span>
-<span id="cb84-8"><a href="#cb84-8" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> RETURNS <span class="dt">INT</span> DETERMINISTIC</span>
-<span id="cb84-9"><a href="#cb84-9" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="kw">RETURN</span> a <span class="op">+</span> b;</span>
-<span id="cb84-10"><a href="#cb84-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb84-11"><a href="#cb84-11" aria-hidden="true" tabindex="-1"></a><span class="co">-- no input</span></span>
-<span id="cb84-12"><a href="#cb84-12" aria-hidden="true" tabindex="-1"></a>mysql<span class="op">&gt;</span> <span class="kw">CREATE</span> <span class="kw">FUNCTION</span> my_birthday_func ()</span>
-<span id="cb84-13"><a href="#cb84-13" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> RETURNS DATETIME DETERMINISTIC</span>
-<span id="cb84-14"><a href="#cb84-14" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="kw">RETURN</span> CURDATE();</span></code></pre></div>
+                <div class="sourceCode" id="cb85"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- one input</span></span>
+<span id="cb85-2"><a href="#cb85-2" aria-hidden="true" tabindex="-1"></a>mysql<span class="op">&gt;</span> <span class="kw">CREATE</span> <span class="kw">FUNCTION</span> hello_func (name <span class="dt">CHAR</span>(<span class="dv">20</span>))</span>
+<span id="cb85-3"><a href="#cb85-3" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> RETURNS <span class="dt">CHAR</span>(<span class="dv">50</span>) DETERMINISTIC</span>
+<span id="cb85-4"><a href="#cb85-4" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="kw">RETURN</span> <span class="fu">CONCAT</span>(<span class="st">&#39;Hello, &#39;</span>, name, <span class="st">&#39;!&#39;</span>);</span>
+<span id="cb85-5"><a href="#cb85-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb85-6"><a href="#cb85-6" aria-hidden="true" tabindex="-1"></a><span class="co">-- many input</span></span>
+<span id="cb85-7"><a href="#cb85-7" aria-hidden="true" tabindex="-1"></a>mysql<span class="op">&gt;</span> <span class="kw">CREATE</span> <span class="kw">FUNCTION</span> sum_func (a <span class="dt">INT</span>, b <span class="dt">INT</span>)</span>
+<span id="cb85-8"><a href="#cb85-8" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> RETURNS <span class="dt">INT</span> DETERMINISTIC</span>
+<span id="cb85-9"><a href="#cb85-9" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="kw">RETURN</span> a <span class="op">+</span> b;</span>
+<span id="cb85-10"><a href="#cb85-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb85-11"><a href="#cb85-11" aria-hidden="true" tabindex="-1"></a><span class="co">-- no input</span></span>
+<span id="cb85-12"><a href="#cb85-12" aria-hidden="true" tabindex="-1"></a>mysql<span class="op">&gt;</span> <span class="kw">CREATE</span> <span class="kw">FUNCTION</span> my_birthday_func ()</span>
+<span id="cb85-13"><a href="#cb85-13" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> RETURNS DATETIME DETERMINISTIC</span>
+<span id="cb85-14"><a href="#cb85-14" aria-hidden="true" tabindex="-1"></a><span class="op">&gt;</span> <span class="kw">RETURN</span> CURDATE();</span></code></pre></div>
                 <h2 data-number="9.6" id="rest-procedures"><span
                 class="header-section-number">9.6</span> REST
                 Procedures</h2>
@@ -4063,72 +4114,72 @@ Reference
                 class="header-section-number">9.6.3</span> Example
                 (procedure)</h3>
                 <p>Consider the following dummy procedures:</p>
-                <div class="sourceCode" id="cb85"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Assuming the database `mrs_tests` exists</span></span>
-<span id="cb85-2"><a href="#cb85-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- You can use the MySQL Client console to run this script</span></span>
-<span id="cb85-3"><a href="#cb85-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb85-4"><a href="#cb85-4" aria-hidden="true" tabindex="-1"></a>DELIMITER <span class="op">//</span></span>
-<span id="cb85-5"><a href="#cb85-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb85-6"><a href="#cb85-6" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">PROCEDURE</span> mrs_tests.mirror_proc (INOUT channel <span class="dt">CHAR</span>(<span class="dv">4</span>))</span>
-<span id="cb85-7"><a href="#cb85-7" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
-<span id="cb85-8"><a href="#cb85-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="kw">REVERSE</span>(channel) <span class="kw">INTO</span> channel;</span>
-<span id="cb85-9"><a href="#cb85-9" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span><span class="op">//</span></span>
-<span id="cb85-10"><a href="#cb85-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb85-11"><a href="#cb85-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb85-12"><a href="#cb85-12" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">PROCEDURE</span> mrs_tests.twice_proc (<span class="kw">IN</span> <span class="dt">number</span> <span class="dt">INT</span>, <span class="kw">OUT</span> number_twice <span class="dt">INT</span>)</span>
-<span id="cb85-13"><a href="#cb85-13" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
-<span id="cb85-14"><a href="#cb85-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="dt">number</span><span class="op">*</span><span class="dv">2</span> <span class="kw">INTO</span> number_twice;</span>
-<span id="cb85-15"><a href="#cb85-15" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span><span class="op">//</span></span>
-<span id="cb85-16"><a href="#cb85-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb85-17"><a href="#cb85-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb85-18"><a href="#cb85-18" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">PROCEDURE</span> mrs_tests.sample_proc(</span>
-<span id="cb85-19"><a href="#cb85-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">IN</span> arg1 <span class="dt">CHAR</span>(<span class="dv">5</span>), INOUT arg2 <span class="dt">CHAR</span>(<span class="dv">5</span>), <span class="kw">OUT</span> arg3 <span class="dt">FLOAT</span></span>
-<span id="cb85-20"><a href="#cb85-20" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb85-21"><a href="#cb85-21" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
-<span id="cb85-22"><a href="#cb85-22" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="ot">&quot;foo&quot;</span> <span class="kw">as</span> name, <span class="dv">42</span> <span class="kw">as</span> age;</span>
-<span id="cb85-23"><a href="#cb85-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="ot">&quot;bar&quot;</span> <span class="kw">as</span> something;</span>
-<span id="cb85-24"><a href="#cb85-24" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span><span class="op">//</span></span>
-<span id="cb85-25"><a href="#cb85-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb85-26"><a href="#cb85-26" aria-hidden="true" tabindex="-1"></a>DELIMITER ;</span></code></pre></div>
+                <div class="sourceCode" id="cb86"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Assuming the database `mrs_tests` exists</span></span>
+<span id="cb86-2"><a href="#cb86-2" aria-hidden="true" tabindex="-1"></a><span class="co">-- You can use the MySQL Client console to run this script</span></span>
+<span id="cb86-3"><a href="#cb86-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb86-4"><a href="#cb86-4" aria-hidden="true" tabindex="-1"></a>DELIMITER <span class="op">//</span></span>
+<span id="cb86-5"><a href="#cb86-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb86-6"><a href="#cb86-6" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">PROCEDURE</span> mrs_tests.mirror_proc (INOUT channel <span class="dt">CHAR</span>(<span class="dv">4</span>))</span>
+<span id="cb86-7"><a href="#cb86-7" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb86-8"><a href="#cb86-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="kw">REVERSE</span>(channel) <span class="kw">INTO</span> channel;</span>
+<span id="cb86-9"><a href="#cb86-9" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span><span class="op">//</span></span>
+<span id="cb86-10"><a href="#cb86-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb86-11"><a href="#cb86-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb86-12"><a href="#cb86-12" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">PROCEDURE</span> mrs_tests.twice_proc (<span class="kw">IN</span> <span class="dt">number</span> <span class="dt">INT</span>, <span class="kw">OUT</span> number_twice <span class="dt">INT</span>)</span>
+<span id="cb86-13"><a href="#cb86-13" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb86-14"><a href="#cb86-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="dt">number</span><span class="op">*</span><span class="dv">2</span> <span class="kw">INTO</span> number_twice;</span>
+<span id="cb86-15"><a href="#cb86-15" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span><span class="op">//</span></span>
+<span id="cb86-16"><a href="#cb86-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb86-17"><a href="#cb86-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb86-18"><a href="#cb86-18" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">PROCEDURE</span> mrs_tests.sample_proc(</span>
+<span id="cb86-19"><a href="#cb86-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">IN</span> arg1 <span class="dt">CHAR</span>(<span class="dv">5</span>), INOUT arg2 <span class="dt">CHAR</span>(<span class="dv">5</span>), <span class="kw">OUT</span> arg3 <span class="dt">FLOAT</span></span>
+<span id="cb86-20"><a href="#cb86-20" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb86-21"><a href="#cb86-21" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb86-22"><a href="#cb86-22" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="ot">&quot;foo&quot;</span> <span class="kw">as</span> name, <span class="dv">42</span> <span class="kw">as</span> age;</span>
+<span id="cb86-23"><a href="#cb86-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="ot">&quot;bar&quot;</span> <span class="kw">as</span> something;</span>
+<span id="cb86-24"><a href="#cb86-24" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span><span class="op">//</span></span>
+<span id="cb86-25"><a href="#cb86-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb86-26"><a href="#cb86-26" aria-hidden="true" tabindex="-1"></a>DELIMITER ;</span></code></pre></div>
                 <p>Calling a REST procedure in the Python SDK is exactly
                 like calling a local Python function.</p>
-                <div class="sourceCode" id="cb86"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
-<span id="cb86-2"><a href="#cb86-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb86-3"><a href="#cb86-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb86-4"><a href="#cb86-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb86-5"><a href="#cb86-5" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.mirror_proc(channel<span class="op">=</span><span class="st">&quot;roma&quot;</span>)</span>
-<span id="cb86-6"><a href="#cb86-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(procedure_result)</span>
-<span id="cb86-7"><a href="#cb86-7" aria-hidden="true" tabindex="-1"></a><span class="co"># IMrsProcedureResponse(</span></span>
-<span id="cb86-8"><a href="#cb86-8" aria-hidden="true" tabindex="-1"></a><span class="co">#     result_sets=[],</span></span>
-<span id="cb86-9"><a href="#cb86-9" aria-hidden="true" tabindex="-1"></a><span class="co">#     out_parameters={&quot;channel&quot;: &quot;amor&quot;}</span></span>
-<span id="cb86-10"><a href="#cb86-10" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span>
-<span id="cb86-11"><a href="#cb86-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb86-12"><a href="#cb86-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb86-13"><a href="#cb86-13" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.twice_proc(number<span class="op">=</span><span class="dv">13</span>)</span>
-<span id="cb86-14"><a href="#cb86-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(procedure_result)</span>
-<span id="cb86-15"><a href="#cb86-15" aria-hidden="true" tabindex="-1"></a><span class="co"># IMrsProcedureResponse(</span></span>
-<span id="cb86-16"><a href="#cb86-16" aria-hidden="true" tabindex="-1"></a><span class="co">#     result_sets=[],</span></span>
-<span id="cb86-17"><a href="#cb86-17" aria-hidden="true" tabindex="-1"></a><span class="co">#     out_parameters={&quot;number_twice&quot;: 26}</span></span>
-<span id="cb86-18"><a href="#cb86-18" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span>
-<span id="cb86-19"><a href="#cb86-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb86-20"><a href="#cb86-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb86-21"><a href="#cb86-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Note how `arg1` is not provided, and `arg2` is set to null.</span></span>
-<span id="cb86-22"><a href="#cb86-22" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.sample_proc(arg2<span class="op">=</span><span class="va">None</span>)</span>
-<span id="cb86-23"><a href="#cb86-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(procedure_result)</span>
-<span id="cb86-24"><a href="#cb86-24" aria-hidden="true" tabindex="-1"></a><span class="co"># IMrsProcedureResponse(</span></span>
-<span id="cb86-25"><a href="#cb86-25" aria-hidden="true" tabindex="-1"></a><span class="co">#     result_sets=[</span></span>
-<span id="cb86-26"><a href="#cb86-26" aria-hidden="true" tabindex="-1"></a><span class="co">#         MrsProcedureResultSet(</span></span>
-<span id="cb86-27"><a href="#cb86-27" aria-hidden="true" tabindex="-1"></a><span class="co">#             type=&quot;items0&quot;,</span></span>
-<span id="cb86-28"><a href="#cb86-28" aria-hidden="true" tabindex="-1"></a><span class="co">#             items=[{&quot;name&quot;: &quot;foo&quot;, &quot;age&quot;: 42}],</span></span>
-<span id="cb86-29"><a href="#cb86-29" aria-hidden="true" tabindex="-1"></a><span class="co">#         ),</span></span>
-<span id="cb86-30"><a href="#cb86-30" aria-hidden="true" tabindex="-1"></a><span class="co">#         MrsProcedureResultSet(</span></span>
-<span id="cb86-31"><a href="#cb86-31" aria-hidden="true" tabindex="-1"></a><span class="co">#             type=&quot;items1&quot;,</span></span>
-<span id="cb86-32"><a href="#cb86-32" aria-hidden="true" tabindex="-1"></a><span class="co">#             items=[{&quot;something&quot;: &quot;bar&quot;}],</span></span>
-<span id="cb86-33"><a href="#cb86-33" aria-hidden="true" tabindex="-1"></a><span class="co">#         ),</span></span>
-<span id="cb86-34"><a href="#cb86-34" aria-hidden="true" tabindex="-1"></a><span class="co">#     ],</span></span>
-<span id="cb86-35"><a href="#cb86-35" aria-hidden="true" tabindex="-1"></a><span class="co">#     out_parameters={&#39;arg2&#39;: None, &#39;arg3&#39;: None}</span></span>
-<span id="cb86-36"><a href="#cb86-36" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span></code></pre></div>
+                <div class="sourceCode" id="cb87"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
+<span id="cb87-2"><a href="#cb87-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb87-3"><a href="#cb87-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb87-4"><a href="#cb87-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb87-5"><a href="#cb87-5" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.mirror_proc(channel<span class="op">=</span><span class="st">&quot;roma&quot;</span>)</span>
+<span id="cb87-6"><a href="#cb87-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(procedure_result)</span>
+<span id="cb87-7"><a href="#cb87-7" aria-hidden="true" tabindex="-1"></a><span class="co"># IMrsProcedureResponse(</span></span>
+<span id="cb87-8"><a href="#cb87-8" aria-hidden="true" tabindex="-1"></a><span class="co">#     result_sets=[],</span></span>
+<span id="cb87-9"><a href="#cb87-9" aria-hidden="true" tabindex="-1"></a><span class="co">#     out_parameters={&quot;channel&quot;: &quot;amor&quot;}</span></span>
+<span id="cb87-10"><a href="#cb87-10" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span>
+<span id="cb87-11"><a href="#cb87-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb87-12"><a href="#cb87-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb87-13"><a href="#cb87-13" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.twice_proc(number<span class="op">=</span><span class="dv">13</span>)</span>
+<span id="cb87-14"><a href="#cb87-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(procedure_result)</span>
+<span id="cb87-15"><a href="#cb87-15" aria-hidden="true" tabindex="-1"></a><span class="co"># IMrsProcedureResponse(</span></span>
+<span id="cb87-16"><a href="#cb87-16" aria-hidden="true" tabindex="-1"></a><span class="co">#     result_sets=[],</span></span>
+<span id="cb87-17"><a href="#cb87-17" aria-hidden="true" tabindex="-1"></a><span class="co">#     out_parameters={&quot;number_twice&quot;: 26}</span></span>
+<span id="cb87-18"><a href="#cb87-18" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span>
+<span id="cb87-19"><a href="#cb87-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb87-20"><a href="#cb87-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb87-21"><a href="#cb87-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Note how `arg1` is not provided, and `arg2` is set to null.</span></span>
+<span id="cb87-22"><a href="#cb87-22" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.sample_proc(arg2<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb87-23"><a href="#cb87-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(procedure_result)</span>
+<span id="cb87-24"><a href="#cb87-24" aria-hidden="true" tabindex="-1"></a><span class="co"># IMrsProcedureResponse(</span></span>
+<span id="cb87-25"><a href="#cb87-25" aria-hidden="true" tabindex="-1"></a><span class="co">#     result_sets=[</span></span>
+<span id="cb87-26"><a href="#cb87-26" aria-hidden="true" tabindex="-1"></a><span class="co">#         MrsProcedureResultSet(</span></span>
+<span id="cb87-27"><a href="#cb87-27" aria-hidden="true" tabindex="-1"></a><span class="co">#             type=&quot;items0&quot;,</span></span>
+<span id="cb87-28"><a href="#cb87-28" aria-hidden="true" tabindex="-1"></a><span class="co">#             items=[{&quot;name&quot;: &quot;foo&quot;, &quot;age&quot;: 42}],</span></span>
+<span id="cb87-29"><a href="#cb87-29" aria-hidden="true" tabindex="-1"></a><span class="co">#         ),</span></span>
+<span id="cb87-30"><a href="#cb87-30" aria-hidden="true" tabindex="-1"></a><span class="co">#         MrsProcedureResultSet(</span></span>
+<span id="cb87-31"><a href="#cb87-31" aria-hidden="true" tabindex="-1"></a><span class="co">#             type=&quot;items1&quot;,</span></span>
+<span id="cb87-32"><a href="#cb87-32" aria-hidden="true" tabindex="-1"></a><span class="co">#             items=[{&quot;something&quot;: &quot;bar&quot;}],</span></span>
+<span id="cb87-33"><a href="#cb87-33" aria-hidden="true" tabindex="-1"></a><span class="co">#         ),</span></span>
+<span id="cb87-34"><a href="#cb87-34" aria-hidden="true" tabindex="-1"></a><span class="co">#     ],</span></span>
+<span id="cb87-35"><a href="#cb87-35" aria-hidden="true" tabindex="-1"></a><span class="co">#     out_parameters={&#39;arg2&#39;: None, &#39;arg3&#39;: None}</span></span>
+<span id="cb87-36"><a href="#cb87-36" aria-hidden="true" tabindex="-1"></a><span class="co"># )</span></span></code></pre></div>
                 <p>The first two procedures do not generate result sets,
                 however the third one does. By omission, result sets are
                 untyped meaning generic type names are used for the
@@ -4136,38 +4187,38 @@ Reference
                 <p>If you want a typed result set, meaning you wish to
                 specify a type, you can do so at the MRS procedure level
                 via the MySQL Shell:</p>
-                <div class="sourceCode" id="cb87"><pre
-                class="sourceCode sql"><code class="sourceCode sql"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">PROCEDURE</span> <span class="op">/</span>sampleProc</span>
-<span id="cb87-2"><a href="#cb87-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>mrsTests</span>
-<span id="cb87-3"><a href="#cb87-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">AS</span> mrs_tests.sample_proc</span>
-<span id="cb87-4"><a href="#cb87-4" aria-hidden="true" tabindex="-1"></a>    RESULT IMyServiceMrsTestsSampleProcResultSet1 {</span>
-<span id="cb87-5"><a href="#cb87-5" aria-hidden="true" tabindex="-1"></a>        name: name @DATATYPE(<span class="ot">&quot;CHAR(3)&quot;</span>),</span>
-<span id="cb87-6"><a href="#cb87-6" aria-hidden="true" tabindex="-1"></a>        age: age @DATATYPE(<span class="ot">&quot;TINYINT&quot;</span>)</span>
-<span id="cb87-7"><a href="#cb87-7" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb87-8"><a href="#cb87-8" aria-hidden="true" tabindex="-1"></a>    RESULT IMyServiceMrsTestsSampleProcResultSet2 {</span>
-<span id="cb87-9"><a href="#cb87-9" aria-hidden="true" tabindex="-1"></a>        something: something @DATATYPE(<span class="ot">&quot;CHAR(3)&quot;</span>)</span>
-<span id="cb87-10"><a href="#cb87-10" aria-hidden="true" tabindex="-1"></a>    };</span></code></pre></div>
+                <div class="sourceCode" id="cb88"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">PROCEDURE</span> <span class="op">/</span>sampleProc</span>
+<span id="cb88-2"><a href="#cb88-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>mrsTests</span>
+<span id="cb88-3"><a href="#cb88-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">AS</span> mrs_tests.sample_proc</span>
+<span id="cb88-4"><a href="#cb88-4" aria-hidden="true" tabindex="-1"></a>    RESULT IMyServiceMrsTestsSampleProcResultSet1 {</span>
+<span id="cb88-5"><a href="#cb88-5" aria-hidden="true" tabindex="-1"></a>        name: name @DATATYPE(<span class="ot">&quot;CHAR(3)&quot;</span>),</span>
+<span id="cb88-6"><a href="#cb88-6" aria-hidden="true" tabindex="-1"></a>        age: age @DATATYPE(<span class="ot">&quot;TINYINT&quot;</span>)</span>
+<span id="cb88-7"><a href="#cb88-7" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb88-8"><a href="#cb88-8" aria-hidden="true" tabindex="-1"></a>    RESULT IMyServiceMrsTestsSampleProcResultSet2 {</span>
+<span id="cb88-9"><a href="#cb88-9" aria-hidden="true" tabindex="-1"></a>        something: something @DATATYPE(<span class="ot">&quot;CHAR(3)&quot;</span>)</span>
+<span id="cb88-10"><a href="#cb88-10" aria-hidden="true" tabindex="-1"></a>    };</span></code></pre></div>
                 <p>Calling the REST procedure again from the Python SDK
                 leads to:</p>
-                <div class="sourceCode" id="cb88"><pre
-                class="sourceCode python"><code class="sourceCode python"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
-<span id="cb88-2"><a href="#cb88-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb88-3"><a href="#cb88-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb88-4"><a href="#cb88-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb88-5"><a href="#cb88-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb88-6"><a href="#cb88-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Note how `arg1` is not provided, and `arg2` is set to null.</span></span>
-<span id="cb88-7"><a href="#cb88-7" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.sample_proc(arg2<span class="op">=</span><span class="va">None</span>)</span>
-<span id="cb88-8"><a href="#cb88-8" aria-hidden="true" tabindex="-1"></a><span class="co"># print(procedure_result.result_sets)</span></span>
-<span id="cb88-9"><a href="#cb88-9" aria-hidden="true" tabindex="-1"></a><span class="co"># [</span></span>
-<span id="cb88-10"><a href="#cb88-10" aria-hidden="true" tabindex="-1"></a><span class="co">#     MrsProcedureResultSet(</span></span>
-<span id="cb88-11"><a href="#cb88-11" aria-hidden="true" tabindex="-1"></a><span class="co">#         type=&quot;IMyServiceMrsTestsSampleProcResultSet1&quot;,</span></span>
-<span id="cb88-12"><a href="#cb88-12" aria-hidden="true" tabindex="-1"></a><span class="co">#         items=[{&quot;name&quot;: &quot;foo&quot;, &quot;age&quot;: 42}],</span></span>
-<span id="cb88-13"><a href="#cb88-13" aria-hidden="true" tabindex="-1"></a><span class="co">#     ),</span></span>
-<span id="cb88-14"><a href="#cb88-14" aria-hidden="true" tabindex="-1"></a><span class="co">#     MrsProcedureResultSet(</span></span>
-<span id="cb88-15"><a href="#cb88-15" aria-hidden="true" tabindex="-1"></a><span class="co">#         type=&quot;IMyServiceMrsTestsSampleProcResultSet2&quot;,</span></span>
-<span id="cb88-16"><a href="#cb88-16" aria-hidden="true" tabindex="-1"></a><span class="co">#         items=[{&quot;something&quot;: &quot;bar&quot;}],</span></span>
-<span id="cb88-17"><a href="#cb88-17" aria-hidden="true" tabindex="-1"></a><span class="co">#     ),</span></span>
-<span id="cb88-18"><a href="#cb88-18" aria-hidden="true" tabindex="-1"></a><span class="co"># ],</span></span></code></pre></div>
+                <div class="sourceCode" id="cb89"><pre
+                class="sourceCode python"><code class="sourceCode python"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
+<span id="cb89-2"><a href="#cb89-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb89-3"><a href="#cb89-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb89-4"><a href="#cb89-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb89-5"><a href="#cb89-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb89-6"><a href="#cb89-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Note how `arg1` is not provided, and `arg2` is set to null.</span></span>
+<span id="cb89-7"><a href="#cb89-7" aria-hidden="true" tabindex="-1"></a>procedure_result <span class="op">=</span> <span class="cf">await</span> my_service.mrs_tests.sample_proc(arg2<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb89-8"><a href="#cb89-8" aria-hidden="true" tabindex="-1"></a><span class="co"># print(procedure_result.result_sets)</span></span>
+<span id="cb89-9"><a href="#cb89-9" aria-hidden="true" tabindex="-1"></a><span class="co"># [</span></span>
+<span id="cb89-10"><a href="#cb89-10" aria-hidden="true" tabindex="-1"></a><span class="co">#     MrsProcedureResultSet(</span></span>
+<span id="cb89-11"><a href="#cb89-11" aria-hidden="true" tabindex="-1"></a><span class="co">#         type=&quot;IMyServiceMrsTestsSampleProcResultSet1&quot;,</span></span>
+<span id="cb89-12"><a href="#cb89-12" aria-hidden="true" tabindex="-1"></a><span class="co">#         items=[{&quot;name&quot;: &quot;foo&quot;, &quot;age&quot;: 42}],</span></span>
+<span id="cb89-13"><a href="#cb89-13" aria-hidden="true" tabindex="-1"></a><span class="co">#     ),</span></span>
+<span id="cb89-14"><a href="#cb89-14" aria-hidden="true" tabindex="-1"></a><span class="co">#     MrsProcedureResultSet(</span></span>
+<span id="cb89-15"><a href="#cb89-15" aria-hidden="true" tabindex="-1"></a><span class="co">#         type=&quot;IMyServiceMrsTestsSampleProcResultSet2&quot;,</span></span>
+<span id="cb89-16"><a href="#cb89-16" aria-hidden="true" tabindex="-1"></a><span class="co">#         items=[{&quot;something&quot;: &quot;bar&quot;}],</span></span>
+<span id="cb89-17"><a href="#cb89-17" aria-hidden="true" tabindex="-1"></a><span class="co">#     ),</span></span>
+<span id="cb89-18"><a href="#cb89-18" aria-hidden="true" tabindex="-1"></a><span class="co"># ],</span></span></code></pre></div>
                 <p>Copyright (c) 2022, 2024, Oracle and/or its
                 affiliates.</p>
             </div>
