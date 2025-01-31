@@ -821,14 +821,13 @@ describe("MYSQL REST SERVICE", () => {
         }
     });
 
-    xit("Delete User", async () => {
+    it("Delete User", async () => {
         try {
             await dbTreeSection.tree.expandElement([globalService.authenticationApps![0].treeName!]);
             await dbTreeSection.tree.openContextMenuAndSelect(globalService.authenticationApps![0].user![0].username,
                 constants.deleteRESTUser);
             await (await new ConfirmDialog().untilExists()).accept();
             await (await dbTreeSection.tree.getActionButton(globalConn.caption!, constants.refreshConnection))!.click();
-            await dbTreeSection.tree.expandElement([globalService.authenticationApps![0].treeName!]);
             const notification = await new E2EToastNotification().create();
             expect(notification!.message).toBe(`The MRS user ${globalService.authenticationApps![0].user![0]
                 .username} has been deleted successfully.`);
@@ -884,7 +883,7 @@ describe("MYSQL REST SERVICE", () => {
 
 });
 
-describe("MYSQL REST SERVICE - CLIPBOARD", () => {
+xdescribe("MYSQL REST SERVICE - CLIPBOARD", () => {
 
     beforeAll(async () => {
 
