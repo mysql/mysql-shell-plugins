@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -142,7 +142,7 @@ export class AuthenticationAppDialog {
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The Authentication App Dialog was not closed");
 
-        authApp.treeName = `${authApp.name} (${authApp.vendor})`;
+        authApp.treeName = authApp.name;
 
         return authApp;
 
@@ -198,7 +198,7 @@ export class AuthenticationAppDialog {
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The Authentication App Dialog was not closed");
 
-        authenticationApp.treeName = `${authenticationApp.name} (${authenticationApp.vendor})`;
+        authenticationApp.treeName = authenticationApp.name;
 
         return authenticationApp;
     };

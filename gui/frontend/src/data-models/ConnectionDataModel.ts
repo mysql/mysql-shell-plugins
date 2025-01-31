@@ -23,12 +23,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+// eslint-disable-next-line max-classes-per-file
 import { ui } from "../app-logic/UILayer.js";
 import type { DeepMutable, Mutable } from "../app-logic/general-types.js";
 import type {
     IMrsAuthAppData, IMrsContentFileData, IMrsContentSetData, IMrsDbObjectData, IMrsRouterData, IMrsRouterService,
     IMrsSchemaData, IMrsServiceData, IMrsUserData,
 } from "../communication/ProtocolMrs.js";
+import { EnabledState } from "../modules/mrs/mrs-helpers.js";
 import { requisitions } from "../supplement/Requisitions.js";
 import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
@@ -39,7 +41,7 @@ import { compareVersionStrings, formatBytes } from "../utilities/string-helpers.
 import { ConnectionEntryImpl } from "./ConnectionEntryImpl.js";
 import { createDataModelEntryState } from "./data-model-helpers.js";
 import {
-    type AdminPageType, type Command, type DataModelSubscriber, type ICdmInitializer, type IDataModelEntryState,
+    type AdminPageType, type Command, type DataModelSubscriber, type ICdmUpdater, type IDataModelEntryState,
     type ISubscriberActionType, type ProgressCallback, type SubscriberAction,
 } from "./data-model-types.js";
 
@@ -121,7 +123,7 @@ export enum CdmEntityType {
     /** A service in MRS. */
     MrsService,
 
-    /** A router in a MySQL REST Service. */
+    /** A schema in a MySQL REST Service. */
     MrsSchema,
 
     /** A content set in MRS. */
@@ -130,8 +132,20 @@ export enum CdmEntityType {
     /** A user in MRS. */
     MrsUser,
 
+    /** The group holding all auth app entries. */
+    MrsAuthAppGroup,
+
     /** An auth app in MRS. */
     MrsAuthApp,
+
+    /** The group holding all MRS service refences listed to a specific auth app entry. */
+    MrsAuthAppServiceGroup,
+
+    /** A reference to an MRS service which is listed under an auth app entry. */
+    MrsAuthAppService,
+
+    /** A reference to an authentication app listed under an MRS service. */
+    MrsServiceAuthApp,
 
     /** A file in an MRS content set. */
     MrsContentFile,
@@ -145,10 +159,13 @@ export enum CdmEntityType {
     /** Currently not used. */
     MrsDbObjectProcedure,
 
+    /** The group holding all router entries. */
+    MrsRouterGroup,
+
     /** A router in MRS. */
     MrsRouter,
 
-    /** A service in a router. */
+    /** A reference to an MRS service which is published and appears in a router tree. */
     MrsRouterService,
 }
 
@@ -431,15 +448,40 @@ export interface ICdmRestUserEntry extends ICdmBaseEntry {
 
 /** An entry for an MRS auth app. */
 export interface ICdmRestAuthAppEntry extends ICdmBaseEntry {
-    readonly parent: ICdmRestServiceEntry;
+    readonly parent: ICdmRestAuthAppGroupEntry;
 
     readonly type: CdmEntityType.MrsAuthApp;
     readonly details: IMrsAuthAppData;
 
     readonly users: ICdmRestUserEntry[];
+    readonly services: ICdmRestAuthAppServiceEntry[];
 }
 
-/** An entry for a MySQL REST Service. */
+/** An entry for a service link in an MRS router. */
+export interface ICdmRestAuthAppServiceEntry extends ICdmBaseEntry {
+    readonly parent: ICdmRestAuthAppEntry;
+
+    readonly type: CdmEntityType.MrsAuthAppService;
+    readonly details: IMrsServiceData;
+}
+
+/** An entry for a auth app link in an MRS service. */
+export interface ICdmRestServiceAuthAppEntry extends ICdmBaseEntry {
+    readonly parent: ICdmRestServiceEntry;
+
+    readonly type: CdmEntityType.MrsServiceAuthApp;
+    readonly details: IMrsAuthAppData;
+}
+
+/** An entry for a service link in an MRS router. */
+export interface ICdmRestAuthAppGroupEntry extends ICdmBaseEntry {
+    readonly parent: ICdmRestRootEntry;
+
+    readonly type: CdmEntityType.MrsAuthAppGroup;
+    readonly authApps: ICdmRestAuthAppEntry[];
+}
+
+/** An entry for a MySQL REST service. */
 export interface ICdmRestServiceEntry extends ICdmBaseEntry {
     readonly parent: ICdmRestRootEntry;
 
@@ -448,12 +490,20 @@ export interface ICdmRestServiceEntry extends ICdmBaseEntry {
 
     readonly schemas: ICdmRestSchemaEntry[];
     readonly contentSets: ICdmRestContentSetEntry[];
-    readonly authApps: ICdmRestAuthAppEntry[];
+    readonly authApps: ICdmRestServiceAuthAppEntry[];
+}
+
+/** The group node for MRS routers. */
+export interface ICdmRestRouterGroupEntry extends ICdmBaseEntry {
+    readonly parent: ICdmRestRootEntry;
+
+    readonly type: CdmEntityType.MrsRouterGroup;
+    readonly routers: ICdmRestRouterEntry[];
 }
 
 /** An entry for an MRS Router. */
 export interface ICdmRestRouterEntry extends ICdmBaseEntry {
-    readonly parent: ICdmRestRootEntry;
+    readonly parent: ICdmRestRouterGroupEntry;
 
     readonly type: CdmEntityType.MrsRouter;
     readonly details: IMrsRouterData;
@@ -462,7 +512,7 @@ export interface ICdmRestRouterEntry extends ICdmBaseEntry {
     readonly services: ICdmRestRouterServiceEntry[];
 }
 
-/** An entry for a service located in a MRS Router. */
+/** An entry for a service link in an MRS Router. */
 export interface ICdmRestRouterServiceEntry extends ICdmBaseEntry {
     readonly parent: ICdmRestRouterEntry;
 
@@ -479,11 +529,15 @@ export interface ICdmRestRootEntry extends ICdmBaseEntry {
     readonly requiredRouterVersion: string;
     serviceEnabled: boolean;
 
+    /** When true, show also all entries considered private in the MRS subtree (default: false). */
+    showPrivateItems: boolean;
+
     readonly services: ICdmRestServiceEntry[];
-    readonly routers: ICdmRestRouterEntry[];
+    readonly routerGroup: ICdmRestRouterGroupEntry;
+    readonly authAppGroup: ICdmRestAuthAppGroupEntry;
 }
 
-export type CdmRestTypes = ICdmRestRootEntry | ICdmRestServiceEntry | ICdmRestRouterEntry | ICdmRestSchemaEntry
+export type CdmRestTypes1 = ICdmRestRootEntry | ICdmRestServiceEntry | ICdmRestRouterEntry | ICdmRestSchemaEntry
     | ICdmRestContentSetEntry | ICdmRestAuthAppEntry | ICdmRestUserEntry | ICdmRestContentFileEntry
     | ICdmRestDbObjectEntry | ICdmRestRouterServiceEntry;
 
@@ -541,16 +595,20 @@ export type ConnectionDataModelEntry =
     | ICdmTriggerEntry
     | ICdmRestRootEntry
     | ICdmRestServiceEntry
+    | ICdmRestRouterGroupEntry
     | ICdmRestRouterEntry
     | ICdmRestRouterServiceEntry
     | ICdmRestSchemaEntry
     | ICdmRestContentSetEntry
+    | ICdmRestAuthAppGroupEntry
     | ICdmRestAuthAppEntry
+    | ICdmRestAuthAppServiceEntry
+    | ICdmRestServiceAuthAppEntry
     | ICdmRestUserEntry
     | ICdmRestContentFileEntry
     | ICdmRestDbObjectEntry;
 
-export class ConnectionDataModel implements ICdmInitializer {
+export class ConnectionDataModel implements ICdmUpdater {
     #connections: ICdmConnectionEntry[] = [];
 
     #initialized: boolean = false;
@@ -893,6 +951,16 @@ export class ConnectionDataModel implements ICdmInitializer {
                 break;
             }
 
+            case CdmEntityType.MrsServiceAuthApp: {
+                const index = entry.parent.authApps.indexOf(entry);
+                if (index >= 0) {
+                    const removed = entry.parent.authApps.splice(index, 1);
+                    actions.push({ action: "remove", entry: removed[0] });
+                }
+
+                break;
+            }
+
             case CdmEntityType.MrsContentFile: {
                 const index = entry.parent.files.indexOf(entry);
                 if (index >= 0) {
@@ -993,17 +1061,20 @@ export class ConnectionDataModel implements ICdmInitializer {
      *
      * @returns A promise that resolves once the entry is initialized.
      */
-    public async initializeEntry(entry: ConnectionDataModelEntry, callback?: ProgressCallback): Promise<boolean> {
-
+    public async updateEntry(entry: ConnectionDataModelEntry, callback?: ProgressCallback): Promise<boolean> {
         switch (entry.type) {
             case CdmEntityType.Connection: {
-                this.initializeConnection(entry as ConnectionEntryImpl);
+                this.updateConnection(entry as ConnectionEntryImpl);
 
                 return true;
             }
 
             case CdmEntityType.MrsRoot: {
                 return this.updateMrsRoot(entry as Mutable<ICdmRestRootEntry>, callback);
+            }
+
+            case CdmEntityType.MrsAuthAppGroup: {
+                return this.updateMrsAuthAppGroup(entry as Mutable<ICdmRestAuthAppGroupEntry>, callback);
             }
 
             default: {
@@ -1110,7 +1181,7 @@ export class ConnectionDataModel implements ICdmInitializer {
      *
      * @param connection The connection entry to update.
      */
-    private initializeConnection(connection: ConnectionEntryImpl): void {
+    private updateConnection(connection: ConnectionEntryImpl): void {
         connection.schemaEntries.length = 0;
         for (const schema of connection.schemaNames) {
             const schemaEntry: Partial<Mutable<ICdmSchemaEntry>> = {
@@ -1679,6 +1750,15 @@ export class ConnectionDataModel implements ICdmInitializer {
                 });
             });
 
+            // Update fields of the existing services.
+            for (const service of mrsRoot.services) {
+                service.details = services.find((s) => {
+                    return s.id === service.details.id;
+                })!;
+
+                this.updateServiceFields(service as ICdmRestServiceEntry);
+            }
+
             // Next insert all new entries and take over existing entries.
             const newList: ICdmRestServiceEntry[] = [];
             for (const service of services) {
@@ -1714,7 +1794,7 @@ export class ConnectionDataModel implements ICdmInitializer {
             // We do the same here for routers.
             const routers = await backend.mrs.listRouters(10);
 
-            const removedRouters = mrsRoot.routers.filter((s) => {
+            const removedRouters = mrsRoot.routerGroup.routers.filter((s) => {
                 return !routers.find((router) => {
                     return router.id === s.details.id;
                 });
@@ -1726,7 +1806,7 @@ export class ConnectionDataModel implements ICdmInitializer {
 
             const newRouterList: ICdmRestRouterEntry[] = [];
             for (const router of routers) {
-                const existing = mrsRoot.routers.find((s) => {
+                const existing = mrsRoot.routerGroup.routers.find((s) => {
                     return s.details.id === router.id;
                 });
 
@@ -1748,12 +1828,65 @@ export class ConnectionDataModel implements ICdmInitializer {
                     continue;
                 }
 
-                const routerEntry = this.createMrsRouterEntry(mrsRoot as ICdmRestRootEntry, router, description);
+                const routerEntry = this.createMrsRouterEntry(mrsRoot.routerGroup as ICdmRestRouterGroupEntry, router,
+                    description);
                 newRouterList.push(routerEntry as ICdmRestRouterEntry);
                 actions.push({ action: "add", entry: routerEntry });
             }
 
-            mrsRoot.routers = newRouterList;
+            mrsRoot.routerGroup.routers = newRouterList;
+
+            this.notifySubscribers(actions);
+        } catch (error) {
+            const message = convertErrorToString(error);
+            void ui.showErrorNotification(`An error occurred while retrieving MRS content: ${message}`);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private async updateMrsAuthAppGroup(authAppGroup: DeepMutable<ICdmRestAuthAppGroupEntry>,
+        callback?: ProgressCallback): Promise<boolean> {
+        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+
+        try {
+            const backend = authAppGroup.connection.backend;
+            authAppGroup.authApps.length = 0;
+
+            callback?.("Loading MRS auth apps");
+            const authApps = await backend.mrs.listAuthApps();
+            for (const authApp of authApps) {
+                const name = authApp.name ?? "unknown";
+                const vendor = authApp.authVendor ?? "unknown";
+
+                const authAppEntry: Mutable<ICdmRestAuthAppEntry> = {
+                    parent: authAppGroup as ICdmRestAuthAppGroupEntry,
+                    type: CdmEntityType.MrsAuthApp,
+                    id: uuid(),
+                    state: createDataModelEntryState(),
+                    details: authApp,
+                    caption: name,
+                    description: vendor,
+                    users: [],
+                    services: [],
+                    connection: authAppGroup.connection as ICdmConnectionEntry,
+                };
+
+                authAppEntry.refresh = () => {
+                    return this.updateMrsAuthApp(authAppEntry as ICdmRestAuthAppEntry);
+                };
+                authAppEntry.getChildren = () => {
+                    return [
+                        ...authAppEntry.users,
+                        //...authAppEntry.services // This list is a candidate to be moved to an own group.
+                    ];
+                };
+
+                authAppGroup.authApps.push(authAppEntry as ICdmRestAuthAppEntry);
+                actions.push({ action: "add", entry: authAppEntry });
+            }
 
             this.notifySubscribers(actions);
         } catch (error) {
@@ -1767,6 +1900,8 @@ export class ConnectionDataModel implements ICdmInitializer {
     }
 
     private async updateMrsService(serviceEntry: DeepMutable<ICdmRestServiceEntry>): Promise<boolean> {
+        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+
         try {
             serviceEntry.state.initialized = true;
 
@@ -1775,16 +1910,9 @@ export class ConnectionDataModel implements ICdmInitializer {
                 serviceEntry.details.urlContextRoot, serviceEntry.details.urlHostName, null, null);
             serviceEntry.caption = serviceEntry.details.urlContextRoot;
 
-            const developers = serviceEntry.details.inDevelopment?.developers?.join(",");
-            let description: string;
-            if (serviceEntry.details.enabled && serviceEntry.details.inDevelopment?.developers) {
-                description = `In Development [${developers}]`;
-            } else {
-                description = !serviceEntry.details.enabled
-                    ? "Disabled"
-                    : (serviceEntry.details.published ? "Published" : "Unpublished");
-            }
-            serviceEntry.description = description;
+            this.updateServiceFields(serviceEntry as ICdmRestServiceEntry);
+
+            const showPrivateItems = serviceEntry.parent.showPrivateItems;
 
             // Get all MRS schemas.
             serviceEntry.schemas.length = 0;
@@ -1805,7 +1933,12 @@ export class ConnectionDataModel implements ICdmInitializer {
                 schemaEntry.refresh = () => {
                     return this.updateMrsSchema(schemaEntry);
                 };
-                schemaEntry.getChildren = () => { return schemaEntry.dbObjects; };
+
+                schemaEntry.getChildren = () => {
+                    return schemaEntry.dbObjects.filter((s) => {
+                        return showPrivateItems || (s.details.enabled !== EnabledState.PrivateOnly);
+                    });
+                };
 
                 serviceEntry.schemas.push(schemaEntry as ICdmRestSchemaEntry);
             }
@@ -1827,38 +1960,41 @@ export class ConnectionDataModel implements ICdmInitializer {
                 };
 
                 contentSetEntry.refresh = () => {
-                    return this.initializeMrsContentSet(contentSetEntry as ICdmRestContentSetEntry);
+                    return this.updateMrsContentSet(contentSetEntry as ICdmRestContentSetEntry);
                 };
-                contentSetEntry.getChildren = () => { return contentSetEntry.files; };
+
+                contentSetEntry.getChildren = () => {
+                    return contentSetEntry.files.filter((s) => {
+                        return showPrivateItems || s.details.enabled !== EnabledState.PrivateOnly;
+                    });
+                };
 
                 serviceEntry.contentSets.push(contentSetEntry as ICdmRestContentSetEntry);
             }
 
-            // Get all MRS auth apps.
+            // Authentication apps.
             serviceEntry.authApps.length = 0;
-            const authApps = await backend.mrs.getAuthApps(serviceEntry.details.id);
+            const authApps = await backend.mrs.listAuthApps(serviceEntry.details.id);
             for (const authApp of authApps) {
                 const name = authApp.name ?? "unknown";
                 const vendor = authApp.authVendor ?? "unknown";
 
-                const authAppEntry: Mutable<ICdmRestAuthAppEntry> = {
+                const authAppEntry: Mutable<ICdmRestServiceAuthAppEntry> = {
                     parent: serviceEntry as ICdmRestServiceEntry,
-                    type: CdmEntityType.MrsAuthApp,
+                    type: CdmEntityType.MrsServiceAuthApp,
                     id: uuid(),
-                    state: createDataModelEntryState(),
+                    state: createDataModelEntryState(true, true),
                     details: authApp,
-                    caption: `${name} (${vendor})`,
-                    users: [],
+                    caption: name,
+                    description: vendor,
                     connection: serviceEntry.connection as ICdmConnectionEntry,
                 };
 
-                authAppEntry.refresh = () => {
-                    return this.initializeMrsAuthApp(authAppEntry as ICdmRestAuthAppEntry);
-                };
-                authAppEntry.getChildren = () => { return authAppEntry.users; };
-
-                serviceEntry.authApps.push(authAppEntry as ICdmRestAuthAppEntry);
+                serviceEntry.authApps.push(authAppEntry as ICdmRestServiceAuthAppEntry);
+                actions.push({ action: "add", entry: authAppEntry });
             }
+
+            this.notifySubscribers(actions);
         } catch (error) {
             void ui.showErrorNotification(`An error occurred while retrieving MRS service details: ` +
                 `${error instanceof Error ? error.message : String(error)}`);
@@ -1869,16 +2005,46 @@ export class ConnectionDataModel implements ICdmInitializer {
         return true;
     }
 
-    private async initializeMrsAuthApp(authAppEntry: ICdmRestAuthAppEntry): Promise<boolean> {
+    private updateServiceFields(serviceEntry: ICdmRestServiceEntry) {
+        const developers = serviceEntry.details.inDevelopment?.developers?.join(",");
+        let description: string;
+        if (serviceEntry.details.enabled && serviceEntry.details.inDevelopment?.developers) {
+            description = `In Development [${developers}]`;
+        } else {
+            description = !serviceEntry.details.enabled
+                ? "Disabled"
+                : (serviceEntry.details.published ? "Published" : "Unpublished");
+        }
+        serviceEntry.description = description;
+    }
+
+    private async updateMrsAuthApp(authAppEntry: ICdmRestAuthAppEntry): Promise<boolean> {
         try {
             const backend = authAppEntry.connection.backend;
 
             const name = authAppEntry.details.name ?? "unknown";
             const vendor = authAppEntry.details.authVendor ?? "unknown";
 
-            (authAppEntry as Mutable<ICdmRestAuthAppEntry>).caption = `${name} (${vendor})`;
-            authAppEntry.users.length = 0;
+            (authAppEntry as Mutable<ICdmRestAuthAppEntry>).caption = name;
+            (authAppEntry as Mutable<ICdmRestAuthAppEntry>).description = vendor;
 
+            authAppEntry.services.length = 0;
+            const services = await backend.mrs.listAppServices(authAppEntry.details.id);
+            for (const service of services) {
+                const serviceEntry: Mutable<ICdmRestAuthAppServiceEntry> = {
+                    parent: authAppEntry,
+                    type: CdmEntityType.MrsAuthAppService,
+                    id: uuid(),
+                    details: service,
+                    state: createDataModelEntryState(true, true),
+                    caption: service.hostCtx,
+                    connection: authAppEntry.connection,
+                };
+
+                authAppEntry.services.push(serviceEntry as ICdmRestAuthAppServiceEntry);
+            }
+
+            authAppEntry.users.length = 0;
             const users = await backend.mrs.listUsers(authAppEntry.details.serviceId, authAppEntry.details.id);
             for (const user of users) {
                 const userEntry: Mutable<ICdmRestUserEntry> = {
@@ -1915,7 +2081,7 @@ export class ConnectionDataModel implements ICdmInitializer {
         return Promise.resolve(true);
     }
 
-    private async initializeMrsContentSet(contentSetEntry: ICdmRestContentSetEntry): Promise<boolean> {
+    private async updateMrsContentSet(contentSetEntry: ICdmRestContentSetEntry): Promise<boolean> {
         try {
             const backend = contentSetEntry.connection.backend;
 
@@ -1957,6 +2123,7 @@ export class ConnectionDataModel implements ICdmInitializer {
             if (hostCtx !== mrsSchemaEntry.parent.caption) {
                 return this.updateMrsRoot(mrsSchemaEntry.parent.parent as Mutable<ICdmRestRootEntry>);
             }
+
 
             mrsSchemaEntry.dbObjects.length = 0;
 
@@ -2061,10 +2228,17 @@ export class ConnectionDataModel implements ICdmInitializer {
         serviceEntry.refresh = () => {
             return this.updateMrsService(serviceEntry);
         };
+
         serviceEntry.getChildren = () => {
+            const showPrivateItems = mrsRoot.showPrivateItems;
+
             return [
-                ...serviceEntry.schemas,
-                ...serviceEntry.contentSets,
+                ...serviceEntry.schemas.filter((s) => {
+                    return showPrivateItems || s.details.enabled !== EnabledState.PrivateOnly;
+                }),
+                ...serviceEntry.contentSets.filter((s) => {
+                    return showPrivateItems || s.details.enabled !== EnabledState.PrivateOnly;
+                }),
                 ...serviceEntry.authApps,
             ];
         };
@@ -2072,14 +2246,14 @@ export class ConnectionDataModel implements ICdmInitializer {
         return serviceEntry;
     }
 
-    private createMrsRouterEntry(mrsRoot: ICdmRestRootEntry, router: IMrsRouterData,
+    private createMrsRouterEntry(routerRoot: ICdmRestRouterGroupEntry, router: IMrsRouterData,
         description: string): Mutable<ICdmRestRouterEntry> {
-        const requiresUpgrade = mrsRoot.requiredRouterVersion !== undefined
-            ? compareVersionStrings(mrsRoot.requiredRouterVersion, router.version) > 0
+        const requiresUpgrade = routerRoot.parent.requiredRouterVersion !== undefined
+            ? compareVersionStrings(routerRoot.parent.requiredRouterVersion, router.version) > 0
             : false;
 
         const routerEntry: Mutable<ICdmRestRouterEntry> = {
-            parent: mrsRoot,
+            parent: routerRoot,
             type: CdmEntityType.MrsRouter,
             id: uuid(),
             state: createDataModelEntryState(),
@@ -2087,7 +2261,7 @@ export class ConnectionDataModel implements ICdmInitializer {
             caption: router.address,
             description,
             requiresUpgrade,
-            connection: mrsRoot.parent,
+            connection: routerRoot.parent.parent,
             services: [],
             getChildren: () => { return []; },
         };

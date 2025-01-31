@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -36,7 +36,7 @@ import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/Shel
 import { convertToPascalCase } from "../../../utilities/string-helpers.js";
 import { IMrsObjectFieldEditorData, MrsObjectFieldEditor } from "./MrsObjectFieldEditor.js";
 import { MrsDbObjectType } from "../types.js";
-import { getEnabledState } from "../mrsUtils.js";
+import { EnabledState, getEnabledState } from "../mrs-helpers.js";
 
 export class MrsDbObjectDialog extends AwaitableValueEditDialog {
     private requestValue!: IMrsDbObjectData;
@@ -216,8 +216,8 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                     caption: "Access",
                     choices: ["Access DISABLED", "Access ENABLED", "PRIVATE Access Only"],
                     horizontalSpan: 2,
-                    value: request.values?.enabled === 2 ? "PRIVATE Access Only" :
-                        request.values?.enabled === 1 ? "Access ENABLED" : "Access DISABLED",
+                    value: request.values?.enabled === EnabledState.PrivateOnly ? "PRIVATE Access Only" :
+                        request.values?.enabled === EnabledState.Enabled ? "Access ENABLED" : "Access DISABLED",
                     options: [
                         CommonDialogValueOption.Grouped,
                     ],

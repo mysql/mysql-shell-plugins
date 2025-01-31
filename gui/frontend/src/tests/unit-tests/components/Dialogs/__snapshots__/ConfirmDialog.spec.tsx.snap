@@ -79,7 +79,7 @@ exports[`Confirm Dialog Tests Show Dialog with React Element 1`] = `
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg");"
+          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
         />
       </div>
     </div>
@@ -171,7 +171,7 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 1`] = `
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg");"
+          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
         />
       </div>
     </div>
@@ -258,7 +258,7 @@ exports[`Confirm Dialog Tests Show Dialog with simple and no message 2`] = `
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg");"
+          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
         />
       </div>
     </div>

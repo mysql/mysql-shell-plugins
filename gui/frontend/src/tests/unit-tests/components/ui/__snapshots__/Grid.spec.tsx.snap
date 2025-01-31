@@ -176,7 +176,9 @@ exports[`Grid component test Standard Rendering 1`] = `
                       "WebkitMaskImage": "url("chevron-right.svg")",
                       "backgroundColor": undefined,
                       "height": undefined,
+                      "maskComposite": "subtract",
                       "maskImage": "url("chevron-right.svg")",
+                      "maskSize": "100% 100%",
                       "width": undefined,
                     }
                   }

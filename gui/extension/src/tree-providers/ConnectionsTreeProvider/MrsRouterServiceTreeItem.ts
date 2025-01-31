@@ -34,8 +34,8 @@ export class MrsRouterServiceTreeItem extends MrsTreeBaseItem<ICdmRestRouterServ
     public constructor(dataModelEntry: ICdmRestRouterServiceEntry) {
         const value = dataModelEntry.details;
         const iconName = value.inDevelopment?.developers ? "mrsServiceInDevelopment.svg" :
-            (value.published ? "mrsServicePublished.svg" : "mrsService.svg");
+            (value.published ? "mrsServicePublished.svg" : "mrsServiceLink.svg");
 
-        super(dataModelEntry, iconName, true);
+        super(dataModelEntry, iconName, false);
     }
 }

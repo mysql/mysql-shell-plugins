@@ -927,7 +927,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                                 <div
                                   class="msg icon"
                                   data-tooltip="inherit"
-                                  style="mask-image: url("toolbar-maximize.svg");"
+                                  style="mask-image: url("toolbar-maximize.svg"); mask-size: 100% 100%; mask-composite: subtract;"
                                 />
                               </div>
                             </span>
@@ -958,7 +958,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                                 <div
                                   class="msg icon"
                                   data-tooltip="inherit"
-                                  style="mask-image: url("toolbar-maximize.svg");"
+                                  style="mask-image: url("toolbar-maximize.svg"); mask-size: 100% 100%; mask-composite: subtract;"
                                 />
                               </div>
                             </span>
@@ -1107,7 +1107,9 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                                         "WebkitMaskImage": "url("toolbar-maximize.svg")",
                                         "backgroundColor": undefined,
                                         "height": undefined,
+                                        "maskComposite": "subtract",
                                         "maskImage": "url("toolbar-maximize.svg")",
+                                        "maskSize": "100% 100%",
                                         "width": undefined,
                                       }
                                     }
@@ -1197,7 +1199,9 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
                                         "WebkitMaskImage": "url("toolbar-maximize.svg")",
                                         "backgroundColor": undefined,
                                         "height": undefined,
+                                        "maskComposite": "subtract",
                                         "maskImage": "url("toolbar-maximize.svg")",
+                                        "maskSize": "100% 100%",
                                         "width": undefined,
                                       }
                                     }

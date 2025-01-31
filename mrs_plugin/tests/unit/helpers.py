@@ -21,7 +21,6 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-import pytest
 import os
 
 import mysqlsh
@@ -228,7 +227,7 @@ class AuthAppCT:
 
     def __exit__(self, type, value, traceback):
         lib.auth_apps.delete_auth_app(
-            self._session, service_id=self.service_id, app_id=self._auth_app_id
+            self._session, app_id=self._auth_app_id
         )
 
 

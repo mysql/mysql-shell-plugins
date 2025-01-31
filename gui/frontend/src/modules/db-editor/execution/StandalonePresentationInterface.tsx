@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -32,7 +32,7 @@ import { ScriptEditor } from "../ScriptEditor.js";
 /** Handling of UI related tasks in a code editor for standalone contexts. */
 export class StandalonePresentationInterface extends PresentationInterface {
 
-    #resizeObserver?: ResizeObserver;
+    private resizeObserver?: ResizeObserver;
 
     // We don't create a render target like in the normal presentation interface, but instead use
     // what's rendered by the hosting editor.
@@ -63,9 +63,9 @@ export class StandalonePresentationInterface extends PresentationInterface {
 
     protected override removeRenderTarget(): void {
         super.removeRenderTarget();
-        if (this.#resizeObserver) {
-            this.#resizeObserver.disconnect();
-            this.#resizeObserver = undefined;
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+            this.resizeObserver = undefined;
         }
 
         this.#host?.setState({ showResultPane: false });
@@ -92,7 +92,7 @@ export class StandalonePresentationInterface extends PresentationInterface {
 
         // istanbul ignore next
         if (typeof ResizeObserver !== "undefined") {
-            this.#resizeObserver = new ResizeObserver((entries) => {
+            this.resizeObserver = new ResizeObserver((entries) => {
                 const last = entries.pop();
                 if (last && !this.currentHeight) {
                     const maxAutoHeight = PresentationInterface.maxAutoHeight[this.resultData?.type ?? "text"];
@@ -103,7 +103,7 @@ export class StandalonePresentationInterface extends PresentationInterface {
                     this.currentHeight = height;
                 }
             });
-            this.#resizeObserver.observe(target);
+            this.resizeObserver.observe(target);
         }
 
         this.#host?.setState({

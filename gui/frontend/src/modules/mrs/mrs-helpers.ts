@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,6 +23,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+/** Some entries have a specific enable state which includes more than just the yes/no duality. */
+export enum EnabledState {
+    Disabled = 0,
+    Enabled = 1,
+    PrivateOnly = 2,
+}
+
 /**
  * Retrieve the port of the REST API endpoint assigned to a specific connection.
  *
@@ -35,4 +42,10 @@
 export const getRouterPortForConnection = (connectionId: number, routerHTTPPort = 8443): number => {
     // Each connection is incrementally assigned a new port.
     return routerHTTPPort + connectionId;
+};
+
+export const getEnabledState = (enabledState: string): EnabledState => {
+    return enabledState === "Access ENABLED" ? EnabledState.Enabled : enabledState === "PRIVATE Access Only"
+        ? EnabledState.PrivateOnly
+        : EnabledState.Disabled;
 };

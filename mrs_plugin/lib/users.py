@@ -109,8 +109,6 @@ def get_users(
                 FROM `mysql_rest_service_metadata`.`mrs_user` as user
                 JOIN `mysql_rest_service_metadata`.`auth_app` as app
                     ON app.id = user.auth_app_id
-                JOIN `mysql_rest_service_metadata`.`service_has_auth_app` as sa
-                    ON sa.auth_app_id = app.id
         """
         if auth_app_id:
             wheres.append("user.auth_app_id = ?")
@@ -118,9 +116,6 @@ def get_users(
         if auth_app_name:
             wheres.append("app.name = ?")
             params.append(auth_app_name)
-        if service_id:
-            wheres.append("sa.service_id = ?")
-            params.append(service_id)
 
     if user_id:
         wheres.append("user.id = ?")

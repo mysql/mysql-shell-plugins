@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -87,7 +87,6 @@ import lakehouseNavigatorIcon from "../assets/images/lakehouseNavigator.svg";
 import notebookIcon from "../assets/images/notebook.svg";
 
 import docsIcon from "../assets/images/docs.svg";
-import shieldIcon from "../assets/images/shield.svg";
 
 import mrsIcon from "../assets/images/mrs/mrs.svg";
 import mrsDbObjectIcon from "../assets/images/mrs/mrsDbObject.svg";
@@ -101,6 +100,9 @@ import mrsSchemaIcon from "../assets/images/mrs/mrsSchema.svg";
 import mrsServiceIcon from "../assets/images/mrs/mrsService.svg";
 import mrsServiceDefaultIcon from "../assets/images/mrs/mrsServiceDefault.svg";
 
+import mrsAuthAppIcon from "../assets/images/mrs/mrsAuthApp.svg";
+import mrsAuthAppsIcon from "../assets/images/mrs/mrsAuthApps.svg";
+
 import ociBastionIcon from "../assets/images/oci/ociBastion.svg";
 import ociBastionCurrentIcon from "../assets/images/oci/ociBastionCurrent.svg";
 import ociComputeIcon from "../assets/images/oci/ociCompute.svg";
@@ -112,6 +114,7 @@ import ociProfileIcon from "../assets/images/oci/ociProfile.svg";
 import ociProfileCurrentIcon from "../assets/images/oci/ociProfileCurrent.svg";
 
 import routerIcon from "../assets/images/router/router.svg";
+import routersIcon from "../assets/images/router/routers.svg";
 
 import defaultIcon from "../assets/images/file-icons/default.svg";
 import javascriptIcon from "../assets/images/file-icons/scriptJs.svg";
@@ -191,15 +194,19 @@ import wordWrapActiveIcon from "../assets/images/toolbar/toolbar-word_wrap-activ
 import wordWrapInactiveIcon from "../assets/images/toolbar/toolbar-word_wrap-inactive.svg";
 
 // Overlays.
-import overlayPrivate from "../assets/images/overlays/private.svg";
 import overlayDisabled from "../assets/images/overlays/disabled.svg";
 import overlayDisabledMask from "../assets/images/overlays/disabledMask.svg";
+import overlayError from "../assets/images/overlays/error.svg";
+import overlayErrorMask from "../assets/images/overlays/errorMask.svg";
 import overlayInDevelopment from "../assets/images/overlays/inDevelopment.svg";
 import overlayInDevelopmentMask from "../assets/images/overlays/inDevelopmentMask.svg";
+import overlayLink from "../assets/images/overlays/link.svg";
+import overlayLinkMask from "../assets/images/overlays/linkMask.svg";
 import overlayLive from "../assets/images/overlays/live.svg";
 import overlayLiveMask from "../assets/images/overlays/liveMask.svg";
 import overlayLock from "../assets/images/overlays/lock.svg";
 import overlayLockMask from "../assets/images/overlays/lockMask.svg";
+import overlayPrivate from "../assets/images/overlays/private.svg";
 
 import overlayStatusDotRed from "../assets/images/overlays/statusDotRed.svg";
 import overlayStatusDotGreen from "../assets/images/overlays/statusDotGreen.svg";
@@ -319,6 +326,8 @@ export class Assets {
         dbObjectViewIcon: mrsDbObjectViewIcon,
         serviceIcon: mrsServiceIcon,
         serviceDefaultIcon: mrsServiceDefaultIcon,
+        authAppIcon: mrsAuthAppIcon,
+        authAppsIcon: mrsAuthAppsIcon,
     };
 
     public static oci = {
@@ -346,13 +355,13 @@ export class Assets {
 
     public static router = {
         routerIcon,
+        routersIcon,
     };
 
     public static misc = {
         docsIcon,
         closeIcon,
         closeIcon2,
-        shieldIcon,
         newNotebookIcon,
         newScriptIcon,
         scriptIcon,
@@ -392,20 +401,24 @@ export class Assets {
     };
 
     public static overlay = {
-        private: overlayPrivate,
         disabled: overlayDisabled,
         disabledMask: overlayDisabledMask,
+        error: overlayError,
+        errorMask: overlayErrorMask,
         inDevelopment: overlayInDevelopment,
         inDevelopmentMask: overlayInDevelopmentMask,
+        link: overlayLink,
+        linkMask: overlayLinkMask,
         live: overlayLive,
         liveMask: overlayLiveMask,
         lock: overlayLock,
         lockMask: overlayLockMask,
-        statusDotRed: overlayStatusDotRed,
-        statusDotGreen: overlayStatusDotGreen,
-        statusDotOrange: overlayStatusDotOrange,
+        private: overlayPrivate,
         statusDotBlue: overlayStatusDotBlue,
+        statusDotGreen: overlayStatusDotGreen,
         statusDotMask: overlayStatusDotMask,
+        statusDotOrange: overlayStatusDotOrange,
+        statusDotRed: overlayStatusDotRed,
     };
 
     public static toolbar = {

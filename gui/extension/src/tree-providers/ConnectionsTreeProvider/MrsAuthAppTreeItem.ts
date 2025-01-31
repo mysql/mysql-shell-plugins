@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,7 +30,7 @@ export class MrsAuthAppTreeItem extends MrsTreeBaseItem<ICdmRestAuthAppEntry> {
     public override contextValue = "mrsAuthApp";
 
     public constructor(dataModelEntry: ICdmRestAuthAppEntry) {
-        super(dataModelEntry, dataModelEntry.details.enabled ? "shield.svg" : "shieldDisabled.svg", true);
+        super(dataModelEntry, dataModelEntry.details.enabled ? "mrsAuthApp.svg" : "mrsAuthAppDisabled.svg", true);
         this.tooltip = dataModelEntry.details.description ?? dataModelEntry.caption;
     }
 }

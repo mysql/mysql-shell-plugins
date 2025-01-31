@@ -237,7 +237,7 @@ export class MrsHub extends ComponentBase {
                 }
 
                 if (data.mrsAdminUser && data.mrsAdminUserPassword) {
-                    const authApp = await backend.mrs.addAuthApp(service.id, {
+                    const authApp = await backend.mrs.addAuthApp({
                         id: "",
                         authVendorId: "MAAAAAAAAAAAAAAAAAAAAA==",
                         authVendorName: "MRS",
@@ -251,7 +251,7 @@ export class MrsHub extends ComponentBase {
                         enabled: true,
                         limitToRegisteredUsers: true,
                         defaultRoleId: "MQAAAAAAAAAAAAAAAAAAAA==",
-                    }, []);
+                    }, [], service.id);
 
                     await backend.mrs.addUser(authApp.authAppId, data.mrsAdminUser, "", "", true, "", null,
                         data.mrsAdminUserPassword, []);
@@ -748,8 +748,7 @@ export class MrsHub extends ComponentBase {
      *
      * @param backend The interface for sending the requests.
      * @param authApp If not assigned then a new service must be created otherwise this contains the existing values.
-     * @param service If the authApp is not assigned, the service must be available, so that we can create
-     *                a new authApp for this service.
+     * @param service When given the new auth app is linked to this service.
      *
      * @returns A promise resolving when the dialog was closed. Always resolves to true to indicate the request
      *          was handled.
@@ -855,21 +854,19 @@ export class MrsHub extends ComponentBase {
             }
         } else {
             try {
-                if (service) {
-                    await backend.mrs.addAuthApp(service.id, {
-                        authVendorId,
-                        name: data.name,
-                        description: data.description,
-                        url: data.url,
-                        urlDirectAuth: data.urlDirectAuth,
-                        accessToken: data.accessToken,
-                        appId: data.appId,
-                        enabled: data.enabled,
-                        limitToRegisteredUsers: data.limitToRegisteredUsers,
-                        defaultRoleId,
-                        options,
-                    }, []);
-                }
+                await backend.mrs.addAuthApp({
+                    authVendorId,
+                    name: data.name,
+                    description: data.description,
+                    url: data.url,
+                    urlDirectAuth: data.urlDirectAuth,
+                    accessToken: data.accessToken,
+                    appId: data.appId,
+                    enabled: data.enabled,
+                    limitToRegisteredUsers: data.limitToRegisteredUsers,
+                    defaultRoleId,
+                    options,
+                }, [], service?.id);
 
                 void requisitions.executeRemote("refreshConnection", undefined);
                 void ui.showInformationNotification("The MRS Authentication App has been added.");

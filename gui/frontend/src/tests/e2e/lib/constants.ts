@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -275,7 +275,7 @@ export const addSchemaToREST = "Add Schema to REST Service...";
 export const setAsCurrentREST = "Set as Current REST Service";
 export const loadRESTSchemaFromJSON = "Load REST Schema From JSON File...";
 export const exportRestSdk = "Export REST Service SDK Files ...";
-export const addNewAuthApp = "Add New Authentication App";
+export const addLinkAuthApp = "Add and Link REST Authentication App...";
 export const deleteRESTService = "Delete REST Service...";
 export const mrsServiceDocs = "MRS Service Documentation";
 export const editRESTSchema = "Edit REST Schema...";
@@ -283,25 +283,26 @@ export const dumpRESTSchemaToJSON = "Dump REST Schema To JSON File...";
 export const loadRESTObjFromJSON = "Load REST Object From JSON File...";
 export const deleteRESTSchema = "Delete REST Schema...";
 export const editRESTObj = "Edit REST Object...";
-export const copyRESTObjReqPath = "Copy REST Object Request Path to Clipboard";
+export const copyRESTObjReqPath = "Copy REST Object Request Path";
 export const openRESTObjReqPathInBrowser = "Open REST Object Request Path in Web Browser";
 export const copyRESTObjReqPathBrowser = "Copy REST Object Request Path in Web Browser";
 export const dumpRESTObjToJSON = "Dump REST Object To JSON File...";
 export const exportCreateRestObjSt = "Export CREATE REST OBJECT Statement...";
-export const copyCreateRestObjSt = "Copy CREATE REST OBJECT Statement...";
+export const copyCreateRestObjSt = "Copy CREATE REST Object Statement";
 export const exportCreateRestSchemaSt = "Export CREATE REST SCHEMA Statement...";
 export const copyCreateRestSchemaSt = "Copy CREATE REST SCHEMA Statement";
 export const exportCreateRestServiceSt = "Export CREATE REST SERVICE Statement...";
-export const copyCreateRestServiceSt = "Copy CREATE REST SERVICE Statement...";
+export const copyCreateRestServiceSt = "Copy CREATE REST SERVICE Statement";
 export const dumpRestSchemaSQL = "Dump Rest Schema SQL...";
 export const deleteRESTObj = "Delete REST Object...";
 export const addDBObjToREST = "Add Database Object to REST Service...";
-export const deleteAuthenticationApp = "Delete Auth App...";
-export const addRESTUser = "Add User...";
+export const deleteAuthenticationApp = "Delete REST Authentication App...";
+export const addRESTUser = "Add REST User...";
 export const editRESTUser = "Edit User...";
 export const deleteRESTUser = "Delete User...";
-export const editAuthenticationApp = "Edit Auth App...";
+export const editAuthenticationApp = "Edit REST Authentication App...";
 export const lockFlag = join(process.cwd(), "locked");
+export const restAuthenticationApps = "REST Authentication Apps";
 
 // THEMES
 export const darkModern = "Dark Modern";

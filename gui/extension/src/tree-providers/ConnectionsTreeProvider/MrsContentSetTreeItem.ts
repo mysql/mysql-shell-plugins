@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,6 +25,7 @@
 
 import type { IMrsContentSetData } from "../../../../frontend/src/communication/ProtocolMrs.js";
 import type { ICdmRestContentSetEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
+import { EnabledState } from "../../../../frontend/src/modules/mrs/mrs-helpers.js";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
 export class MrsContentSetTreeItem extends MrsTreeBaseItem<ICdmRestContentSetEntry> {
@@ -38,7 +39,7 @@ export class MrsContentSetTreeItem extends MrsTreeBaseItem<ICdmRestContentSetEnt
         let iconName = value.contentType === "SCRIPTS" ? "mrsContentSetScripts" : "mrsContentSet";
         if (value.enabled === 0) {
             iconName += "Disabled";
-        } else if (value.enabled === 2) {
+        } else if (value.enabled === EnabledState.PrivateOnly) {
             iconName += "Private";
         } else if (value.requiresAuth === 1) {
             iconName += "Locked";

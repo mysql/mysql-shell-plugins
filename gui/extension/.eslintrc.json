@@ -549,6 +549,7 @@
         "@typescript-eslint/no-loss-of-precision": "off", // TODO: enable
         "@typescript-eslint/prefer-for-of": "error",
         "@typescript-eslint/prefer-function-type": "error",
+        "@typescript-eslint/no-unsafe-enum-comparison": "off",
         "@typescript-eslint/quotes": [
             "error",
             "double",

@@ -62,8 +62,9 @@ export type AdminPageType = "serverStatus" | "clientConnections" | "performanceD
  */
 export type ProgressCallback = (result?: string | Error) => void;
 
-export interface ICdmInitializer {
-    initializeEntry(entry: ConnectionDataModelEntry, callback?: ProgressCallback): Promise<boolean>;
+/** Provides a hook for data model entries which are implemented in their own file. */
+export interface ICdmUpdater {
+    updateEntry(entry: ConnectionDataModelEntry, callback?: ProgressCallback): Promise<boolean>;
 }
 
 export type SubscriberAction = "add" | "remove" | "update" | "clear";

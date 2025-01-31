@@ -29,7 +29,7 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg");"
+          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
         />
       </div>
     </div>

@@ -559,4 +559,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsDumpAuditLog]: {};
     [ShellAPIMrs.MrsGetRoleCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpRoleCreateStatement]: { result: boolean; };
+    [ShellAPIMrs.MrsAddAuthenticationAppLink]: {};
+    [ShellAPIMrs.MrsDeleteAuthenticationAppLink]: {};
+    [ShellAPIMrs.MrsListAuthenticationAppServices]: { result: IMrsServiceData[]; };
 }

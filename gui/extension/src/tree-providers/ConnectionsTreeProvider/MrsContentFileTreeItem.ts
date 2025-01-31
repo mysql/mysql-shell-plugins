@@ -24,6 +24,7 @@
  */
 
 import type { ICdmRestContentFileEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
+import { EnabledState } from "../../../../frontend/src/modules/mrs/mrs-helpers.js";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
 export class MrsContentFileTreeItem extends MrsTreeBaseItem<ICdmRestContentFileEntry> {
@@ -31,11 +32,11 @@ export class MrsContentFileTreeItem extends MrsTreeBaseItem<ICdmRestContentFileE
 
     public constructor(dataModelEntry: ICdmRestContentFileEntry) {
         const value = dataModelEntry.details;
-        super(dataModelEntry, value.enabled === 2 ? "mrsContentFilePrivate.svg" :
-            value.enabled === 1 ? "mrsContentFile.svg" : "mrsContentFileDisabled.svg", false);
+        super(dataModelEntry, value.enabled === EnabledState.PrivateOnly ? "mrsContentFilePrivate.svg" :
+            value.enabled === EnabledState.Enabled ? "mrsContentFile.svg" : "mrsContentFileDisabled.svg", false);
 
-        this.tooltip = value.requestPath + "\nAccess: " + (value.enabled === 2 ? "PRIVATE" :
-            value.enabled === 1 ? "ENABLED" : "DISABLED") + "\nAuthentication: " +
+        this.tooltip = value.requestPath + "\nAccess: " + (value.enabled === EnabledState.PrivateOnly ? "PRIVATE" :
+            value.enabled === EnabledState.Enabled ? "ENABLED" : "DISABLED") + "\nAuthentication: " +
             (!value.requiresAuth && "NOT ") + "REQUIRED";
     }
 }

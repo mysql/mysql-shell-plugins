@@ -48,13 +48,16 @@ import { AdminSectionTreeItem } from "./AdminSectionTreeItem.js";
 import { AdminTreeItem } from "./AdminTreeItem.js";
 import { ConnectionMySQLTreeItem } from "./ConnectionMySQLTreeItem.js";
 import { ConnectionSqliteTreeItem } from "./ConnectionSqliteTreeItem.js";
+import { MrsAuthAppGroupTreeItem } from "./MrsAuthAppGroupTreeItem.js";
 import { MrsAuthAppTreeItem } from "./MrsAuthAppTreeItem.js";
 import { MrsContentFileTreeItem } from "./MrsContentFileTreeItem.js";
 import { MrsContentSetTreeItem } from "./MrsContentSetTreeItem.js";
 import { MrsDbObjectTreeItem } from "./MrsDbObjectTreeItem.js";
+import { MrsRouterGroupTreeItem } from "./MrsRouterGroupTreeItem.js";
 import { MrsRouterServiceTreeItem } from "./MrsRouterServiceTreeItem.js";
 import { MrsRouterTreeItem } from "./MrsRouterTreeItem.js";
 import { MrsSchemaTreeItem } from "./MrsSchemaTreeItem.js";
+import { MrsServiceAuthAppTreeItem } from "./MrsServiceAuthAppTreeItem.js";
 import { MrsServiceTreeItem } from "./MrsServiceTreeItem.js";
 import { MrsTreeItem } from "./MrsTreeItem.js";
 import { MrsUserTreeItem } from "./MrsUserTreeItem.js";
@@ -282,6 +285,10 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
                 return new MrsServiceTreeItem(entry);
             }
 
+            case CdmEntityType.MrsRouterGroup: {
+                return new MrsRouterGroupTreeItem(entry);
+            }
+
             case CdmEntityType.MrsRouter: {
                 return new MrsRouterTreeItem(entry);
             }
@@ -298,8 +305,16 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
                 return new MrsUserTreeItem(entry);
             }
 
+            case CdmEntityType.MrsAuthAppGroup: {
+                return new MrsAuthAppGroupTreeItem(entry);
+            }
+
             case CdmEntityType.MrsAuthApp: {
                 return new MrsAuthAppTreeItem(entry);
+            }
+
+            case CdmEntityType.MrsServiceAuthApp: {
+                return new MrsServiceAuthAppTreeItem(entry);
             }
 
             case CdmEntityType.MrsContentFile: {

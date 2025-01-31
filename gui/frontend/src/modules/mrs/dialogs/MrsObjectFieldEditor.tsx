@@ -57,6 +57,7 @@ import {
     CellComponent, ColumnDefinition, EmptyCallback, RowComponent, ValueBooleanCallback, ValueVoidCallback,
 } from "tabulator-tables";
 
+import { ui } from "../../../app-logic/UILayer.js";
 import { IDictionary } from "../../../app-logic/general-types.js";
 import {
     IMrsDbObjectData, IMrsObject, IMrsObjectFieldWithReference, IMrsObjectReference,
@@ -83,8 +84,8 @@ import { uuidBinary16Base64 } from "../../../utilities/helpers.js";
 import {
     convertCamelToSnakeCase, convertCamelToTitleCase, convertSnakeToCamelCase, convertToPascalCase,
 } from "../../../utilities/string-helpers.js";
+import { EnabledState } from "../mrs-helpers.js";
 import { MrsDbObjectType, MrsObjectKind, MrsSdkLanguage } from "../types.js";
-import { ui } from "../../../app-logic/UILayer.js";
 
 export interface IMrsObjectFieldEditorData extends IDictionary {
     servicePath: string;
@@ -275,7 +276,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         const addOptions = (dbObject: IMrsDbObjectData) => {
             let s = "";
 
-            if (dbObject.enabled === 2) {
+            if (dbObject.enabled === EnabledState.PrivateOnly) {
                 s += "\n    PRIVATE";
             } else if (!dbObject.enabled) {
                 s += "\n    DISABLED";

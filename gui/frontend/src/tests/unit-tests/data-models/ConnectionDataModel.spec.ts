@@ -288,7 +288,7 @@ describe("ConnectionDataModel", () => {
         if (connections[0].mrsEntry) {
             expect(connections[0].mrsEntry).toBeDefined();
             expect(connections[0].mrsEntry.services).toHaveLength(1);
-            expect(connections[0].mrsEntry.routers).toHaveLength(1);
+            expect(connections[0].mrsEntry.routerGroup.routers).toHaveLength(1);
         }
 
         expect(connections[0].adminEntry).toBeDefined();

@@ -213,7 +213,16 @@ export class ShellInterfaceMrs {
     }
 
 
-    public async addAuthApp(serviceId: string, authApp: IMrsAuthAppData, registerUsers: string[])
+    /**
+     * Creates a new authentication app.
+     *
+     * @param authApp The authentication app data.
+     * @param registerUsers The list of users to register.
+     * @param serviceId When given adds a link from the new auth app to this service.
+     *
+     * @returns A promise resolving to the new authentication app data.
+     */
+    public async addAuthApp(authApp: IMrsAuthAppData, registerUsers: string[], serviceId?: string)
         : Promise<IMrsAddAuthAppData> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddAuthenticationApp,
@@ -241,7 +250,7 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async getAuthApps(serviceId: string): Promise<IMrsAuthAppData[]> {
+    public async listAuthApps(serviceId?: string): Promise<IMrsAuthAppData[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsListAuthenticationApps,
             parameters: {
@@ -271,12 +280,41 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async deleteAuthApp(serviceId: string, appId: string): Promise<void> {
+    public async linkAuthAppToService(appId: string, serviceId: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsAddAuthenticationAppLink,
+            parameters: {
+                args: {
+                    appId,
+                    serviceId,
+                },
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+    }
+
+    public async unlinkAuthAppFromService(appId: string, serviceId: string): Promise<void> {
+        await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsDeleteAuthenticationAppLink,
+            parameters: {
+                args: {
+                    appId,
+                    serviceId,
+                },
+                kwargs: {
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+    }
+
+    public async deleteAuthApp(appId: string): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsDeleteAuthenticationApp,
             parameters: {
                 kwargs: {
-                    serviceId,
                     appId,
                     moduleSessionId: this.moduleSessionId,
                 },
@@ -296,6 +334,20 @@ export class ShellInterfaceMrs {
                 },
             },
         });
+    }
+
+    public async listAppServices(appId?: string): Promise<IMrsServiceData[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsListAuthenticationAppServices,
+            parameters: {
+                args: {
+                    appId,
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
     }
 
     public async listUsers(serviceId?: string, authAppId?: string): Promise<IMrsUserData[]> {

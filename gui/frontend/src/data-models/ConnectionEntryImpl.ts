@@ -36,9 +36,11 @@ import { convertErrorToString, uuid } from "../utilities/helpers.js";
 import {
     CdmEntityType, ICdmAdminEntry, ICdmConnectionEntry, ICdmRestRootEntry, ICdmSchemaEntry,
     type ConnectionDataModelEntry, type ICdmAdminPageEntry,
+    type ICdmRestAuthAppGroupEntry,
+    type ICdmRestRouterGroupEntry,
 } from "./ConnectionDataModel.js";
 import { createDataModelEntryState } from "./data-model-helpers.js";
-import type { ICdmInitializer, IDataModelEntryState, ProgressCallback } from "./data-model-types.js";
+import type { ICdmUpdater, IDataModelEntryState, ProgressCallback } from "./data-model-types.js";
 
 export type ConnectionReadyCallback = (entry: ICdmConnectionEntry, progress?: ProgressCallback) => void;
 
@@ -58,16 +60,16 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
     public adminEntry?: ICdmAdminEntry;
 
     private open: boolean = false;
-    private initializer: ICdmInitializer;
+    private updater: ICdmUpdater;
 
     private ignoreMrsUpgrade: boolean = false;
 
     #currentSchema: string = "";
 
-    public constructor(name: string, details: IConnectionDetails, initializer: ICdmInitializer) {
+    public constructor(name: string, details: IConnectionDetails, initializer: ICdmUpdater) {
         this.caption = name;
         this.details = details;
-        this.initializer = initializer;
+        this.updater = initializer;
     }
 
     public get connection(): ICdmConnectionEntry {
@@ -107,14 +109,14 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                     this.open = await this.openConnection(callback);
                     if (this.open) {
                         await this.updateChildren(callback);
-                        await this.initializer.initializeEntry(this, callback);
+                        await this.updater.updateEntry(this, callback);
                     }
                 } else {
                     // If the path is not ok then we might have to create the DB file first.
                     try {
                         await ShellInterface.core.createDatabaseFile(options.dbFile);
                         await this.updateChildren(callback);
-                        await this.initializer.initializeEntry(this, callback);
+                        await this.updater.updateEntry(this, callback);
                     } catch (reason) {
                         const error = new Error("DB Creation Error", { cause: reason });
                         if (callback) {
@@ -130,7 +132,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                 this.open = await this.openConnection(callback);
                 if (this.open) {
                     await this.updateChildren(callback);
-                    await this.initializer.initializeEntry(this, callback);
+                    await this.updater.updateEntry(this, callback);
                 }
             }
 
@@ -156,13 +158,13 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         }
 
         await this.updateChildren(callback);
-        await this.initializer.initializeEntry(this, callback);
+        await this.updater.updateEntry(this, callback);
 
         return true;
     }
 
     public async duplicate(): Promise<ICdmConnectionEntry> {
-        const newEntry = new ConnectionEntryImpl(this.caption, this.details, this.initializer);
+        const newEntry = new ConnectionEntryImpl(this.caption, this.details, this.updater);
         await newEntry.initialize();
 
         return newEntry;
@@ -261,7 +263,6 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                 caption: "MySQL Administration",
                 connection: this,
                 pages: [],
-                refresh: async (): Promise<boolean> => { return Promise.resolve(true); },
                 getChildren: () => { return this.adminEntry?.pages ?? []; },
             };
 
@@ -361,7 +362,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                         }
 
                         if (addMrsItem) {
-                            const mrsEntry: Partial<ICdmRestRootEntry> = {
+                            const mrsEntry: Mutable<Partial<ICdmRestRootEntry>> = {
                                 parent: this,
                                 caption: "MySQL REST Service",
                                 type: CdmEntityType.MrsRoot,
@@ -370,19 +371,47 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                                 requiredRouterVersion: status.requiredRouterVersion,
                                 serviceEnabled: status.serviceEnabled,
                                 services: [],
-                                routers: [],
                                 connection: this,
                             };
+
+                            const routerGroup: ICdmRestRouterGroupEntry = {
+                                parent: mrsEntry as ICdmRestRootEntry,
+                                caption: "MySQL Routers",
+                                type: CdmEntityType.MrsRouterGroup,
+                                id: uuid(),
+                                state: createDataModelEntryState(false, false),
+                                connection: this,
+                                routers: [],
+                                getChildren: () => { return routerGroup.routers; },
+                            };
+                            mrsEntry.routerGroup = routerGroup;
+
+                            const authAppGroup: ICdmRestAuthAppGroupEntry = {
+                                parent: mrsEntry as ICdmRestRootEntry,
+                                caption: "REST Authentication Apps",
+                                type: CdmEntityType.MrsAuthAppGroup,
+                                id: uuid(),
+                                state: createDataModelEntryState(false, false),
+                                connection: this,
+                                authApps: [],
+                                getChildren: () => { return authAppGroup.authApps; },
+                            };
+                            authAppGroup.refresh = (callback?: ProgressCallback) => {
+                                return this.updater.updateEntry(authAppGroup, callback);
+                            };
+
+                            mrsEntry.authAppGroup = authAppGroup;
 
                             mrsEntry.getChildren = () => {
                                 return [
                                     ...mrsEntry.services!,
-                                    ...mrsEntry.routers!,
+                                    mrsEntry.routerGroup!,
+                                    mrsEntry.authAppGroup!,
                                 ];
                             };
 
                             mrsEntry.refresh = (callback?: ProgressCallback) => {
-                                return this.initializer.initializeEntry(mrsEntry as ICdmRestRootEntry, callback);
+                                return this.updater.updateEntry(mrsEntry as ICdmRestRootEntry, callback);
                             };
 
                             this.mrsEntry = mrsEntry as ICdmRestRootEntry;

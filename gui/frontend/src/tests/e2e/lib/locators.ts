@@ -341,7 +341,8 @@ export const notebook = {
                         @monaco-view-zone='w${id}' or
                         @monaco-view-zone='x${id}' or
                         @monaco-view-zone='y${id}' or
-                        @monaco-view-zone='z${id}'
+                        @monaco-view-zone='z${id}' or
+                        @monaco-view-zone='q${id}'
                         )]
                     `;
 

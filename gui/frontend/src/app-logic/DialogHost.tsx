@@ -286,6 +286,7 @@ export class DialogHost extends ComponentBase {
                 options: { backgroundOpacity: 0.5 },
                 title: request.title ?? "Feedback Requested",
                 description: request.description,
+                autoMinWidth: true,
             },
             { id: request.id, ...request.data, type: request.type },
         );
@@ -370,6 +371,7 @@ export class DialogHost extends ComponentBase {
             {
                 options: { backgroundOpacity: 0.5 },
                 title: request.title ?? "Feedback Requested",
+                autoMinWidth: true,
             },
             { id: request.id, ...request.data, type: request.type },
         );

@@ -1405,16 +1405,6 @@ BEGIN
 END$$
 
 USE `mysql_rest_service_metadata`$$
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`service_has_auth_app_AFTER_DELETE` AFTER DELETE ON `service_has_auth_app` FOR EACH ROW
-BEGIN
-	# Since FKs do not fire the triggers on the related tables, manually trigger the DELETEs
-    # If the corresponding auth_app is not used by another service, delete it
-	IF ((SELECT COUNT(*) FROM `mysql_rest_service_metadata`.`service_has_auth_app` WHERE auth_app_id = OLD.auth_app_id) = 0) THEN
-		DELETE FROM `mysql_rest_service_metadata`.`auth_app` WHERE `id` = OLD.`auth_app_id`;
-	END IF;
-END$$
-
-USE `mysql_rest_service_metadata`$$
 CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`content_set_has_obj_def_AFTER_DELETE` AFTER DELETE ON `content_set_has_obj_def` FOR EACH ROW
 BEGIN
 	DELETE FROM `mysql_rest_service_metadata`.`db_object` dbo

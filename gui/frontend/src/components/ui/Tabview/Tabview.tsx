@@ -29,8 +29,9 @@ import { ComponentChild, createRef } from "preact";
 
 import { Codicon } from "../Codicon.js";
 import { convertPropValue } from "../../../utilities/string-helpers.js";
-import { IComponentProperties, ComponentBase, ComponentPlacement,
-    IComponentState } from "../Component/ComponentBase.js";
+import {
+    IComponentProperties, ComponentBase, ComponentPlacement, IComponentState,
+} from "../Component/ComponentBase.js";
 import { Orientation, Container } from "../Container/Container.js";
 import { Button, IButtonProperties } from "../Button/Button.js";
 import { Icon } from "../Icon/Icon.js";

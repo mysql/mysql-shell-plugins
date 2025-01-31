@@ -370,11 +370,11 @@ describe("NOTEBOOKS", () => {
             try {
                 const query = "select * from sakila.actor limit 1";
                 const jsCmd = "Math.random()";
-                const result1 = await notebook.codeEditor.execute(query) as E2ECommandResultGrid;
+                const result1 = await notebook.codeEditor.execute(query, true) as E2ECommandResultGrid;
                 const block1 = result1.id;
                 expect(result1.status).to.match(/OK/);
                 await notebook.codeEditor.languageSwitch("\\js");
-                const result2 = await notebook.codeEditor.execute(jsCmd) as E2ECommandResultData;
+                const result2 = await notebook.codeEditor.execute(jsCmd, true) as E2ECommandResultData;
                 const block2 = result2.id;
                 expect(result2.text).to.match(/(\d+).(\d+)/);
                 const result3 = await notebook.findAndExecute(query, block1) as E2ECommandResultGrid;
@@ -388,7 +388,7 @@ describe("NOTEBOOKS", () => {
 
         it("Multi-line comments", async () => {
             await notebook.codeEditor.languageSwitch("\\sql ");
-            const result1 = await notebook.codeEditor.execute("select version();") as E2ECommandResultGrid;
+            const result1 = await notebook.codeEditor.execute("select version();", true) as E2ECommandResultGrid;
             expect(result1.status).to.match(/1 record retrieved/);
             const cell = result1.resultContext
                 .findElement(locator.notebook.codeEditor.editor.result.grid.row.cell.exists);
@@ -400,18 +400,19 @@ describe("NOTEBOOKS", () => {
             digits[2].length === 1 ? serverVer += "0" + digits[2] : serverVer += digits[2];
 
             const result2 = await notebook.codeEditor
-                .execute(`/*!${serverVer} select * from sakila.actor;*/`) as E2ECommandResultGrid;
+                .execute(`/*!${serverVer} select * from sakila.actor;*/`, true) as E2ECommandResultGrid;
             expect(result2.status).to.match(/OK, (\d+) records retrieved/);
             const higherServer = parseInt(serverVer, 10) + 1;
             const result3 = await notebook.codeEditor
-                .execute(`/*!${higherServer} select * from sakila.actor;*/`) as E2ECommandResultData;
+                .execute(`/*!${higherServer} select * from sakila.actor;*/`, true) as E2ECommandResultData;
             expect(result3.text).to.match(/OK, 0 records retrieved/);
         });
 
         it("Maximize and Normalize Result tab", async () => {
 
             await Workbench.dismissNotifications();
-            const result = await notebook.codeEditor.execute("select * from sakila.actor;") as E2ECommandResultGrid;
+            const result = await notebook.codeEditor.execute("select * from sakila.actor;"
+                , true) as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
             await result.maximize();
             expect((await notebook.toolbar.editorSelector.getCurrentEditor()).label).to.equals("Result #1");
@@ -434,7 +435,7 @@ describe("NOTEBOOKS", () => {
             const result = await notebook.codeEditor.execute(
                 `const res = await runSql("SELECT Name, Capital FROM world_x_cst.country limit 10");
                 const options: IGraphOptions = {series:[{type: "bar", yLabel: "Actors", data: res as IJsonGraphData}]};
-                Graph.render(options);`) as E2ECommandResultData;
+                Graph.render(options);`, true) as E2ECommandResultData;
 
             expect(result.graph).to.exist;
             const chartColumns = await result.graph
@@ -517,9 +518,9 @@ describe("NOTEBOOKS", () => {
             const sentence1 = "select * from sakila.actor";
             const sentence2 = "select * from sakila.address";
             await notebook.codeEditor.clean();
-            await notebook.codeEditor.write(sentence1);
+            await notebook.codeEditor.write(sentence1, true);
             await notebook.codeEditor.setNewLine();
-            await notebook.codeEditor.write(sentence2);
+            await notebook.codeEditor.write(sentence2, true);
             const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
             await Os.keyboardSelectAll(textArea);
             await Os.keyboardCut(textArea);
@@ -540,7 +541,7 @@ describe("NOTEBOOKS", () => {
             await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
             await notebook.codeEditor.clean();
-            const result = await notebook.codeEditor.execute("\\about ") as E2ECommandResultData;
+            const result = await notebook.codeEditor.execute("\\about ", true) as E2ECommandResultData;
             await driver.wait(async () => {
                 await result.copyToClipboard();
 

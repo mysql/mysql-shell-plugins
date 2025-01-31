@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -116,9 +116,9 @@ describe("MRS AuthApp dialog tests", () => {
 
         const promise = hubRef.current!.showMrsAuthAppDialog(backend);
 
-        backend.mrs.addAuthApp = (serviceId: string, authApp: IMrsAuthAppData, registerUsers: [])
+        backend.mrs.addAuthApp = (authApp: IMrsAuthAppData, registerUsers: [], serviceId?: string)
             : Promise<IMrsAddAuthAppData> => {
-            expect(serviceId.length).toBeGreaterThan(0);
+            expect(serviceId?.length).toBeGreaterThan(0);
             expect(authApp.name).toBe("MyAuthApp");
             expect(authApp.appId?.length).toBeGreaterThan(0);
 

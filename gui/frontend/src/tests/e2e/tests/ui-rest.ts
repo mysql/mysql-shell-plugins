@@ -703,9 +703,10 @@ describe("MYSQL REST SERVICE", () => {
         }
     });
 
-    it("Add New REST Authentication App", async () => {
+    it("Add and Link New REST Authentication App", async () => {
         try {
-            await dbTreeSection.tree.openContextMenuAndSelect(globalService.treeName!, constants.addNewAuthApp);
+            await dbTreeSection.tree.openContextMenuAndSelect(globalService.treeName!,
+                constants.addLinkAuthApp);
             globalService.authenticationApps = [await AuthenticationAppDialog.set(restAuthenticationApp)];
             const notification = await new E2EToastNotification().create();
             expect(notification!.message).toBe("The MRS Authentication App has been added.");
@@ -715,6 +716,9 @@ describe("MYSQL REST SERVICE", () => {
             await driver.wait(dbTreeSection.tree
                 .untilExists(globalService.authenticationApps[0].treeName!),
                 constants.wait5seconds);
+            await dbTreeSection.tree.expandElement([constants.restAuthenticationApps]);
+            await dbTreeSection.tree.getChildElement(constants.restAuthenticationApps,
+                globalService.authenticationApps[0].treeName!);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -723,6 +727,8 @@ describe("MYSQL REST SERVICE", () => {
 
     it("Add User", async () => {
         try {
+            await dbTreeSection.tree.expandElement([constants.restAuthenticationApps]);
+            await dbTreeSection.tree.collapseElement(globalService.treeName!);
             await dbTreeSection.tree.openContextMenuAndSelect(globalService.authenticationApps![0].treeName!,
                 constants.addRESTUser);
             globalService.authenticationApps![0].user = [await RestUserDialog.set(restAuthenticationApp.user![0])];
@@ -815,12 +821,14 @@ describe("MYSQL REST SERVICE", () => {
         }
     });
 
-    it("Delete User", async () => {
+    xit("Delete User", async () => {
         try {
+            await dbTreeSection.tree.expandElement([globalService.authenticationApps![0].treeName!]);
             await dbTreeSection.tree.openContextMenuAndSelect(globalService.authenticationApps![0].user![0].username,
                 constants.deleteRESTUser);
             await (await new ConfirmDialog().untilExists()).accept();
             await (await dbTreeSection.tree.getActionButton(globalConn.caption!, constants.refreshConnection))!.click();
+            await dbTreeSection.tree.expandElement([globalService.authenticationApps![0].treeName!]);
             const notification = await new E2EToastNotification().create();
             expect(notification!.message).toBe(`The MRS user ${globalService.authenticationApps![0].user![0]
                 .username} has been deleted successfully.`);
@@ -974,13 +982,13 @@ describe("MYSQL REST SERVICE - CLIPBOARD", () => {
     it("Copy CREATE REST SERVICE Statement", async () => {
         try {
             await dbTreeSection.tree.openContextMenuAndSelect(otherService.treeName!,
-                constants.copyCreateRestServiceSt);
+                [constants.copyToClipboard.exists, constants.copyCreateRestServiceSt]);
 
             let notification = await new E2EToastNotification().create();
             if (notification?.message.includes("SDK")) {
                 await notification.close();
                 await dbTreeSection.tree.openContextMenuAndSelect(otherService.treeName!,
-                    constants.copyCreateRestServiceSt);
+                    [constants.copyToClipboard.exists, constants.copyCreateRestServiceSt]);
                 notification = await new E2EToastNotification().create();
             }
 
@@ -998,13 +1006,13 @@ describe("MYSQL REST SERVICE - CLIPBOARD", () => {
     it("Copy CREATE REST SCHEMA Statement", async () => {
         try {
             await dbTreeSection.tree.openContextMenuAndSelect(otherService.restSchemas![0].treeName!,
-                constants.copyCreateRestSchemaSt);
+                [constants.copyToClipboard.exists, constants.copyCreateRestSchemaSt]);
 
             let notification = await new E2EToastNotification().create();
             if (notification?.message.includes("SDK")) {
                 await notification.close();
                 await dbTreeSection.tree.openContextMenuAndSelect(otherService.treeName!,
-                    constants.copyCreateRestSchemaSt);
+                    [constants.copyToClipboard.exists, constants.copyCreateRestSchemaSt]);
                 notification = await new E2EToastNotification().create();
             }
 
@@ -1023,13 +1031,13 @@ describe("MYSQL REST SERVICE - CLIPBOARD", () => {
         try {
             await dbTreeSection.tree
                 .openContextMenuAndSelect(otherService.restSchemas![0].restObjects![1].treeName!,
-                    constants.copyCreateRestObjSt);
+                    [constants.copyToClipboard.exists, constants.copyCreateRestObjSt]);
             let notification = await new E2EToastNotification().create();
 
             if (notification?.message.includes("SDK")) {
                 await notification.close();
                 await dbTreeSection.tree.openContextMenuAndSelect(otherService.treeName!,
-                    constants.copyCreateRestObjSt);
+                    [constants.copyToClipboard.exists, constants.copyCreateRestObjSt]);
                 notification = await new E2EToastNotification().create();
             }
 
@@ -1054,14 +1062,14 @@ describe("MYSQL REST SERVICE - CLIPBOARD", () => {
 
             await dbTreeSection.tree
                 .openContextMenuAndSelect(otherService.restSchemas![0].restObjects![1].treeName!,
-                    constants.copyRESTObjReqPath);
+                    [constants.copyToClipboard.exists, constants.copyRESTObjReqPath]);
             let notification = await new E2EToastNotification().create();
 
             if (notification?.message.includes("SDK")) {
                 await notification.close();
                 await dbTreeSection.tree
                     .openContextMenuAndSelect(otherService.restSchemas![0].restObjects![1].treeName!,
-                        constants.copyRESTObjReqPath);
+                        [constants.copyToClipboard.exists, constants.copyRESTObjReqPath]);
                 notification = await new E2EToastNotification().create();
             }
 

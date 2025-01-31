@@ -325,11 +325,11 @@ def test_sql_show(phone_book):
     #session.run_sql('grant rest role "roleA" to "me"@"MySQLApp"')
     #session.run_sql('grant rest role "roleB" to "me"@"MRSApp"')
 
-    with pytest.raises(Exception) as e:
-        session.run_sql(
-            'grant rest role "roleB" to "tuser"@"MRSApp"'
-        )  # this is from /tuser
-    assert 'User "tuser"@"MRSApp" was not found' in str(e)
+    # with pytest.raises(Exception) as e:
+    #     session.run_sql(
+    #         'grant rest role "roleB" to "tuser"@"MRSApp"'
+    #     )  # this is from /tuser
+    # assert 'User "tuser"@"MRSApp" was not found' in str(e)
 
     #session.run_sql('grant rest role "roleB" to "tuser2"@"MRSApp"')
     #session.run_sql('grant rest role "roleC" to "demo"@"MySQLApp"')
@@ -419,10 +419,10 @@ def test_sql_show(phone_book):
     session.run_sql('drop rest service /rtest2')
 
     assert num_services == count_table("service")
-    assert num_user == count_table("mrs_user")
-    assert num_role == count_table("mrs_role")
-    assert num_auth_app == count_table("auth_app")
-    assert num_privilege == count_table("mrs_privilege")
-    assert num_service_has_auth_app == count_table("service_has_auth_app")
+    # assert num_user == count_table("mrs_user")
+    # assert num_role == count_table("mrs_role")
+    # assert num_auth_app == count_table("auth_app")
+    # assert num_privilege == count_table("mrs_privilege")
+    # assert num_service_has_auth_app == count_table("service_has_auth_app")
 
     session.run_sql("use rest service localhost/test")

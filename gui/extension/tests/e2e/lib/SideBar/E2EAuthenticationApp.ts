@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -85,7 +85,7 @@ export class E2EAuthenticationApp {
 
     public constructor(restService: E2ERestService, authApp: interfaces.IRestAuthenticationApp) {
         this.parentService = restService;
-        authApp.treeName = authApp.treeName ?? `${authApp.name} (${authApp.vendor})`;
+        authApp.treeName = authApp.name;
         this.set(authApp);
     }
 
@@ -94,14 +94,15 @@ export class E2EAuthenticationApp {
      */
     public add = async (): Promise<void> => {
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
-        const parentService = await dbTreeSection.tree.getElement(this.parentService.treeName);
-        await dbTreeSection.tree.openContextMenuAndSelect(parentService, constants.addNewAuthApp);
+        const restAuthenticationApps = await dbTreeSection.tree.getElement(constants.restAuthenticationApps);
+        await dbTreeSection.tree.openContextMenuAndSelect(restAuthenticationApps, constants.addNewAuthenticationApp);
         await Workbench.toggleSideBar(false);
         const newApp = await AuthenticationAppDialog.set(this)
             .catch(async (e) => {
                 if (e instanceof error.TimeoutError) {
                     await Workbench.toggleSideBar(true);
-                    await dbTreeSection.tree.openContextMenuAndSelect(parentService, constants.addNewAuthApp);
+                    await dbTreeSection.tree.openContextMenuAndSelect(restAuthenticationApps,
+                        constants.addNewAuthenticationApp);
                     await Workbench.toggleSideBar(false);
 
                     return AuthenticationAppDialog.set(this);
@@ -127,13 +128,15 @@ export class E2EAuthenticationApp {
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
         await dbTreeSection.tree.expandElement([this.parentService.treeName]);
         const treeAuthApp = await dbTreeSection.tree.getElement(this.treeName);
-        await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp, constants.editAuthenticationApp);
+        await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp, constants.editAuthenticationApp,
+            constants.restAppCtxMenu2);
         await Workbench.toggleSideBar(false);
         const editedAuthApp = await AuthenticationAppDialog.set(newData)
             .catch(async (e) => {
                 if (e instanceof error.TimeoutError) {
                     await Workbench.toggleSideBar(true);
-                    await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp, constants.editAuthenticationApp);
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp, constants.editAuthenticationApp,
+                        constants.restAppCtxMenu2);
                     await Workbench.toggleSideBar(false);
 
                     return AuthenticationAppDialog.set(newData);
@@ -158,11 +161,13 @@ export class E2EAuthenticationApp {
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
         await dbTreeSection.tree.expandElement([this.parentService.treeName]);
         const treeAuthApp = await dbTreeSection.tree.getElement(this.treeName);
-        await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp, constants.addRESTUser);
+        await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp, constants.addRESTUser,
+            constants.restAppCtxMenu2);
         const user = await RestUserDialog.set(userData)
             .catch(async (e) => {
                 if (e instanceof error.TimeoutError) {
-                    await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp, constants.addRESTUser);
+                    await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp, constants.addRESTUser,
+                        constants.restAppCtxMenu2);
 
                     return RestUserDialog.set(userData);
                 } else {
@@ -206,7 +211,8 @@ export class E2EAuthenticationApp {
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
         await dbTreeSection.tree.expandElement([this.parentService.treeName]);
         const treeAuthApp = await dbTreeSection.tree.getElement(this.treeName);
-        await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp, constants.deleteAuthenticationApp);
+        await dbTreeSection.tree.openContextMenuAndSelect(treeAuthApp, constants.deleteAuthenticationApp,
+            constants.restAppCtxMenu2);
         this.parentService.authenticationApps = this.parentService.authenticationApps
             .filter((item: interfaces.IRestAuthenticationApp) => {
                 return item.name !== this.name;

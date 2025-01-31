@@ -427,6 +427,28 @@ export class E2ETree {
     };
 
     /**
+     * Collapses a tree element
+     * @param element The element name
+     */
+    public collapseElement = async (element: string): Promise<void> => {
+        if ((await Misc.insideIframe())) {
+            await Misc.switchBackToTopFrame();
+        }
+
+        const treeSection = await this.accordionSection.getWebElement();
+
+        if (!(await treeSection.isExpanded())) {
+            await treeSection.expand();
+        }
+
+        const treeItem = await this.getElement(element);
+
+        if (await treeItem.isExpanded()) {
+            await treeItem.collapse();
+        }
+    };
+
+    /**
      * Right-clicks on an element and selects the item on the context menu
      * @param element The element
      * @param ctxMenuItem The context menu item

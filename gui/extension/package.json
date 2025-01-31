@@ -673,6 +673,14 @@
                 "title": "Disable MySQL REST Service"
             },
             {
+                "command": "msg.mrs.showPrivateItems",
+                "title": "Show Private Items"
+            },
+            {
+                "command": "msg.mrs.hidePrivateItems",
+                "title": "Hide Private Items"
+            },
+            {
                 "command": "msg.mrs.bootstrapLocalRouter",
                 "title": "Bootstrap Local MySQL Router Instance"
             },
@@ -713,8 +721,20 @@
                 "title": "Edit REST Service..."
             },
             {
+                "command": "msg.mrs.addAndLinkAuthApp",
+                "title": "Add and Link REST Authentication App..."
+            },
+            {
                 "command": "msg.mrs.addAuthApp",
-                "title": "Add New REST Authentication App"
+                "title": "Add New Authentication App"
+            },
+            {
+                "command": "msg.mrs.linkAuthApp",
+                "title": "Link REST Authentication App..."
+            },
+            {
+                "command": "msg.mrs.unlinkAuthApp",
+                "title": "Unlink REST Authentication App..."
             },
             {
                 "command": "msg.mrs.addContentSet",
@@ -782,7 +802,7 @@
             },
             {
                 "command": "msg.mrs.editDbObject",
-                "title": "Edit REST Object"
+                "title": "Edit REST Object..."
             },
             {
                 "command": "msg.mrs.deleteDbObject",
@@ -790,7 +810,7 @@
             },
             {
                 "command": "msg.mrs.copyDbObjectRequestPath",
-                "title": "REST Object Request Path"
+                "title": "Copy REST Object Request Path"
             },
             {
                 "command": "msg.mrs.openDbObjectRequestPath",
@@ -834,19 +854,19 @@
             },
             {
                 "command": "msg.mrs.exportCreateServiceSql",
-                "title": "Create Statement..."
+                "title": "Export CREATE REST SERVICE Statement..."
             },
             {
                 "command": "msg.mrs.exportCreateServiceSqlIncludeAllObjects",
-                "title": "Create Statement Including All Objects..."
+                "title": "Export CREATE REST SERVICE Statement Including All Objects..."
             },
             {
                 "command": "msg.mrs.exportCreateSchemaSql",
-                "title": "Create Statement..."
+                "title": "Export CREATE REST SCHEMA Statement..."
             },
             {
                 "command": "msg.mrs.exportCreateSchemaSqlIncludeAllObjects",
-                "title": "Create Statement Including All Objects..."
+                "title": "Export CREATE REST SCHEMA Statement Including All Objects..."
             },
             {
                 "command": "msg.mrs.exportCreateDbObjectSql",
@@ -878,19 +898,19 @@
             },
             {
                 "command": "msg.mrs.copyCreateServiceSql",
-                "title": "Create Statement"
+                "title": "Copy CREATE REST SERVICE Statement"
             },
             {
                 "command": "msg.mrs.copyCreateServiceSqlIncludeAllObjects",
-                "title": "Create Statement Including All Objects"
+                "title": "Copy CREATE REST SERVICE Statement Including All Objects"
             },
             {
                 "command": "msg.mrs.copyCreateSchemaSql",
-                "title": "Create Statement"
+                "title": "Copy CREATE REST SCHEMA Statement"
             },
             {
                 "command": "msg.mrs.copyCreateSchemaSqlIncludeAllObjects",
-                "title": "Create Statement Including All Objects"
+                "title": "Copy CREATE REST SCHEMA Statement Including All Objects"
             },
             {
                 "command": "msg.mrs.copyCreateDbObjectSql",
@@ -1080,7 +1100,7 @@
         "submenus": [
             {
                 "id": "msg.copyToClipboard",
-                "label": "Copy To Clipboard",
+                "label": "Copy to Clipboard",
                 "command": ""
             },
             {
@@ -1175,12 +1195,12 @@
                 },
                 {
                     "command": "msg.mrs.exportCreateAuthAppSql",
-                    "when": "view == msg.connections && viewItem == mrsAuthApp",
+                    "when": "view == msg.connections && viewItem == mrsServiceAuthApp",
                     "group": "3_msg@1"
                 },
                 {
                     "command": "msg.mrs.exportCreateAuthAppSqlIncludeAllObjects",
-                    "when": "view == msg.connections && viewItem == mrsAuthApp",
+                    "when": "view == msg.connections && viewItem == mrsServiceAuthApp",
                     "group": "3_msg@3"
                 },
                 {
@@ -1247,12 +1267,12 @@
                 },
                 {
                     "command": "msg.mrs.copyCreateAuthAppSql",
-                    "when": "view == msg.connections && viewItem == mrsAuthApp",
+                    "when": "view == msg.connections && viewItem == mrsServiceAuthApp",
                     "group": "3_msg@1"
                 },
                 {
                     "command": "msg.mrs.copyCreateAuthAppSqlIncludeAllObjects",
-                    "when": "view == msg.connections && viewItem == mrsAuthApp",
+                    "when": "view == msg.connections && viewItem == mrsServiceAuthApp",
                     "group": "3_msg@2"
                 },
                 {
@@ -1630,29 +1650,35 @@
                     "group": "2_msg@2"
                 },
                 {
-                    "command": "msg.mrs.bootstrapLocalRouter",
+                    "command": "msg.mrs.showPrivateItems",
+                    "alt": "msg.mrs.hidePrivateItems",
                     "when": "viewItem == mrs",
                     "group": "3_msg@1"
                 },
                 {
+                    "command": "msg.mrs.bootstrapLocalRouter",
+                    "when": "viewItem == mrs",
+                    "group": "4_msg@1"
+                },
+                {
                     "command": "msg.mrs.startLocalRouter",
                     "when": "viewItem == mrs",
-                    "group": "3_msg@2"
+                    "group": "4_msg@2"
                 },
                 {
                     "command": "msg.mrs.stopLocalRouter",
                     "when": "viewItem == mrs",
-                    "group": "3_msg@3"
+                    "group": "4_msg@3"
                 },
                 {
                     "command": "msg.mrs.killLocalRouters",
                     "when": "viewItem == mrs",
-                    "group": "3_msg@4"
+                    "group": "4_msg@4"
                 },
                 {
                     "command": "msg.mrs.docs",
                     "when": "viewItem == mrs",
-                    "group": "4_msg@1"
+                    "group": "5_msg@1"
                 },
                 {
                     "command": "msg.mrs.docs",
@@ -1675,9 +1701,24 @@
                     "group": "1_msg@2"
                 },
                 {
-                    "command": "msg.mrs.addAuthApp",
+                    "command": "msg.mrs.addAndLinkAuthApp",
                     "when": "view == msg.connections && viewItem == mrsService",
                     "group": "3_msg@1"
+                },
+                {
+                    "command": "msg.mrs.linkAuthApp",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "3_msg@2"
+                },
+                {
+                    "command": "msg.mrs.unlinkAuthApp",
+                    "when": "view == msg.connections && viewItem == mrsServiceAuthApp",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.mrs.addAuthApp",
+                    "when": "view == msg.connections && viewItem == mrsAuthAppGroup",
+                    "group": "1_msg@1"
                 },
                 {
                     "command": "msg.mrs.addContentSet",

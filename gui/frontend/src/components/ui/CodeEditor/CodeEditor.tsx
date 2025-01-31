@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -2019,10 +2019,12 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
     };
 
     private handleEditorResize = (entries: readonly ResizeObserverEntry[]): void => {
-        if (entries.length > 0 && this.editor) {
-            const rect = entries[0].contentRect;
-            this.editor.layout({ width: rect.width, height: rect.height });
-            this.resizeViewZones();
+        if (entries.length > 0 && this.editor && this.hostRef.current) {
+            setTimeout(() => { // Need to defer the re-layout to after the editor has been resized.
+                const rect = entries[0].contentRect;
+                this.editor!.layout({ width: rect.width, height: rect.height });
+                this.resizeViewZones();
+            }, 0);
         }
     };
 

@@ -31,8 +31,9 @@ import { DialogResponseClosure, DialogType, type IDialogRequest } from "../../ap
 import type { IMrsDbObjectData } from "../../communication/ProtocolMrs.js";
 import {
     CdmEntityType, cdmDbEntityTypes, type ConnectionDataModel, type ConnectionDataModelEntry, type ICdmConnectionEntry,
-    type ICdmRestAuthAppEntry, type ICdmRestDbObjectEntry, type ICdmRestSchemaEntry, type ICdmRestServiceEntry,
-    type ICdmRestUserEntry, type ICdmRoutineEntry, type ICdmSchemaEntry, type ICdmTableEntry, type ICdmViewEntry,
+    type ICdmRestAuthAppEntry, type ICdmRestDbObjectEntry, type ICdmRestSchemaEntry, type ICdmRestServiceAuthAppEntry,
+    type ICdmRestServiceEntry, type ICdmRestUserEntry, type ICdmRoutineEntry, type ICdmSchemaEntry,
+    type ICdmTableEntry, type ICdmViewEntry,
 } from "../../data-models/ConnectionDataModel.js";
 import type {
     IOciDmBastion, IOciDmCompartment, IOciDmDbSystem, IOciDmProfile, OciDataModelEntry,
@@ -239,12 +240,64 @@ export class SidebarCommandHandler {
                     break;
                 }
 
-                case "msg.mrs.addAuthApp": {
+                case "msg.mrs.linkAuthApp": {
                     try {
                         const service = entry as ICdmRestServiceEntry;
+                        const apps = await connection.backend.mrs.listAuthApps();
+
+                        const items = apps.map((app) => {
+                            return app.name;
+                        });
+
+                        const response = await DialogHost.showDialog({
+                            id: "msg.mrs.linkToService",
+                            type: DialogType.Select,
+                            title: "Select REST Authentication App",
+                            parameters: {
+                                prompt: "Select a REST Authentication app to link it to this service.",
+                                default: "Accept",
+                                options: items,
+                            },
+                        });
+
+                        if (response.closure === DialogResponseClosure.Accept) {
+                            const name = response.values?.input as string;
+                            if (name) {
+                                const authApp = apps.find((candidate) => {
+                                    return candidate.name === name;
+                                });
+
+                                if (authApp !== undefined) {
+                                    try {
+                                        await connection.backend.mrs.linkAuthAppToService(authApp.id!, service.id);
+                                        void ui.showInformationNotification("The MRS Authentication App has " +
+                                            `been linked to service ${service.details.name}`);
+                                        success = true;
+                                    } catch (reason) {
+                                        const message = convertErrorToString(reason);
+                                        void ui.showErrorNotification("Error linking an MRS Authentication App: " +
+                                            `${message}`);
+                                    }
+                                }
+                            }
+                        }
+                    } catch (reason) {
+                        const message = convertErrorToString(reason);
+                        void ui.showErrorNotification(`Error adding a new MRS Authentication App: ${message}`);
+                    }
+
+                    break;
+                }
+
+                case "msg.mrs.addAuthApp": {
+                    try {
+                        let serviceDetails;
+                        if (entry.type === CdmEntityType.MrsService) {
+                            serviceDetails = entry.details;
+                        }
 
                         success = await this.mrsHubRef.current?.showMrsAuthAppDialog(connection.backend, undefined,
-                            service.details) ?? false;
+                            serviceDetails) ?? false;
                     } catch (reason) {
                         const message = convertErrorToString(reason);
                         void ui.showErrorNotification(`Error adding a new MRS Authentication App: ${message}`);
@@ -257,8 +310,8 @@ export class SidebarCommandHandler {
                     try {
                         const app = entry as ICdmRestAuthAppEntry;
 
-                        success = await this.mrsHubRef.current?.showMrsAuthAppDialog(connection.backend, app.details,
-                            app.parent.details) ?? false;
+                        success = await this.mrsHubRef.current?.showMrsAuthAppDialog(
+                            connection.backend, app.details) ?? false;
                     } catch (reason) {
                         const message = convertErrorToString(reason);
                         void ui.showErrorNotification(`Error adding a new MRS Authentication App: ${message}`);
@@ -270,8 +323,8 @@ export class SidebarCommandHandler {
                 case "msg.mrs.deleteAuthApp": {
                     const app = entry as ICdmRestAuthAppEntry;
                     if (app.details.id) {
-                        const prompt = `Are you sure the MRS authentication app "${app.details.name}" should " +
-                        "be deleted?`;
+                        const prompt = `Are you sure the MRS authentication app "${app.details.name}" should ` +
+                            "be deleted?";
                         const response = await DialogHost.showDialog({
                             id: "msg.mrs.deleteAuthApp",
                             type: DialogType.Confirm,
@@ -286,10 +339,89 @@ export class SidebarCommandHandler {
 
                         if (response.closure === DialogResponseClosure.Accept) {
                             try {
-                                await connection.backend?.mrs.deleteAuthApp(app.parent.id, app.details.id);
+                                await connection.backend?.mrs.deleteAuthApp(app.details.id);
+
                                 success = true;
                                 void ui.showInformationNotification(`The MRS Authentication App ` +
                                     `"${app.details.name}" has been deleted.`);
+                            } catch (error) {
+                                void ui.showErrorNotification(`Error removing an Auth App: ${String(error)}`);
+                            }
+                        }
+                    }
+
+                    break;
+                }
+
+                case "msg.mrs.linkToService": {
+                    const authApp = entry as ICdmRestAuthAppEntry;
+                    const services = await connection.backend.mrs.listServices();
+                    const items = services.map((s) => {
+                        return s.urlContextRoot;
+                    });
+
+                    const response = await DialogHost.showDialog({
+                        id: "msg.mrs.linkToService",
+                        type: DialogType.Select,
+                        title: "Select REST Service",
+                        parameters: {
+                            prompt: "Select a REST service to link this authentication app to.",
+                            default: "Accept",
+                            options: items,
+                        },
+                    });
+
+                    if (response.closure === DialogResponseClosure.Accept) {
+                        const name = response.values?.name as string;
+                        if (name) {
+                            const service = services.find((candidate) => {
+                                return candidate.urlContextRoot === name;
+                            });
+
+                            if (service) {
+                                try {
+                                    await connection.backend.mrs.linkAuthAppToService(authApp.details.id!,
+                                        service.id);
+                                    void ui.showInformationNotification("The MRS Authentication App has been linked " +
+                                        `to service ${service.name}`);
+                                    success = true;
+                                } catch (reason) {
+                                    const message = convertErrorToString(reason);
+                                    void ui.showErrorNotification("Error linking an MRS Authentication App: " +
+                                        `${message}`);
+                                }
+                            }
+                        }
+                    }
+
+                    break;
+                }
+
+                case "msg.mrs.unlinkAuthApp": {
+                    const app = entry as ICdmRestServiceAuthAppEntry;
+                    if (app.details.id) {
+                        const prompt = `Are you sure the MRS authentication app "${app.details.name}" should ` +
+                            `be unlinked from the service "${app.parent.caption}"?`;
+                        const response = await DialogHost.showDialog({
+                            id: "msg.mrs.unlinkAuthApp",
+                            type: DialogType.Confirm,
+                            parameters: {
+                                title: "Confirmation",
+                                prompt,
+                                accept: "Unlink",
+                                refuse: "No",
+                                default: "No",
+                            },
+                        });
+
+                        if (response.closure === DialogResponseClosure.Accept) {
+                            try {
+                                await connection.backend?.mrs.unlinkAuthAppFromService(app.details.id,
+                                    app.parent.details.id);
+
+                                success = true;
+                                void ui.showInformationNotification(`The MRS Authentication App ` +
+                                    `"${app.details.name}" has been unlinked.`);
                             } catch (error) {
                                 void ui.showErrorNotification(`Error removing an Auth App: ${String(error)}`);
                             }
@@ -1010,6 +1142,7 @@ export class SidebarCommandHandler {
                         options: items,
                     },
                 };
+
                 const response = await DialogHost.showDialog(request);
                 if (response.closure === DialogResponseClosure.Accept) {
                     const name = response.values?.name as string;

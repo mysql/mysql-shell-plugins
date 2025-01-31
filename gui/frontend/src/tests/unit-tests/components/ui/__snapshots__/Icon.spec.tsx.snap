@@ -12,7 +12,9 @@ exports[`Icon component tests Standard Rendering 1`] = `
         "WebkitMaskImage": "url("close.svg")",
         "backgroundColor": undefined,
         "height": undefined,
+        "maskComposite": "subtract",
         "maskImage": "url("close.svg")",
+        "maskSize": "100% 100%",
         "width": undefined,
       }
     }

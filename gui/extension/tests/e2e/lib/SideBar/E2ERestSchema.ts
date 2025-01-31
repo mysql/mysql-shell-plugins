@@ -176,7 +176,7 @@ export class E2ERestSchema {
         const objectFile = (await fs.readFile(objectPath)).toString();
         const json = JSON.parse(objectFile);
         this.restObjects.push(new E2ERestObject(this, {
-            treeName: `/${json.object.name} (${json.object.name})`,
+            treeName: `/${json.object.name}`,
             restServicePath: this.parentService.servicePath,
             restSchemaPath: this.restSchemaPath,
             restObjectPath: json.object.request_path,

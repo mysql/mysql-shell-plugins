@@ -53,7 +53,7 @@ exports[`Application host tests Rendering About 1`] = `
                         <div
                           class="msg icon"
                           data-tooltip="inherit"
-                          style="mask-image: url("module-shell.svg");"
+                          style="mask-image: url("module-shell.svg"); mask-size: 100% 100%; mask-composite: subtract;"
                         />
                         <label
                           class="msg label"
@@ -120,7 +120,7 @@ exports[`Application host tests Rendering About 1`] = `
                           <div
                             class="msg icon"
                             data-tooltip="inherit"
-                            style="mask-image: url("module-shell.svg");"
+                            style="mask-image: url("module-shell.svg"); mask-size: 100% 100%; mask-composite: subtract;"
                           />
                           <label
                             class="msg label"
@@ -257,7 +257,7 @@ exports[`Application host tests Rendering About 1`] = `
                                   <div
                                     class="msg icon"
                                     data-tooltip="inherit"
-                                    style="mask-image: url("module-shell.svg");"
+                                    style="mask-image: url("module-shell.svg"); mask-size: 100% 100%; mask-composite: subtract;"
                                   />
                                   <label
                                     class="msg label"
@@ -331,7 +331,9 @@ exports[`Application host tests Rendering About 1`] = `
                                         "WebkitMaskImage": "url("module-shell.svg")",
                                         "backgroundColor": undefined,
                                         "height": undefined,
+                                        "maskComposite": "subtract",
                                         "maskImage": "url("module-shell.svg")",
+                                        "maskSize": "100% 100%",
                                         "width": undefined,
                                       }
                                     }
@@ -800,7 +802,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                         <div
                           class="msg icon"
                           data-tooltip="inherit"
-                          style="mask-image: url("module-shell.svg");"
+                          style="mask-image: url("module-shell.svg"); mask-size: 100% 100%; mask-composite: subtract;"
                         />
                         <label
                           class="msg label"
@@ -867,7 +869,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                           <div
                             class="msg icon"
                             data-tooltip="inherit"
-                            style="mask-image: url("module-shell.svg");"
+                            style="mask-image: url("module-shell.svg"); mask-size: 100% 100%; mask-composite: subtract;"
                           />
                           <label
                             class="msg label"
@@ -1004,7 +1006,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                   <div
                                     class="msg icon"
                                     data-tooltip="inherit"
-                                    style="mask-image: url("module-shell.svg");"
+                                    style="mask-image: url("module-shell.svg"); mask-size: 100% 100%; mask-composite: subtract;"
                                   />
                                   <label
                                     class="msg label"
@@ -1078,7 +1080,9 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                         "WebkitMaskImage": "url("module-shell.svg")",
                                         "backgroundColor": undefined,
                                         "height": undefined,
+                                        "maskComposite": "subtract",
                                         "maskImage": "url("module-shell.svg")",
+                                        "maskSize": "100% 100%",
                                         "width": undefined,
                                       }
                                     }
@@ -1547,7 +1551,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                         <div
                           class="msg icon"
                           data-tooltip="inherit"
-                          style="mask-image: url("module-shell.svg");"
+                          style="mask-image: url("module-shell.svg"); mask-size: 100% 100%; mask-composite: subtract;"
                         />
                         <label
                           class="msg label"
@@ -1614,7 +1618,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                           <div
                             class="msg icon"
                             data-tooltip="inherit"
-                            style="mask-image: url("module-shell.svg");"
+                            style="mask-image: url("module-shell.svg"); mask-size: 100% 100%; mask-composite: subtract;"
                           />
                           <label
                             class="msg label"
@@ -1751,7 +1755,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                   <div
                                     class="msg icon"
                                     data-tooltip="inherit"
-                                    style="mask-image: url("module-shell.svg");"
+                                    style="mask-image: url("module-shell.svg"); mask-size: 100% 100%; mask-composite: subtract;"
                                   />
                                   <label
                                     class="msg label"
@@ -1825,7 +1829,9 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                         "WebkitMaskImage": "url("module-shell.svg")",
                                         "backgroundColor": undefined,
                                         "height": undefined,
+                                        "maskComposite": "subtract",
                                         "maskImage": "url("module-shell.svg")",
+                                        "maskSize": "100% 100%",
                                         "width": undefined,
                                       }
                                     }
@@ -2294,7 +2300,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                         <div
                           class="msg icon"
                           data-tooltip="inherit"
-                          style="mask-image: url("module-shell.svg");"
+                          style="mask-image: url("module-shell.svg"); mask-size: 100% 100%; mask-composite: subtract;"
                         />
                         <label
                           class="msg label"
@@ -2361,7 +2367,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                           <div
                             class="msg icon"
                             data-tooltip="inherit"
-                            style="mask-image: url("module-shell.svg");"
+                            style="mask-image: url("module-shell.svg"); mask-size: 100% 100%; mask-composite: subtract;"
                           />
                           <label
                             class="msg label"
@@ -2498,7 +2504,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                   <div
                                     class="msg icon"
                                     data-tooltip="inherit"
-                                    style="mask-image: url("module-shell.svg");"
+                                    style="mask-image: url("module-shell.svg"); mask-size: 100% 100%; mask-composite: subtract;"
                                   />
                                   <label
                                     class="msg label"
@@ -2572,7 +2578,9 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                         "WebkitMaskImage": "url("module-shell.svg")",
                                         "backgroundColor": undefined,
                                         "height": undefined,
+                                        "maskComposite": "subtract",
                                         "maskImage": "url("module-shell.svg")",
+                                        "maskSize": "100% 100%",
                                         "width": undefined,
                                       }
                                     }
