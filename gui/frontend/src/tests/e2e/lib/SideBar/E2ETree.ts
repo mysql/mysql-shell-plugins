@@ -350,7 +350,13 @@ export class E2ETree {
                 for (let i = 0; i <= elements.length - 1; i++) {
                     if (!(await this.elementIsExpanded(elements[i]))) {
                         const treeElement = await this.getElement(elements[i]);
-                        await treeElement.findElement(locator.section.tree.element.toggle).click();
+
+                        await driver.wait(async () => {
+                            await treeElement.findElement(locator.section.tree.element.toggle).click();
+
+                            return this.elementIsExpanded(elements[i]);
+                        }, constants.wait2seconds, `Could not expand element '${elements[i]}'`);
+
 
                         if (i !== elements.length - 1) {
                             await driver.wait(this.untilElementHasChildren(elements[i]), loadingTimeout);
@@ -366,7 +372,7 @@ export class E2ETree {
                     throw e;
                 }
             }
-        }, constants.wait3seconds, "Could not expand element(s)");
+        }, constants.wait5seconds, "Could not expand element(s)");
     };
 
     /**
@@ -425,10 +431,15 @@ export class E2ETree {
      */
     public expandDatabaseConnection = async (dbConnection: interfaces.IDBConnection): Promise<void> => {
 
-        await this.expandElement([dbConnection.caption!]);
-        await driver.wait(async () => {
-            return this.elementIsExpanded(dbConnection.caption!);
-        }, constants.wait5seconds, `Could not expand ${dbConnection.caption!}`);
+        if (!(await this.elementIsExpanded(dbConnection.caption!))) {
+            const treeElement = await this.getElement(dbConnection.caption!);
+
+            await driver.wait(async () => {
+                await treeElement.findElement(locator.section.tree.element.toggle).click();
+
+                return this.elementIsExpanded(dbConnection.caption!);
+            }, constants.wait2seconds, `Could not expand element '${dbConnection.caption!}'`);
+        }
 
         await driver.wait(async () => {
             if (await PasswordDialog.exists()) {

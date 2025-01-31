@@ -129,7 +129,6 @@ export class E2EObjectStorageBrowser {
 
                 for (const item of items) {
                     const caption = await (item.findElement(objStorageItem.caption)).getText();
-                    console.log(`obj storage item: ${caption}`);
 
                     if (caption.includes(itemName)) {
                         exists = true;

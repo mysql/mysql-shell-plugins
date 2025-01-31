@@ -1340,7 +1340,9 @@ describe("MySQL REST Service", () => {
                 const crudRestSchema = new E2ERestSchema(crudRestService, crudSchema);
                 await crudRestSchema.add();
                 await Workbench.dismissNotifications();
+                await dbTreeSection.clickToolbarButton(constants.reloadConnections);
                 await dbTreeSection.tree.expandElement([crudRestService.treeName, crudRestSchema.treeName]);
+                await dbTreeSection.tree.collapseElement(constants.restAuthenticationApps);
                 await new E2ERestObject(crudRestSchema, crudObject).add();
                 await Workbench.dismissNotifications();
 
