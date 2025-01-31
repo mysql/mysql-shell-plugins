@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -26,13 +26,19 @@ echo "Starting MRS parser file generation ..."
 
 cd grammar
 
-COPYRIGHT="# Copyright (c) 2023, 2024, Oracle and\/or its affiliates."
+COPYRIGHT="# Copyright (c) 2023, 2025, Oracle and\/or its affiliates."
 
 antlr4ng -Dlanguage=Python3 ./MRSLexer.g4 ./MRSParser.g4 -lib ../../gui/frontend/src/parsing/mysql/ -o ../lib/mrs_parser
 if [ $? -eq 0 ]; then
-    sed -i '' "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSParser.py
-    sed -i '' "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSLexer.py
-    sed -i '' "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSParserListener.py
+    if [[ $(uname -s) == "Darwin" ]]; then
+        sed -i '' "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSParser.py
+        sed -i '' "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSLexer.py
+        sed -i '' "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSParserListener.py
+    else
+        sed -i'' -e "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSParser.py
+        sed -i'' -e "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSLexer.py
+        sed -i'' -e "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSParserListener.py
+    fi
 
     echo "MRS parser file generation completed."
 else
