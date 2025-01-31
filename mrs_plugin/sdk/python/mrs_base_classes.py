@@ -135,7 +135,7 @@ class MrsError(Exception):
     _default_msg = "MRS Error"
 
     def __init__(self, *args: object, msg: Optional[str] = None) -> None:
-        """Constructor."""
+        """MRS Error."""
         if msg is None:
             msg = self._default_msg
         super().__init__(msg, *args)
@@ -151,6 +151,16 @@ class AuthAppNotFoundError(MrsError):
     """Raised when there are no auth apps for a given service."""
 
     _default_msg = "No auth apps are registered for the service"
+
+
+class ServiceNotAuthenticatedError(MrsError):
+    """Raised when the client wants to log out (deauthenticate)
+    from an already deauthenticated service.
+    """
+
+    _default_msg = (
+        "No user is currently authenticated"
+    )
 
 
 ####################################################################################
@@ -996,10 +1006,16 @@ class MrsQueryEncoder(json.JSONEncoder):
 class MrsBaseService:
     """Base class for MRS-related service instances."""
 
-    def __init__(self, service_url: str, auth_path: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        service_url: str,
+        auth_path: Optional[str] = None,
+        deauth_path: Optional[str] = None,
+    ) -> None:
         """Constructor."""
         self._service_url: str = service_url
         self._auth_path: Optional[str] = auth_path
+        self._deauth_path: Optional[str] = deauth_path
         self._session: MrsBaseSession = {"access_token": "", "gtid": None}
 
 
@@ -1779,3 +1795,55 @@ class MrsAuthenticate(Generic[AuthAppName]):
             self._service._session["access_token"] = (
                 await self._submit_mysql_internal()
             )["access_token"]
+
+
+class MrsDeauthenticate:
+    def __init__(
+        self,
+        service: MrsBaseService,
+        request_path: str,
+    ) -> None:
+        self._service: MrsBaseService = service
+        self._request_path: str = request_path
+
+    async def submit(self) -> None:
+        """Logs you out (deauthenticate) from an authenticated service.
+
+        Returns:
+            None.
+
+        Raises:
+            ServiceNotAuthenticatedError: if no user is currently authenticated.
+        """
+        if not self._service._session.get("access_token"):
+            raise ServiceNotAuthenticatedError()
+
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Bearer {self._service._session.get("access_token")}",
+        }
+
+        req = Request(
+            url=self._request_path,
+            headers=headers,
+            method="POST",
+        )
+
+        response = await asyncio.to_thread(
+            urlopen, req, context=ssl.create_default_context()
+        )
+
+        if response.status != 200:
+            raise HTTPError(
+                url=response.url,
+                code=response.status,
+                msg=response.msg,
+                hdrs=response.headers,
+                fp=None,
+            )
+
+        # If deauthentication completes successfully, then
+        # let's reset `access_token`.
+        self._service._session["access_token"] = ""
+
+        return None

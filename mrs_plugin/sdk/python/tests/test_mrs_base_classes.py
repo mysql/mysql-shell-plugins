@@ -66,6 +66,7 @@ from ..mrs_base_classes import (
     MrsBaseObjectUpdate,
     MrsBaseSchema,
     MrsBaseService,
+    MrsDeauthenticate,
     MrsDocumentBase,
     MrsJSONDataDecoder,
     MrsJSONDataEncoder,
@@ -74,6 +75,7 @@ from ..mrs_base_classes import (
     MrsDocument,
     MrsDocumentNotFoundError,
     MrsBaseSession,
+    ServiceNotAuthenticatedError,
     StringField,
     UndefinedDataClassField,
     UndefinedField,
@@ -927,6 +929,81 @@ async def test_authenticate_submit_mysql_internal(
     )
     with pytest.raises(HTTPError, match="Bad response"):
         # do auth
+        await request.submit()
+
+
+####################################################################################
+#           Test "submit_deauthenticate" Method (deauthenticate*'s backbone)
+####################################################################################
+@pytest.mark.parametrize(
+    "fictional_access_token",
+    [
+        (
+            "85888969"
+        ),
+    ],
+)
+async def test_submit_deauthenticate(
+    mock_urlopen: MagicMock,
+    mock_request_class: MagicMock,
+    urlopen_simulator: MagicMock,
+    mock_create_default_context: MagicMock,
+    fictional_access_token: str,
+    schema: MrsBaseSchema,
+):
+    """Check `MrsDeauthenticate.submit()`."""
+    request_path = f"{schema._service._service_url}{schema._service._deauth_path}"
+
+    request = MrsDeauthenticate(
+        service=schema._service,
+        request_path=request_path,
+    )
+
+    mock_create_default_context.return_value = ssl.create_default_context()
+
+    # define access token - it emulates auth has completed successfully
+    schema._service._session["access_token"] = fictional_access_token
+
+    # check an error is raised when response isn't `OK`
+    mock_urlopen.return_value = urlopen_simulator(
+        urlopen_read={"foo": "bar"}, status=401, msg="Bad response"
+    )
+    with pytest.raises(HTTPError, match="Bad response"):
+        # do deauth
+        await request.submit()
+
+    # one call so far
+    assert mock_request_class.call_count == 1
+
+    # mocking with OK 200 payload
+    mock_urlopen.return_value = urlopen_simulator(urlopen_read={})
+
+    # do deauth
+    await request.submit()
+
+    # check the access token is reset
+    assert (
+        schema._service._session["access_token"]
+        == ""
+    )
+
+    # check another call happened
+    assert mock_request_class.call_count == 2
+
+    # check that request is issued as expected
+    headers = {
+        "Accept": "application/json",
+        "Authorization": f"Bearer {fictional_access_token}",
+    }
+    mock_request_class.assert_called_with(
+        url=f"{request_path}",
+        headers=headers,
+        method="POST",
+    )
+
+    # check an exception is raised if logging out again
+    with pytest.raises(ServiceNotAuthenticatedError):
+        # do deauth
         await request.submit()
 
 

@@ -35,6 +35,7 @@ The following resources can be accessed from a service namespace:
 The following commands can be accessed from a service namespace:
 
 * [authenticate](#authenticate)
+* [deauthenticate](#deauthenticate)
 
 ### authenticate
 
@@ -78,6 +79,49 @@ res = await my_service.sakila.hello_func(name="Rui")
 # print(res) -> Hello, Rui!
 ```
 
+### deauthenticate
+
+`deauthenticate` is a service-level command that logs you out from authenticated MySQL REST Services.
+
+#### Options (deauthenticate)
+
+`None`.
+
+#### Return Type (deauthenticate)
+
+`None`.
+
+#### Raises (deauthenticate)
+
+`ServiceNotAuthenticatedError` if no user is currently authenticated.
+
+#### Example (deauthenticate)
+
+```python
+from sdk.python import MyService
+
+my_service = MyService()
+
+# Log in - `authenticate` will account for authentication
+ await my_service.authenticate(
+    app_name="${app_name}",
+    user="Lucas",
+    password="S3cr3t"
+)
+
+# Call a function
+res = await my_service.sakila.hello_func(name="Oscar")
+# print(res) -> Hello, Oscar!
+
+# Log out
+await my_service.deauthenticate()
+
+# Calling the function again - you should get an HTTP 401 (Unauthorized) error
+res = await my_service.sakila.hello_func(name="Rui")
+
+# Log out again - you should get an `ServiceNotAuthenticatedError` exception
+await my_service.deauthenticate()
+```
 
 
 ## REST Schemas
