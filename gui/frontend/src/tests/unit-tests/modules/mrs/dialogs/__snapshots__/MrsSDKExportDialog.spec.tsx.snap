@@ -29,7 +29,7 @@ exports[`MRS SDK Export dialog tests Show MRS SDK Export Dialog (snapshot) and e
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg");"
+          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
         />
       </div>
     </div>
@@ -230,7 +230,7 @@ exports[`MRS SDK Export dialog tests Show MRS SDK Export Dialog and cancel 1`] =
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg");"
+          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
         />
       </div>
     </div>

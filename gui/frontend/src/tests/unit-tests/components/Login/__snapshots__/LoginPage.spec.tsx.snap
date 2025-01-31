@@ -31,7 +31,9 @@ exports[`Login Page Tests Render Test 1`] = `
               "WebkitMaskImage": "url("module-shell.svg")",
               "backgroundColor": undefined,
               "height": undefined,
+              "maskComposite": "subtract",
               "maskImage": "url("module-shell.svg")",
+              "maskSize": "100% 100%",
               "width": undefined,
             }
           }
@@ -315,7 +317,9 @@ exports[`Login Page Tests Render Test 1`] = `
                             "WebkitMaskImage": "url("chevron-right.svg")",
                             "backgroundColor": undefined,
                             "height": undefined,
+                            "maskComposite": "subtract",
                             "maskImage": "url("chevron-right.svg")",
+                            "maskSize": "100% 100%",
                             "width": undefined,
                           }
                         }

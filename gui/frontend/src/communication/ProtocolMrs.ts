@@ -129,6 +129,12 @@ export enum ShellAPIMrs {
     MrsGetAuthAppCreateStatement = "mrs.get.auth_app_create_statement",
     /** Stores the corresponding CREATE REST AUTH APP SQL statement of the given MRS schema object into a file. */
     MrsDumpAuthAppCreateStatement = "mrs.dump.auth_app_create_statement",
+    /** Links a REST auth app to a REST service */
+    MrsAddAuthenticationAppLink = "mrs.add.authentication_app_link",
+    /** Unlinks a REST auth app to a REST service */
+    MrsDeleteAuthenticationAppLink = "mrs.delete.authentication_app_link",
+    /** Returns the list of REST services that a given authentication app is linked to */
+    MrsListAuthenticationAppServices = "mrs.list.authentication_app_services",
     /** Add a db_object to the given MRS schema */
     MrsAddDbObject = "mrs.add.db_object",
     /** Gets a specific MRS db_object */
@@ -798,8 +804,6 @@ export interface IShellMrsListAuthenticationAppsKwargs {
 export interface IShellMrsDeleteAuthenticationAppKwargs {
     /** The application id */
     appId?: string;
-    /** The id of the service that this auth_app belongs to */
-    serviceId?: string;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -868,6 +872,16 @@ export interface IShellMrsDumpAuthAppCreateStatementKwargs {
     filePath?: string;
     /** Overwrite the file, if already exists. */
     overwrite?: boolean;
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsAddAuthenticationAppLinkKwargs {
+    /** The string id for the module session object, holding the database session to be used on the operation. */
+    moduleSessionId?: string;
+}
+
+export interface IShellMrsDeleteAuthenticationAppLinkKwargs {
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -1533,6 +1547,9 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsUpdateAuthenticationApp]: { kwargs?: IShellMrsUpdateAuthenticationAppKwargs; };
     [ShellAPIMrs.MrsGetAuthAppCreateStatement]: { kwargs?: IShellMrsGetAuthAppCreateStatementKwargs; };
     [ShellAPIMrs.MrsDumpAuthAppCreateStatement]: { kwargs?: IShellMrsDumpAuthAppCreateStatementKwargs; };
+    [ShellAPIMrs.MrsAddAuthenticationAppLink]: { args: { appId: string; serviceId: string; }; kwargs?: IShellMrsAddAuthenticationAppLinkKwargs; };
+    [ShellAPIMrs.MrsDeleteAuthenticationAppLink]: { args: { appId: string; serviceId: string; }; kwargs?: IShellMrsDeleteAuthenticationAppLinkKwargs; };
+    [ShellAPIMrs.MrsListAuthenticationAppServices]: { args: { appId?: string; moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsAddDbObject]: { kwargs?: IShellMrsAddDbObjectKwargs; };
     [ShellAPIMrs.MrsGetDbObject]: { args: { requestPath?: string; dbObjectName?: string; }; kwargs?: IShellMrsGetDbObjectKwargs; };
     [ShellAPIMrs.MrsListDbObjects]: { kwargs?: IShellMrsListDbObjectsKwargs; };
@@ -2156,5 +2173,8 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsDumpAuditLog]: {};
     [ShellAPIMrs.MrsGetRoleCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpRoleCreateStatement]: { result: boolean; };
+    [ShellAPIMrs.MrsAddAuthenticationAppLink]: {};
+    [ShellAPIMrs.MrsDeleteAuthenticationAppLink]: {};
+    [ShellAPIMrs.MrsListAuthenticationAppServices]: { result: IMrsServiceData[]; };
 }
 

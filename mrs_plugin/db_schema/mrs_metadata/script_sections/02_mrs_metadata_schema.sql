@@ -1,5 +1,5 @@
 -- Copyright (c) 2025, Oracle and/or its affiliates.
--- Wed Jan 22 17:54:11 2025
+-- Wed Jan 29 15:27:48 2025
 -- Model: New Model    Version: 1.0
 -- MySQL Workbench Forward Engineering
 
@@ -1380,16 +1380,6 @@ BEGIN
 	SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 	DELETE FROM `mysql_rest_service_metadata`.`object_reference` WHERE `id` = OLD.`represents_reference_id`;
     SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
-END$$
-
-USE `mysql_rest_service_metadata`$$
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`service_has_auth_app_AFTER_DELETE` AFTER DELETE ON `service_has_auth_app` FOR EACH ROW
-BEGIN
-	# Since FKs do not fire the triggers on the related tables, manually trigger the DELETEs
-    # If the corresponding auth_app is not used by another service, delete it
-	IF ((SELECT COUNT(*) FROM `mysql_rest_service_metadata`.`service_has_auth_app` WHERE auth_app_id = OLD.auth_app_id) = 0) THEN
-		DELETE FROM `mysql_rest_service_metadata`.`auth_app` WHERE `id` = OLD.`auth_app_id`;
-	END IF;
 END$$
 
 USE `mysql_rest_service_metadata`$$

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -408,6 +408,9 @@ export interface IValueEditDialogShowOptions {
 
     /** If set to true the dialog will auto resize based on the window size */
     autoResize?: boolean;
+
+    /** Prevents the application of any (large) min width, but instead auto resizes the dialog to its content. */
+    autoMinWidth?: boolean;
 }
 
 interface IValueEditDialogProperties extends IComponentProperties {
@@ -433,6 +436,9 @@ export interface IValueEditDialogState extends IComponentState {
     preventConfirm: boolean;
     actionText?: string;
     autoResize?: boolean;
+
+    /** Do not apply any min width setting, to make the dialog as small as possible. */
+    autoMinWidth?: boolean;
 
     /** A list of ids that allow conditional rendering of sections and values. */
     activeContexts: Set<string>;
@@ -472,6 +478,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         const { container, advancedActionCaption, advancedAction, customFooter } = this.props;
         const {
             title, heading, actionText, description, validations, activeContexts, values, preventConfirm, autoResize,
+            autoMinWidth,
         } = this.state;
 
         // Take over any context that is now required to show up due to validation issues.
@@ -482,7 +489,11 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             validations.requiredContexts = undefined;
         }
 
-        const className = this.getEffectiveClassNames(["valueEditDialog", autoResize ? "autoResize" : undefined]);
+        const className = this.getEffectiveClassNames([
+            "valueEditDialog",
+            this.classFromProperty(autoResize, "autoResize"),
+            this.classFromProperty(autoMinWidth, "autoMinWidth"),
+        ]);
         const groups = this.renderGroups();
 
         const customActions = [];
@@ -621,6 +632,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             validations: { messages: {} },
             data,
             autoResize: dialogOptions?.autoResize,
+            autoMinWidth: dialogOptions?.autoMinWidth,
         }, () => {
             return this.dialogRef.current?.open(dialogOptions?.options);
         });

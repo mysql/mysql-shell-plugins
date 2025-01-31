@@ -216,10 +216,10 @@ describe("RESULT GRIDS", () => {
 
                 expect(binaryField).toMatch(/0x/);
                 expect(varBinaryField).toMatch(/0x/);
-                expect(await result.getCellIconType(row, "test_tinyblob")).toBe(constants.blob);
-                expect(await result.getCellIconType(row, "test_blob")).toBe(constants.blob);
-                expect(await result.getCellIconType(row, "test_mediumblob")).toBe(constants.blob);
-                expect(await result.getCellIconType(row, "test_longblob")).toBe(constants.blob);
+                expect(await result.getCellIconType(row, "test_tinyblob")).toContain(constants.blob);
+                expect(await result.getCellIconType(row, "test_blob")).toContain(constants.blob);
+                expect(await result.getCellIconType(row, "test_mediumblob")).toContain(constants.blob);
+                expect(await result.getCellIconType(row, "test_longblob")).toContain(constants.blob);
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -234,13 +234,13 @@ describe("RESULT GRIDS", () => {
 
                 const row = 0;
                 const bitCell = await result.getCellValue(row, "test_bit");
-                expect(await result.getCellIconType(row, "test_point")).toBe(constants.geometry);
-                expect(await result.getCellIconType(row, "test_linestring")).toBe(constants.geometry);
-                expect(await result.getCellIconType(row, "test_polygon")).toBe(constants.geometry);
-                expect(await result.getCellIconType(row, "test_multipoint")).toBe(constants.geometry);
-                expect(await result.getCellIconType(row, "test_multilinestring")).toBe(constants.geometry);
-                expect(await result.getCellIconType(row, "test_multipolygon")).toBe(constants.geometry);
-                expect(await result.getCellIconType(row, "test_geometrycollection")).toBe(constants.geometry);
+                expect(await result.getCellIconType(row, "test_point")).toContain(constants.geometry);
+                expect(await result.getCellIconType(row, "test_linestring")).toContain(constants.geometry);
+                expect(await result.getCellIconType(row, "test_polygon")).toContain(constants.geometry);
+                expect(await result.getCellIconType(row, "test_multipoint")).toContain(constants.geometry);
+                expect(await result.getCellIconType(row, "test_multilinestring")).toContain(constants.geometry);
+                expect(await result.getCellIconType(row, "test_multipolygon")).toContain(constants.geometry);
+                expect(await result.getCellIconType(row, "test_geometrycollection")).toContain(constants.geometry);
                 expect(bitCell).toMatch(/(\d+)/);
             } catch (e) {
                 testFailed = true;
@@ -684,19 +684,19 @@ describe("RESULT GRIDS", () => {
                 expect(result3.status).toMatch(/OK/);
 
                 const testPoint = await result3.getCellValue(rowToEdit, "test_point");
-                expect(testPoint).toBe(constants.geometry);
+                expect(testPoint).toContain(constants.geometry);
                 const testLineString = await result3.getCellValue(rowToEdit, "test_linestring");
-                expect(testLineString).toBe(constants.geometry);
+                expect(testLineString).toContain(constants.geometry);
                 const testPolygon = await result3.getCellValue(rowToEdit, "test_polygon");
-                expect(testPolygon).toBe(constants.geometry);
+                expect(testPolygon).toContain(constants.geometry);
                 const testMultiPoint = await result3.getCellValue(rowToEdit, "test_multipoint");
-                expect(testMultiPoint).toBe(constants.geometry);
+                expect(testMultiPoint).toContain(constants.geometry);
                 const testMultiLineString = await result3.getCellValue(rowToEdit, "test_multilinestring");
-                expect(testMultiLineString).toBe(constants.geometry);
+                expect(testMultiLineString).toContain(constants.geometry);
                 const testMultiPolygon = await result3.getCellValue(rowToEdit, "test_multipolygon");
-                expect(testMultiPolygon).toBe(constants.geometry);
+                expect(testMultiPolygon).toContain(constants.geometry);
                 const testGeomCollection = await result3.getCellValue(rowToEdit, "test_geometrycollection");
-                expect(testGeomCollection).toBe(constants.geometry);
+                expect(testGeomCollection).toContain(constants.geometry);
                 const testBit = await result.getCellValue(rowToEdit, "test_bit");
                 expect(testBit).toBe("16383");
             } catch (e) {
@@ -1178,19 +1178,19 @@ describe("RESULT GRIDS", () => {
                 expect(result1.status).toMatch(/OK/);
                 const row = 0;
                 const testPoint = await result1.getCellValue(row, "test_point");
-                expect(testPoint).toBe(constants.geometry);
+                expect(testPoint).toContain(constants.geometry);
                 const testLineString = await result1.getCellValue(row, "test_linestring");
-                expect(testLineString).toBe(constants.geometry);
+                expect(testLineString).toContain(constants.geometry);
                 const testPolygon = await result1.getCellValue(row, "test_polygon");
-                expect(testPolygon).toBe(constants.geometry);
+                expect(testPolygon).toContain(constants.geometry);
                 const testMultiPoint = await result1.getCellValue(row, "test_multipoint");
-                expect(testMultiPoint).toBe(constants.geometry);
+                expect(testMultiPoint).toContain(constants.geometry);
                 const testMultiLineString = await result1.getCellValue(row, "test_multilinestring");
-                expect(testMultiLineString).toBe(constants.geometry);
+                expect(testMultiLineString).toContain(constants.geometry);
                 const testMultiPolygon = await result1.getCellValue(row, "test_multipolygon");
-                expect(testMultiPolygon).toBe(constants.geometry);
+                expect(testMultiPolygon).toContain(constants.geometry);
                 const testGeomCollection = await result1.getCellValue(row, "test_geometrycollection");
-                expect(testGeomCollection).toBe(constants.geometry);
+                expect(testGeomCollection).toContain(constants.geometry);
                 const testBit = await result1.getCellValue(row, "test_bit");
                 expect(testBit).toBe("16127");
             } catch (e) {

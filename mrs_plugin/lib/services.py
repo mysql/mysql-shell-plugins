@@ -233,7 +233,7 @@ def update_services(session, service_ids, value):
 
 
 def query_services(session, service_id: bytes = None, url_context_root=None, url_host_name=None,
-                   get_default=False, developer_list=None):
+                   get_default=False, developer_list=None, auth_app_id=None):
     """Query MRS services
 
     Query the existing services. Filters may be applied as the 'service_id' or
@@ -258,11 +258,13 @@ def query_services(session, service_id: bytes = None, url_context_root=None, url
     if url_context_root and not url_context_root.startswith('/'):
         raise Exception("The url_context_root has to start with '/'.")
 
-    wheres = []
 
     current_service_id = get_current_service_id(session)
     if not current_service_id:
         current_service_id = "0x00000000000000000000000000000000"
+
+    wheres = []
+    params = [current_service_id]
 
     current_version = core.get_mrs_schema_version(session)
     if current_version[0] <= 2:
@@ -306,11 +308,16 @@ def query_services(session, service_id: bytes = None, url_context_root=None, url
                 LEFT JOIN `mysql_rest_service_metadata`.url_host h
                     ON se.url_host_id = h.id
             """
+
+        if auth_app_id is not None:
+            sql += """
+                JOIN `mysql_rest_service_metadata`.`service_has_auth_app` sa
+                    ON se.id = sa.service_id AND sa.auth_app_id = ?
+                """
+            params.append(auth_app_id)
         # Make sure that each user only sees the services that are either public or the user is a developer of
         # wheres.append("(in_development IS NULL OR "
         #               "SUBSTRING_INDEX(CURRENT_USER(),'@',1) MEMBER OF(in_development->>'$.developers'))")
-
-    params = [current_service_id]
 
     if service_id:
         wheres.append("se.id = ?")

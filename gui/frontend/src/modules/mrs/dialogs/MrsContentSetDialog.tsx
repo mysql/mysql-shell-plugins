@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -33,7 +33,7 @@ import {
 } from "../../../components/Dialogs/ValueEditDialog.js";
 import { StatusBar } from "../../../components/ui/Statusbar/Statusbar.js";
 import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { getEnabledState } from "../mrsUtils.js";
+import { EnabledState, getEnabledState } from "../mrs-helpers.js";
 
 export interface IMrsContentSetDialogData extends IDictionary {
     serviceId: string;
@@ -205,8 +205,8 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
                     caption: "Access",
                     choices: ["Access DISABLED", "Access ENABLED", "PRIVATE Access Only"],
                     horizontalSpan: 2,
-                    value: request.values?.enabled === 2 ? "PRIVATE Access Only" :
-                        request.values?.enabled === 1 ? "Access ENABLED" : "Access DISABLED",
+                    value: request.values?.enabled === EnabledState.PrivateOnly ? "PRIVATE Access Only" :
+                        request.values?.enabled === EnabledState.Enabled ? "Access ENABLED" : "Access DISABLED",
                     options: [
                         CommonDialogValueOption.Grouped,
                     ],

@@ -222,7 +222,9 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                         "WebkitMaskImage": "url("toolbar-sleeping_conns-active.svg")",
                         "backgroundColor": undefined,
                         "height": undefined,
+                        "maskComposite": "subtract",
                         "maskImage": "url("toolbar-sleeping_conns-active.svg")",
+                        "maskSize": "100% 100%",
                         "width": undefined,
                       }
                     }
@@ -262,7 +264,9 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                         "WebkitMaskImage": "url("toolbar-background-threads-active.svg")",
                         "backgroundColor": undefined,
                         "height": undefined,
+                        "maskComposite": "subtract",
                         "maskImage": "url("toolbar-background-threads-active.svg")",
+                        "maskSize": "100% 100%",
                         "width": undefined,
                       }
                     }
@@ -318,7 +322,9 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                         "WebkitMaskImage": "url("toolbar-info-inactive.svg")",
                         "backgroundColor": undefined,
                         "height": undefined,
+                        "maskComposite": "subtract",
                         "maskImage": "url("toolbar-info-inactive.svg")",
+                        "maskSize": "100% 100%",
                         "width": undefined,
                       }
                     }
@@ -358,7 +364,9 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                         "WebkitMaskImage": "url("toolbar-show-details-inactive.svg")",
                         "backgroundColor": undefined,
                         "height": undefined,
+                        "maskComposite": "subtract",
                         "maskImage": "url("toolbar-show-details-inactive.svg")",
+                        "maskSize": "100% 100%",
                         "width": undefined,
                       }
                     }
@@ -415,7 +423,9 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                         "WebkitMaskImage": "url("toolbar-kill_query.svg")",
                         "backgroundColor": undefined,
                         "height": undefined,
+                        "maskComposite": "subtract",
                         "maskImage": "url("toolbar-kill_query.svg")",
+                        "maskSize": "100% 100%",
                         "width": undefined,
                       }
                     }
@@ -456,7 +466,9 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                         "WebkitMaskImage": "url("toolbar-kill_connection.svg")",
                         "backgroundColor": undefined,
                         "height": undefined,
+                        "maskComposite": "subtract",
                         "maskImage": "url("toolbar-kill_connection.svg")",
+                        "maskSize": "100% 100%",
                         "width": undefined,
                       }
                     }
@@ -922,7 +934,9 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                         "WebkitMaskImage": "url("toolbar-sleeping_conns-active.svg")",
                         "backgroundColor": undefined,
                         "height": undefined,
+                        "maskComposite": "subtract",
                         "maskImage": "url("toolbar-sleeping_conns-active.svg")",
+                        "maskSize": "100% 100%",
                         "width": undefined,
                       }
                     }
@@ -962,7 +976,9 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                         "WebkitMaskImage": "url("toolbar-background-threads-active.svg")",
                         "backgroundColor": undefined,
                         "height": undefined,
+                        "maskComposite": "subtract",
                         "maskImage": "url("toolbar-background-threads-active.svg")",
+                        "maskSize": "100% 100%",
                         "width": undefined,
                       }
                     }
@@ -1018,7 +1034,9 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                         "WebkitMaskImage": "url("toolbar-info-inactive.svg")",
                         "backgroundColor": undefined,
                         "height": undefined,
+                        "maskComposite": "subtract",
                         "maskImage": "url("toolbar-info-inactive.svg")",
+                        "maskSize": "100% 100%",
                         "width": undefined,
                       }
                     }
@@ -1058,7 +1076,9 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                         "WebkitMaskImage": "url("toolbar-show-details-inactive.svg")",
                         "backgroundColor": undefined,
                         "height": undefined,
+                        "maskComposite": "subtract",
                         "maskImage": "url("toolbar-show-details-inactive.svg")",
+                        "maskSize": "100% 100%",
                         "width": undefined,
                       }
                     }
@@ -1115,7 +1135,9 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                         "WebkitMaskImage": "url("toolbar-kill_query.svg")",
                         "backgroundColor": undefined,
                         "height": undefined,
+                        "maskComposite": "subtract",
                         "maskImage": "url("toolbar-kill_query.svg")",
+                        "maskSize": "100% 100%",
                         "width": undefined,
                       }
                     }
@@ -1156,7 +1178,9 @@ exports[`Client connections module tests Test ClientConnections instantiation: C
                         "WebkitMaskImage": "url("toolbar-kill_connection.svg")",
                         "backgroundColor": undefined,
                         "height": undefined,
+                        "maskComposite": "subtract",
                         "maskImage": "url("toolbar-kill_connection.svg")",
+                        "maskSize": "100% 100%",
                         "width": undefined,
                       }
                     }

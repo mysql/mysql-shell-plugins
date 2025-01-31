@@ -203,16 +203,41 @@ export class E2ERestService {
      * Adds an Authentication app
      * @param data The authentication app
      */
-    public addAuthenticationApp = async (data: interfaces.IRestAuthenticationApp): Promise<void> => {
+    public addAndLinkAuthenticationApp = async (data: interfaces.IRestAuthenticationApp): Promise<void> => {
         const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
         const thisService = await dbTreeSection.tree.getElement(this.treeName);
-        await dbTreeSection.tree.openContextMenuAndSelect(thisService, constants.addNewAuthApp);
+        await dbTreeSection.tree.openContextMenuAndSelect(thisService, constants.addAndLinkNewAuthApp);
         await Workbench.toggleSideBar(false);
         const authApp = await AuthenticationAppDialog.set(data)
             .catch(async (e) => {
                 if (e instanceof error.TimeoutError) {
                     await Workbench.toggleSideBar(true);
-                    await dbTreeSection.tree.openContextMenuAndSelect(thisService, constants.addNewAuthApp);
+                    await dbTreeSection.tree.openContextMenuAndSelect(thisService, constants.addAndLinkNewAuthApp);
+                    await Workbench.toggleSideBar(false);
+
+                    return AuthenticationAppDialog.set(data);
+                } else {
+                    throw e;
+                }
+            });
+        await Workbench.toggleSideBar(true);
+        this.authenticationApps.push(new E2EAuthenticationApp(this, authApp));
+    };
+
+    /**
+     * Adds an Authentication app
+     * @param data The authentication app
+     */
+    public linkAuthenticationApp = async (data: interfaces.IRestAuthenticationApp): Promise<void> => {
+        const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
+        const thisService = await dbTreeSection.tree.getElement(this.treeName);
+        await dbTreeSection.tree.openContextMenuAndSelect(thisService, constants.linkNewAuthApp);
+        await Workbench.toggleSideBar(false);
+        const authApp = await AuthenticationAppDialog.set(data)
+            .catch(async (e) => {
+                if (e instanceof error.TimeoutError) {
+                    await Workbench.toggleSideBar(true);
+                    await dbTreeSection.tree.openContextMenuAndSelect(thisService, constants.linkNewAuthApp);
                     await Workbench.toggleSideBar(false);
 
                     return AuthenticationAppDialog.set(data);

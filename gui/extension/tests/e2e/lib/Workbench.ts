@@ -122,8 +122,13 @@ export class Workbench {
                     }
                     if ((await ntf.getMessage()).match(new RegExp(escapedText)) !== null) {
                         notification = ntf;
+
                         if (dismiss) {
-                            await Workbench.dismissNotifications();
+                            if (await notification.hasProgress()) {
+                                await keyboard.type(nutKey.Escape);
+                            } else {
+                                await notification.dismiss();
+                            }
                         }
 
                         return true;
@@ -169,30 +174,31 @@ export class Workbench {
      */
     public static dismissNotifications = async (): Promise<void> => {
         await Misc.switchBackToTopFrame();
-        const ntfs = await new extWorkbench().getNotifications();
+        const notifications = await new extWorkbench().getNotifications();
 
-        for (const ntf of ntfs) {
-            if (await ntf.hasProgress()) {
-                await keyboard.type(nutKey.Escape);
-            } else {
-                await driver.wait(async () => {
-                    try {
-                        await ntf.dismiss();
-                    } catch (e) {
-                        if (errors.isStaleError(e as Error)) {
-                            return true;
+        for (const notification of notifications) {
+            try {
+                if (await notification.hasProgress()) {
+                    await keyboard.type(nutKey.Escape);
+                } else {
+                    await driver.wait(async () => {
+                        if (await notification.hasProgress()) {
+                            await keyboard.type(nutKey.Escape);
                         } else {
-                            if (e instanceof error.ElementNotInteractableError) {
-                                return false;
-                            } else {
-                                throw e;
-                            }
+                            await notification.dismiss();
                         }
-                    }
 
-                    return (await new extWorkbench().getNotifications()).length === 0;
-                }, constants.wait5seconds, "There are still notifications displayed");
+                        return (await new extWorkbench().getNotifications()).length === 0;
+                    }, constants.wait5seconds, "There are still notifications displayed");
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                } else {
+                    continue;
+                }
             }
+
         }
     };
 
@@ -567,12 +573,21 @@ export class Workbench {
                             exists = true;
 
                             if (dismiss) {
-                                await Workbench.dismissNotifications();
+                                if (await notification.hasProgress()) {
+                                    await keyboard.type(nutKey.Escape);
+                                } else {
+                                    await notification.dismiss();
+                                }
                             }
                         } else {
                             console.warn(`Found notification: ${message}`);
+
                             if (dismiss) {
-                                await Workbench.dismissNotifications();
+                                if (await notification.hasProgress()) {
+                                    await keyboard.type(nutKey.Escape);
+                                } else {
+                                    await notification.dismiss();
+                                }
                             }
                         }
                         break;

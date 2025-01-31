@@ -17,6 +17,7 @@ ALTER TABLE `mysql_rest_service_metadata`.`redirect`
 ALTER TABLE `mysql_rest_service_metadata`.`object_field`
   ADD COLUMN `json_schema` JSON NULL;
 
+DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`service_has_auth_app_AFTER_DELETE`;
 
 INSERT INTO `mysql_rest_service_metadata`.`auth_app` (`id`, `auth_vendor_id`, `name`, `description`,
     `enabled`, `limit_to_registered_users`, `default_role_id`, `options`)

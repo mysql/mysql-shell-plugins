@@ -7,7 +7,7 @@ exports[`DialogHost Tests Show Prompt Dialog (snapshot) 1`] = `
   style="--background-opacity: 0.5;"
 >
   <div
-    class="msg dialog visible valueEditDialog"
+    class="msg dialog visible valueEditDialog autoMinWidth"
   >
     <div
       class="title verticalCenterContent"
@@ -29,7 +29,7 @@ exports[`DialogHost Tests Show Prompt Dialog (snapshot) 1`] = `
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg");"
+          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
         />
       </div>
     </div>

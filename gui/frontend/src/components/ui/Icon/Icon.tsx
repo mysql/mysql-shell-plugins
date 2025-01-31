@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -31,19 +31,23 @@ import { convertPropValue } from "../../../utilities/string-helpers.js";
 import { Codicon, iconNameMap } from "../Codicon.js";
 import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
 
-// Icons are images whose color can be set. Colors in the image itself are ignored.
+export interface IIconOverlay {
+    /** The URL of an overlay image. */
+    icon: string;
+
+    /**
+     * The URL of an image to be used to cut out a part of the main image. Usually used to make the overlay better
+     * visible.
+     */
+    mask: string;
+}
+
+/** Icons are images whose color can be set. Colors in the image itself are ignored. */
 export interface IIconProperties extends IComponentProperties {
     /** The URL of the main image. Can also be a codicon name. */
     src?: string | Codicon;
 
-    /** The URL of an overlay image. */
-    overlay?: string;
-
-    /**
-     * The URL of an image to be used to cut out a part of the main image. Usually used to make the overlay better
-     * visible. Specifying the mask without an overlay has no effect.
-     */
-    overlayMask?: string;
+    overlays?: IIconOverlay[];
 
     disabled?: boolean;
     width?: string | number;
@@ -60,26 +64,36 @@ export class Icon extends ComponentBase<IIconProperties> {
     public constructor(props: IIconProperties) {
         super(props);
 
-        this.addHandledProperties("src", "overlay", "overlayMask", "disabled", "style", "height",
-            "width", "color");
+        this.addHandledProperties("src", "overlays", "disabled", "style", "height", "width", "color");
     }
 
     public render(): ComponentChild {
-        const { src, overlay, overlayMask, disabled, style, height, width, color } = this.props;
+        const { src, overlays, disabled, style, height, width, color } = this.props;
         let className = this.getEffectiveClassNames([
             "icon",
             this.classFromProperty(disabled, "overlayDisabled"),
         ]);
 
         let maskImage = `url("${src}")`;
-
-        if (overlay) {
+        let maskSize = "100% 100%";
+        let maskComposite = "subtract";
+        const olLayers: ComponentChild[] = [];
+        if (overlays) {
             className += " withOverlay";
 
-            if (overlayMask) {
-                maskImage += `, url("${overlayMask}")`;
-            }
+            overlays.forEach((overlay) => {
+                maskImage += `, url("${overlay.mask}")`;
+                maskSize += `, auto auto`;
+                maskComposite += `, add`;
+                olLayers.push(
+                    <div
+                        class="overlay"
+                        style={{ backgroundImage: `url("${overlay.icon}")` }}
+                    />,
+                );
+            });
         }
+
 
         let newStyle;
         if (typeof src === "string") {
@@ -88,6 +102,8 @@ export class Icon extends ComponentBase<IIconProperties> {
                 maskImage,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 WebkitMaskImage: maskImage,
+                maskSize,
+                maskComposite,
                 ...style,
                 width: convertPropValue(width),
                 height: convertPropValue(height),
@@ -99,7 +115,7 @@ export class Icon extends ComponentBase<IIconProperties> {
             className += " codicon codicon-" + iconNameMap.get(src)!;
         }
 
-        if (overlay) {
+        if (overlays) {
             return (
                 <div
                     className="iconHost"
@@ -109,10 +125,7 @@ export class Icon extends ComponentBase<IIconProperties> {
                         style={newStyle}
                         {...this.unhandledProperties}
                     />
-                    <div
-                        class="overlay"
-                        style={{ backgroundImage: `url("${overlay}")` }}
-                    />
+                    {olLayers}
                 </div>
             );
         } else {

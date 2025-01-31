@@ -595,7 +595,7 @@ describe("CLIPBOARD", () => {
 
                     await result.openCellContextMenuAndSelect(row, String(allColumns[i]),
                         constants.resultGridContextMenu.setFieldToNull);
-                    expect(await result.getCellValue(row, String(allColumns[i]))).toBe(constants.isNull);
+                    expect(await result.getCellValue(row, String(allColumns[i]))).toContain(constants.isNull);
                 }
 
                 await result.rollbackChanges();
@@ -726,7 +726,7 @@ describe("CLIPBOARD", () => {
 
                     await result.openCellContextMenuAndSelect(row, String(allColumns[i]),
                         constants.resultGridContextMenu.setFieldToNull);
-                    expect(await result.getCellValue(row, String(allColumns[i]))).toBe(constants.isNull);
+                    expect(await result.getCellValue(row, String(allColumns[i]))).toContain(constants.isNull);
                 }
 
                 await result.rollbackChanges();

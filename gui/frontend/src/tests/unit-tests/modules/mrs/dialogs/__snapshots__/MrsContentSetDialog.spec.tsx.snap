@@ -29,7 +29,7 @@ exports[`MRS Content Set dialog tests Show MRS Content Set Dialog (snapshot) and
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg");"
+          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
         />
       </div>
     </div>

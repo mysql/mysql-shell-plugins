@@ -243,7 +243,7 @@ export const dumpToDisk = "Dump to Disk";
 export const databaseSchemaDump = "Database Schema Dump";
 export const databaseSchemaDumpRest = "Database Schema Dump for MySQL Database Service";
 
-export const copyToClipboard = "Copy To Clipboard";
+export const copyToClipboard = "Copy to Clipboard";
 export const copyToClipboardName = "Name";
 export const copyToClipboardStat = "CREATE Statement";
 export const copyToClipboardStatDel = "CREATE Statement with DELIMITERs";
@@ -268,14 +268,16 @@ export const editRESTService = "Edit REST Service...";
 export const setAsCurrentREST = "Set as Current REST Service";
 export const loadRESTSchemaFromJSON = "Load REST Schema From JSON File...";
 export const exportRestSdk = "Export REST Service SDK Files...";
-export const addNewAuthApp = "Add New REST Authentication App";
+export const addNewAuthenticationApp = "Add New Authentication App";
+export const addAndLinkNewAuthApp = "Add and Link REST Authentication App...";
+export const linkNewAuthApp = "Link REST Authentication App...";
 export const deleteRESTService = "Delete REST Service...";
 export const mrsServiceDocs = "MRS Service Documentation";
 export const editRESTSchema = "Edit REST Schema...";
 export const dumpRESTSchemaToJSON = "REST Schema To JSON File...";
 export const loadRESTObjFromJSON = "Load REST Object From JSON File...";
 export const deleteRESTSchema = "Delete REST Schema...";
-export const editRESTObj = "Edit REST Object";
+export const editRESTObj = "Edit REST Object...";
 export const copyRESTObjReqPath = "Copy REST Object Request Path to Clipboard";
 export const copyRESTObjReqPathBrowser = "Copy REST Object Request Path in Web Browser";
 export const dumpRESTObjToJSON = "Dump REST Object To JSON File...";
@@ -414,22 +416,34 @@ export const restMainCtxMenu = new Map([
     [addRESTService, 1],
     [enableRESTService, 2],
     [disableRESTService, 3],
-    [bootstrapRouter, 4],
-    [startRouter, 5],
-    [stopRouter, 6],
-    [killRouters, 7],
-    [browseRESTDocs, 8],
+    [bootstrapRouter, 5],
+    [startRouter, 6],
+    [stopRouter, 7],
+    [killRouters, 8],
+    [browseRESTDocs, 9],
 ]);
 
 export const dumpRESTSchemaToSQL = "Rest Schema SQL...";
-export const createStatement = "Create Statement...";
-export const createStatementAllObjs = "Create Statement Including All Objects...";
-export const clipCreateStatementAllObjs = "Create Statement Including All Objects";
 export const loadFromDisk = "Load from Disk";
 export const restObjectFromJSONFile = "REST Object From JSON File...";
 export const restSchemaFromJSONFile = "REST Schema From JSON File...";
-export const clipCreateStatement = "Create Statement";
 export const restClientSDKFiles = "REST Client SDK Files ...";
+
+export const exportCreateServiceStatement = "Export CREATE REST SERVICE Statement...";
+export const exportCreateServiceStatementAll = "Export CREATE REST SERVICE Statement Including All Objects...";
+export const copyCreateServiceStatement = "Copy CREATE REST SERVICE Statement";
+export const copyCreateServiceStatementAll = "Copy CREATE REST SERVICE Statement Including All Objects";
+
+export const exportCreateSchemaStatement = "Export CREATE REST SCHEMA Statement...";
+export const exportCreateSchemaStatementAll = "Export CREATE REST SCHEMA Statement Including All Objects...";
+export const copyCreateSchemaStatement = "Copy CREATE REST SCHEMA Statement";
+export const copyCreateSchemaStatementAll = "Copy CREATE REST SCHEMA Statement Including All Objects";
+
+export const createStatement = "Create Statement";
+export const createStatement3Dots = `${createStatement}...`;
+export const createStatementIncludingAllObjects = "Create Statement Including All Objects";
+export const createStatementIncludingAllObjects3Dots = `${createStatementIncludingAllObjects}...`;
+export const restAuthenticationApps = "REST Authentication Apps";
 
 export const restServiceCtxMenu = new Map([
     [editRESTService, 1],
@@ -438,14 +452,15 @@ export const restServiceCtxMenu = new Map([
     [restSchemaFromJSONFile, 0],
     [dumpToDisk, 4],
     [restClientSDKFiles, 0],
-    [createStatement, 1],
-    [createStatementAllObjs, 2],
+    [exportCreateServiceStatement, 1],
+    [exportCreateServiceStatementAll, 2],
     [copyToClipboard, 5],
-    [clipCreateStatement, 0],
-    [clipCreateStatementAllObjs, 1],
-    [addNewAuthApp, 6],
-    [deleteRESTService, 9],
-    [mrsServiceDocs, 10],
+    [copyCreateServiceStatement, 0],
+    [copyCreateServiceStatementAll, 1],
+    [addAndLinkNewAuthApp, 6],
+    [linkNewAuthApp, 7],
+    [deleteRESTService, 10],
+    [mrsServiceDocs, 11],
 ]);
 
 export const restSchemaCtxMenu = new Map([
@@ -455,50 +470,53 @@ export const restSchemaCtxMenu = new Map([
     [dumpToDisk, 3],
     [dumpRESTSchemaToJSON, 0],
     [dumpRESTSchemaToSQL, 1],
-    [createStatement, 2],
-    [createStatementAllObjs, 3],
+    [exportCreateSchemaStatement, 2],
+    [exportCreateSchemaStatementAll, 3],
     [copyToClipboard, 4],
-    [clipCreateStatement, 0],
-    [clipCreateStatementAllObjs, 1],
+    [copyCreateSchemaStatement, 0],
+    [copyCreateSchemaStatementAll, 1],
     [deleteRESTSchema, 5],
 ]);
 
 export const restObjectToJSONFile = "REST Object To JSON File...";
-export const restObjectRequestPath = "REST Object Request Path";
+export const restObjectRequestPath = "Copy REST Object Request Path";
 
 export const restObjCtxMenu = new Map([
     [editRESTObj, 1],
     [copyRESTObjReqPath, 2],
     [dumpToDisk, 3],
     [restObjectToJSONFile, 0],
-    [createStatement, 1],
+    [createStatement3Dots, 1],
     [copyToClipboard, 4],
     [restObjectRequestPath, 0],
-    [clipCreateStatement, 1],
+    [createStatement, 1],
     [deleteRESTObj, 5],
 ]);
 
-export const restAppCtxMenu = new Map([
+export const restAppCtxMenu1 = new Map([
+    [dumpToDisk, 1],
+    [createStatement3Dots, 0],
+    [createStatementIncludingAllObjects3Dots, 1],
+    [copyToClipboard, 2],
+    [createStatement, 0],
+    [createStatementIncludingAllObjects, 1],
+]);
+
+export const restAppCtxMenu2 = new Map([
     [editAuthenticationApp, 1],
     [addRESTUser, 2],
-    [dumpToDisk, 3],
-    [createStatement, 1],
-    [createStatementAllObjs, 2],
-    [copyToClipboard, 4],
-    [clipCreateStatement, 0],
-    [clipCreateStatementAllObjs, 1],
-    [deleteAuthenticationApp, 5],
+    [deleteAuthenticationApp, 3],
 ]);
 
 export const restUserCtxMenu = new Map([
     [editRESTUser, 1],
     [deleteRESTUser, 2],
     [dumpToDisk, 3],
-    [createStatement, 1],
-    [createStatementAllObjs, 2],
+    [createStatement3Dots, 1],
+    [createStatementIncludingAllObjects3Dots, 2],
     [copyToClipboard, 4],
-    [clipCreateStatement, 0],
-    [clipCreateStatementAllObjs, 1],
+    [createStatement, 0],
+    [createStatement3Dots, 1],
 ]);
 
 export const routerCtxMenu = new Map([
@@ -550,3 +568,4 @@ export const ociComputeInstanceCtxMenu = new Map([
 
 export const restServiceMetadataSchema = "mysql_rest_service_metadata";
 export const ociFailure = "OCI Failure";
+export const mysqlRouters = "MySQL Routers";

@@ -29,7 +29,7 @@ exports[`MRS Db Object dialog tests Show MRS DB Object Dialog (snapshot) and esc
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg");"
+          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
         />
       </div>
     </div>

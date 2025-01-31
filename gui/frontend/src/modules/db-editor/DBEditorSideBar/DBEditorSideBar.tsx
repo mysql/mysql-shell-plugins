@@ -38,22 +38,22 @@ import {
     ComponentBase, ComponentPlacement, IComponentProperties, IComponentState, SelectionType,
 } from "../../../components/ui/Component/ComponentBase.js";
 import { Container, Orientation } from "../../../components/ui/Container/Container.js";
-import { Icon } from "../../../components/ui/Icon/Icon.js";
+import { Icon, type IIconOverlay } from "../../../components/ui/Icon/Icon.js";
 import { Label } from "../../../components/ui/Label/Label.js";
 import { Menu } from "../../../components/ui/Menu/Menu.js";
 import { IMenuItemProperties, MenuItem } from "../../../components/ui/Menu/MenuItem.js";
 import { ISplitterPaneSizeInfo } from "../../../components/ui/SplitContainer/SplitContainer.js";
 import { ITreeGridOptions, SetDataAction, TreeGrid } from "../../../components/ui/TreeGrid/TreeGrid.js";
 import {
-    CdmEntityType, type ConnectionDataModelEntry, type ICdmConnectionEntry, type ICdmRestSchemaEntry,
+    CdmEntityType, type ConnectionDataModelEntry, type ICdmConnectionEntry, type ICdmRestAuthAppEntry,
+    type ICdmRestRootEntry, type ICdmRestSchemaEntry, type ICdmRestServiceEntry,
 } from "../../../data-models/ConnectionDataModel.js";
 import {
     OciDmEntityType, type IOciDmCompartment, type IOciDmProfile, type OciDataModelEntry,
 } from "../../../data-models/OciDataModel.js";
 import { OdmEntityType, type OpenDocumentDataModelEntry } from "../../../data-models/OpenDocumentDataModel.js";
 import {
-    systemSchemas,
-    type AdminPageType, type Command, type IDataModelEntryState, type ISubscriberActionType,
+    systemSchemas, type AdminPageType, type Command, type IDataModelEntryState, type ISubscriberActionType,
 } from "../../../data-models/data-model-types.js";
 import { BastionLifecycleState } from "../../../oci-typings/oci-bastion/lib/model/bastion-lifecycle-state.js";
 import { Assets } from "../../../supplement/Assets.js";
@@ -62,11 +62,11 @@ import { DBType } from "../../../supplement/ShellInterface/index.js";
 import { EditorLanguage } from "../../../supplement/index.js";
 import { convertErrorToString } from "../../../utilities/helpers.js";
 import { DBEditorModuleId } from "../../ModuleInfo.js";
+import { EnabledState } from "../../mrs/mrs-helpers.js";
 import { MrsDbObjectType } from "../../mrs/types.js";
 import {
     DBEditorContext, type DBEditorContextType, type IBaseTreeItem, type IConnectionTreeItem,
-    type IDocumentTreeItem, type IOciTreeItem, type ISideBarCommandResult,
-    type QualifiedName,
+    type IDocumentTreeItem, type IOciTreeItem, type ISideBarCommandResult, type QualifiedName,
 } from "../index.js";
 
 /** Lookup for icons for a specific document type. */
@@ -101,10 +101,13 @@ const cdmTypeToEntryIcon: Map<CdmEntityType, string> = new Map([
     [CdmEntityType.MrsSchema, Assets.mrs.schemaIcon],
     [CdmEntityType.MrsContentSet, Assets.mrs.contentSetIcon],
     [CdmEntityType.MrsUser, Assets.oci.profileIcon],
-    [CdmEntityType.MrsAuthApp, Assets.misc.shieldIcon],
+    [CdmEntityType.MrsAuthApp, Assets.mrs.authAppIcon],
+    [CdmEntityType.MrsServiceAuthApp, Assets.mrs.authAppIcon],
+    [CdmEntityType.MrsAuthAppGroup, Assets.mrs.authAppsIcon],
     [CdmEntityType.MrsContentFile, Assets.mrs.contentFileIcon],
     [CdmEntityType.MrsDbObject, Assets.mrs.dbObjectIcon],
     [CdmEntityType.MrsRouter, Assets.router.routerIcon],
+    [CdmEntityType.MrsRouterGroup, Assets.router.routersIcon],
     [CdmEntityType.MrsRouterService, Assets.mrs.serviceIcon],
 ]);
 
@@ -212,14 +215,12 @@ interface IDBEditorSideBarState extends IComponentState {
 
     editing?: string;     // If editing an editor's caption is active then this field holds its id.
     tempCaption?: string; // Keeps the new caption of an editor while it is being edited.
-
-    showSystemSchemas: boolean;
 }
 
 export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, IDBEditorSideBarState> {
     public static override contextType = DBEditorContext;
 
-    #cdmTypeToMenuRefMap = new Map<CdmEntityType, RefObject<Menu>>([
+    private cdmTypeToMenuRefMap = new Map<CdmEntityType, RefObject<Menu>>([
         [CdmEntityType.Connection, createRef<Menu>()],
         [CdmEntityType.Schema, createRef<Menu>()],
         [CdmEntityType.Table, createRef<Menu>()],
@@ -234,13 +235,16 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         [CdmEntityType.MrsRoot, createRef<Menu>()],
         [CdmEntityType.MrsService, createRef<Menu>()],
         [CdmEntityType.MrsSchema, createRef<Menu>()],
+        [CdmEntityType.MrsAuthAppGroup, createRef<Menu>()],
         [CdmEntityType.MrsAuthApp, createRef<Menu>()],
+        [CdmEntityType.MrsServiceAuthApp, createRef<Menu>()],
+        [CdmEntityType.MrsRouterGroup, createRef<Menu>()],
         [CdmEntityType.MrsRouter, createRef<Menu>()],
         [CdmEntityType.MrsUser, createRef<Menu>()],
         [CdmEntityType.MrsDbObject, createRef<Menu>()],
     ]);
 
-    #odmTypeToMenuRefMap = new Map<OdmEntityType, RefObject<Menu>>([
+    private odmTypeToMenuRefMap = new Map<OdmEntityType, RefObject<Menu>>([
         [OdmEntityType.ConnectionPage, createRef<Menu>()],
         [OdmEntityType.Overview, createRef<Menu>()],
         [OdmEntityType.Notebook, createRef<Menu>()],
@@ -249,7 +253,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         [OdmEntityType.ShellSession, createRef<Menu>()],
     ]);
 
-    #ociTypeToMenuRefMap = new Map<OciDmEntityType, RefObject<Menu>>([
+    private ociTypeToMenuRefMap = new Map<OciDmEntityType, RefObject<Menu>>([
         [OciDmEntityType.ConfigurationProfile, createRef<Menu>()],
         [OciDmEntityType.Compartment, createRef<Menu>()],
         [OciDmEntityType.Bastion, createRef<Menu>()],
@@ -259,12 +263,16 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         [OciDmEntityType.LoadBalancer, createRef<Menu>()],
     ]);
 
-    #documentTableRef = createRef<TreeGrid>();
-    #connectionTableRef = createRef<TreeGrid>();
-    #ociTableRef = createRef<TreeGrid>();
+    private documentTableRef = createRef<TreeGrid>();
+    private connectionTableRef = createRef<TreeGrid>();
+    private ociTableRef = createRef<TreeGrid>();
 
-    #connectionSectionRef = createRef<AccordionSection>();
-    #ociSectionRef = createRef<AccordionSection>();
+    private connectionSectionRef = createRef<AccordionSection>();
+    private ociSectionRef = createRef<AccordionSection>();
+
+    // > 0 if a data model refresh is running. In this case ignore all incomming data model changes
+    // (we are the source of them in this case).
+    private refreshRunning = 0;
 
     public constructor(props: IDBEditorSideBarProperties) {
         super(props);
@@ -275,7 +283,6 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                 connectionTreeItems: [],
                 ociTreeItems: [],
             },
-            showSystemSchemas: false,
         };
 
         this.addHandledProperties("selectedEntry", "markedSchema", "savedSectionState", "onSelectConnectionItem",
@@ -315,14 +322,14 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         // Check for data model changes and update our trees.
         this.updateTreesFromContext();
 
-        if (this.#connectionTableRef.current) {
+        if (this.connectionTableRef.current) {
             if (markedSchema !== prevProps.markedSchema) {
-                let rows = this.#connectionTableRef.current.searchAllRows("caption", markedSchema);
+                let rows = this.connectionTableRef.current.searchAllRows("caption", markedSchema);
                 rows.forEach((row) => {
                     row.reformat();
                 });
 
-                rows = this.#connectionTableRef.current.searchAllRows("caption", prevProps.markedSchema);
+                rows = this.connectionTableRef.current.searchAllRows("caption", prevProps.markedSchema);
                 rows.forEach((row) => {
                     row.reformat();
                 });
@@ -332,16 +339,16 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         if (prevProps.selectedOpenDocument !== selectedOpenDocument) {
             const { treeItems } = this.state;
 
-            this.#documentTableRef.current?.deselectRow();
+            this.documentTableRef.current?.deselectRow();
             if (selectedOpenDocument && selectedOpenDocument !== "connections") {
-                const rows = this.#documentTableRef.current?.searchAllRows("id", selectedOpenDocument);
+                const rows = this.documentTableRef.current?.searchAllRows("id", selectedOpenDocument);
                 rows?.forEach((row) => {
                     row.select();
                 });
             } else {
                 // No selection or the overview was given, so select the overview.
                 const item = treeItems.openDocumentTreeItems[0];
-                const rows = this.#documentTableRef.current?.searchAllRows("id", item.id);
+                const rows = this.documentTableRef.current?.searchAllRows("id", item.id);
                 rows?.forEach((row) => {
                     row.select();
                 });
@@ -394,7 +401,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                             content: this.renderDocumentsTree(context.documentDataModel.roots),
                         },
                         {
-                            ref: this.#connectionSectionRef,
+                            ref: this.connectionSectionRef,
                             id: "connectionSection",
                             caption: "DATABASE CONNECTIONS",
                             stretch: true,
@@ -439,7 +446,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                             content: this.renderConnectionsTree(context.connectionsDataModel.connections),
                         },
                         {
-                            ref: this.#ociSectionRef,
+                            ref: this.ociSectionRef,
                             id: "ociSection",
                             caption: "ORACLE CLOUD INFRASTRUCTURE",
                             stretch: true,
@@ -496,7 +503,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
             <>
                 <Menu
                     id="connectionContextMenu"
-                    ref={this.#cdmTypeToMenuRefMap.get(CdmEntityType.Connection)}
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.Connection)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                     isItemDisabled={this.isConnectionMenuItemDisabled}
@@ -539,7 +546,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="schemaContextMenu"
-                    ref={this.#cdmTypeToMenuRefMap.get(CdmEntityType.Schema)}
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.Schema)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
@@ -583,7 +590,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="tableContextMenu"
-                    ref={this.#cdmTypeToMenuRefMap.get(CdmEntityType.Table)}
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.Table)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
@@ -613,7 +620,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="columnContextMenu"
-                    ref={this.#cdmTypeToMenuRefMap.get(CdmEntityType.Column)}
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.Column)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
@@ -644,7 +651,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="viewContextMenu"
-                    ref={this.#cdmTypeToMenuRefMap.get(CdmEntityType.View)}
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.View)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
@@ -672,7 +679,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="eventContextMenu"
-                    ref={this.#cdmTypeToMenuRefMap.get(CdmEntityType.Event)}
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.Event)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
@@ -695,7 +702,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="procedureContextMenu"
-                    ref={this.#cdmTypeToMenuRefMap.get(CdmEntityType.StoredProcedure)}
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.StoredProcedure)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
@@ -721,7 +728,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="functionContextMenu"
-                    ref={this.#cdmTypeToMenuRefMap.get(CdmEntityType.StoredFunction)}
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.StoredFunction)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
@@ -747,7 +754,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="indexContextMenu"
-                    ref={this.#cdmTypeToMenuRefMap.get(CdmEntityType.Index)}
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.Index)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
@@ -765,7 +772,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="triggerContextMenu"
-                    ref={this.#cdmTypeToMenuRefMap.get(CdmEntityType.Trigger)}
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.Trigger)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
@@ -783,7 +790,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="fkContextMenu"
-                    ref={this.#cdmTypeToMenuRefMap.get(CdmEntityType.ForeignKey)}
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.ForeignKey)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleConnectionTreeContextMenuItemClick}
                 >
@@ -807,7 +814,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
             <>
                 <Menu
                     id="mrsRootContextMenu"
-                    ref={this.#cdmTypeToMenuRefMap.get(CdmEntityType.MrsRoot)}
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.MrsRoot)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleMrsContextMenuItemClick}
                 >
@@ -818,6 +825,11 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                     />
                     <MenuItem
                         command={{ title: "Disable MySQL REST Service", command: "msg.mrs.disableMySQLRestService" }}
+                    />
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    <MenuItem
+                        command={{ title: "Show Private Items", command: "msg.mrs.showPrivateItems" }}
+                        altCommand={{ title: "Hide Private Items", command: "msg.mrs.hidePrivateItems" }}
                     />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem
@@ -846,7 +858,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="mrsServiceMenu"
-                    ref={this.#cdmTypeToMenuRefMap.get(CdmEntityType.MrsService)}
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.MrsService)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleMrsContextMenuItemClick}
                 >
@@ -855,32 +867,56 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                         command={{ title: "Set as Current REST Service", command: "msg.mrs.setCurrentService" }}
                     />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem
-                        command={{
-                            title: "Load REST Schema From JSON File...",
-                            command: "msg.mrs.loadSchemaFromJSONFile",
-                        }}
-                        disabled
-                    />
-                    <MenuItem
-                        command={{ title: "Export REST Service SDK Files...", command: "msg.mrs.exportServiceSdk" }}
-                        disabled
-                    />
-                    <MenuItem
-                        command={{
-                            title: "Export CREATE REST SERVICE Statement...",
-                            command: "msg.mrs.exportCreateServiceSql",
-                        }}
-                        disabled
-                    />
-                    <MenuItem
-                        command={{
-                            title: "Copy CREATE REST SERVICE Statement...",
-                            command: "msg.mrs.copyCreateServiceSql",
-                        }}
-                    />
+                    <MenuItem command={{ title: "Load from Disk", command: "" }} >
+                        <MenuItem
+                            command={{
+                                title: "REST Schema From JSON File...",
+                                command: "msg.mrs.loadSchemaFromJSONFile",
+                            }}
+                            disabled
+                        />
+                    </MenuItem>
+                    <MenuItem command={{ title: "Dump to Disk", command: "" }}>
+                        <MenuItem
+                            command={{ title: "REST Client SDK Files...", command: "msg.mrs.exportServiceSdk" }}
+                            disabled
+                        />
+                        <MenuItem command={{ title: "-", command: "" }} disabled />
+                        <MenuItem
+                            command={{
+                                title: "Export CREATE REST SERVICE Statement...",
+                                command: "msg.mrs.exportCreateServiceSql",
+                            }}
+                            disabled
+                        />
+                        <MenuItem
+                            command={{
+                                title: "Export CREATE REST SERVICE Statement Including All Objects...",
+                                command: "msg.mrs.exportCreateServiceSqlIncludeAllObjects",
+                            }}
+                            disabled
+                        />
+                    </MenuItem>
+                    <MenuItem command={{ title: "Copy to Clipboard", command: "" }}>
+                        <MenuItem
+                            command={{
+                                title: "Copy CREATE REST SERVICE Statement",
+                                command: "msg.mrs.copyCreateServiceSql",
+                            }}
+                        />
+                        <MenuItem
+                            command={{
+                                title: "Copy CREATE REST SERVICE Statement Including All Objects",
+                                command: "msg.mrs.copyCreateServiceSqlIncludeAllObjects",
+                            }}
+                        />
+                    </MenuItem>
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Add New Authentication App", command: "msg.mrs.addAuthApp" }} />
+                    <MenuItem command={{
+                        title: "Add and Link REST Authentication App...",
+                        command: "msg.mrs.addAuthApp",
+                    }} />
+                    <MenuItem command={{ title: "Link REST Authentication App...", command: "msg.mrs.linkAuthApp" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Delete REST Service...", command: "msg.mrs.deleteService" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
@@ -889,7 +925,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="mrsRouterMenu"
-                    ref={this.#cdmTypeToMenuRefMap.get(CdmEntityType.MrsRouter)}
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.MrsRouter)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleMrsContextMenuItemClick}
                 >
@@ -898,60 +934,111 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="mrsSchemaMenu"
-                    ref={this.#cdmTypeToMenuRefMap.get(CdmEntityType.MrsSchema)}
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.MrsSchema)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleMrsContextMenuItemClick}
                 >
                     <MenuItem command={{ title: "Edit REST Schema...", command: "msg.mrs.editSchema" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem
-                        command={{ title: "Dump REST Schema To JSON File...", command: "msg.mrs.dumpSchemaToJSONFile" }}
-                        disabled
-                    />
-                    <MenuItem
-                        command={{
-                            title: "Load REST Schema From JSON File...",
-                            command: "msg.mrs.loadSchemaFromJSONFile",
-                        }}
-                        disabled
-                    />
-                    <MenuItem
-                        command={{ title: "Dump REST Schema SQL...", command: "msg.mrs.dumpCreateSchemaSql" }}
-                        disabled
-                    />
-                    <MenuItem
-                        command={{
-                            title: "Export CREATE REST SCHEMA Statement...",
-                            command: "msg.mrs.exportCreateSchemaSql",
-                        }}
-                        disabled
-                    />
-                    <MenuItem
-                        command={{
-                            title: "Copy CREATE REST SCHEMA Statement",
-                            command: "msg.mrs.copyCreateSchemaSql",
-                        }}
-                    />
+                    <MenuItem command={{ title: "Load from Disk", command: "" }} >
+                        <MenuItem
+                            command={{
+                                title: "REST Object From JSON File...",
+                                command: "msg.mrs.loadObjectFromJSONFile",
+                            }}
+                            disabled
+                        />
+                    </MenuItem>
+                    <MenuItem command={{ title: "Dump to Disk", command: "" }}>
+                        <MenuItem
+                            command={{
+                                title: "Export REST Schema To JSON File...",
+                                command: "msg.mrs.dumpSchemaToJSONFile",
+                            }}
+                            disabled
+                        />
+                        <MenuItem
+                            command={{ title: "Export REST Schema SQL...", command: "msg.mrs.dumpCreateSchemaSql" }}
+                            disabled
+                        />
+                        <MenuItem command={{ title: "-", command: "" }} disabled />
+                        <MenuItem
+                            command={{
+                                title: "Export CREATE REST SCHEMA Statement...",
+                                command: "msg.mrs.exportCreateSchemaSql",
+                            }}
+                            disabled
+                        />
+                        <MenuItem
+                            command={{
+                                title: "Export CREATE REST SCHEMA Statement Including All Objects...",
+                                command: "msg.mrs.exportCreateSchemaSqlIncludeAllObjects",
+                            }}
+                            disabled
+                        />
+                    </MenuItem>
+                    <MenuItem command={{ title: "Copy to Clipboard", command: "" }}>
+                        <MenuItem
+                            command={{
+                                title: "Copy CREATE REST SCHEMA Statement",
+                                command: "msg.mrs.copyCreateSchemaSql",
+                            }}
+                        />
+                        <MenuItem
+                            command={{
+                                title: "Copy CREATE REST SCHEMA Statement Including All Objects",
+                                command: "msg.mrs.copyCreateSchemaSqlIncludeAllObjects",
+                            }}
+                        />
+                    </MenuItem>
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Delete REST Schema...", command: "msg.mrs.deleteSchema" }} />
                 </Menu>
 
                 <Menu
-                    id="mrsAuthAppMenu"
-                    ref={this.#cdmTypeToMenuRefMap.get(CdmEntityType.MrsAuthApp)}
+                    id="mrsAuthAppGroupMenu"
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.MrsAuthAppGroup)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleMrsContextMenuItemClick}
                 >
-                    <MenuItem command={{ title: "Edit Auth App...", command: "msg.mrs.editAuthApp" }} />
+                    <MenuItem command={{ title: "Add New Authentication App", command: "msg.mrs.addAuthApp" }} />
+                </Menu>
+
+                <Menu
+                    id="mrsAuthAppMenu"
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.MrsAuthApp)}
+                    placement={ComponentPlacement.BottomLeft}
+                    onItemClick={this.handleMrsContextMenuItemClick}
+                >
+                    <MenuItem command={{ title: "Edit REST Authentication App...", command: "msg.mrs.editAuthApp" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Add User...", command: "msg.mrs.addUser" }} />
+                    <MenuItem command={{
+                        title: "Link REST Authentication App to REST Service...",
+                        command: "msg.mrs.linkToService",
+                    }} />
+                    <MenuItem command={{ title: "Add REST User...", command: "msg.mrs.addUser" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Delete Auth App...", command: "msg.mrs.deleteAuthApp" }} />
+                    <MenuItem command={{
+                        title: "Delete REST Authentication App...",
+                        command: "msg.mrs.deleteAuthApp",
+                    }} />
+                </Menu>
+
+                <Menu
+                    id="mrsServiceAuthAppMenu"
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.MrsServiceAuthApp)}
+                    placement={ComponentPlacement.BottomLeft}
+                    onItemClick={this.handleMrsContextMenuItemClick}
+                >
+                    <MenuItem command={{
+                        title: "Unlink REST Authentication App...",
+                        command: "msg.mrs.unlinkAuthApp",
+                    }} />
                 </Menu>
 
                 <Menu
                     id="mrsUserMenu"
-                    ref={this.#cdmTypeToMenuRefMap.get(CdmEntityType.MrsUser)}
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.MrsUser)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleMrsContextMenuItemClick}
                 >
@@ -962,7 +1049,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="mrsDbObjectMenu"
-                    ref={this.#cdmTypeToMenuRefMap.get(CdmEntityType.MrsDbObject)}
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.MrsDbObject)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleMrsContextMenuItemClick}
                 >
@@ -970,34 +1057,42 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem
                         command={{
-                            title: "Copy REST Object Request Path to Clipboard",
-                            command: "msg.mrs.copyDbObjectRequestPath",
-                        }}
-                    />
-                    <MenuItem
-                        command={{
                             title: "Open REST Object Request Path in Web Browser",
                             command: "msg.mrs.openDbObjectRequestPath",
                         }}
                     />
-                    <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem
-                        command={{ title: "Dump REST Object To JSON File...", command: "msg.mrs.dumpObjectToJSONFile" }}
-                        disabled
-                    />
-                    <MenuItem
-                        command={{
-                            title: "Export CREATE REST OBJECT Statement...",
-                            command: "msg.mrs.exportCreateDbObjectSql",
-                        }}
-                        disabled
-                    />
-                    <MenuItem
-                        command={{
-                            title: "Copy CREATE REST OBJECT Statement...",
-                            command: "msg.mrs.copyCreateDbObjectSql",
-                        }}
-                    />
+                    <MenuItem command={{ title: "Dump to Disk", command: "" }}>
+                        <MenuItem
+                            command={{
+                                title: "Export REST Object To JSON File...",
+                                command: "msg.mrs.dumpObjectToJSONFile",
+                            }}
+                            disabled
+                        />
+                        <MenuItem command={{ title: "-", command: "" }} disabled />
+                        <MenuItem
+                            command={{
+                                title: "Export CREATE REST OBJECT Statement...",
+                                command: "msg.mrs.exportCreateDbObjectSql",
+                            }}
+                            disabled
+                        />
+                    </MenuItem>
+                    <MenuItem command={{ title: "Copy to Clipboard", command: "" }}>
+                        <MenuItem
+                            command={{
+                                title: "Copy REST Object Request Path",
+                                command: "msg.mrs.copyDbObjectRequestPath",
+                            }}
+                        />
+                        <MenuItem command={{ title: "-", command: "" }} disabled />
+                        <MenuItem
+                            command={{
+                                title: "Copy CREATE REST Object Statement",
+                                command: "msg.mrs.copyCreateDbObjectSql",
+                            }}
+                        />
+                    </MenuItem>
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Delete REST Object...", command: "msg.mrs.deleteDbObject" }} />
                 </Menu>
@@ -1010,7 +1105,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
             <>
                 <Menu
                     id="pageContextMenu"
-                    ref={this.#odmTypeToMenuRefMap.get(OdmEntityType.ConnectionPage)}
+                    ref={this.odmTypeToMenuRefMap.get(OdmEntityType.ConnectionPage)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleDocumentTreeContextMenuItemClick}
                     customCommand={this.handleDocumentTreeContextMenuCustomCommand}
@@ -1037,7 +1132,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
             <>
                 <Menu
                     id="ociProfileMenu"
-                    ref={this.#ociTypeToMenuRefMap.get(OciDmEntityType.ConfigurationProfile)}
+                    ref={this.ociTypeToMenuRefMap.get(OciDmEntityType.ConfigurationProfile)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleOciContextMenuItemClick}
                 >
@@ -1054,7 +1149,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="ociCompartmentMenu"
-                    ref={this.#ociTypeToMenuRefMap.get(OciDmEntityType.Compartment)}
+                    ref={this.ociTypeToMenuRefMap.get(OciDmEntityType.Compartment)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleOciContextMenuItemClick}
                 >
@@ -1071,7 +1166,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="ociDbSystemMenu"
-                    ref={this.#ociTypeToMenuRefMap.get(OciDmEntityType.DbSystem)}
+                    ref={this.ociTypeToMenuRefMap.get(OciDmEntityType.DbSystem)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleOciContextMenuItemClick}
                 >
@@ -1114,7 +1209,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="ociComputeInstanceMenu"
-                    ref={this.#ociTypeToMenuRefMap.get(OciDmEntityType.ComputeInstance)}
+                    ref={this.ociTypeToMenuRefMap.get(OciDmEntityType.ComputeInstance)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleOciContextMenuItemClick}
                 >
@@ -1136,7 +1231,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="HeatWaveClusterMenu"
-                    ref={this.#ociTypeToMenuRefMap.get(OciDmEntityType.HeatWaveCluster)}
+                    ref={this.ociTypeToMenuRefMap.get(OciDmEntityType.HeatWaveCluster)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleOciContextMenuItemClick}
                 >
@@ -1166,7 +1261,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 <Menu
                     id="ociBastionMenu"
-                    ref={this.#ociTypeToMenuRefMap.get(OciDmEntityType.Bastion)}
+                    ref={this.ociTypeToMenuRefMap.get(OciDmEntityType.Bastion)}
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleOciContextMenuItemClick}
                 >
@@ -1196,7 +1291,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
     private showConnectionTreeContextMenu = (rowData: IConnectionTreeItem, e: MouseEvent): boolean => {
         const targetRect = new DOMRect(e.clientX, e.clientY, 2, 2);
 
-        this.#cdmTypeToMenuRefMap.get(rowData.dataModelEntry.type)?.current?.open(targetRect, false, {}, rowData);
+        this.cdmTypeToMenuRefMap.get(rowData.dataModelEntry.type)?.current?.open(targetRect, false, {}, rowData);
 
         return true;
     };
@@ -1204,7 +1299,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
     private showOpenDocumentTreeContextMenu = (rowData: IDocumentTreeItem, e: MouseEvent): boolean => {
         const targetRect = new DOMRect(e.clientX, e.clientY, 2, 2);
 
-        this.#odmTypeToMenuRefMap.get(rowData.dataModelEntry.type)?.current?.open(targetRect, false, {}, rowData);
+        this.odmTypeToMenuRefMap.get(rowData.dataModelEntry.type)?.current?.open(targetRect, false, {}, rowData);
 
         return true;
     };
@@ -1212,7 +1307,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
     private showOciTreeContextMenu = (rowData: IOciTreeItem, e: MouseEvent): boolean => {
         const targetRect = new DOMRect(e.clientX, e.clientY, 2, 2);
 
-        this.#ociTypeToMenuRefMap.get(rowData.dataModelEntry.type)?.current?.open(targetRect, false, {}, rowData);
+        this.ociTypeToMenuRefMap.get(rowData.dataModelEntry.type)?.current?.open(targetRect, false, {}, rowData);
 
         return true;
     };
@@ -1240,8 +1335,8 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
         let iconName = cdmTypeToEntryIcon.get(data.dataModelEntry.type) ?? Assets.file.defaultIcon;
 
-        let overlayImage;
-        let overlayImageMask;
+        const overlays: IIconOverlay[] = [];
+        let dimEntry = false;
 
         switch (data.dataModelEntry.type) {
             case CdmEntityType.Connection: {
@@ -1301,7 +1396,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
             case CdmEntityType.MrsRoot: {
                 if (!data.dataModelEntry.serviceEnabled) {
-                    overlayImage = Assets.overlay.statusDotRed;
+                    overlays.push({ icon: Assets.overlay.statusDotRed, mask: Assets.overlay.statusDotMask });
                 }
 
                 break;
@@ -1311,14 +1406,12 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                 const type = data.dataModelEntry.details.objectType;
                 iconName = mrsDbObjectTypeToIcon.get(type) ?? Assets.file.defaultIcon;
                 if (data.dataModelEntry.details.enabled === 0) {
-                    overlayImage = Assets.overlay.statusDotRed;
-                    overlayImageMask = Assets.overlay.statusDotMask;
-                } else if (data.dataModelEntry.details.enabled === 2) {
-                    overlayImage = Assets.overlay.private;
-                    overlayImageMask = Assets.overlay.statusDotMask;
+                    overlays.push({ icon: Assets.overlay.statusDotRed, mask: Assets.overlay.statusDotMask });
+                } else if (data.dataModelEntry.details.enabled === EnabledState.PrivateOnly) {
+                    dimEntry = true;
+                    overlays.push({ icon: Assets.overlay.private, mask: Assets.overlay.statusDotMask });
                 } else if (data.dataModelEntry.details.requiresAuth === 1) {
-                    overlayImage = Assets.overlay.lock;
-                    overlayImageMask = Assets.overlay.lockMask;
+                    overlays.push({ icon: Assets.overlay.lock, mask: Assets.overlay.lockMask });
                 }
 
                 break;
@@ -1328,11 +1421,17 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
             case CdmEntityType.MrsContentFile:
             case CdmEntityType.MrsContentSet: {
                 if (data.dataModelEntry.details.requiresAuth) {
-                    overlayImage = Assets.overlay.lock;
-                    overlayImageMask = Assets.overlay.lockMask;
-                } else if (!data.dataModelEntry.details.enabled) {
-                    overlayImage = Assets.overlay.statusDotRed;
-                    overlayImageMask = Assets.overlay.statusDotMask;
+                    overlays.push({ icon: Assets.overlay.lock, mask: Assets.overlay.lockMask });
+                } else if (data.dataModelEntry.details.enabled === EnabledState.PrivateOnly) {
+                    overlays.push({ icon: Assets.overlay.private, mask: Assets.overlay.statusDotMask });
+                } else if (data.dataModelEntry.details.enabled === EnabledState.Disabled) {
+                    overlays.push({ icon: Assets.overlay.statusDotRed, mask: Assets.overlay.statusDotMask });
+                }
+
+                if (data.dataModelEntry.details.enabled === EnabledState.PrivateOnly) {
+                    // Need a separate check for private items, as we have to show them dimmed regardl
+                    // of the overlay they use.
+                    dimEntry = true;
                 }
 
                 break;
@@ -1344,14 +1443,11 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                     : Assets.mrs.serviceIcon;
 
                 if (!data.dataModelEntry.details.enabled) {
-                    overlayImage = Assets.overlay.disabled;
-                    overlayImageMask = Assets.overlay.disabledMask;
+                    overlays.push({ icon: Assets.overlay.disabled, mask: Assets.overlay.disabledMask });
                 } else if (data.dataModelEntry.details.inDevelopment) {
-                    overlayImage = Assets.overlay.inDevelopment;
-                    overlayImageMask = Assets.overlay.inDevelopmentMask;
+                    overlays.push({ icon: Assets.overlay.inDevelopment, mask: Assets.overlay.inDevelopmentMask });
                 } else if (data.dataModelEntry.details.published) {
-                    overlayImage = Assets.overlay.live;
-                    overlayImageMask = Assets.overlay.liveMask;
+                    overlays.push({ icon: Assets.overlay.live, mask: Assets.overlay.liveMask });
                 }
 
                 break;
@@ -1359,8 +1455,16 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
             case CdmEntityType.MrsAuthApp: {
                 if (!data.dataModelEntry.details.enabled) {
-                    overlayImage = Assets.overlay.statusDotRed;
-                    overlayImageMask = Assets.overlay.statusDotMask;
+                    overlays.push({ icon: Assets.overlay.statusDotRed, mask: Assets.overlay.statusDotMask });
+                }
+
+                break;
+            }
+
+            case CdmEntityType.MrsServiceAuthApp: {
+                overlays.push({ icon: Assets.overlay.link, mask: Assets.overlay.linkMask });
+                if (!data.dataModelEntry.details.enabled) {
+                    overlays.push({ icon: Assets.overlay.statusDotRed, mask: Assets.overlay.statusDotMask });
                 }
 
                 break;
@@ -1368,12 +1472,17 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
             case CdmEntityType.MrsRouter: {
                 if (data.dataModelEntry.requiresUpgrade) {
-                    overlayImage = Assets.overlay.statusDotRed;
-                    overlayImageMask = Assets.overlay.statusDotMask;
+                    overlays.push({ icon: Assets.overlay.statusDotRed, mask: Assets.overlay.statusDotMask });
                 } else if (!data.dataModelEntry.details.active) {
-                    overlayImage = Assets.overlay.statusDotOrange;
-                    overlayImageMask = Assets.overlay.statusDotMask;
+                    overlays.push({ icon: Assets.overlay.statusDotOrange, mask: Assets.overlay.statusDotMask });
                 }
+
+                break;
+            }
+
+            case CdmEntityType.MrsRouterService:
+            case CdmEntityType.MrsAuthAppService: {
+                overlays.push({ icon: Assets.overlay.link, mask: Assets.overlay.linkMask });
 
                 break;
             }
@@ -1421,7 +1530,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                     data-tooltip="Refresh Connection"
                     imageOnly
                     onClick={() => {
-                        void this.refreshConnectionTreeEntryChildren(data.dataModelEntry, true);
+                        void this.refreshConnectionTreeEntryChildren(data.dataModelEntry, true, true);
                     }}
                 >
                     <Icon src={Codicon.Refresh} data-tooltip="inherit" />
@@ -1462,12 +1571,11 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
             default:
         }
 
-        const dimClass = overlayImage === Assets.overlay.private ? "dim" : "";
+        const dimClass = dimEntry ? "dim" : "";
         const content = <>
             <Icon
                 src={iconName}
-                overlay={overlayImage}
-                overlayMask={overlayImageMask}
+                overlays={overlays}
                 className={dimClass}
             />
             <Label id="mainCaption" caption={data.caption} />
@@ -1759,14 +1867,14 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
             // If initializing takes longer that the timer runs, show a progress indicator.
             const timer = setTimeout(() => {
-                this.#ociSectionRef.current!.showProgress = true;
+                this.ociSectionRef.current!.showProgress = true;
             }, 200);
 
             row.getTable().blockRedraw();
 
             ociEntry.dataModelEntry.refresh?.().then(() => {
                 clearTimeout(timer);
-                this.#ociSectionRef.current!.showProgress = false;
+                this.ociSectionRef.current!.showProgress = false;
 
                 switch (ociEntry.dataModelEntry.type) {
                     case OciDmEntityType.ConfigurationProfile: {
@@ -1804,7 +1912,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                 row.getTable().restoreRedraw();
             }).catch((error) => {
                 clearTimeout(timer);
-                this.#ociSectionRef.current!.showProgress = false;
+                this.ociSectionRef.current!.showProgress = false;
 
                 void ui.showErrorNotification(convertErrorToString(error));
 
@@ -1832,8 +1940,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
     private ociTreeCellFormatter = (cell: CellComponent): string | HTMLElement => {
         const data = cell.getData() as IOciTreeItem;
 
-        let overlayImage;
-        let overlayImageMask;
+        const overlays: IIconOverlay[] = [];
 
         let image = ociTypeToEntryIcon.get(data.dataModelEntry.type) ?? Assets.file.defaultIcon;
         switch (data.dataModelEntry.type) {
@@ -1865,8 +1972,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                 }
 
                 if (summary.lifecycleState !== BastionLifecycleState.Active) {
-                    overlayImage = Assets.overlay.statusDotOrange;
-                    overlayImageMask = Assets.overlay.statusDotMask;
+                    overlays.push({ icon: Assets.overlay.statusDotOrange, mask: Assets.overlay.statusDotMask });
                 }
 
                 break;
@@ -1874,8 +1980,9 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
             case OciDmEntityType.DbSystem: {
                 const details = data.dataModelEntry.details;
-                overlayImage = Assets.overlay.statusDotOrange; // Assume it's not active.
-                overlayImageMask = Assets.overlay.statusDotMask;
+
+                let overlayImage: string | undefined = Assets.overlay.statusDotOrange; // Assume it's not active.
+                const overlayImageMask = Assets.overlay.statusDotMask;
 
                 if (data.dataModelEntry.cluster) {
                     image = Assets.oci.dbSystemHWIcon;
@@ -1895,14 +2002,18 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                     }
                 }
 
+                if (overlayImage) {
+                    overlays.push({ icon: overlayImage, mask: overlayImageMask });
+                }
+
                 break;
             }
 
             case OciDmEntityType.HeatWaveCluster: { // Sub item of a cluster DB system node.
                 const details = data.dataModelEntry.parent.details;
                 image = Assets.oci.computeIcon;
-                overlayImage = Assets.overlay.statusDotOrange; // Assume it's not active.
-                overlayImageMask = Assets.overlay.statusDotMask;
+                let overlayImage: string | undefined = Assets.overlay.statusDotOrange; // Assume it's not active.
+                const overlayImageMask = Assets.overlay.statusDotMask;
 
                 if (details.heatWaveCluster) {
                     // Side note: there's no enum defined for the HW cluster lifecycle state.
@@ -1914,6 +2025,10 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                     }
                 }
 
+                if (overlayImage) {
+                    overlays.push({ icon: overlayImage, mask: overlayImageMask });
+                }
+
                 break;
             }
 
@@ -1922,8 +2037,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                 const details = data.dataModelEntry.details;
 
                 if (details.lifecycleState !== LoadBalancer.LifecycleState.Active) {
-                    overlayImage = Assets.overlay.statusDotOrange;
-                    overlayImageMask = Assets.overlay.statusDotMask;
+                    overlays.push({ icon: Assets.overlay.statusDotOrange, mask: Assets.overlay.statusDotMask });
                 }
 
                 break;
@@ -1939,8 +2053,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         const content = <>
             <Icon
                 src={image}
-                overlay={overlayImage}
-                overlayMask={overlayImageMask}
+                overlays={overlays}
             />
             <Label caption={data.caption} />
         </>;
@@ -2043,13 +2156,6 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         }
 
         switch (command.command) {
-            case "msg.hideSystemSchemasOnConnection": {
-                this.setState({ showSystemSchemas: false }, () => {
-                    void this.refreshDocumentTreeEntryChildren(dataModelEntry);
-                });
-
-                break;
-            }
 
             default: {
                 void onDocumentTreeCommand(command, dataModelEntry);
@@ -2128,18 +2234,12 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                 break;
             }
 
-            case "msg.hideSystemSchemasOnConnection": {
-                this.setState({ showSystemSchemas: false }, () => {
-                    void this.refreshConnectionTreeEntryChildren(data.dataModelEntry, true);
-                });
-
-                break;
-            }
-
+            case "msg.hideSystemSchemasOnConnection":
             case "msg.showSystemSchemasOnConnection": {
-                this.setState({ showSystemSchemas: true }, () => {
-                    void this.refreshConnectionTreeEntryChildren(data.dataModelEntry, true);
-                });
+                const connection = data.dataModelEntry as ICdmConnectionEntry;
+                connection.state.payload ??= {};
+                connection.state.payload.showSystemSchemas = command.command === "msg.showSystemSchemasOnConnection";
+                void this.refreshConnectionTreeEntryChildren(data.dataModelEntry, true);
 
                 break;
             }
@@ -2205,42 +2305,104 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         return true;
     };
 
-    private handleMrsContextMenuItemClick = (props: IMenuItemProperties, altActive: boolean,
-        payload: unknown): boolean => {
+    private handleMrsContextMenuItemClick = async (props: IMenuItemProperties, altActive: boolean,
+        payload: unknown): Promise<boolean> => {
 
         const { onConnectionTreeCommand } = this.props;
 
         const entry = payload as IConnectionTreeItem;
         const command = altActive && props.altCommand ? props.altCommand : props.command;
 
-        const tree = this.#connectionTableRef.current;
+        const tree = this.connectionTableRef.current;
 
         try {
             switch (command.command) {
-                case "msg.mrs.addService":
-                case "msg.mrs.addAuthApp": {
-                    void onConnectionTreeCommand(command, entry.dataModelEntry).then(() => {
-                        void this.refreshConnectionTreeEntryChildren(entry.dataModelEntry, true);
-                    });
-
-                    break;
-                }
-
-                case "msg.mrs.enableMySQLRestService":
-                case "msg.mrs.disableMySQLRestService":
-                case "msg.mrs.editService": {
-                    // Forward the command to the editor module, but also update the tree entry.
+                case "msg.mrs.addAuthApp":
+                case "msg.mrs.linkAuthApp": {
                     void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
                         if (done) {
-                            void this.refreshTreeEntry(tree, entry.dataModelEntry, true);
+                            void this.refreshConnectionTreeEntryChildren(entry.dataModelEntry, true).then(() => {
+                                if (command.command === "msg.mrs.addAuthApp"
+                                    && entry.dataModelEntry.type === CdmEntityType.MrsService) {
+                                    // If the command was sent from a service, refresh also the list of auth apps.
+                                    void this.refreshConnectionTreeEntryChildren(
+                                        entry.dataModelEntry.parent.authAppGroup, true);
+                                }
+                            });
                         }
                     });
 
                     break;
                 }
 
+                case "msg.mrs.addService": {
+                    void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
+                        if (done) {
+                            const mrsRoot = entry.dataModelEntry as ICdmRestRootEntry;
+                            void this.refreshConnectionTreeEntryChildren(mrsRoot, true).then(() => {
+                                void this.refreshConnectionTreeEntryChildren(mrsRoot.routerGroup, true, true);
+                            });
+                        }
+                    });
+
+                    break;
+                }
+
+                case "msg.mrs.enableMySQLRestService":
+                case "msg.mrs.disableMySQLRestService": {
+                    void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
+                        if (done) {
+                            void this.refreshTreeEntry(tree, entry.dataModelEntry, true);
+                        }
+
+                        // There's no need to update the routers group, as they only contain published services
+                        // which don't show the enabled state.
+                    });
+
+                    break;
+                }
+
+                case "msg.mrs.showPrivateItems":
+                case "msg.mrs.hidePrivateItems": {
+                    const mrsRoot = entry.dataModelEntry as ICdmRestRootEntry;
+                    mrsRoot.showPrivateItems = command.command === "msg.mrs.showPrivateItems";
+                    void this.refreshConnectionTreeEntryChildren(entry.dataModelEntry, false, true);
+
+                    break;
+                }
+
+                case "msg.mrs.editService": {
+                    const done = await onConnectionTreeCommand(command, entry.dataModelEntry);
+                    if (done) {
+                        // Update the entire services list, as we can have a changed default state.
+                        const mrsService = entry.dataModelEntry as ICdmRestServiceEntry;
+                        await this.refreshTreeEntry(tree, entry.dataModelEntry, true);
+                        await this.refreshConnectionTreeEntryChildren(mrsService.parent, true);
+
+                        // Then update also the router nodes, as we may have changed the
+                        // publication state of a service.
+                        const routers = mrsService.parent.routerGroup.routers;
+                        routers.forEach((router) => {
+                            void this.refreshConnectionTreeEntryChildren(router, true);
+                        });
+                    }
+
+                    break;
+                }
+
+                case "msg.mrs.deleteService": {
+                    void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
+                        if (done) {
+                            const service = entry.dataModelEntry as ICdmRestServiceEntry;
+                            void this.refreshConnectionTreeEntryChildren(service.parent, true).then(() => {
+                                void this.refreshConnectionTreeEntryChildren(service.parent.routerGroup, true, true);
+                            });
+                        }
+                    });
+                    break;
+                }
+
                 case "msg.mrs.setCurrentService":
-                case "msg.mrs.deleteService":
                 case "msg.mrs.deleteSchema":
                 case "msg.mrs.deleteDbObject":
                 case "msg.mrs.editDbObject":
@@ -2250,6 +2412,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                             void this.refreshConnectionParentEntry(entry, true);
                         }
                     });
+
                     break;
                 }
 
@@ -2286,7 +2449,21 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                     break;
                 }
 
-                case "msg.mrs.editAuthApp":
+                case "msg.mrs.editAuthApp": {
+                    void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
+                        if (done) {
+                            void this.refreshTreeEntry(tree, entry.dataModelEntry, true);
+
+                            // Also refresh all MRS services, as the app may have been linked to a service.
+                            const authApp = entry.dataModelEntry as ICdmRestAuthAppEntry;
+                            void this.refreshConnectionTreeEntryChildren(authApp.parent.parent, true,
+                                true);
+                        }
+                    });
+
+                    break;
+                }
+
                 case "msg.mrs.editUser": {
                     void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
                         if (done) {
@@ -2300,6 +2477,19 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                 case "msg.mrs.deleteAuthApp": {
                     void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
                         if (done) {
+                            void this.refreshConnectionParentEntry(entry, true).then(() => {
+                                const authApp = entry.dataModelEntry as ICdmRestAuthAppEntry;
+                                void this.refreshConnectionTreeEntryChildren(authApp.parent.parent, true, true);
+                            });
+                        }
+                    });
+
+                    break;
+                }
+
+                case "msg.mrs.unlinkAuthApp": {
+                    void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
+                        if (done) {
                             void this.refreshConnectionParentEntry(entry, true);
                         }
                     });
@@ -2311,6 +2501,21 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                     void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
                         if (done) {
                             void this.refreshConnectionTreeEntryChildren(entry.dataModelEntry, true);
+                        }
+                    });
+
+                    break;
+                }
+
+                case "msg.mrs.linkToService": {
+                    void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
+                        if (done) {
+                            // Linking to a service means to refresh the service children. At this point we don't
+                            // know the service the app was linked to, so refresh all MRS services.
+                            const authApp = entry.dataModelEntry as ICdmRestAuthAppEntry;
+                            authApp.parent.parent.services.forEach((service) => {
+                                void this.refreshConnectionTreeEntryChildren(service, true);
+                            });
                         }
                     });
 
@@ -2436,7 +2641,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         const connectionSectionContent = connections.length === 0
             ? <Accordion.Item caption="<no connections>" />
             : <TreeGrid
-                ref={this.#connectionTableRef}
+                ref={this.connectionTableRef}
                 options={connectionTreeOptions}
                 columns={connectionTreeColumns}
 
@@ -2452,7 +2657,11 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
     private connectionDataModelChanged = (
         list: Readonly<Array<ISubscriberActionType<ConnectionDataModelEntry>>>): void => {
 
-        const tree = this.#connectionTableRef.current;
+        if (this.refreshRunning) {
+            return;
+        }
+
+        const tree = this.connectionTableRef.current;
         list.forEach((action) => {
             switch (action.action) {
                 case "add": {
@@ -2589,7 +2798,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         const documentSectionContent = documents.length === 0
             ? <Accordion.Item caption="<no documents>" />
             : <TreeGrid
-                ref={this.#documentTableRef}
+                ref={this.documentTableRef}
                 options={documentTreeOptions}
                 columns={documentTreeColumns}
                 selectedRows={[selectedOpenDocument]}
@@ -2629,7 +2838,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         };
 
         const ociSectionContent = <TreeGrid
-            ref={this.#ociTableRef}
+            ref={this.ociTableRef}
             options={ociTreeOptions}
             columns={ociTreeColumns}
 
@@ -2657,16 +2866,16 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         const [treeItems, changed] = this.updateRootTreeItems(context);
 
         if (changed) {
-            if (this.#connectionTableRef.current) {
-                void this.#connectionTableRef.current.setData(treeItems.connectionTreeItems, SetDataAction.Replace);
+            if (this.connectionTableRef.current) {
+                void this.connectionTableRef.current.setData(treeItems.connectionTreeItems, SetDataAction.Replace);
             }
 
-            if (this.#documentTableRef.current) {
-                void this.#documentTableRef.current.setData(treeItems.openDocumentTreeItems, SetDataAction.Replace);
+            if (this.documentTableRef.current) {
+                void this.documentTableRef.current.setData(treeItems.openDocumentTreeItems, SetDataAction.Replace);
             }
 
-            if (this.#ociTableRef.current) {
-                void this.#ociTableRef.current.setData(treeItems.ociTreeItems, SetDataAction.Replace);
+            if (this.ociTableRef.current) {
+                void this.ociTableRef.current.setData(treeItems.ociTreeItems, SetDataAction.Replace);
             }
 
             this.setState({ treeItems });
@@ -2777,7 +2986,12 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         }
 
         if (needRefresh) {
-            await entry.refresh?.();
+            try {
+                ++this.refreshRunning;
+                await entry.refresh?.();
+            } finally {
+                --this.refreshRunning;
+            }
         }
 
         const row = rows[0];
@@ -2792,12 +3006,12 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
      *
      * @param entry The item to update.
      * @param needRefresh Whether the data model entry should be refreshed before updating the tree.
+     * @param recursive Whether to update the children recursively.
      */
     private async refreshConnectionTreeEntryChildren(entry: ConnectionDataModelEntry,
-        needRefresh: boolean): Promise<void> {
-        const { showSystemSchemas } = this.state;
+        needRefresh: boolean, recursive: boolean = false): Promise<void> {
 
-        const table = this.#connectionTableRef.current;
+        const table = this.connectionTableRef.current;
         const rows = table?.searchAllRows("id", entry.id);
         if (!table || !rows || rows?.length === 0) {
             return;
@@ -2810,11 +3024,12 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
         // If initializing takes longer that the timer runs, show a progress indicator.
         const timer = setTimeout(() => {
-            this.#connectionSectionRef.current!.showProgress = true;
+            this.connectionSectionRef.current!.showProgress = true;
         }, 200);
 
         if (needRefresh) {
             try {
+                ++this.refreshRunning;
                 await entry.refresh?.((result?: string | Error) => {
                     if (result instanceof Error) {
                         void ui.showErrorNotification(convertErrorToString(result));
@@ -2824,13 +3039,15 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                 });
 
                 clearTimeout(timer);
-                this.#connectionSectionRef.current!.showProgress = false;
+                this.connectionSectionRef.current!.showProgress = false;
             } catch (error) {
                 clearTimeout(timer);
-                this.#connectionSectionRef.current!.showProgress = false;
+                this.connectionSectionRef.current!.showProgress = false;
                 void ui.showErrorNotification(convertErrorToString(error));
 
                 return;
+            } finally {
+                --this.refreshRunning;
             }
         }
 
@@ -2843,7 +3060,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
             switch (entry.type) {
                 case CdmEntityType.Connection: {
                     if (data.dataModelEntry.state.expandedOnce) {
-                        if (children && !showSystemSchemas) {
+                        if (children && !data.dataModelEntry.state.payload?.showSystemSchemas) {
                             // Remove all system schemas from the child list.
                             children = children.filter((schema) => {
                                 return !systemSchemas.has(schema.caption);
@@ -2882,11 +3099,17 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                     await this.diffTreeEntries(row, generator, children);
                 }
             }
+
+            if (recursive && children) {
+                for (const child of children) {
+                    await this.refreshConnectionTreeEntryChildren(child, true, child.state.expandedOnce);
+                }
+            }
         } finally {
             table.endUpdate();
 
             clearTimeout(timer);
-            this.#connectionSectionRef.current!.showProgress = false;
+            this.connectionSectionRef.current!.showProgress = false;
         }
     }
 
@@ -2900,7 +3123,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
     private async refreshDocumentTreeEntryChildren(entry: OpenDocumentDataModelEntry): Promise<boolean> {
         const { treeItems } = this.state;
 
-        const table = this.#documentTableRef.current;
+        const table = this.documentTableRef.current;
         if (!table) {
             return false;
         }
@@ -2942,7 +3165,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
     private async refreshOciTreeEntryChildren(entry: OciDataModelEntry): Promise<void> {
         const { treeItems } = this.state;
 
-        const table = this.#ociTableRef.current;
+        const table = this.ociTableRef.current;
         if (!table) {
             return;
         }
@@ -3036,7 +3259,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         }
 
         // Replace the list of tree items with the new one.
-        for (const entry of existingTreeItems) {
+        for (const entry of existingTreeItems.reverse()) {
             await entry.delete();
         }
 
@@ -3153,7 +3376,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
     }
 
     private collapseAllConnectionTreeTopLevelItems() {
-        const table = this.#connectionTableRef.current;
+        const table = this.connectionTableRef.current;
         if (!table) {
             return;
         }

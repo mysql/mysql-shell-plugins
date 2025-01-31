@@ -47,7 +47,9 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
                 "WebkitMaskImage": "url("overviewPage.svg")",
                 "backgroundColor": undefined,
                 "height": undefined,
+                "maskComposite": "subtract",
                 "maskImage": "url("overviewPage.svg")",
+                "maskSize": "100% 100%",
                 "width": undefined,
               }
             }
@@ -64,7 +66,9 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
                 "WebkitMaskImage": "url("overviewPage.svg")",
                 "backgroundColor": undefined,
                 "height": undefined,
+                "maskComposite": "subtract",
                 "maskImage": "url("overviewPage.svg")",
+                "maskSize": "100% 100%",
                 "width": undefined,
               }
             }
@@ -81,7 +85,9 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
                 "WebkitMaskImage": "url("overviewPage.svg")",
                 "backgroundColor": undefined,
                 "height": undefined,
+                "maskComposite": "subtract",
                 "maskImage": "url("overviewPage.svg")",
+                "maskSize": "100% 100%",
                 "width": undefined,
               }
             }
@@ -98,7 +104,9 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
                 "WebkitMaskImage": "url("overviewPage.svg")",
                 "backgroundColor": undefined,
                 "height": undefined,
+                "maskComposite": "subtract",
                 "maskImage": "url("overviewPage.svg")",
+                "maskSize": "100% 100%",
                 "width": undefined,
               }
             }
@@ -115,7 +123,9 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
                 "WebkitMaskImage": "url("overviewPage.svg")",
                 "backgroundColor": undefined,
                 "height": undefined,
+                "maskComposite": "subtract",
                 "maskImage": "url("overviewPage.svg")",
+                "maskSize": "100% 100%",
                 "width": undefined,
               }
             }
@@ -132,7 +142,9 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
                 "WebkitMaskImage": "url("overviewPage.svg")",
                 "backgroundColor": undefined,
                 "height": undefined,
+                "maskComposite": "subtract",
                 "maskImage": "url("overviewPage.svg")",
+                "maskSize": "100% 100%",
                 "width": undefined,
               }
             }

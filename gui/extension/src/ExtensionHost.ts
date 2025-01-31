@@ -74,7 +74,7 @@ export class ExtensionHost {
     private dbEditorCommandHandler: DBEditorCommandHandler;
     private shellConsoleCommandHandler = new ShellConsoleCommandHandler();
     private notebookProvider = new NotebookEditorProvider();
-    private mrsCommandHandler = new MRSCommandHandler();
+    private mrsCommandHandler: MRSCommandHandler;
     private mdsCommandHandler = new MDSCommandHandler();
 
     // Tree data providers for the extension's sidebar. The connection provider is managed in the DB editor
@@ -99,6 +99,7 @@ export class ExtensionHost {
 
         this.connectionsProvider = new ConnectionsTreeDataProvider(this.#connectionsDataModel);
         this.dbEditorCommandHandler = new DBEditorCommandHandler(this.connectionsProvider);
+        this.mrsCommandHandler = new MRSCommandHandler(this.connectionsProvider);
 
         this.setupEnvironment();
 

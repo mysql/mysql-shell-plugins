@@ -33,24 +33,27 @@ import {
 
 import { DBType } from "../../frontend/src/supplement/ShellInterface/index.js";
 
+import { ui } from "../../frontend/src/app-logic/UILayer.js";
 import {
     IMySQLConnectionOptions, MySQLConnectionScheme,
 } from "../../frontend/src/communication/MySQL.js";
 import { IMrsServiceData } from "../../frontend/src/communication/ProtocolMrs.js";
 import type {
-    ICdmConnectionEntry, ICdmRestAuthAppEntry, ICdmRestContentFileEntry, ICdmRestContentSetEntry, ICdmRestDbObjectEntry,
-    ICdmRestRootEntry, ICdmRestRouterEntry, ICdmRestSchemaEntry, ICdmRestServiceEntry, ICdmRestUserEntry,
-    ICdmSchemaEntry,
+    ICdmConnectionEntry, ICdmRestAuthAppEntry, ICdmRestAuthAppGroupEntry, ICdmRestContentFileEntry,
+    ICdmRestContentSetEntry, ICdmRestDbObjectEntry, ICdmRestRootEntry, ICdmRestRouterEntry, ICdmRestSchemaEntry,
+    ICdmRestServiceAuthAppEntry, ICdmRestServiceEntry, ICdmRestUserEntry, ICdmSchemaEntry,
 } from "../../frontend/src/data-models/ConnectionDataModel.js";
 import { DBEditorModuleId } from "../../frontend/src/modules/ModuleInfo.js";
 import { getRouterPortForConnection } from "../../frontend/src/modules/mrs/mrs-helpers.js";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { findExecutable } from "../../frontend/src/utilities/file-utilities.js";
+import { convertErrorToString } from "../../frontend/src/utilities/helpers.js";
 import { MySQLShellLauncher } from "../../frontend/src/utilities/MySQLShellLauncher.js";
 import { convertPathToCamelCase } from "../../frontend/src/utilities/string-helpers.js";
 import { ExtensionHost } from "./ExtensionHost.js";
 import { MrsScriptBlocks } from "./MrsScriptBlocks.js";
-import { showMessageWithTimeout, showModalDialog, switchVsCodeContext } from "./utilities.js";
+import type { ConnectionsTreeDataProvider } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider.js";
+import { showModalDialog, switchVsCodeContext } from "./utilities.js";
 import { openSqlEditorConnection, openSqlEditorSessionAndConnection } from "./utilitiesShellGui.js";
 
 export class MRSCommandHandler {
@@ -59,6 +62,8 @@ export class MRSCommandHandler {
     #host: ExtensionHost;
     #mrsScriptBlocks = new MrsScriptBlocks();
     #mrsScriptDecorationEnabled = false;
+
+    public constructor(private connectionsProvider: ConnectionsTreeDataProvider) { }
 
     public setup = (host: ExtensionHost): void => {
         this.#host = host;
@@ -79,6 +84,22 @@ export class MRSCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mrs.enableMySQLRestService",
             async (entry?: ICdmRestRootEntry) => {
                 await this.configureMrs(entry?.parent, true);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.showPrivateItems",
+            (entry?: ICdmRestRootEntry) => {
+                if (entry) {
+                    entry.showPrivateItems = true;
+                    this.connectionsProvider.refresh(entry);
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.hidePrivateItems",
+            (entry?: ICdmRestRootEntry) => {
+                if (entry) {
+                    entry.showPrivateItems = false;
+                    this.connectionsProvider.refresh(entry);
+                }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.bootstrapLocalRouter",
@@ -140,7 +161,7 @@ export class MRSCommandHandler {
                         try {
                             await entry.connection.backend?.mrs.deleteRouter(entry.connection.details.id);
                             await commands.executeCommand("msg.refreshConnections");
-                            showMessageWithTimeout("The MRS Router has been deleted successfully.");
+                            void ui.showInformationNotification("The MRS Router has been deleted successfully.");
                         } catch (error) {
                             void window.showErrorMessage(`Error deleting the MRS Router: ${String(error)}`);
                         }
@@ -189,7 +210,7 @@ export class MRSCommandHandler {
                             const connection = entry.connection;
                             await connection.backend?.mrs.deleteService(entry.details.id);
                             await commands.executeCommand("msg.refreshConnections");
-                            showMessageWithTimeout("The MRS service has been deleted successfully.");
+                            void ui.showInformationNotification("The MRS service has been deleted successfully.");
                         } catch (error) {
                             void window.showErrorMessage(`Error adding the MRS service: ${String(error)}`);
                         }
@@ -204,7 +225,7 @@ export class MRSCommandHandler {
                         const connection = entry.connection;
                         await connection.backend?.mrs.setCurrentService(entry.details.id);
                         await commands.executeCommand("msg.refreshConnections");
-                        showMessageWithTimeout("The MRS service has been set as the new default service.");
+                        void ui.showInformationNotification("The MRS service has been set as the new default service.");
 
                     } catch (reason) {
                         void window.showErrorMessage(`Error setting the default MRS service: ${String(reason)}`);
@@ -248,7 +269,7 @@ export class MRSCommandHandler {
                         entry.details.id, includeAllObjects ?? false);
 
                     void env.clipboard.writeText(result).then(() => {
-                        showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
+                        void ui.showInformationNotification("The CREATE statement was copied to the system clipboard");
                     });
                 }
             } catch (reason) {
@@ -293,7 +314,7 @@ export class MRSCommandHandler {
                         entry.details.id, includeAllObjects ?? false);
 
                     void env.clipboard.writeText(result).then(() => {
-                        showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
+                        void ui.showInformationNotification("The CREATE statement was copied to the system clipboard");
                     });
                 }
             } catch (reason) {
@@ -301,7 +322,7 @@ export class MRSCommandHandler {
             }
         };
 
-        const createStatementAuthenticationAppSql = async (entry?: ICdmRestAuthAppEntry,
+        const createStatementAuthenticationAppSql = async (entry?: ICdmRestServiceAuthAppEntry,
             includeAllObjects?: boolean, toFile?: boolean) => {
             if (!entry || entry.details.id === undefined) {
                 void window.showErrorMessage(`Error creating the SQL for this REST Authentication App`);
@@ -344,7 +365,7 @@ export class MRSCommandHandler {
                         entry.details.id, entry.parent.id, includeAllObjects ?? false);
 
                     void env.clipboard.writeText(result).then(() => {
-                        showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
+                        void ui.showInformationNotification("The CREATE statement was copied to the system clipboard");
                     });
                 }
             } catch (reason) {
@@ -362,16 +383,14 @@ export class MRSCommandHandler {
 
             try {
                 if (toFile) {
-                    if (entry.details.name === undefined || entry.parent.parent.details.hostCtx === undefined ||
-                        entry.parent.details.name === undefined) {
+                    if (entry.details.name === undefined || entry.parent.details.name === undefined) {
                         void window.showErrorMessage(`Error creating the SQL for this REST Auth App`);
 
                         return;
                     }
 
                     const convertedUrl = convertPathToCamelCase(entry.details.name) + "."
-                        + convertPathToCamelCase(entry.parent.details.name) + "."
-                        + convertPathToCamelCase(entry.parent.parent.details.hostCtx);
+                        + convertPathToCamelCase(entry.parent.details.name);
                     const overwrite = true;
 
                     const value = await window.showSaveDialog({
@@ -397,7 +416,7 @@ export class MRSCommandHandler {
                         entry.details.id, includeAllObjects ?? false);
 
                     void env.clipboard.writeText(result).then(() => {
-                        showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
+                        void ui.showInformationNotification("The CREATE statement was copied to the system clipboard");
                     });
                 }
             } catch (reason) {
@@ -448,7 +467,7 @@ export class MRSCommandHandler {
                         entry.details.id);
 
                     void env.clipboard.writeText(result).then(() => {
-                        showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
+                        void ui.showInformationNotification("The CREATE statement was copied to the system clipboard");
                     });
                 }
             } catch (reason) {
@@ -477,12 +496,12 @@ export class MRSCommandHandler {
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.exportCreateAuthAppSql",
-            async (entry?: ICdmRestAuthAppEntry) => {
+            async (entry?: ICdmRestServiceAuthAppEntry) => {
                 await createStatementAuthenticationAppSql(entry, false, true);
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.exportCreateAuthAppSqlIncludeAllObjects",
-            async (entry?: ICdmRestAuthAppEntry) => {
+            async (entry?: ICdmRestServiceAuthAppEntry) => {
                 await createStatementAuthenticationAppSql(entry, true, true);
             }));
 
@@ -522,12 +541,12 @@ export class MRSCommandHandler {
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateAuthAppSql",
-            async (entry?: ICdmRestAuthAppEntry) => {
+            async (entry?: ICdmRestServiceAuthAppEntry) => {
                 await createStatementAuthenticationAppSql(entry, false, false);
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateAuthAppSqlIncludeAllObjects",
-            async (entry?: ICdmRestAuthAppEntry) => {
+            async (entry?: ICdmRestServiceAuthAppEntry) => {
                 await createStatementAuthenticationAppSql(entry, true, false);
             }));
 
@@ -560,7 +579,7 @@ export class MRSCommandHandler {
                         entry.details.id);
 
                     void env.clipboard.writeText(result).then(() => {
-                        showMessageWithTimeout("The CREATE statement was copied to the system clipboard");
+                        void ui.showInformationNotification("The CREATE statement was copied to the system clipboard");
                     });
 
                 } catch (reason) {
@@ -653,7 +672,7 @@ export class MRSCommandHandler {
                             });
 
                             await sqlEditor.mrs.dumpSdkServiceFiles(directory.fsPath);
-                            showMessageWithTimeout("MRS SDK Files exported successfully.");
+                            void ui.showInformationNotification("MRS SDK Files exported successfully.");
                         } catch (error) {
                             void window.showErrorMessage("A error occurred when trying to show the MRS Static " +
                                 `Content Set Dialog. Error: ${error instanceof Error ? error.message : String(error)}`);
@@ -676,7 +695,7 @@ export class MRSCommandHandler {
                         try {
                             await connection.backend.mrs.deleteSchema(entry.details.id, entry.details.serviceId);
                             await commands.executeCommand("msg.refreshConnections");
-                            showMessageWithTimeout("The MRS schema has been deleted successfully.");
+                            void ui.showInformationNotification("The MRS schema has been deleted successfully.");
                         } catch (error) {
                             void window.showErrorMessage(`Error removing an MRS schema: ${String(error)}`);
                         }
@@ -738,7 +757,7 @@ export class MRSCommandHandler {
                     const dbObjectPath = this.buildDbObjectRequestPath(entry);
                     if (dbObjectPath) {
                         await env.clipboard.writeText(String(dbObjectPath));
-                        showMessageWithTimeout("The DB Object Path was copied to the system clipboard");
+                        void ui.showInformationNotification("The DB Object Path was copied to the system clipboard");
                     }
                 }
             }));
@@ -789,7 +808,8 @@ export class MRSCommandHandler {
 
                                 // TODO: refresh only the affected connection.
                                 void commands.executeCommand("msg.refreshConnections");
-                                showMessageWithTimeout(`The REST DB Object ${entry.details.name} has been deleted.`);
+                                void ui.showInformationNotification(`The REST DB Object ${entry.details.name} has ` +
+                                    `been deleted.`);
                             } catch (reason) {
                                 void window.showErrorMessage(`Error deleting the REST DB Object: ${String(reason)}`);
                             }
@@ -814,7 +834,7 @@ export class MRSCommandHandler {
                 }
             }));
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.addAuthApp",
+        context.subscriptions.push(commands.registerCommand("msg.mrs.addAndLinkAuthApp",
             (entry?: ICdmRestServiceEntry) => {
                 try {
                     if (entry) {
@@ -836,6 +856,86 @@ export class MRSCommandHandler {
                     }
                 } catch (reason) {
                     void window.showErrorMessage(`Error while adding a new MRS Authentication App: ${String(reason)}`);
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.addAuthApp",
+            (entry?: ICdmRestAuthAppGroupEntry) => {
+                try {
+                    if (entry) {
+                        const connection = entry.connection;
+                        const connectionId = String(connection.details.id);
+                        const provider = this.#host.currentProvider;
+                        if (provider) {
+                            void provider.runCommand("job", [
+                                { requestType: "showModule", parameter: DBEditorModuleId },
+                                {
+                                    requestType: "showPage",
+                                    parameter: { module: DBEditorModuleId, page: connectionId },
+                                },
+                                { requestType: "showMrsAuthAppDialog", parameter: {} },
+                            ], "newConnection");
+                        }
+                    }
+                } catch (reason) {
+                    void window.showErrorMessage(`Error while adding a new MRS Authentication App: ${String(reason)}`);
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.linkAuthApp",
+            async (entry?: ICdmRestServiceEntry) => {
+                try {
+                    if (entry) {
+                        const connection = entry.connection;
+                        const apps = await connection.backend.mrs.listAuthApps();
+
+                        const items = apps.map((app) => {
+                            return app.name!;
+                        });
+
+                        const selection = await window.showQuickPick(items, {
+                            title: "Select a REST Authentication app to link it to this service.",
+                            matchOnDescription: true,
+                            placeHolder: "Type the name of an existing MRS Service",
+                        });
+
+                        const app = apps.find((candidate) => {
+                            return candidate.name === selection;
+                        });
+
+                        if (app !== undefined) {
+                            try {
+                                await connection.backend.mrs.linkAuthAppToService(app.id!, entry.id);
+                                this.connectionsProvider.refresh(entry);
+                                void ui.showInformationNotification("The MRS Authentication App has " +
+                                    `been linked to service ${entry.details.name}`);
+                            } catch (reason) {
+                                const message = convertErrorToString(reason);
+                                void ui.showErrorNotification("Error linking an MRS Authentication App: " +
+                                    `${message}`);
+                            }
+                        }
+                    }
+                } catch (reason) {
+                    void window.showErrorMessage(`Error while adding a new MRS Authentication App: ${String(reason)}`);
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.unlinkAuthApp",
+            async (entry?: ICdmRestServiceAuthAppEntry) => {
+                if (entry) {
+                    const prompt = `Are you sure the MRS authentication app "${entry.details.name}" should ` +
+                        `be unlinked from the service "${entry.parent.caption}"?`;
+                    const answer = await window.showInformationMessage(prompt, "Yes", "No");
+
+                    if (answer === "Yes") {
+                        await entry.connection.backend.mrs.unlinkAuthAppFromService(entry.details.id!,
+                            entry.parent.details.id);
+
+                        this.connectionsProvider.refresh(entry.parent);
+                        void ui.showInformationNotification(`The MRS Authentication App ` +
+                            `"${entry.details.name}" has been unlinked.`);
+                    }
                 }
             }));
 
@@ -902,12 +1002,12 @@ export class MRSCommandHandler {
                                 "Yes", "No");
 
                             if (answer === "Yes") {
-                                await connection.backend.mrs.deleteAuthApp(entry.parent.details.id, entry.details.id!);
+                                await connection.backend.mrs.deleteAuthApp(entry.details.id!);
 
                                 // TODO: refresh only the affected connection.
                                 void commands.executeCommand("msg.refreshConnections");
-                                showMessageWithTimeout(`The MRS Authentication App ${entry.details.name} ` +
-                                    `has been deleted.`);
+                                void ui.showInformationNotification(`The MRS Authentication App ` +
+                                    `${entry.details.name} has been deleted.`);
                             }
                         } else {
                             throw new Error("Unable to identify the id of the MRS service or the Auth App name.");
@@ -935,7 +1035,8 @@ export class MRSCommandHandler {
 
                                 // TODO: refresh only the affected connection.
                                 void commands.executeCommand("msg.refreshConnections");
-                                showMessageWithTimeout(`The MRS User ${entry.details.name} has been deleted.`);
+                                void ui.showInformationNotification(`The MRS User ${entry.details.name} has been ` +
+                                    `deleted.`);
                             }
                         }
                     }
@@ -1044,7 +1145,7 @@ export class MRSCommandHandler {
                                 await connection.backend.mrs.deleteContentSet(entry.details.id);
 
                                 void commands.executeCommand("msg.refreshConnections");
-                                showMessageWithTimeout(
+                                void ui.showInformationNotification(
                                     "The MRS static content set has been deleted successfully.");
                             } catch (error) {
                                 void window.showErrorMessage(
@@ -1075,7 +1176,8 @@ export class MRSCommandHandler {
                                     const path = value.fsPath;
                                     await connection.backend.mrs.dumpSchema(path, entry.details.serviceId, undefined,
                                         entry.details.id);
-                                    showMessageWithTimeout("The REST Schema has been dumped successfully.");
+                                    void ui.showInformationNotification("The REST Schema has been dumped " +
+                                        "successfully.");
                                 } catch (error) {
                                     void window.showErrorMessage(
                                         `Error dumping the REST Schema: ${String(error)}`);
@@ -1105,7 +1207,8 @@ export class MRSCommandHandler {
                                     const connection = entry.connection;
                                     await connection.backend.mrs.dumpObject(path, entry.details.serviceId, undefined,
                                         entry.details.dbSchemaId, undefined, entry.details.id);
-                                    showMessageWithTimeout("The REST Database Object has been dumped successfully.");
+                                    void ui.showInformationNotification("The REST Database Object has been dumped " +
+                                        "successfully.");
                                 } catch (error) {
                                     void window.showErrorMessage(
                                         `Error dumping the REST Database Object: ${String(error)}`);
@@ -1149,7 +1252,7 @@ export class MRSCommandHandler {
                                 const path = value[0].fsPath;
                                 await backend.mrs.loadSchema(path, entry.details.id);
                                 void commands.executeCommand("msg.refreshConnections");
-                                showMessageWithTimeout("The REST Schema has been loaded successfully.");
+                                void ui.showInformationNotification("The REST Schema has been loaded successfully.");
                             } catch (error) {
                                 void window.showErrorMessage(
                                     `Error loading REST Schema: ${String(error)}`);
@@ -1189,6 +1292,7 @@ export class MRSCommandHandler {
                                 const items = services.map((service) => {
                                     return service.fullServicePath ?? "";
                                 });
+
                                 const serviceHostCtx = await window.showQuickPick(items, {
                                     title: "Select a MRS Service to load the MRS schema dump",
                                     matchOnDescription: true,
@@ -1198,14 +1302,13 @@ export class MRSCommandHandler {
                                 service = services.find((candidate) => {
                                     return candidate.fullServicePath === serviceHostCtx;
                                 });
-
                             }
 
                             if (service !== undefined) {
                                 statusbarItem.text = "$(loading~spin) Loading REST Schema ...";
                                 await sqlEditor.mrs.loadSchema(entry.fsPath, service.id);
                                 void commands.executeCommand("msg.refreshConnections");
-                                showMessageWithTimeout("The REST Schema has been loaded successfully.");
+                                void ui.showInformationNotification("The REST Schema has been loaded successfully.");
                             }
                         } catch (error) {
                             void window.showErrorMessage("A error occurred when trying to show the MRS Static " +
@@ -1241,7 +1344,8 @@ export class MRSCommandHandler {
                                     await backend.mrs.loadObject(path, entry.details.serviceId, undefined,
                                         entry.details.id);
                                     void commands.executeCommand("msg.refreshConnections");
-                                    showMessageWithTimeout("The REST Database Object has been loaded successfully.");
+                                    void ui.showInformationNotification("The REST Database Object has been loaded " +
+                                        "successfully.");
                                 } catch (error) {
                                     void window.showErrorMessage(
                                         `Error loading REST Database Object: ${String(error)}`);
@@ -1285,7 +1389,8 @@ export class MRSCommandHandler {
                             const filter = (src: string) => { return src.indexOf("node_modules") === -1; };
                             fs.cpSync(path, targetPath.fsPath, { filter, recursive: true });
 
-                            showMessageWithTimeout(`The MRS Project ${dirName} has been stored successfully.`);
+                            void ui.showInformationNotification(`The MRS Project ${dirName} has been stored "+
+                                "successfully.`);
 
                             const answer = await window.showInformationMessage(
                                 `Do you want to open the MRS Project ${dirName} ` +
@@ -1351,7 +1456,7 @@ export class MRSCommandHandler {
                 }
 
                 void commands.executeCommand("msg.refreshConnections");
-                showMessageWithTimeout("MySQL REST Service configured successfully.");
+                void ui.showInformationNotification("MySQL REST Service configured successfully.");
             } catch (error) {
                 void window.showErrorMessage("A error occurred when trying to " +
                     "configure the MySQL REST Service. " +

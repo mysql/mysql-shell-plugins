@@ -21,7 +21,6 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-import pytest
 from ... auth_apps import *
 from ... import lib
 from . helpers import AuthAppCT
@@ -140,11 +139,11 @@ def test_add_auth_apps(phone_book, table_contents):
 
     assert auth_apps_table.count == 4
 
-    delete_auth_app(session=phone_book["session"], service_id=phone_book["service_id"], app_id=result1["auth_app_id"])
+    delete_auth_app(session=phone_book["session"], app_id=result1["auth_app_id"])
 
     assert auth_apps_table.count == 3
 
-    delete_auth_app(session=phone_book["session"], service_id=phone_book["service_id"], app_id=result2["auth_app_id"])
+    delete_auth_app(session=phone_book["session"], app_id=result2["auth_app_id"])
 
     assert auth_apps_table.count == 2
 
@@ -196,12 +195,12 @@ def test_get_auth_apps(phone_book):
             apps = get_auth_apps(**args)
 
             assert apps is not None
-            assert len(apps) == 3
+            assert len(apps) == 4
 
-            assert apps[1]["name"] == "Test Auth App"
-            assert apps[1]["id"] == auth_app_id1
-            assert apps[2]["name"] == "Test Auth App 2"
-            assert apps[2]["id"] == auth_app_id2
+            assert apps[2]["name"] == "Test Auth App"
+            assert apps[2]["id"] == auth_app_id1
+            assert apps[3]["name"] == "Test Auth App 2"
+            assert apps[3]["id"] == auth_app_id2
 
 
     args = {
@@ -211,7 +210,7 @@ def test_get_auth_apps(phone_book):
     apps = get_auth_apps(**args)
 
     assert apps is not None
-    assert len(apps) == 1
+    assert len(apps) == 2
 
 
 def test_update_auth_apps(phone_book, table_contents):

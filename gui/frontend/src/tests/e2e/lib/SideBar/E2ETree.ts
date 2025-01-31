@@ -101,7 +101,7 @@ export class E2ETree {
                     throw e;
                 }
             }
-        }, constants.wait3seconds,
+        }, constants.wait2seconds,
             `Could not perform get on ${element.toString()} on section ${this.accordionSection.accordionSectionName}`);
 
         if (!el) {
@@ -729,7 +729,7 @@ export class E2ETree {
      */
     public elementExists = async (element: string | RegExp): Promise<boolean> => {
         const el = await this.getElement(element).catch((e) => {
-            if (String(e).includes("Could not find")) {
+            if (String(e).includes("Could not")) {
                 return undefined;
             } else {
                 throw e;

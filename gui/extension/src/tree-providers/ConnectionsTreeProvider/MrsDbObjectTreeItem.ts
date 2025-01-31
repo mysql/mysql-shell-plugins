@@ -25,6 +25,7 @@
 
 import { IMrsDbObjectData } from "../../../../frontend/src/communication/ProtocolMrs.js";
 import type { ICdmRestDbObjectEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
+import { EnabledState } from "../../../../frontend/src/modules/mrs/mrs-helpers.js";
 import { convertToPascalCase } from "../../../../frontend/src/utilities/string-helpers.js";
 import { MrsTreeBaseItem } from "./MrsTreeBaseItem.js";
 
@@ -39,7 +40,7 @@ export class MrsDbObjectTreeItem extends MrsTreeBaseItem<ICdmRestDbObjectEntry> 
         let iconName = "mrsDbObject" + convertToPascalCase(value.objectType.toLowerCase());
         if (value.enabled === 0) {
             iconName += "Disabled";
-        } else if (value.enabled === 2) {
+        } else if (value.enabled === EnabledState.PrivateOnly) {
             iconName += "Private";
         } else if (value.requiresAuth === 1) {
             iconName += "Locked";

@@ -121,7 +121,7 @@ def test_get_users(phone_book, table_contents):
     user_init = get_default_user_init(auth_app_id)
     with UserCT(session, **user_init) as user_id:
         users = get_users(
-            session=phone_book["session"], service_id=phone_book["service_id"]
+            session=phone_book["session"], auth_app_id=auth_app_id
         )
         assert users is not None
         assert len(users) == 2  # 1 added user + 1 inserted auth the auth_app
@@ -133,7 +133,7 @@ def test_get_users(phone_book, table_contents):
 def test_edit_users(phone_book, table_contents):
     session = phone_book["session"]
     auth_app_id = phone_book["auth_app_id"]
-    users_table = table_contents("mrs_user")
+    users_table: TableContents = table_contents("mrs_user")
 
     user_init = get_default_user_init(auth_app_id)
 
@@ -195,7 +195,7 @@ def test_edit_users(phone_book, table_contents):
 
         users_table.take_snapshot()
 
-        original_record = users_table.snapshot[1]
+        original_record = users_table.snapshot.get("id", user_id)
 
         for key, value in new_values.items():
             user_update = {"user_id": user_id, "value": {}, "session": session}
@@ -204,7 +204,7 @@ def test_edit_users(phone_book, table_contents):
 
             update_user(**user_update)
 
-            assert users_table.items[1] == original_record
+            assert users_table.get("id", user_id) == original_record
 
         user_update = {
             "user_id": user_id,

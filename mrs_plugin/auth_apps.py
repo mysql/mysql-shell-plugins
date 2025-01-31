@@ -30,6 +30,7 @@ import mrs_plugin.lib as lib
 from .interactive import resolve_service, resolve_auth_app, resolve_file_path, resolve_overwrite_file, auth_app_query_selection, service_query_selection
 import sys
 
+
 def generate_create_statement(**kwargs) -> str:
     lib.core.convert_ids_to_binary(["service_id", "auth_app_id"], kwargs)
     lib.core.try_convert_ids_to_binary(["service", "schema"], kwargs)
@@ -40,7 +41,8 @@ def generate_create_statement(**kwargs) -> str:
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         service = resolve_service(session, service_query=service_query)
-        auth_app = resolve_auth_app(session, auth_app_query=auth_app_query, service_query=service_query)
+        auth_app = resolve_auth_app(
+            session, auth_app_query=auth_app_query, service_query=service_query)
 
         return lib.auth_apps.get_create_statement(session, auth_app, service, include_all_objects)
 
@@ -94,11 +96,11 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
     """
     if service_id:
         service_id = lib.core.id_to_binary(service_id, "service_id")
-    lib.core.convert_ids_to_binary(["auth_vendor_id", "default_role_id"], kwargs)
+    lib.core.convert_ids_to_binary(
+        ["auth_vendor_id", "default_role_id"], kwargs)
 
     auth_vendor_id = kwargs.get("auth_vendor_id")
     default_role_id = kwargs.get("default_role_id")
-
 
     description = kwargs.get("description")
     url = kwargs.get("url")
@@ -115,14 +117,17 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
     interactive = lib.core.get_interactive_default()
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        service = resolve_service(session, service_id)
+        if service_id is not None:
+            service = resolve_service(session, service_id)
+            if service is not None:
+                service_id = service["id"]
 
         # Get auth_vendor_id
         if not auth_vendor_id and interactive:
             app_vendors = lib.core.select(table="auth_vendor",
-                cols=["id", "name"],
-                where="enabled=1"
-            ).exec(session).items
+                                          cols=["id", "name"],
+                                          where="enabled=1"
+                                          ).exec(session).items
 
             if len(app_vendors) == 0:
                 raise ValueError("No authentication vendors enabled.")
@@ -188,19 +193,20 @@ def add_auth_app(app_name=None, service_id=None, **kwargs):
 
         with lib.core.MrsDbTransaction(session):
             # Create the auth_app
-            auth_app_id = lib.auth_apps.add_auth_app(session, service["id"], auth_vendor_id,
-                app_name, description, url, url_direct_auth, access_token, app_id,
-                limit_to_reg_users, default_role_id, enabled, options)
+            auth_app_id = lib.auth_apps.add_auth_app(session, service_id, auth_vendor_id,
+                                                     app_name, description, url, url_direct_auth, access_token, app_id,
+                                                     limit_to_reg_users, default_role_id, enabled, options)
 
             # Create the registered_users if specified
             if registered_users and len(registered_users) > 0:
                 role_comments = "Default role." if default_role_id == lib.auth_apps.DEFAULT_ROLE_ID else ""
                 for reg_user in registered_users:
                     user_id = lib.users.add_user(session, auth_app_id, reg_user, None, None, None,
-                        None, None, None)
+                                                 None, None, None)
 
                     if default_role_id:
-                        lib.users.add_user_role(session, user_id, default_role_id, role_comments)
+                        lib.users.add_user_role(
+                            session, user_id, default_role_id, role_comments)
 
         if lib.core.get_interactive_result():
             return f"\nAuthentication app with the id {auth_app_id} was added successfully."
@@ -233,6 +239,7 @@ def get_auth_app(app_id=None, session=None):
                 auth_apps=auth_app, print_header=True)
         return auth_app
 
+
 @plugin_function('mrs.list.authenticationApps', shell=True, cli=True, web=True)
 def get_auth_apps(service_id=None, **kwargs):
     """Returns all authentication apps for the given MRS service
@@ -256,14 +263,15 @@ def get_auth_apps(service_id=None, **kwargs):
     include_enable_state = kwargs.get("include_enable_state")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        service = resolve_service(session, service_id)
-        auth_apps = lib.auth_apps.get_auth_apps(session, service["id"], include_enable_state)
+        auth_apps = lib.auth_apps.get_auth_apps(
+            session, service_id, include_enable_state)
 
         if lib.core.get_interactive_result():
             return lib.auth_apps.format_auth_app_listing(
                 auth_apps=auth_apps, print_header=True)
         else:
             return auth_apps
+
 
 @plugin_function('mrs.delete.authenticationApp', shell=True, cli=True, web=True)
 def delete_auth_app(**kwargs):
@@ -274,21 +282,18 @@ def delete_auth_app(**kwargs):
 
     Keyword Args:
         app_id (str): The application id
-        service_id (str): The id of the service that this auth_app belongs to
         session (object): The database session to use
 
     Returns:
         None
     """
-    lib.core.convert_ids_to_binary(["app_id", "service_id"], kwargs)
+    lib.core.convert_ids_to_binary(["app_id"], kwargs)
     app_id = kwargs.get("app_id")
-    service_id = kwargs.get("service_id")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
-        auth_app = resolve_auth_app(session, auth_app_query=app_id, service_query=service_id)
-
         with lib.core.MrsDbTransaction(session):
-            lib.auth_apps.delete_auth_app(session, service_id=service_id, app_id=auth_app["id"])
+            lib.auth_apps.delete_auth_app(
+                session, app_id=app_id)
 
 
 @plugin_function('mrs.update.authenticationApp', shell=True, cli=True, web=True)
@@ -322,13 +327,15 @@ def update_auth_app(**kwargs):
         A dict with content_set_id and number_of_files_uploaded
     """
     lib.core.convert_ids_to_binary(["app_id", "service_id"], kwargs)
-    lib.core.convert_ids_to_binary(["default_role_id", "auth_vendor_id"], kwargs["value"])
+    lib.core.convert_ids_to_binary(
+        ["default_role_id", "auth_vendor_id"], kwargs["value"])
 
     app_id = kwargs.get("app_id")
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         value = kwargs.get("value")
         lib.auth_apps.update_auth_app(session, app_id, value)
+
 
 @plugin_function('mrs.get.authAppCreateStatement', shell=True, cli=True, web=True)
 def get_create_statement(**kwargs):
@@ -396,6 +403,7 @@ def store_create_statement(**kwargs):
 
     return True
 
+
 @plugin_function('mrs.get.ociDomainAppSecret', shell=True, cli=True, web=False)
 def get_oci_domain_secret(domain_endpoint, app_name, **kwargs):
     """Prints the client secret for the given OCI domain app to stdout
@@ -438,3 +446,72 @@ def get_oci_domain_secret(domain_endpoint, app_name, **kwargs):
         print(response.data.resources[0].client_secret)
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
+
+
+@plugin_function('mrs.add.authenticationAppLink', shell=True, cli=True, web=True)
+def link_auth_app(app_id, service_id, **kwargs):
+    """Links a REST auth app to a REST service
+
+    Args:
+        app_id (str): The application id
+        service_id (str): The id of the service that this auth_app belongs to
+        **kwargs: Additional options
+
+    Keyword Args:
+        session (object): The database session to use
+
+    Returns:
+        None
+    """
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        lib.auth_apps.link_auth_app(
+            session=session,
+            auth_app_id=lib.core.id_to_binary(app_id, "app_id"),
+            service_id=lib.core.id_to_binary(service_id, "service_id"))
+
+
+@plugin_function('mrs.delete.authenticationAppLink', shell=True, cli=True, web=True)
+def unlink_auth_app(app_id, service_id, **kwargs):
+    """Unlinks a REST auth app to a REST service
+
+    Args:
+        app_id (str): The application id
+        service_id (str): The id of the service that this auth_app belongs to
+        **kwargs: Additional options
+
+    Keyword Args:
+        session (object): The database session to use
+
+    Returns:
+        None
+    """
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        lib.auth_apps.unlink_auth_app(
+            session=session,
+            auth_app_id=lib.core.id_to_binary(app_id, "app_id"),
+            service_id=lib.core.id_to_binary(service_id, "service_id"))
+
+@plugin_function('mrs.list.authenticationAppServices', shell=True, cli=True, web=True)
+def get_auth_app_services(app_id=None, session=None):
+    """Returns the list of REST services that a given authentication app is linked to
+
+    Args:
+        app_id (str): The application id
+        session (object): The database session to use.
+
+    Returns:
+        A list of dicts representing the services
+    """
+    if app_id is not None:
+        app_id = lib.core.id_to_binary(app_id, "app_id")
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, session=session) as session:
+        services = lib.services.query_services(
+            session=session, auth_app_id=app_id)
+
+        if lib.core.get_interactive_result():
+            return lib.services.format_service_listing(services)
+        else:
+            return services

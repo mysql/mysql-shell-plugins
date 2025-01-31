@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -878,14 +878,14 @@ export const recreateMrsData = async (): Promise<IRecreateMrsDataResult> => {
     const service = await backend.mrs.addService("/myService", "MyService", ["HTTPS"], "", "", true, {}, "/unit-tests",
         "", "", "");
 
-    const authAppId = await backend.mrs.addAuthApp(service.id, {
+    const authAppId = await backend.mrs.addAuthApp({
         authVendorId: "0x30000000000000000000000000000000",
         name: "MRS",
         serviceId: service.id,
         enabled: true,
         limitToRegisteredUsers: false,
         defaultRoleId: "0x31000000000000000000000000000000",
-    }, []);
+    }, [], service.id);
     const authApp = await backend.mrs.getAuthApp(authAppId.authAppId);
     const schemaId = await backend.mrs.addSchema(service.id, "MRS_TEST", 1, "/mrs-test", false, null, null);
 

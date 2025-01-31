@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -58,7 +58,7 @@ export interface IMenuProperties extends IPopupProperties {
     customCommand?: (props: IMenuItemProperties, payload: unknown) => Command | undefined;
 
     /** Called for all menu item clicks (even for nested items). Return true to close this menu afterwards. */
-    onItemClick?: (props: IMenuItemProperties, altActive: boolean, payload: unknown) => boolean;
+    onItemClick?: (props: IMenuItemProperties, altActive: boolean, payload: unknown) => boolean | Promise<boolean>;
 
     /** Called if the user decided to go back to the previous menu (if there's one). */
     onMenuBack?: () => void;
@@ -357,7 +357,14 @@ export class Menu extends ComponentBase<IMenuProperties, IMenuState> {
         const { payload } = this.state;
 
         // Propagate the click up the parent chain.
-        if (onItemClick?.(props, altActive, payload)) {
+        const result = onItemClick?.(props, altActive, payload);
+        if (result instanceof Promise) {
+            void result.then((close): void => {
+                if (close) {
+                    setTimeout(() => { this.close(); }, 0);
+                }
+            });
+        } else {
             setTimeout(() => { this.close(); }, 0);
         }
     };
