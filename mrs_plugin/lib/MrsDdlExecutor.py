@@ -666,6 +666,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                             db_object_id=db_object.get("id"), session=self.session
                         )
 
+                print(f"{json.dumps(mrs_object.get("objects"), indent=4)}=")
+
                 db_object_id, grants = lib.db_objects.add_db_object(
                     session=self.session,
                     schema_id=lib.core.id_to_binary(schema_id, "schema_id"),

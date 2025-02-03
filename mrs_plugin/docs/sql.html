@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.-->
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.-->
 
 <head>
     <meta charset="UTF-8" />
@@ -150,7 +150,7 @@
                 <nav class="section-nav">
                     <div class="bookToc">
                         <br>
-                        <h3>MRS SQL Reference 1.19.0</h3>
+                        <h3>MRS SQL Reference 1.19.2</h3>
                                                 <ul>
                                                 <li><a
                                                 href="#introduction"
@@ -504,7 +504,7 @@ Reference
                 Client APIs.</li>
                 </ul>
                 <hr />
-                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -579,7 +579,7 @@ Reference
                 sakila example database schema</a> before running the
                 MRS DDL script above.</p>
                 </blockquote>
-                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -1848,12 +1848,17 @@ graphQlPair:
         | AT_KEY
         | AT_DATATYPE OPEN_PAR graphQlDatatypeValue CLOSE_PAR
         | graphQlCrudOptions
+        | graphQlValueJsonSchema
     )? graphQlObj?
 ;
 
 graphQlValue:
     qualifiedIdentifier
     | graphQlObj
+;
+
+graphQlValueJsonSchema:
+    JSON SCHEMA jsonValue
 ;</code></pre>
                 <p>graphQlObj ::= <img
                 src="sections/sql/../../images/sql/graphQlObj.svg"
@@ -1868,6 +1873,10 @@ graphQlValue:
                 <p>graphQlValue ::= <img
                 src="sections/sql/../../images/sql/graphQlValue.svg"
                 title="graphQlValue" alt="graphQlValue" /></p>
+                <p>graphQlValueJsonSchema ::= <img
+                src="sections/sql/../../images/sql/graphQlValueJsonSchema.svg"
+                title="graphQlValueJsonSchema"
+                alt="graphQlValueJsonSchema" /></p>
                 <h3 data-number="2.4.9" id="rest-view-metadata"><span
                 class="header-section-number">2.4.9</span> REST View
                 Metadata</h3>
@@ -2345,7 +2354,7 @@ restRoleOptions: (jsonOptions | comments)+
                 <p>restRoleOptions ::= <img
                 src="sections/sql/../../images/sql/restRoleOptions.svg"
                 title="restRoleOptions" alt="restRoleOptions" /></p>
-                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -2639,7 +2648,7 @@ restObjectOptions: (
                 src="sections/sql/../../images/sql/createRestUserStatement.svg"
                 title="createRestUserStatement"
                 alt="createRestUserStatement" /></p>
-                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -2811,7 +2820,7 @@ restObjectOptions: (
                 src="sections/sql/../../images/sql/dropRestRoleStatement.svg"
                 title="dropRestRoleStatement"
                 alt="dropRestRoleStatement" /></p>
-                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -2912,7 +2921,7 @@ privilegeName:
                 src="sections/sql/../../images/sql/revokeRestRoleStatement.svg"
                 title="revokeRestRoleStatement"
                 alt="revokeRestRoleStatement" /></p>
-                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,

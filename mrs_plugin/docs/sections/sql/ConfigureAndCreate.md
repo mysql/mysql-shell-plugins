@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -956,12 +956,17 @@ graphQlPair:
         | AT_KEY
         | AT_DATATYPE OPEN_PAR graphQlDatatypeValue CLOSE_PAR
         | graphQlCrudOptions
+        | graphQlValueJsonSchema
     )? graphQlObj?
 ;
 
 graphQlValue:
     qualifiedIdentifier
     | graphQlObj
+;
+
+graphQlValueJsonSchema:
+    JSON SCHEMA jsonValue
 ;
 ```
 
@@ -976,6 +981,9 @@ graphQlPair ::=
 
 graphQlValue ::=
 ![graphQlValue](../../images/sql/graphQlValue.svg "graphQlValue")
+
+graphQlValueJsonSchema ::=
+![graphQlValueJsonSchema](../../images/sql/graphQlValueJsonSchema.svg "graphQlValueJsonSchema")
 
 ### REST View Metadata
 
@@ -1013,7 +1021,7 @@ The following additional options can be configured for most database object endp
         - when querying data from a secondary server, controls whether to wait until the transaction GTID specified through the `asof` clause are applied. Effectively enables read-own-writes semantics.
 - `result`
     - `cacheTimeToLive` (_double_)
-        - enables caching for GET requests. Specifies the number of seconds (including sub-second values) to keep the response in the cache, after which it will be discarded until a new request comes in or when the cache fills up. 
+        - enables caching for GET requests. Specifies the number of seconds (including sub-second values) to keep the response in the cache, after which it will be discarded until a new request comes in or when the cache fills up.
     - `includeLinks` (_bool_)
         - whether to include links in returned JSON objects (default true)
 - `returnInternalErrorDetails` (_bool_)

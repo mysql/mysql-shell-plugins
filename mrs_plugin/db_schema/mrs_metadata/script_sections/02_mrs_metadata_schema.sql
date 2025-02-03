@@ -1,5 +1,5 @@
 -- Copyright (c) 2025, Oracle and/or its affiliates.
--- Wed Jan 29 15:27:48 2025
+-- Mon Feb  3 19:38:21 2025
 -- Model: New Model    Version: 1.0
 -- MySQL Workbench Forward Engineering
 
@@ -869,7 +869,7 @@ SELECT * FROM obj_fields;
 -- -----------------------------------------------------
 USE `mysql_rest_service_metadata`;
 CREATE  OR REPLACE SQL SECURITY INVOKER VIEW `table_columns_with_references` AS
-SELECT f.* FROM (
+SELECT f.*, js.json_schema_def FROM (
 	-- Get the table columns
 	SELECT c.ORDINAL_POSITION AS position, c.COLUMN_NAME AS name,
         NULL AS ref_column_names,
@@ -975,6 +975,21 @@ SELECT f.* FROM (
 	        ON PK_REF.TABLE_SCHEMA = k.TABLE_SCHEMA AND PK_REF.TABLE_NAME = k.TABLE_NAME
 	GROUP BY k.CONSTRAINT_NAME, c.TABLE_SCHEMA, c.TABLE_NAME
     ) AS f
+	-- LEFT JOIN with possible JSON_SCHEMA CHECK constraint for the given column
+	LEFT OUTER JOIN (
+        SELECT co.TABLE_SCHEMA, co.TABLE_NAME, co.COLUMN_NAME, MAX(co.JSON_SCHEMA_DEF) AS json_schema_def
+        FROM (SELECT tc.TABLE_SCHEMA, tc.TABLE_NAME, TRIM('`' FROM TRIM(TRAILING ')' FROM
+                REGEXP_SUBSTR(REGEXP_SUBSTR(cc.CHECK_CLAUSE, 'json_schema_valid\s*\\(.*,\s*`[^`]*`\s*\\)'), '`[^`]*`\\)')
+                )) AS COLUMN_NAME,
+                tc.ENFORCED, cc.CONSTRAINT_NAME,
+                REPLACE(TRIM('\\''' FROM REGEXP_REPLACE(SUBSTRING(cc.CHECK_CLAUSE FROM LOCATE('{', cc.CHECK_CLAUSE)), '\s*,\s*`[^`]*`\\).*', '')), '\\\\n', '\n') AS JSON_SCHEMA_DEF
+            FROM `information_schema`.`TABLE_CONSTRAINTS` AS tc
+                LEFT OUTER JOIN information_schema.CHECK_CONSTRAINTS AS cc
+                    ON cc.CONSTRAINT_SCHEMA = tc.TABLE_SCHEMA AND cc.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
+            ) AS co
+		WHERE co.COLUMN_NAME IS NOT NULL AND co.ENFORCED = 'YES' AND JSON_VALID(co.JSON_SCHEMA_DEF)
+        GROUP BY co.TABLE_SCHEMA, co.TABLE_NAME, co.COLUMN_NAME) AS js
+	ON f.TABLE_SCHEMA = js.TABLE_SCHEMA AND f.TABLE_NAME = js.TABLE_NAME AND f.name = js.COLUMN_NAME
 ORDER BY f.position;
 
 -- -----------------------------------------------------

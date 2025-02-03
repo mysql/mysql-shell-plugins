@@ -27,6 +27,7 @@ from mrs_plugin.lib.mrs_parser import MRSListener
 from mrs_plugin.lib.mrs_parser import MRSParser
 from mrs_plugin.lib.MrsDdlExecutorInterface import MrsDdlExecutorInterface
 import re
+import json
 
 
 def get_text_without_quotes(txt):
@@ -111,7 +112,8 @@ class MrsDdlListener(MRSListener):
             self.mrs_object["requires_auth"] = True
 
     def enterItemsPerPage(self, ctx):
-        self.mrs_object["items_per_page"] = int(ctx.itemsPerPageNumber().getText())
+        self.mrs_object["items_per_page"] = int(
+            ctx.itemsPerPageNumber().getText())
 
     def exitServiceDevelopersIdentifier(self, ctx):
         # Workaround in order to allow a singe @ after the developer list:
@@ -168,7 +170,8 @@ class MrsDdlListener(MRSListener):
         )
 
     def enterAllowNewUsersToRegister(self, ctx):
-        self.mrs_object["limit_to_registered_users"] = not ctx.NOT_SYMBOL() is None
+        self.mrs_object["limit_to_registered_users"] = not ctx.NOT_SYMBOL(
+        ) is None
 
     def enterDefaultRole(self, ctx):
         self.mrs_object["default_role"] = get_text_without_quotes(
@@ -242,7 +245,8 @@ class MrsDdlListener(MRSListener):
     def enterAuthRedirection(self, ctx):
         val = ctx.quotedTextOrDefault().getText()
         if val != "DEFAULT":
-            self.mrs_object["auth_completed_url"] = get_text_without_quotes(val)
+            self.mrs_object["auth_completed_url"] = get_text_without_quotes(
+                val)
 
     def enterAuthValidation(self, ctx):
         val = ctx.quotedTextOrDefault().getText()
@@ -354,7 +358,8 @@ class MrsDdlListener(MRSListener):
             sorted_developers = (
                 ",".join(
                     (
-                        quote(re.sub(r"(['\\])", "\\\\\\1", dev, 0, re.MULTILINE))
+                        quote(re.sub(r"(['\\])", "\\\\\\1",
+                              dev, 0, re.MULTILINE))
                         if not re.match(r"^\w+$", dev)
                         else dev
                     )
@@ -449,7 +454,8 @@ class MrsDdlListener(MRSListener):
             )
             if service is None:
                 raise Exception(
-                    f"The REST service `{self.get_service_sorted_developers(developer_list)}"
+                    f"The REST service `{
+                        self.get_service_sorted_developers(developer_list)}"
                     + f"{url_host_name}{url_context_root}` was not found."
                 )
 
@@ -496,7 +502,8 @@ class MrsDdlListener(MRSListener):
 
             if self.mrs_ddl_executor.current_schema_id is None:
                 raise Exception(
-                    f'The database schema for `{self.mrs_object["name"]}` was not given.'
+                    f'The database schema for `{
+                        self.mrs_object["name"]}` was not given.'
                 )
 
             schema = lib.schemas.get_schema(
@@ -506,7 +513,8 @@ class MrsDdlListener(MRSListener):
                 self.mrs_object["schema_name"] = schema.get("name")
             else:
                 raise Exception(
-                    f'The database schema was not found for `{self.mrs_object["name"]}`'
+                    f'The database schema was not found for `{
+                        self.mrs_object["name"]}`'
                 )
         else:
             self.mrs_object["name"] = (
@@ -595,7 +603,8 @@ class MrsDdlListener(MRSListener):
             self.mrs_object["format"] = "MEDIA"
 
     def enterRestViewAuthenticationProcedure(self, ctx):
-        self.mrs_object["auth_stored_procedure"] = ctx.qualifiedIdentifier().getText()
+        self.mrs_object["auth_stored_procedure"] = ctx.qualifiedIdentifier(
+        ).getText()
 
     def build_options_list(self, ctx: MRSParser.GraphQlCrudOptionsContext):
         options_list = []
@@ -625,7 +634,8 @@ class MrsDdlListener(MRSListener):
 
     def enterRestProcedureResult(self, ctx):
         # A REST PROCEDURE can have multiple results
-        graph_ql_object_count = self.mrs_object.get("graph_ql_object_count", 0) + 1
+        graph_ql_object_count = self.mrs_object.get(
+            "graph_ql_object_count", 0) + 1
         self.mrs_object["graph_ql_object_count"] = graph_ql_object_count
 
         # Add a new mrs object for each RESULT
@@ -646,7 +656,8 @@ class MrsDdlListener(MRSListener):
 
     def enterRestFunctionResult(self, ctx):
         # A REST FUNCTION can have parameters and one result defined
-        graph_ql_object_count = self.mrs_object.get("graph_ql_object_count", 0) + 1
+        graph_ql_object_count = self.mrs_object.get(
+            "graph_ql_object_count", 0) + 1
         self.mrs_object["graph_ql_object_count"] = graph_ql_object_count
 
         self.mrs_object["objects"][1]["name"] = (
@@ -678,7 +689,8 @@ class MrsDdlListener(MRSListener):
             db_column_name = ctx.graphQlPairValue().getText().strip("`")
 
             # Check if this is a REST PROCEDURE RESULT
-            graph_ql_object_count = self.mrs_object.get("graph_ql_object_count", 0)
+            graph_ql_object_count = self.mrs_object.get(
+                "graph_ql_object_count", 0)
             if graph_ql_object_count == 0:
                 # A REST VIEW RESULT or REST PROCEDURE/FUNCTION PARAMETERS
                 for i, field in enumerate(fields):
@@ -717,11 +729,19 @@ class MrsDdlListener(MRSListener):
                             db_column["datatype"] = lib.core.unquote(
                                 ctx.graphQlDatatypeValue().getText().lower()
                             )
+                        if ctx.graphQlValueJsonSchema() is not None:
+                            try:
+                                field["json_schema"] = json.loads(
+                                    ctx.graphQlValueJsonSchema(
+                                    ).jsonValue().getText())
+                            except:
+                                pass
                         break
                 else:
                     raise Exception(
                         f"The column `{db_column_name}` does not exist on "
-                        f'`{self.mrs_object.get("schema_name")}`.`{self.mrs_object.get("name")}`.'
+                        f'`{self.mrs_object.get("schema_name")}`.`{
+                            self.mrs_object.get("name")}`.'
                     )
             else:
                 # A REST PROCEDURE RESULT
@@ -828,8 +848,10 @@ class MrsDdlListener(MRSListener):
                     break
             else:
                 raise Exception(
-                    f"The table `{db_schema_name}`.`{db_object_name}` has no reference to "
-                    f'`{self.mrs_object.get("schema_name")}`.`{self.mrs_object.get("name")}`.'
+                    f"The table `{db_schema_name}`.`{
+                        db_object_name}` has no reference to "
+                    f'`{self.mrs_object.get("schema_name")}`.`{
+                        self.mrs_object.get("name")}`.'
                 )
 
     def exitGraphQlPair(self, ctx):
@@ -878,8 +900,10 @@ class MrsDdlListener(MRSListener):
                             reduce_to_field_name = reduce_to_field.get("name")
                         else:
                             raise Exception(
-                                f"Only one column `{reduce_to_field_name}` must be defined for a N:1 unnest operation. "
-                                f'The column `{reduce_to_field.get("name")}` needs to be removed.'
+                                f"Only one column `{
+                                    reduce_to_field_name}` must be defined for a N:1 unnest operation. "
+                                f'The column `{reduce_to_field.get(
+                                    "name")}` needs to be removed.'
                             )
 
                 if obj_reference.get("reduce_to_value_of_field_id") is None:
@@ -904,7 +928,8 @@ class MrsDdlListener(MRSListener):
 
         param_fields = []
         for param in params:
-            param_name = lib.core.convert_snake_to_camel_case(param.get("name"))
+            param_name = lib.core.convert_snake_to_camel_case(
+                param.get("name"))
             field = {
                 "id": self.get_uuid(),
                 "object_id": object_id,
@@ -989,7 +1014,8 @@ class MrsDdlListener(MRSListener):
 
         param_fields = []
         for param in params:
-            param_name = lib.core.convert_snake_to_camel_case(param.get("name"))
+            param_name = lib.core.convert_snake_to_camel_case(
+                param.get("name"))
             field = {
                 "id": self.get_uuid(),
                 "object_id": object_id,
@@ -1544,7 +1570,8 @@ class MrsDdlListener(MRSListener):
         }
 
         if ctx.newAuthAppName() is not None:
-            self.mrs_object["new_auth_app_name"] = get_text_without_quotes(ctx.newAuthAppName().getText())
+            self.mrs_object["new_auth_app_name"] = get_text_without_quotes(
+                ctx.newAuthAppName().getText())
 
     def exitAlterRestAuthAppStatement(self, ctx):
         self.mrs_ddl_executor.alterRestAuthApp(self.mrs_object)

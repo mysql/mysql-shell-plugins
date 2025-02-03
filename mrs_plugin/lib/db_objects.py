@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -325,7 +325,8 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
     if db_object_id is None:
         db_object_id = core.get_sequence_id(session)
 
-    crud_operations = calculate_crud_operations(db_object_type, objects)
+    crud_operations = calculate_crud_operations(
+        db_object_type=db_object_type, objects=objects, options=options)
 
     values = {
         "id": db_object_id,
@@ -431,7 +432,8 @@ def update_db_objects(session, db_object_ids, value):
                 session=session, db_schema_id=value["db_schema_id"], objects=objects)
 
             value["crud_operations"] = calculate_crud_operations(
-                db_object_type=db_object.get("object_type"), objects=objects)
+                db_object_type=db_object.get("object_type"), objects=objects,
+                options=db_object.get("options", None))
 
         core.update("db_object",
                     sets=value,
@@ -641,15 +643,19 @@ def set_object_fields_with_references(session, db_object_id, obj):
 
             if current_version[0] >= 3:
                 values["options"] = field.get("options", None)
+                values["json_schema"] = field.get("json_schema", None)
 
             core.insert(table="object_field", values=values).exec(session)
 
 
-def calculate_crud_operations(db_object_type, objects=None):
+def calculate_crud_operations(db_object_type, objects=None, options=None):
     if db_object_type == "SCRIPT":
         return ["CREATE", "READ", "UPDATE"]
     if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION":
-        return ["UPDATE"]
+        if options is not None and options.get("mysqlTask", None) is not None:
+            return ["READ", "UPDATE", "DELETE"]
+        else:
+            return ["UPDATE"]
 
     if objects is None:
         return ["READ"]
