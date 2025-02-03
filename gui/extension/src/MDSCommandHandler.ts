@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import {
-    commands, window, workspace, Uri, TextDocument, Range, Selection, languages, WorkspaceEdit,
-} from "vscode";
+import { commands, languages, Range, Selection, TextDocument, Uri, window, workspace, WorkspaceEdit } from "vscode";
 
-import { homedir } from "os";
 import { existsSync } from "fs";
+import { homedir } from "os";
 
 import { models } from "oci-mysql";
 
@@ -45,22 +43,22 @@ import { OciLoadBalancerTreeItem } from "./tree-providers/OCITreeProvider/OciLoa
 import { OciConfigProfileTreeItem } from "./tree-providers/OCITreeProvider/OciProfileTreeItem.js";
 
 import { DialogResponseClosure, IDictionary, MdsDialogType } from "../../frontend/src/app-logic/general-types.js";
-import { DialogWebviewManager } from "./WebviewProviders/DialogWebviewProvider.js";
-import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem.js";
+import { ui } from "../../frontend/src/app-logic/UILayer.js";
+import { MySQLConnCompression, MySQLConnectionScheme } from "../../frontend/src/communication/MySQL.js";
 import { IMdsProfileData } from "../../frontend/src/communication/ProtocolMds.js";
-import { ShellInterfaceShellSession } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceShellSession.js";
-import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface.js";
-import { webSession } from "../../frontend/src/supplement/WebSession.js";
+import type { ICdmSchemaEntry } from "../../frontend/src/data-models/ConnectionDataModel.js";
 import { requisitions } from "../../frontend/src/supplement/Requisitions.js";
 import { DBType } from "../../frontend/src/supplement/ShellInterface/index.js";
-import { MySQLConnCompression, MySQLConnectionScheme } from "../../frontend/src/communication/MySQL.js";
-import type { ICdmSchemaEntry } from "../../frontend/src/data-models/ConnectionDataModel.js";
+import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface.js";
+import { ShellInterfaceShellSession } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceShellSession.js";
+import { webSession } from "../../frontend/src/supplement/WebSession.js";
+import { convertErrorToString } from "../../frontend/src/utilities/helpers.js";
+import { SchemaMySQLTreeItem } from "./tree-providers/ConnectionsTreeProvider/SchemaMySQLTreeItem.js";
+import { DialogWebviewManager } from "./WebviewProviders/DialogWebviewProvider.js";
 
 export class MDSCommandHandler {
     private dialogManager = new DialogWebviewManager();
-
     private shellSession = new ShellInterfaceShellSession();
-
     private ociTreeDataProvider: OciTreeDataProvider;
 
     public setup = (host: ExtensionHost): void => {
@@ -140,7 +138,8 @@ export class MDSCommandHandler {
                         await commands.executeCommand("msg.mds.refreshOciProfiles");
                         window.setStatusBarMessage(`Default config profile set to ${item.profile.profile}.`, 5000);
                     } catch (reason) {
-                        await window.showErrorMessage(`Error while setting default config profile: ${String(reason)}`);
+                        const message = convertErrorToString(reason);
+                        await ui.showErrorMessage(`Error while setting default config profile: ${message}`, {});
                     }
                 }
             }));
@@ -169,7 +168,8 @@ export class MDSCommandHandler {
                         await commands.executeCommand("msg.mds.refreshOciProfiles");
                         window.setStatusBarMessage(`Current compartment set to ${item.compartment.name}.`, 5000);
                     } catch (reason) {
-                        await window.showErrorMessage(`Error while setting current compartment: ${String(reason)}`);
+                        const message = convertErrorToString(reason);
+                        await ui.showErrorMessage(`Error while setting current compartment: ${message}`, {});
                     }
                 }
             }));
@@ -183,7 +183,8 @@ export class MDSCommandHandler {
                         this.showNewJsonDocument(`${item.dbSystem.displayName ?? "<unknown>"} Info.json`,
                             JSON.stringify(system, null, 4));
                     } catch (reason) {
-                        void window.showErrorMessage(`Error while fetching the DB System data: ${String(reason)}`);
+                        const message = convertErrorToString(reason);
+                        void ui.showErrorMessage(`Error while fetching the DB System data: ${message}`, {});
                     }
                 }
             }));
@@ -372,7 +373,8 @@ export class MDSCommandHandler {
                         this.showNewJsonDocument(`${bastion.name ?? "<unknown>"} Info.json`,
                             JSON.stringify(bastion, null, 4));
                     } catch (reason) {
-                        await window.showErrorMessage(`Error while fetching the bastion data: ${String(reason)}`);
+                        const message = convertErrorToString(reason);
+                        await ui.showErrorMessage(`Error while fetching the bastion data: ${message}`, {});
                     }
                 }
             }));
@@ -425,8 +427,8 @@ export class MDSCommandHandler {
                         await commands.executeCommand("msg.mds.refreshOciProfiles");
                         window.setStatusBarMessage(`Current compartment set to ${item.bastion.name}.`, 5000);
                     } catch (reason) {
-                        await window.showErrorMessage(`Error while setting current bastion: ` +
-                            `${String(reason)}`);
+                        const message = convertErrorToString(reason);
+                        await ui.showErrorMessage(`Error while setting current bastion: ${message}`, {});
                     }
                 }
             }));
@@ -498,7 +500,8 @@ export class MDSCommandHandler {
                             }
                         }
                     } catch (reason) {
-                        await window.showErrorMessage(`Error while creating the bastion session: ${String(reason)}`);
+                        const message = convertErrorToString(reason);
+                        await ui.showErrorMessage(`Error while creating the bastion session: ${message}`, {});
                     }
                 }
             }));
@@ -527,7 +530,8 @@ export class MDSCommandHandler {
                                     host);
                             }
                         } catch (reason) {
-                            await window.showErrorMessage(`Error retrieving schema list: ${String(reason)}`);
+                            const message = convertErrorToString(reason);
+                            await ui.showErrorMessage(`Error retrieving schema list: ${message}`, {});
                         }
                     }
                 }
@@ -559,8 +563,9 @@ export class MDSCommandHandler {
                 });
                 void languages.setTextDocumentLanguage(doc, "json");
             });
-        }, (error) => {
-            void window.showErrorMessage(`Error while showing the document: ${String(error)}`);
+        }, (reason) => {
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Error while showing the document: ${message}`, {});
         });
     }
 
@@ -653,7 +658,8 @@ export class MDSCommandHandler {
             }
         } catch (reason) {
             statusbarItem.hide();
-            await window.showErrorMessage(`Error while listing MySQL REST services: ${String(reason)}`);
+            const message = convertErrorToString(reason);
+            await ui.showErrorMessage(`Error while listing MySQL REST services: ${message}`, {});
         }
     }
 
@@ -714,7 +720,7 @@ export class MDSCommandHandler {
             ];
 
             await host.addNewShellTask("Load Data to HeatWave Cluster", shellArgs, connectionId);
-            await window.showInformationMessage("The data load to the HeatWave cluster operation has finished.");
+            await ui.showInformationMessage("The data load to the HeatWave cluster operation has finished.", {});
         }
     }
 
@@ -741,15 +747,8 @@ export class MDSCommandHandler {
             const shapeList = shapes.map((shape, _i, _a) => {
                 return shape.shape;
             });
-            /*const defaultShape = "VM.Standard.E4.Flex";
-            const defaultShapeIndex = shapeList.indexOf(defaultShape);
-            if (defaultShapeIndex !== -1) {
-                shapeList.splice(defaultShapeIndex, 1);
-                shapeList.unshift(defaultShape);
-            }*/
 
             statusbarItem.hide();
-
             const title = "MySQL Endpoint Configuration";
 
             const request = {
@@ -848,16 +847,17 @@ export class MDSCommandHandler {
                             if (connectionId !== undefined) {
                                 void requisitions.broadcastRequest(undefined, "refreshConnection", undefined);
                             }
-                        }).catch((event) => {
-                            void window.showErrorMessage(
-                                `Error while adding the DB Connection: ${String(event.message)}`);
+                        }).catch((reason) => {
+                            const message = convertErrorToString(reason);
+                            void ui.showErrorMessage(`Error while adding the DB Connection: ${message}`, {});
                         });
                 }
             }
 
         } catch (reason) {
             statusbarItem.hide();
-            await window.showErrorMessage(`Error while listing Compute Shapes: ${String(reason)}`);
+            const message = convertErrorToString(reason);
+            await ui.showErrorMessage(`Error while listing Compute Shapes: ${message}`, {});
         }
     }
 

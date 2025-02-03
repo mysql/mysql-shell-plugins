@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -289,7 +289,7 @@ describe("OciDataModel", () => {
         expect(compartment.compartments[0].getChildren?.()).toEqual([]);
 
         await compartment.compartments[0].makeCurrent();
-        expect(uiLayerMock.showErrorNotification).toHaveBeenCalledTimes(0);
+        expect(uiLayerMock.showErrorMessage).toHaveBeenCalledTimes(0);
 
         result = await compartment.compartments[0].refresh?.();
         expect(result).toBe(true);
@@ -341,10 +341,10 @@ describe("OciDataModel", () => {
         expect(result).toBe(true);
 
         await compartment.bastions[0].makeCurrent();
-        expect(uiLayerMock.showInformationNotification)
-            .toHaveBeenNthCalledWith(1, "Setting current bastion to bastion1 ...");
-        expect(uiLayerMock.showInformationNotification).toHaveBeenNthCalledWith(2,
-            "Current bastion set to bastion1.");
+        expect(uiLayerMock.showInformationMessage)
+            .toHaveBeenNthCalledWith(1, "Setting current bastion to bastion1 ...", {});
+        expect(uiLayerMock.showInformationMessage).toHaveBeenNthCalledWith(2,
+            "Current bastion set to bastion1.", {});
 
         expect(dataModelChanged).toHaveBeenCalledTimes(5);
         checkNoUiWarningsOrErrors();

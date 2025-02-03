@@ -32,6 +32,7 @@ import {
     IStatusInfo, MessageType, uriPattern,
 } from "../../app-logic/general-types.js";
 
+import { ui } from "../../app-logic/UILayer.js";
 import { MySQLConnectionScheme } from "../../communication/MySQL.js";
 import {
     IShellColumnsMetaData, IShellDocumentData, IShellObjectResult, IShellPromptValues, IShellResultType, IShellRowData,
@@ -52,14 +53,13 @@ import { ShellInterfaceDb } from "../../supplement/ShellInterface/ShellInterface
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
 import { DBType } from "../../supplement/ShellInterface/index.js";
 import { EditorLanguage, convertRows, generateColumnInfo } from "../../supplement/index.js";
-import { flattenObject, uuid } from "../../utilities/helpers.js";
+import { convertErrorToString, flattenObject, uuid } from "../../utilities/helpers.js";
 import { unquote } from "../../utilities/string-helpers.js";
 import { ShellPromptHandler } from "../common/ShellPromptHandler.js";
 import { DBEditorToolbar } from "../db-editor/DBEditorToolbar.js";
 import type { IToolbarItems } from "../db-editor/index.js";
 import { ShellConsole } from "./ShellConsole.js";
 import { ShellPrompt } from "./ShellPrompt.js";
-import { ui } from "../../app-logic/UILayer.js";
 
 interface IResultTimer {
     timer: SetIntervalAsyncTimer<unknown[]>;
@@ -199,8 +199,8 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                     void requisitions.execute("updateShellPrompt", result);
                 }
             }).catch((reason) => {
-                const message = reason instanceof Error ? reason.message : String(reason);
-                void ui.showErrorNotification("Shell Language Switch Error: " + message);
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`Shell Language Switch Error: ${message}`, {});
             });
         }
     }
@@ -282,8 +282,8 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                                         resolve(true);
                                     });
                                 }).catch((reason) => {
-                                    const message = reason instanceof Error ? reason.message : String(reason);
-                                    void ui.showErrorNotification("Shell Language Switch Error" + message);
+                                    const message = convertErrorToString(reason);
+                                    void ui.showErrorMessage(`Shell Language Switch Error: ${message}`, {});
 
                                     resolve(false);
                                 });
@@ -702,8 +702,8 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                 }
             }
         } catch (reason) {
-            const message = reason instanceof Error ? reason.message : String(reason);
-            void ui.showErrorNotification("Shell Execution Error: " + message);
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Shell Execution Error: ${message}`, {});
 
             throw reason;
         }
@@ -821,8 +821,8 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                 settings: {},
             });
         } catch (reason) {
-            const message = reason instanceof Error ? reason.message : String(reason);
-            void ui.showErrorNotification("Shell DB Session Error: " + message);
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Shell DB Session Error: ${message}`, {});
         }
     };
 

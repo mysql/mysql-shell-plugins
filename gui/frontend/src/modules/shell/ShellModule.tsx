@@ -52,7 +52,7 @@ import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
 import { IShellSessionDetails } from "../../supplement/ShellInterface/index.js";
-import { uuid } from "../../utilities/helpers.js";
+import { convertErrorToString, uuid } from "../../utilities/helpers.js";
 import { ShellModuleId } from "../ModuleInfo.js";
 import { ShellPromptHandler } from "../common/ShellPromptHandler.js";
 import { IShellTabPersistentState, ShellTab } from "./ShellTab.js";
@@ -471,8 +471,8 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                     requisitions.executeRemote("sessionAdded", session);
                     this.hideProgress(id);
                 } catch (reason) {
-                    const message = reason instanceof Error ? reason.message : String(reason);
-                    void ui.showErrorNotification("Shell Session Error: " + message);
+                    const message = convertErrorToString(reason);
+                    void ui.showErrorMessage(`Shell Session Error: ${message}`, {});
 
                     this.hideProgress("sessions");
                 }
@@ -518,7 +518,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
             this.hideProgress(id);
         } catch (reason) {
             const message = reason instanceof Error ? reason.message : String(reason);
-            void ui.showErrorNotification("Shell Session Error: " + message);
+            void ui.showErrorMessage(`Shell Session Error: ${message}`, {});
 
             this.hideProgress("sessions");
         }

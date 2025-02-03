@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { window, ProgressLocation, MessageOptions, commands, ProviderResult } from "vscode";
+import { ProgressLocation, ProviderResult, commands, window } from "vscode";
 
 import { waitFor } from "../../frontend/src/utilities/helpers.js";
 
@@ -62,27 +62,4 @@ export const showMessageWithTimeout = (message: string, timeout = 3000): void =>
             progress.report({ increment: 100 });
         },
     );
-};
-
-/**
- * Shows a modal dialog to let the user do a decision.
- *
- * @param message The message to show on which the user has to decide.
- * @param okText The text to show on the OK button. If not given "OK" is used instead.
- * @param detail An optional description text.
- *
- * @returns A promise that resolves to true if the user clicked the accept button, otherwise (cancel button click or
- *          escape key press) to false.
- */
-export const showModalDialog = (message: string, okText = "OK", detail?: string): Promise<boolean> => {
-    return new Promise((resolve) => {
-        switchVsCodeContext("showsModalDialog", true);
-        const options: MessageOptions = { detail, modal: true };
-
-        void window.showInformationMessage(message, options, okText).then((answer) => {
-            switchVsCodeContext("showsModalDialog", false);
-            resolve(answer === okText);
-        });
-
-    });
 };

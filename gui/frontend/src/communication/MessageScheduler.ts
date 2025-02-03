@@ -401,7 +401,7 @@ export class MessageScheduler {
             clearTimeout(this.reconnectTimer);
             this.reconnectTimer = null;
 
-            void ui.showInformationNotification("Connection to the backend established.");
+            void ui.showInformationMessage("Connection to the backend established.", {});
         }
         this.reconnectTimeout = 1000;
 
@@ -451,10 +451,9 @@ export class MessageScheduler {
             }, this.reconnectTimeout);
         }
 
-        void ui.showErrorNotification(`Could not establish a connection to the backend. Make sure you ` +
+        void ui.showErrorMessage(`Could not establish a connection to the backend. Make sure you ` +
             `use valid user credentials and the MySQL Shell is running. Trying to reconnect in ` +
-            `${this.reconnectTimeout / 1000} seconds.`,
-        );
+            `${this.reconnectTimeout / 1000} seconds.`, {});
     };
 
     /**
@@ -519,7 +518,7 @@ export class MessageScheduler {
             return response;
         } catch (reason) {
             const message = reason instanceof Error ? reason.message : String(reason);
-            void ui.showErrorNotification(`Could not parse JSON response from MySQL Shell (${message}).`);
+            void ui.showErrorMessage(`Could not parse JSON response from MySQL Shell (${message}).`, {});
         }
     };
 

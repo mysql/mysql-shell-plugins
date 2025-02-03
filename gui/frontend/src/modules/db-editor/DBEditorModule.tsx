@@ -779,8 +779,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     requisitions.executeRemote("connectionAdded", entry.details);
                 }
             }).catch((reason) => {
-                const message = reason instanceof Error ? reason.message : String(reason);
-                void ui.showErrorNotification("Cannot add DB connection: " + message);
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`Cannot add DB connection: ${message}`, {});
 
             });
     };
@@ -790,8 +790,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             this.#connectionsDataModel.updateConnectionDetails(entry);
             requisitions.executeRemote("connectionUpdated", entry.details);
         }).catch((reason) => {
-            const message = reason instanceof Error ? reason.message : String(reason);
-            void ui.showErrorNotification("Cannot update DB connection: " + message);
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Cannot update DB connection: ${message}`, {});
         });
     };
 
@@ -803,8 +803,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
             requisitions.executeRemote("connectionRemoved", entry.details);
         }).catch((reason) => {
-            const message = reason instanceof Error ? reason.message : String(reason);
-            void ui.showErrorNotification("Cannot remove DB connection: " + message);
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Cannot remove DB connection: ${message}`, {});
         });
     };
 
@@ -1220,7 +1220,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 const newEntry = await entry.duplicate();
                 await this.addNewTab(newEntry, suffix, suppressAbout, initialEditor);
             } catch (error) {
-                void ui.showErrorNotification(convertErrorToString(error));
+                const message = convertErrorToString(error);
+                void ui.showErrorMessage(message, {});
             } finally {
                 this.hideProgress(true);
             }
@@ -1376,8 +1377,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             this.hideProgress(false);
             await this.setStatePromise({ connectionTabs, selectedPage: tab.id, loading: false });
         } catch (reason) {
-            const message = reason instanceof Error ? reason.message : String(reason);
-            void ui.showErrorNotification("Connection Error: " + message);
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Connection Error: ${message}`, {});
 
             const { lastSelectedPage } = this.state;
             await this.setStatePromise({ selectedPage: lastSelectedPage ?? "connections" });
@@ -2400,7 +2401,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 requisitions.executeRemote("sessionAdded", document.details);
             } catch (error) {
                 const message = convertErrorToString(error);
-                void ui.showErrorNotification("Shell Session Error: " + message);
+                void ui.showErrorMessage(`Shell Session Error: ${message}`, {});
             }
 
             this.hideProgress(true);
@@ -2704,7 +2705,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             }
             await backend.commitTransaction();
 
-            void ui.showInformationNotification("Changes committed successfully.");
+            void ui.showInformationMessage("Changes committed successfully.", {});
 
             return { affectedRows: rowCount, errors: [] };
         } catch (reason) {

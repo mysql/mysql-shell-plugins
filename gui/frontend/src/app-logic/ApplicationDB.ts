@@ -27,7 +27,6 @@
 
 import { DBSchema, deleteDB, IDBPDatabase, openDB } from "idb";
 
-import { requisitions } from "../supplement/Requisitions.js";
 import { type IColumnDetails } from "../supplement/RequisitionTypes.js";
 import { uuid } from "../utilities/helpers.js";
 import { IColumnInfo, IDictionary, IStatusInfo } from "./general-types.js";
@@ -297,7 +296,7 @@ export class ApplicationDB {
                 }
             }).catch(/* istanbul ignore next */(reason) => {
                 const message = reason instanceof Error ? reason.message : String(reason);
-                void ui.showErrorNotification(`IndexedDB Error: ${message}`);
+                void ui.showErrorMessage(`IndexedDB Error: ${message}`, {});
                 reject(reason);
             });
         });

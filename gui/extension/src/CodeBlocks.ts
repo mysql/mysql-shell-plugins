@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -34,6 +34,7 @@ import { CharStream, CommonTokenStream } from "antlr4ng";
 
 import { PythonLexer } from "../../frontend/src/parsing/python/generated/PythonLexer.js";
 
+import { ui } from "../../frontend/src/app-logic/UILayer.js";
 import {
     ICodeBlockExecutionOptions, IRequestListEntry, IRequestTypeMap, IWebviewProvider,
 } from "../../frontend/src/supplement/RequisitionTypes.js";
@@ -329,7 +330,7 @@ export class CodeBlocks {
                 this.checkAndApplyCodeBlockChanges(window.activeTextEditor, data.code, entry);
             }
         } else {
-            void window.showInformationMessage("The original code block no longer exists and cannot be updated.");
+            void ui.showInformationMessage("The original code block no longer exists and cannot be updated.", {});
         }
 
         return Promise.resolve(true);
@@ -466,15 +467,14 @@ export class CodeBlocks {
             const currentText = editor.document.getText(range);
 
             if (currentText !== block.originalCode) {
-                void window.showWarningMessage("The original code was changed meanwhile. Do you still want to update " +
-                    "it with your application code?", "Update", "Cancel")
-                    .then((input) => {
+                void ui.showWarningMessage("The original code was changed meanwhile. Do you still want to update " +
+                    "it with your application code?", {}, "Update", "Cancel").then((input) => {
                         if (input === "Update") {
                             void editor.edit((builder) => {
                                 builder.replace(range, newCode);
                             }).then((success) => {
                                 if (!success) {
-                                    void window.showErrorMessage("The changes could not be applied.");
+                                    void ui.showErrorMessage("The changes could not be applied.", {});
                                 } else {
                                     block.originalCode = newCode;
                                 }
@@ -486,7 +486,7 @@ export class CodeBlocks {
                     builder.replace(range, newCode);
                 }).then((success) => {
                     if (!success) {
-                        void window.showErrorMessage("The changes could not be applied.");
+                        void ui.showErrorMessage("The changes could not be applied.", {});
                     } else {
                         block.originalCode = newCode;
                     }

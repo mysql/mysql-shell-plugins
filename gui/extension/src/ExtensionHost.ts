@@ -24,8 +24,8 @@
  */
 
 import {
-    commands, ConfigurationChangeEvent, ConfigurationTarget, ExtensionContext, StatusBarItem, window, workspace,
-    WorkspaceConfiguration, Disposable, type StatusBarAlignment,
+    ConfigurationChangeEvent, ConfigurationTarget, Disposable, ExtensionContext, StatusBarItem, WorkspaceConfiguration,
+    commands, window, workspace, type StatusBarAlignment,
 } from "vscode";
 
 import { ShellTask } from "../../frontend/src/shell-tasks/ShellTask.js";
@@ -37,25 +37,27 @@ import { webSession } from "../../frontend/src/supplement/WebSession.js";
 import { printChannelOutput, taskOutputChannel } from "./extension.js";
 import { ShellTasksTreeDataProvider } from "./tree-providers/ShellTreeProvider/ShellTasksTreeProvider.js";
 
+import { ui } from "../../frontend/src/app-logic/UILayer.js";
 import type { IShellModuleDataCategoriesEntry, IShellProfile } from "../../frontend/src/communication/ProtocolGui.js";
 import {
     ConnectionDataModel, type ICdmConnectionEntry, type ICdmSchemaEntry,
 } from "../../frontend/src/data-models/ConnectionDataModel.js";
-import { requisitions } from "../../frontend/src/supplement/Requisitions.js";
 import type {
     IEditorExtendedExecutionOptions, IRequestListEntry, IRequestTypeMap, IRequisitionCallbackValues,
     IUpdateStatusBarItem, IWebviewProvider,
 } from "../../frontend/src/supplement/RequisitionTypes.js";
+import { requisitions } from "../../frontend/src/supplement/Requisitions.js";
 import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface.js";
-import { NodeMessageScheduler } from "./communication/NodeMessageScheduler.js";
 import { DBEditorCommandHandler } from "./DBEditorCommandHandler.js";
-import { NotebookEditorProvider } from "./editor-providers/NotebookEditorProvider.js";
 import { MDSCommandHandler } from "./MDSCommandHandler.js";
 import { MRSCommandHandler } from "./MRSCommandHandler.js";
 import { ShellConsoleCommandHandler } from "./ShellConsoleCommandHandler.js";
-import { ConnectionsTreeDataProvider } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider.js";
 import { DBConnectionViewProvider } from "./WebviewProviders/DBConnectionViewProvider.js";
 import { WebviewProvider } from "./WebviewProviders/WebviewProvider.js";
+import { NodeMessageScheduler } from "./communication/NodeMessageScheduler.js";
+import { NotebookEditorProvider } from "./editor-providers/NotebookEditorProvider.js";
+import { ConnectionsTreeDataProvider } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider.js";
+import { convertErrorToString } from "../../frontend/src/utilities/helpers.js";
 
 /** This class manages some extension wide things like authentication handling etc. */
 export class ExtensionHost {
@@ -181,14 +183,14 @@ export class ExtensionHost {
 
                 if (!connection) {
                     if (showErrorMessages) {
-                        void window.showErrorMessage(`The default Database Connection ${connectionName} is ` +
-                            `not available anymore.`);
+                        void ui.showErrorMessage(`The default Database Connection ${connectionName} is ` +
+                            `not available anymore.`, {});
                     }
                 } else if (dbType && connection.details.dbType !== dbType) {
                     if (showErrorMessages) {
-                        void window.showErrorMessage(`The default Database Connection ${connectionName} is a ` +
+                        void ui.showErrorMessage(`The default Database Connection ${connectionName} is a ` +
                             `${String(connection.details.dbType)} connection. This function requires a ` +
-                            `${String(dbType)} connection.`);
+                            `${String(dbType)} connection.`, {});
                     }
                 } else {
                     return connection;
@@ -212,9 +214,9 @@ export class ExtensionHost {
             }
 
             if (dbType) {
-                void window.showErrorMessage(`Please create a ${String(dbType)} Database Connection first.`);
+                void ui.showErrorMessage(`Please create a ${String(dbType)} Database Connection first.`, {});
             } else {
-                void window.showErrorMessage("Please create a Database Connection first.");
+                void ui.showErrorMessage("Please create a Database Connection first.", {});
             }
 
             return undefined;
@@ -322,7 +324,8 @@ export class ExtensionHost {
             const level = configuration.get<string>("level", "INFO");
 
             void ShellInterface.core.setLogLevel(level).catch((error) => {
-                void window.showErrorMessage("Error while setting log level: " + String(error));
+                const message = convertErrorToString(error);
+                void ui.showErrorMessage(`Error while setting log level: ${message}`, {});
             });
         };
         updateLogLevel();
@@ -606,7 +609,7 @@ export class ExtensionHost {
                     buttons[i] = buttons[i].charAt(0).toUpperCase() + buttons[i].slice(1);
                 }
 
-                void window.showInformationMessage(text.substring(0, match.index), ...buttons).then((value) => {
+                void ui.showInformationMessage(text.substring(0, match.index), {}, ...buttons).then((value) => {
                     resolve(value);
                 });
             } else {
@@ -686,19 +689,19 @@ export class ExtensionHost {
             }
 
             case "showError": {
-                void window.showErrorMessage(request.original.parameter as string);
+                void ui.showErrorMessage(request.original.parameter as string, {});
 
                 return Promise.resolve(true);
             }
 
             case "showWarning": {
-                void window.showWarningMessage(request.original.parameter as string);
+                void ui.showWarningMessage(request.original.parameter as string, {});
 
                 return Promise.resolve(true);
             }
 
             case "showInfo": {
-                void window.showInformationMessage(request.original.parameter as string);
+                void ui.showInformationMessage(request.original.parameter as string, {});
 
                 return Promise.resolve(true);
             }

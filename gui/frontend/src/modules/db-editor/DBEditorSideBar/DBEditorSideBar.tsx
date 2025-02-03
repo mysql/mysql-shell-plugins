@@ -1914,7 +1914,8 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                 clearTimeout(timer);
                 this.ociSectionRef.current!.showProgress = false;
 
-                void ui.showErrorNotification(convertErrorToString(error));
+                const message = convertErrorToString(error);
+                void ui.showErrorMessage(message, {});
 
                 row.getTable().restoreRedraw();
             });
@@ -2084,7 +2085,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
             }
 
             case "msg.mds.configureOciProfiles": {
-                void ui.showWarningNotification("Not implemented yet.");
+                void ui.showWarningMessage("Not implemented yet.", {});
                 break;
             }
 
@@ -2528,7 +2529,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
             }
         } catch (error) {
             const message = convertErrorToString(error);
-            void ui.showErrorNotification(`Error while running command: ${command.command}. ${message}`);
+            void ui.showErrorMessage(`Error while running command: ${command.command}. ${message}`, {});
         }
 
         return true;
@@ -2591,7 +2592,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
             }
         } catch (error) {
             const message = convertErrorToString(error);
-            void ui.showErrorNotification(`Error while running command: ${command.command}. ${message}`);
+            void ui.showErrorMessage(`Error while running command: ${command.command}. ${message}`, {});
         }
 
         return true;
@@ -3032,7 +3033,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                 ++this.refreshRunning;
                 await entry.refresh?.((result?: string | Error) => {
                     if (result instanceof Error) {
-                        void ui.showErrorNotification(convertErrorToString(result));
+                        void ui.showErrorMessage(convertErrorToString(result), {});
                     } else if (typeof result === "string") {
                         void ui.setStatusBarMessage(result, 15000);
                     }
@@ -3043,7 +3044,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
             } catch (error) {
                 clearTimeout(timer);
                 this.connectionSectionRef.current!.showProgress = false;
-                void ui.showErrorNotification(convertErrorToString(error));
+                void ui.showErrorMessage(convertErrorToString(error), {});
 
                 return;
             } finally {
@@ -3148,8 +3149,8 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                 default:
             }
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            void ui.showErrorNotification("Failed to refresh tree entries: " + message);
+            const message = convertErrorToString(error);
+            void ui.showErrorMessage(`Failed to refresh tree entries: ${message}`, {});
         } finally {
             table.endUpdate();
         }
@@ -3197,8 +3198,8 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                 default:
             }
         } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            void ui.showErrorNotification("Failed to refresh tree entries: " + message);
+            const message = convertErrorToString(error);
+            void ui.showErrorMessage(`Failed to refresh tree entries: ${message}`, {});
         } finally {
             table.endUpdate();
         }

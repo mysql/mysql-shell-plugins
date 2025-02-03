@@ -67,7 +67,7 @@ import { requisitions } from "../../supplement/Requisitions.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType } from "../../supplement/ShellInterface/index.js";
 import { convertRows, generateColumnInfo } from "../../supplement/index.js";
-import { uuid } from "../../utilities/helpers.js";
+import { convertErrorToString, uuid } from "../../utilities/helpers.js";
 import { ui } from "../../app-logic/UILayer.js";
 
 interface IGlobalStatus {
@@ -164,7 +164,8 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 }
             })
             .catch((error) => {
-                void ui.showErrorNotification("Cannot load performance schema: " + String(error));
+                const message = convertErrorToString(error);
+                void ui.showErrorMessage("Cannot load performance schema: " + message, {});
             });
         this.addHandledProperties("backend", "toolbarItems");
     }
@@ -721,8 +722,8 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
     private handleKillConnection = (): void => {
         if ((this.selectedRow?.TYPE as string) === "BACKGROUND") {
-            void ui.showErrorNotification(`Connection ${this.getSelectedRowValue("PROCESSLIST_ID")} ` +
-                `cannot be killed`);
+            void ui.showErrorMessage(`Connection ${this.getSelectedRowValue("PROCESSLIST_ID")} ` +
+                `cannot be killed`, {});
 
             return;
         }
@@ -731,7 +732,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
 
     private handleKillQuery = (): void => {
         if ((this.selectedRow?.TYPE as string) === "BACKGROUND") {
-            void ui.showErrorNotification(`Thread ${this.getSelectedRowValue("THREAD_ID")} cannot be killed`);
+            void ui.showErrorMessage(`Thread ${this.getSelectedRowValue("THREAD_ID")} cannot be killed`, {});
 
             return;
         }
@@ -774,8 +775,9 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 await backend.execute(`KILL CONNECTION ${id}`);
                 await this.updateValues();
             } catch (reason) {
-                void ui.showErrorNotification(`Error executing KILL CONNECTION on connectionId: ${id}, ` +
-                    `error: ${String(reason)}`);
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`Error executing KILL CONNECTION on connectionId: ${id}, ` +
+                    `error: ${message}`, {});
             }
         }
     };
@@ -792,8 +794,9 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 await backend.execute(`KILL QUERY ${id}`);
                 await this.updateValues();
             } catch (reason) {
-                void ui.showErrorNotification(`Error executing KILL QUERY on threadId:` +
-                    `${this.selectedRow?.THREAD_ID as string}, error: ${String(reason)}`);
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`Error executing KILL QUERY on threadId:` +
+                    `${this.selectedRow?.THREAD_ID as string}, error: ${message}`, {});
             }
         }
     };
@@ -937,7 +940,8 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 this.setState({ waitingText });
             }
         }).catch((reason) => {
-            void ui.showErrorNotification(`Error looking up metadata lock information error: ${reason}`);
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Error looking up metadata lock information error: ${message}`, {});
         });
     };
 
@@ -972,8 +976,8 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 this.setState({ grantedLocks: resultSet });
             }
         }).catch((error: Error) => {
-            void ui.showErrorNotification(`Error looking up metadata lock information error: ` +
-                `${error.message}`);
+            const message = convertErrorToString(error);
+            void ui.showErrorMessage(`Error looking up metadata lock information error: ${message}`, {});
         });
     };
 

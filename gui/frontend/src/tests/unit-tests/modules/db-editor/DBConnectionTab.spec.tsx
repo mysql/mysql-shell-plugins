@@ -255,7 +255,7 @@ describe("DBConnectionTab tests", (): void => {
 
         expect(result).toBe(true);
         expect(sqlTransactionFunctionCalled).toBe(true);
-        expect(uiLayerMock.showInformationNotification).toHaveBeenCalled();
+        expect(uiLayerMock.showInformationMessage).toHaveBeenCalled();
 
         requisitions.unregister("sqlTransactionChanged");
 
@@ -810,8 +810,8 @@ describe("DBConnectionTab tests", (): void => {
         let result = await requisitions.execute("selectFile", fileResultSaveValid);
         expect(result).toBe(true);
         expect(saveMdsChatOptionsMock).toHaveBeenCalledWith("/valid/path/to/save", {});
-        expect(uiLayerMock.showInformationNotification).toHaveBeenCalled();
-        (uiLayerMock.showInformationNotification as jest.Mock).mockClear();
+        expect(uiLayerMock.showInformationMessage).toHaveBeenCalled();
+        (uiLayerMock.showInformationMessage as jest.Mock).mockClear();
 
         saveMdsChatOptionsMock.mockReset();
 
@@ -834,7 +834,7 @@ describe("DBConnectionTab tests", (): void => {
         result = await requisitions.execute("selectFile", fileResultUnknown);
         expect(result).toBe(true);
         expect(saveMdsChatOptionsMock).toHaveBeenCalledTimes(0);
-        expect(uiLayerMock.showInformationNotification).not.toHaveBeenCalled();
+        expect(uiLayerMock.showInformationMessage).not.toHaveBeenCalled();
 
         saveMdsChatOptionsMock.mockRestore();
         loadMdsChatOptionsMock.mockRestore();

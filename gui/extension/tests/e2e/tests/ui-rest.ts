@@ -428,7 +428,7 @@ describe("MySQL REST Service", () => {
                 await new E2ERestObject(restGlobalService.restSchemas[0], table).add();
 
                 let notification = `The MRS Database Object ${table.dataMapping.dbObject}`;
-                notification += " was updated successfully";
+                notification += " was successfully updated";
                 await driver.wait(Workbench.untilNotificationExists(notification), constants.wait5seconds);
 
                 await driver.wait(dbTreeSection.tree
@@ -793,7 +793,7 @@ describe("MySQL REST Service", () => {
             await abcTable.edit(editedObject);
 
             let notification = `The MRS Database Object ${editedObject.dataMapping.dbObject}`;
-            notification += ` was updated successfully`;
+            notification += ` was successfully updated`;
             await driver.wait(Workbench.untilNotificationExists(notification), constants.wait5seconds);
             await driver.wait(dbTreeSection.tree.untilExists(abcTable.treeName), constants.wait5seconds);
             expect(await abcTable.get()).to.deep.equal(editedObject);

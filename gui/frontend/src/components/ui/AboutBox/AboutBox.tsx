@@ -23,24 +23,24 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "./AboutBox.css";
 import logo from "../../../assets/images/modules/module-shell.svg";
+import "./AboutBox.css";
 
 import { ComponentChild } from "preact";
 
+import { ui } from "../../../app-logic/UILayer.js";
 import { ShellInterface } from "../../../supplement/ShellInterface/ShellInterface.js";
-import { Divider } from "../Divider/Divider.js";
-import { requisitions } from "../../../supplement/Requisitions.js";
 import { IBackendInformation } from "../../../supplement/ShellInterface/index.js";
-import { IComponentState, ComponentBase } from "../Component/ComponentBase.js";
-import { Orientation, ContentAlignment, Container, ContentWrap } from "../Container/Container.js";
+import { helpUrlMap } from "../../../supplement/index.js";
+import { convertErrorToString } from "../../../utilities/helpers.js";
+import { ComponentBase, IComponentState } from "../Component/ComponentBase.js";
+import { Container, ContentAlignment, ContentWrap, Orientation } from "../Container/Container.js";
+import { Divider } from "../Divider/Divider.js";
 import { Grid } from "../Grid/Grid.js";
 import { GridCell } from "../Grid/GridCell.js";
+import { HelpLinkList } from "../HelpLinkList/HelpLinkList.js";
 import { Icon } from "../Icon/Icon.js";
 import { Label } from "../Label/Label.js";
-import { HelpLinkList } from "../HelpLinkList/HelpLinkList.js";
-import { helpUrlMap } from "../../../supplement/index.js";
-import { ui } from "../../../app-logic/UILayer.js";
 
 interface IAboutBoxState extends IComponentState {
     data?: IBackendInformation;
@@ -57,7 +57,8 @@ export class AboutBox extends ComponentBase<{}, IAboutBoxState> {
         ShellInterface.core.backendInformation.then((data) => {
             this.setState({ data });
         }).catch((reason) => {
-            void ui.showErrorNotification("Backend Error: " + String(reason));
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage("Backend Error: " + message, {});
         });
     }
 

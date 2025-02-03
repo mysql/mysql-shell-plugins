@@ -162,11 +162,11 @@ export class SidebarCommandHandler {
                             true,
                         );
                         requisitions.writeToClipboard(result);
-                        void ui.showInformationNotification("The CREATE statement was copied to the system clipboard");
+                        void ui.showInformationMessage("The CREATE statement was copied to the system clipboard", {});
                         success = true;
                     } catch (error) {
                         const message = convertErrorToString(error);
-                        void ui.showErrorNotification(`Error getting the SQL for this REST Service: ${message}`);
+                        void ui.showErrorMessage(`Error getting the SQL for this REST Service: ${message}`, {});
                     }
 
                     break;
@@ -230,11 +230,11 @@ export class SidebarCommandHandler {
                     const service = entry as ICdmRestServiceEntry;
                     try {
                         await connection.backend?.mrs.setCurrentService(service.details.id);
-                        void ui.showInformationNotification("The MRS service has been set as the new default service.");
+                        void ui.showInformationMessage("The MRS service has been set as the new default service.", {});
                         success = true;
                     } catch (reason) {
                         const message = convertErrorToString(reason);
-                        void ui.showErrorNotification(`Error setting the default MRS service: ${message}`);
+                        void ui.showErrorMessage(`Error setting the default MRS service: ${message}`, {});
                     }
 
                     break;
@@ -270,20 +270,20 @@ export class SidebarCommandHandler {
                                 if (authApp !== undefined) {
                                     try {
                                         await connection.backend.mrs.linkAuthAppToService(authApp.id!, service.id);
-                                        void ui.showInformationNotification("The MRS Authentication App has " +
-                                            `been linked to service ${service.details.name}`);
+                                        void ui.showInformationMessage("The MRS Authentication App has " +
+                                            `been linked to service ${service.details.name}`, {});
                                         success = true;
                                     } catch (reason) {
                                         const message = convertErrorToString(reason);
-                                        void ui.showErrorNotification("Error linking an MRS Authentication App: " +
-                                            `${message}`);
+                                        void ui.showErrorMessage("Error linking an MRS Authentication App: " +
+                                            `${message}`, {});
                                     }
                                 }
                             }
                         }
                     } catch (reason) {
                         const message = convertErrorToString(reason);
-                        void ui.showErrorNotification(`Error adding a new MRS Authentication App: ${message}`);
+                        void ui.showErrorMessage(`Error adding a new MRS Authentication App: ${message}`, {});
                     }
 
                     break;
@@ -300,7 +300,7 @@ export class SidebarCommandHandler {
                             serviceDetails) ?? false;
                     } catch (reason) {
                         const message = convertErrorToString(reason);
-                        void ui.showErrorNotification(`Error adding a new MRS Authentication App: ${message}`);
+                        void ui.showErrorMessage(`Error adding a new MRS Authentication App: ${message}`, {});
                     }
 
                     break;
@@ -314,7 +314,7 @@ export class SidebarCommandHandler {
                             connection.backend, app.details) ?? false;
                     } catch (reason) {
                         const message = convertErrorToString(reason);
-                        void ui.showErrorNotification(`Error adding a new MRS Authentication App: ${message}`);
+                        void ui.showErrorMessage(`Error adding a new MRS Authentication App: ${message}`, {});
                     }
 
                     break;
@@ -342,10 +342,11 @@ export class SidebarCommandHandler {
                                 await connection.backend?.mrs.deleteAuthApp(app.details.id);
 
                                 success = true;
-                                void ui.showInformationNotification(`The MRS Authentication App ` +
-                                    `"${app.details.name}" has been deleted.`);
+                                void ui.showInformationMessage(`The MRS Authentication App ` +
+                                    `"${app.details.name}" has been deleted.`, {});
                             } catch (error) {
-                                void ui.showErrorNotification(`Error removing an Auth App: ${String(error)}`);
+                                const message = convertErrorToString(error);
+                                void ui.showErrorMessage(`Error removing an Auth App: ${message}`, {});
                             }
                         }
                     }
@@ -382,13 +383,13 @@ export class SidebarCommandHandler {
                                 try {
                                     await connection.backend.mrs.linkAuthAppToService(authApp.details.id!,
                                         service.id);
-                                    void ui.showInformationNotification("The MRS Authentication App has been linked " +
-                                        `to service ${service.name}`);
+                                    void ui.showInformationMessage("The MRS Authentication App has been linked " +
+                                        `to service ${service.name}`, {});
                                     success = true;
                                 } catch (reason) {
                                     const message = convertErrorToString(reason);
-                                    void ui.showErrorNotification("Error linking an MRS Authentication App: " +
-                                        `${message}`);
+                                    void ui.showErrorMessage("Error linking an MRS Authentication App: " +
+                                        `${message}`, {});
                                 }
                             }
                         }
@@ -420,10 +421,10 @@ export class SidebarCommandHandler {
                                     app.parent.details.id);
 
                                 success = true;
-                                void ui.showInformationNotification(`The MRS Authentication App ` +
-                                    `"${app.details.name}" has been unlinked.`);
+                                void ui.showInformationMessage(`The MRS Authentication App ` +
+                                    `"${app.details.name}" has been unlinked.`, {});
                             } catch (error) {
-                                void ui.showErrorNotification(`Error removing an Auth App: ${String(error)}`);
+                                void ui.showErrorMessage(`Error removing an Auth App: ${String(error)}`, {});
                             }
                         }
                     }
@@ -449,9 +450,10 @@ export class SidebarCommandHandler {
                         try {
                             await connection.backend?.mrs.deleteService(service.details.id);
                             success = true;
-                            void ui.showInformationNotification("The MRS service has been deleted successfully.");
+                            void ui.showInformationMessage("The MRS service has been deleted successfully.", {});
                         } catch (error) {
-                            void ui.showErrorNotification(`Error removing an MRS service: ${String(error)}`);
+                            const message = convertErrorToString(error);
+                            void ui.showErrorMessage(`Error removing an MRS service: ${message}`, {});
                         }
                     }
 
@@ -487,9 +489,10 @@ export class SidebarCommandHandler {
                             const schema = entry as ICdmRestSchemaEntry;
                             await connection.backend.mrs.deleteSchema(schema.details.id, schema.details.serviceId);
                             success = true;
-                            void ui.showInformationNotification("The MRS schema has been deleted successfully.");
+                            void ui.showInformationMessage("The MRS schema has been deleted successfully.", {});
                         } catch (error) {
-                            void ui.showErrorNotification(`Error removing an MRS schema: ${String(error)}`);
+                            const message = convertErrorToString(error);
+                            void ui.showErrorMessage(`Error removing an MRS schema: ${message}`, {});
                         }
                     }
 
@@ -521,7 +524,7 @@ export class SidebarCommandHandler {
 
                             } catch (error) {
                                 const message = convertErrorToString(error);
-                                void ui.showErrorNotification(`Error while adding the object: ${message}`);
+                                void ui.showErrorMessage(`Error while adding the object: ${message}`, {});
 
                                 return { success: false };
                             }
@@ -529,8 +532,8 @@ export class SidebarCommandHandler {
                         }
 
                         default: {
-                            void ui.showErrorNotification(
-                                `The database object type '${entry.caption}' is not supported at this time`);
+                            void ui.showErrorMessage(
+                                `The database object type '${entry.caption}' is not supported at this time`, {});
                         }
                     }
 
@@ -554,7 +557,7 @@ export class SidebarCommandHandler {
                     if (path) {
                         requisitions.writeToClipboard(path.toString());
                         success = true;
-                        void ui.showInformationNotification("The DB Object Path was copied to the system clipboard");
+                        void ui.showInformationMessage("The DB Object Path was copied to the system clipboard", {});
                     }
 
                     break;
@@ -567,9 +570,9 @@ export class SidebarCommandHandler {
                             true);
                         requisitions.writeToClipboard(result);
                         success = true;
-                        void ui.showInformationNotification("The CREATE statement was copied to the system clipboard");
+                        void ui.showInformationMessage("The CREATE statement was copied to the system clipboard", {});
                     } catch (reason) {
-                        void ui.showErrorNotification(`Error getting the SQL for this REST Schema`);
+                        void ui.showErrorMessage(`Error getting the SQL for this REST Schema`, {});
                     }
 
                     break;
@@ -581,9 +584,9 @@ export class SidebarCommandHandler {
                         const result = await entry.connection.backend.mrs.getDbObjectCreateStatement(object.details.id);
                         requisitions.writeToClipboard(result);
                         success = true;
-                        void ui.showInformationNotification("The CREATE statement was copied to the system clipboard");
+                        void ui.showInformationMessage("The CREATE statement was copied to the system clipboard", {});
                     } catch (reason) {
-                        void ui.showErrorNotification(`Error getting the SQL for this REST DB Object`);
+                        void ui.showErrorMessage(`Error getting the SQL for this REST DB Object`, {});
                     }
 
                     break;
@@ -607,9 +610,10 @@ export class SidebarCommandHandler {
                             const dbObject = entry as ICdmRestDbObjectEntry;
                             await connection.backend.mrs.deleteDbObject(dbObject.details.id);
                             success = true;
-                            void ui.showInformationNotification("The MRS DB object has been deleted successfully.");
+                            void ui.showInformationMessage("The MRS DB object has been deleted successfully.", {});
                         } catch (error) {
-                            void ui.showErrorNotification(`Error removing an MRS schema: ${String(error)}`);
+                            const message = convertErrorToString(error);
+                            void ui.showErrorMessage(`Error removing an MRS schema: ${message}`, {});
                         }
                     }
 
@@ -655,11 +659,11 @@ export class SidebarCommandHandler {
                             const user = entry as ICdmRestUserEntry;
                             await connection.backend.mrs.deleteUser(user.details.id!);
                             success = true;
-                            void ui.showInformationNotification(
-                                `The MRS user ${user.caption} has been deleted successfully.`);
+                            void ui.showInformationMessage(`The MRS user ${user.caption} has been deleted ` +
+                                `successfully.`, {});
                         } catch (error) {
                             const message = convertErrorToString(error);
-                            void ui.showErrorNotification(`Error removing an MRS user: ${message}`);
+                            void ui.showErrorMessage(`Error removing an MRS user: ${message}`, {});
                         }
                     }
 
@@ -714,7 +718,7 @@ export class SidebarCommandHandler {
                     if (command.command === "msg.copyNameToClipboard") {
                         requisitions.writeToClipboard(entry.caption);
 
-                        void ui.showInformationNotification("The name was copied to the system clipboard");
+                        void ui.showInformationMessage("The name was copied to the system clipboard", {});
                         success = true;
                     } else {
                         const pageId = String(connection.details.id);
@@ -789,8 +793,8 @@ export class SidebarCommandHandler {
                                 if (command.command === "msg.copyCreateStatementToClipboard") {
                                     requisitions.writeToClipboard(row[index]);
 
-                                    void ui.showInformationNotification("The CREATE statement was copied to the " +
-                                        "system clipboard");
+                                    void ui.showInformationMessage("The CREATE statement was copied to the " +
+                                        "system clipboard", {});
                                     success = true;
                                 } else {
                                     const pageId = String(connection.details.id);
@@ -834,7 +838,7 @@ export class SidebarCommandHandler {
                             };
                         } catch (error) {
                             const message = convertErrorToString(error);
-                            void ui.showErrorNotification(`Error while adding the schema: ${message}.`);
+                            void ui.showErrorMessage(`Error while adding the schema: ${message}.`, {});
 
                             return { success: false };
                         }
@@ -898,7 +902,7 @@ export class SidebarCommandHandler {
                 if (path) {
                     requisitions.writeToClipboard(path.toString());
                     success = true;
-                    void ui.showInformationNotification("The DB Object Path was copied to the system clipboard");
+                    void ui.showInformationMessage("The DB Object Path was copied to the system clipboard", {});
                 }
 
                 break;
@@ -1032,10 +1036,10 @@ export class SidebarCommandHandler {
 
             await entry.backend.mrs.configure(enableMrs);
 
-            void ui.showInformationNotification("MySQL REST Service configured successfully.");
+            void ui.showInformationMessage("MySQL REST Service configured successfully.", {});
         } catch (reason) {
             const message = convertErrorToString(reason);
-            void ui.showErrorNotification("Error while configuring MRS: " + message);
+            void ui.showErrorMessage("Error while configuring MRS: " + message, {});
         }
 
         return true;
@@ -1055,9 +1059,9 @@ export class SidebarCommandHandler {
 
             return new URL(url);
         } catch (error) {
-            let errorMsg = `An error occurred when trying to build the DB Object Path. `;
-            errorMsg += convertErrorToString(error);
-            void ui.showErrorNotification(errorMsg);
+            let message = `An error occurred when trying to build the DB Object Path. `;
+            message += convertErrorToString(error);
+            void ui.showErrorMessage(message, {});
         }
     };
 
@@ -1089,10 +1093,10 @@ export class SidebarCommandHandler {
                 await this.connectionDataModel.dropItem(entry);
                 await this.connectionDataModel.removeEntry(entry);
 
-                void ui.showInformationNotification(`The object ${entry.caption} has been dropped successfully.`);
+                void ui.showInformationMessage(`The object ${entry.caption} has been dropped successfully.`, {});
             } catch (error) {
                 const message = convertErrorToString(error);
-                void ui.showErrorNotification(`Error dropping the object: ${message}`);
+                void ui.showErrorMessage(`Error dropping the object: ${message}`, {});
             }
         }
     }
@@ -1181,7 +1185,7 @@ export class SidebarCommandHandler {
                 if (response.closure === DialogResponseClosure.Accept) {
                     dbObject.dbSchemaId = await backend.mrs.addSchema(service.id,
                         entry.schema, 1, `/${convertSnakeToCamelCase(entry.schema)}`, false, null, null, undefined);
-                    void ui.showInformationNotification(`The MRS schema ${entry.schema} has been added successfully.`);
+                    void ui.showInformationMessage(`The MRS schema ${entry.schema} has been added successfully.`, {});
                 } else {
                     throw new Error("Operation cancelled.");
                 }
@@ -1208,14 +1212,13 @@ export class SidebarCommandHandler {
     private async checkMrsStatus(backend: ShellInterfaceSqlEditor, needService: boolean): Promise<boolean> {
         const status = await backend.mrs.status();
         if (!status.serviceConfigured) {
-            void ui.showErrorNotification(
-                `The REST Service support is not configured yet for this connection.`);
+            void ui.showErrorMessage(`The REST Service support is not configured yet for this connection.`, {});
 
             return false;
         }
 
         if (needService && status.serviceCount === 0) {
-            void ui.showErrorNotification(`Please create a REST Service first.`);
+            void ui.showErrorMessage(`Please create a REST Service first.`, {});
 
             return false;
         }

@@ -58,7 +58,7 @@ import { ShellModule } from "../modules/shell/ShellModule.js";
 import { versionMatchesExpected } from "../utilities/helpers.js";
 import { ApplicationDB } from "./ApplicationDB.js";
 import { DialogHost } from "./DialogHost.js";
-import { registerUiLayer, ui } from "./UILayer.js";
+import { registerUiLayer, ui, type MessageOptions, type Thenable } from "./UILayer.js";
 import {
     DialogResponseClosure, DialogType, IDialogResponse, minimumShellVersion, type IServicePasswordRequest,
 } from "./general-types.js";
@@ -131,8 +131,8 @@ export class App extends Component<{}, IAppState> {
             // Check if the connected shell has the minimum required version.
             const info = await ShellInterface.core.backendInformation ?? { major: 0, minor: 0, patch: 0 };
             if (!versionMatchesExpected([info.major, info.minor, info.patch], minimumShellVersion)) {
-                void ui.showErrorNotification(`The connected shell has an unsupported version: ` +
-                    `${info.major}.${info.minor}.${info.patch}`);
+                void ui.showErrorMessage(`The connected shell has an unsupported version: ` +
+                    `${info.major}.${info.minor}.${info.patch}`, {});
 
                 return Promise.resolve(false);
             }
@@ -239,12 +239,13 @@ export class App extends Component<{}, IAppState> {
 
     // IUILayer interface implementation
 
-    public showInformationNotification = async (message: string, timeout?: number): Promise<string | undefined> => {
+    public showInformationMessage = <T extends string>(message: string, _options: MessageOptions,
+        ..._items: T[]): Thenable<string | undefined> => {
         // Forward info messages to the hosting application.
         if (appParameters.embedded) {
             const result = requisitions.executeRemote("showInfo", message);
             if (result) {
-                return;
+                return Promise.resolve(undefined);
             }
         }
 
@@ -252,16 +253,18 @@ export class App extends Component<{}, IAppState> {
             return this.#notificationCenterRef.current.showNotification({
                 type: NotificationType.Information,
                 text: message,
-                timeout,
             });
         }
+
+        return Promise.resolve(undefined);
     };
 
-    public showWarningNotification = async (message: string): Promise<string | undefined> => {
+    public showWarningMessage = <T extends string>(message: string, _options: MessageOptions,
+        ..._items: T[]): Thenable<string | undefined> => {
         if (appParameters.embedded) {
             const result = requisitions.executeRemote("showWarning", message);
             if (result) {
-                return;
+                return Promise.resolve(undefined);
             }
         }
 
@@ -271,13 +274,16 @@ export class App extends Component<{}, IAppState> {
                 text: message,
             });
         }
+
+        return Promise.resolve(undefined);
     };
 
-    public showErrorNotification = async (message: string): Promise<string | undefined> => {
+    public showErrorMessage = <T extends string>(message: string, _options: MessageOptions,
+        ..._items: T[]): Thenable<string | undefined> => {
         if (appParameters.embedded) {
             const result = requisitions.executeRemote("showError", message);
             if (result) {
-                return;
+                return Promise.resolve(undefined);
             }
         }
 
@@ -287,6 +293,8 @@ export class App extends Component<{}, IAppState> {
                 text: message,
             });
         }
+
+        return Promise.resolve(undefined);
     };
 
     public createStatusBarItem(alignment?: StatusBarAlignment, priority?: number): IStatusBarItem;
@@ -395,7 +403,7 @@ export class App extends Component<{}, IAppState> {
             this.setState({ loginInProgress: false });
         }).catch( /* istanbul ignore next */(reason) => {
             const message = reason instanceof Error ? reason.message : String(reason);
-            void ui.showErrorNotification(`Cannot retrieve the module list: ${message}`);
+            void ui.showErrorMessage(`Cannot retrieve the module list: ${message}`, {});
         });
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -38,6 +38,7 @@ import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo.js";
 import type { EditorLanguage, INewEditorRequest, IScriptRequest } from "../../../frontend/src/supplement/index.js";
 import type { IShellSessionDetails } from "../../../frontend/src/supplement/ShellInterface/index.js";
 import { WebviewProvider } from "./WebviewProvider.js";
+import { ui } from "../../../frontend/src/app-logic/UILayer.js";
 
 export class DBConnectionViewProvider extends WebviewProvider {
     /**
@@ -463,7 +464,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
 
                             return resolve(true);
                         }).catch(() => {
-                            void window.showErrorMessage(`Could not save notebook to ${path}.`);
+                            void ui.showErrorMessage(`Could not save notebook to ${path}.`, {});
 
                             return resolve(false);
                         });
@@ -489,7 +490,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
 
                         return resolve(true);
                     }).catch(() => {
-                        void window.showErrorMessage(`Could not save notebook to ${path}.`);
+                        void ui.showErrorMessage(`Could not save notebook to ${path}.`, {});
 
                         return resolve(false);
                     });
@@ -530,7 +531,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
                     readFile(path, { encoding: "utf-8" }).then((content) => {
                         this.requisitions?.executeRemote("editorLoadNotebook", { content, standalone: false });
                     }).catch(() => {
-                        void window.showErrorMessage(`Could not load notebook from ${path}.`);
+                        void ui.showErrorMessage(`Could not load notebook from ${path}.`, {});
                     });
                 }
 

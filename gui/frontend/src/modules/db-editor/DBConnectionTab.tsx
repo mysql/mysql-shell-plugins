@@ -34,8 +34,10 @@ import { ui } from "../../app-logic/UILayer.js";
 import {
     DBDataType, IColumnInfo, IDictionary, IServicePasswordRequest, IStatusInfo, MessageType,
 } from "../../app-logic/general-types.js";
-import { ITableColumn, IDbEditorResultSetData,
-    type ISqlEditorHistoryEntry } from "../../communication/ProtocolGui.js";
+import {
+    ITableColumn, IDbEditorResultSetData,
+    type ISqlEditorHistoryEntry,
+} from "../../communication/ProtocolGui.js";
 import { IMdsChatData, IMdsChatStatus } from "../../communication/ProtocolMds.js";
 import { ResponseError } from "../../communication/ResponseError.js";
 import { ChatOptionAction, ChatOptions, IChatOptionsState } from "../../components/Chat/ChatOptions.js";
@@ -559,10 +561,10 @@ Execute \\help or \\? for help;`;
             await connection.backend.execute("commit");
             await requisitions.execute("sqlTransactionChanged", undefined);
 
-            void ui.showInformationNotification("Commit successful.");
+            void ui.showInformationMessage("Commit successful.", {});
         } catch (reason) /* istanbul ignore next */ {
-            const message = reason instanceof Error ? reason.message : String(reason);
-            await ui.showErrorNotification("Error while committing changes: " + message);
+            const message = convertErrorToString(reason);
+            await ui.showErrorMessage(`Error while committing changes: ${message}`, {});
         }
 
         return true;
@@ -578,7 +580,7 @@ Execute \\help or \\? for help;`;
         await connection.backend.execute("rollback");
         await requisitions.execute("sqlTransactionChanged", undefined);
 
-        void ui.showInformationNotification("Rollback successful.");
+        void ui.showInformationMessage("Rollback successful.", {});
 
         return true;
     };
@@ -589,8 +591,8 @@ Execute \\help or \\? for help;`;
             pageSize = 1000;
         }
 
-        await this.executeQuery(data.context as SQLExecutionContext, 0, data.page, pageSize,
-            {}, data.sql, data.oldResultId);
+        await this.executeQuery(data.context as SQLExecutionContext, 0, data.page, pageSize, {}, data.sql,
+            data.oldResultId);
 
         return true;
     };
@@ -770,8 +772,8 @@ Execute \\help or \\? for help;`;
                 }
             }
         } catch (reason) {
-            const message = reason instanceof ResponseError ? reason.message : String(reason);
-            void ui.showErrorNotification("Accept Password Error: " + message);
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Accept Password Error: ${message}`, {});
         }
 
         return Promise.resolve(false);
@@ -812,14 +814,14 @@ Execute \\help or \\? for help;`;
                 try {
                     content = JSON.parse(text);
                 } catch (reason) {
-                    void ui.showErrorNotification("The notebook file is not valid JSON.");
+                    void ui.showErrorMessage("The notebook file is not valid JSON.", {});
 
                     return;
                 }
             }
 
             if (content.type !== "MySQLNotebook") {
-                void ui.showErrorNotification("Invalid notebook content");
+                void ui.showErrorMessage("Invalid notebook content", {});
             } else {
                 try {
                     this.loadingNotebook = true;
@@ -881,7 +883,7 @@ Execute \\help or \\? for help;`;
                 } catch (error) {
                     this.loadingNotebook = false;
                     const message = convertErrorToString(error);
-                    void ui.showErrorNotification("Error while loading notebook: " + message);
+                    void ui.showErrorMessage(`Error while loading notebook: ${message}`, {});
                 }
             }
         };
@@ -907,7 +909,7 @@ Execute \\help or \\? for help;`;
                             }
                         }
                     } else {
-                        void ui.showErrorNotification("Cannot read notebook file.");
+                        void ui.showErrorMessage("Cannot read notebook file.", {});
                     }
                 };
 
@@ -1908,8 +1910,9 @@ Execute \\help or \\? for help;`;
             } catch (e) {
                 statusBarItem.dispose();
 
-                // Ignore exception when MRS is not configured
-                void ui.showErrorNotification(`MRS SDK Error: ${String(e)}`);
+                // Ignore exception when MRS is not configured.
+                const message = convertErrorToString(e);
+                void ui.showErrorMessage(`MRS SDK Error: ${message}`, {});
 
                 return false;
             }
@@ -1999,7 +2002,7 @@ Execute \\help or \\? for help;`;
                 this.forceUpdate();
             } catch (error) {
                 const message = convertErrorToString(error);
-                void ui.showErrorNotification(`Unable to create execution history entry. Error: ${message}`);
+                void ui.showErrorMessage(`Unable to create execution history entry. Error: ${message}`, {});
             }
         }
 
@@ -2815,8 +2818,8 @@ Execute \\help or \\? for help;`;
                     try {
                         void await connection?.backend.mhs.saveMdsChatOptions(fileResult.path[0], options);
 
-                        void ui.showInformationNotification(
-                            `The HeatWave options have been saved successfully to ${fileResult.path[0]}`);
+                        void ui.showInformationMessage(
+                            `The HeatWave options have been saved successfully to ${fileResult.path[0]}`, {});
                     } catch (reason) /* istanbul ignore next */ {
                         let content: string;
 
@@ -2831,7 +2834,7 @@ Execute \\help or \\? for help;`;
                             content = "Error: " + content.substring(shellErrorHeader.length);
                         }
 
-                        void ui.showErrorNotification(content);
+                        void ui.showErrorMessage(content, {});
                     }
                 }
 
@@ -2848,8 +2851,8 @@ Execute \\help or \\? for help;`;
                         if (id && onChatOptionsChange) {
                             onChatOptionsChange(id, { options });
 
-                            void ui.showInformationNotification(
-                                `The HeatWave options have been loaded successfully from ${fileResult.path[0]}`);
+                            void ui.showInformationMessage(
+                                `The HeatWave options have been loaded successfully from ${fileResult.path[0]}`, {});
                         }
                     } catch (reason) /* istanbul ignore next */ {
                         let content: string;
@@ -2865,7 +2868,7 @@ Execute \\help or \\? for help;`;
                             content = "Error: " + content.substring(shellErrorHeader.length);
                         }
 
-                        void ui.showErrorNotification(content);
+                        void ui.showErrorMessage(content, {});
                     }
                 }
                 break;

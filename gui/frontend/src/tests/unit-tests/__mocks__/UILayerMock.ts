@@ -40,9 +40,9 @@ const statusBarItemMock: IStatusBarItem = {
 };
 
 export const uiLayerMock: IUILayer = {
-    showInformationNotification: jest.fn().mockReturnValue(Promise.resolve(undefined)),
-    showWarningNotification: jest.fn().mockReturnValue(Promise.resolve(undefined)),
-    showErrorNotification: jest.fn().mockReturnValue(Promise.resolve(undefined)),
+    showInformationMessage: jest.fn().mockReturnValue(Promise.resolve(undefined)),
+    showWarningMessage: jest.fn().mockReturnValue(Promise.resolve(undefined)),
+    showErrorMessage: jest.fn().mockReturnValue(Promise.resolve(undefined)),
     createStatusBarItem: jest.fn().mockReturnValue(statusBarItemMock),
     setStatusBarMessage: jest.fn(),
     confirm: jest.fn(),
