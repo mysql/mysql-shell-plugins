@@ -578,7 +578,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
-        });
+        }, true, ["bla"]);
 
         return response.result;
     }

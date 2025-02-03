@@ -858,7 +858,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                             <Label className="datatype" caption={
                                 // Reverse order because of CSS {direction: rtl;} setting
                                 `${cellData.field.dbColumn?.isArray ? "[ ]" : ""}${this.getJsonFieldDatatype(cellData)}`
-                            } />
+                            } data-tooltip={cellData.field.jsonSchemaDef}/>
                         </>
                     }
                 </Container>
@@ -1302,7 +1302,9 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         }
 
         let datatype = "";
-        if (cellData.field.sdkOptions?.datatypeName) {
+        if (cellData.field.jsonSchemaDef !== undefined && cellData.field.jsonSchemaDef !== null) {
+            datatype = "JSON Schema";
+        } else if (cellData.field.sdkOptions?.datatypeName) {
             datatype = cellData.field.sdkOptions?.datatypeName;
         } else if (cellData.field.objectReference?.referenceMapping?.referencedSchema !== undefined &&
             cellData.field.objectReference?.referenceMapping?.referencedTable === ""
@@ -1509,6 +1511,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     sdkOptions: storedField?.sdkOptions,
                     comments: storedField?.comments,
                     objectReference: undefined,
+                    jsonSchemaDef: storedField?.jsonSchemaDef ?? column.jsonSchemaDef,
                 };
 
                 if (field.dbColumn?.isPrimary) {

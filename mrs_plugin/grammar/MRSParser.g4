@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify it under the terms of the
  * GNU General Public License, version 2.0, as published by the Free Software Foundation.
@@ -952,7 +952,12 @@ graphQlPair:
         | AT_KEY_SYMBOL
         | AT_DATATYPE_SYMBOL OPEN_PAR_SYMBOL graphQlDatatypeValue CLOSE_PAR_SYMBOL
         | graphQlCrudOptions
+        | graphQlValueJsonSchema
     )? graphQlObj?
+;
+
+graphQlValueJsonSchema:
+    JSON_SYMBOL DATABASE_SYMBOL jsonValue
 ;
 
 graphQlAllowedKeyword:

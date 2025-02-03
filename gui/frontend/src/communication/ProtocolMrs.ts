@@ -1873,6 +1873,7 @@ export interface IMrsTableColumnWithReference {
     referenceMapping?: IMrsTableReference,
     tableSchema: string,
     tableName: string,
+    jsonSchemaDef?: string,
 }
 
 export interface IMrsObjectFieldSdkLanguageOptions {
@@ -1924,6 +1925,7 @@ export interface IMrsObjectFieldWithReference {
     lev?: number,
     caption?: string,
     storedDbColumn?: IMrsTableColumn,
+    jsonSchemaDef?: string,
 }
 
 export interface IMrsObjectSdkLanguageOptions {

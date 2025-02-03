@@ -1,8 +1,8 @@
 /* MRS Grammar Test
-Copyright (c) 2023, 2024, Oracle and/or its affiliates.*/
+Copyright (c) 2023, 2025, Oracle and/or its affiliates.*/
 
 # cSpell:ignore gtid
-CONFIGURE REST METADATA
+/* CONFIGURE REST METADATA
     ENABLED
     UPDATE IF AVAILABLE;
 
@@ -556,8 +556,57 @@ FROM SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService;
 ALTER REST SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService
     PUBLISHED;
 
-/* CREATE REST AUTH APP "MRS" ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService VENDOR MRS;
-
-DROP REST AUTH APP "MRS" ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService;*/
+-- CREATE REST AUTH APP "MRS" ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService VENDOR MRS;
+-- DROP REST AUTH APP "MRS" ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService;
 
 DROP REST SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService;
+
+*/
+
+CREATE OR REPLACE REST SERVICE /myTest;
+
+CREATE OR REPLACE REST SCHEMA /test ON SERVICE /myTest FROM `test`;
+
+CREATE OR REPLACE REST DATA MAPPING VIEW /t1
+ON SERVICE /myTest SCHEMA /test
+AS `test`.`t1` {
+    c1: c1,
+    c2: c2,
+    c3: c3,
+    info: info JSON SCHEMA {
+        "id": "https://dev.mysql.com/mrs/test/test.t1/info",
+        "type": "object",
+        "properties": {
+            "friends": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "minItems": 1,
+                "uniqueItems": true
+            },
+            "nickName": {
+            "type": "string"
+            }
+        },
+        "required": [ "friends" ]
+    },
+    data: data JSON SCHEMA {
+        "id": "https://dev.mysql.com/mrs/test/test.t1/data",
+        "type": "object",
+        "properties": {
+            "hobbies": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "minItems": 0,
+                "uniqueItems": true
+            },
+            "height": {
+                "type": "number"
+            }
+        },
+        "required": [ "height" ]
+    }
+};
