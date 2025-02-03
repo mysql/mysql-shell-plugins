@@ -80,7 +80,7 @@ import { Label } from "../../../components/ui/Label/Label.js";
 import { ITreeGridOptions, TreeGrid } from "../../../components/ui/TreeGrid/TreeGrid.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
 import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { uuidBinary16Base64 } from "../../../utilities/helpers.js";
+import { convertErrorToString, uuidBinary16Base64 } from "../../../utilities/helpers.js";
 import {
     convertCamelToSnakeCase, convertCamelToTitleCase, convertSnakeToCamelCase, convertToPascalCase,
 } from "../../../utilities/string-helpers.js";
@@ -1409,7 +1409,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     initTreeItemsToReduce);
             }
         } catch (reason) {
-            void ui.showErrorNotification(`Backend Error: ${String(reason)}`);
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Backend Error: ${message}`, {});
         }
 
         // Add at tree item that represents the closing of the table
@@ -1841,7 +1842,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     }
                 }
             } catch (reason) {
-                void ui.showErrorNotification(`Backend Error: ${String(reason)}`);
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`Backend Error: ${message}`, {});
             }
 
             await this.fillTreeBasedOnMrsObjectFields();
@@ -2453,7 +2455,8 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             this.performIconClick(treeItem, iconGroup, icon).then(() => {
                 this.updateStateData(data);
             }).catch((e) => {
-                void ui.showErrorNotification(`An error occurred during execution: ${String(e)}`);
+                const message = convertErrorToString(e);
+                void ui.showErrorMessage(`An error occurred during execution: ${message}`, {});
             });
         }
     };

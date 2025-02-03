@@ -1164,7 +1164,8 @@ export class ConnectionDataModel implements ICdmUpdater {
                     actions.push({ action: "remove", entry });
                 }
             } catch (reason) {
-                void ui.showErrorNotification(`Cannot load DB connections: ${String(reason)}`);
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`Cannot load DB connections: ${message}`, {});
 
                 throw reason;
             }
@@ -1839,7 +1840,7 @@ export class ConnectionDataModel implements ICdmUpdater {
             this.notifySubscribers(actions);
         } catch (error) {
             const message = convertErrorToString(error);
-            void ui.showErrorNotification(`An error occurred while retrieving MRS content: ${message}`);
+            void ui.showErrorMessage(`An error occurred while retrieving MRS content: ${message}`, {});
 
             return false;
         }
@@ -1891,7 +1892,7 @@ export class ConnectionDataModel implements ICdmUpdater {
             this.notifySubscribers(actions);
         } catch (error) {
             const message = convertErrorToString(error);
-            void ui.showErrorNotification(`An error occurred while retrieving MRS content: ${message}`);
+            void ui.showErrorMessage(`An error occurred while retrieving MRS content: ${message}`, {});
 
             return false;
         }
@@ -1996,8 +1997,8 @@ export class ConnectionDataModel implements ICdmUpdater {
 
             this.notifySubscribers(actions);
         } catch (error) {
-            void ui.showErrorNotification(`An error occurred while retrieving MRS service details: ` +
-                `${error instanceof Error ? error.message : String(error)}`);
+            const message = convertErrorToString(error);
+            void ui.showErrorMessage(`An error occurred while retrieving MRS service details: ${message}`, {});
 
             return false;
         }
@@ -2064,8 +2065,8 @@ export class ConnectionDataModel implements ICdmUpdater {
                 authAppEntry.users.push(userEntry as ICdmRestUserEntry);
             }
         } catch (error) {
-            void ui.showErrorNotification(`An error occurred while retrieving MRS auth app details: ` +
-                `${error instanceof Error ? error.message : String(error)}`);
+            const message = convertErrorToString(error);
+            void ui.showErrorMessage(`An error occurred while retrieving MRS auth app details: ${message}`, {});
 
             return false;
         }
@@ -2102,8 +2103,8 @@ export class ConnectionDataModel implements ICdmUpdater {
                 contentSetEntry.files.push(fileEntry);
             }
         } catch (error) {
-            void ui.showErrorNotification(`An error occurred while retrieving MRS content files: ` +
-                `${error instanceof Error ? error.message : String(error)}`);
+            const message = convertErrorToString(error);
+            void ui.showErrorMessage(`An error occurred while retrieving MRS content files: ${message}`, {});
 
             return false;
         }
@@ -2147,7 +2148,7 @@ export class ConnectionDataModel implements ICdmUpdater {
             }
         } catch (error) {
             const message = convertErrorToString(error);
-            void ui.showErrorNotification(`An error occurred while retrieving MRS DB objects: ${message}`);
+            void ui.showErrorMessage(`An error occurred while retrieving MRS DB objects: ${message}`, {});
 
             return false;
         }
@@ -2185,7 +2186,7 @@ export class ConnectionDataModel implements ICdmUpdater {
             });
         } catch (error) {
             const message = convertErrorToString(error);
-            void ui.showErrorNotification(`An error occurred while retrieving MRS router services. ${message}`);
+            void ui.showErrorMessage(`An error occurred while retrieving MRS router services. ${message}`, {});
 
             return false;
         }

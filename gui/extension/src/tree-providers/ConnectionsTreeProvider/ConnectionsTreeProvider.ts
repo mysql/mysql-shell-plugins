@@ -35,6 +35,7 @@ import {
     type ConnectionDataModel, type ICdmConnectionEntry,
 } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 
+import { ui } from "../../../../frontend/src/app-logic/UILayer.js";
 import type { IDialogRequest } from "../../../../frontend/src/app-logic/general-types.js";
 import { ShellPromptResponseType, type IPromptReplyBackend } from "../../../../frontend/src/communication/Protocol.js";
 import {
@@ -43,7 +44,6 @@ import {
 import { DBType, IConnectionDetails } from "../../../../frontend/src/supplement/ShellInterface/index.js";
 import { convertErrorToString } from "../../../../frontend/src/utilities/helpers.js";
 import { DBConnectionViewProvider } from "../../WebviewProviders/DBConnectionViewProvider.js";
-import { showModalDialog } from "../../utilities.js";
 import { AdminSectionTreeItem } from "./AdminSectionTreeItem.js";
 import { AdminTreeItem } from "./AdminTreeItem.js";
 import { ConnectionMySQLTreeItem } from "./ConnectionMySQLTreeItem.js";
@@ -354,13 +354,13 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
             // Initialize the entry if it hasn't been done yet.
             await entry.refresh?.((result?: string | Error): void => {
                 if (result instanceof Error) {
-                    void window.showErrorMessage(result.message);
+                    void ui.showErrorMessage(result.message, {});
                 } else if (result) {
                     void window.setStatusBarMessage(result, 15000);
                 }
             });
         } catch (error) {
-            void window.showErrorMessage(convertErrorToString(error));
+            void ui.showErrorMessage(convertErrorToString(error), {});
 
             return [];
         }
@@ -410,7 +410,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
 
     public copyNameToClipboard(entry: ConnectionDataModelEntry): void {
         void env.clipboard.writeText(entry.caption).then(() => {
-            void window.showInformationMessage("The name was copied to the system clipboard");
+            void ui.showInformationMessage("The name was copied to the system clipboard", {});
         });
     }
 
@@ -481,9 +481,10 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
             const sql = await this.getCreateSqlScript(entry, dbType, withDelimiter, withDrop);
 
             await env.clipboard.writeText(sql);
-            void window.showInformationMessage("The create script was copied to the system clipboard");
-        } catch (error) {
-            void window.showErrorMessage("Error while getting create script: " + String(error));
+            void ui.showInformationMessage("The create script was copied to the system clipboard", {});
+        } catch (reason) {
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Error while getting create script: ${message}`, {});
         }
     }
 
@@ -499,21 +500,23 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
 
         const message = `Do you want to drop the ${entry.type} ${entry.caption}?`;
         const okText = `Drop ${entry.caption}`;
-        void showModalDialog(message, okText, "This operation cannot be reverted!").then(async (accepted) => {
-            if (accepted) {
-                try {
-                    await this.dataModel.removeEntry(entry);
-                    await this.dataModel.dropItem(entry);
+        void ui.showInformationMessage(message, { modal: true, detail: "This operation cannot be reverted!" }, okText,
+            "Cancel").then(async (answer) => {
+                if (answer === okText) {
+                    try {
+                        await this.dataModel.removeEntry(entry);
+                        await this.dataModel.dropItem(entry);
 
-                    // TODO: refresh only the affected connection.
-                    void commands.executeCommand("msg.refreshConnections");
-                    void window.showInformationMessage(`The object ${entry.caption} has been dropped successfully.`);
-                } catch (error) {
-                    const message = convertErrorToString(error);
-                    void window.showErrorMessage(`Error dropping the object: ${message}`);
+                        // TODO: refresh only the affected connection.
+                        void commands.executeCommand("msg.refreshConnections");
+                        void ui.showInformationMessage(`The object ${entry.caption} has been dropped successfully.`,
+                            {});
+                    } catch (error) {
+                        const message = convertErrorToString(error);
+                        void ui.showErrorMessage(`Error dropping the object: ${message}`, {});
+                    }
                 }
-            }
-        });
+            });
     }
 
     private refreshConnection = (data?: ICdmConnectionEntry): Promise<boolean> => {

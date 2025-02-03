@@ -53,6 +53,7 @@ import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/Shel
 import { DBConnectionEditorType, DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { basename, filterInt } from "../../utilities/string-helpers.js";
 import { DBEditorContext, type DBEditorContextType } from "./index.js";
+import { convertErrorToString } from "../../utilities/helpers.js";
 
 const editorHeading = "Database Connection Configuration";
 
@@ -778,8 +779,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                             this.shellSession.mhs.getMdsConfigProfiles().then((profiles) => {
                                 this.fillProfileDropdown(profiles);
                             }).catch((reason) => {
-                                const message = reason instanceof Error ? reason.message : String(reason);
-                                void ui.showErrorNotification("Error while loading OCI profiles: " + message);
+                                const message = convertErrorToString(reason);
+                                void ui.showErrorMessage("Error while loading OCI profiles: " + message, {});
                             });
                         }
                     },
@@ -1067,7 +1068,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 }
             });
         } else {
-            void ui.showErrorNotification("User, Host and port cannot be empty.");
+            void ui.showErrorMessage("User, Host and port cannot be empty.", {});
         }
     };
 
@@ -1094,8 +1095,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     // TODO: show message for success, once we have message toasts.
                 }
             }).catch((reason) => {
-                const message = reason instanceof Error ? reason.message : String(reason);
-                void ui.showErrorNotification("Clear Password Error: " + message);
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`Clear Password Error: ${message}`, {});
             });
         }
     };
@@ -1187,8 +1188,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     this.updateInputValue(system.displayName, "mysqlDbSystemName");
                 }
             }).catch((reason) => {
-                const message = reason instanceof Error ? reason.message : String(reason);
-                void ui.showErrorNotification("Get MHS Database Error: " + message);
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`Get MHS Database Error: ${message}`, {});
                 this.updateInputValue("<error loading mds database info>", "mysqlDbSystemName");
             });
         }
@@ -1208,8 +1209,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             this.shellSession.mhs.getMdsConfigProfiles().then((profiles) => {
                 this.fillProfileDropdown(profiles);
             }).catch((reason) => {
-                const message = reason instanceof Error ? reason.message : String(reason);
-                void ui.showErrorNotification("Error when loading OCI profiles: " + message);
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`Error when loading OCI profiles: ${message}`, {});
             });
         }
     };
@@ -1221,8 +1222,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
             return summary;
         } catch (reason) {
-            const message = reason instanceof Error ? reason.message : String(reason);
-            void ui.showErrorNotification("Create Bastion Error: " + message);
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Create Bastion Error: "${message}`, {});
             this.updateInputValue("<failed to create default bastion>", "bastionName");
             this.editorRef.current?.updateInputValue("<failed to create default bastion>", "bastionId");
 

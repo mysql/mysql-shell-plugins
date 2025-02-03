@@ -521,7 +521,7 @@ describe("MYSQL REST SERVICE", () => {
                     return item!.message;
                 });
 
-                expect(messages).toContain(`The MRS Database Object ${table} was updated successfully.`);
+                expect(messages).toContain(`The MRS Database Object ${table} was successfully updated.`);
                 await Promise.all([
                     notifications.map((item: E2EToastNotification | undefined) => {
                         return item!.close();
@@ -616,7 +616,7 @@ describe("MYSQL REST SERVICE", () => {
             globalService.restSchemas![0].restObjects![0] = await RestObjectDialog.set(editedObject);
 
             let ntf = `The MRS Database Object ${editedObject.jsonRelDuality!.dbObject}`;
-            ntf += ` was updated successfully.`;
+            ntf += ` was successfully updated.`;
 
             const notifications = await Misc.getToastNotifications(true);
             const messages = notifications.map((item: E2EToastNotification | undefined) => {
@@ -1084,4 +1084,3 @@ xdescribe("MYSQL REST SERVICE - CLIPBOARD", () => {
     });
 
 });
-

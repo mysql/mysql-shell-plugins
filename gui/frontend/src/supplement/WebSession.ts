@@ -28,6 +28,7 @@ import { IShellProfile } from "../communication/ProtocolGui.js";
 import { ShellInterface } from "./ShellInterface/ShellInterface.js";
 import { Cookies } from "./Storage/Cookies.js";
 import { ui } from "../app-logic/UILayer.js";
+import { convertErrorToString } from "../utilities/helpers.js";
 
 interface IWebSessionData {
     sessionId?: string;
@@ -180,11 +181,11 @@ class WebSession {
         // Notify the shell for profile updates
         ShellInterface.users.updateProfile(this.shellProfile).then(() => {
             if (!appParameters.embedded) {
-                void ui.showInformationNotification("Profile updated successfully.");
+                void ui.showInformationMessage("Profile updated successfully.", {});
             }
         }).catch((reason) => {
-            const message = reason instanceof Error ? reason.message : String(reason);
-            void ui.showErrorNotification("Profile Update Error: " + message);
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Profile Update Error: ${message}`, {});
         });
 
     }

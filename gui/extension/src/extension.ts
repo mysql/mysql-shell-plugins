@@ -26,6 +26,7 @@
 import {
     ExtensionContext, ExtensionKind, ExtensionMode, OutputChannel, StatusBarAlignment, StatusBarItem,
     Uri, commands, env, extensions, window, workspace,
+    type MessageOptions,
 } from "vscode";
 
 import * as childProcess from "child_process";
@@ -39,7 +40,7 @@ import {
     IShellLaunchConfiguration, LogLevel, MySQLShellLauncher,
 } from "../../frontend/src/utilities/MySQLShellLauncher.js";
 
-import { registerUiLayer, type IUILayer } from "../../frontend/src/app-logic/UILayer.js";
+import { registerUiLayer, ui, type IUILayer } from "../../frontend/src/app-logic/UILayer.js";
 import type { IServicePasswordRequest } from "../../frontend/src/app-logic/general-types.js";
 import { MessageScheduler } from "../../frontend/src/communication/MessageScheduler.js";
 import type { IStatusBarItem } from "../../frontend/src/components/ui/Statusbar/StatusBarItem.js";
@@ -91,10 +92,9 @@ const handleShellOutput = (output: string): void => {
     if (!startupCompleted) {
         if (output.includes("Certificate is not installed.")) {
             // If the web certificate is not installed, ask the user if he wants to run the wizard
-            void window.showInformationMessage(
-                "The MySQL Shell for VS Code extension cannot run because the web certificate is " +
-                "not installed. Do you want to run the Welcome Wizard to install it?",
-                "Run Welcome Wizard", "Cancel")
+            void ui.showInformationMessage(
+                "The MySQL Shell for VS Code extension cannot run because the web certificate is not installed. " +
+                "Do you want to run the Welcome Wizard to install it?", {}, "Run Welcome Wizard", "Cancel")
                 .then((answer) => {
                     if (answer === "Run Welcome Wizard") {
                         void commands.executeCommand("msg.runWelcomeWizard");
@@ -102,10 +102,9 @@ const handleShellOutput = (output: string): void => {
                 });
         } else if (output.includes("Certificate is not correctly installed.")) {
             // If the web certificate is not installed correctly, ask the user if he wants to run the wizard to fix it
-            void window.showInformationMessage(
-                "The MySQL Shell for VS Code extension cannot run because the web certificate is " +
-                "incorrectly installed. Do you want to run the Welcome Wizard to fix it?",
-                "Run Welcome Wizard", "Cancel")
+            void ui.showInformationMessage(
+                "The MySQL Shell for VS Code extension cannot run because the web certificate is incorrectly " +
+                "installed. Do you want to run the Welcome Wizard to fix it?", {}, "Run Welcome Wizard", "Cancel")
                 .then((answer) => {
                     if (answer === "Run Welcome Wizard") {
                         void commands.executeCommand("msg.runWelcomeWizard");
@@ -133,16 +132,19 @@ const forwardPortThroughSshSession = async (dynamicUrl: URL): Promise<URL> => {
 };
 
 const extensionUILayer: IUILayer = {
-    showInformationNotification: async (message: string, _timeout?: number): Promise<string | undefined> => {
-        return window.showInformationMessage(message, { modal: false });
+    showInformationMessage: <T extends string>(message: string, options: MessageOptions,
+        ...items: T[]): Thenable<string | undefined> => {
+        return window.showInformationMessage(message, options, ...items);
     },
 
-    showWarningNotification: async (message: string): Promise<string | undefined> => {
-        return window.showWarningMessage(message, { modal: false });
+    showWarningMessage: <T extends string>(message: string, options: MessageOptions,
+        ...items: T[]): Thenable<string | undefined> => {
+        return window.showWarningMessage(message, options, ...items);
     },
 
-    showErrorNotification: async (message: string): Promise<string | undefined> => {
-        return window.showErrorMessage(message, { modal: false });
+    showErrorMessage: <T extends string>(message: string, options: MessageOptions,
+        ...items: T[]): Thenable<string | undefined> => {
+        return window.showErrorMessage(message, options, ...items);
     },
 
     createStatusBarItem: (...args: unknown[]): IStatusBarItem => {
@@ -165,8 +167,14 @@ const extensionUILayer: IUILayer = {
         }
     },
 
-    confirm: async (message: string, yes: string, no: string, _extra?: string): Promise<string | undefined> => {
-        const result = await window.showInformationMessage(message, { modal: true }, yes, no);
+    confirm: async (message: string, yes: string, no: string, extra?: string): Promise<string | undefined> => {
+        if (extra === undefined) {
+            const result = await ui.showInformationMessage(message, { modal: true }, yes, no);
+
+            return Promise.resolve(result);
+        }
+
+        const result = await ui.showInformationMessage(message, { modal: true }, yes, no, extra);
 
         return Promise.resolve(result);
     },
@@ -197,7 +205,7 @@ export const activate = (context: ExtensionContext): void => {
     setupInitialWelcomeWebview(context);
 
     context.subscriptions.push(commands.registerCommand("msg.restartShell", () => {
-        void window.showWarningMessage(restartMessage, "Restart MySQL Shell", "Cancel").then(async (choice) => {
+        void ui.showWarningMessage(restartMessage, {}, "Restart MySQL Shell", "Cancel").then(async (choice) => {
             if (choice === "Restart MySQL Shell") {
                 host.closeAllTabs();
                 MessageScheduler.get.disconnect();
@@ -231,7 +239,7 @@ export const activate = (context: ExtensionContext): void => {
     }));
 
     context.subscriptions.push(commands.registerCommand("msg.resetExtension", () => {
-        void window.showWarningMessage(resetMessage, "Reset Extension", "Cancel").then((choice) => {
+        void ui.showWarningMessage(resetMessage, {}, "Reset Extension", "Cancel").then((choice) => {
             if (choice === "Reset Extension") {
                 // Reset the MySQLShellInitialRun flag
                 void context.globalState.update("MySQLShellInitialRun", "");
@@ -257,7 +265,7 @@ export const activate = (context: ExtensionContext): void => {
                                 rmSync(shellUserConfigDir, { recursive: true, force: true });
                             }
 
-                            void window.showWarningMessage(resetRestartMessage, "Restart VS Code", "Cancel")
+                            void ui.showWarningMessage(resetRestartMessage, {}, "Restart VS Code", "Cancel")
                                 .then((choice) => {
                                     if (choice === "Restart VS Code") {
                                         void commands.executeCommand("workbench.action.reloadWindow");
@@ -265,9 +273,8 @@ export const activate = (context: ExtensionContext): void => {
                                 });
                         } else if (!output.startsWith("Starting embedded MySQL Shell") && !output.includes("DEBUG")
                             && !output.includes("LC_ALL")) {
-                            void window.showInformationMessage(
-                                `The following error occurred while deleting the certificate: ${output} ` +
-                                "Cancelled reset operation.");
+                            void ui.showInformationMessage(`The following error occurred while deleting the ` +
+                                `certificate: ${output} Cancelled reset operation.`, {});
                         }
 
                     },
@@ -354,13 +361,11 @@ export const activate = (context: ExtensionContext): void => {
         } else if (osName === "win32") {
             const promptForVcUpdate = () => {
                 // cSpell:ignore redist msvc
-                void window.showErrorMessage(
-                    "The Microsoft Visual C++ Redistributable needs to be updated and VS Code needs to be " +
-                    "restarted. Do you want to open the Microsoft download page?",
+                void ui.showErrorMessage("The Microsoft Visual C++ Redistributable needs to be updated and VS " +
+                    "Code needs to be restarted. Do you want to open the Microsoft download page?", {},
                     "Open Download Page", "Cancel").then((answer) => {
                         if (answer !== "Cancel") {
-                            void env.openExternal(Uri.parse(
-                                "https://learn.microsoft.com/en-us/cpp/windows/" +
+                            void env.openExternal(Uri.parse("https://learn.microsoft.com/en-us/cpp/windows/" +
                                 "latest-supported-vc-redist?view=msvc-170"));
                         }
                     });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -327,12 +327,12 @@ export class OciDataModel {
 
             this.notifySubscribers(actions);
         } catch (reason) {
-            const message = this.handleServiceError(reason);
-            if (message) {
-                void ui.showErrorNotification(`Failed to list the compartments of this profile:\n${message}`);
-            } else {
-                void ui.showErrorNotification("Failed to list the compartments of this profile:\n" + String(reason));
+            let message = this.handleServiceError(reason);
+            if (message === undefined) {
+                message = convertErrorToString(reason);
             }
+
+            void ui.showErrorMessage(`Failed to list the compartments of this profile:\n${message}`, {});
         }
 
         return true;
@@ -341,10 +341,10 @@ export class OciDataModel {
     private async setDefaultProfile(profileData: IMdsProfileData): Promise<void> {
         try {
             await this.#shellSession.mhs.setDefaultConfigProfile(profileData.profile);
-            void ui.showInformationNotification(`Default config profile set to ${profileData.profile}.`);
+            void ui.showInformationMessage(`Default config profile set to ${profileData.profile}.`, {});
         } catch (reason) {
             const message = convertErrorToString(reason);
-            void ui.showErrorNotification(`Error while setting default config profile: ${message}`);
+            void ui.showErrorMessage(`Error while setting default config profile: ${message}`, {});
         }
     }
 
@@ -356,11 +356,11 @@ export class OciDataModel {
                 interactive: false,
                 raiseExceptions: true,
             });
-            void ui.showInformationNotification(`${compartment.name} in ${profileData.profile} is now the current ` +
-                `compartment.`);
+            void ui.showInformationMessage(`${compartment.name} in ${profileData.profile} is now the current ` +
+                `compartment.`, {});
         } catch (reason) {
             const message = convertErrorToString(reason);
-            void ui.showErrorNotification(`Error while setting a default compartment: ${message}`);
+            void ui.showErrorMessage(`Error while setting a default compartment: ${message}`, {});
         }
     }
 
@@ -422,11 +422,10 @@ export class OciDataModel {
             this.notifySubscribers(actions);
         } catch (error) {
             const message = convertErrorToString(error);
-            if (message && message.includes("NotAuthorizedOrNotFound")) {
-                void ui.showWarningNotification("Not authorized to list the sub-compartment of this compartment.");
+            if (message.includes("NotAuthorizedOrNotFound")) {
+                void ui.showWarningMessage("Not authorized to list the sub-compartment of this compartment.", {});
             } else {
-                void ui.showErrorNotification("Failed to list the sub-compartments of this compartment:\n" +
-                    String(error));
+                void ui.showErrorMessage("Failed to list the sub-compartments of this compartment:\n" + message, {});
             }
         }
 
@@ -479,7 +478,7 @@ export class OciDataModel {
         } catch (error) {
             const message = convertErrorToString(error);
             if (message.includes("NotAuthorizedOrNotFound")) {
-                void ui.showWarningNotification("Not authorized to list the MySQL DB Systems in this compartment.");
+                void ui.showWarningMessage("Not authorized to list the MySQL DB Systems in this compartment.", {});
             }
 
             return false;
@@ -526,7 +525,7 @@ export class OciDataModel {
         } catch (error) {
             const message = convertErrorToString(error);
             if (message.includes("NotAuthorizedOrNotFound")) {
-                void ui.showErrorNotification("Not authorized to list the compute instances in this compartment.");
+                void ui.showErrorMessage("Not authorized to list the compute instances in this compartment.", {});
             }
 
             return false;
@@ -573,7 +572,7 @@ export class OciDataModel {
         } catch (error) {
             const message = convertErrorToString(error);
             if (message.includes("NotAuthorizedOrNotFound")) {
-                void ui.showErrorNotification("Not authorized to list the bastions in this compartment.");
+                void ui.showErrorMessage("Not authorized to list the bastions in this compartment.", {});
             }
 
             return false;
@@ -591,17 +590,17 @@ export class OciDataModel {
 
     private async setDefaultBastion(profileData: IMdsProfileData, bastion: IBastionSummary): Promise<void> {
         try {
-            void ui.showInformationNotification(`Setting current bastion to ${bastion.name} ...`);
+            void ui.showInformationMessage(`Setting current bastion to ${bastion.name} ...`, {});
             await this.#shellSession.mhs.setCurrentBastion({
                 bastionId: bastion.id,
                 configProfile: profileData.profile,
                 interactive: false,
                 raiseExceptions: true,
             });
-            void ui.showInformationNotification(`Current bastion set to ${bastion.name}.`);
+            void ui.showInformationMessage(`Current bastion set to ${bastion.name}.`, {});
         } catch (reason) {
             const message = convertErrorToString(reason);
-            void ui.showErrorNotification(`Error while setting a current bastion: ${message}`);
+            void ui.showErrorMessage(`Error while setting a current bastion: ${message}`, {});
         }
     }
 
@@ -632,7 +631,7 @@ export class OciDataModel {
         } catch (error) {
             const message = convertErrorToString(error);
             if (message.includes("NotAuthorizedOrNotFound")) {
-                void ui.showErrorNotification("Not authorized to list the load balancers in this compartment.");
+                void ui.showErrorMessage("Not authorized to list the load balancers in this compartment.", {});
             }
 
             return false;

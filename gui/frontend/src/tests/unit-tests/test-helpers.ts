@@ -225,9 +225,9 @@ export const fail = (message: string): void => {
  */
 export const checkNoUiWarningsOrErrors = (): void => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(uiLayerMock.showErrorNotification).toHaveBeenCalledTimes(0);
+    expect(uiLayerMock.showErrorMessage).toHaveBeenCalledTimes(0);
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(uiLayerMock.showWarningNotification).toHaveBeenCalledTimes(0);
+    expect(uiLayerMock.showWarningMessage).toHaveBeenCalledTimes(0);
 };
 
 /**

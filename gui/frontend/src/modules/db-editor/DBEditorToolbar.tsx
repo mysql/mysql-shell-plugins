@@ -60,6 +60,7 @@ import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellIn
 import { IOpenDocumentState } from "./DBConnectionTab.js";
 import { IToolbarItems } from "./index.js";
 import { ui } from "../../app-logic/UILayer.js";
+import { convertErrorToString } from "../../utilities/helpers.js";
 
 interface IDBEditorToolbarProperties extends IComponentProperties {
     /**
@@ -511,8 +512,8 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
             await backend?.setAutoCommit(!autoCommit);
             await this.queryAutoCommit();
         } catch (reason) {
-            const message = reason instanceof Error ? reason.message : String(reason);
-            void ui.showErrorNotification("Cannot Switch Auto Commit Mode." + message);
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Cannot Switch Auto Commit Mode.${message}`, {});
         }
 
         this.updateState();

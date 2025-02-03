@@ -65,7 +65,7 @@ import { SetDataAction, TreeGrid } from "../../components/ui/TreeGrid/TreeGrid.j
 import { IOpenFileDialogResult } from "../../supplement/RequisitionTypes.js";
 import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { selectFile, uuidBinary16Base64 } from "../../utilities/helpers.js";
+import { convertErrorToString, selectFile, uuidBinary16Base64 } from "../../utilities/helpers.js";
 import { escapeSqlString, formatBytes, formatInteger } from "../../utilities/string-helpers.js";
 import { IToolbarItems } from "./index.js";
 
@@ -2329,8 +2329,8 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 void this.refreshObjTreeItem(data.id);
             }
         } catch (reason) {
-            const message = reason instanceof Error ? reason.message : String(reason);
-            void ui.showErrorNotification(`Failed to delete object: ${message}`);
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Failed to delete object: ${message}`, {});
         }
     };
 
@@ -2806,8 +2806,8 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
             await this.autoRefreshTrees();
         } catch (e) {
-            const message = e instanceof Error ? e.message : String(e);
-            void ui.showErrorNotification(`Error: ${message}`);
+            const message = convertErrorToString(e);
+            void ui.showErrorMessage(`Error: ${message}`, {});
         }
     };
 
@@ -3017,11 +3017,11 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     );
 
                     if (error === 0) {
-                        void ui.showInformationNotification("The files have been uploaded successfully.");
+                        void ui.showInformationMessage("The files have been uploaded successfully.", {});
                     } else {
                         const message = `${error} error${error > 1 ? "s" : ""} occurred during upload. ` +
                             "Please check the file list.";
-                        void ui.showErrorNotification(message);
+                        void ui.showErrorMessage(message, {});
                     }
                 } finally {
                     this.setState({ uploadRunning: false, uploadComplete: true });
@@ -3227,13 +3227,13 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     `CALL sys.genai_ensure_privileges(?, ?)`,
                     [userName, hostName], undefined, (data) => {
                         if (data.result.rows !== undefined && data.result.rows.length === 0) {
-                            void ui.showInformationNotification(`The required privileges where assigned to the ` +
-                                `MySQL user ${userName}@${hostName}`);
+                            void ui.showInformationMessage(`The required privileges where assigned to the ` +
+                                `MySQL user ${userName}@${hostName}`, {});
                         }
                     });
             } catch (reason) {
-                const message = reason instanceof Error ? reason.message : String(reason);
-                void ui.showErrorNotification(`Failed to assign the required privileges: ${message}`);
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`Failed to assign the required privileges: ${message}`, {});
             }
         }
     };
@@ -3281,11 +3281,11 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
                 this.setState({ activeSchema: val });
             } catch (error) {
-                let errStr = String(error);
-                if (errStr.includes("run_sql: ")) {
-                    errStr = errStr.slice(errStr.indexOf("run_sql: ") + 9);
+                let message = convertErrorToString(error);
+                if (message.includes("run_sql: ")) {
+                    message = message.slice(message.indexOf("run_sql: ") + 9);
                 }
-                void ui.showErrorNotification(`Failed to create the database schema: ${errStr}`);
+                void ui.showErrorMessage(`Failed to create the database schema: ${message}`, {});
             }
         }
     };

@@ -38,6 +38,7 @@ import {
 import { EditorLanguage, INewEditorRequest, IScriptRequest } from "../../frontend/src/supplement/index.js";
 import { DBConnectionViewProvider } from "./WebviewProviders/DBConnectionViewProvider.js";
 
+import { ui } from "../../frontend/src/app-logic/UILayer.js";
 import { IMrsDbObjectData } from "../../frontend/src/communication/ProtocolMrs.js";
 import {
     cdbDbEntityTypeName,
@@ -215,8 +216,8 @@ export class DBEditorCommandHandler {
                 const stat = await workspace.fs.stat(uri);
 
                 if (stat.size >= 10000000) {
-                    await window.showInformationMessage(`The file "${uri.fsPath}" ` +
-                        `is too large to edit it in a web view. Instead use the VS Code built-in editor.`);
+                    await ui.showInformationMessage(`The file "${uri.fsPath}" ` +
+                        `is too large to edit it in a web view. Instead use the VS Code built-in editor.`, {});
                 } else {
                     const content = (await workspace.fs.readFile(uri)).toString();
                     const provider = this.#host.currentProvider;
@@ -477,8 +478,8 @@ export class DBEditorCommandHandler {
                     const configuration = workspace.getConfiguration(`msg.editor`);
                     void configuration.update("defaultDbConnection", entry.details.caption,
                         ConfigurationTarget.Global).then(() => {
-                            void window.showInformationMessage(
-                                `"${entry.caption}" has been set as default DB Connection.`);
+                            void ui.showInformationMessage(`"${entry.caption}" has been set as default DB Connection.`,
+                                {});
                         });
                 }
             }));
@@ -517,13 +518,13 @@ export class DBEditorCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.editInScriptEditor", async (uri?: Uri) => {
             if (uri?.scheme === "file") {
                 if (!fs.existsSync(uri.fsPath)) {
-                    void window.showErrorMessage(`The file ${uri.fsPath} could not be found.`);
+                    void ui.showErrorMessage(`The file ${uri.fsPath} could not be found.`, {});
                 } else {
                     const stat = await workspace.fs.stat(uri);
 
                     if (stat.size >= 10000000) {
-                        await window.showInformationMessage(`The file "${uri.fsPath}" ` +
-                            `is too large to edit it in a web view. Instead use the VS Code built-in editor.`);
+                        await ui.showInformationMessage(`The file "${uri.fsPath}" is too large to edit it in a web ` +
+                            `view. Instead use the VS Code built-in editor.`, {});
                     } else {
                         const connection = await host.determineConnection();
                         if (connection) {
@@ -575,8 +576,8 @@ export class DBEditorCommandHandler {
                         const stat = await workspace.fs.stat(uri);
 
                         if (stat.size >= 10000000) {
-                            await window.showInformationMessage(`The file "${uri.fsPath}" ` +
-                                `is too large to edit it in a web view. Instead use the VS Code built-in editor.`);
+                            await ui.showInformationMessage(`The file "${uri.fsPath}" is too large to edit it in a ` +
+                                `web view. Instead use the VS Code built-in editor.`, {});
                         } else {
                             await workspace.fs.readFile(uri).then((value) => {
                                 const content = value.toString();
@@ -790,11 +791,11 @@ export class DBEditorCommandHandler {
                         void provider?.editMrsDbObject(String(connection.details.id),
                             { dbObject, createObject: true });
                     }).catch((reason) => {
-                        void window.showErrorMessage(`${String(reason)}`);
+                        void ui.showErrorMessage(`${String(reason)}`, {});
                     });
                 } else {
-                    void window.showErrorMessage(
-                        `The database object type '${entry.caption}' is not supported at this time`);
+                    void ui.showErrorMessage(`The database object type '${entry.caption}' is not supported at ` +
+                        `this time`, {});
                 }
             }
         }));
@@ -1027,10 +1028,9 @@ export class DBEditorCommandHandler {
             if (schema) {
                 dbObject.dbSchemaId = schema.id;
             } else {
-                const answer = await window.showInformationMessage(
-                    `The database schema ${entry.schema} has not been added to the `
-                    + "REST Service. Do you want to add the schema now?",
-                    "Yes", "No");
+                const answer = await ui.showInformationMessage(
+                    `The database schema ${entry.schema} has not been added to the REST Service. Do you want to add ` +
+                    "the schema now?", {}, "Yes", "No");
                 if (answer === "Yes") {
                     dbObject.dbSchemaId = await backend.mrs.addSchema(service.id, entry.schema, 1,
                         `/${convertSnakeToCamelCase(entry.schema)}`, false, null, null, undefined);
@@ -1259,7 +1259,7 @@ export class DBEditorCommandHandler {
             }
 
             if (connectionId === -1) {
-                void window.showErrorMessage("Please select a connection first.");
+                void ui.showErrorMessage("Please select a connection first.", {});
                 resolve(false);
 
                 return;

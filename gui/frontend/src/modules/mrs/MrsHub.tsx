@@ -257,10 +257,10 @@ export class MrsHub extends ComponentBase {
                         data.mrsAdminUserPassword, []);
                 }
 
-                void ui.showInformationNotification("The MRS service has been created.");
+                void ui.showInformationMessage("The MRS service has been created.", {});
             } catch (reason) {
-                const message = reason instanceof Error ? reason.message : String(reason);
-                void ui.showErrorNotification(`Error while adding MySQL REST service: ${message}`);
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`Error while adding MySQL REST service: ${message}`, {});
             }
         } else {
             // Send update request.
@@ -290,11 +290,11 @@ export class MrsHub extends ComponentBase {
                     await backend.mrs.setCurrentService(service.id);
                 }
 
-                void ui.showInformationNotification("The MRS service has been successfully updated.");
+                void ui.showInformationMessage("The MRS service has been successfully updated.", {});
 
             } catch (reason) {
-                const message = reason instanceof Error ? reason.message : String(reason);
-                void ui.showErrorNotification(`Error while updating MySQL REST service: ${message}`);
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`Error while updating MySQL REST service: ${message}`, {});
             }
         }
 
@@ -363,18 +363,17 @@ export class MrsHub extends ComponentBase {
                         itemsPerPage, comments, metadata);
 
                     void requisitions.executeRemote("refreshConnection", undefined);
-                    void ui.showInformationNotification("The MRS schema has been added successfully.");
+                    void ui.showInformationMessage("The MRS schema has been added successfully.", {});
 
                     return data.serviceId;
                 } catch (reason) {
                     const message = reason instanceof Error ? reason.message : String(reason);
-                    void ui.showErrorNotification(`Error while adding MRS schema: ${message}`);
+                    void ui.showErrorMessage(`Error while adding MRS schema: ${message}`, {});
                 }
             } else {
                 try {
-                    await backend.mrs.updateSchema(schema.id, serviceId, dbSchemaName,
-                        requestPath, requiresAuth, enabled,
-                        itemsPerPage, comments, options, metadata);
+                    await backend.mrs.updateSchema(schema.id, serviceId, dbSchemaName, requestPath, requiresAuth,
+                        enabled, itemsPerPage, comments, options, metadata);
 
                     // Updating a schema can change the service it is associated with. Check that and update the
                     // parent details accordingly.
@@ -390,17 +389,17 @@ export class MrsHub extends ComponentBase {
                     }
 
                     void requisitions.executeRemote("refreshConnection", undefined);
-                    void ui.showInformationNotification("The MRS schema has been updated successfully.");
+                    void ui.showInformationMessage("The MRS schema has been updated successfully.", {});
 
                     return data.serviceId;
                 } catch (reason) {
-                    const message = reason instanceof Error ? reason.message : String(reason);
-                    void ui.showErrorNotification(`Error while updating MRS schema: ${message}`);
+                    const message = convertErrorToString(reason);
+                    void ui.showErrorMessage(`Error while updating MRS schema: ${message}`, {});
                 }
             }
         } catch (reason) {
-            const message = reason instanceof Error ? reason.message : String(reason);
-            void ui.showErrorNotification(`Error while listing MySQL REST services: ${message}`);
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Error while listing MySQL REST services: ${message}`, {});
         }
 
         return "";
@@ -527,9 +526,8 @@ export class MrsHub extends ComponentBase {
 
                 requisitions.executeRemote("refreshConnection", undefined);
             } catch (reason) {
-                const message = reason instanceof Error ? reason.message : String(reason);
-                void ui.showErrorNotification(`The MRS Database Object ${name} could not be created: ` +
-                    `${message}`);
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`The MRS Database Object ${name} could not be created: ${message}`, {});
 
                 return true;
             }
@@ -559,16 +557,15 @@ export class MrsHub extends ComponentBase {
 
                 requisitions.executeRemote("refreshConnection", undefined);
             } catch (reason) {
-                const message = reason instanceof Error ? reason.message : String(reason);
-                void ui.showErrorNotification(`The MRS Database Object ${name} could not be updated: ` +
-                    message);
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`The MRS Database Object ${name} could not be updated: ${message}`, {});
 
                 return true;
             }
         }
 
-        void ui.showInformationNotification(`The MRS Database Object ${name} was ` +
-            `${data.createObject ? "created" : "updated"} successfully.`);
+        const changeString = data.createObject ? "created" : "updated";
+        void ui.showInformationMessage(`The MRS Database Object ${name} was successfully ${changeString}.`, {});
 
         void requisitions.execute("refreshMrsServiceSdk", {});
 
@@ -682,17 +679,16 @@ export class MrsHub extends ComponentBase {
                         if (response.closure === DialogResponseClosure.Accept) {
                             requestPathValid = true;
                         } else {
-                            void ui.showInformationNotification("Cancelled the upload.");
+                            void ui.showInformationMessage("Cancelled the upload.", {});
                         }
                     } else {
-                        void ui.showErrorNotification(`The request path ${requestPath} is already used on ` +
-                            `this service.`);
+                        void ui.showErrorMessage(`The request path ${requestPath} is already used on ` +
+                            `this service.`, {});
                     }
                 }
             } catch (reason) {
-                const message = reason instanceof Error ? reason.message : String(reason);
-                void ui.showErrorNotification("Error while checking the MRS content set request path: " +
-                    message);
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`Error while checking the MRS content set request path: ${message}`, {});
             }
 
             if (requestPathValid) {
@@ -716,28 +712,28 @@ export class MrsHub extends ComponentBase {
 
                         void requisitions.executeRemote("refreshConnection", undefined);
                         if (addedContentSet.numberOfFilesUploaded !== undefined) {
-                            void ui.showInformationNotification("The MRS static content set has been added " +
+                            void ui.showInformationMessage("The MRS static content set has been added " +
                                 `successfully. ${addedContentSet.numberOfFilesUploaded} file` +
-                                `${addedContentSet.numberOfFilesUploaded > 1 ? "s" : ""} have been uploaded`);
+                                `${addedContentSet.numberOfFilesUploaded > 1 ? "s" : ""} have been uploaded`, {});
                         }
                     } catch (reason) {
-                        const message = reason instanceof Error ? reason.message : String(reason);
-                        void ui.showErrorNotification("Error while adding MRS content set: " + message);
+                        const message = convertErrorToString(reason);
+                        void ui.showErrorMessage(`Error while adding MRS content set: ${message}`, {});
                     } finally {
                         statusBarItem.dispose();
                     }
                 } else {
                     try {
-                        // Todo
+                        // TODO: Implement update of content set
                     } catch (reason) {
-                        const message = reason instanceof Error ? reason.message : String(reason);
-                        void ui.showErrorNotification("Error while updating MRS content set: " + message);
+                        const message = convertErrorToString(reason);
+                        void ui.showErrorMessage(`Error while updating MRS content set: ${message}`, {});
                     }
                 }
             }
         } catch (reason) {
-            const message = reason instanceof Error ? reason.message : String(reason);
-            void ui.showErrorNotification("Error while listing MySQL REST services: " + message);
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Error while listing MySQL REST services: ${message}`, {});
         }
 
         return true;
@@ -847,10 +843,10 @@ export class MrsHub extends ComponentBase {
                 authApp.defaultRoleId = defaultRoleId;
 
                 void requisitions.executeRemote("refreshConnection", undefined);
-                void ui.showInformationNotification("The MRS Authentication App has been updated.");
+                void ui.showInformationMessage("The MRS Authentication App has been updated.", {});
             } catch (reason) {
-                const message = reason instanceof Error ? reason.message : String(reason);
-                void ui.showErrorNotification("Error while updating MySQL REST Authentication App: " + message);
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`Error while updating MySQL REST Authentication App: ${message}`, {});
             }
         } else {
             try {
@@ -869,10 +865,10 @@ export class MrsHub extends ComponentBase {
                 }, [], service?.id);
 
                 void requisitions.executeRemote("refreshConnection", undefined);
-                void ui.showInformationNotification("The MRS Authentication App has been added.");
+                void ui.showInformationMessage("The MRS Authentication App has been added.", {});
             } catch (reason) {
-                const message = reason instanceof Error ? reason.message : String(reason);
-                void ui.showErrorNotification("Error while adding MySQL REST Authentication App: " + message);
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`Error while adding MySQL REST Authentication App: ${message}`, {});
             }
         }
 
@@ -971,10 +967,10 @@ export class MrsHub extends ComponentBase {
 
 
                     void requisitions.executeRemote("refreshConnection", undefined);
-                    void ui.showInformationNotification(`The MRS User "${data.name}" has been updated.`);
+                    void ui.showInformationMessage(`The MRS User "${data.name}" has been updated.`, {});
                 } catch (reason) {
                     const message = convertErrorToString(reason);
-                    void ui.showErrorNotification("Error while updating MySQL REST User: " + message);
+                    void ui.showErrorMessage(`Error while updating MySQL REST User: ${message}`, {});
                 }
             }
         } else {
@@ -987,10 +983,10 @@ export class MrsHub extends ComponentBase {
                 }
 
                 void requisitions.executeRemote("refreshConnection", undefined);
-                void ui.showInformationNotification(`The MRS User "${data.name}" has been added.`);
+                void ui.showInformationMessage(`The MRS User "${data.name}" has been added.`, {});
             } catch (reason) {
                 const message = convertErrorToString(reason);
-                void ui.showErrorNotification("Error while adding MySQL REST User: " + message);
+                void ui.showErrorMessage(`Error while adding MySQL REST User: ${message}`, {});
             }
         }
 
@@ -1076,10 +1072,10 @@ export class MrsHub extends ComponentBase {
                 serviceUrl: data.serviceUrl,
                 addAppBaseClass: data.addAppBaseClass,
             });
-            void ui.showInformationNotification("MRS SDK Files exported successfully.");
+            void ui.showInformationMessage("MRS SDK Files exported successfully.", {});
         } catch (reason) {
-            const message = reason instanceof Error ? reason.message : String(reason);
-            void ui.showErrorNotification("Error while exporting the REST Service SDK Files: " + message);
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Error while exporting the REST Service SDK Files: ${message}`, {});
         }
 
         return true;

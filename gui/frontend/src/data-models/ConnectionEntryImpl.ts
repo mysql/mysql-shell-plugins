@@ -282,10 +282,10 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                     const status = await this.backend.mrs.status();
 
                     if (status.serviceBeingUpgraded) {
-                        void ui.showInformationNotification(
+                        void ui.showInformationMessage(
                             "The MySQL REST Service is currently being updated. Please refresh the list of " +
                             "DB Connections after the update has been completed for check the error log at " +
-                            "~/.mysqlsh-gui/plugin_data/mrs_plugin/mrs_metadata_schema_update_log.txt");
+                            "~/.mysqlsh-gui/plugin_data/mrs_plugin/mrs_metadata_schema_update_log.txt", {});
 
                         return;
                     }
@@ -320,8 +320,8 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                                             "Service Metadata Schema ...";
                                         await this.backend.mrs.configure(true, true);
 
-                                        void ui.showInformationNotification("The MySQL REST Service Metadata Schema " +
-                                            "has been updated.");
+                                        void ui.showInformationMessage("The MySQL REST Service Metadata Schema " +
+                                            "has been updated.", {});
 
                                         addMrsItem = true;
                                     } finally {
@@ -349,8 +349,8 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
 
                                     await this.backend.mrs.configure(true, false, true);
 
-                                    void ui.showInformationNotification("The MySQL REST Service Metadata Schema has " +
-                                        "been updated.");
+                                    void ui.showInformationMessage("The MySQL REST Service Metadata Schema has " +
+                                        "been updated.", {});
                                 } finally {
                                     statusbarItem.hide();
                                 }
@@ -420,8 +420,8 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                 }
             } catch (reason) {
                 const message = convertErrorToString(reason);
-                void ui.showErrorNotification(`Failed to check and upgrade the MySQL REST Service Schema. ` +
-                    `Error: ${message}`);
+                void ui.showErrorMessage(`Failed to check and upgrade the MySQL REST Service Schema. ` +
+                    `Error: ${message}`, {});
             }
         } else {
             this.mrsEntry = undefined;

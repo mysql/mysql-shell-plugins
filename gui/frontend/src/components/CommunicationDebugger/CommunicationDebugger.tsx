@@ -40,7 +40,7 @@ import { ExecutionContexts } from "../../script-execution/ExecutionContexts.js";
 import type { IDebuggerData } from "../../supplement/RequisitionTypes.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import type { EditorLanguage } from "../../supplement/index.js";
-import { strictEval } from "../../utilities/helpers.js";
+import { convertErrorToString, strictEval } from "../../utilities/helpers.js";
 import { CodeEditor, type ICodeEditorModel, type IEditorPersistentState } from "../ui/CodeEditor/CodeEditor.js";
 import { CodeEditorMode, Monaco } from "../ui/CodeEditor/index.js";
 import { CommunicationDebuggerEnvironment } from "./CommunicationDebuggerEnvironment.js";
@@ -452,7 +452,8 @@ export class CommunicationDebugger
 
                 this.setState({ activeInputTab: name, scriptTabs });
             }).catch((e) => {
-                void ui.showErrorNotification(`Internal Error ${e}`);
+                const message = convertErrorToString(e);
+                void ui.showErrorMessage(`Internal Error ${message}`, {});
             });
         } else {
             this.setState({ activeInputTab: name });
@@ -538,7 +539,8 @@ export class CommunicationDebugger
             });
 
         }).catch((event) => {
-            void ui.showErrorNotification(`Loading Debugger Scripts: , ${event.message}`);
+            const message = convertErrorToString(event);
+            void ui.showErrorMessage(`Loading Debugger Scripts: , ${message}`, {});
         });
     }
 
