@@ -189,7 +189,9 @@ Order: TypeAlias = Literal["ASC", "DESC"]
 
 IMrsRoutineResponse = TypeVar("IMrsRoutineResponse", bound=Any)
 IMrsRoutineInParameters = TypeVar("IMrsRoutineInParameters", bound=Mapping)
-IMrsProcedureOutParameters = TypeVar("IMrsProcedureOutParameters", bound=Optional[Mapping])
+IMrsProcedureOutParameters = TypeVar(
+    "IMrsProcedureOutParameters", bound=Optional[Mapping]
+)
 IMrsProcedureResultSet = TypeVar("IMrsProcedureResultSet", bound=object)
 ResultSetType = TypeVar("ResultSetType", bound=str)
 ResultSetItem = TypeVar("ResultSetItem", bound=Mapping)
@@ -1495,17 +1497,24 @@ class MrsAuthenticate(Generic[AuthAppName]):
     async def _submit_mrs_native(self) -> IMrsTokenBasedAuthenticationResponse:
         """Implements MRS-based authentication.
 
-        The router supports MRS-based authentication via the
-        `Bearer HTTP authentication method - used over HTTPS (SSL)`.
+        The MySQL Router supports MRS-based authentication via the
+        HTTP Bearer authentication authentication scheme. The bearer
+        token is provided after a successful SCRAM exchange between
+        the client and the router.
         """
         nonce = MrsAuthenticate._nonce()
         ssl_context = ssl.create_default_context()
-        query = [("app", cast(str, self._app_name))]
+        auth_data = {
+            "auth_app": self._app_name,
+            "nonce": nonce,
+            "session_type": "bearer",
+            "user": self._user,
+        }
 
         req = Request(
-            url=f"{self._request_path}?{urlencode(query, quote_via=quote)}",
+            url=self._request_path,
             headers={"Accept": "application/json"},
-            data=json.dumps({"user": self._user, "nonce": nonce}).encode(),
+            data=json.dumps(obj=auth_data, cls=MrsJSONDataEncoder).encode(),
             method="POST",
         )
 
@@ -1541,22 +1550,16 @@ class MrsAuthenticate(Generic[AuthAppName]):
             auth_message=f"{client_first},{server_first},{client_final}",
         )
 
-        query.extend(
-            [("sessionType", "bearer"), ("session", challenge.get("session", ""))]
-        )
-
-        data = json.dumps(
-            {
-                "clientProof": client_proof,
-                "nonce": challenge["nonce"],
-                "state": "response",
-            }
-        ).encode()
+        auth_data = {
+            "client_proof": client_proof,
+            "nonce": challenge["nonce"],
+            "state": "response",
+        }
 
         req = Request(
-            url=f"{self._request_path}?{urlencode(query, quote_via=quote)}",
+            url=self._request_path,
             headers={"Accept": "application/json"},
-            data=data,
+            data=json.dumps(obj=auth_data, cls=MrsJSONDataEncoder).encode(),
             method="POST",
         )
 
@@ -1579,8 +1582,10 @@ class MrsAuthenticate(Generic[AuthAppName]):
     async def _submit_mysql_internal(self) -> IMrsTokenBasedAuthenticationResponse:
         """Implements the MySQL Internal Authentication Mechanism.
 
-        The router supports MySQL Internal authentication via the
-        `Bearer HTTP authentication method - used over HTTPS (SSL)`.
+        The MySQL Router supports authentication using a MySQL server
+        account via the HTTP Bearer authentication scheme. The bearer
+        token is provided in response to valid credentials sent by the
+        client on the JSON request body.
         """
         data_auth = {
             "username": self._user,

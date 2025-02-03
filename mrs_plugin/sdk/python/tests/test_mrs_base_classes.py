@@ -817,21 +817,21 @@ async def test_authenticate_submit_mrs_native(
     assert mock_request_class.call_count == 2
 
     # check first request
-    query = [("app", cast(str, options["app_name"]))]
     mock_request_class.assert_any_call(
-        url=f"{request_path}?{urlencode(query)}",
+        url=request_path,
         headers={"Accept": "application/json"},
-        data=json.dumps({"user": options["user"], "nonce": nonce}).encode(),
+        data=json.dumps(
+            {
+                "authApp": options["app_name"],
+                "nonce": nonce,
+                "sessionType": "bearer",
+                "user": options["user"],
+            }
+        ).encode(),
         method="POST",
     )
 
     # check last request
-    query.extend(
-        [
-            ("sessionType", "bearer"),
-            ("session", fictional_payload.get("session", "")),
-        ]
-    )
     data = json.dumps(
         {
             "clientProof": client_proof,
@@ -840,7 +840,7 @@ async def test_authenticate_submit_mrs_native(
         }
     ).encode()
     mock_request_class.assert_called_with(
-        url=f"{request_path}?{urlencode(query, quote_via=quote)}",
+        url=request_path,
         headers={"Accept": "application/json"},
         data=data,
         method="POST",
