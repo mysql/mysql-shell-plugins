@@ -104,13 +104,13 @@ def walk(fields, parent_id=None, level=1, add_data_type=False, current_object=No
             if options is None:
                 options = {}
 
-            if options.get("duality_view_insert", False) is True:
+            if options.get("dataMappingViewInsert", False):
                 attributes.append("@INSERT")
-            if options.get("duality_view_update", False) is True:
+            if options.get("dataMappingViewUpdate", False):
                 attributes.append("@UPDATE")
-            if options.get("duality_view_delete", False) is True:
+            if options.get("dataMappingViewDelete", False):
                 attributes.append("@DELETE")
-            if options.get("duality_view_no_check", False) is True:
+            if options.get("dataMappingViewNoCheck", False):
                 attributes.append("@NOCHECK")
 
             if field["object_reference"]["unnest"] or field["object_reference"].get(
@@ -2917,13 +2917,13 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 if options is None:
                     options = {}
 
-                if options.get("duality_view_insert", False) is True:
+                if options.get("dataMappingViewInsert", False):
                     stmt += " @INSERT"
-                if options.get("duality_view_update", False) is True:
+                if options.get("dataMappingViewUpdate", False):
                     stmt += " @UPDATE"
-                if options.get("duality_view_delete", False) is True:
+                if options.get("dataMappingViewDelete", False):
                     stmt += " @DELETE"
-                if options.get("duality_view_no_check", False) is True:
+                if options.get("dataMappingViewNoCheck", False):
                     stmt += " @NOCHECK"
 
                 fields = []

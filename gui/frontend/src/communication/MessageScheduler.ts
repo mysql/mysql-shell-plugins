@@ -76,6 +76,9 @@ interface ISendRequestParameters<K extends keyof IProtocolParameters> {
     /** Parameters needed for the request. */
     parameters: IProtocolParameters[K];
 
+    /** Fields to be ignored during conversion. */
+    caseConversionIgnores?: string[];
+
     /**
      * When specified this callback is used for data responses, instead of collecting and returning them in the
      * promise. In this case the promise only returns the last sent response data (if any).
@@ -91,6 +94,9 @@ interface IOngoingRequest<K extends keyof IProtocolResults> {
 
     /** Data from data responses is collected here, if no callback is given. */
     result: Array<IProtocolResults[K]>;
+
+    /** Fields to be ignored during conversion. */
+    caseConversionIgnores?: string[];
 
     resolve: (value: ResponseType<K>) => void;
     reject: (reason?: unknown) => void;
@@ -215,17 +221,13 @@ export class MessageScheduler {
      *
      * @param details The type and parameters for the request.
      * @param useExecute A flag to indicate this is actually an execute request, but in the simple form.
-     * @param caseConversionIgnores Ignore case conversions for items in this list
      *
      * @returns A promise resolving with a list of responses or a single response received from the backend.
      */
     public sendRequest<K extends keyof IProtocolResults>(
-        details: ISendRequestParameters<K>, useExecute = true,
-        caseConversionIgnores: string[] = []): ResponsePromise<K> {
+        details: ISendRequestParameters<K>, useExecute = true): ResponsePromise<K> {
 
-        return this.constructAndSendRequest(useExecute, caseConversionIgnores, {
-            ...details,
-        });
+        return this.constructAndSendRequest(useExecute, { ...details });
     }
 
     /**
@@ -280,15 +282,19 @@ export class MessageScheduler {
      * @param event The event containing the data sent by the backend.
      */
     private onMessage = (event: MessageEvent): void => {
-        const response = this.convertDataToResponse(event.data);
+        const nativeResponse = this.parseResponse(event.data);
 
-        if (response) {
-            if (this.isWebSessionData(response) && !this.debugging) {
+        if (nativeResponse) {
+            if (this.isWebSessionData(nativeResponse) && !this.debugging) {
+                const response = convertObjectKeysSnakeToCamelCase(nativeResponse) as IWebSessionData;
                 void requisitions.execute("webSessionStarted", response);
-            } else if (response.requestId) {
-                const record = this.ongoingRequests.get(response.requestId);
+            } else if (nativeResponse.request_id) {
+                const record = this.ongoingRequests.get(nativeResponse.request_id);
                 if (record) {
                     const ongoing = record as IOngoingRequest<typeof record.protocolType>;
+
+                    const response = convertObjectKeysSnakeToCamelCase(nativeResponse,
+                        { ignore: ongoing.caseConversionIgnores }) as IGenericResponse;
 
                     switch (response.eventType) {
                         case EventType.DataResponse: {
@@ -350,13 +356,11 @@ export class MessageScheduler {
      * This is the core method to send a request to the backend.
      *
      * @param isExecuteRequest True if the request must be sent as execution request.
-     * @param caseConversionIgnores Ignore case conversions for items in this list
      * @param details The type and parameters for the request.
      *
      * @returns A promise resolving with a list of responses received from the backend.
      */
     private constructAndSendRequest<K extends keyof IProtocolResults>(isExecuteRequest: boolean,
-        caseConversionIgnores: string[],
         details: ISendRequestParameters<K>): ResponsePromise<K> {
 
         const requestId = details.requestId ?? uuid();
@@ -369,10 +373,8 @@ export class MessageScheduler {
                 ...details.parameters,
             };
 
-            caseConversionIgnores = caseConversionIgnores.concat(["rows"]);
-
             const data = convertObjectKeysCamelToSnakeCase(record,
-                { ignore: caseConversionIgnores }) as INativeShellRequest;
+                { ignore: details.caseConversionIgnores }) as INativeShellRequest;
 
             if (this.traceEnabled) {
                 void requisitions.execute("debugger", { request: data });
@@ -381,6 +383,7 @@ export class MessageScheduler {
             const ongoingRequest: IOngoingRequest<K> = {
                 protocolType: details.requestType,
                 result: [],
+                caseConversionIgnores: details.caseConversionIgnores,
                 resolve,
                 reject,
                 onData: details.onData,
@@ -458,14 +461,14 @@ export class MessageScheduler {
 
     /**
      * Processes the raw backend data record and converts it to a response usable in the application.
-     * This involves converting snake case to camel case and determining the type of the response.
+     * It returns an object with the response type and the data received.
      *
      * @param data The data received by the web socket.
      *
      * @returns The generated response object. Can be undefined if the incoming data does not conform to the expected
      *          format.
      */
-    private convertDataToResponse = (data: unknown): IGenericResponse | undefined => {
+    private parseResponse = (data: unknown): INativeShellResponse | undefined => {
         if (!data || !(typeof data === "string")) {
             return undefined;
         }
@@ -476,46 +479,43 @@ export class MessageScheduler {
                 void requisitions.execute("debugger", { response: responseObject });
             }
 
-            const response = convertObjectKeysSnakeToCamelCase(responseObject,
-                { ignore: ["rows"] }) as IGenericResponse;
-
-            switch (response.requestState.type) {
+            switch (responseObject.request_state.type) {
                 case "ERROR": {
-                    response.eventType = EventType.ErrorResponse;
+                    responseObject.event_type = EventType.ErrorResponse;
                     break;
                 }
 
                 case "PENDING": {
-                    if (response.requestState.msg === "Execution started...") {
-                        response.eventType = EventType.StartResponse; // Carries no result data.
+                    if (responseObject.request_state.msg === "Execution started...") {
+                        responseObject.event_type = EventType.StartResponse; // Carries no result data.
                     } else {
-                        response.eventType = EventType.DataResponse;
+                        responseObject.event_type = EventType.DataResponse;
                     }
                     break;
                 }
 
                 case "OK": {
-                    if (response.done) {
-                        response.eventType = EventType.FinalResponse;
+                    if (responseObject.done) {
+                        responseObject.event_type = EventType.FinalResponse;
                     } else {
-                        response.eventType = EventType.EndResponse;
+                        responseObject.event_type = EventType.EndResponse;
                     }
 
                     break;
                 }
 
                 case "CANCELLED": {
-                    response.eventType = EventType.CancelResponse;
+                    responseObject.event_type = EventType.CancelResponse;
                     break;
                 }
 
                 default: {
-                    response.eventType = EventType.Unknown;
+                    responseObject.event_type = EventType.Unknown;
                     break;
                 }
             }
 
-            return response;
+            return responseObject;
         } catch (reason) {
             const message = reason instanceof Error ? reason.message : String(reason);
             void ui.showErrorMessage(`Could not parse JSON response from MySQL Shell (${message}).`, {});
@@ -523,6 +523,8 @@ export class MessageScheduler {
     };
 
     private isWebSessionData(response: unknown): response is IWebSessionData {
-        return (response as IWebSessionData).sessionUuid !== undefined;
+        const candidate = response as object;
+
+        return ("session_uuid" in candidate) && candidate.session_uuid !== undefined;
     }
 }

@@ -259,10 +259,10 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         refTable += field.objectReference.referenceMapping.referencedTable ? "." +
                             field.objectReference.referenceMapping.referencedTable : "";
                         s += `${indent}${field.name}: ${refTable}`;
-                        if (field.objectReference.options?.dualityViewInsert) { s += ` @INSERT`; }
-                        if (field.objectReference.options?.dualityViewUpdate) { s += ` @UPDATE`; }
-                        if (field.objectReference.options?.dualityViewDelete) { s += ` @DELETE`; }
-                        if (field.objectReference.options?.dualityViewNoCheck) { s += ` @NOCHECK`; }
+                        if (field.objectReference.options?.dataMappingViewInsert) { s += ` @INSERT`; }
+                        if (field.objectReference.options?.dataMappingViewUpdate) { s += ` @UPDATE`; }
+                        if (field.objectReference.options?.dataMappingViewDelete) { s += ` @DELETE`; }
+                        if (field.objectReference.options?.dataMappingViewNoCheck) { s += ` @NOCHECK`; }
                         if (field.objectReference.unnest ||
                             field.objectReference.reduceToValueOfFieldId !== undefined) { s += ` @UNNEST`; }
                         s += ` {\n${c}\n${indent}},\n`;
@@ -325,16 +325,16 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     `    ON SERVICE ${data.servicePath} SCHEMA ${data.dbSchemaPath}\n` +
                     `    AS ${data.dbSchemaName}.${data.dbObject.name} CLASS ${mrsObject.name}`;
 
-                if (mrsObject.options?.dualityViewInsert) {
+                if (mrsObject.options?.dataMappingViewInsert) {
                     view += ` @INSERT`;
                 }
-                if (mrsObject.options?.dualityViewUpdate) {
+                if (mrsObject.options?.dataMappingViewUpdate) {
                     view += ` @UPDATE`;
                 }
-                if (mrsObject.options?.dualityViewDelete) {
+                if (mrsObject.options?.dataMappingViewDelete) {
                     view += ` @DELETE`;
                 }
-                if (mrsObject.options?.dualityViewNoCheck) {
+                if (mrsObject.options?.dataMappingViewNoCheck) {
                     view += ` @NOCHECK`;
                 }
 
@@ -792,7 +792,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         crossAlignment={ContentAlignment.Center}
                     >
                         {showFieldListOpenActionIcons && data.dbObject.objectType !== MrsDbObjectType.Script &&
-                            <Icon className={mrsObject?.options?.dualityViewNoCheck
+                            <Icon className={mrsObject?.options?.dataMappingViewNoCheck
                                 ? "selected" : "notSelected"} src={noCheckIcon} width={16} height={16}
                                 onClick={() => { this.handleIconClick(cell, ActionIconName.Check); }}
                                 data-tooltip="Disable ETAG calculations for this table." />
@@ -858,7 +858,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                             <Label className="datatype" caption={
                                 // Reverse order because of CSS {direction: rtl;} setting
                                 `${cellData.field.dbColumn?.isArray ? "[ ]" : ""}${this.getJsonFieldDatatype(cellData)}`
-                            } data-tooltip={cellData.field.jsonSchemaDef}/>
+                            } data-tooltip={JSON.stringify(cellData.field.jsonSchemaDef, undefined, 4)}/>
                         </>
                     }
                 </Container>
@@ -920,7 +920,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     }
                     {cellData.field.objectReference &&
                         <>
-                            <Icon className={cellData.field.objectReference.options?.dualityViewNoCheck
+                            <Icon className={cellData.field.objectReference.options?.dataMappingViewNoCheck
                                 ? "selected" : "notSelected"} src={noCheckIcon} width={16} height={16}
                                 onClick={() => { this.handleIconClick(cell, ActionIconName.Check); }}
                                 data-tooltip="Disable ETAG calculations for this table." />
@@ -1031,13 +1031,13 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
 
         const tableCrud: string[] = [];
         if (options) {
-            if (options.dualityViewInsert) {
+            if (options.dataMappingViewInsert) {
                 tableCrud.push("INSERT");
             }
-            if (options.dualityViewUpdate) {
+            if (options.dataMappingViewUpdate) {
                 tableCrud.push("UPDATE");
             }
-            if (options.dualityViewDelete) {
+            if (options.dataMappingViewDelete) {
                 tableCrud.push("DELETE");
             }
         }
@@ -2261,13 +2261,13 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
         }
 
         // Consider the settings of the mrsObject first
-        if (mrsObject?.options?.dualityViewInsert) {
+        if (mrsObject?.options?.dataMappingViewInsert) {
             crudOps.push("INSERT");
         }
-        if (mrsObject?.options?.dualityViewUpdate) {
+        if (mrsObject?.options?.dataMappingViewUpdate) {
             crudOps.push("UPDATE");
         }
-        if (mrsObject?.options?.dualityViewDelete) {
+        if (mrsObject?.options?.dataMappingViewDelete) {
             crudOps.push("DELETE");
         }
 
@@ -2277,9 +2277,9 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             mrsObject?.fields?.forEach((field) => {
                 if (field.objectReference?.options && crudOps.length < 4) {
                     if (!crudOps.includes("UPDATE")
-                        && (field.objectReference?.options.dualityViewInsert
-                            || field.objectReference?.options.dualityViewUpdate
-                            || field.objectReference?.options.dualityViewDelete)) {
+                        && (field.objectReference?.options.dataMappingViewInsert
+                            || field.objectReference?.options.dataMappingViewUpdate
+                            || field.objectReference?.options.dataMappingViewDelete)) {
                         crudOps.push("UPDATE");
                     }
                 }
@@ -2318,16 +2318,16 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
 
                         // If the individual flag is not set or false, set to true - otherwise false
                         if (icon === "INSERT") {
-                            options.dualityViewInsert =
-                                !options.dualityViewInsert ? true : false;
+                            options.dataMappingViewInsert =
+                                !options.dataMappingViewInsert ? true : false;
                         }
                         if (icon === "UPDATE") {
-                            options.dualityViewUpdate =
-                                !options.dualityViewUpdate ? true : false;
+                            options.dataMappingViewUpdate =
+                                !options.dataMappingViewUpdate ? true : false;
                         }
                         if (icon === "DELETE") {
-                            options.dualityViewDelete =
-                                !options.dualityViewDelete ? true : false;
+                            options.dataMappingViewDelete =
+                                !options.dataMappingViewDelete ? true : false;
                         }
 
                         // Update the DBObject's CRUD operations
@@ -2373,7 +2373,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         return;
                     }
 
-                    options.dualityViewNoCheck = !options.dualityViewNoCheck ? true : false;
+                    options.dataMappingViewNoCheck = !options.dataMappingViewNoCheck ? true : false;
 
                     break;
                 }

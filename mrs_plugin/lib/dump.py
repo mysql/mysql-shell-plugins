@@ -156,11 +156,11 @@ def load_object_dump(session, target_schema_id, object, reuse_ids):
             if options is None:
                 options = {}
             if "CREATE" in crud_operations:
-                options["duality_view_insert"] = True
+                options["dataMappingViewInsert"] = True
             if "UPDATE" in crud_operations:
-                options["duality_view_update"] = True
+                options["dataMappingViewUpdate"] = True
             if "DELETE" in crud_operations:
-                options["duality_view_delete"] = True
+                options["dataMappingViewDelete"] = True
 
             objects[0]["options"] = options
 

@@ -563,7 +563,15 @@ def set_object_fields_with_references(session, db_object_id, obj):
 
     current_version = core.get_mrs_schema_version(session=session)
     if current_version[0] >= 3:
-        values["options"] = obj.get("options", None)
+        options = obj.get("options", None)
+        # To be backwards compatible, duplicate the options using the old key names
+        if current_version[0] >= 1 and options is not None:
+            options["duality_view_insert"] = options.get("dataMappingViewInsert", None)
+            options["duality_view_update"] = options.get("dataMappingViewUpdate", None)
+            options["duality_view_delete"] = options.get("dataMappingViewDelete", None)
+            if options.get("dataMappingViewNoCheck", None) is not None:
+                options["duality_view_no_check"] = options.get("dataMappingViewNoCheck", None)
+        values["options"] = options
         row_ownership_field_id = obj.get("row_ownership_field_id", None)
         if row_ownership_field_id is not None:
             values["row_ownership_field_id"] = core.id_to_binary(
@@ -619,7 +627,15 @@ def set_object_fields_with_references(session, db_object_id, obj):
                 "comments": obj_ref.get("comments"),
             }
             if current_version[0] >= 3:
-                values["options"] = obj_ref.get("options", None)
+                options = obj.get("options", None)
+                # To be backwards compatible, duplicate the options using the old key names
+                if current_version[0] >= 1 and options is not None:
+                    options["duality_view_insert"] = options.get("dataMappingViewInsert", None)
+                    options["duality_view_update"] = options.get("dataMappingViewUpdate", None)
+                    options["duality_view_delete"] = options.get("dataMappingViewDelete", None)
+                    if options.get("dataMappingViewNoCheck", None) is not None:
+                        options["duality_view_no_check"] = options.get("dataMappingViewNoCheck", None)
+                values["options"] = options
                 row_ownership_field_id = obj_ref.get(
                     "row_ownership_field_id", None)
                 if row_ownership_field_id is not None:
@@ -657,7 +673,7 @@ def set_object_fields_with_references(session, db_object_id, obj):
 
             if current_version[0] >= 3:
                 values["options"] = field.get("options", None)
-                values["json_schema"] = field.get("json_schema", None)
+                values["json_schema"] = core.convert_dict_to_json_string(field.get("json_schema", None))
 
             core.insert(table="object_field", values=values).exec(session)
 
@@ -683,11 +699,11 @@ def calculate_crud_operations(db_object_type, objects=None, options=None):
         options = {}
     crudOps = ["READ"]
 
-    if options.get("duality_view_insert", False) is True:
+    if options.get("dataMappingViewInsert", False) is True:
         crudOps.append("CREATE")
-    if options.get("duality_view_update", False) is True:
+    if options.get("dataMappingViewUpdate", False) is True:
         crudOps.append("UPDATE")
-    if options.get("duality_view_delete", False) is True:
+    if options.get("dataMappingViewDelete", False) is True:
         crudOps.append("DELETE")
 
     # Loop over all fields and check if an object reference has a CRUD operation set. If so, the mrsObject
@@ -697,9 +713,9 @@ def calculate_crud_operations(db_object_type, objects=None, options=None):
             options = field.get("options", None)
             if options is not None and len(crudOps) < 4:
                 if "UPDATE" not in crudOps and \
-                    (options.get("duality_view_insert", False) is True
-                     or options.get("duality_view_update", False) is True
-                     or options.get("duality_view_delete", False) is True):
+                    (options.get("dataMappingViewInsert", False) is True
+                     or options.get("dataMappingViewUpdate", False) is True
+                     or options.get("dataMappingViewDelete", False) is True):
                     crudOps.append("UPDATE")
 
     return crudOps

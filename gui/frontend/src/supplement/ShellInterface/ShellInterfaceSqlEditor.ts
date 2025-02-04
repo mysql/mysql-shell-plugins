@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -167,6 +167,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
                         options: { rowPacketSize: Settings.get("sql.rowPacketSize", 1000) },
                     },
                 },
+                caseConversionIgnores: ["rows"],
                 onData: callback,
             });
 

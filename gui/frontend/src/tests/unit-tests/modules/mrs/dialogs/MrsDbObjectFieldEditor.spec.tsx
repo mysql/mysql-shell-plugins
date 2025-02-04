@@ -120,10 +120,10 @@ describe("MRS Object field editor tests", () => {
                     },
                     comments: "",
                     options: {
-                        dualityViewInsert: true,
-                        dualityViewUpdate: true,
-                        dualityViewDelete: true,
-                        dualityViewNoCheck: true,
+                        dataMappingViewInsert: true,
+                        dataMappingViewUpdate: true,
+                        dataMappingViewDelete: true,
+                        dataMappingViewNoCheck: true,
                     },
                 },
                 lev: 0,
@@ -415,10 +415,10 @@ describe("MRS Object field editor tests", () => {
                         kind: "1:n",
                     },
                     options: {
-                        dualityViewInsert: true,
-                        dualityViewUpdate: true,
-                        dualityViewDelete: true,
-                        dualityViewNoCheck: true,
+                        dataMappingViewInsert: true,
+                        dataMappingViewUpdate: true,
+                        dataMappingViewDelete: true,
+                        dataMappingViewNoCheck: true,
                     },
                 },
                 lev: 0,
@@ -539,10 +539,10 @@ describe("MRS Object field editor tests", () => {
                     sdkOptions: undefined, //IMrsObjectSdkOptions
                     comments: "",
                     options: {
-                        dualityViewInsert: true,
-                        dualityViewUpdate: true,
-                        dualityViewDelete: true,
-                        dualityViewNoCheck: true,
+                        dataMappingViewInsert: true,
+                        dataMappingViewUpdate: true,
+                        dataMappingViewDelete: true,
+                        dataMappingViewNoCheck: true,
                     },
                     fields: [{
                         id: "",
@@ -566,10 +566,10 @@ describe("MRS Object field editor tests", () => {
                     sdkOptions: undefined, //IMrsObjectSdkOptions
                     comments: "",
                     options: {
-                        dualityViewInsert: true,
-                        dualityViewUpdate: true,
-                        dualityViewDelete: true,
-                        dualityViewNoCheck: true,
+                        dataMappingViewInsert: true,
+                        dataMappingViewUpdate: true,
+                        dataMappingViewDelete: true,
+                        dataMappingViewNoCheck: true,
                     },
                     fields: [{
                         id: "field_1",
@@ -1577,10 +1577,10 @@ describe("MRS Object field editor tests", () => {
         MrsObjectFieldEditor.buildDataMappingViewSql(data);
 
         data.mrsObjects[1].fields![1].objectReference!.options = {
-            dualityViewDelete: true,
-            dualityViewInsert: true,
-            dualityViewNoCheck: true,
-            dualityViewUpdate: true,
+            dataMappingViewDelete: true,
+            dataMappingViewInsert: true,
+            dataMappingViewNoCheck: true,
+            dataMappingViewUpdate: true,
         };
         MrsObjectFieldEditor.buildDataMappingViewSql(data);
 
@@ -1620,9 +1620,9 @@ describe("MRS Object field editor tests", () => {
         fieldEditor["updateDbObjectCrudOperations"]();
 
         (mountResult.values as IMrsObjectFieldEditorData).mrsObjects[1].options = {
-            dualityViewUpdate: false,
+            dataMappingViewUpdate: false,
         };
-        (mountResult.values as IMrsObjectFieldEditorData).mrsObjects[1].options!.dualityViewUpdate = false;
+        (mountResult.values as IMrsObjectFieldEditorData).mrsObjects[1].options!.dataMappingViewUpdate = false;
         (mountResult.values as IMrsObjectFieldEditorData).mrsObjects[1].fields![0].objectReference = {
             id: "",
             reduceToValueOfFieldId: "field_1",
@@ -1635,7 +1635,7 @@ describe("MRS Object field editor tests", () => {
                 columnMapping: [], //IMrsColumnMapping[]
             }, // IMrsTableReference,
             options: {
-                dualityViewInsert: true,
+                dataMappingViewInsert: true,
             },
             unnest: true,
         };

@@ -63,9 +63,9 @@ def get_default_db_object_init(
                 "comments": "Comment for object",
                 "options": object_options
                 or {
-                    "duality_view_insert": True,
-                    "duality_view_update": True,
-                    "duality_view_delete": True,
+                    "dataMappingViewInsert": True,
+                    "dataMappingViewUpdate": True,
+                    "dataMappingViewDelete": True,
                 },
                 "sdk_options": {
                     "option1": "value 1",

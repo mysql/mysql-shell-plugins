@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -140,6 +140,9 @@ def test_update_db_object(phone_book, table_contents):
                     'option2': 'value 2'
                 },
                 'options': {
+                    'dataMappingViewDelete': True,
+                    'dataMappingViewInsert': True,
+                    'dataMappingViewUpdate': True,
                     'duality_view_delete': True,
                     'duality_view_insert': True,
                     'duality_view_update': True,
