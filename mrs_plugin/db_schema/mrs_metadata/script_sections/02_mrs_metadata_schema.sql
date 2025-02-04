@@ -1,5 +1,5 @@
 -- Copyright (c) 2025, Oracle and/or its affiliates.
--- Mon Feb  3 19:38:21 2025
+-- Tue Feb  4 21:07:27 2025
 -- Model: New Model    Version: 1.0
 -- MySQL Workbench Forward Engineering
 
@@ -1103,8 +1103,8 @@ USE `mysql_rest_service_metadata`$$
 CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`service_BEFORE_DELETE` BEFORE DELETE ON `service` FOR EACH ROW
 BEGIN
 	# Since FKs do not fire the triggers on the related tables, manually trigger the DELETEs
+	DELETE FROM `mysql_rest_service_metadata`.`content_set` WHERE `service_id` = OLD.`id`;
 	DELETE FROM `mysql_rest_service_metadata`.`db_schema` WHERE `service_id` = OLD.`id`;
-    DELETE FROM `mysql_rest_service_metadata`.`content_set` WHERE `service_id` = OLD.`id`;
     DELETE FROM `mysql_rest_service_metadata`.`service_has_auth_app` WHERE `service_id` = OLD.`id`;
     DELETE FROM `mysql_rest_service_metadata`.`mrs_role` WHERE `specific_to_service_id` = OLD.`id`;
     DELETE FROM `mysql_rest_service_metadata`.`mrs_user_hierarchy_type` WHERE `specific_to_service_id` = OLD.`id`;
