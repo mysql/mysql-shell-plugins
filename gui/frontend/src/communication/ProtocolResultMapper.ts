@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024 Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -29,9 +29,11 @@ import { Protocol } from "./Protocol.js";
 import { IProtocolGuiResults, IShellProfile } from "./ProtocolGui.js";
 import { IProtocolMdsResults } from "./ProtocolMds.js";
 import { IProtocolMrsResults } from "./ProtocolMrs.js";
+import { IProtocolMsmResults } from "./ProtocolMsm.js";
 
 /** The mapping between an API name and the results sent by it (held in the `event.data` member). */
-export interface IProtocolResults extends IProtocolGuiResults, IProtocolMdsResults, IProtocolMrsResults {
+export interface IProtocolResults extends IProtocolGuiResults, IProtocolMdsResults, IProtocolMrsResults,
+    IProtocolMsmResults {
     // For debugging only.
     "native": INativeShellResponse;
 

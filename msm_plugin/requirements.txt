@@ -1,0 +1,7 @@
+# Copyright (c) 2025, Oracle and/or its affiliates.
+
+# Run the following command to install the dependencies in the local MySQL Shell
+# mysqlsh --pym pip install -r msm_plugin/requirements.txt
+
+pytest >= 6.1.2, <= 7.0
+pytest-cov >= 2.10.1

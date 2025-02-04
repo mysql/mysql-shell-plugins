@@ -1,0 +1,43 @@
+export interface IMsmProjectSettings {
+    copyrightHolder: string;
+    customLicense: string;
+    license: string;
+    schemaDependencies: IMsmSchemaDependency[];
+    schemaName: string;
+    schemaFileName: string;
+    yearOfCreation: string;
+}
+
+export interface IMsmSchemaDependency {
+    schemaName: string;
+    schemaProjectPath: string;
+}
+
+export interface IMsmProjectInfo extends IMsmProjectSettings{
+    currentDevelopmentVersion: string;
+    lastReleasedVersion: string;
+    schemaDevelopmentFilePath: string;
+}
+
+export type MsmVersion = [number, number, number];
+
+export interface IProtocolMsmResults {
+    [ShellAPIMsm.MsmInfo]: { result: string; };
+    [ShellAPIMsm.MsmVersion]: { result: string; };
+    [ShellAPIMsm.MsmCreateNewProjectFolder]: { result: string; };
+    [ShellAPIMsm.MsmGetProjectSettings]: { result: IMsmProjectSettings; };
+    [ShellAPIMsm.MsmGetProjectInformation]: { result: IMsmProjectInfo; };
+    [ShellAPIMsm.MsmSetDevelopmentVersion]: {};
+    [ShellAPIMsm.MsmGetReleasedVersions]: { result: MsmVersion[] };
+    [ShellAPIMsm.MsmGetDeploymentScriptVersions]: { result: MsmVersion[] };
+    [ShellAPIMsm.MsmGetLastReleasedVersion]: { result: string; };
+    [ShellAPIMsm.MsmPrepareRelease]: { result: string[] };
+    [ShellAPIMsm.MsmGetSqlContentFromSection]: { result: string; };
+    [ShellAPIMsm.MsmSetSectionSqlContent]: {};
+    [ShellAPIMsm.MsmGenerateDeploymentScript]: { result: string; };
+    [ShellAPIMsm.MsmGetAvailableLicenses]: { result: string[]; };
+    [ShellAPIMsm.MsmGetSchemaExists]: { result: boolean; };
+    [ShellAPIMsm.MsmGetSchemaIsManaged]: { result: boolean; };
+    [ShellAPIMsm.MsmGetSchemaVersion]: { result: string | null; };
+    [ShellAPIMsm.MsmDeploySchema]: {};
+}

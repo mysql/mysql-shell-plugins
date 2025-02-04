@@ -58,6 +58,7 @@ import { NodeMessageScheduler } from "./communication/NodeMessageScheduler.js";
 import { NotebookEditorProvider } from "./editor-providers/NotebookEditorProvider.js";
 import { ConnectionsTreeDataProvider } from "./tree-providers/ConnectionsTreeProvider/ConnectionsTreeProvider.js";
 import { convertErrorToString } from "../../frontend/src/utilities/helpers.js";
+import { MsmCommandHandler } from "./MsmCommandHandler.js";
 
 /** This class manages some extension wide things like authentication handling etc. */
 export class ExtensionHost {
@@ -78,6 +79,7 @@ export class ExtensionHost {
     private notebookProvider = new NotebookEditorProvider();
     private mrsCommandHandler: MRSCommandHandler;
     private mdsCommandHandler = new MDSCommandHandler();
+    private msmCommandHandler: MsmCommandHandler;
 
     // Tree data providers for the extension's sidebar. The connection provider is managed in the DB editor
     // command handler.
@@ -102,6 +104,7 @@ export class ExtensionHost {
         this.connectionsProvider = new ConnectionsTreeDataProvider(this.#connectionsDataModel);
         this.dbEditorCommandHandler = new DBEditorCommandHandler(this.connectionsProvider);
         this.mrsCommandHandler = new MRSCommandHandler(this.connectionsProvider);
+        this.msmCommandHandler = new MsmCommandHandler(this.connectionsProvider);
 
         this.setupEnvironment();
 
@@ -130,6 +133,10 @@ export class ExtensionHost {
 
         requisitions.register("connectedToUrl", this.connectedToUrl);
         requisitions.register("proxyRequest", this.proxyRequest);
+    }
+
+    public extensionInitialized(): boolean {
+        return this.#connectionsDataModel.initialized;
     }
 
     /**
@@ -318,6 +325,7 @@ export class ExtensionHost {
         this.notebookProvider.setup(this);
         this.mrsCommandHandler.setup(this);
         this.mdsCommandHandler.setup(this);
+        this.msmCommandHandler.setup(this);
 
         const updateLogLevel = (): void => {
             const configuration = workspace.getConfiguration(`msg.debugLog`);

@@ -6,7 +6,6 @@ exports[`DBEditor module tests Test DBEditorModule instantiation 1`] = `
     {
       "connectionsDataModel": ConnectionDataModel {
         "connections": [],
-        "initialized": true,
         "notifySubscribers": [Function],
         "refreshMrsRoutersTimer": undefined,
         "routerRefreshTime": 10000,

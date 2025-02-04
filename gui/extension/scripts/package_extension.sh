@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -26,11 +26,12 @@
 # darwin-arm64, darwin-x64, win32-x64
 # Usage: package_extension.sh [single-platform]
 #
-# This script assumes you have unpacked GUI, MDS, MRS plugins into
+# This script assumes you have unpacked GUI, MDS, MRS, MSM plugins into
 #
 #   $HOME/.mysqlsh/plugins/gui_plugin
 #   $HOME/.mysqlsh/plugins/mds_plugin
 #   $HOME/.mysqlsh/plugins/mrs_plugin
+#   $HOME/.mysqlsh/plugins/msm_plugin
 #
 # Note that if SHELL_VERSION is set in the environment, this script is
 # assumed to be run from PB2 without prompting the user to input the
@@ -142,6 +143,10 @@ if [ ! -d "$HOME/.mysqlsh/plugins/mrs_plugin" ]; then
     echo "ERROR: The mrs_plugin is missing from ~/.mysqlsh/plugins/"
     exit 1
 fi
+if [ ! -d "$HOME/.mysqlsh/plugins/msm_plugin" ]; then
+    echo "ERROR: The msm_plugin is missing from ~/.mysqlsh/plugins/"
+    exit 1
+fi
 
 if [ -z "${SHELL_VERSION}" ] && [ ! -d "packaging" ]; then
     echo "Setting up the packaging resources..."
@@ -214,11 +219,11 @@ for d in packaging/mysql-shell/*; do
         cp -R $d/share shell/.
 
         echo "Cleanup OCI SDK folder"
-        OCIPATH=shell/lib/mysqlsh/lib/python3.12/site-packages/oci
+        OCIPATH=shell/lib/mysqlsh/lib/python3.13/site-packages/oci
         if [ "$PLATFORM" == "linux-arm64" ] || [ "$PLATFORM" == "linux-x64" ]; then
-            OCIPATH=shell/lib/mysqlsh/lib/python3.12/site-packages/oci
+            OCIPATH=shell/lib/mysqlsh/lib/python3.13/site-packages/oci
         elif [ "$PLATFORM" == "win32-x64" ]; then
-            OCIPATH=shell/lib/Python3.12/Lib/site-packages/oci
+            OCIPATH=shell/lib/Python3.13/Lib/site-packages/oci
         fi
         strip_oci_package $OCIPATH
 
@@ -226,6 +231,7 @@ for d in packaging/mysql-shell/*; do
         cp -RL $HOME/.mysqlsh/plugins/gui_plugin shell/lib/mysqlsh/plugins/.
         cp -RL $HOME/.mysqlsh/plugins/mds_plugin shell/lib/mysqlsh/plugins/.
         cp -RL $HOME/.mysqlsh/plugins/mrs_plugin shell/lib/mysqlsh/plugins/.
+        cp -RL $HOME/.mysqlsh/plugins/msm_plugin shell/lib/mysqlsh/plugins/.
 
         # Clean *.py[co] files and __pycache__ directories
         find shell/lib/mysqlsh/plugins -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete

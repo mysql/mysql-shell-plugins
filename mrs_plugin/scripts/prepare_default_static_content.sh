@@ -11,7 +11,7 @@ else
     ROOTPATH=$1
 fi
 
-cd $ROOTPATH/db_schema/mrs_metadata/default_static_content
+cd $ROOTPATH/db_schema/mysql_rest_service_metadata.msm.project/development/default_static_content
 
 echo "Preparing default static content ..."
 
@@ -39,7 +39,7 @@ export faviconSvgB64=$(cat favicon.svg.b64)
 export sakilaSvgB64=$(cat sakila.svg.b64)
 export standalonePreactJsB64=$(cat standalone-preact.js.b64)
 
-envsubst < insert.template.sql > ../script_sections/06_insert_default_static_content.sql
+envsubst < insert.template.sql > ../sections/140-40_default_static_content.sql
 envsubst < config.data.template.json > config.data.json
 
 echo "Perform cleanup ..."

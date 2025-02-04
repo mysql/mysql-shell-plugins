@@ -1,0 +1,11 @@
+{
+    "name": "msm-shell-plugin",
+    "version": "1.0.0",
+    "description": "MySQL Schema Management plugin for MySQL Shell",
+    "scripts": {
+        "run-pytest": "clear; mysqlsh --log-level=debug3 --verbose=4 --py -f run_tests.py #-k test_auth_app_grant_options"
+    },
+    "publisher": "Oracle",
+    "devDependencies": {
+    }
+}
