@@ -219,9 +219,9 @@ def test_set_crud_operations(phone_book, table_contents):
     db_object = get_default_db_object_init(session, phone_book["schema_id"])
 
     db_object["objects"][0]["options"] = {
-        "duality_view_insert": True,
-        "duality_view_update": True,
-        "duality_view_delete": True,
+        "dataMappingViewInsert": True,
+        "dataMappingViewUpdate": True,
+        "dataMappingViewDelete": True,
     }
 
     with DbObjectCT(session, **db_object) as db_object_id:
@@ -231,9 +231,9 @@ def test_set_crud_operations(phone_book, table_contents):
         assert result["crud_operations"] == ["CREATE", "READ", "UPDATE", "DELETE"]
 
     db_object["objects"][0]["options"] = {
-        "duality_view_insert": False,
-        "duality_view_update": True,
-        "duality_view_delete": True,
+        "dataMappingViewInsert": False,
+        "dataMappingViewUpdate": True,
+        "dataMappingViewDelete": True,
     }
 
     with DbObjectCT(session, **db_object) as db_object_id:
@@ -243,9 +243,9 @@ def test_set_crud_operations(phone_book, table_contents):
         assert result["crud_operations"] == ["READ", "UPDATE", "DELETE"]
 
     db_object["objects"][0]["options"] = {
-        "duality_view_insert": False,
-        "duality_view_update": False,
-        "duality_view_delete": True,
+        "dataMappingViewInsert": False,
+        "dataMappingViewUpdate": False,
+        "dataMappingViewDelete": True,
     }
 
     with DbObjectCT(session, **db_object) as db_object_id:
@@ -255,9 +255,9 @@ def test_set_crud_operations(phone_book, table_contents):
         assert result["crud_operations"] == ["READ", "DELETE"]
 
     db_object["objects"][0]["options"] = {
-        "duality_view_insert": False,
-        "duality_view_update": False,
-        "duality_view_delete": False,
+        "dataMappingViewInsert": False,
+        "dataMappingViewUpdate": False,
+        "dataMappingViewDelete": False,
     }
 
     with DbObjectCT(session, **db_object) as db_object_id:
@@ -267,9 +267,9 @@ def test_set_crud_operations(phone_book, table_contents):
         assert result["crud_operations"] == ["READ"]
 
     db_object["objects"][0]["fields"][0]["options"] = {
-        "duality_view_insert": True,
-        "duality_view_update": True,
-        "duality_view_delete": True,
+        "dataMappingViewInsert": True,
+        "dataMappingViewUpdate": True,
+        "dataMappingViewDelete": True,
     }
 
     with DbObjectCT(session, **db_object) as db_object_id:

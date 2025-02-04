@@ -579,10 +579,10 @@ class MrsDdlListener(MRSListener):
                 "kind": "RESULT",
                 "position": 0,
                 "options": {
-                    "duality_view_insert": "INSERT" in options,
-                    "duality_view_update": "UPDATE" in options,
-                    "duality_view_delete": "DELETE" in options,
-                    "duality_view_no_check": "NOCHECK" in options,
+                    "dataMappingViewInsert": "INSERT" in options,
+                    "dataMappingViewUpdate": "UPDATE" in options,
+                    "dataMappingViewDelete": "DELETE" in options,
+                    "dataMappingViewNoCheck": "NOCHECK" in options,
                 },
                 # Get top level fields
                 "fields": self.get_db_object_fields(
@@ -826,10 +826,10 @@ class MrsDdlListener(MRSListener):
                         "id": obj_reference_id,
                         "reference_mapping": ref_mapping,
                         "options": {
-                            "duality_view_insert": "INSERT" in options,
-                            "duality_view_update": "UPDATE" in options,
-                            "duality_view_delete": "DELETE" in options,
-                            "duality_view_no_check": "NOCHECK" in options,
+                            "dataMappingViewInsert": "INSERT" in options,
+                            "dataMappingViewUpdate": "UPDATE" in options,
+                            "dataMappingViewDelete": "DELETE" in options,
+                            "dataMappingViewNoCheck": "NOCHECK" in options,
                         },
                         "unnest": ctx.AT_UNNEST_SYMBOL() is not None,
                     }
@@ -1451,10 +1451,10 @@ class MrsDdlListener(MRSListener):
                 "kind": "RESULT",
                 "position": 0,
                 "options": {
-                    "duality_view_insert": "INSERT" in options,
-                    "duality_view_update": "UPDATE" in options,
-                    "duality_view_delete": "DELETE" in options,
-                    "duality_view_no_check": "NOCHECK" in options,
+                    "dataMappingViewInsert": "INSERT" in options,
+                    "dataMappingViewUpdate": "UPDATE" in options,
+                    "dataMappingViewDelete": "DELETE" in options,
+                    "dataMappingViewNoCheck": "NOCHECK" in options,
                 },
                 # Get top level fields
                 "fields": self.get_db_object_fields(

@@ -14,6 +14,50 @@ ALTER TABLE `mysql_rest_service_metadata`.`redirect`
   ADD COLUMN `kind` ENUM('REDIRECT', 'REWRITE') NOT NULL DEFAULT 'REDIRECT',
   ADD COLUMN `in_development` JSON NULL;
 
+
+UPDATE object SET options=json_remove(
+    json_set(options, '$.dataMappingViewInsert', options->>'$.duality_view_insert'),
+    '$.duality_view_insert')
+WHERE options->>'$.duality_view_insert' is not null;
+
+UPDATE object SET options=json_remove(
+    json_set(options, '$.dataMappingViewUpdate', options->>'$.duality_view_update'),
+    '$.duality_view_update')
+WHERE options->>'$.duality_view_update' is not null;
+
+UPDATE object SET options=json_remove(
+    json_set(options, '$.dataMappingViewDelete', options->>'$.duality_view_delete'),
+    '$.duality_view_delete')
+WHERE options->>'$.duality_view_delete' is not null;
+
+UPDATE object SET options=json_remove(
+    json_set(options, '$.dataMappingViewNoCheck', options->>'$.duality_view_no_check'),
+    '$.duality_view_no_check')
+WHERE options->>'$.duality_view_no_check' is not null;
+
+
+UPDATE object_reference SET options=json_remove(
+    json_set(options, '$.dataMappingViewInsert', options->>'$.duality_view_insert'),
+    '$.duality_view_insert')
+WHERE options->>'$.duality_view_insert' is not null;
+
+UPDATE object_reference SET options=json_remove(
+    json_set(options, '$.dataMappingViewUpdate', options->>'$.duality_view_update'),
+    '$.duality_view_update')
+WHERE options->>'$.duality_view_update' is not null;
+
+UPDATE object_reference SET options=json_remove(
+    json_set(options, '$.dataMappingViewDelete', options->>'$.duality_view_delete'),
+    '$.duality_view_delete')
+WHERE options->>'$.duality_view_delete' is not null;
+
+UPDATE object_reference SET options=json_remove(
+    json_set(options, '$.dataMappingViewNoCheck', options->>'$.duality_view_no_check'),
+    '$.duality_view_no_check')
+WHERE options->>'$.duality_view_no_check' is not null;
+
+
+
 ALTER TABLE `mysql_rest_service_metadata`.`object_field`
   ADD COLUMN `json_schema` JSON NULL;
 

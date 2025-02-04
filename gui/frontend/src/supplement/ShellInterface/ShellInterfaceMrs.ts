@@ -55,6 +55,7 @@ export class ShellInterfaceMrs {
                     allowRecreationOnMajorUpgrade,
                 },
             },
+            caseConversionIgnores: ["options"],
         });
     }
 
@@ -90,6 +91,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options", "metadata"],
         });
 
         return response.result;
@@ -120,7 +122,8 @@ export class ShellInterfaceMrs {
                     name,
                 },
             },
-        }, true, ["options"]);
+            caseConversionIgnores: ["options", "metadata"],
+        });
 
         return response.result;
     }
@@ -138,7 +141,8 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
-        }, true, ["options"]);
+            caseConversionIgnores: ["options", "metadata"],
+        });
     }
 
     public async deleteService(serviceId: string | null): Promise<void> {
@@ -169,6 +173,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options", "metadata"],
         });
 
         return response.result;
@@ -245,6 +250,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options"],
         });
 
         return response.result;
@@ -261,6 +267,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options"],
         });
 
         return response.result;
@@ -275,6 +282,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options"],
         });
 
         return response.result;
@@ -333,6 +341,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options"],
         });
     }
 
@@ -345,6 +354,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options", "metadata"],
         });
 
         return response.result;
@@ -360,6 +370,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options", "appOptions", "app_options"],
         });
 
         return response.result;
@@ -396,6 +407,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options", "appOptions", "app_options"],
         });
     }
 
@@ -411,6 +423,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options", "appOptions", "app_options"],
         });
     }
 
@@ -425,6 +438,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options", "metadata"],
         });
 
         return response.result;
@@ -444,6 +458,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options", "metadata"],
         });
 
         return response.result;
@@ -482,6 +497,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options", "metadata"],
         });
 
         return response.result;
@@ -509,6 +525,7 @@ export class ShellInterfaceMrs {
                     },
                 },
             },
+            caseConversionIgnores: ["options", "metadata"],
         });
     }
 
@@ -547,6 +564,7 @@ export class ShellInterfaceMrs {
                     objects,
                 },
             },
+            caseConversionIgnores: ["options", "metadata", "sdk_options", "sdkOptions"],
         });
 
         return response.result;
@@ -566,6 +584,7 @@ export class ShellInterfaceMrs {
                     value,
                 },
             },
+            caseConversionIgnores: ["options", "metadata", "sdk_options", "sdkOptions"],
         });
     }
 
@@ -578,7 +597,8 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
-        }, true, ["bla"]);
+            caseConversionIgnores: ["options", "metadata", "sdk_options", "sdkOptions"],
+        });
 
         return response.result;
     }
@@ -620,6 +640,7 @@ export class ShellInterfaceMrs {
                     ignoreList,
                 },
             },
+            caseConversionIgnores: ["options"],
             onData: callback,
         });
 
@@ -669,6 +690,7 @@ export class ShellInterfaceMrs {
                     requestPath,
                 },
             },
+            caseConversionIgnores: ["options"],
         });
 
         return response.result;
@@ -686,6 +708,7 @@ export class ShellInterfaceMrs {
                     includeEnableState,
                 },
             },
+            caseConversionIgnores: ["options"],
         });
 
         return response.result;
@@ -793,6 +816,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options"],
         });
 
         return response.result;
@@ -807,6 +831,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options"],
         });
 
         return response.result;
@@ -835,6 +860,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options"],
         });
 
         return response.result;
@@ -960,6 +986,7 @@ export class ShellInterfaceMrs {
                     dbObjectType,
                 },
             },
+            caseConversionIgnores: ["jsonSchemaDef", "json_schema_def"],
         });
 
         return response.result;
@@ -1018,6 +1045,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options", "metadata", "sdk_options", "sdkOptions"],
         });
 
         return response.result;
@@ -1034,6 +1062,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options", "metadata", "sdk_options", "sdkOptions"],
         });
 
         return response.result;
@@ -1050,6 +1079,7 @@ export class ShellInterfaceMrs {
                     moduleSessionId: this.moduleSessionId,
                 },
             },
+            caseConversionIgnores: ["options", "sdk_options", "sdkOptions", "jsonSchema", "json_schema"],
         });
 
         return response.result;

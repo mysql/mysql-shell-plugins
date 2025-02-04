@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -525,7 +525,8 @@ export const strictEval = (code: string): unknown => {
  * If the value is an array or an object, the function is called recursively.
  *
  * @param o The object to convert.
- * @param ignoreList A list of keys that should not be converted.
+ * @param ignoreList A list of keys which should have their content not be converted. The keys themselves will be
+ *                   converted.
  * @param fn The mapping function to use.
  *
  * @returns A new object with the converted values.

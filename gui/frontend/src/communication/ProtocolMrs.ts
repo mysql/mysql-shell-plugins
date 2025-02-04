@@ -1755,6 +1755,7 @@ export interface IMrsUserData {
     mappedUserId?: string;
     appOptions?: IShellDictionary;
     authString?: string;
+    options?: IShellDictionary;
 }
 
 export interface IMrsSchemaData {
@@ -1787,30 +1788,32 @@ export interface IMrsStatusData {
 }
 
 export interface IMrsRoleData {
-    id: string,
-    derivedFromRoleId: string,
-    specificToServiceId: string,
-    caption: string,
-    description: string,
+    id: string;
+    derivedFromRoleId: string;
+    specificToServiceId: string;
+    caption: string;
+    description: string;
+    options?: IShellDictionary;
 }
 
 export interface IMrsUserRoleData {
-    userId: string | null,
-    roleId: string | null,
-    comments: string | null,
+    userId: string | null;
+    roleId: string | null;
+    comments: string | null;
+    options?: IShellDictionary;
 }
 
 export interface IMrsRouterData {
-    id: number,
-    routerName: string,
-    address: string,
-    productName: string,
-    version: string,
-    lastCheckIn: string,
-    attributes: IShellDictionary,
-    options: IShellDictionary,
-    active: boolean,
-    developer?: string,
+    id: number;
+    routerName: string;
+    address: string;
+    productName: string;
+    version: string;
+    lastCheckIn: string;
+    attributes: IShellDictionary;
+    options: IShellDictionary;
+    active: boolean;
+    developer?: string;
 }
 
 export interface IMrsRouterService {
@@ -1873,7 +1876,7 @@ export interface IMrsTableColumnWithReference {
     referenceMapping?: IMrsTableReference,
     tableSchema: string,
     tableName: string,
-    jsonSchemaDef?: string,
+    jsonSchemaDef?: IShellDictionary,
 }
 
 export interface IMrsObjectFieldSdkLanguageOptions {
@@ -1925,7 +1928,7 @@ export interface IMrsObjectFieldWithReference {
     lev?: number,
     caption?: string,
     storedDbColumn?: IMrsTableColumn,
-    jsonSchemaDef?: string,
+    jsonSchemaDef?: IShellDictionary,
 }
 
 export interface IMrsObjectSdkLanguageOptions {
@@ -1940,10 +1943,10 @@ export interface IMrsObjectSdkOptions {
 }
 
 export interface IMrsObjectOptions {
-    dualityViewInsert?: boolean,
-    dualityViewUpdate?: boolean,
-    dualityViewDelete?: boolean,
-    dualityViewNoCheck?: boolean,
+    dataMappingViewInsert?: boolean,
+    dataMappingViewUpdate?: boolean,
+    dataMappingViewDelete?: boolean,
+    dataMappingViewNoCheck?: boolean,
 }
 
 export interface IMrsObject {
