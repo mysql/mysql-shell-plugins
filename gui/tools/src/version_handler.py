@@ -1,4 +1,4 @@
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -41,6 +41,8 @@ MDS_PLUGIN_GENERAL_PY_PATH = os.path.join(
     ROOT_PATH, 'mds_plugin', 'general.py')
 MRS_PLUGIN_GENERAL_PY_PATH = os.path.join(
     ROOT_PATH, 'mrs_plugin', 'lib', 'general.py')
+SCHEMA_PLUGIN_GENERAL_PY_PATH = os.path.join(
+    ROOT_PATH, 'schema_plugin', 'lib', 'general.py')
 REPO_VERSION = os.path.join(ROOT_PATH, 'VERSION')
 
 
@@ -166,6 +168,8 @@ update_plugin_version(MDS_PLUGIN_GENERAL_PY_PATH, target_e_version)
 
 update_plugin_version(MRS_PLUGIN_GENERAL_PY_PATH, target_e_version)
 
+update_plugin_version(SCHEMA_PLUGIN_GENERAL_PY_PATH, target_e_version)
+
 # Adds a new entry on the CHANGE lgo for the new versions if needed
 cl_e_version, cl_s_version = get_current_version(
     VSCODE_EXTENSION_CHANGELOG_PATH, 3)
@@ -175,6 +179,6 @@ print(cl_e_version, cl_s_version)
 if cl_e_version != target_e_version or cl_s_version != target_s_version:
     update_changelog_version(target_e_version, target_s_version)
 
-# Finall updates the repo VERSION file
+# Final updates the repo VERSION file
 with open(REPO_VERSION, "w") as file:
     file.write(f"VERSION={target_e_version}\n")

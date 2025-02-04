@@ -1,0 +1,7 @@
+{
+    "copyrightHolder": "${copyright_holder}",
+    "customLicense": "${custom_license}",
+    "license": "${license_name}",
+    "schemaDependencies": [],
+    "schemaName": "${schema_name}"
+}

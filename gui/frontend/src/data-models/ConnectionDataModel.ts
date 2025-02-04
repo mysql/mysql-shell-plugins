@@ -612,13 +612,14 @@ export type ConnectionDataModelEntry =
 export class ConnectionDataModel implements ICdmUpdater {
     public readonly connections: ICdmConnectionEntry[] = [];
 
-    private initialized: boolean = false;
     private subscribers = new Set<DataModelSubscriber<ConnectionDataModelEntry>>();
 
     /** Used for auto refreshing router statuses. */
     private refreshMrsRoutersTimer?: ReturnType<typeof setInterval>;
 
     private routerRefreshTime: number;
+
+    #initialized: boolean = false;
 
     /**
      * Creates a new instance of the connection data model.
@@ -657,10 +658,14 @@ export class ConnectionDataModel implements ICdmUpdater {
      * connections and return without doing anything else.
      */
     public async initialize(): Promise<void> {
-        if (!this.initialized) {
-            this.initialized = true;
+        if (!this.#initialized) {
+            this.#initialized = true;
             await this.updateConnections();
         }
+    }
+
+    public get initialized(): boolean {
+        return this.#initialized;
     }
 
     /**
@@ -689,7 +694,7 @@ export class ConnectionDataModel implements ICdmUpdater {
      * Like with {@link initialize}, this method requires a valid profile id.
      */
     public async reloadConnections(): Promise<void> {
-        this.initialized = true;
+        this.#initialized = true;
         await this.updateConnections();
     }
 
@@ -1087,7 +1092,7 @@ export class ConnectionDataModel implements ICdmUpdater {
         if (webSession.currentProfileId === -1) {
             await this.closeAllConnections();
 
-            this.initialized = false;
+            this.#initialized = false;
             this.connections.length = 0;
             actions.push({ action: "clear" });
         } else {

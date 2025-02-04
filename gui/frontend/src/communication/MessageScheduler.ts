@@ -36,6 +36,7 @@ import { EventType, type IGenericResponse, type Protocol } from "./Protocol.js";
 import { ShellAPIGui, multiResultAPIs, type IErrorResult, type IWebSessionData } from "./ProtocolGui.js";
 import { ShellAPIMds } from "./ProtocolMds.js";
 import { ShellAPIMrs } from "./ProtocolMrs.js";
+import { ShellAPIMsm } from "./ProtocolMsm.js";
 import type { IProtocolParameters } from "./ProtocolParameterMapper.js";
 import type { IProtocolResults } from "./ProtocolResultMapper.js";
 import { ResponseError } from "./ResponseError.js";
@@ -104,7 +105,7 @@ interface IOngoingRequest<K extends keyof IProtocolResults> {
     onData?: DataCallback<K>;
 }
 
-type APIListType = Protocol | ShellAPIGui | ShellAPIMds | ShellAPIMrs | "native";
+type APIListType = Protocol | ShellAPIGui | ShellAPIMds | ShellAPIMrs | ShellAPIMsm | "native";
 
 /** Wrapper around a web socket that performs (re)connection and message scheduling. */
 export class MessageScheduler {

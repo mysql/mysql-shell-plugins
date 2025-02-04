@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -44,12 +44,14 @@ startup_dir = os.path.join(dot_mysqlsh.name, 'init.d')
 gui_plugin = os.path.join(plugins_dir, 'gui_plugin')
 mrs_plugin = os.path.join(plugins_dir, 'mrs_plugin')
 mds_plugin = os.path.join(plugins_dir, 'mds_plugin')
+msm_plugin = os.path.join(plugins_dir, 'msm_plugin')
 
 
 src_root = os.path.abspath(f'{os.path.dirname(__file__)}/../..')
 src_gui_plugin = os.path.join(src_root, 'gui', 'backend', 'gui_plugin')
 src_mrs_plugin = os.path.join(src_root, 'mrs_plugin')
 src_mds_plugin = os.path.join(src_root, 'mds_plugin')
+src_msm_plugin = os.path.join(src_root, 'msm_plugin')
 src_protocols_root = os.path.join(src_root, 'gui', 'tools', 'src', 'protocol')
 
 Path(plugins_dir).mkdir()
@@ -57,6 +59,7 @@ Path(plugins_dir).mkdir()
 create_symlink(src_gui_plugin, gui_plugin, True)
 create_symlink(src_mrs_plugin, mrs_plugin, True)
 create_symlink(src_mds_plugin, mds_plugin, True)
+create_symlink(src_msm_plugin, msm_plugin, True)
 create_symlink(src_protocols_root, startup_dir, True)
 
 env = os.environ.copy()

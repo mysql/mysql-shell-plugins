@@ -1,0 +1,15 @@
+{
+    "version": "0.2",
+    "language": "en",
+    "words": [
+    ],
+    "flagWords": [
+        "hte"
+    ],
+    "ignorePaths": [
+        "cspell.json"
+    ],
+    "ignoreWords": [
+        "mysqlsh"
+    ]
+}

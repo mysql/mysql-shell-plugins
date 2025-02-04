@@ -23,7 +23,7 @@
         "Data Science"
     ],
     "activationEvents": [
-        "onView:msg-view"
+        "onStartupFinished"
     ],
     "main": "./out/main.cjs",
     "type": "module",
@@ -1097,6 +1097,22 @@
                     "dark": "images/dark/mrsServiceDefault.svg",
                     "light": "images/light/mrsServiceDefault.svg"
                 }
+            },
+            {
+                "command": "msg.msm.createNewProjectFolder",
+                "title": "Create New MSM Project Folder"
+            },
+            {
+                "command": "msg.msm.getProjectInformation",
+                "title": "Get MSM Project Information"
+            },
+            {
+                "command": "msg.msm.prepareRelease",
+                "title": "Prepare Release"
+            },
+            {
+                "command": "msg.msm.generateDeploymentScript",
+                "title": "Generate Deployment Script"
             }
         ],
         "submenus": [
@@ -1114,6 +1130,14 @@
                 "id": "msg.loadFromDisk",
                 "label": "Load from Disk",
                 "command": ""
+            },
+            {
+                "id": "msg.msm.subMenu",
+                "label": "MySQL Schema Management"
+            },
+            {
+                "id": "msg.mrs.subMenu",
+                "label": "MySQL REST Service"
             }
         ],
         "menus": {
@@ -1288,6 +1312,40 @@
                     "group": "3_msg@2"
                 }
             ],
+            "msg.mrs.subMenu": [
+                {
+                    "when": "explorerResourceIsFolder",
+                    "command": "msg.mrs.addFolderAsContentSet",
+                    "group": "8_msg@1"
+                },
+                {
+                    "when": "explorerResourceIsFolder && resourceExtname =~ /.*\\.mrs\\.sdk'$/",
+                    "command": "msg.mrs.rebuildMrsSdk",
+                    "group": "8_msg@2"
+                }
+            ],
+            "msg.msm.subMenu": [
+                {
+                    "when": "explorerResourceIsFolder && !(resourceFilename =~ /.*\\.msm\\.project$/)",
+                    "command": "msg.msm.createNewProjectFolder",
+                    "group": "1_msg@1"
+                },
+                {
+                    "when": "explorerResourceIsFolder && resourceFilename =~ /.*\\.msm\\.project$/",
+                    "command": "msg.msm.getProjectInformation",
+                    "group": "2_msg@1"
+                },
+                {
+                    "when": "explorerResourceIsFolder && resourceFilename =~ /.*\\.msm\\.project$/",
+                    "command": "msg.msm.prepareRelease",
+                    "group": "3_msg@1"
+                },
+                {
+                    "when": "explorerResourceIsFolder && resourceFilename =~ /.*\\.msm\\.project$/",
+                    "command": "msg.msm.generateDeploymentScript",
+                    "group": "3_msg@2"
+                }
+            ],
             "explorer/context": [
                 {
                     "when": "resourceLangId == mysql-notebook",
@@ -1301,13 +1359,13 @@
                 },
                 {
                     "when": "explorerResourceIsFolder",
-                    "command": "msg.mrs.addFolderAsContentSet",
-                    "group": "8_msg@1"
+                    "submenu": "msg.msm.subMenu",
+                    "group": "1_msg@1"
                 },
                 {
-                    "when": "explorerResourceIsFolder && resourceExtname === '.sdk'",
-                    "command": "msg.mrs.rebuildMrsSdk",
-                    "group": "8_msg@2"
+                    "when": "explorerResourceIsFolder",
+                    "submenu": "msg.mrs.subMenu",
+                    "group": "1_msg@2"
                 }
             ],
             "editor/title/context": [

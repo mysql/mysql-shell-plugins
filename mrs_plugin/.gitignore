@@ -10,4 +10,4 @@ package-lock.json
 
 *.interp
 grammar/antlr-4.13.0-complete.jar
-db_schema/mrs_metadata/default_static_content/config.data.json
+db_schema/mysql_rest_service_metadata.msm.project/development/default_static_content/config.data.json

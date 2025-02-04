@@ -1,0 +1,12 @@
+*.pyc
+.DS_Store
+*.bak
+.coverage
+.vscode/launch.json
+package-lock.json
+plugin-test-coverage.xml
+plugin-tests.xml
+package-lock.json
+tests/mysql-sandboxes
+.pytest_cache
+htmlcov

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -31,11 +31,13 @@ import { Protocol, ShellPromptResponseType } from "./Protocol.js";
 import { IProtocolGuiParameters } from "./ProtocolGui.js";
 import { IProtocolMdsParameters } from "./ProtocolMds.js";
 import { IProtocolMrsParameters } from "./ProtocolMrs.js";
+import { IProtocolMsmParameters } from "./ProtocolMsm.js";
 
 // This file contains all interfaces describing response types for the various shell APIs.
 
 /** The mapping between an API name and the accepted parameters for it. */
-export interface IProtocolParameters extends IProtocolGuiParameters, IProtocolMdsParameters, IProtocolMrsParameters {
+export interface IProtocolParameters extends IProtocolGuiParameters, IProtocolMdsParameters, IProtocolMrsParameters,
+    IProtocolMsmParameters {
     // For debugging only.
     "native": INativeShellRequest;
 
