@@ -41,6 +41,7 @@ import { E2ENotificationsCenter } from "../lib/E2ENotificationsCenter.js";
 import { E2EDebugger } from "../lib/E2EDebugger.js";
 import { E2ETabContainer } from "../lib/E2ETabContainer.js";
 import { E2ETreeItem } from "../lib/SideBar/E2ETreeItem.js";
+import { E2ESettings } from "../lib/E2ESettings.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -49,22 +50,24 @@ describe("Token Verification", () => {
 
     let testFailed = false;
 
-    beforeAll(async () => {
+    beforeEach(async () => {
 
         await loadDriver(true);
         await driver.get(url);
 
         try {
             await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+            const settings = new E2ESettings();
+            await settings.open();
+            await settings.confirmationOnClose(false);
+            await settings.close();
         } catch (e) {
-            await Misc.storeScreenShot("beforeAll_TOKEN_VERIFICATION");
+            await Misc.storeScreenShot("beforeEach_TOKEN_VERIFICATION");
             throw e;
         }
     });
 
     afterAll(async () => {
-        await Os.writeFELogs(basename(__filename), driver.manage().logs());
-        await driver.close();
         await driver.quit();
     });
 
@@ -73,16 +76,17 @@ describe("Token Verification", () => {
             testFailed = false;
             await Misc.storeScreenShot();
         }
+
+        await driver.close();
     });
 
-    it("Invalid token", async () => {
+    it("No token", async () => {
         try {
-            const invalidToken = `${String(url)}xpto`;
-            await driver.get(invalidToken);
+            const noToken = String(url).replace(String(process.env.TOKEN), "");
+            await driver.get(noToken);
 
-            expect(driver.wait(until.elementsLocated(locator.pageIsLoading), constants.wait5seconds,
-                "Blank page was not displayed")).toBeDefined();
-
+            expect(driver.wait(until.elementsLocated(locator.adminPage.headingText), constants.wait5seconds,
+                "Login page was not displayed")).toBeDefined();
             const notification = (await new E2EToastNotification().create())!;
             expect(notification.type).toBe("error");
 
@@ -99,13 +103,13 @@ describe("Token Verification", () => {
         }
     });
 
-    it("No token", async () => {
+    it("Invalid token", async () => {
         try {
-            const noToken = String(url).replace(String(process.env.TOKEN), "");
-            await driver.get(noToken);
+            const invalidToken = `${String(url)}xpto`;
+            await driver.get(invalidToken);
 
-            expect(driver.wait(until.elementsLocated(locator.adminPage.headingText), constants.wait5seconds,
-                "Login page was not displayed")).toBeDefined();
+            expect(driver.wait(until.elementsLocated(locator.pageIsLoading), constants.wait5seconds,
+                "Blank page was not displayed")).toBeDefined();
 
             const notification = (await new E2EToastNotification().create())!;
             expect(notification.type).toBe("error");
@@ -198,14 +202,18 @@ describe("Notifications", () => {
     let treeLocalConn: E2ETreeItem | undefined;
 
     beforeAll(async () => {
+        console.log(`URL: ${url}`);
         await loadDriver(true);
         await driver.get(url);
 
         try {
             await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+            const settings = new E2ESettings();
+            await settings.open();
+            await settings.confirmationOnClose(false);
+            await settings.close();
             await dbTreeSection.focus();
             await dbTreeSection.createDatabaseConnection(localConn);
-            await driver.navigate().refresh();
             await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
             await driver.wait(dbTreeSection.untilTreeItemExists(localConn.caption!), constants.wait5seconds);
             treeLocalConn = await dbTreeSection.getTreeItem(localConn.caption!);
@@ -491,3 +499,4 @@ describe("Communication Debugger", () => {
     });
 
 });
+

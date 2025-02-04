@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { until } from "selenium-webdriver";
+import { until, error } from "selenium-webdriver";
 import * as constants from "./constants.js";
 import * as locator from "./locators.js";
 import { driver } from "./driver.js";
@@ -83,6 +83,53 @@ export class E2ESettings {
 
                 return (await currentThemeValue.getText()) === theme;
             }, constants.wait3seconds, `The Current Theme should be '${theme}'`);
+        }
+    };
+
+    /**
+     * Checks/Unchecks the confirmation on close checkbox
+     * @param checked True to check, false to uncheck
+     */
+    public confirmationOnClose = async (checked: boolean): Promise<void> => {
+        const isUnchecked = async (): Promise<boolean> => {
+            let isUnchecked = false;
+
+            await driver.wait(async () => {
+                try {
+                    const confirmationOnClose = await driver.findElement(locator.settingsPage.confirmationOnClose);
+                    isUnchecked = (await confirmationOnClose.getAttribute("class")).includes("unchecked");
+
+                    return true;
+                } catch (e) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
+                        throw e;
+                    }
+                }
+            }, constants.wait3seconds, "Could not verify if confirmation on close checkbox is checked");
+
+            return isUnchecked;
+        };
+
+        if (await isUnchecked() && checked) {
+            await driver.wait(async () => {
+                await driver.findElement(locator.settingsPage.confirmationOnClose).click();
+
+                return !(await isUnchecked());
+            }, constants.wait5seconds, `Confirmation on close should be CHECKED`);
+
+            const notification = await new E2EToastNotification().create();
+            await notification!.close();
+        }
+
+        if (!(await isUnchecked()) && !checked) {
+            await driver.wait(async () => {
+                await driver.findElement(locator.settingsPage.confirmationOnClose).click();
+
+                return isUnchecked();
+            }, constants.wait5seconds, `Confirmation on close should be CHECKED`);
+
+            const notification = await new E2EToastNotification().create();
+            await notification!.close();
         }
     };
 }

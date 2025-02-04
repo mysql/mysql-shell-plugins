@@ -722,7 +722,7 @@ export const settingsPage = {
             },
         },
     },
-
+    confirmationOnClose: By.id("general.closeConfirmation"),
 };
 
 export const aboutPage = {

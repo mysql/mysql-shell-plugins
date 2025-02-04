@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -186,7 +186,25 @@ const registerSetting = (path: string, title: string, description: string, value
 };
 
 export const registerSettings = (): void => {
-    registerSettingCategory("workers", "Background Workers", "Settings related to background workers");
+    registerSettingCategory(
+        "general",
+        "General",
+        "Settings related to the general behavior of the application.",
+    );
+    registerSetting(
+        "general.closeConfirmation",
+        "Confirmation on Close",
+        "Ask for confirmation before closing the application.",
+        "boolean",
+        true,
+        false,
+    );
+
+    registerSettingCategory(
+        "workers",
+        "Background Workers",
+        "Settings related to background workers",
+    );
     registerSetting(
         "workers.minWorkerCount",
         "Minimum Background Worker Count",
@@ -243,8 +261,6 @@ export const registerSettings = (): void => {
         [],
         true,
     );
-
-    //registerSettingCategory("general", "General", "Settings that do not fit in the more specialized sections.");
 
     registerSettingCategory("editor", "Code Editor", "Settings related to all code editors.");
     registerSettingCategory("editor.theming", "Theming", "Settings related to theming.");
