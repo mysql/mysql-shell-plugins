@@ -55,6 +55,7 @@ import { StatusBar, renderStatusBar } from "../components/ui/Statusbar/Statusbar
 import { DBEditorModule } from "../modules/db-editor/DBEditorModule.js";
 import { InnoDBClusterModule } from "../modules/innodb-cluster/InnoDBClusterModule.js";
 import { ShellModule } from "../modules/shell/ShellModule.js";
+import { Settings } from "../supplement/Settings/Settings.js";
 import { versionMatchesExpected } from "../utilities/helpers.js";
 import { ApplicationDB } from "./ApplicationDB.js";
 import { DialogHost } from "./DialogHost.js";
@@ -151,7 +152,25 @@ export class App extends Component<{}, IAppState> {
             e.preventDefault();
         });
 
-        window.addEventListener("beforeunload", () => {
+        // We want the browser to ask the user if they want to leave the page, e.g. when closing a tab or navigating
+        // away from the page. This is to ensure that the user is aware that they are leaving the application.
+        // However, as long as the user hasn't interacted with the page, no prompt will be shown. So we need to
+        // simulate an interaction to trigger the prompt.
+        window.onload = () => {
+            setTimeout(() => {
+                window.history.forward();
+            }, 100);
+        };
+
+        window.addEventListener("beforeunload", (e: Event) => {
+            // Always ask the user if they want to leave the page (if enabled).
+            const ask = Settings.get("general.closeConfirmation", true);
+            if (ask) {
+                e.preventDefault();
+            }
+        });
+
+        window.addEventListener("unload", () => {
             void requisitions.execute("applicationWillFinish", undefined);
 
             MessageScheduler.get.disconnect();
@@ -160,6 +179,7 @@ export class App extends Component<{}, IAppState> {
             requisitions.unregister("statusBarButtonClick", this.statusBarButtonClick);
             requisitions.unregister("themeChanged", this.themeChanged);
             requisitions.unregister("dialogResponse", this.dialogResponse);
+
         });
 
         // The Monaco Editor includes a font (codicon.ttf).
