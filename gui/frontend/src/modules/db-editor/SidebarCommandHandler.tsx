@@ -373,7 +373,7 @@ export class SidebarCommandHandler {
                     });
 
                     if (response.closure === DialogResponseClosure.Accept) {
-                        const name = response.values?.name as string;
+                        const name = response.values?.input as string;
                         if (name) {
                             const service = services.find((candidate) => {
                                 return candidate.urlContextRoot === name;

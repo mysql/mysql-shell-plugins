@@ -1368,6 +1368,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Workbench.openEditor(globalConn.caption);
 
             const notebook = await new E2ENotebook().untilIsOpened(globalConn);
+            await notebook.codeEditor.clean();
             let result = await notebook.codeEditor.execute("SELECT DATABASE();") as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
             expect(await result.resultContext.getAttribute("innerHTML"))

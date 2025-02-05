@@ -35,7 +35,7 @@ import { EnabledState } from "../modules/mrs/mrs-helpers.js";
 import { requisitions } from "../supplement/Requisitions.js";
 import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { DBType, type IConnectionDetails } from "../supplement/ShellInterface/index.js";
+import { type IConnectionDetails } from "../supplement/ShellInterface/index.js";
 import { webSession } from "../supplement/WebSession.js";
 import { convertErrorToString, uuid } from "../utilities/helpers.js";
 import { compareVersionStrings, formatBytes } from "../utilities/string-helpers.js";
@@ -611,15 +611,15 @@ export type ConnectionDataModelEntry =
     | ICdmRestDbObjectEntry;
 
 export class ConnectionDataModel implements ICdmUpdater {
-    #connections: ICdmConnectionEntry[] = [];
+    public readonly connections: ICdmConnectionEntry[] = [];
 
-    #initialized: boolean = false;
-    #subscribers = new Set<DataModelSubscriber<ConnectionDataModelEntry>>();
+    private initialized: boolean = false;
+    private subscribers = new Set<DataModelSubscriber<ConnectionDataModelEntry>>();
 
     /** Used for auto refreshing router statuses. */
-    #refreshMrsRoutersTimer?: ReturnType<typeof setInterval>;
+    private refreshMrsRoutersTimer?: ReturnType<typeof setInterval>;
 
-    #routerRefreshTime: number;
+    private routerRefreshTime: number;
 
     /**
      * Creates a new instance of the connection data model.
@@ -628,31 +628,25 @@ export class ConnectionDataModel implements ICdmUpdater {
      *                    is enabled.
      */
     public constructor(refreshTime = 10000) {
-        this.#routerRefreshTime = refreshTime;
-    }
-    /**
-     * @returns the list of connections a user has stored in the backend.
-     */
-    public get connections(): ICdmConnectionEntry[] {
-        return this.#connections;
+        this.routerRefreshTime = refreshTime;
     }
 
     public get autoRouterRefresh(): boolean {
-        return !!this.#refreshMrsRoutersTimer;
+        return !!this.refreshMrsRoutersTimer;
     }
 
     public set autoRouterRefresh(value: boolean) {
         if (value) {
-            this.#refreshMrsRoutersTimer = setInterval(() => {
-                this.#connections.forEach((c) => {
+            this.refreshMrsRoutersTimer = setInterval(() => {
+                this.connections.forEach((c) => {
                     if (c.mrsEntry?.state.expanded) {
                         void c.mrsEntry.refresh!();
                     }
                 });
-            }, this.#routerRefreshTime);
+            }, this.routerRefreshTime);
         } else {
-            clearInterval(this.#refreshMrsRoutersTimer);
-            this.#refreshMrsRoutersTimer = undefined;
+            clearInterval(this.refreshMrsRoutersTimer);
+            this.refreshMrsRoutersTimer = undefined;
         }
     }
 
@@ -664,8 +658,8 @@ export class ConnectionDataModel implements ICdmUpdater {
      * connections and return without doing anything else.
      */
     public async initialize(): Promise<void> {
-        if (!this.#initialized) {
-            this.#initialized = true;
+        if (!this.initialized) {
+            this.initialized = true;
             await this.updateConnections();
         }
     }
@@ -676,7 +670,7 @@ export class ConnectionDataModel implements ICdmUpdater {
      * @param subscriber The subscriber to add.
      */
     public subscribe(subscriber: DataModelSubscriber<ConnectionDataModelEntry>): void {
-        this.#subscribers.add(subscriber);
+        this.subscribers.add(subscriber);
     }
 
     /**
@@ -685,7 +679,7 @@ export class ConnectionDataModel implements ICdmUpdater {
      * @param subscriber The subscriber to remove.
      */
     public unsubscribe(subscriber: DataModelSubscriber<ConnectionDataModelEntry>): void {
-        this.#subscribers.delete(subscriber);
+        this.subscribers.delete(subscriber);
     }
 
     /**
@@ -696,13 +690,13 @@ export class ConnectionDataModel implements ICdmUpdater {
      * Like with {@link initialize}, this method requires a valid profile id.
      */
     public async reloadConnections(): Promise<void> {
-        this.#initialized = true;
+        this.initialized = true;
         await this.updateConnections();
     }
 
     /** Closes all connections, but keeps them in the data model. */
     public async closeAllConnections(): Promise<void> {
-        for (const connection of this.#connections) {
+        for (const connection of this.connections) {
             const entry = connection as Mutable<ICdmConnectionEntry>;
             await entry.close();
         }
@@ -746,7 +740,7 @@ export class ConnectionDataModel implements ICdmUpdater {
      * @param connectionId The id of the connection to check.
      */
     public isValidConnectionId(connectionId: number): boolean {
-        return this.#connections.some((e) => { return e.details.id === connectionId; });
+        return this.connections.some((e) => { return e.details.id === connectionId; });
     }
 
     /**
@@ -820,10 +814,10 @@ export class ConnectionDataModel implements ICdmUpdater {
 
         switch (entry.type) {
             case CdmEntityType.Connection: {
-                const index = this.#connections.indexOf(entry);
+                const index = this.connections.indexOf(entry);
                 if (index >= 0) {
                     await entry.close();
-                    const removed = this.#connections.splice(index, 1);
+                    const removed = this.connections.splice(index, 1);
                     actions.push({ action: "remove", entry: removed[0] });
                 }
 
@@ -1019,7 +1013,7 @@ export class ConnectionDataModel implements ICdmUpdater {
      * @param entry The entry to add.
      */
     public addConnectionEntry(entry: ICdmConnectionEntry): void {
-        this.#connections.push(entry);
+        this.connections.push(entry);
         this.notifySubscribers([{ action: "add", entry }]);
     }
 
@@ -1029,7 +1023,7 @@ export class ConnectionDataModel implements ICdmUpdater {
      * @param id The id of the connection to find.
      */
     public findConnectionEntryById(id: number): ICdmConnectionEntry | undefined {
-        return this.#connections.find((e) => { return e.details.id === id; });
+        return this.connections.find((e) => { return e.details.id === id; });
     }
 
     public updateConnectionDetails(data: IConnectionDetails | ICdmConnectionEntry): ICdmConnectionEntry | undefined {
@@ -1055,20 +1049,18 @@ export class ConnectionDataModel implements ICdmUpdater {
     }
 
     /**
-     * This method is called by entries that are implemented in own files to initialize their content.
+     * This method is called by entries that are implemented in own files to update their content.
      * This avoids dragging all initialization code into their file.
      *
-     * @param entry The entry to initialize.
+     * @param entry The entry to update.
      * @param callback An optional callback to report progress.
      *
-     * @returns A promise that resolves once the entry is initialized.
+     * @returns A promise that resolves once the entry is updated.
      */
     public async updateEntry(entry: ConnectionDataModelEntry, callback?: ProgressCallback): Promise<boolean> {
         switch (entry.type) {
             case CdmEntityType.Connection: {
-                this.updateConnection(entry as ConnectionEntryImpl);
-
-                return true;
+                return this.updateConnection(entry as ConnectionEntryImpl);
             }
 
             case CdmEntityType.MrsRoot: {
@@ -1096,8 +1088,8 @@ export class ConnectionDataModel implements ICdmUpdater {
         if (webSession.currentProfileId === -1) {
             await this.closeAllConnections();
 
-            this.#initialized = false;
-            this.#connections = [];
+            this.initialized = false;
+            this.connections.length = 0;
             actions.push({ action: "clear" });
         } else {
             try {
@@ -1107,8 +1099,8 @@ export class ConnectionDataModel implements ICdmUpdater {
                 // Sort in new connection entries on the way. Keep in mind they are ordered by what the user has set!
                 let left = 0;  // The current index into the existing entries.
                 let right = 0; // The current index into the new entries while looking for a match.
-                while (left < this.#connections.length && detailList.length > 0) {
-                    if (this.#connections[left].details.caption === detailList[right].caption) {
+                while (left < this.connections.length && detailList.length > 0) {
+                    if (this.connections[left].details.caption === detailList[right].caption) {
                         // Entries match.
                         if (right > 0) {
                             // We had to jump over other entries to arrive here. Add those
@@ -1116,7 +1108,7 @@ export class ConnectionDataModel implements ICdmUpdater {
                             for (let i = 0; i < right; ++i) {
                                 const details = detailList[i];
                                 const connection = new ConnectionEntryImpl(details.caption, details, this);
-                                this.#connections.splice(left, 0, connection);
+                                this.connections.splice(left, 0, connection);
                             }
 
                             detailList.splice(0, right);
@@ -1131,7 +1123,7 @@ export class ConnectionDataModel implements ICdmUpdater {
                         // list at a higher position (which would mean we have new entries before
                         // the current one).
                         while (++right < detailList.length) {
-                            if (this.#connections[left].details.caption === detailList[right].caption) {
+                            if (this.connections[left].details.caption === detailList[right].caption) {
                                 break;
                             }
                         }
@@ -1139,7 +1131,7 @@ export class ConnectionDataModel implements ICdmUpdater {
                         if (right === detailList.length) {
                             // Current entry no longer exists. Close the session (if one is open)
                             // and remove it from the current list.
-                            const entry = this.#connections.splice(left, 1)[0];
+                            const entry = this.connections.splice(left, 1)[0];
                             await entry.close();
 
                             // Reset the right index to the top of the list and keep the current
@@ -1155,13 +1147,13 @@ export class ConnectionDataModel implements ICdmUpdater {
 
                     const details = detailList.shift()!;
                     const connection = new ConnectionEntryImpl(details.caption, details, this);
-                    this.#connections.push(connection);
+                    this.connections.push(connection);
                     actions.push({ action: "add", entry: connection });
                 }
 
                 // Remove all remaining entries we haven't touched yet.
-                while (left < this.#connections.length) {
-                    const entry = this.#connections.splice(left, 1)[0];
+                while (left < this.connections.length) {
+                    const entry = this.connections.splice(left, 1)[0];
                     await entry.close();
                     actions.push({ action: "remove", entry });
                 }
@@ -1183,538 +1175,849 @@ export class ConnectionDataModel implements ICdmUpdater {
      * initialization methods below.
      *
      * @param connection The connection entry to update.
+     *
+     * @returns True if the operation was successful, false otherwise.
      */
-    private updateConnection(connection: ConnectionEntryImpl): void {
-        connection.schemaEntries.length = 0;
-        for (const schema of connection.schemaNames) {
-            const schemaEntry: Partial<Mutable<ICdmSchemaEntry>> = {
-                parent: connection,
-                type: CdmEntityType.Schema,
-                id: uuid(),
-                state: createDataModelEntryState(),
-                caption: schema,
-                connection,
-                refresh: () => { return this.initializeSchema(connection, schema); },
-                getChildren: () => { return []; },
-            };
+    private updateConnection(connection: Mutable<ConnectionEntryImpl>): boolean {
+        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        try {
+            // The schemaNames list is updated in ConnectionEntryImpl right before this method is called.
 
-            const tablesSchemaGroup: Mutable<ICdmSchemaGroupEntry<CdmEntityType.Table>> = {
-                parent: schemaEntry as ICdmSchemaEntry,
-                id: uuid(),
-                caption: "Tables",
-                type: CdmEntityType.SchemaGroup,
-                state: createDataModelEntryState(),
-                subType: CdmEntityType.Table,
-                members: [],
-                connection: schemaEntry.connection!,
-                getChildren: () => { return []; },
-            };
+            // Remove entries no longer in the schema list.
+            const removedSchemas = connection.schemaEntries.filter((e) => {
+                return !connection.schemaNames.includes(e.caption);
+            });
 
-            tablesSchemaGroup.refresh = () => {
-                return this.initializeTablesSchemaGroup(tablesSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.Table>);
-            };
-            tablesSchemaGroup.getChildren = () => { return tablesSchemaGroup.members; };
+            for (const schema of removedSchemas) {
+                actions.push({ action: "remove", entry: schema });
+            }
 
-            schemaEntry.tables = tablesSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.Table>;
+            // Create a new schema entries list from the schema names in their order. Take over existing
+            // schema entries.
+            const newSchemaEntries: ICdmSchemaEntry[] = [];
+            for (const schema of connection.schemaNames) {
+                const existing = connection.schemaEntries.find((e) => { return e.caption === schema; });
+                if (existing) {
+                    newSchemaEntries.push(existing);
 
-            const viewsSchemaGroup: Mutable<ICdmSchemaGroupEntry<CdmEntityType.View>> = {
-                parent: schemaEntry as ICdmSchemaEntry,
-                id: uuid(),
-                caption: "Views",
-                type: CdmEntityType.SchemaGroup,
-                state: createDataModelEntryState(),
-                subType: CdmEntityType.View,
-                members: [],
-                connection: schemaEntry.connection!,
-                getChildren: () => { return []; },
-            };
+                    continue;
+                }
 
-            viewsSchemaGroup.refresh = () => { return this.initializeViewsSchemaGroup(viewsSchemaGroup); };
-            viewsSchemaGroup.getChildren = () => { return viewsSchemaGroup.members; };
+                const schemaEntry: Partial<Mutable<ICdmSchemaEntry>> = {
+                    parent: connection,
+                    type: CdmEntityType.Schema,
+                    id: uuid(),
+                    state: createDataModelEntryState(false, true),
+                    caption: schema,
+                    connection,
+                    getChildren: () => { return []; }, // Updated below.
+                };
 
-            schemaEntry.views = viewsSchemaGroup;
+                const tablesSchemaGroup: Mutable<ICdmSchemaGroupEntry<CdmEntityType.Table>> = {
+                    parent: schemaEntry as ICdmSchemaEntry,
+                    id: uuid(),
+                    caption: "Tables",
+                    type: CdmEntityType.SchemaGroup,
+                    state: createDataModelEntryState(),
+                    subType: CdmEntityType.Table,
+                    members: [],
+                    connection: schemaEntry.connection!,
+                    getChildren: () => { return []; },
+                };
 
-            const eventsSchemaGroup: Mutable<ICdmSchemaGroupEntry<CdmEntityType.Event>> = {
-                parent: schemaEntry as ICdmSchemaEntry,
-                id: uuid(),
-                caption: "Events",
-                type: CdmEntityType.SchemaGroup,
-                state: createDataModelEntryState(),
-                subType: CdmEntityType.Event,
-                members: [],
-                connection: schemaEntry.connection!,
-                getChildren: () => { return []; },
-            };
+                tablesSchemaGroup.refresh = () => {
+                    return this.updateTablesSchemaGroup(tablesSchemaGroup);
+                };
+                tablesSchemaGroup.getChildren = () => { return tablesSchemaGroup.members; };
 
-            eventsSchemaGroup.refresh = () => {
-                return this.initializeEventsSchemaGroup(eventsSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.Event>);
-            };
-            eventsSchemaGroup.getChildren = () => { return eventsSchemaGroup.members; };
+                schemaEntry.tables = tablesSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.Table>;
 
-            schemaEntry.events = eventsSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.Event>;
+                const viewsSchemaGroup: Mutable<ICdmSchemaGroupEntry<CdmEntityType.View>> = {
+                    parent: schemaEntry as ICdmSchemaEntry,
+                    id: uuid(),
+                    caption: "Views",
+                    type: CdmEntityType.SchemaGroup,
+                    state: createDataModelEntryState(),
+                    subType: CdmEntityType.View,
+                    members: [],
+                    connection: schemaEntry.connection!,
+                    getChildren: () => { return []; },
+                };
 
-            const proceduresSchemaGroup: Mutable<ICdmSchemaGroupEntry<CdmEntityType.StoredProcedure>> = {
-                parent: schemaEntry as ICdmSchemaEntry,
-                id: uuid(),
-                caption: "Procedures",
-                type: CdmEntityType.SchemaGroup,
-                state: createDataModelEntryState(),
-                subType: CdmEntityType.StoredProcedure,
-                members: [],
-                connection: schemaEntry.connection!,
-                getChildren: () => { return []; },
-            };
+                viewsSchemaGroup.refresh = () => { return this.updateViewsSchemaGroup(viewsSchemaGroup); };
+                viewsSchemaGroup.getChildren = () => { return viewsSchemaGroup.members; };
 
-            proceduresSchemaGroup.refresh = () => {
-                return this.initializeProceduresSchemaGroup(
-                    proceduresSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.StoredProcedure>);
-            };
-            proceduresSchemaGroup.getChildren = () => { return proceduresSchemaGroup.members; };
+                schemaEntry.views = viewsSchemaGroup;
 
-            schemaEntry.procedures = proceduresSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.StoredProcedure>;
+                const eventsSchemaGroup: Mutable<ICdmSchemaGroupEntry<CdmEntityType.Event>> = {
+                    parent: schemaEntry as ICdmSchemaEntry,
+                    id: uuid(),
+                    caption: "Events",
+                    type: CdmEntityType.SchemaGroup,
+                    state: createDataModelEntryState(),
+                    subType: CdmEntityType.Event,
+                    members: [],
+                    connection: schemaEntry.connection!,
+                    getChildren: () => { return []; },
+                };
 
-            const functionsSchemaGroup: Mutable<ICdmSchemaGroupEntry<CdmEntityType.StoredFunction>> = {
-                parent: schemaEntry as ICdmSchemaEntry,
-                id: uuid(),
-                caption: "Functions",
-                type: CdmEntityType.SchemaGroup,
-                state: createDataModelEntryState(),
-                subType: CdmEntityType.StoredFunction,
-                members: [],
-                connection: schemaEntry.connection!,
-                getChildren: () => { return []; },
-            };
+                eventsSchemaGroup.refresh = () => {
+                    return this.updateEventsSchemaGroup(
+                        eventsSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.Event>);
+                };
+                eventsSchemaGroup.getChildren = () => { return eventsSchemaGroup.members; };
 
-            functionsSchemaGroup.refresh = () => {
-                return this.initializeFunctionsSchemaGroup(
-                    functionsSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.StoredFunction>,
-                );
-            };
-            functionsSchemaGroup.getChildren = () => { return functionsSchemaGroup.members; };
+                schemaEntry.events = eventsSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.Event>;
 
-            schemaEntry.functions = functionsSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.StoredFunction>;
+                const proceduresSchemaGroup: Mutable<ICdmSchemaGroupEntry<CdmEntityType.StoredProcedure>> = {
+                    parent: schemaEntry as ICdmSchemaEntry,
+                    id: uuid(),
+                    caption: "Procedures",
+                    type: CdmEntityType.SchemaGroup,
+                    state: createDataModelEntryState(),
+                    subType: CdmEntityType.StoredProcedure,
+                    members: [],
+                    connection: schemaEntry.connection!,
+                    getChildren: () => { return []; },
+                };
 
-            schemaEntry.getChildren = () => {
-                return [
-                    schemaEntry.tables!,
-                    schemaEntry.views!,
-                    schemaEntry.procedures!,
-                    schemaEntry.functions!,
-                    schemaEntry.events!,
-                ];
-            };
-            connection.schemaEntries.push(schemaEntry as ICdmSchemaEntry);
-        }
-    }
+                proceduresSchemaGroup.refresh = () => {
+                    return this.updateProceduresSchemaGroup(
+                        proceduresSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.StoredProcedure>);
+                };
+                proceduresSchemaGroup.getChildren = () => { return proceduresSchemaGroup.members; };
 
-    private async initializeSchema(connection: ICdmConnectionEntry, schema: string): Promise<boolean> {
-        const entry: DeepMutable<ICdmSchemaEntry> = connection.schemaEntries.find((e) => {
-            return e.caption === schema;
-        })!;
+                schemaEntry.procedures = proceduresSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.StoredProcedure>;
 
-        if (entry.state.initialized) {
-            return true;
-        }
+                const functionsSchemaGroup: Mutable<ICdmSchemaGroupEntry<CdmEntityType.StoredFunction>> = {
+                    parent: schemaEntry as ICdmSchemaEntry,
+                    id: uuid(),
+                    caption: "Functions",
+                    type: CdmEntityType.SchemaGroup,
+                    state: createDataModelEntryState(),
+                    subType: CdmEntityType.StoredFunction,
+                    members: [],
+                    connection: schemaEntry.connection!,
+                    getChildren: () => { return []; },
+                };
 
-        entry.state.initialized = true;
-        if (entry.connection.details.dbType === DBType.MySQL) {
-            //
-        }
+                functionsSchemaGroup.refresh = () => {
+                    return this.updateFunctionsSchemaGroup(
+                        functionsSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.StoredFunction>,
+                    );
+                };
+                functionsSchemaGroup.getChildren = () => { return functionsSchemaGroup.members; };
 
-        return Promise.resolve(true);
-    }
+                schemaEntry.functions = functionsSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.StoredFunction>;
 
-    private async initializeTablesSchemaGroup(
-        tableGroup: DeepMutable<ICdmSchemaGroupEntry<CdmEntityType.Table>>): Promise<boolean> {
-        tableGroup.state.initialized = true;
-        tableGroup.members.length = 0;
+                schemaEntry.getChildren = () => {
+                    return [
+                        schemaEntry.tables!,
+                        schemaEntry.views!,
+                        schemaEntry.procedures!,
+                        schemaEntry.functions!,
+                        schemaEntry.events!,
+                    ];
+                };
 
-        const schema = tableGroup.parent.caption;
-        const tableNames = await tableGroup.connection.backend.getSchemaObjectNames(schema, "Table");
-        for (const table of tableNames) {
-            const tableEntry: Partial<Mutable<ICdmTableEntry>> = {
-                parent: tableGroup as ICdmSchemaGroupEntry<CdmEntityType.Table>,
-                type: CdmEntityType.Table,
-                id: uuid(),
-                state: createDataModelEntryState(),
-                caption: table,
-                schema,
-                connection: tableGroup.parent.parent as ICdmConnectionEntry,
-            };
+                newSchemaEntries.push(schemaEntry as ICdmSchemaEntry);
+            }
 
-            const columnsTableGroup: Mutable<ICdmTableGroupEntry<CdmEntityType.Column>> = {
-                parent: tableEntry as ICdmTableEntry,
-                caption: "Columns",
-                type: CdmEntityType.TableGroup,
-                state: createDataModelEntryState(),
-                id: uuid(),
-                subType: CdmEntityType.Column,
-                members: [],
-                connection: tableEntry.connection as ICdmConnectionEntry,
-            };
+            // Update the schema entries list.
+            connection.schemaEntries = newSchemaEntries;
 
-            columnsTableGroup.refresh = () => {
-                return this.initializeColumnsTableGroup(columnsTableGroup);
-            };
-            columnsTableGroup.getChildren = () => {
-                return columnsTableGroup.members;
-            };
+            this.notifySubscribers(actions);
+        } catch (reason) {
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Cannot load schemas for connection ${connection.caption}: ${message}`, {});
 
-            tableEntry.columns = columnsTableGroup as ICdmTableGroupEntry<CdmEntityType.Column>;
-
-            const indexesTableGroup: Mutable<ICdmTableGroupEntry<CdmEntityType.Index>> = {
-                parent: tableEntry as ICdmTableEntry,
-                caption: "Indexes",
-                type: CdmEntityType.TableGroup,
-                state: createDataModelEntryState(),
-                id: uuid(),
-                subType: CdmEntityType.Index,
-                members: [],
-                connection: tableEntry.connection as ICdmConnectionEntry,
-            };
-
-            indexesTableGroup.refresh = () => {
-                return this.initializeIndexesTableGroup(indexesTableGroup as ICdmTableGroupEntry<CdmEntityType.Index>);
-            };
-            indexesTableGroup.getChildren = () => {
-                return indexesTableGroup.members;
-            };
-
-            tableEntry.indexes = indexesTableGroup as ICdmTableGroupEntry<CdmEntityType.Index>;
-
-            const foreignKeysTableGroup: Mutable<ICdmTableGroupEntry<CdmEntityType.ForeignKey>> = {
-                parent: tableEntry as ICdmTableEntry,
-                caption: "Foreign Keys",
-                type: CdmEntityType.TableGroup,
-                state: createDataModelEntryState(),
-                id: uuid(),
-                subType: CdmEntityType.ForeignKey,
-                members: [],
-                connection: tableEntry.connection as ICdmConnectionEntry,
-                getChildren: () => { return []; },
-            };
-
-            foreignKeysTableGroup.refresh = () => {
-                return this.initializeForeignKeysTableGroup(
-                    foreignKeysTableGroup as ICdmTableGroupEntry<CdmEntityType.ForeignKey>);
-            };
-            foreignKeysTableGroup.getChildren = () => {
-                return foreignKeysTableGroup.members;
-            };
-
-            tableEntry.foreignKeys = foreignKeysTableGroup as ICdmTableGroupEntry<CdmEntityType.ForeignKey>;
-
-            const triggersTableGroup: Mutable<ICdmTableGroupEntry<CdmEntityType.Trigger>> = {
-                parent: tableEntry as ICdmTableEntry,
-                caption: "Triggers",
-                type: CdmEntityType.TableGroup,
-                id: uuid(),
-                state: createDataModelEntryState(),
-                subType: CdmEntityType.Trigger,
-                members: [],
-                connection: tableEntry.connection as ICdmConnectionEntry,
-            };
-
-            triggersTableGroup.refresh = () => {
-                return this.initializeTriggersTableGroup(
-                    triggersTableGroup as ICdmTableGroupEntry<CdmEntityType.Trigger>);
-            };
-            triggersTableGroup.getChildren = () => {
-                return [
-                    ...triggersTableGroup.members,
-                ];
-            };
-
-            tableEntry.triggers = triggersTableGroup;
-            tableEntry.refresh = () => {
-                return this.initializeTable(tableEntry as ICdmTableEntry);
-            };
-
-            tableEntry.getChildren = () => {
-                return [
-                    tableEntry.columns!,
-                    tableEntry.indexes!,
-                    tableEntry.foreignKeys!,
-                    tableEntry.triggers!,
-                ];
-            };
-
-            tableGroup.members.push(tableEntry as ICdmTableEntry);
+            return false;
         }
 
         return true;
     }
 
-    private async initializeViewsSchemaGroup(
+    private async updateTablesSchemaGroup(
+        tableGroup: DeepMutable<ICdmSchemaGroupEntry<CdmEntityType.Table>>): Promise<boolean> {
+        tableGroup.state.initialized = true;
+
+        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        try {
+            const schema = tableGroup.parent.caption;
+            const tableNames = await tableGroup.connection.backend.getSchemaObjectNames(schema, "Table");
+
+            // Remove entries no longer in the table list.
+            const removedTables = tableGroup.members.filter((e) => {
+                return !tableNames.includes(e.caption);
+            });
+
+            for (const table of removedTables) {
+                actions.push({ action: "remove", entry: table as ConnectionDataModelEntry });
+            }
+
+            // Create a new table entries list from the table names in their order. Take over existing
+            // table entries.
+            const newTableEntries: ICdmTableEntry[] = [];
+            for (const table of tableNames) {
+                const existing = tableGroup.members.find((e) => { return e.caption === table; });
+                if (existing) {
+                    newTableEntries.push(existing as ICdmTableEntry);
+
+                    continue;
+                }
+
+                const tableEntry: Partial<Mutable<ICdmTableEntry>> = {
+                    parent: tableGroup as ICdmSchemaGroupEntry<CdmEntityType.Table>,
+                    type: CdmEntityType.Table,
+                    id: uuid(),
+                    state: createDataModelEntryState(),
+                    caption: table,
+                    schema,
+                    connection: tableGroup.parent.parent as ICdmConnectionEntry,
+                };
+
+                const columnsTableGroup: Mutable<ICdmTableGroupEntry<CdmEntityType.Column>> = {
+                    parent: tableEntry as ICdmTableEntry,
+                    caption: "Columns",
+                    type: CdmEntityType.TableGroup,
+                    state: createDataModelEntryState(),
+                    id: uuid(),
+                    subType: CdmEntityType.Column,
+                    members: [],
+                    connection: tableEntry.connection as ICdmConnectionEntry,
+                };
+
+                columnsTableGroup.refresh = () => {
+                    return this.updateColumnsTableGroup(columnsTableGroup);
+                };
+                columnsTableGroup.getChildren = () => {
+                    return columnsTableGroup.members;
+                };
+
+                tableEntry.columns = columnsTableGroup as ICdmTableGroupEntry<CdmEntityType.Column>;
+
+                const indexesTableGroup: Mutable<ICdmTableGroupEntry<CdmEntityType.Index>> = {
+                    parent: tableEntry as ICdmTableEntry,
+                    caption: "Indexes",
+                    type: CdmEntityType.TableGroup,
+                    state: createDataModelEntryState(),
+                    id: uuid(),
+                    subType: CdmEntityType.Index,
+                    members: [],
+                    connection: tableEntry.connection as ICdmConnectionEntry,
+                };
+
+                indexesTableGroup.refresh = () => {
+                    return this.updateIndexesTableGroup(
+                        indexesTableGroup as ICdmTableGroupEntry<CdmEntityType.Index>);
+                };
+                indexesTableGroup.getChildren = () => {
+                    return indexesTableGroup.members;
+                };
+
+                tableEntry.indexes = indexesTableGroup as ICdmTableGroupEntry<CdmEntityType.Index>;
+
+                const foreignKeysTableGroup: Mutable<ICdmTableGroupEntry<CdmEntityType.ForeignKey>> = {
+                    parent: tableEntry as ICdmTableEntry,
+                    caption: "Foreign Keys",
+                    type: CdmEntityType.TableGroup,
+                    state: createDataModelEntryState(),
+                    id: uuid(),
+                    subType: CdmEntityType.ForeignKey,
+                    members: [],
+                    connection: tableEntry.connection as ICdmConnectionEntry,
+                    getChildren: () => { return []; },
+                };
+
+                foreignKeysTableGroup.refresh = () => {
+                    return this.updateForeignKeysTableGroup(
+                        foreignKeysTableGroup as ICdmTableGroupEntry<CdmEntityType.ForeignKey>);
+                };
+                foreignKeysTableGroup.getChildren = () => {
+                    return foreignKeysTableGroup.members;
+                };
+
+                tableEntry.foreignKeys = foreignKeysTableGroup as ICdmTableGroupEntry<CdmEntityType.ForeignKey>;
+
+                const triggersTableGroup: Mutable<ICdmTableGroupEntry<CdmEntityType.Trigger>> = {
+                    parent: tableEntry as ICdmTableEntry,
+                    caption: "Triggers",
+                    type: CdmEntityType.TableGroup,
+                    id: uuid(),
+                    state: createDataModelEntryState(false, true),
+                    subType: CdmEntityType.Trigger,
+                    members: [],
+                    connection: tableEntry.connection as ICdmConnectionEntry,
+                };
+
+                triggersTableGroup.refresh = () => {
+                    return this.updateTriggersTableGroup(
+                        triggersTableGroup as ICdmTableGroupEntry<CdmEntityType.Trigger>);
+                };
+                triggersTableGroup.getChildren = () => {
+                    return [
+                        ...triggersTableGroup.members,
+                    ];
+                };
+
+                tableEntry.triggers = triggersTableGroup;
+
+                tableEntry.getChildren = () => {
+                    return [
+                        tableEntry.columns!,
+                        tableEntry.indexes!,
+                        tableEntry.foreignKeys!,
+                        tableEntry.triggers!,
+                    ];
+                };
+
+                newTableEntries.push(tableEntry as ICdmTableEntry);
+            }
+
+            tableGroup.members = newTableEntries;
+
+            this.notifySubscribers(actions);
+        } catch (reason) {
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Cannot load tables for schema ${tableGroup.parent.caption}: ${message}`, {});
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private async updateViewsSchemaGroup(
         viewGroup: DeepMutable<ICdmSchemaGroupEntry<CdmEntityType.View>>): Promise<boolean> {
         viewGroup.state.initialized = true;
 
-        const schema = viewGroup.parent.caption;
-        const viewNames = await viewGroup.connection.backend.getSchemaObjectNames(schema, "View");
-        for (const view of viewNames) {
-            const viewEntry: Mutable<ICdmViewEntry> = {
-                parent: viewGroup as ICdmSchemaGroupEntry<CdmEntityType.View>,
-                type: CdmEntityType.View,
-                id: uuid(),
-                state: createDataModelEntryState(true),
-                caption: view,
-                schema,
-                connection: viewGroup.connection as ICdmConnectionEntry,
-                columns: [],
-            };
+        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        try {
+            const schema = viewGroup.parent.caption;
+            const viewNames = await viewGroup.connection.backend.getSchemaObjectNames(schema, "View");
 
-            viewEntry.refresh = () => {
-                return this.initializeView(viewEntry);
-            };
+            // Remove entries no longer in the view list.
+            const removedViews = viewGroup.members.filter((e) => {
+                return !viewNames.includes(e.caption);
+            });
 
-            viewGroup.members.push(viewEntry);
+            for (const view of removedViews) {
+                actions.push({ action: "remove", entry: view as ConnectionDataModelEntry });
+            }
+
+            // Create a new view entries list from the view names in their order. Take over existing
+            // view entries.
+            const newViewEntries: ICdmViewEntry[] = [];
+            for (const view of viewNames) {
+                const existing = viewGroup.members.find((e) => { return e.caption === view; });
+                if (existing) {
+                    newViewEntries.push(existing as ICdmViewEntry);
+
+                    continue;
+                }
+
+                const viewEntry: Mutable<ICdmViewEntry> = {
+                    parent: viewGroup as ICdmSchemaGroupEntry<CdmEntityType.View>,
+                    type: CdmEntityType.View,
+                    id: uuid(),
+                    state: createDataModelEntryState(true),
+                    caption: view,
+                    schema,
+                    connection: viewGroup.connection as ICdmConnectionEntry,
+                    columns: [],
+                };
+
+                viewEntry.refresh = () => {
+                    return this.updateView(viewEntry);
+                };
+
+                newViewEntries.push(viewEntry);
+            }
+
+            viewGroup.members = newViewEntries;
+
+            this.notifySubscribers(actions);
+        } catch (reason) {
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Cannot load views for schema ${viewGroup.parent.caption}: ${message}`, {});
+
+            return false;
         }
 
         return true;
     }
 
-    private async initializeEventsSchemaGroup(
+    private async updateEventsSchemaGroup(
         eventGroup: DeepMutable<ICdmSchemaGroupEntry<CdmEntityType.Event>>): Promise<boolean> {
         eventGroup.state.initialized = true;
 
-        const schema = eventGroup.parent.caption;
-        const eventNames = await eventGroup.connection.backend.getSchemaObjectNames(schema, "Event");
-        for (const event of eventNames) {
-            const eventEntry: Mutable<ICdmEventEntry> = {
-                parent: eventGroup as ICdmSchemaGroupEntry<CdmEntityType.Event>,
-                type: CdmEntityType.Event,
-                id: uuid(),
-                state: createDataModelEntryState(true),
-                caption: event,
-                schema,
-                connection: eventGroup.parent.parent as ICdmConnectionEntry,
-            };
+        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        try {
+            const schema = eventGroup.parent.caption;
+            const eventNames = await eventGroup.connection.backend.getSchemaObjectNames(schema, "Event");
 
-            eventEntry.refresh = () => {
-                return this.initializeEvent(eventEntry as ICdmEventEntry);
-            };
+            // Remove entries no longer in the event list.
+            const removedEvents = eventGroup.members.filter((e) => {
+                return !eventNames.includes(e.caption);
+            });
 
-            eventGroup.members.push(eventEntry as ICdmEventEntry);
+            for (const event of removedEvents) {
+                actions.push({ action: "remove", entry: event as ConnectionDataModelEntry });
+            }
+
+            // Create a new event entries list from the event names in their order. Take over existing
+            // event entries.
+            const newEventEntries: ICdmEventEntry[] = [];
+            for (const event of eventNames) {
+                const existing = eventGroup.members.find((e) => { return e.caption === event; });
+                if (existing) {
+                    newEventEntries.push(existing as ICdmEventEntry);
+
+                    continue;
+                }
+
+                const eventEntry: Mutable<ICdmEventEntry> = {
+                    parent: eventGroup as ICdmSchemaGroupEntry<CdmEntityType.Event>,
+                    type: CdmEntityType.Event,
+                    id: uuid(),
+                    state: createDataModelEntryState(true, true),
+                    caption: event,
+                    schema,
+                    connection: eventGroup.parent.parent as ICdmConnectionEntry,
+                };
+
+                newEventEntries.push(eventEntry as ICdmEventEntry);
+            }
+
+            eventGroup.members = newEventEntries;
+
+            this.notifySubscribers(actions);
+        } catch (reason) {
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Cannot load events for schema ${eventGroup.parent.caption}: ${message}`, {});
+
+            return false;
         }
 
         return true;
     }
 
-    private async initializeProceduresSchemaGroup(
+    private async updateProceduresSchemaGroup(
         group: DeepMutable<ICdmSchemaGroupEntry<CdmEntityType.StoredProcedure>>): Promise<boolean> {
         group.state.initialized = true;
 
-        const schema = group.parent.caption;
-        const routines = await group.connection.backend.getSchemaObjects(schema, "Routine");
-        for (const routine of routines) {
-            if (typeof routine !== "string" && routine.type == "PROCEDURE") {
-                const procedureEntry: DeepMutable<ICdmRoutineEntry> = {
-                    parent: group,
-                    type: CdmEntityType.StoredProcedure,
-                    id: uuid(),
-                    state: createDataModelEntryState(true),
-                    caption: routine.name,
-                    schema,
-                    connection: group.connection,
-                    language: routine.language
-                };
+        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        try {
+            const schema = group.parent.caption;
+            const procedures = await group.connection.backend
+                .getSchemaObjects(schema, "Routine") as IDBSchemaObjectEntry[];
 
-                procedureEntry.refresh = () => {
-                    return this.initializeProcedure(procedureEntry);
-                };
+            // Remove entries no longer in the procedure list.
+            const procedureNames = procedures.map((e) => { return e.name; });
+            const removedProcedures = group.members.filter((e) => {
+                return !procedureNames.includes(e.caption);
+            });
 
-                group.members.push(procedureEntry);
+            for (const procedure of removedProcedures) {
+                actions.push({ action: "remove", entry: procedure as ConnectionDataModelEntry });
             }
+
+            // Create a new procedure entries list from the procedure names in their order. Take over existing
+            // procedure entries.
+            const newProcedureEntries: ICdmRoutineEntry[] = [];
+            for (const procedure of procedures) {
+                if (procedure.type === "PROCEDURE") {
+                    const existing = group.members.find((e) => { return e.caption === procedure.name; });
+                    if (existing) {
+                        newProcedureEntries.push(existing as ICdmRoutineEntry);
+
+                        continue;
+                    }
+
+                    const procedureEntry: DeepMutable<ICdmRoutineEntry> = {
+                        parent: group,
+                        type: CdmEntityType.StoredProcedure,
+                        id: uuid(),
+                        state: createDataModelEntryState(true, true),
+                        caption: procedure.name,
+                        language: procedure.language,
+                        schema,
+                        connection: group.connection,
+                    };
+
+                    newProcedureEntries.push(procedureEntry as ICdmRoutineEntry);
+                }
+            }
+
+            group.members = newProcedureEntries;
+
+            this.notifySubscribers(actions);
+        } catch (reason) {
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Cannot load procedures for schema ${group.parent.caption}: ${message}`, {});
+
+            return false;
         }
 
         return true;
     }
 
-    private async initializeFunctionsSchemaGroup(
+    private async updateFunctionsSchemaGroup(
         group: DeepMutable<ICdmSchemaGroupEntry<CdmEntityType.StoredFunction>>): Promise<boolean> {
         group.state.initialized = true;
 
-        const schema = group.parent.caption;
-        const routines = await group.connection.backend.getSchemaObjects(schema, "Routine");
-        for (const routine of routines) {
-            if (typeof routine !== "string" && routine.type == "FUNCTION") {
-                const functionEntry: DeepMutable<ICdmRoutineEntry> = {
-                    parent: group,
-                    type: CdmEntityType.StoredFunction,
-                    id: uuid(),
-                    state: createDataModelEntryState(true),
-                    caption: routine.name,
-                    schema,
-                    connection: group.parent.parent,
-                    language: routine.language
-                };
+        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        try {
+            const schema = group.parent.caption;
+            const functions = await group.connection.backend
+                .getSchemaObjects(schema, "Routine") as IDBSchemaObjectEntry[];
 
-                functionEntry.refresh = () => {
-                    return this.initializeFunction(functionEntry as ICdmRoutineEntry);
-                };
+            // Remove entries no longer in the function list.
+            const functionNames = functions.map((e) => { return e.name; });
+            const removedFunctions = group.members.filter((e) => {
+                return !functionNames.includes(e.caption);
+            });
 
-                group.members.push(functionEntry as ICdmRoutineEntry);
+            for (const func of removedFunctions) {
+                actions.push({ action: "remove", entry: func as ConnectionDataModelEntry });
             }
+
+            // Create a new function entries list from the function names in their order. Take over existing
+            // function entries.
+            const newFunctionEntries: ICdmRoutineEntry[] = [];
+            for (const func of functions) {
+                if (func.type === "FUNCTION") {
+                    const existing = group.members.find((e) => { return e.caption === func.name; });
+                    if (existing) {
+                        newFunctionEntries.push(existing as ICdmRoutineEntry);
+
+                        continue;
+                    }
+
+                    const functionEntry: DeepMutable<ICdmRoutineEntry> = {
+                        parent: group,
+                        type: CdmEntityType.StoredFunction,
+                        id: uuid(),
+                        state: createDataModelEntryState(true, true),
+                        caption: func.name,
+                        schema,
+                        connection: group.parent.parent,
+                        language: func.language,
+                    };
+
+                    newFunctionEntries.push(functionEntry as ICdmRoutineEntry);
+                }
+            }
+
+            group.members = newFunctionEntries;
+
+            this.notifySubscribers(actions);
+        } catch (reason) {
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Cannot load functions for schema ${group.parent.caption}: ${message}`, {});
+
+            return false;
         }
 
         return true;
     }
 
-    private async initializeTable(tableEntry: DeepMutable<ICdmTableEntry>): Promise<boolean> {
-        tableEntry.state.initialized = true;
-
-        // Nothing to do here. All children are group nodes.
-        return Promise.resolve(true);
-    }
-
-    private async initializeView(viewEntry: DeepMutable<ICdmViewEntry>): Promise<boolean> {
+    private async updateView(viewEntry: DeepMutable<ICdmViewEntry>): Promise<boolean> {
         viewEntry.state.initialized = true;
 
-        // Unlike tables, there are no column group nodes. Instead, columns are attached directly to a view node.
-        const columnNames = await viewEntry.connection.backend.getTableObjectNames(viewEntry.schema, viewEntry.caption,
-            "Column");
-        for (const column of columnNames) {
-            const columnEntry: ICdmColumnEntry = {
-                parent: viewEntry as ICdmViewEntry,
-                id: uuid(),
-                type: CdmEntityType.Column,
-                state: createDataModelEntryState(true),
-                caption: column,
-                schema: viewEntry.schema,
-                table: viewEntry.caption,
-                connection: viewEntry.parent.parent.parent as ICdmConnectionEntry,
-                inPK: false,
-                default: "",
-                nullable: true,
-                autoIncrement: false,
-            };
+        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        try {
+            // Unlike tables, there are no column group nodes. Instead, columns are attached directly to a view node.
+            const columnNames = await viewEntry.connection.backend.getTableObjectNames(viewEntry.schema,
+                viewEntry.caption, "Column");
 
-            viewEntry.columns.push(columnEntry);
+            // Remove entries no longer in the column list.
+            const removedColumns = viewEntry.columns.filter((e) => {
+                return !columnNames.includes(e.caption);
+            });
+
+            for (const column of removedColumns) {
+                actions.push({ action: "remove", entry: column as ConnectionDataModelEntry });
+            }
+
+            // Create a new column entries list from the column names in their order. Take over existing
+            // column entries.
+            const newColumnEntries: ICdmColumnEntry[] = [];
+            for (const column of columnNames) {
+                const existing = viewEntry.columns.find((e) => { return e.caption === column; });
+                if (existing) {
+                    newColumnEntries.push(existing as ICdmColumnEntry);
+
+                    continue;
+                }
+
+                const columnEntry: ICdmColumnEntry = {
+                    parent: viewEntry as ICdmViewEntry,
+                    id: uuid(),
+                    type: CdmEntityType.Column,
+                    state: createDataModelEntryState(true),
+                    caption: column,
+                    schema: viewEntry.schema,
+                    table: viewEntry.caption,
+                    connection: viewEntry.parent.parent.parent as ICdmConnectionEntry,
+                    inPK: false,
+                    default: "",
+                    nullable: true,
+                    autoIncrement: false,
+                };
+
+                newColumnEntries.push(columnEntry);
+            }
+
+            viewEntry.columns = newColumnEntries;
+
+            this.notifySubscribers(actions);
+        } catch (reason) {
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Cannot load columns for view ${viewEntry.caption}: ${message}`, {});
+
+            return false;
         }
 
         return Promise.resolve(true);
     }
 
-    private async initializeEvent(eventEntry: DeepMutable<ICdmEventEntry>): Promise<boolean> {
-        eventEntry.state.initialized = true;
-
-        return Promise.resolve(true);
-    }
-
-    private async initializeProcedure(procedureEntry: DeepMutable<ICdmRoutineEntry>): Promise<boolean> {
-        procedureEntry.state.initialized = true;
-
-        return Promise.resolve(true);
-    }
-
-    private async initializeFunction(functionEntry: DeepMutable<ICdmRoutineEntry>): Promise<boolean> {
-        functionEntry.state.initialized = true;
-
-        return Promise.resolve(true);
-    }
-
-    private async initializeColumnsTableGroup(
+    private async updateColumnsTableGroup(
         columnGroup: DeepMutable<ICdmTableGroupEntry<CdmEntityType.Column>>): Promise<boolean> {
         columnGroup.state.initialized = true;
 
-        const schema = columnGroup.parent.schema;
-        const table = columnGroup.parent.caption;
-        const columnNames = await columnGroup.connection.backend.getTableObjectNames(schema, table, "Column");
-        for (const column of columnNames) {
-            const info = await columnGroup.connection.backend.getTableObject(schema, table, "Column", column);
-            const columnEntry: DeepMutable<ICdmColumnEntry> = {
-                parent: columnGroup,
-                id: uuid(),
-                type: CdmEntityType.Column,
-                state: createDataModelEntryState(true, true),
-                caption: column,
-                schema,
-                table,
-                inPK: info.isPk === 1,
-                default: info.default,
-                nullable: info.notNull === 0,
-                autoIncrement: info.autoIncrement === 1,
-                connection: columnGroup.connection,
+        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        try {
+            const schema = columnGroup.parent.schema;
+            const table = columnGroup.parent.caption;
+            const columnNames = await columnGroup.connection.backend.getTableObjectNames(schema, table, "Column");
 
-            };
+            // Remove entries no longer in the column list.
+            const removedColumns = columnGroup.members.filter((e) => {
+                return !columnNames.includes(e.caption);
+            });
 
-            columnGroup.members.push(columnEntry);
+            for (const column of removedColumns) {
+                actions.push({ action: "remove", entry: column as ConnectionDataModelEntry });
+            }
+
+            // Create a new column entries list from the column names in their order. Take over existing
+            // column entries.
+            const newColumnEntries: ICdmColumnEntry[] = [];
+            for (const column of columnNames) {
+                const info = await columnGroup.connection.backend.getTableObject(schema, table, "Column", column);
+                const existing = columnGroup.members.find((e) => { return e.caption === column; });
+                if (existing) {
+                    existing.inPK = info.isPk === 1;
+                    existing.default = info.default;
+                    existing.nullable = info.notNull === 0;
+                    existing.autoIncrement = info.autoIncrement === 1;
+
+                    newColumnEntries.push(existing as ICdmColumnEntry);
+                    continue;
+                }
+
+                const columnEntry: DeepMutable<ICdmColumnEntry> = {
+                    parent: columnGroup,
+                    id: uuid(),
+                    type: CdmEntityType.Column,
+                    state: createDataModelEntryState(true, true),
+                    caption: column,
+                    schema,
+                    table,
+                    inPK: info.isPk === 1,
+                    default: info.default,
+                    nullable: info.notNull === 0,
+                    autoIncrement: info.autoIncrement === 1,
+                    connection: columnGroup.connection,
+
+                };
+
+                newColumnEntries.push(columnEntry as ICdmColumnEntry);
+            }
+
+            columnGroup.members = newColumnEntries;
+
+            this.notifySubscribers(actions);
+        } catch (reason) {
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Cannot load columns for table ${columnGroup.parent.caption}: ${message}`, {});
+
+            return false;
         }
 
         return true;
     }
 
-    private async initializeIndexesTableGroup(
+    private async updateIndexesTableGroup(
         indexGroup: DeepMutable<ICdmTableGroupEntry<CdmEntityType.Index>>): Promise<boolean> {
         indexGroup.state.initialized = true;
 
-        const schema = indexGroup.parent.schema;
-        const table = indexGroup.parent.caption;
-        const indexNames = await indexGroup.connection.backend.getTableObjectNames(schema, table, "Index");
-        for (const index of indexNames) {
-            const indexEntry: DeepMutable<ICdmIndexEntry> = {
-                parent: indexGroup,
-                id: uuid(),
-                type: CdmEntityType.Index,
-                state: createDataModelEntryState(true, true),
-                caption: index,
-                schema,
-                table,
-                connection: indexGroup.connection,
-            };
+        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        try {
+            const schema = indexGroup.parent.schema;
+            const table = indexGroup.parent.caption;
+            const indexNames = await indexGroup.connection.backend.getTableObjectNames(schema, table, "Index");
 
-            indexGroup.members.push(indexEntry);
+            // Remove entries no longer in the index list.
+            const removedIndexes = indexGroup.members.filter((e) => {
+                return !indexNames.includes(e.caption);
+            });
+
+            for (const index of removedIndexes) {
+                actions.push({ action: "remove", entry: index as ConnectionDataModelEntry });
+            }
+
+            // Create a new index entries list from the index names in their order. Take over existing
+            // index entries.
+            const newIndexEntries: ICdmIndexEntry[] = [];
+            for (const index of indexNames) {
+                const existing = indexGroup.members.find((e) => { return e.caption === index; });
+                if (existing) {
+                    newIndexEntries.push(existing as ICdmIndexEntry);
+
+                    continue;
+                }
+
+                const indexEntry: DeepMutable<ICdmIndexEntry> = {
+                    parent: indexGroup,
+                    id: uuid(),
+                    type: CdmEntityType.Index,
+                    state: createDataModelEntryState(true, true),
+                    caption: index,
+                    schema,
+                    table,
+                    connection: indexGroup.connection,
+                };
+
+                newIndexEntries.push(indexEntry as ICdmIndexEntry);
+            }
+
+            indexGroup.members = newIndexEntries;
+
+            this.notifySubscribers(actions);
+        } catch (reason) {
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Cannot load indexes for table ${indexGroup.parent.caption}: ${message}`, {});
+
+            return false;
         }
 
         return true;
     }
 
-    private async initializeForeignKeysTableGroup(
+    private async updateForeignKeysTableGroup(
         foreignKeyGroup: DeepMutable<ICdmTableGroupEntry<CdmEntityType.ForeignKey>>): Promise<boolean> {
         foreignKeyGroup.state.initialized = true;
 
-        const schema = foreignKeyGroup.parent.schema;
-        const table = foreignKeyGroup.parent.caption;
-        const foreignKeyNames = await foreignKeyGroup.connection.backend.getTableObjectNames(schema, table,
-            "Foreign Key");
-        for (const foreignKey of foreignKeyNames) {
-            const foreignKeyEntry: DeepMutable<ICdmForeignKeyEntry> = {
-                parent: foreignKeyGroup,
-                id: uuid(),
-                type: CdmEntityType.ForeignKey,
-                state: createDataModelEntryState(true, true),
-                caption: foreignKey,
-                schema,
-                table,
-                connection: foreignKeyGroup.connection,
-            };
+        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        try {
+            const schema = foreignKeyGroup.parent.schema;
+            const table = foreignKeyGroup.parent.caption;
+            const foreignKeyNames = await foreignKeyGroup.connection.backend.getTableObjectNames(schema, table,
+                "Foreign Key");
 
-            foreignKeyGroup.members.push(foreignKeyEntry);
+            // Remove entries no longer in the foreign key list.
+            const removedForeignKeys = foreignKeyGroup.members.filter((e) => {
+                return !foreignKeyNames.includes(e.caption);
+            });
+
+            for (const foreignKey of removedForeignKeys) {
+                actions.push({ action: "remove", entry: foreignKey as ConnectionDataModelEntry });
+            }
+
+            // Create a new foreign key entries list from the foreign key names in their order. Take over existing
+            // foreign key entries.
+            const newForeignKeyEntries: ICdmForeignKeyEntry[] = [];
+            for (const foreignKey of foreignKeyNames) {
+                const existing = foreignKeyGroup.members.find((e) => { return e.caption === foreignKey; });
+                if (existing) {
+                    newForeignKeyEntries.push(existing as ICdmForeignKeyEntry);
+
+                    continue;
+                }
+
+                const foreignKeyEntry: DeepMutable<ICdmForeignKeyEntry> = {
+                    parent: foreignKeyGroup,
+                    id: uuid(),
+                    type: CdmEntityType.ForeignKey,
+                    state: createDataModelEntryState(true, true),
+                    caption: foreignKey,
+                    schema,
+                    table,
+                    connection: foreignKeyGroup.connection,
+                };
+
+                newForeignKeyEntries.push(foreignKeyEntry as ICdmForeignKeyEntry);
+            }
+
+            foreignKeyGroup.members = newForeignKeyEntries;
+
+            this.notifySubscribers(actions);
+        } catch (reason) {
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Cannot load foreign keys for table ${foreignKeyGroup.parent.caption}: ` +
+                `${message}`, {});
+
+            return false;
         }
 
         return true;
     }
 
-    private async initializeTriggersTableGroup(
+    private async updateTriggersTableGroup(
         triggerGroup: DeepMutable<ICdmTableGroupEntry<CdmEntityType.Trigger>>): Promise<boolean> {
         triggerGroup.state.initialized = true;
 
-        const schema = triggerGroup.parent.schema;
-        const table = triggerGroup.parent.caption;
-        const triggerNames = await triggerGroup.connection.backend.getTableObjectNames(schema, table, "Foreign Key");
-        for (const foreignKey of triggerNames) {
-            const triggerEntry: DeepMutable<ICdmTriggerEntry> = {
-                parent: triggerGroup,
-                id: uuid(),
-                type: CdmEntityType.Trigger,
-                state: createDataModelEntryState(true, true),
-                caption: foreignKey,
-                schema,
-                table,
-                connection: triggerGroup.connection,
-            };
+        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        try {
+            const schema = triggerGroup.parent.schema;
+            const table = triggerGroup.parent.caption;
+            const triggerNames = await triggerGroup.connection.backend.getTableObjectNames(schema, table,
+                "Foreign Key");
 
-            triggerGroup.members.push(triggerEntry);
+            // Remove entries no longer in the trigger list.
+            const removedTriggers = triggerGroup.members.filter((e) => {
+                return !triggerNames.includes(e.caption);
+            });
+
+            for (const trigger of removedTriggers) {
+                actions.push({ action: "remove", entry: trigger as ConnectionDataModelEntry });
+            }
+
+            // Create a new trigger entries list from the trigger names in their order. Take over existing
+            // trigger entries.
+            const newTriggerEntries: ICdmTriggerEntry[] = [];
+            for (const foreignKey of triggerNames) {
+                const existing = triggerGroup.members.find((e) => { return e.caption === foreignKey; });
+                if (existing) {
+                    newTriggerEntries.push(existing as ICdmTriggerEntry);
+
+                    continue;
+                }
+
+                const triggerEntry: DeepMutable<ICdmTriggerEntry> = {
+                    parent: triggerGroup,
+                    id: uuid(),
+                    type: CdmEntityType.Trigger,
+                    state: createDataModelEntryState(true, true),
+                    caption: foreignKey,
+                    schema,
+                    table,
+                    connection: triggerGroup.connection,
+                };
+
+                newTriggerEntries.push(triggerEntry as ICdmTriggerEntry);
+            }
+
+            triggerGroup.members = newTriggerEntries;
+
+            this.notifySubscribers(actions);
+        } catch (reason) {
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Cannot load triggers for table ${triggerGroup.parent.caption}: ${message}`, {});
+
+            return false;
         }
 
         return true;
@@ -1759,15 +2062,6 @@ export class ConnectionDataModel implements ICdmUpdater {
                 });
             });
 
-            // Update fields of the existing services.
-            for (const service of mrsRoot.services) {
-                service.details = services.find((s) => {
-                    return s.id === service.details.id;
-                })!;
-
-                this.updateServiceFields(service as ICdmRestServiceEntry);
-            }
-
             // Next insert all new entries and take over existing entries.
             const newList: ICdmRestServiceEntry[] = [];
             for (const service of services) {
@@ -1786,6 +2080,7 @@ export class ConnectionDataModel implements ICdmUpdater {
                     newList.push(existing as ICdmRestServiceEntry);
                     existing.details = service;
                     existing.caption = label;
+                    this.updateServiceFields(existing as ICdmRestServiceEntry);
 
                     actions.push({ action: "update", entry: existing as ICdmRestServiceEntry });
 
@@ -2067,7 +2362,7 @@ export class ConnectionDataModel implements ICdmUpdater {
                 };
 
                 userEntry.refresh = () => {
-                    return this.initializeMrsUser(userEntry as ICdmRestUserEntry);
+                    return this.updateMrsUser(userEntry as ICdmRestUserEntry);
                 };
 
                 authAppEntry.users.push(userEntry as ICdmRestUserEntry);
@@ -2082,7 +2377,7 @@ export class ConnectionDataModel implements ICdmUpdater {
         return true;
     }
 
-    private initializeMrsUser(userEntry: ICdmRestUserEntry): Promise<boolean> {
+    private updateMrsUser(userEntry: ICdmRestUserEntry): Promise<boolean> {
         if (userEntry.details.name !== undefined) {
             (userEntry as Mutable<ICdmRestUserEntry>).caption = userEntry.details.name;
         }
@@ -2203,7 +2498,7 @@ export class ConnectionDataModel implements ICdmUpdater {
     }
 
     private notifySubscribers = (list: Readonly<Array<ISubscriberActionType<ConnectionDataModelEntry>>>): void => {
-        for (const subscriber of this.#subscribers) {
+        for (const subscriber of this.subscribers) {
             subscriber(list);
         }
     };

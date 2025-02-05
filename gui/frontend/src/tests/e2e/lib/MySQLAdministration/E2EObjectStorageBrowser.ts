@@ -202,6 +202,30 @@ export class E2EObjectStorageBrowser {
     };
 
     /**
+     * Verifies if the tree element can be expanded
+     * @param caption The item caption
+     * @returns A promise resolving to true if the element can be expanded, false otherwise
+     */
+    public itemIsExpandable = async (caption: string): Promise<boolean> => {
+        let isExpandable = false;
+
+        await driver.wait(async () => {
+            try {
+                const item = await this.getItem(caption);
+                isExpandable = (await item.findElements(objStorageItem.treeToggle)).length > 0;
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, `Could not verify if item '${caption}' is expanded`);
+
+        return isExpandable;
+    };
+
+    /**
      * Expands the tree item
      * @param caption The item caption
      */
@@ -237,21 +261,36 @@ export class E2EObjectStorageBrowser {
 
         for (let i = 0; i <= path.length - 1; i++) {
 
-            if (i !== 0) {
-                if (!(await this.itemIsExpanded(path[i - 1]))) {
-                    i--;
-                }
-            }
-
             if (i === path.length - 1) {
                 await driver.executeScript("arguments[0].scrollBy(0, 150)",
                     await driver.findElement(scrollTable));
             }
 
-            await this.expandItem(path[i]);
-            await driver.wait(this.untilItemHasChildren(path[i]), constants.wait20seconds);
-            await driver.wait(this.untilItemsAreLoaded(), constants.wait15seconds,
-                ` ${path[i + 1]} to be loaded`);
+            await driver.wait(async () => {
+                try {
+                    if (await this.itemIsExpandable(path[i])) {
+                        await this.expandItem(path[i]);
+                        await driver.wait(this.untilItemHasChildren(path[i]), constants.wait20seconds);
+                        await driver.wait(this.untilItemsAreLoaded(), constants.wait15seconds,
+                            ` ${path[i + 1]} to be loaded`);
+
+                        return true;
+                    }
+                } catch (e) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
+                        if (String(e).includes("Could not get item")) {
+                            if (!(await this.itemIsExpanded(path[i - 1]))) {
+                                i--;
+                            } else {
+                                (e as Error).message = `${(e as Error).message}. Parent item was not expanded`;
+                                throw e;
+                            }
+                        } else {
+                            throw e;
+                        }
+                    }
+                }
+            }, constants.wait20seconds, `Could not open the tree ${path.toString()} on Object Storage Browser`);
         }
     };
 
