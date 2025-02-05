@@ -848,8 +848,8 @@ describe("MYSQL REST SERVICE", () => {
 
     it("Edit Authentication App", async () => {
         try {
-            let treeRestAuthApp = await dbTreeSection.getTreeItem(globalService.authenticationApps![0].treeName!);
-            await treeRestAuthApp.openContextMenuAndSelect(constants.editAuthenticationApp);
+            await dbTreeSection.openContextMenuAndSelect(globalService.authenticationApps![0].treeName!,
+                constants.editAuthenticationApp);
 
             const editedApp: interfaces.IRestAuthenticationApp = {
                 vendor: constants.vendorOCIOAuth2,
@@ -876,8 +876,8 @@ describe("MYSQL REST SERVICE", () => {
             const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
             await (await treeGlobalConn.getActionButton(constants.refreshConnection))!.click();
 
-            treeRestAuthApp = await dbTreeSection.getTreeItem(globalService.authenticationApps![0].treeName!);
-            await treeRestAuthApp.openContextMenuAndSelect(constants.editAuthenticationApp);
+            await dbTreeSection.openContextMenuAndSelect(globalService.authenticationApps![0].treeName!,
+                constants.editAuthenticationApp);
             const authApp = await AuthenticationAppDialog.get();
             expect(authApp).toStrictEqual(editedApp);
             globalService.authenticationApps![0].user = [restAuthenticationApp.user![0]];

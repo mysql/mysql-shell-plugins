@@ -35,8 +35,7 @@ import { DBType, type IConnectionDetails } from "../supplement/ShellInterface/in
 import { convertErrorToString, uuid } from "../utilities/helpers.js";
 import {
     CdmEntityType, ICdmAdminEntry, ICdmConnectionEntry, ICdmRestRootEntry, ICdmSchemaEntry,
-    type ConnectionDataModelEntry, type ICdmAdminPageEntry,
-    type ICdmRestAuthAppGroupEntry,
+    type ConnectionDataModelEntry, type ICdmAdminPageEntry, type ICdmRestAuthAppGroupEntry,
     type ICdmRestRouterGroupEntry,
 } from "./ConnectionDataModel.js";
 import { createDataModelEntryState } from "./data-model-helpers.js";

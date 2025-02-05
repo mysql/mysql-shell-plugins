@@ -496,9 +496,9 @@ export class E2EAccordionSection {
                     if (await treeItem.isExpandable()) {
                         await treeItem.expand();
                         await driver.wait(treeItem.untilHasChildren(), constants.wait10seconds);
-                    }
 
-                    return true;
+                        return true;
+                    }
                 } catch (e) {
                     if (!(e instanceof error.StaleElementReferenceError)) {
                         throw e;

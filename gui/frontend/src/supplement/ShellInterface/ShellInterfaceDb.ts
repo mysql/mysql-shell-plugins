@@ -27,7 +27,7 @@ import { MessageScheduler } from "../../communication/MessageScheduler.js";
 import {
     IDBSchemaObjectEntry,
     IGetColumnsMetadataItem, IShellDbConnection, ITableObjectInfo,
-    ShellAPIGui
+    ShellAPIGui,
 } from "../../communication/ProtocolGui.js";
 import { webSession } from "../WebSession.js";
 
@@ -148,7 +148,7 @@ export class ShellInterfaceDb {
     }
 
 
-    public async getSchemaObjects(schema: string, type: string): Promise<(string | IDBSchemaObjectEntry)[]> {
+    public async getSchemaObjects(schema: string, type: string): Promise<Array<string | IDBSchemaObjectEntry>> {
         if (!this.moduleSessionId) {
             return [];
         }
@@ -159,11 +159,11 @@ export class ShellInterfaceDb {
                 args: {
                     moduleSessionId: this.moduleSessionId,
                     type,
-                    schemaName: schema
+                    schemaName: schema,
                 },
             },
         });
-        const result: (IDBSchemaObjectEntry | string)[] = [];
+        const result: Array<IDBSchemaObjectEntry | string> = [];
         response.forEach((entry) => {
             result.push(...entry.result);
         });
