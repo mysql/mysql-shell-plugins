@@ -17,9 +17,6 @@ import {
 // --- MySQL Shell for VS Code Extension Remove --- Begin
 export type { IMrsAuthUser, IMrsAuthStatus } from "./MrsBaseClasses";
 // --- MySQL Shell for VS Code Extension Remove --- End
-
-
-
 /* -----------------------------------------------------------------------------
  * MRS Schema /chat
  */
@@ -129,14 +126,14 @@ export class ChatAppChat extends MrsBaseSchema {
 }
 
 /* =============================================================================
- * MRS Service https://localhost:8445/chatApp
+ * MRS Service https://localhost:8443/chatApp
  */
 
 export class ChatApp extends MrsBaseService {
     #chat?: ChatAppChat;
 
     public constructor() {
-        super("https://localhost:8445/chatApp", "/authentication");
+        super("https://localhost:8443/chatApp", "/authentication");
     }
 
     public get chat(): ChatAppChat {

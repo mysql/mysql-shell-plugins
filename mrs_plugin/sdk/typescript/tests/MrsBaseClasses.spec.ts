@@ -56,8 +56,8 @@ const service: MrsBaseService = new MrsBaseService("/foo");
 const schema: MrsBaseSchema = { requestPath: "/bar", service };
 
 const createFetchMock = ({ matchBody, matchUrl, response = "{}" }: {
-    matchBody?: string, matchUrl?: string, response: string } = { response: "{}" }): void => {
-    vi.stubGlobal("fetch", vi.fn((url, { body }) => {
+    matchBody?: string, matchUrl?: string, response?: string } = { response: "{}" }): void => {
+        vi.stubGlobal("fetch", vi.fn((url, { body }) => {
         if ((matchUrl !== undefined && matchUrl !== url) || (matchBody !== undefined && matchBody !== body)) {
             return Promise.resolve({ ok: false });
         }
@@ -74,6 +74,49 @@ const createFetchMock = ({ matchBody, matchUrl, response = "{}" }: {
 describe("MRS SDK API", () => {
     beforeEach(() => {
         vi.restoreAllMocks();
+    });
+
+    describe("when authenticating a user", () => {
+        const username = "user";
+        const password = "pwd";
+        const authApp = "foobar";
+        const vendorId = "0x31000000000000000000000000000000";
+
+        beforeEach(() => {
+            createFetchMock({ matchUrl: "/foo/authentication/login" });
+            createFetchMock({
+                matchUrl: "/foo/authentication/authApps",
+                response: JSON.stringify([{ name: authApp, vendorId }]),
+            });
+        });
+
+        describe("and providing a vendor id", () => {
+            it("no further vendor id lookup happens", async () => {
+                const query = new MrsAuthenticate(service, authApp, username, password, vendorId);
+
+                await query.submit();
+                expect(fetch).toHaveBeenCalledOnce();
+                expect(fetch).toHaveBeenNthCalledWith(1, "/foo/authentication/login", expect.anything());
+            });
+        });
+
+        describe("and not providing a vendor id", () => {
+            it("vendor id lookup finishes successfully", async () => {
+                const query = new MrsAuthenticate(service, authApp, username, password);
+
+                await query.submit();
+                expect(fetch).toHaveBeenCalledTimes(2);
+                expect(fetch).toHaveBeenNthCalledWith(1, "/foo/authentication/authApps", expect.anything());
+                expect(fetch).toHaveBeenLastCalledWith("/foo/authentication/login", expect.anything());
+            });
+
+            it("command throws an authentication error", async () => {
+                const query = new MrsAuthenticate(service, "<nonexisting>", username, password);
+
+                await expect(async () => { await query.submit(); }).rejects
+                    .toThrowError("Authentication failed. The authentication app does not exist.");
+            });
+        });
     });
 
     describe("when accessing REST objects", () => {
@@ -522,7 +565,7 @@ describe("MRS SDK API", () => {
                         response: JSON.stringify({ accessToken: "ABC" }),
                     });
 
-                    const request = new MrsAuthenticate(schema.service.session, authApp, vendorId, username, password);
+                    const request = new MrsAuthenticate(schema.service, authApp, username, password, vendorId);
                     await request.submit();
 
                     createFetchMock();
@@ -748,7 +791,7 @@ describe("MRS SDK API", () => {
                         response: JSON.stringify({ accessToken: "ABC" }),
                     });
 
-                    const request = new MrsAuthenticate(schema.service.session, authApp, vendorId, username, password);
+                    const request = new MrsAuthenticate(schema.service, authApp, username, password, vendorId);
                     await request.submit();
 
                     createFetchMock({ response: JSON.stringify(response) });
@@ -963,7 +1006,7 @@ describe("MRS SDK API", () => {
                         response: JSON.stringify({ accessToken: "ABC" }),
                     });
 
-                    const request = new MrsAuthenticate(schema.service.session, authApp, vendorId, username, password);
+                    const request = new MrsAuthenticate(schema.service, authApp, username, password, vendorId);
                     await request.submit();
 
                     createFetchMock({ response: JSON.stringify(response) });
@@ -1121,7 +1164,7 @@ describe("MRS SDK API", () => {
                         response: JSON.stringify({ accessToken: "ABC" }),
                     });
 
-                    const request = new MrsAuthenticate(schema.service.session, authApp, vendorId, username, password);
+                    const request = new MrsAuthenticate(schema.service, authApp, username, password, vendorId);
                     await request.submit();
 
                     createFetchMock();
@@ -1324,7 +1367,7 @@ describe("MRS SDK API", () => {
                         response: JSON.stringify({ accessToken: "ABC" }),
                     });
 
-                    const request = new MrsAuthenticate(schema.service.session, authApp, vendorId, username, password);
+                    const request = new MrsAuthenticate(schema.service, authApp, username, password, vendorId);
                     await request.submit();
 
                     createFetchMock();
@@ -1568,7 +1611,7 @@ describe("MRS SDK API", () => {
                         response: JSON.stringify({ accessToken: "ABC" }),
                     });
 
-                    const request = new MrsAuthenticate(schema.service.session, authApp, vendorId, username, password);
+                    const request = new MrsAuthenticate(schema.service, authApp, username, password, vendorId);
                     await request.submit();
 
                     createFetchMock({ response: JSON.stringify(response) });

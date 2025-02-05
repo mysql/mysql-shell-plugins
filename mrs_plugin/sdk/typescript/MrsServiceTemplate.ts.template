@@ -11,7 +11,7 @@ import {
     // --- importRequiredDatatypesOnlyStart
     // --- importRequiredDatatypesOnlyEnd
     // --- importAuthenticateOnlyStart
-    MrsAuthenticate,
+    IMrsLoginResult,
     IAuthenticateOptions,
     // --- importAuthenticateOnlyEnd
     // --- importReadOnlyStart
@@ -49,9 +49,6 @@ export type { IMrsAuthUser, IMrsAuthStatus } from "./MrsBaseClasses";
 // --- MySQL Shell for VS Code Extension Remove --- End
 
 // --- importLoopEnd
-
-${service_level_constants}
-${service_level_type_definitions}
 // --- schemaLoopStart
 /* -----------------------------------------------------------------------------
  * MRS Schema ${schema_request_path}
@@ -292,9 +289,8 @@ export class ${service_class_name} extends MrsBaseService {
         ${service_class_name}.url(serviceUrl);
     };
 
-    public static authenticate = ({ username, authApp }:
-    Partial<IAuthenticateOptions<I${service_class_name}AuthApp>>): Promise<void> => {
-        mrsAuthenticate("${service_url}", "${service_auth_path}", authApp, username);
+    public static authenticate = ({ username, app }: Partial<IAuthenticateOptions>): Promise<IMrsLoginResult> => {
+        mrsAuthenticate("${service_url}", "${service_auth_path}", app, username);
     };
 
     public setAsCurrent = () => {
@@ -304,25 +300,17 @@ export class ${service_class_name} extends MrsBaseService {
 
     // --- serviceAuthenticateStart
     // --- MySQL Shell for VS Code Extension Only --- Begin
-    public async authenticate(options?: Partial<Omit<IAuthenticateOptions<I${service_class_name}AuthApp>,
-    "password">>): Promise<void>;
+    public async authenticate(options?: Partial<Omit<IAuthenticateOptions, "password" | "vendor">>): Promise<IMrsLoginResult>;
     // --- MySQL Shell for VS Code Extension Only --- End
-    public async authenticate(options: IAuthenticateOptions<I${service_class_name}AuthApp>): Promise<void> {
-        const { username, password, authApp } = options ?? {};
+    public async authenticate(options: IAuthenticateOptions): Promise<IMrsLoginResult> {
+        const { username, password, app, vendor } = options ?? {};
         // --- MySQL Shell for VS Code Extension Only --- Begin
         if (typeof ${service_class_name}.authenticate === "function") {
-            return ${service_class_name}.authenticate({ username, authApp });
+            return ${service_class_name}.authenticate({ username, app, vendor });
         }
         // --- MySQL Shell for VS Code Extension Only --- End
-        // @ts-expect-error when this function is generated, AUTH_APPS always contains the corresponding authentication app details
-        const { vendorId } = AUTH_APPS.find((app) => {
-            // @ts-expect-error same as reason as before
-            return app.name === authApp;
-        });
-        const request = new MrsAuthenticate(this.session, authApp, vendorId, username, password);
-        const _ = await request.submit();
 
-        return;
+        return super.authenticate({ username, password, app, vendor });
     }
     // --- serviceAuthenticateEnd
 }
