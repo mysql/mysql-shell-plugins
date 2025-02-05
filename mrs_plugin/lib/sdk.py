@@ -264,10 +264,10 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
     service_id = service.get("id")
     # Auth App infrastructure should only be generated if the service contains a
     # db object that requires authentication and there is at least one authentication app available
-    # TODO: although this is ok now that from the user standpoint, an authentication app exists in
-    # the scope of a service, in the future, if an authentication app can span different services
-    # it would not make sense to force the SDK to be re-generated
-    if requires_auth:
+    # TODO: Information about authentication apps should always be retrieved at runtime to avoid stale data.
+    # On the TypeScript SDK, this already happens, but the Python SDK still relies on this generated code.
+    # The following block should be removed entirely once this is addressed in the Python SDK.
+    if requires_auth and sdk_language == "Python":
         # TODO: include apps from all vendors.
         # For now, only include MRS and MySQL-Internal vendor auth apps
         supported_vendors = {

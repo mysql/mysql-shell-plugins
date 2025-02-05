@@ -10,6 +10,8 @@ import {
     JsonObject,
     JsonValue,
     MaybeNull,
+    IMrsLoginResult,
+    IAuthenticateOptions,
     IFindAllOptions,
     IFindFirstOptions,
     IFindManyOptions,
@@ -30,9 +32,6 @@ import {
 // --- MySQL Shell for VS Code Extension Remove --- Begin
 export type { IMrsAuthUser, IMrsAuthStatus } from "./MrsBaseClasses";
 // --- MySQL Shell for VS Code Extension Remove --- End
-
-
-
 /* -----------------------------------------------------------------------------
  * MRS Schema /mrsNotes
  */
@@ -858,14 +857,14 @@ export class MyServiceMrsNotes extends MrsBaseSchema {
 }
 
 /* =============================================================================
- * MRS Service https://localhost:8445/myService
+ * MRS Service https://localhost:8443/myService
  */
 
 export class MyService extends MrsBaseService {
     #mrsNotes?: MyServiceMrsNotes;
 
     public constructor() {
-        super("https://localhost:8445/myService", "/authentication");
+        super("https://localhost:8443/myService", "/authentication");
     }
 
     public get mrsNotes(): MyServiceMrsNotes {
@@ -876,5 +875,10 @@ export class MyService extends MrsBaseService {
         return this.#mrsNotes;
     }
 
+    public async authenticate(options: IAuthenticateOptions): Promise<IMrsLoginResult> {
+        const { username, password, app, vendor } = options ?? {};
+
+        return super.authenticate({ username, password, app, vendor });
+    }
 }
 

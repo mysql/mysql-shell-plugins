@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -42,14 +42,22 @@ Nothing (void).
 ## Reference (authenticate)
 
 ```TypeScript
-async function authenticate (IAuthenticateOptions): Promise<void> {
+async function authenticate (IAuthenticateOptions): Promise<IMrsLoginResult> {
     // ...
 }
 
 interface IAuthenticateOptions {
     username: string
     password: string
-    authApp: string
+    app: string
+    vendor?: string
+}
+
+interface IMrsLoginResult {
+    authApp?: string
+    jwt?: string
+    errorCode?: number
+    errorMessage?: string
 }
 ```
 
@@ -60,7 +68,8 @@ import { MyService } from './myService.mrs.sdk/myService';
 
 const myService = new MyService();
 
-myService.authenticate({ username: 'foo', password: 'bar', authApp: 'baz' });
+myService.authenticate({ username: 'foo', password: 'bar', app: 'baz' });
+myService.authenticate({ username: 'foo', password: 'bar', app: 'baz', vendor: "0x30000000000000000000000000000000" });
 ```
 
 ## create

@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,9 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 # Authentication
 
-When a REST object requires authentication, applications using the SDK should authenticate in the scope of the corresponding REST service beforehand. A client can be authenticated using an existing authentication app and providing a valid username and password.
+When a REST object requires authentication, applications using the SDK should authenticate in the scope of the corresponding REST service beforehand. A client can be authenticated using an existing authentication app, providing a valid username and password (and optionally, a vendor id).
+
+If a vendor id is not specified, the SDK automatically looks up the appropriate vendor id for the corresponding authentication app (which results in an extra round-trip to the MRS backend). 
 
 Currently, the MRS SDK (both for TypeScript and Python) only supports MRS Native and MySQL Internal Authentication apps (more details [here](../devGuide/Auth.md)).
 
@@ -44,7 +46,7 @@ CREATE REST USER "foo"@"baz" IDENTIFIED BY "bar";
 ### TypeScript
 
 ```TypeScript
-myService.authenticate({ username: "foo", password: "bar", authApp: "baz" })
+myService.authenticate({ username: "foo", password: "bar", app: "baz" })
 ```
 
 ### Python
@@ -72,7 +74,7 @@ the API is used in the exact same way.
 ### TypeScript
 
 ```TypeScript
-myService.authenticate({ username: "foo", password: "bar", authApp: "qux" })
+myService.authenticate({ username: "foo", password: "bar", app: "qux" })
 ```
 
 ### Python
@@ -82,3 +84,30 @@ my_service.sakila.authenticate(username="foo", password="bar", auth_app="baz")
 ```
 
 After the authentication succeeds, every valid SDK command that executes on top of a REST object that requires authentication, should also succeed.
+
+## Authentication Errors
+
+In the case where a vendor id is not specified when calling the command, the client performs a vendor lookup in the backend using the name of the authentication app. If the authentication app does not exist, the command yields an error.
+
+```TypeScript
+try {
+  await my_service.sakila.authenticate({ username: "foo", password: "bar", app: "<non_existing>" })
+} catch (err) {
+  console.log(err.message) // "Authentication failed. The authentication app does not exist."
+}
+```
+
+In the case where a vendor id is specified when calling the command, the client does not perform any additional vendor lookup, which means that it assumes the command was provided with the name of an authentication app of that same vendor and simplify attempts to authenticate using the appropriate authentication mechanism. Ultimately the authentication will fail and the command will return an error.
+
+```TypeScript
+const result = await my_service.sakila.authenticate({
+  username: "foo",
+  password: "bar",
+  app: "<app_from_different_vendor>",
+  vendor: "<vendor_id>"
+})
+
+console.log(result.errorMessage) // Authentication failed. The authentication app is of a different vendor.
+```
+
+Additionally, the command will, as expected, also yield an error when the password does not match the given username.

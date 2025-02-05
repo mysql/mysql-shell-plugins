@@ -160,12 +160,10 @@ export class MrsBaseSession {
         }
 
         if (!response.ok && autoResponseCheck) {
-            // Check if the current session has expired
-            if (response.status === 401) {
-                /* this.setState({ restarting: true });
-                globalThis.alert("Your current session expired. You will be logged in again.");
+            const requestPath = typeof input === "string" ? input : (input as unknown as IFetchInput<T>).input;
 
-                void this.startLogin(authApp); */
+            // Check if the current session has expired
+            if (response.status === 401 && !requestPath.endsWith("/authentication/login")) {
                 throw new Error(`Not authenticated. Please authenticate first before accessing the ` +
                     `path ${this.serviceUrl ?? ""}${input}.`);
             }
@@ -230,7 +228,16 @@ export class MrsBaseSession {
                 } else {
                     const result = await response.json();
 
-                    this.accessToken = String(result.accessToken);
+                    if (result.accessToken === undefined) {
+                        return {
+                            authApp,
+                            errorCode: 401,
+                            errorMessage:
+                                "Authentication failed. The authentication app is of a different vendor.",
+                        };
+                    }
+
+                    this.accessToken = result.accessToken;
 
                     return {
                         authApp,
@@ -414,52 +421,6 @@ export class MrsBaseSession {
 export interface IMrsAuthApp {
     name: string;
     vendorId: string;
-}
-
-/**
- * Represents a MRS Service base class.
- *
- * MRS Service classes derive from this base class and add public MRS Schema objects that allow the user to work with
- * the MRS Service's MRS Schemas.
- *
- * Each services uses its own MrsBaseSession session to perform all fetch operations.
- */
-export class MrsBaseService {
-    public session: MrsBaseSession;
-
-    public constructor(
-        public readonly serviceUrl: string,
-        protected readonly authPath = "/authentication",
-        protected readonly defaultTimeout = 8000) {
-        this.session = new MrsBaseSession(serviceUrl, authPath, defaultTimeout);
-    }
-
-    public readonly getAuthApps = async (): Promise<IMrsAuthApp[] | undefined> => {
-        const response = await this.session.doFetch({
-            input: `${this.authPath}/authApps`,
-            timeout: 3000,
-            errorMsg: "Failed to fetch Authentication Apps.",
-        });
-
-        if (response.ok) {
-            const result = await response.json();
-
-            return result as IMrsAuthApp[];
-        } else {
-            let errorInfo = null;
-            try {
-                errorInfo = await response.json();
-            } catch (e) {
-                // Ignore the exception
-            }
-            const errorDesc = "Failed to fetch Authentication Apps.\n\n" +
-                "Please ensure MySQL Router is running and the REST endpoint " +
-                `${String(this.serviceUrl)}${this.authPath}/authApps is accessible. `;
-
-            throw new Error(errorDesc + `(${response.status}:${response.statusText})` +
-                `${(errorInfo !== undefined) ? ("\n\n" + JSON.stringify(errorInfo, null, 4) + "\n") : ""}`);
-        }
-    };
 }
 
 /**
@@ -790,10 +751,11 @@ export type Cursor<EligibleFields> = {
 /**
  * Options available to authenticate in a REST service.
  */
-export interface IAuthenticateOptions<AuthApp> {
-    authApp: AuthApp;
+export interface IAuthenticateOptions {
+    app: string;
     password?: string;
     username: string;
+    vendor?: string;
 }
 
 // create*() API
@@ -1457,14 +1419,18 @@ export class MrsAuthenticate {
     private static mrsVendorId: string = "0x30000000000000000000000000000000";
 
     public constructor(
-        private readonly session: MrsBaseSession,
+        private readonly service: MrsBaseService,
         private readonly authApp: string,
-        private readonly vendorId: string,
         private readonly username: string,
-        private readonly password: string = "") {
+        private readonly password: string = "",
+        private vendorId?: string) {
     }
 
     public submit = async (): Promise<IMrsLoginResult> => {
+        if (this.vendorId === undefined) {
+            this.vendorId = await this.lookupVendorId();
+        }
+
         if (this.vendorId === MrsAuthenticate.mrsVendorId) {
             return this.authenticateUsingMrsNative();
         }
@@ -1472,16 +1438,29 @@ export class MrsAuthenticate {
         return this.authenticateUsingMysqlInternal();
     };
 
+    private lookupVendorId = async (): Promise<string> => {
+        const authApps = await this.service.getAuthApps() ?? [];
+        const authApp = authApps.find((app) => {
+            return app.name === this.authApp;
+        });
+
+        if (authApp === undefined) {
+            throw new Error("Authentication failed. The authentication app does not exist.");
+        }
+
+        return authApp.vendorId;
+    };
+
     private authenticateUsingMrsNative = async (): Promise<IMrsLoginResult> => {
         // SCRAM
-        await this.session.sendClientFirst(this.authApp, this.username);
-        const authenticationResponse = await this.session.sendClientFinal(this.password);
+        await this.service.session.sendClientFirst(this.authApp, this.username);
+        const authenticationResponse = await this.service.session.sendClientFinal(this.password);
 
         return authenticationResponse;
     };
 
     private authenticateUsingMysqlInternal = async (): Promise<IMrsLoginResult> => {
-        const authenticationResponse = await this.session.verifyCredentials({
+        const authenticationResponse = await this.service.session.verifyCredentials({
             username: this.username,
             password: this.password,
             authApp: this.authApp,
@@ -1489,4 +1468,58 @@ export class MrsAuthenticate {
 
         return authenticationResponse;
     };
+}
+
+/**
+ * Represents a MRS Service base class.
+ *
+ * MRS Service classes derive from this base class and add public MRS Schema objects that allow the user to work with
+ * the MRS Service's MRS Schemas.
+ *
+ * Each services uses its own MrsBaseSession session to perform all fetch operations.
+ */
+export class MrsBaseService {
+    public session: MrsBaseSession;
+
+    public constructor(
+        public readonly serviceUrl: string,
+        protected readonly authPath = "/authentication",
+        protected readonly defaultTimeout = 8000) {
+        this.session = new MrsBaseSession(serviceUrl, authPath, defaultTimeout);
+    }
+
+    public async getAuthApps(): Promise<IMrsAuthApp[]> {
+        const response = await this.session.doFetch({
+            input: `${this.authPath}/authApps`,
+            timeout: 3000,
+            errorMsg: "Failed to fetch Authentication Apps.",
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+
+            return result as IMrsAuthApp[];
+        } else {
+            let errorInfo = null;
+            try {
+                errorInfo = await response.json();
+            } catch (e) {
+                // Ignore the exception
+            }
+            const errorDesc = "Failed to fetch Authentication Apps.\n\n" +
+                "Please ensure MySQL Router is running and the REST endpoint " +
+                `${String(this.serviceUrl)}${this.authPath}/authApps is accessible. `;
+
+            throw new Error(errorDesc + `(${response.status}:${response.statusText})` +
+                `${(errorInfo !== undefined) ? ("\n\n" + JSON.stringify(errorInfo, null, 4) + "\n") : ""}`);
+        }
+    }
+
+    public async authenticate (options: IAuthenticateOptions): Promise<IMrsLoginResult> {
+        const { app, username, password, vendor } = options;
+        const request = new MrsAuthenticate(this, app, username, password, vendor);
+        const response = await request.submit();
+
+        return response;
+    }
 }
