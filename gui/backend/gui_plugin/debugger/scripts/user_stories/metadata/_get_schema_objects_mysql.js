@@ -818,3 +818,122 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId
     }
 ])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_schema_objects",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Table",
+        "schema_name": "test_user_story"
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ["categories"]
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_schema_objects",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "View",
+        "schema_name": "test_user_story"
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ["view_products"]
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_schema_objects",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Routine",
+        "schema_name": "test_user_story"
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": [
+            { "name": "function_count", "type": "FUNCTION", "language": "SQL"},
+            { "name": "procedure_get_names", "type": "PROCEDURE", "language": "SQL"}
+        ]
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_schema_objects",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Event",
+        "schema_name": "test_user_story"
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": []
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+])

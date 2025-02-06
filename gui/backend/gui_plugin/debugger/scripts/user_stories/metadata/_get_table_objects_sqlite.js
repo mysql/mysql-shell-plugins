@@ -380,3 +380,126 @@ await ws.sendAndValidate({
         "done": true
     }
 ])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_objects",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Trigger",
+        "schema_name": "main",
+        "table_name": "tests_user",
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ["update_tests_user_name"],
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_objects",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Primary Key",
+        "schema_name": "main",
+        "table_name": "tests_user",
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ["id"],
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_objects",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Index",
+        "schema_name": "main",
+        "table_name": "tests_user",
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": [],
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_objects",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "type": "Column",
+        "schema_name": "main",
+        "table_name": "tests_user",
+    }
+}, [
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": [
+            {"name": "id", "type": "INTEGER", "not_null": 1, "is_pk": 1, "auto_increment": 1},
+            {"name": "name", "type": "VARCHAR(45)", "not_null": 0, "is_pk": 0, "auto_increment": 0, "default": null}
+        ]
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+])

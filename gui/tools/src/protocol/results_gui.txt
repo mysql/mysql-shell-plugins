@@ -301,6 +301,21 @@ export interface ISqlEditorHistoryEntry {
     currentTimestamp: string;
 }
 
+export interface IDBSchemaObjectEntry {
+    name: string;
+    type: string;
+    language: string;
+}
+
+export interface IDBTableObjectEntry {
+    name: string;
+    type: string;
+    not_null: boolean;
+    is_pk: boolean;
+    auto_increment: boolean;
+    default: unknown;
+}
+
 export interface IProtocolGuiResults {
     [ShellAPIGui.GuiClusterIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiClusterGetGuiModuleDisplayInfo]: {};
@@ -414,6 +429,8 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiModulesMoveData]: {};
     [ShellAPIGui.GuiInfo]: {};
     [ShellAPIGui.GuiVersion]: {};
+    [ShellAPIGui.GuiDbGetSchemaObjects]: { result: string[] | IDBSchemaObjectEntry[]; };
+    [ShellAPIGui.GuiDbGetTableObjects]: { result: string[] | IDBTableObjectEntry[]; };
 }
 
 /**

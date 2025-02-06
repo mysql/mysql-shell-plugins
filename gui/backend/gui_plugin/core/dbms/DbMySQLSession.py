@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -34,11 +34,14 @@ from gui_plugin.core import Filtering
 from gui_plugin.core.Context import get_context
 from gui_plugin.core.dbms import DbMySQLSessionSetupTasks as SetupTasks
 from gui_plugin.core.dbms import DbPingHandlerTask
-from gui_plugin.core.dbms.DbMySQLSessionTasks import (MySQLBaseObjectTask, MySQLColumnsMetadataTask,
+from gui_plugin.core.dbms.DbMySQLSessionTasks import (MySQLBaseObjectTask,
+                                                      MySQLColumnsMetadataTask,
                                                       MySQLOneFieldListTask,
                                                       MySQLOneFieldTask,
                                                       MySQLTableObjectTask,
-                                                      MySQLColumnObjectTask)
+                                                      MySQLColumnObjectTask,
+                                                      MySQLColumnsListTask,
+                                                      MySQLRoutinesListTask)
 from gui_plugin.core.dbms.DbSession import (DbSession, DbSessionFactory,
                                             ReconnectionMode)
 from gui_plugin.core.dbms.DbSessionTasks import (DbExecuteTask,
@@ -479,8 +482,8 @@ class DbMysqlSession(DbSession):
                     FROM information_schema.ROUTINES
                     WHERE ROUTINE_SCHEMA = ?"""
             if routine_type:
-                sql += f" AND ROUTINE_TYPE = ?"
-            sql += f" AND ROUTINE_NAME like ?"
+                sql += " AND ROUTINE_TYPE = ?"
+            sql += " AND ROUTINE_NAME like ?"
             sql += " ORDER BY ROUTINE_NAME"
             params = (schema_name, routine_type.upper(),
                       filter) if routine_type else (schema_name, filter)
@@ -746,3 +749,135 @@ class DbMysqlSession(DbSession):
                 raise MSGException(Error.DB_OBJECT_DOES_NOT_EXISTS,
                                    f"The columns {column_names} do not exist.")
             return {"columns": result}
+
+
+    @check_supported_type
+    def get_schema_objects(self, type, schema_name):
+        params = (schema_name,)
+
+        if type == "Table":
+            sql = """SELECT TABLE_NAME
+                FROM information_schema.tables
+                WHERE TABLE_SCHEMA = ?"""
+        elif type == "View":
+            sql = """SELECT TABLE_NAME
+                    FROM information_schema.views
+                    WHERE table_schema = ?"""
+        elif type == "Routine":
+            has_external_language = self._column_exists("ROUTINES", "EXTERNAL_LANGUAGE")
+            if has_external_language:
+                sql = """SELECT ROUTINE_NAME as 'name', ROUTINE_TYPE as 'type', EXTERNAL_LANGUAGE as 'language'
+                        FROM information_schema.ROUTINES
+                        WHERE ROUTINE_SCHEMA = ?"""
+            else:
+                sql = """SELECT ROUTINE_NAME as 'name', ROUTINE_TYPE as 'type', 'SQL' as 'language'
+                        FROM information_schema.ROUTINES
+                        WHERE ROUTINE_SCHEMA = ?"""
+        elif type == "Event":
+            sql = """SELECT EVENT_NAME
+                    FROM information_schema.EVENTS
+                    WHERE EVENT_SCHEMA = ?"""
+
+        if self.threaded:
+            context = get_context()
+            task_id = context.request_id if context else None
+
+            if type == "Routine":
+                self.add_task(MySQLRoutinesListTask(self,
+                                                    task_id=task_id,
+                                                    sql=sql,
+                                                    params=params))
+            else:
+                self.add_task(MySQLOneFieldListTask(self,
+                                                    task_id=task_id,
+                                                    sql=sql,
+                                                    params=params))
+        else:
+            cursor = self.execute(sql, params)
+            if cursor:
+                result = cursor.fetch_all()
+            else:
+                result = []
+            if not result:
+                raise MSGException(Error.DB_OBJECT_DOES_NOT_EXISTS,
+                                    f"The '{schema_name}' does not exist.")
+            return {"objects": result}
+
+    @check_supported_type
+    def get_table_objects(self, type, schema_name, table_name):
+        params = (schema_name, table_name)
+        if type == "Trigger":
+            sql = """SELECT TRIGGER_NAME
+                    FROM information_schema.TRIGGERS
+                    WHERE TRIGGER_SCHEMA = ?
+                        AND EVENT_OBJECT_TABLE = ?
+                    ORDER BY TRIGGER_NAME"""
+        elif type == "Foreign Key":
+            sql = """SELECT CONSTRAINT_NAME
+                    FROM information_schema.KEY_COLUMN_USAGE
+                    WHERE CONSTRAINT_SCHEMA = ?
+                        AND TABLE_NAME = ?
+                        AND REFERENCED_TABLE_NAME is not NULL
+                    ORDER BY CONSTRAINT_NAME"""
+        elif type == "Primary Key":
+            sql = """SELECT COLUMN_NAME
+                    FROM information_schema.KEY_COLUMN_USAGE
+                    WHERE CONSTRAINT_SCHEMA = ?
+                        AND TABLE_NAME = ?
+                        AND CONSTRAINT_NAME = 'PRIMARY'
+                    ORDER BY COLUMN_NAME;"""
+        elif type == "Index":
+            sql = """SELECT INDEX_NAME
+                    FROM information_schema.STATISTICS
+                    WHERE TABLE_SCHEMA = ?
+                        AND TABLE_NAME = ?
+                    ORDER BY INDEX_NAME"""
+        elif type == "Column":
+            sql = """SELECT COLUMN_NAME as 'name', COLUMN_TYPE as 'type',
+                        IS_NULLABLE='NO' as 'not_null', COLUMN_DEFAULT as 'default',
+                        COLUMN_KEY='PRI' as 'is_pk',
+                        EXTRA='auto_increment' as 'auto_increment'
+                    FROM information_schema.COLUMNS
+                    WHERE TABLE_SCHEMA = ?
+                        AND TABLE_NAME = ?
+                    ORDER BY COLUMN_NAME"""
+
+        if self.threaded:
+            context = get_context()
+            task_id = context.request_id if context else None
+            if type == "Column":
+                self.add_task(MySQLColumnsListTask(self,
+                                                    task_id=task_id,
+                                                    sql=sql,
+                                                    params=params))
+            else:
+                self.add_task(MySQLOneFieldListTask(self,
+                                                  task_id=task_id,
+                                                  sql=sql,
+                                                  params=params))
+        else:
+            cursor = self.execute(sql, params)
+            if cursor:
+                result = cursor.fetch_all()
+            else:
+                result = []
+            if not result:
+                raise MSGException(Error.DB_OBJECT_DOES_NOT_EXISTS,
+                                   f"The {type.lower()} '{schema_name}' does not exist.")
+            return {"objects": result}
+
+    def _column_exists(self, table_name, column_name):
+        """Check if a column exists in INFORMATION_SCHEMA table."""
+
+        sql = """SELECT COUNT(*) as count
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = 'information_schema'
+                    AND TABLE_NAME = ?
+                    AND COLUMN_NAME = ?"""
+
+        cursor = self.cursor = self.run_sql(sql, (table_name, column_name))
+
+        if cursor:
+            result = cursor.fetch_one()
+            return result and result.get_field("count") > 0
+        return False

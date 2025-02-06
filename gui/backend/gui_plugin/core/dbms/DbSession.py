@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -416,7 +416,13 @@ class DbSession(threading.Thread):
     def get_table_object(self, type, schema_name, table_name, name):  # pragma: no cover
         raise NotImplementedError()
 
+    def get_table_objects(self, type, schema_name, table_name):  # pragma: no cover
+        raise NotImplementedError()
+
     def get_columns_metadata(self, names):
+        raise NotImplementedError()
+
+    def get_schema_objects(self, type, schema_name):  # pragma: no cover
         raise NotImplementedError()
 
     def run(self):
