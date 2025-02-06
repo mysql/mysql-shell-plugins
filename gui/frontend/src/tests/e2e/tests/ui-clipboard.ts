@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -51,8 +51,8 @@ const testProcedure = "test_procedure";
 const testFunction = "test_function";
 let testFailed = false;
 let ociConfig: interfaces.IOciProfileConfig | undefined;
-let ociTree: RegExp[];
-let treeE2eProfile: string | undefined;
+let ociTree: string[];
+let e2eProfile: string | undefined;
 const ociTreeSection = new E2EAccordionSection(constants.ociTreeSection);
 const tabContainer = new E2ETabContainer();
 
@@ -82,7 +82,7 @@ describe("CLIPBOARD", () => {
         await settings.selectCurrentTheme(constants.darkModern);
         await settings.close();
         await dbTreeSection.createDatabaseConnection(globalConn);
-        await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait3seconds);
+        await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.wait3seconds);
     });
 
     afterAll(async () => {
@@ -98,14 +98,13 @@ describe("CLIPBOARD", () => {
             ociConfig = configs.find((item: interfaces.IOciProfileConfig) => {
                 return item.name = "E2ETESTS";
             })!;
-            treeE2eProfile = `${ociConfig.name} (${ociConfig.region})`;
 
-            ociTree = [new RegExp(`E2ETESTS \\(${ociConfig.region}\\)`),
-            new RegExp("\\(Root Compartment\\)"), /QA/, /MySQLShellTesting/];
+            e2eProfile = `${ociConfig.name} (${ociConfig.region})`;
+            ociTree = [e2eProfile, "/ (Root Compartment)", "QA", "MySQLShellTesting"];
 
             try {
                 await ociTreeSection.focus();
-                await ociTreeSection.tree.expandElement(ociTree, constants.wait25seconds);
+                await ociTreeSection.expandTree(ociTree);
             } catch (e) {
                 await Misc.storeScreenShot("beforeAll_OCI_CLIPBOARD");
                 throw e;
@@ -136,8 +135,8 @@ describe("CLIPBOARD", () => {
 
         it("View Config Profile Information", async () => {
             try {
-                await ociTreeSection.tree.openContextMenuAndSelect(treeE2eProfile!,
-                    constants.viewConfigProfileInformation);
+                const treeE2eProfile = await ociTreeSection.getTreeItem(e2eProfile!);
+                await treeE2eProfile.openContextMenuAndSelect(constants.viewConfigProfileInformation);
                 expect(await tabContainer.getTab(`${ociConfig!.name} Info.json`)).toBeDefined();
             } catch (e) {
                 testFailed = true;
@@ -147,9 +146,9 @@ describe("CLIPBOARD", () => {
 
         it("View Compartment Information", async () => {
             try {
-                const qaInfoJson = `${ociTree[2].source} Info.json`;
-                await ociTreeSection.tree.openContextMenuAndSelect(ociTree[2],
-                    constants.viewCompartmentInformation);
+                const qaInfoJson = `${ociTree[2]} Info.json`;
+                const treeMySQLShellTesting = await ociTreeSection.getTreeItem(ociTree[2]);
+                await treeMySQLShellTesting.openContextMenuAndSelect(constants.viewCompartmentInformation);
                 await driver.wait(tabContainer.untilTabIsOpened(qaInfoJson), constants.wait5seconds);
                 const textEditor = new E2ETextEditor();
                 await driver.wait(textEditor.untilIsJson(), constants.wait5seconds);
@@ -163,9 +162,10 @@ describe("CLIPBOARD", () => {
 
         it("View DB System Information", async () => {
             try {
-                const treeDbSystem = await ociTreeSection.tree.getOciElementByType(constants.dbSystemType);
-                await ociTreeSection.tree.openContextMenuAndSelect(treeDbSystem, constants.viewDBSystemInformation);
-                await driver.wait(tabContainer.untilTabIsOpened(`${treeDbSystem} Info.json`),
+                const dbSystem = await ociTreeSection.getOciItemByType(constants.dbSystemType);
+                const treeDBSystem = await ociTreeSection.getTreeItem(dbSystem);
+                await treeDBSystem.openContextMenuAndSelect(constants.viewDBSystemInformation);
+                await driver.wait(tabContainer.untilTabIsOpened(`${dbSystem} Info.json`),
                     constants.wait5seconds);
                 const textEditor = new E2ETextEditor();
                 await driver.wait(textEditor.untilIsJson(), constants.wait5seconds);
@@ -177,12 +177,13 @@ describe("CLIPBOARD", () => {
 
         it("Get Bastion Information", async () => {
             try {
-                const treeBastion = await ociTreeSection.tree.getOciElementByType(constants.bastionType);
-                await ociTreeSection.tree.openContextMenuAndSelect(treeBastion, constants.getBastionInformation);
-                await driver.wait(tabContainer.untilTabIsOpened(`${treeBastion} Info.json`), constants.wait5seconds);
+                const bastion = await ociTreeSection.getOciItemByType(constants.bastionType);
+                const treeBastion = await ociTreeSection.getTreeItem(bastion);
+                await treeBastion.openContextMenuAndSelect(constants.getBastionInformation);
+                await driver.wait(tabContainer.untilTabIsOpened(`${bastion} Info.json`), constants.wait5seconds);
                 const textEditor = new E2ETextEditor();
                 await driver.wait(textEditor.untilIsJson(), constants.wait5seconds);
-                await tabContainer.closeTab(new RegExp(`${treeBastion} Info.json`));
+                await tabContainer.closeTab(new RegExp(`${bastion} Info.json`));
             } catch (e) {
                 await Misc.storeScreenShot();
                 throw e;
@@ -191,10 +192,10 @@ describe("CLIPBOARD", () => {
 
         it("View Compute Instance Information", async () => {
             try {
-                const treeComputeInstance = await ociTreeSection.tree.getOciElementByType(constants.ociComputeType);
-                await ociTreeSection.tree.openContextMenuAndSelect(treeComputeInstance,
-                    constants.viewComputeInstanceInformation);
-                await driver.wait(tabContainer.untilTabIsOpened(`${treeComputeInstance} Info.json`),
+                const computeInstance = await ociTreeSection.getOciItemByType(constants.ociComputeType);
+                const treeComputeInstance = await ociTreeSection.getTreeItem(computeInstance);
+                await treeComputeInstance.openContextMenuAndSelect(constants.viewComputeInstanceInformation);
+                await driver.wait(tabContainer.untilTabIsOpened(`${computeInstance} Info.json`),
                     constants.wait5seconds);
                 const textEditor = new E2ETextEditor();
                 await driver.wait(textEditor.untilIsJson(), constants.wait5seconds);
@@ -206,53 +207,56 @@ describe("CLIPBOARD", () => {
 
         it("Close tabs using tab context menu", async () => {
             const tabContainer = new E2ETabContainer();
-            await ociTreeSection.tree.openContextMenuAndSelect(treeE2eProfile!,
-                constants.viewConfigProfileInformation);
+            let treeE2eProfile = await ociTreeSection.getTreeItem(e2eProfile!);
+            await treeE2eProfile.openContextMenuAndSelect(constants.viewConfigProfileInformation);
             await driver.wait(tabContainer.untilTabIsOpened(`${ociConfig!.name} Info.json`), constants.wait3seconds);
-            const qaInfoJson = `${ociTree[2].source} Info.json`;
-            await ociTreeSection.tree.openContextMenuAndSelect(ociTree[2],
-                constants.viewCompartmentInformation);
+            const qaInfoJson = `${ociTree[2]} Info.json`;
+            let treeCompartment = await ociTreeSection.getTreeItem(ociTree[2]);
+            await treeCompartment.openContextMenuAndSelect(constants.viewCompartmentInformation);
             await driver.wait(tabContainer.untilTabIsOpened(qaInfoJson), constants.wait5seconds);
-            const treeDbSystem = await ociTreeSection.tree.getOciElementByType(constants.dbSystemType);
-            await ociTreeSection.tree.openContextMenuAndSelect(treeDbSystem, constants.viewDBSystemInformation);
-            await driver.wait(tabContainer.untilTabIsOpened(`${treeDbSystem} Info.json`),
+            const dbSystem = await ociTreeSection.getOciItemByType(constants.dbSystemType);
+            let treeDbSystem = await ociTreeSection.getTreeItem(dbSystem);
+            await treeDbSystem.openContextMenuAndSelect(constants.viewDBSystemInformation);
+            await driver.wait(tabContainer.untilTabIsOpened(`${dbSystem} Info.json`),
                 constants.wait5seconds);
 
             // Close
             await tabContainer.selectTabContextMenu(`${ociConfig!.name} Info.json`, constants.close);
             expect(await tabContainer.tabExists(`${ociConfig!.name} Info.json`)).toBe(false);
 
-            await ociTreeSection.tree.openContextMenuAndSelect(treeE2eProfile!,
-                constants.viewConfigProfileInformation);
+            treeE2eProfile = await ociTreeSection.getTreeItem(e2eProfile!);
+            await treeE2eProfile.openContextMenuAndSelect(constants.viewConfigProfileInformation);
             await driver.wait(tabContainer.untilTabIsOpened(`${ociConfig!.name} Info.json`), constants.wait3seconds);
 
             // Close Others
             await tabContainer.selectTabContextMenu(`${ociConfig!.name} Info.json`, constants.closeOthers);
             expect(await tabContainer.tabExists(`${ociConfig!.name} Info.json`)).toBe(true);
             expect(await tabContainer.tabExists(qaInfoJson)).toBe(false);
-            expect(await tabContainer.tabExists(`${treeDbSystem} Info.json`)).toBe(false);
+            expect(await tabContainer.tabExists(`${dbSystem} Info.json`)).toBe(false);
 
-            await ociTreeSection.tree.openContextMenuAndSelect(ociTree[2],
-                constants.viewCompartmentInformation);
+            treeCompartment = await ociTreeSection.getTreeItem(ociTree[2]);
+            await treeCompartment.openContextMenuAndSelect(constants.viewCompartmentInformation);
             await driver.wait(tabContainer.untilTabIsOpened(qaInfoJson), constants.wait5seconds);
-            await ociTreeSection.tree.openContextMenuAndSelect(treeDbSystem, constants.viewDBSystemInformation);
-            await driver.wait(tabContainer.untilTabIsOpened(`${treeDbSystem} Info.json`),
-                constants.wait5seconds);
+            treeDbSystem = await ociTreeSection.getTreeItem(dbSystem);
+            await treeDbSystem.openContextMenuAndSelect(constants.viewDBSystemInformation);
+            await driver.wait(tabContainer.untilTabIsOpened(`${dbSystem} Info.json`), constants.wait5seconds);
+
 
             // Close to the right
             await tabContainer.selectTabContextMenu(qaInfoJson, constants.closeToTheRight);
             expect(await tabContainer.tabExists(`${ociConfig!.name} Info.json`)).toBe(true);
             expect(await tabContainer.tabExists(qaInfoJson)).toBe(true);
-            expect(await tabContainer.tabExists(`${treeDbSystem} Info.json`)).toBe(false);
-            await ociTreeSection.tree.openContextMenuAndSelect(treeDbSystem, constants.viewDBSystemInformation);
-            await driver.wait(tabContainer.untilTabIsOpened(`${treeDbSystem} Info.json`),
-                constants.wait5seconds);
+            expect(await tabContainer.tabExists(`${dbSystem} Info.json`)).toBe(false);
+            treeDbSystem = await ociTreeSection.getTreeItem(dbSystem);
+            await treeDbSystem.openContextMenuAndSelect(constants.viewDBSystemInformation);
+            await driver.wait(tabContainer.untilTabIsOpened(`${dbSystem} Info.json`), constants.wait5seconds);
+
 
             // Close all
             await tabContainer.selectTabContextMenu(qaInfoJson, constants.closeAll);
             expect(await tabContainer.tabExists(`${ociConfig!.name} Info.json`)).toBe(false);
             expect(await tabContainer.tabExists(qaInfoJson)).toBe(false);
-            expect(await tabContainer.tabExists(`${treeDbSystem} Info.json`)).toBe(false);
+            expect(await tabContainer.tabExists(`${dbSystem} Info.json`)).toBe(false);
         });
 
     });
@@ -263,14 +267,19 @@ describe("CLIPBOARD", () => {
 
             try {
                 await dbTreeSection.focus();
-                await dbTreeSection.tree.expandDatabaseConnection(globalConn);
-                await dbTreeSection.tree.expandElement([(globalConn.basic as interfaces.IConnBasicMySQL).schema!]);
-                await dbTreeSection.tree.expandElement(["Tables"]);
-                await dbTreeSection.tree.expandElement(["Views"]);
-                await dbTreeSection.tree.expandElement(["Functions"]);
-                await dbTreeSection.tree.expandElement(["Procedures"]);
-                await dbTreeSection.tree.expandElement(["Events"]);
-
+                const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
+                await treeGlobalConn.expand(globalConn);
+                await (await dbTreeSection
+                    .getTreeItem((globalConn.basic as interfaces.IConnBasicMySQL).schema!)).expand();
+                const treeTables = await dbTreeSection.getTreeItem("Tables");
+                await treeTables.expand();
+                await (await dbTreeSection.getTreeItem("Views")).expand();
+                const treeFunctions = await dbTreeSection.getTreeItem("Functions");
+                await treeFunctions.expand();
+                const treeProcedures = await dbTreeSection.getTreeItem("Procedures");
+                await treeProcedures.expand();
+                const treeEvents = await dbTreeSection.getTreeItem("Events");
+                await treeEvents.expand();
             } catch (e) {
                 await Misc.storeScreenShot("beforeAll_DB_CLIPBOARD");
                 throw e;
@@ -329,18 +338,20 @@ describe("CLIPBOARD", () => {
 
         it("Schema - Copy to Clipboard", async () => {
             try {
-                await dbTreeSection.tree
-                    .openContextMenuAndSelect((globalConn.basic as interfaces.IConnBasicMySQL)
-                        .schema!, [constants.copyToClipboard.exists, constants.copyToClipboard.name]);
+                const treeSchema = await dbTreeSection
+                    .getTreeItem((globalConn.basic as interfaces.IConnBasicMySQL).schema!);
+
+                await treeSchema.openContextMenuAndSelect([constants.copyToClipboard.exists,
+                constants.copyToClipboard.name]);
 
                 await driver.wait(Misc.untilNotificationExists(/The name was copied to the system clipboard/),
                     constants.wait3seconds);
                 expect(await Os.readClipboard()).toBe((globalConn.basic as interfaces.IConnBasicMySQL).schema);
                 await Misc.dismissNotifications();
 
-                await dbTreeSection.tree
-                    .openContextMenuAndSelect((globalConn.basic as interfaces.IConnBasicMySQL)
-                        .schema!, [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
+                await treeSchema
+                    .openContextMenuAndSelect([constants.copyToClipboard.exists,
+                    constants.copyToClipboard.createStatement]);
                 await driver.wait(Misc
                     .untilNotificationExists(/The CREATE statement was copied to the system clipboard/),
                     constants.wait3seconds);
@@ -354,21 +365,24 @@ describe("CLIPBOARD", () => {
 
         it("Table - Copy to Clipboard", async () => {
             try {
-                await dbTreeSection.tree.openContextMenuAndSelect("actor",
-                    [constants.copyToClipboard.exists, constants.copyToClipboard.name]);
+                const treeActor = await dbTreeSection.getTreeItem("actor");
+                await treeActor.openContextMenuAndSelect([constants.copyToClipboard.exists,
+                constants.copyToClipboard.name]);
                 await driver.wait(Misc.untilNotificationExists(/The name was copied to the system clipboard/),
                     constants.wait3seconds);
                 expect(await Os.readClipboard()).toBe("actor");
                 await Misc.dismissNotifications();
 
-                await dbTreeSection.tree.openContextMenuAndSelect("actor",
-                    [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
+                await treeActor.openContextMenuAndSelect([constants.copyToClipboard.exists,
+                constants.copyToClipboard.createStatement]);
+
                 await driver.wait(Misc
                     .untilNotificationExists(/The CREATE statement was copied to the system clipboard/),
                     constants.wait3seconds);
                 expect(await Os.readClipboard()).toContain("CREATE TABLE");
                 await Misc.dismissNotifications();
-                await dbTreeSection.tree.collapseElement("Tables");
+                const treeTables = await dbTreeSection.getTreeItem("Tables");
+                await treeTables.collapse();
             } catch (e) {
                 testFailed = true;
                 throw e;
@@ -377,8 +391,10 @@ describe("CLIPBOARD", () => {
 
         it("View - Copy to Clipboard", async () => {
             try {
-                await dbTreeSection.tree.openContextMenuAndSelect(testView,
-                    [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
+                const treeTestView = await dbTreeSection.getTreeItem(testView);
+                await treeTestView.openContextMenuAndSelect([constants.copyToClipboard.exists,
+                constants.copyToClipboard.createStatement]);
+
                 await driver.wait(Misc
                     .untilNotificationExists(/The CREATE statement was copied to the system clipboard/),
                     constants.wait3seconds);
@@ -392,9 +408,12 @@ describe("CLIPBOARD", () => {
 
         it("Functions - Copy to Clipboard", async () => {
             try {
-                await dbTreeSection.tree.expandElement(["Functions"]);
-                await dbTreeSection.tree.openContextMenuAndSelect(testFunction,
-                    [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
+                const treeFunctions = await dbTreeSection.getTreeItem("Functions");
+                await treeFunctions.expand();
+                const treeFunction = await dbTreeSection.getTreeItem(testFunction);
+                await treeFunction.openContextMenuAndSelect([constants.copyToClipboard.exists,
+                constants.copyToClipboard.createStatement]);
+
                 await driver.wait(Misc
                     .untilNotificationExists(/The CREATE statement was copied to the system clipboard/),
                     constants.wait3seconds);
@@ -408,9 +427,11 @@ describe("CLIPBOARD", () => {
 
         it("Events - Copy to Clipboard", async () => {
             try {
-                await dbTreeSection.tree.expandElement(["Events"]);
-                await dbTreeSection.tree.openContextMenuAndSelect(testEvent,
-                    [constants.copyToClipboard.exists, constants.copyToClipboard.name]);
+                const treeEvents = await dbTreeSection.getTreeItem("Events");
+                await treeEvents.expand();
+                const treeEvent = await dbTreeSection.getTreeItem(testEvent);
+                await treeEvent.openContextMenuAndSelect([constants.copyToClipboard.exists,
+                constants.copyToClipboard.name]);
 
                 await driver.wait(Misc
                     .untilNotificationExists(/The name was copied to the system clipboard/),
@@ -418,8 +439,8 @@ describe("CLIPBOARD", () => {
                 await Misc.dismissNotifications();
 
                 expect(await Os.readClipboard()).toBe(testEvent);
-                await dbTreeSection.tree.openContextMenuAndSelect(testEvent,
-                    [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
+                await treeEvent.openContextMenuAndSelect([constants.copyToClipboard.exists,
+                constants.copyToClipboard.createStatement]);
 
                 await driver.wait(Misc
                     .untilNotificationExists(/The CREATE statement was copied to the system clipboard/),
@@ -434,9 +455,12 @@ describe("CLIPBOARD", () => {
 
         it("Procedures - Copy to Clipboard", async () => {
             try {
-                await dbTreeSection.tree.expandElement(["Procedures"]);
-                await dbTreeSection.tree.openContextMenuAndSelect(testProcedure,
-                    [constants.copyToClipboard.exists, constants.copyToClipboard.createStatement]);
+                const treeProcedures = await dbTreeSection.getTreeItem("Procedures");
+                await treeProcedures.expand();
+                const treeProcedure = await dbTreeSection.getTreeItem(testProcedure);
+                await treeProcedure.openContextMenuAndSelect([constants.copyToClipboard.exists,
+                constants.copyToClipboard.createStatement]);
+
                 await driver.wait(Misc
                     .untilNotificationExists(/The CREATE statement was copied to the system clipboard/),
                     constants.wait3seconds);
@@ -459,9 +483,9 @@ describe("CLIPBOARD", () => {
         beforeAll(async () => {
             try {
                 await dbTreeSection.focus();
-                await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait5seconds);
-                await (await dbTreeSection.tree.getActionButton(globalConn.caption!,
-                    constants.openNewDatabaseConnectionOnNewTab))!.click();
+                await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.wait5seconds);
+                const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
+                await (await treeGlobalConn.getActionButton(constants.openNewDatabaseConnectionOnNewTab))!.click();
                 notebook = await new E2ENotebook().untilIsOpened(globalConn);
                 await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
             } catch (e) {
@@ -740,13 +764,12 @@ describe("CLIPBOARD", () => {
 
     describe("NOTEBOOKS", () => {
 
-        const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
         let notebook: E2ENotebook;
 
         beforeAll(async () => {
             try {
-                await (await dbTreeSection.tree.getActionButton(globalConn.caption!,
-                    constants.openNewDatabaseConnectionOnNewTab))!.click();
+                const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
+                await (await treeGlobalConn.getActionButton(constants.openNewDatabaseConnectionOnNewTab))!.click();
                 notebook = await new E2ENotebook().untilIsOpened(globalConn);
             } catch (e) {
                 await Misc.storeScreenShot("beforeAll_NOTEBOOKS_clipboard");
@@ -774,7 +797,8 @@ describe("CLIPBOARD", () => {
                 await notebook.codeEditor.clean();
                 const filename = "users.sql";
                 const destFile = join(process.cwd(), "src", "tests", "e2e", "sql", filename);
-                await dbTreeSection.tree.openContextMenuAndSelect(globalConn.caption!, constants.loadSQLScriptFromDisk);
+                const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
+                await treeGlobalConn.openContextMenuAndSelect(constants.loadSQLScriptFromDisk);
                 await Misc.uploadFile(destFile);
                 await driver.wait(async () => {
                     return ((await notebook.toolbar.editorSelector.getCurrentEditor()).label) === filename;

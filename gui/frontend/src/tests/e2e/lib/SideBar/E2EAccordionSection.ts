@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -29,22 +29,18 @@ import * as locator from "../locators.js";
 import * as interfaces from "../interfaces.js";
 import { DatabaseConnectionDialog } from "../Dialogs/DatabaseConnectionDialog.js";
 import { driver } from "../driver.js";
-import { E2ETree } from "./E2ETree.js";
+import { E2ETreeItem } from "./E2ETreeItem.js";
 
 /**
  * This class represents the Accordion section element and its related functions
  */
 export class E2EAccordionSection {
 
-    /** The tree that belongs to the section */
-    public tree: E2ETree;
-
     /** Accordion section name */
     public accordionSectionName: string;
 
     public constructor(sectionName: string) {
         this.accordionSectionName = sectionName;
-        this.tree = new E2ETree(this);
     }
 
     /**
@@ -266,10 +262,10 @@ export class E2EAccordionSection {
     };
 
     /**
-     * Gets all the elements in the tree
+     * Gets all the visible elements in the tree
      * @returns A promise resolving with the elements
      */
-    public getTreeElements = async (): Promise<WebElement[]> => {
+    public getVisibleTreeItems = async (): Promise<WebElement[]> => {
         return (await this.get())!.findElements(locator.section.tree.element.exists);
     };
 
@@ -281,6 +277,225 @@ export class E2EAccordionSection {
         return new Condition(`for ${this.accordionSectionName} to be loaded`, async () => {
             return (await (await this.get())!.findElements(locator.section.loadingBar)).length === 0;
         });
+    };
+
+    /**
+     * Gets an item from the tree
+     * @param caption The caption
+     * @param subCaption The sub caption
+     * @returns A promise resolving with the item
+     */
+    public getTreeItem = async (caption: string, subCaption?: string): Promise<E2ETreeItem> => {
+        let el: E2ETreeItem | undefined;
+        let rootItemLocator: By;
+
+        if (this.accordionSectionName === constants.dbTreeSection) {
+            rootItemLocator = locator.section.tree.element.dbTreeEntry;
+        } else if (this.accordionSectionName === constants.ociTreeSection) {
+            rootItemLocator = locator.section.tree.element.ociTreeEntry;
+        } else {
+            rootItemLocator = locator.section.tree.element.openEditorTreeEntry;
+        }
+
+        await driver.wait(async () => {
+            try {
+                const treeItems = await this.getVisibleTreeItems();
+
+                if (treeItems.length > 0) {
+                    for (const item of treeItems) {
+                        const webElement = await item.findElement(rootItemLocator);
+
+                        if (this.accordionSectionName === constants.dbTreeSection) {
+                            const refCaption = await (await webElement
+                                .findElement(locator.section.tree.element.mainCaption)).getText();
+
+                            if (subCaption) {
+                                const refSubCaption = await (await webElement
+                                    .findElement(locator.section.tree.element.subCaption)).getText()
+                                    .catch((e) => {
+                                        if (e instanceof error.NoSuchElementError) {
+                                            return undefined;
+                                        }
+                                    });
+
+                                if (refSubCaption === subCaption && refCaption === caption) {
+                                    el = new E2ETreeItem(item);
+                                    await el.setLevel();
+                                    await el.setCaption();
+                                    await el.setSubCaption();
+                                    await el.isDisplayed(); // is it stale ?
+
+                                    return true;
+                                }
+                            }
+
+                            if (refCaption === caption) {
+                                el = new E2ETreeItem(item);
+                                await el.setLevel();
+                                await el.setCaption();
+                                await el.isDisplayed(); // is it stale ?
+
+                                return true;
+                            }
+                        } else {
+                            const refCaption = await (await webElement
+                                .findElement(locator.section.tree.element.label)).getText();
+
+                            if (refCaption === caption) {
+                                el = new E2ETreeItem(item);
+                                await el.setLevel();
+                                await el.setCaption();
+                                await el.isDisplayed(); // is it stale ?
+
+                                return true;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait3seconds,
+            `Could not find '${caption}' on section ${this.accordionSectionName}`);
+
+        return el!;
+    };
+
+    /**
+     * Gets an element from the tree by its oci type
+     * @param type The type (ociDbSystem, ociBastion)
+     * @returns A promise resolving with the element
+     */
+    public getOciItemByType = async (type: string): Promise<string> => {
+        let ociLabel = "";
+
+        await driver.wait(async () => {
+            try {
+                if (type.match(/(ociDbSystem|ociBastion|ociCompute)/) !== null) {
+                    const treeItems = await (await this.get())!
+                        .findElements(locator.section.tree.element.ociTreeEntry);
+
+                    for (const treeItem of treeItems) {
+                        const el = await treeItem.findElement(locator.section.tree.element.icon.exists);
+                        const backImage = await el.getCssValue("mask-image");
+                        if (backImage.match(new RegExp(type)) !== null) {
+                            const label = await treeItem.findElement(locator.section.tree.element.label);
+                            ociLabel = await label.getText();
+
+                            return true;
+                        }
+                    }
+
+                    throw new Error(`Could not find the item type ${type} on section ${this.accordionSectionName}`);
+                } else {
+                    throw new Error(`Unknown type: ${type}`);
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, `Could not get the oci element by type`);
+
+        return ociLabel;
+    };
+
+    /**
+     * Verifies if an element exists on the tree
+     * @param caption The element caption
+     * @returns A promise resolving to true if the element exists, false otherwise
+     */
+    public existsTreeItem = async (caption: string): Promise<boolean> => {
+        let exists = false;
+        let rootItemLocator: By;
+
+        if (this.accordionSectionName === constants.dbTreeSection) {
+            rootItemLocator = locator.section.tree.element.dbTreeEntry;
+        } else if (this.accordionSectionName === constants.ociTreeSection) {
+            rootItemLocator = locator.section.tree.element.ociTreeEntry;
+        } else {
+            rootItemLocator = locator.section.tree.element.openEditorTreeEntry;
+        }
+
+        await driver.wait(async () => {
+            try {
+                const treeItems = await this.getVisibleTreeItems();
+
+                if (treeItems.length > 0) {
+
+                    for (const item of treeItems) {
+                        const webElement = await item.findElement(rootItemLocator);
+
+                        if (this.accordionSectionName === constants.dbTreeSection) {
+
+                            const refCaption = await (await webElement
+                                .findElement(locator.section.tree.element.mainCaption)).getText();
+
+                            if (refCaption === caption) {
+                                exists = true;
+                                break;
+                            }
+                        } else {
+                            const refCaption = await (await webElement
+                                .findElement(locator.section.tree.element.label)).getText();
+
+                            if (refCaption === caption) {
+                                exists = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait3seconds,
+            `Could not find '${caption}' on section ${this.accordionSectionName}`);
+
+        return exists;
+    };
+
+    /**
+     * Verifies if an element exists on the tree
+     * @param element The element
+     * @returns A condition resolving to true if the element exists, false otherwise
+     */
+    public untilTreeItemExists = (element: string): Condition<boolean> => {
+        return new Condition(`for ${element} to exist on the tree`, async () => {
+            return this.existsTreeItem(element);
+        });
+    };
+
+    /**
+     * Verifies if an element does not exist on the tree
+     * @param element The element
+     * @returns A condition resolving to true if the element does not exist, false otherwise
+     */
+    public untilTreeItemDoesNotExists = (element: string): Condition<boolean> => {
+        return new Condition(`for ${element} to exist on the tree`, async () => {
+            return !(await this.existsTreeItem(element));
+        });
+    };
+
+    /**
+     * Expands a tree
+     * @param tree The elements to expand
+     */
+    public expandTree = async (tree: string[]): Promise<void> => {
+        for (const item of tree) {
+            const treeItem = await this.getTreeItem(item);
+
+            if (await treeItem.isExpandable()) {
+                await treeItem.expand();
+                await driver.wait(treeItem.untilHasChildren(), constants.wait10seconds);
+            }
+        }
     };
 
 }

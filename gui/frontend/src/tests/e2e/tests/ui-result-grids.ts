@@ -88,12 +88,13 @@ describe("RESULT GRIDS", () => {
 
             await dbTreeSection.focus();
             await dbTreeSection.createDatabaseConnection(globalConn);
-            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait5seconds);
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.wait5seconds);
             await dbTreeSection.createDatabaseConnection(anotherConn);
-            await driver.wait(dbTreeSection.tree.untilExists(anotherConn.caption!), constants.wait5seconds);
-            await dbTreeSection.tree.expandDatabaseConnection(globalConn);
-            await (await dbTreeSection.tree.getActionButton(globalConn.caption!,
-                constants.openNewDatabaseConnectionOnNewTab))!.click();
+            await driver.wait(dbTreeSection.untilTreeItemExists(anotherConn.caption!), constants.wait5seconds);
+
+            const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
+            await treeGlobalConn.expand(globalConn);
+            await (await treeGlobalConn.getActionButton(constants.openNewDatabaseConnectionOnNewTab))!.click();
             notebook = await new E2ENotebook().untilIsOpened(globalConn);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_RESULT-GRIDS");
@@ -1419,13 +1420,17 @@ describe("RESULT GRIDS", () => {
             try {
                 const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
                 await openEditorsSection.expand();
-                await (await openEditorsSection.tree.getActionButton(globalConn.caption!, constants.newMySQLScript))!
-                    .click();
-                await dbTreeSection.tree.openContextMenuAndSelect(anotherConn.caption!,
-                    constants.openNewDatabaseConnection);
+
+                const treeOpenEditorsGlobalConn = await openEditorsSection.getTreeItem(globalConn.caption!);
+                await (await treeOpenEditorsGlobalConn.getActionButton(constants.newMySQLScript))!.click();
+                const treeAnotherNewConnection = await dbTreeSection.getTreeItem(anotherConn.caption!);
+                await treeAnotherNewConnection.openContextMenuAndSelect(constants.openNewDatabaseConnection);
                 const anotherConnNotebook = await new E2ENotebook().untilIsOpened(anotherConn);
 
-                await dbTreeSection.tree.expandElement([new RegExp(constants.mysqlAdministrationTreeElement)]);
+                const treeMySQLAdministration = await dbTreeSection
+                    .getTreeItem(constants.mysqlAdministrationTreeElement);
+
+                await treeMySQLAdministration.expand();
                 await anotherConnNotebook.toolbar.editorSelector.selectEditor(new RegExp(constants.dbNotebook),
                     globalConn.caption);
                 await anotherConnNotebook.codeEditor.clean();
@@ -1442,21 +1447,21 @@ describe("RESULT GRIDS", () => {
 
                 const dialogMessage = /do you want to commit or rollback the changes before continuing/;
 
-                await (await dbTreeSection.tree.getElement(constants.serverStatus)).click();
+                await (await dbTreeSection.getTreeItem(constants.serverStatus)).click();
                 let dialog = await new ConfirmDialog().untilExists();
                 expect(await dialog.getText()).toMatch(dialogMessage);
                 await dialog.alternative();
                 expect((await anotherConnNotebook.toolbar.editorSelector.getCurrentEditor()).label)
                     .toBe(constants.dbNotebook);
 
-                await (await dbTreeSection.tree.getElement(constants.clientConnections)).click();
+                await (await dbTreeSection.getTreeItem(constants.clientConnections)).click();
                 dialog = await new ConfirmDialog().untilExists();
                 expect(await dialog.getText()).toMatch(dialogMessage);
                 await dialog.alternative();
                 expect((await anotherConnNotebook.toolbar.editorSelector.getCurrentEditor()).label)
                     .toBe(constants.dbNotebook);
 
-                await (await dbTreeSection.tree.getElement(constants.performanceDashboard)).click();
+                await (await dbTreeSection.getTreeItem(constants.performanceDashboard)).click();
                 dialog = await new ConfirmDialog().untilExists();
                 expect(await dialog.getText()).toMatch(dialogMessage);
                 await dialog.alternative();

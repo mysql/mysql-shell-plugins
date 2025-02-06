@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024 Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -73,7 +73,7 @@ describe("OPEN EDITORS", () => {
 
             await dbTreeSection.focus();
             await dbTreeSection.createDatabaseConnection(globalConn);
-            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait3seconds);
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.wait3seconds);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_OPEN_EDITORS");
             throw e;
@@ -107,19 +107,20 @@ describe("OPEN EDITORS", () => {
     it("Icon - New MySQL Script", async () => {
         try {
             await dbTreeSection.focus();
-            await (await dbTreeSection.tree.getActionButton(globalConn.caption!,
-                constants.openNewDatabaseConnectionOnNewTab))!.click();
+            const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
+            await (await treeGlobalConn.getActionButton(constants.openNewDatabaseConnectionOnNewTab))!.click();
             notebook = await new E2ENotebook().untilIsOpened(globalConn);
             await openEditorsTreeSection.focus();
-            const newMySQLScript = await openEditorsTreeSection.tree.getActionButton(globalConn.caption!,
-                constants.newMySQLScript);
+            const treeOpenEditorsGlobalConn = await openEditorsTreeSection.getTreeItem(globalConn.caption!);
+            const newMySQLScript = await treeOpenEditorsGlobalConn.getActionButton(constants.newMySQLScript);
+
             await driver.executeScript("arguments[0].click()", newMySQLScript);
             const currentEditor = await new E2EScript().toolbar.editorSelector.getCurrentEditor();
             const scriptName = "Script 1";
             expect(currentEditor.label).toBe(scriptName);
             expect(currentEditor.icon).toContain(constants.mysqlScriptIcon);
-            await (await openEditorsTreeSection.tree.getActionButton(scriptName,
-                constants.closeEditor))!.click();
+            const treeScript = await openEditorsTreeSection.getTreeItem(scriptName);
+            await (await treeScript.getActionButton(constants.closeEditor))!.click();
         } catch (e) {
             testFailed = true;
             throw e;
@@ -129,15 +130,18 @@ describe("OPEN EDITORS", () => {
     it("Icon - Load SQL Script from Disk", async () => {
         try {
             const sqlScript = "users.sql";
-            const loadScriptFromDisk = await openEditorsTreeSection.tree.getActionButton(globalConn.caption!,
+            const treeOpenEditorsGlobalConn = await openEditorsTreeSection.getTreeItem(globalConn.caption!);
+            const loadScriptFromDisk = await treeOpenEditorsGlobalConn.getActionButton(
                 constants.loadSQLScriptFromDisk);
             await driver.executeScript("arguments[0].click()", loadScriptFromDisk);
             await Misc.uploadFile(join(process.cwd(), "src", "tests", "e2e", "sql", sqlScript));
             const currentEditor = await new E2EScript().toolbar.editorSelector.getCurrentEditor();
             expect(currentEditor.label).toBe(sqlScript);
-            await driver.wait(openEditorsTreeSection.tree.untilExists(sqlScript), constants.wait5seconds);
+
+            await driver.wait(openEditorsTreeSection.untilTreeItemExists(sqlScript), constants.wait5seconds);
             expect((await new E2EScript().codeEditor.existsText("CREATE USER"))).toBe(true);
-            await (await openEditorsTreeSection.tree.getActionButton(sqlScript, constants.closeEditor))!.click();
+            const treeSqlScript = await openEditorsTreeSection.getTreeItem(sqlScript);
+            await (await treeSqlScript.getActionButton(constants.closeEditor))!.click();
         } catch (e) {
             testFailed = true;
             throw e;
@@ -147,13 +151,14 @@ describe("OPEN EDITORS", () => {
     it("Context menu - New MySQL Script", async () => {
         try {
             await openEditorsTreeSection.focus();
-            await openEditorsTreeSection.tree.openContextMenuAndSelect(globalConn.caption!, constants.newMySQLScript);
+            const treeOpenEditorsGlobalConn = await openEditorsTreeSection.getTreeItem(globalConn.caption!);
+            await treeOpenEditorsGlobalConn.openContextMenuAndSelect(constants.newMySQLScript);
             const currentEditor = await new E2EScript().toolbar.editorSelector.getCurrentEditor();
             const scriptName = "Script 2";
             expect(currentEditor.label).toBe(scriptName);
             expect(currentEditor.icon).toContain(constants.mysqlScriptIcon);
-            await (await openEditorsTreeSection.tree.getActionButton(scriptName,
-                constants.closeEditor))!.click();
+            const treeSqlScript = await openEditorsTreeSection.getTreeItem(scriptName);
+            await (await treeSqlScript.getActionButton(constants.closeEditor))!.click();
         } catch (e) {
             testFailed = true;
             throw e;
@@ -162,13 +167,14 @@ describe("OPEN EDITORS", () => {
 
     it("Context menu - New JavaScript Script", async () => {
         try {
-            await openEditorsTreeSection.tree.openContextMenuAndSelect(globalConn.caption!, constants.newJS);
+            const treeOpenEditorsGlobalConn = await openEditorsTreeSection.getTreeItem(globalConn.caption!);
+            await treeOpenEditorsGlobalConn.openContextMenuAndSelect(constants.newJS);
             const currentEditor = await new E2EScript().toolbar.editorSelector.getCurrentEditor();
             const scriptName = "Script 3";
             expect(currentEditor.label).toBe(scriptName);
             expect(currentEditor.icon).toContain(constants.jsType);
-            await (await openEditorsTreeSection.tree.getActionButton(scriptName,
-                constants.closeEditor))!.click();
+            const treeSqlScript = await openEditorsTreeSection.getTreeItem(scriptName);
+            await (await treeSqlScript.getActionButton(constants.closeEditor))!.click();
         } catch (e) {
             testFailed = true;
             throw e;
@@ -177,13 +183,14 @@ describe("OPEN EDITORS", () => {
 
     it("Context menu - New TypeScript Script", async () => {
         try {
-            await openEditorsTreeSection.tree.openContextMenuAndSelect(globalConn.caption!, constants.newTS);
+            const treeOpenEditorsGlobalConn = await openEditorsTreeSection.getTreeItem(globalConn.caption!);
+            await treeOpenEditorsGlobalConn.openContextMenuAndSelect(constants.newTS);
             const currentEditor = await new E2EScript().toolbar.editorSelector.getCurrentEditor();
             const scriptName = "Script 4";
             expect(currentEditor.label).toBe(scriptName);
             expect(currentEditor.icon).toContain(constants.tsType);
-            await (await openEditorsTreeSection.tree.getActionButton(scriptName,
-                constants.closeEditor))!.click();
+            const treeSqlScript = await openEditorsTreeSection.getTreeItem(scriptName);
+            await (await treeSqlScript.getActionButton(constants.closeEditor))!.click();
         } catch (e) {
             testFailed = true;
             throw e;
@@ -192,7 +199,7 @@ describe("OPEN EDITORS", () => {
 
     it("Open DB Connection Overview", async () => {
         try {
-            await (await openEditorsTreeSection.tree.getElement(constants.dbConnectionOverview)).click();
+            await (await openEditorsTreeSection.getTreeItem(constants.dbConnectionOverview)).click();
             expect((await new E2EDatabaseConnectionOverview().toolbar.editorSelector.getCurrentEditor()).label)
                 .toBe(constants.dbConnectionOverview);
         } catch (e) {
@@ -203,7 +210,7 @@ describe("OPEN EDITORS", () => {
 
     it("Open DB Notebook", async () => {
         try {
-            await (await openEditorsTreeSection.tree.getElement(constants.dbNotebook)).click();
+            await (await openEditorsTreeSection.getTreeItem(constants.dbNotebook)).click();
             expect((await notebook.toolbar.editorSelector.getCurrentEditor()).label).toBe(constants.dbNotebook);
         } catch (e) {
             testFailed = true;

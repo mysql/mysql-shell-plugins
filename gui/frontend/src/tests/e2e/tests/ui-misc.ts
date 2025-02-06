@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -40,6 +40,7 @@ import { DatabaseConnectionDialog } from "../lib/Dialogs/DatabaseConnectionDialo
 import { E2ENotificationsCenter } from "../lib/E2ENotificationsCenter.js";
 import { E2EDebugger } from "../lib/E2EDebugger.js";
 import { E2ETabContainer } from "../lib/E2ETabContainer.js";
+import { E2ETreeItem } from "../lib/SideBar/E2ETreeItem.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -194,6 +195,7 @@ describe("Notifications", () => {
 
     let testFailed = false;
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
+    let treeLocalConn: E2ETreeItem | undefined;
 
     beforeAll(async () => {
         await loadDriver(true);
@@ -205,8 +207,9 @@ describe("Notifications", () => {
             await dbTreeSection.createDatabaseConnection(localConn);
             await driver.navigate().refresh();
             await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
-            await driver.wait(dbTreeSection.tree.untilExists(localConn.caption!), constants.wait5seconds);
-            await dbTreeSection.tree.expandDatabaseConnection(localConn);
+            await driver.wait(dbTreeSection.untilTreeItemExists(localConn.caption!), constants.wait5seconds);
+            treeLocalConn = await dbTreeSection.getTreeItem(localConn.caption!);
+            await treeLocalConn.expand(localConn);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_NOTEBOOKS");
             throw e;
@@ -229,9 +232,10 @@ describe("Notifications", () => {
     it("Verify Info notification", async () => {
 
         try {
-            await dbTreeSection.tree
-                .openContextMenuAndSelect((localConn.basic as interfaces.IConnBasicMySQL)
-                    .schema!, [constants.copyToClipboard.exists, constants.copyToClipboard.name]);
+            const treeSchema = await dbTreeSection.getTreeItem((localConn.basic as interfaces.IConnBasicMySQL)
+                .schema!);
+            await treeSchema
+                .openContextMenuAndSelect([constants.copyToClipboard.exists, constants.copyToClipboard.name]);
             const notification = (await new E2EToastNotification().create())!;
             expect(notification.message).toBe("The name was copied to the system clipboard");
             expect(notification.type).toBe("info");
@@ -277,14 +281,15 @@ describe("Notifications", () => {
 
         try {
             await Misc.dismissNotifications();
-            await dbTreeSection.tree.expandDatabaseConnection(localConn);
+            await treeLocalConn!.expand(localConn);
+            const treeSchema = await dbTreeSection.getTreeItem((localConn.basic as interfaces.IConnBasicMySQL)
+                .schema!);
             const clicks = 5;
 
             for (let i = 1; i <= clicks; i++) {
                 const prevNotifications = await Misc.getToastNotifications();
-                await dbTreeSection.tree
-                    .openContextMenuAndSelect((localConn.basic as interfaces.IConnBasicMySQL)
-                        .schema!, [constants.copyToClipboard.exists, constants.copyToClipboard.name]);
+                await treeSchema
+                    .openContextMenuAndSelect([constants.copyToClipboard.exists, constants.copyToClipboard.name]);
 
                 await driver.wait(async () => {
                     const notifications = await Misc.getToastNotifications();
@@ -313,10 +318,11 @@ describe("Notifications", () => {
     it("Notifications center - Clear notifications", async () => {
         try {
             const notificationsCenter = await new E2ENotificationsCenter().open();
+            const treeSchema = await dbTreeSection.getTreeItem((localConn.basic as interfaces.IConnBasicMySQL)
+                .schema!);
 
-            await dbTreeSection.tree
-                .openContextMenuAndSelect((localConn.basic as interfaces.IConnBasicMySQL)
-                    .schema!, [constants.copyToClipboard.exists, constants.copyToClipboard.name]);
+            await treeSchema
+                .openContextMenuAndSelect([constants.copyToClipboard.exists, constants.copyToClipboard.name]);
 
             await driver.wait(notificationsCenter!.untilNotificationsExists(), constants.wait5seconds);
             await notificationsCenter?.clearNotifications();
@@ -337,9 +343,11 @@ describe("Notifications", () => {
             const notificationsCenter = await new E2ENotificationsCenter().open();
             expect(await notificationsCenter?.getTitle()).toMatch(/NO.*NOTIFICATIONS/);
 
-            await dbTreeSection.tree
-                .openContextMenuAndSelect((localConn.basic as interfaces.IConnBasicMySQL)
-                    .schema!, [constants.copyToClipboard.exists, constants.copyToClipboard.name]);
+            const treeSchema = await dbTreeSection.getTreeItem((localConn.basic as interfaces.IConnBasicMySQL)
+                .schema!);
+
+            await treeSchema
+                .openContextMenuAndSelect([constants.copyToClipboard.exists, constants.copyToClipboard.name]);
 
             await driver.wait(notificationsCenter!.untilNotificationsExists(), constants.wait5seconds);
             const notifications = await notificationsCenter!.getNotifications();
@@ -364,9 +372,10 @@ describe("Notifications", () => {
             await notificationsCenter?.toggleSilentMode();
             expect(await new E2EStatusBar().isOnSilentMode()).toBe(true);
             await notificationsCenter?.hide();
-            await dbTreeSection.tree
-                .openContextMenuAndSelect((localConn.basic as interfaces.IConnBasicMySQL)
-                    .schema!, [constants.copyToClipboard.exists, constants.copyToClipboard.name]);
+            const treeSchema = await dbTreeSection.getTreeItem((localConn.basic as interfaces.IConnBasicMySQL)
+                .schema!);
+            await treeSchema
+                .openContextMenuAndSelect([constants.copyToClipboard.exists, constants.copyToClipboard.name]);
             try {
                 await new E2EToastNotification().create(undefined, constants.wait3seconds);
                 throw new Error("A notification should not have been triggered");

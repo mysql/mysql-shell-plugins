@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -76,8 +76,10 @@ describe("NOTEBOOKS", () => {
 
             await dbTreeSection.focus();
             await dbTreeSection.createDatabaseConnection(globalConn);
-            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption!), constants.wait3seconds);
-            await (await dbTreeSection.tree.getActionButton(globalConn.caption!,
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.wait3seconds);
+            const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
+
+            await (await treeGlobalConn.getActionButton(
                 constants.openNewDatabaseConnectionOnNewTab))!.click();
             notebook = await new E2ENotebook().untilIsOpened(globalConn);
         } catch (e) {
