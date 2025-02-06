@@ -120,6 +120,10 @@ export enum ShellAPIGui {
     GuiDbCloseSession = "gui.db.close_session",
     /** Reconnects the DB Session */
     GuiDbReconnect = "gui.db.reconnect",
+    /** Returns the schema objects of the given type in the given schema. */
+    GuiDbGetSchemaObjects = "gui.db.get_schema_objects",
+    /** Returns the table objects of the given type in the given table. */
+    GuiDbGetTableObjects = "gui.db.get_table_objects",
     /** Creates a new Module Data record for the given module    and associates it to the active user profile and personal user group. */
     GuiModulesAddData = "gui.modules.add_data",
     /** Get list of data */
@@ -327,6 +331,8 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiDbStartSession]: { args: { connection: IShellDbConnection | number; password?: string; }; };
     [ShellAPIGui.GuiDbCloseSession]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbReconnect]: { args: { moduleSessionId: string; }; };
+    [ShellAPIGui.GuiDbGetSchemaObjects]: { args: { moduleSessionId: string; type: string; schemaName: string; }; };
+    [ShellAPIGui.GuiDbGetTableObjects]: { args: { moduleSessionId: string; type: string; schemaName: string; tableName: string; }; };
     [ShellAPIGui.GuiModulesAddData]: { args: { caption: string; content: string; dataCategoryId: number; treeIdentifier: string; folderPath?: string; profileId?: number; }; };
     [ShellAPIGui.GuiModulesListData]: { args: { folderId: number; dataCategoryId?: number; }; };
     [ShellAPIGui.GuiModulesGetDataContent]: { args: { id: number; }; };
@@ -700,6 +706,21 @@ export interface ISqlEditorHistoryEntry {
     currentTimestamp: string;
 }
 
+export interface IDBSchemaObjectEntry {
+    name: string;
+    type: string;
+    language: string;
+}
+
+export interface IDBTableObjectEntry {
+    name: string;
+    type: string;
+    not_null: boolean;
+    is_pk: boolean;
+    auto_increment: boolean;
+    default: unknown;
+}
+
 export interface IProtocolGuiResults {
     [ShellAPIGui.GuiClusterIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiClusterGetGuiModuleDisplayInfo]: {};
@@ -813,6 +834,8 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiModulesMoveData]: {};
     [ShellAPIGui.GuiInfo]: {};
     [ShellAPIGui.GuiVersion]: {};
+    [ShellAPIGui.GuiDbGetSchemaObjects]: { result: string[] | IDBSchemaObjectEntry[]; };
+    [ShellAPIGui.GuiDbGetTableObjects]: { result: string[] | IDBTableObjectEntry[]; };
 }
 
 /**

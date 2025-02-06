@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -230,3 +230,38 @@ def reconnect(module_session):
         None
     """
     module_session.reconnect()
+
+@plugin_function('gui.db.getSchemaObjects', shell=True, web=True)
+def get_schema_objects(session, type, schema_name):
+    """Returns the schema objects of the given type in the given schema.
+
+    Args:
+        session (object): The session used to execute the operation
+        type (str): the schema object type
+        schema_name (str): schema name
+
+    Returns:
+        list: schema objects
+    """
+    session = backend.get_db_session(session)
+
+    return session.get_schema_objects(type=type, schema_name=schema_name)
+
+@plugin_function('gui.db.getTableObjects', shell=True, web=True)
+def get_table_objects(session, type, schema_name, table_name):
+    """Returns the table objects of the given type in the given table.
+
+    Args:
+        session (object): The session used to execute the operation
+        type (str): the table object type
+        schema_name (str): schema name
+        table_name (str): table name
+
+    Returns:
+        list: table objects
+    """
+    session = backend.get_db_session(session)
+
+    return session.get_table_objects(type=type,
+                                schema_name=schema_name,
+                                table_name=table_name)

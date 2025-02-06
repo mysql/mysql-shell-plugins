@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -189,6 +189,25 @@ class SqliteColumnsMetadataTask(DbQueryTask):
         result = {
             "schema": row['schema'],
             "table": row['table'],
+            "name": row['name'],
+            "type": row['type'],
+            "not_null": row['not_null'],
+            "is_pk": row['is_pk'],
+            "auto_increment": row['auto_increment'],
+        }
+
+        # To maintain compatibility between MySQL and Sqlite,
+        # only in certain situations the `default` key is included in the result.
+        # See details at DbMySQLSessionTasks.py
+        if not row['not_null'] or (row['not_null'] and row['default']):
+            result["default"] = row['default']
+
+        return result
+
+
+class SqliteColumnsListTask(SqliteColumnsMetadataTask):
+    def format(self, row):
+        result = {
             "name": row['name'],
             "type": row['type'],
             "not_null": row['not_null'],

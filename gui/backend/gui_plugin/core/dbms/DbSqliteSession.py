@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -36,7 +36,7 @@ from gui_plugin.core.dbms.DbSessionTasks import check_supported_type
 from gui_plugin.core.dbms.DbSqliteSessionTasks import (
     SqliteBaseObjectTask, SqliteGetAutoCommit, SqliteOneFieldListTask,
     SqliteSetCurrentSchemaTask, SqliteTableObjectTask, SqliteColumnObjectTask,
-    SqliteColumnsMetadataTask)
+    SqliteColumnsMetadataTask, SqliteColumnsListTask)
 from gui_plugin.core.Error import MSGException
 
 
@@ -353,7 +353,7 @@ class DbSqliteSession(DbSession):
         elif type == "Index":
             sql = f"""SELECT name
                     FROM `{schema_name}`.sqlite_master
-                    WHERE type = "index"
+                    WHERE type = 'index'
                         AND tbl_name = ?
                         AND name like ?
                     ORDER BY name;"""
@@ -384,7 +384,7 @@ class DbSqliteSession(DbSession):
     @check_supported_type
     def get_catalog_object(self, type, name):
         if type == "Schema":
-            sql = f"""SELECT name
+            sql = """SELECT name
                     FROM pragma_database_list()
                     WHERE name = ?"""
             params = (name,)
@@ -482,3 +482,70 @@ class DbSqliteSession(DbSession):
         task_id = context.request_id if context else None
         self.add_task(SqliteColumnsMetadataTask(
             self, task_id=task_id, sql=sql, params=params))
+
+    @check_supported_type
+    def get_table_objects(self, type, schema_name, table_name):
+        params = (table_name,)
+        if type == "Trigger":
+            sql = """SELECT name as TRIGGER_NAME
+                    FROM sqlite_master
+                    WHERE type='trigger'
+                        AND tbl_name = ?
+                    ORDER BY name;"""
+        elif type == "Primary Key":
+            sql = """SELECT name as COLUMN_NAME
+                    FROM pragma_table_info(?)
+                    WHERE pk = 1
+                    ORDER BY name"""
+        elif type == "Index":
+            sql = """SELECT name as INDEX_NAME
+                    FROM sqlite_master
+                    WHERE type='index'
+                        AND tbl_name = ?
+                        AND name NOT LIKE 'sqlite_autoindex%'
+                    ORDER BY name"""
+        elif type == "Column":
+            sql = """SELECT
+                    name as 'name',
+                    type as 'type',
+                    [notnull] = 1 as 'not_null',
+                    dflt_value as 'default',
+                    pk = 1 as 'is_pk',
+                    CASE WHEN pk = 1 AND type LIKE '%INTEGER%' THEN 1 ELSE 0 END as 'auto_increment'
+                    FROM pragma_table_info(?)
+                    ORDER BY name"""
+
+        context = get_context()
+        task_id = context.request_id if context else None
+        if type == "Column":
+            self.add_task(SqliteColumnsListTask(self,
+                                                task_id=task_id,
+                                                sql=sql,
+                                                params=params))
+        else:
+            self.add_task(SqliteOneFieldListTask(self,
+                                                task_id=task_id,
+                                                sql=sql,
+                                                params=params))
+
+
+    @check_supported_type
+    def get_schema_objects(self, type, schema_name):
+        if type == "Table":
+            sql = f"""SELECT name
+                        FROM `{schema_name}`.sqlite_master
+                        WHERE type = "table"
+                        ORDER BY name;""",
+        else:
+            if type == "View":
+                sql = f"""SELECT name
+                        FROM `{schema_name}`.sqlite_master
+                        WHERE type = 'view'
+                        ORDER BY name;"""
+
+        context = get_context()
+        task_id = context.request_id if context else None
+        self.add_task(SqliteOneFieldListTask(self,
+                                            task_id=task_id,
+                                            sql=sql,
+                                            params=()))

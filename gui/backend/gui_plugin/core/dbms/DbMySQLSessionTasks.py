@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024 Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025 Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -210,3 +210,30 @@ class MySQLOneFieldListTask(DbQueryTask):
 
         if send_empty or len(name_list) > 0:
             self.dispatch_result("PENDING", data=name_list)
+
+
+class MySQLColumnsListTask(MySQLColumnsMetadataTask):
+    def format(self, row):
+        result = {
+            "name": row.get_field("name"),
+            "type": row.get_field("type"),
+            "not_null": row.get_field("not_null"),
+            "is_pk": row.get_field("is_pk"),
+            "auto_increment": row.get_field("auto_increment"),
+        }
+
+        # See explanation on MySQLColumnObjectTask class
+        if not row.get_field("not_null") or (row.get_field("not_null") and row.get_field("default")):
+            result["default"] = row.get_field("default")
+
+        return result
+
+class MySQLRoutinesListTask(MySQLColumnsMetadataTask):
+    def format(self, row):
+        result = {
+            "name": row.get_field("name"),
+            "type": row.get_field("type"),
+            "language": row.get_field("language"),
+        }
+
+        return result

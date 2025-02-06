@@ -567,3 +567,241 @@ await ws.sendAndValidate({
         "done": true
     }
 ], 0))
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_objects",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "schema_name": ws.tokens["schema"],
+        "type": "Trigger",
+        "table_name": 'products'
+    }
+}, ws.matchList([
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": []
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+], 0))
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_objects",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "schema_name": ws.tokens["schema"],
+        "type": "Column",
+        "table_name": "nonexistent_table"
+    }
+}, ws.matchList([
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": []
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+], 0))
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_objects",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "schema_name": "nonexistent_schema",
+        "type": "Column",
+        "table_name": "products"
+    }
+}, ws.matchList([
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": []
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+], 0))
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_objects",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "schema_name": ws.tokens["schema"],
+        "type": "InvalidType",
+        "table_name": "products"
+    }
+}, ws.matchList([
+    {
+        "request_state": {
+            "type": "ERROR",
+            "msg": "Unsupported None object type (InvalidType)",
+            "source": "MSG",
+            "code": 1204
+        },
+        "request_id": ws.lastGeneratedRequestId
+    }
+], 0))
+
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_objects",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "schema_name": ws.tokens["schema"],
+        "type": "Foreign Key",
+        "table_name": 'products'
+    }
+}, ws.matchList([
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": []
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+], 0))
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_objects",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "schema_name": ws.tokens["schema"],
+        "type": "Primary Key",
+        "table_name": 'products'
+    }
+}, ws.matchList([
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ["productID"]
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+], 0))
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_objects",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "schema_name": ws.tokens["schema"],
+        "type": "Index",
+        "table_name": 'products'
+    }
+}, ws.matchList([
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ["fk_category", "PRIMARY"]
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+], 0))
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db.get_table_objects",
+    "args": {
+        "module_session_id": ws.lastModuleSessionId,
+        "schema_name": ws.tokens["schema"],
+        "type": "Column",
+        "table_name": 'products'
+    }
+}, ws.matchList([
+    responses.pending.executionStarted,
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": [
+            {"name": "categoryID", "type": "int", "not_null": 0, "is_pk": 0, "auto_increment": 0, "default": null},
+            {"name": "productID", "type": "int", "not_null": 1, "is_pk": 1, "auto_increment": 1},
+            {"name": "productName", "type": "varchar(100)", "not_null": 1, "is_pk": 0, "auto_increment": 0},
+            {"name": "productNumber", "type": "int", "not_null": 0, "is_pk": 0, "auto_increment": 0, "default": "1"}
+        ]
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+], 0))
