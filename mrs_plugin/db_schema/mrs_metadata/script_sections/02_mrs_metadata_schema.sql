@@ -1,5 +1,5 @@
 -- Copyright (c) 2025, Oracle and/or its affiliates.
--- Tue Feb  4 21:07:27 2025
+-- Thu Feb  6 10:38:29 2025
 -- Model: New Model    Version: 1.0
 -- MySQL Workbench Forward Engineering
 
@@ -804,6 +804,18 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`content_set_has_obj_de
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
+
+-- -----------------------------------------------------
+-- Table `mysql_rest_service_metadata`.`audit_log_status`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`audit_log_status` (
+  `id` TINYINT NOT NULL,
+  `last_dump_at` TIMESTAMP NULL,
+  `data` JSON NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+COMMENT = 'no_audit_log';
+
 USE `mysql_rest_service_metadata` ;
 
 -- -----------------------------------------------------
@@ -1462,6 +1474,16 @@ COMMIT;
 START TRANSACTION;
 USE `mysql_rest_service_metadata`;
 INSERT INTO `mysql_rest_service_metadata`.`mrs_privilege` (`id`, `role_id`, `crud_operations`, `service_id`, `db_schema_id`, `db_object_id`, `service_path`, `schema_path`, `object_path`, `options`) VALUES (0x31, 0x31, 'CREATE,READ,UPDATE,DELETE', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+
+COMMIT;
+
+
+-- -----------------------------------------------------
+-- Data for table `mysql_rest_service_metadata`.`audit_log_status`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `mysql_rest_service_metadata`;
+INSERT INTO `mysql_rest_service_metadata`.`audit_log_status` (`id`, `last_dump_at`, `data`) VALUES (1, NULL, NULL);
 
 COMMIT;
 
