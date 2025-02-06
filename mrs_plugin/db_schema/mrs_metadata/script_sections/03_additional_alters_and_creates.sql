@@ -6,6 +6,10 @@
 ALTER TABLE `mysql_rest_service_metadata`.`config`
 	ADD CONSTRAINT Config_OnlyOneRow CHECK (id = 1);
 
+-- Ensure only one row in `mysql_rest_service_metadata`.`audit_log_status`
+ALTER TABLE `mysql_rest_service_metadata`.`audit_log_status`
+	ADD CONSTRAINT AuditLogStatus_OnlyOneRow CHECK (id = 1);
+
 -- Ensure there is a default for service.name taken from url_context_root
 ALTER TABLE `mysql_rest_service_metadata`.`service`
     CHANGE COLUMN name name VARCHAR(255) NOT NULL DEFAULT (REGEXP_REPLACE(url_context_root, '[^0-9a-zA-Z ]', ''));
@@ -149,40 +153,65 @@ ALTER TABLE `mysql_rest_service_metadata`.`service`
     }', s.in_development)
 );
 
-DELIMITER $$
-
 -- The dump_audit_log procedure allows the audit_log table to be exported to a file
 -- Please note that the secure_file_priv global variable must be set for this to work in the my.ini / my.cnf file
 -- [mysqld]
 -- secure-file-priv="/usr/local/mysql/outfiles"
 
+DELIMITER $$
 DROP PROCEDURE IF EXISTS `mysql_rest_service_metadata`.`dump_audit_log`$$
 CREATE PROCEDURE `mysql_rest_service_metadata`.`dump_audit_log`()
 SQL SECURITY DEFINER
 BEGIN
-    # Export all audit_log entries that occurred yesterday, if the secure_file_priv global is set
-    IF @@secure_file_priv IS NOT NULL THEN
-        SET @sql = CONCAT(
-            'SELECT changed_at, id, @@server_uuid AS server_uuid, ',
-            '    schema_name, table_name, dml_type, changed_by, '
-            '    JSON_REPLACE(old_row_data, "$.data.defaultStaticContent", "BINARY_DATA") AS old_row_data, ',
-            '    JSON_REPLACE(new_row_data, "$.data.defaultStaticContent", "BINARY_DATA") AS new_row_data ',
-            'INTO OUTFILE "', @@secure_file_priv, '/mrs/mrs_audit_log_',
-            DATE_FORMAT(SUBDATE(CURRENT_DATE(), 1), '%Y%m%d'),
-            '.log" FIELDS TERMINATED BY "," OPTIONALLY ENCLOSED BY "\\\"" LINES TERMINATED BY "\\\n" ',
-            'FROM `mysql_rest_service_metadata`.`audit_log` ',
-            'WHERE `changed_at` >= SUBDATE(CURRENT_DATE(), 1) AND `changed_at` < CURRENT_DATE() ',
-            'ORDER BY `id`');
+    DECLARE dump_from TIMESTAMP;
+    DECLARE dump_until TIMESTAMP;
+    DECLARE event_count INT;
 
-        CALL sys.execute_prepared_stmt(@sql);
+    -- Only perform the dump if the secure_file_priv global is set, otherwise the file cannot be written
+    IF @@secure_file_priv IS NOT NULL THEN
+        SELECT IFNULL(last_dump_at, '2025-01-01 00:00:00') INTO dump_from
+        FROM `mysql_rest_service_metadata`.`audit_log_status`
+        WHERE `id` = 1;
+
+        SET dump_until = NOW();
+
+        SELECT COUNT(*) INTO event_count
+        FROM `mysql_rest_service_metadata`.`audit_log`
+        WHERE `changed_at` BETWEEN dump_from AND dump_until;
+
+        IF event_count > 0 THEN
+            -- Export all audit_log entries that occurred since the last dump
+            SET @sql = CONCAT(
+                'SELECT changed_at, id, @@server_uuid AS server_uuid, ',
+                '    schema_name, table_name, dml_type, changed_by, '
+                '    JSON_REPLACE(old_row_data, "$.data.defaultStaticContent", "BINARY_DATA") AS old_row_data, ',
+                '    JSON_REPLACE(new_row_data, "$.data.defaultStaticContent", "BINARY_DATA") AS new_row_data ',
+                'INTO OUTFILE "', TRIM(TRAILING '/' FROM @@secure_file_priv), '/mrs/mrs_audit_log_',
+                DATE_FORMAT(dump_until, '%Y-%m-%d_%H-%i-%s'),
+                '.log" FIELDS TERMINATED BY "," OPTIONALLY ENCLOSED BY "\\\"" LINES TERMINATED BY "\\\n" ',
+                'FROM `mysql_rest_service_metadata`.`audit_log` ',
+                'WHERE `changed_at` BETWEEN CAST("', DATE_FORMAT(dump_from, '%Y-%m-%d %H:%i:%s'), '" AS DATETIME) ',
+                '    AND CAST("', DATE_FORMAT(dump_until, '%Y-%m-%d %H:%i:%s'), '" AS DATETIME) ',
+                'ORDER BY `id`');
+
+            CALL sys.execute_prepared_stmt(@sql);
+        END IF;
+
+        UPDATE `mysql_rest_service_metadata`.`audit_log_status`
+        SET `last_dump_at` = dump_until
+        WHERE `id` = 1;
+    ELSE
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Please configure the secure-file-priv variable in the [mysqld] section of my.cnf.',
+            MYSQL_ERRNO = 5400;
     END IF;
 END$$
 
--- Create an event to dump the audit log of yesterday every day in disabled state
+-- Create an event to dump the audit log every 15 minutes
 
 DROP EVENT IF EXISTS `mysql_rest_service_metadata`.`audit_log_dump_event`$$
 CREATE EVENT `mysql_rest_service_metadata`.`audit_log_dump_event`
-ON SCHEDULE EVERY 1 DAY
+ON SCHEDULE EVERY 15 MINUTE
   STARTS '2025-01-01 00:00:00'
 ON COMPLETION PRESERVE DISABLE
 DO BEGIN
