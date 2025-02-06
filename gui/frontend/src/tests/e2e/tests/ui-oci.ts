@@ -31,27 +31,21 @@ import { Os } from "../lib/os.js";
 import * as constants from "../lib/constants.js";
 import * as interfaces from "../lib/interfaces.js";
 import { E2EShellConsole } from "../lib/E2EShellConsole.js";
-import { E2ENotebook } from "../lib/E2ENotebook.js";
 import { E2ETabContainer } from "../lib/E2ETabContainer.js";
 import { E2EToastNotification } from "../lib/E2EToastNotification.js";
-import { DatabaseConnectionDialog } from "../lib/Dialogs/DatabaseConnectionDialog.js";
-import { E2EDatabaseConnectionOverview } from "../lib/E2EDatabaseConnectionOverview.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
 import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
-import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
+import { E2ETreeItem } from "../lib/SideBar/E2ETreeItem.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
 let testFailed = false;
 let ociConfig: interfaces.IOciProfileConfig | undefined;
-let ociTree: RegExp[];
-let treeE2eProfile: string | undefined;
+let ociTree: string[];
+let e2eProfile: string | undefined;
+let treeE2eProfile: E2ETreeItem | undefined;
 const ociTreeSection = new E2EAccordionSection(constants.ociTreeSection);
 const tabContainer = new E2ETabContainer();
-let mdsEndPoint: string | undefined;
-let dbSystemID: string | undefined;
-let bastionID: string | undefined;
-let ociFailure = false;
 
 describe("OCI", () => {
 
@@ -62,10 +56,9 @@ describe("OCI", () => {
         ociConfig = configs.find((item: interfaces.IOciProfileConfig) => {
             return item.name = "E2ETESTS";
         })!;
-        treeE2eProfile = `${ociConfig.name} (${ociConfig.region})`;
 
-        ociTree = [new RegExp(`E2ETESTS \\(${ociConfig.region}\\)`),
-        new RegExp("\\(Root Compartment\\)"), /QA/, /MySQLShellTesting/];
+        e2eProfile = `${ociConfig.name} (${ociConfig.region})`;
+        ociTree = [e2eProfile, "/ (Root Compartment)", "QA", "MySQLShellTesting"];
 
         try {
             await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
@@ -98,13 +91,11 @@ describe("OCI", () => {
 
     it("Set as New Default Config Profile", async () => {
         try {
-            await ociTreeSection.tree.expandElement(ociTree, constants.wait25seconds);
+            await driver.wait(ociTreeSection.untilTreeItemExists(ociTree[0]), constants.wait5seconds);
             await Misc.dismissNotifications(true);
-            await ociTreeSection.tree.openContextMenuAndSelect(treeE2eProfile!,
-                constants.setAsNewDefaultConfigProfile);
-            await driver.wait(ociTreeSection.tree.untilIsDefault(treeE2eProfile!,
-                "profile"), constants.wait5seconds,
-                "E2e tests is not the default item");
+            treeE2eProfile = await ociTreeSection.getTreeItem(ociTree[0]);
+            await treeE2eProfile.openContextMenuAndSelect(constants.setAsNewDefaultConfigProfile);
+            await driver.wait(treeE2eProfile.untilIsDefault(), constants.wait5seconds);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -113,21 +104,22 @@ describe("OCI", () => {
 
     it("Set as Current Compartment", async () => {
         try {
-            await ociTreeSection.tree.expandElement(ociTree, constants.wait25seconds);
+            await ociTreeSection.expandTree(ociTree);
             await Misc.dismissNotifications(true);
-            await ociTreeSection.tree.openContextMenuAndSelect(ociTree[2],
-                constants.setAsCurrentCompartment);
+            const treeCompartment = await ociTreeSection.getTreeItem(ociTree[2]);
+            await treeCompartment.openContextMenuAndSelect(constants.setAsCurrentCompartment);
+
             const notification = (await new E2EToastNotification().create())!;
             expect(notification.message)
                 // eslint-disable-next-line max-len
                 .toBe(`${String(ociTree[2]).replaceAll("/", "")} in ${ociConfig?.name} is now the current compartment.`);
             await notification.close();
 
-            await driver.wait(ociTreeSection.tree.untilIsDefault(ociTree[2].source, "compartment"),
-                constants.wait3seconds, `${ociTree[2].source} should be marked as default on the tree`);
+            await driver.wait(treeCompartment.untilIsDefault(), constants.wait3seconds);
+
             const slicedOciTree = ociTree;
             slicedOciTree.splice(0, 2);
-            await ociTreeSection.tree.expandElement(slicedOciTree, constants.wait5seconds * 5);
+            await ociTreeSection.expandTree(slicedOciTree);
             await Misc.dismissNotifications(true);
 
             const shellConsole = new E2EShellConsole();
@@ -143,75 +135,21 @@ describe("OCI", () => {
         }
     });
 
-    // Access denied
-    xit("Create connection with Bastion Service", async () => {
-        try {
-            const treeDbSystem = await ociTreeSection.tree.getOciElementByType(constants.dbSystemType);
-
-            if (!await ociTreeSection.tree.isDBSystemStopped(treeDbSystem)) {
-                await ociTreeSection.tree.openContextMenuAndSelect(treeDbSystem,
-                    constants.createConnectionWithBastionService);
-                const mdsConnection = await DatabaseConnectionDialog.getConnectionDetails();
-                expect(mdsConnection.caption).toBe(treeDbSystem);
-                expect(mdsConnection.description)
-                    .toBe("DB System used to test the MySQL Shell for VSCode Extension.");
-
-                if (interfaces.isMySQLConnection(mdsConnection.basic)) {
-                    expect(mdsConnection.basic.hostname).toMatch(/(\d+).(\d+).(\d+).(\d+)/);
-                    mdsEndPoint = mdsConnection.basic.hostname;
-                    mdsConnection.basic.username = process.env.OCI_BASTION_USERNAME;
-                    mdsConnection.basic.password = process.env.OCI_BASTION_PASSWORD;
-                    dbSystemID = mdsConnection.mds!.dbSystemOCID;
-                    bastionID = mdsConnection.mds!.bastionOCID;
-                    mdsConnection.advanced = undefined;
-                    mdsConnection.mds = undefined;
-                    mdsConnection.ssh = undefined;
-                    mdsConnection.ssl = undefined;
-                    mdsConnection.caption = `e2e${mdsConnection.caption}`;
-                    await DatabaseConnectionDialog.setConnection(mdsConnection);
-                } else {
-                    throw new Error("The MDS connection should be a MySQL type");
-                }
-
-                const mds = await new E2EDatabaseConnectionOverview().getConnection(treeDbSystem);
-                await mds.click();
-                await driver.wait(new E2ENotebook().untilIsOpened(mdsConnection), constants.wait1minute)
-                    .catch((e) => {
-                        if (String(e).includes(constants.ociFailure)) {
-                            ociFailure = true;
-                        }
-                    });
-
-                if (ociFailure) {
-                    return; // No connection to OCI, skipping test
-                }
-                const notebook = await new E2ENotebook().untilIsOpened(mdsConnection, constants.wait1minute);
-                const result = await notebook.codeEditor.execute("select version();") as E2ECommandResultGrid;
-                expect(result.status).toMatch(/OK/);
-            } else {
-                ociFailure = true;
-
-                return;
-            }
-        } catch (e) {
-            await Misc.storeScreenShot();
-            throw e;
-        }
-    });
-
     it("Set as Current Bastion", async () => {
         try {
-            await ociTreeSection.tree.expandElement(ociTree, constants.wait25seconds);
+            await ociTreeSection.expandTree(ociTree);
             await Misc.dismissNotifications(true);
-            await driver.wait(ociTreeSection.tree.untilElementHasChildren(ociTree[ociTree.length - 1]),
-                constants.wait20seconds);
+            const treeCompartment = await ociTreeSection.getTreeItem(ociTree[ociTree.length - 1]);
+            await driver.wait(treeCompartment.untilHasChildren(), constants.wait20seconds);
 
-            const treeBastion = await ociTreeSection.tree.getOciElementByType(constants.bastionType);
-            const expected1 = `Setting current bastion to ${treeBastion} ...`;
-            const expected2 = `Current bastion set to ${treeBastion}.`;
+            const bastion = await ociTreeSection.getOciItemByType(constants.bastionType);
+            const expected1 = `Setting current bastion to ${bastion} ...`;
+            const expected2 = `Current bastion set to ${bastion}.`;
+
+            const treeBastion = await ociTreeSection.getTreeItem(bastion);
 
             await driver.wait(async () => {
-                await ociTreeSection.tree.openContextMenuAndSelect(treeBastion, constants.setAsCurrentBastion);
+                await treeBastion.openContextMenuAndSelect(constants.setAsCurrentBastion);
                 const notifications = await Misc.getToastNotifications(true);
                 for (const notification of notifications) {
                     if (notification?.message !== expected1 && notification?.message !== expected2) {
@@ -222,58 +160,8 @@ describe("OCI", () => {
                 }
             }, constants.wait10seconds, `Could not find any notification`);
 
-            await driver.wait(ociTreeSection.tree.untilIsDefault(treeBastion, "bastion"),
+            await driver.wait(treeBastion.untilIsDefault(),
                 constants.wait10seconds, "Bastion is not the default item");
-        } catch (e) {
-            await Misc.storeScreenShot();
-            throw e;
-        }
-    });
-
-    // Access denied
-    xit("Create a new MDS Connection", async () => {
-        try {
-            if (ociFailure) {
-                return; // There was an issue connection to OCI, so we skip the test
-            }
-
-            const treeDbSystem = await ociTreeSection.tree.getOciElementByType(constants.dbSystemType);
-
-            if (await ociTreeSection.tree.isDBSystemStopped(treeDbSystem)) {
-                return; // skip the test
-            }
-
-            const localConn: interfaces.IDBConnection = {
-                dbType: "MySQL",
-                caption: "e2eLocalMDSConnection",
-                description: "Local connection",
-                basic: {
-                    hostname: mdsEndPoint,
-                    username: process.env.OCI_BASTION_USERNAME,
-                    password: process.env.OCI_BASTION_PASSWORD,
-                    port: 3306,
-                    ociBastion: true,
-                },
-                mds: {
-                    profile: "E2ETESTS",
-                    sshPrivateKey: "id_rsa_mysql_shell",
-                    sshPublicKey: "id_rsa_mysql_shell.pub",
-                    dbSystemOCID: dbSystemID,
-                    bastionOCID: bastionID,
-                },
-            };
-
-            const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
-            await dbTreeSection.focus();
-            await dbTreeSection.createDatabaseConnection(localConn);
-            await tabContainer.closeAllTabs();
-            await driver.executeScript("arguments[0].click()",
-                await dbTreeSection.tree.getActionButton(localConn.caption!,
-                    constants.openNewDatabaseConnectionOnNewTab));
-
-            const notebook = await new E2ENotebook().untilIsOpened(localConn, constants.wait25seconds);
-            const result = await notebook.codeEditor.execute("select version();") as E2ECommandResultGrid;
-            expect(result.status).toMatch(/OK/);
         } catch (e) {
             await Misc.storeScreenShot();
             throw e;
