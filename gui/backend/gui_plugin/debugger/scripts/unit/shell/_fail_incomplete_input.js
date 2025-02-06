@@ -52,7 +52,7 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": {
-            "error": "SyntaxError: Unexpected end of input\n"
+            "error": "Expected } but found eof (SyntaxError)\n"
         }
     },
     {

@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -753,6 +753,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             self.send_command_response(request_id, result)
 
     def get_function_arguments(self, func, mod, mod_cmd):
+        get_args_from_help = False
         try:
             # try to use the regular inspection function to get the function
             # arguments
@@ -761,6 +762,9 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         except:  # pragma: no cover
             # if that fails, fall back to parsing the help output of that
             # function
+            get_args_from_help = True
+
+        if get_args_from_help or 'kwargs' in f_args:
             help_func = getattr(mod, 'help')
             help_output = help_func(f'{mod_cmd}')
 
