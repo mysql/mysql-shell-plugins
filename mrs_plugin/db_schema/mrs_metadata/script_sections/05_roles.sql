@@ -9,7 +9,7 @@
 -- The mysql_rest_service_data_provider ROLE is used by the MySQL Router to read the actual schema data that is exposed via REST
 
 CREATE ROLE IF NOT EXISTS 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_user',
-	'mysql_rest_service_meta_provider', 'mysql_rest_service_data_provider';
+    'mysql_rest_service_meta_provider', 'mysql_rest_service_data_provider';
 
 -- Allow the 'mysql_rest_service_data_provider' role to create temporary tables
 GRANT CREATE TEMPORARY TABLES ON *.*
@@ -17,107 +17,97 @@ GRANT CREATE TEMPORARY TABLES ON *.*
 
 -- `mysql_rest_service_metadata`.`schema_version`
 GRANT SELECT ON `mysql_rest_service_metadata`.`schema_version`
-	TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
 
 -- `mysql_rest_service_metadata`.`audit_log`
 GRANT SELECT ON `mysql_rest_service_metadata`.`audit_log`
-	TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
 
 -- -----------------------------------------------------
 -- Config
 
 -- `mysql_rest_service_metadata`.`config`
 GRANT SELECT, UPDATE
-	ON `mysql_rest_service_metadata`.`config`
+    ON `mysql_rest_service_metadata`.`config`
     TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin';
 GRANT SELECT ON `mysql_rest_service_metadata`.`config`
-	TO 'mysql_rest_service_meta_provider', 'mysql_rest_service_dev';
+    TO 'mysql_rest_service_meta_provider', 'mysql_rest_service_dev';
 
 -- `mysql_rest_service_metadata`.`redirect`
 GRANT SELECT, INSERT, UPDATE, DELETE
-	ON `mysql_rest_service_metadata`.`redirect`
+    ON `mysql_rest_service_metadata`.`redirect`
     TO 'mysql_rest_service_admin';
 GRANT SELECT ON `mysql_rest_service_metadata`.`redirect`
-	TO 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
 
 -- -----------------------------------------------------
 -- Service
 
 -- `mysql_rest_service_metadata`.`url_host`
 GRANT SELECT, INSERT, UPDATE, DELETE
-	ON `mysql_rest_service_metadata`.`url_host`
+    ON `mysql_rest_service_metadata`.`url_host`
     TO 'mysql_rest_service_admin';
 GRANT SELECT ON `mysql_rest_service_metadata`.`url_host`
-	TO 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
 
 -- `mysql_rest_service_metadata`.`url_host_alias`
 GRANT SELECT, INSERT, DELETE
-	ON `mysql_rest_service_metadata`.`url_host_alias`
+    ON `mysql_rest_service_metadata`.`url_host_alias`
     TO 'mysql_rest_service_admin';
 GRANT SELECT ON `mysql_rest_service_metadata`.`url_host_alias`
-	TO 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
 
 -- `mysql_rest_service_metadata`.`service`
 GRANT SELECT, INSERT, UPDATE, DELETE
-	ON `mysql_rest_service_metadata`.`service`
+    ON `mysql_rest_service_metadata`.`service`
     TO 'mysql_rest_service_admin';
 GRANT SELECT ON `mysql_rest_service_metadata`.`service`
-	TO 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
 
 -- -----------------------------------------------------
 -- Schema Objects
 
 -- `mysql_rest_service_metadata`.`db_schema`
 GRANT SELECT, INSERT, UPDATE, DELETE
-	ON `mysql_rest_service_metadata`.`db_schema`
+    ON `mysql_rest_service_metadata`.`db_schema`
     TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin';
 GRANT SELECT ON `mysql_rest_service_metadata`.`db_schema`
-	TO 'mysql_rest_service_meta_provider', 'mysql_rest_service_dev';
+    TO 'mysql_rest_service_meta_provider', 'mysql_rest_service_dev';
 
 -- `mysql_rest_service_metadata`.`db_object`
 GRANT SELECT, INSERT, UPDATE, DELETE
-	ON `mysql_rest_service_metadata`.`db_object`
-	TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
+    ON `mysql_rest_service_metadata`.`db_object`
+    TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
 GRANT SELECT ON `mysql_rest_service_metadata`.`db_object`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 
 -- `mysql_rest_service_metadata`.`mrs_db_object_row_group_security`
 GRANT SELECT, INSERT, UPDATE, DELETE
-	ON `mysql_rest_service_metadata`.`mrs_db_object_row_group_security`
-	TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
+    ON `mysql_rest_service_metadata`.`mrs_db_object_row_group_security`
+    TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
 GRANT SELECT ON `mysql_rest_service_metadata`.`mrs_db_object_row_group_security`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 
 -- `mysql_rest_service_metadata`.`object`
 GRANT SELECT, INSERT, UPDATE, DELETE
-	ON `mysql_rest_service_metadata`.`object`
+    ON `mysql_rest_service_metadata`.`object`
     TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
 GRANT SELECT ON `mysql_rest_service_metadata`.`object`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 
 -- `mysql_rest_service_metadata`.`object_field`
 GRANT SELECT, INSERT, UPDATE, DELETE
-	ON `mysql_rest_service_metadata`.`object_field`
+    ON `mysql_rest_service_metadata`.`object_field`
     TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
 GRANT SELECT ON `mysql_rest_service_metadata`.`object_field`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 
 -- `mysql_rest_service_metadata`.`object_reference`
 GRANT SELECT, INSERT, UPDATE, DELETE
-	ON `mysql_rest_service_metadata`.`object_reference`
+    ON `mysql_rest_service_metadata`.`object_reference`
     TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
 GRANT SELECT ON `mysql_rest_service_metadata`.`object_reference`
-	TO 'mysql_rest_service_meta_provider';
-
--- `mysql_rest_service_metadata`.`table_columns_with_references`
-GRANT SELECT
-	ON `mysql_rest_service_metadata`.`table_columns_with_references`
-    TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
-
--- `mysql_rest_service_metadata`.`object_fields_with_references`
-GRANT SELECT
-	ON `mysql_rest_service_metadata`.`object_fields_with_references`
-    TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 
 -- -----------------------------------------------------
 -- Static Content
@@ -125,16 +115,16 @@ GRANT SELECT
 -- `mysql_rest_service_metadata`.`content_set`
 GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`content_set`
-	TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
+    TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
 GRANT SELECT ON `mysql_rest_service_metadata`.`content_set`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 
 -- `mysql_rest_service_metadata`.`content_file`
 GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`content_file`
     TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
 GRANT SELECT ON `mysql_rest_service_metadata`.`content_file`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 
 
 -- `mysql_rest_service_metadata`.`content_set_has_obj_def`
@@ -142,7 +132,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`content_set_has_obj_def`
     TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
 GRANT SELECT ON `mysql_rest_service_metadata`.`content_set_has_obj_def`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 
 -- -----------------------------------------------------
 -- User Authentication
@@ -152,30 +142,30 @@ GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`auth_app`
     TO 'mysql_rest_service_admin';
 GRANT SELECT ON `mysql_rest_service_metadata`.`auth_app`
-	TO 'mysql_rest_service_meta_provider', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
+    TO 'mysql_rest_service_meta_provider', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
 
 -- `mysql_rest_service_metadata`.`service_has_auth_app`
 GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`service_has_auth_app`
     TO 'mysql_rest_service_admin';
 GRANT SELECT ON `mysql_rest_service_metadata`.`service_has_auth_app`
-	TO 'mysql_rest_service_meta_provider', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
+    TO 'mysql_rest_service_meta_provider', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
 
 -- `mysql_rest_service_metadata`.`auth_vendor`
 GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`auth_vendor`
     TO 'mysql_rest_service_admin';
 GRANT SELECT ON `mysql_rest_service_metadata`.`auth_vendor`
-	TO 'mysql_rest_service_meta_provider', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
+    TO 'mysql_rest_service_meta_provider', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
 
 -- `mysql_rest_service_metadata`.`mrs_user`
 GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`mrs_user`
     TO 'mysql_rest_service_admin';
 GRANT SELECT, INSERT ON `mysql_rest_service_metadata`.`mrs_user`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 GRANT SELECT ON `mysql_rest_service_metadata`.`mrs_user`
-	TO 'mysql_rest_service_data_provider';
+    TO 'mysql_rest_service_data_provider';
 
 -- -----------------------------------------------------
 -- User Hierarchy
@@ -185,16 +175,16 @@ GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`mrs_user_hierarchy`
     TO 'mysql_rest_service_admin';
 GRANT SELECT, INSERT ON `mysql_rest_service_metadata`.`mrs_user_hierarchy`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 GRANT SELECT ON `mysql_rest_service_metadata`.`mrs_user_hierarchy`
-	TO 'mysql_rest_service_data_provider';
+    TO 'mysql_rest_service_data_provider';
 
 -- `mysql_rest_service_metadata`.`mrs_user_hierarchy_type`
 GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`mrs_user_hierarchy_type`
     TO 'mysql_rest_service_admin';
 GRANT SELECT, INSERT ON `mysql_rest_service_metadata`.`mrs_user_hierarchy_type`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 
 -- -----------------------------------------------------
 -- User Roles
@@ -204,21 +194,21 @@ GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`mrs_user_has_role`
     TO 'mysql_rest_service_admin';
 GRANT SELECT, INSERT ON `mysql_rest_service_metadata`.`mrs_user_has_role`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 
 -- `mysql_rest_service_metadata`.`mrs_role`
 GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`mrs_role`
     TO 'mysql_rest_service_admin';
 GRANT SELECT, INSERT ON `mysql_rest_service_metadata`.`mrs_role`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 
 -- `mysql_rest_service_metadata`.`mrs_privilege`
 GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`mrs_privilege`
     TO 'mysql_rest_service_admin';
 GRANT SELECT, INSERT ON `mysql_rest_service_metadata`.`mrs_privilege`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 
 -- -----------------------------------------------------
 -- User Group Management
@@ -228,37 +218,37 @@ GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`mrs_user_has_group`
     TO 'mysql_rest_service_admin';
 GRANT SELECT, INSERT ON `mysql_rest_service_metadata`.`mrs_user_has_group`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 
 -- `mysql_rest_service_metadata`.`mrs_user_group`
 GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`mrs_user_group`
     TO 'mysql_rest_service_admin';
 GRANT SELECT, INSERT ON `mysql_rest_service_metadata`.`mrs_user_group`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 
 -- `mysql_rest_service_metadata`.`mrs_user_group_has_role`
 GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`mrs_user_group_has_role`
     TO 'mysql_rest_service_admin';
 GRANT SELECT, INSERT ON `mysql_rest_service_metadata`.`mrs_user_group_has_role`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 
 -- `mysql_rest_service_metadata`.`mrs_group_hierarchy_type`
 GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`mrs_group_hierarchy_type`
     TO 'mysql_rest_service_admin';
 GRANT SELECT, INSERT ON `mysql_rest_service_metadata`.`mrs_group_hierarchy_type`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 
 -- `mysql_rest_service_metadata`.`mrs_user_group_hierarchy`
 GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`mrs_user_group_hierarchy`
     TO 'mysql_rest_service_admin';
 GRANT SELECT, INSERT ON `mysql_rest_service_metadata`.`mrs_user_group_hierarchy`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 GRANT SELECT ON `mysql_rest_service_metadata`.`mrs_user_group_hierarchy`
-	TO 'mysql_rest_service_data_provider';
+    TO 'mysql_rest_service_data_provider';
 
 -- -----------------------------------------------------
 -- Router Management
@@ -268,7 +258,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`router`
     TO 'mysql_rest_service_admin';
 GRANT SELECT, INSERT, UPDATE ON `mysql_rest_service_metadata`.`router`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 GRANT SELECT
     ON `mysql_rest_service_metadata`.`router`
     TO 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
@@ -278,27 +268,27 @@ GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`router_status`
     TO 'mysql_rest_service_admin';
 GRANT SELECT, INSERT, UPDATE ON `mysql_rest_service_metadata`.`router_status`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 GRANT SELECT ON `mysql_rest_service_metadata`.`router_status`
-	TO 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
+    TO 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
 
 -- `mysql_rest_service_metadata`.`router_general_log`
 GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`router_general_log`
     TO 'mysql_rest_service_admin';
 GRANT INSERT ON `mysql_rest_service_metadata`.`router_general_log`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 GRANT SELECT ON `mysql_rest_service_metadata`.`router_general_log`
-	TO 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
+    TO 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
 
 -- `mysql_rest_service_metadata`.`router_session`
 GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`router_session`
     TO 'mysql_rest_service_admin';
 GRANT SELECT, INSERT ON `mysql_rest_service_metadata`.`router_session`
-	TO 'mysql_rest_service_meta_provider';
+    TO 'mysql_rest_service_meta_provider';
 GRANT SELECT ON `mysql_rest_service_metadata`.`router_session`
-	TO 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
+    TO 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev';
 
 -- `mysql_rest_service_metadata`.`router_services`
 GRANT SELECT ON `mysql_rest_service_metadata`.`router_services`
@@ -310,26 +300,24 @@ GRANT SELECT ON `mysql_rest_service_metadata`.`router_services`
 -- `mysql_rest_service_metadata`.`get_sequence_id`
 
 GRANT EXECUTE ON FUNCTION `mysql_rest_service_metadata`.`get_sequence_id`
-	TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider', 'mysql_rest_service_data_provider';
+    TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider', 'mysql_rest_service_data_provider';
+
+-- `mysql_rest_service_metadata`.`table_columns_with_references`
+GRANT EXECUTE
+    ON PROCEDURE `mysql_rest_service_metadata`.`table_columns_with_references`
+    TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
+
 
 -- -----------------------------------------------------
 -- Views
 
 -- `mysql_rest_service_metadata`.`mrs_user_schema_version`
-
 GRANT SELECT
   ON `mysql_rest_service_metadata`.`mrs_user_schema_version`
   TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
 
--- `mysql_rest_service_metadata`.`table_columns_with_references`
-
-GRANT SELECT
-  ON `mysql_rest_service_metadata`.`table_columns_with_references`
-  TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
-
 -- `mysql_rest_service_metadata`.`object_fields_with_references`
-
 GRANT SELECT
-  ON `mysql_rest_service_metadata`.`object_fields_with_references`
-  TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
+    ON `mysql_rest_service_metadata`.`object_fields_with_references`
+    TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
 

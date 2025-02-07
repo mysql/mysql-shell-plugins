@@ -427,10 +427,7 @@ def revoke_all_from_db_object(session, schema_name, db_object_name, db_object_ty
 
 def get_table_columns_with_references(session, schema_name, db_object_name, db_object_type):
     sql = """
-        SELECT *
-        FROM `mysql_rest_service_metadata`.`table_columns_with_references`
-        WHERE TABLE_SCHEMA = ?
-            AND TABLE_NAME = ?
+        CALL `mysql_rest_service_metadata`.`table_columns_with_references`(?, ?)
     """
 
     return core.MrsDbExec(sql).exec(session, [schema_name, db_object_name]).items
