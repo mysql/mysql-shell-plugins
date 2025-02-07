@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -85,7 +85,7 @@ export class DynamicSymbolTable extends DBSymbolTable {
             }
 
             case SymbolKind.Table: {
-                const data = await this.backend.getSchemaObjects(parent.name, "Table");
+                const data = await this.backend.getSchemaObjectNames(parent.name, "Table");
                 this.handleResults(data, parent, TableSymbol);
 
                 break;
@@ -101,28 +101,28 @@ export class DynamicSymbolTable extends DBSymbolTable {
             }
 
             case SymbolKind.Procedure: {
-                const data = await this.backend.getSchemaObjects(parent.name, "Routine", "procedure");
+                const data = await this.backend.getSchemaObjectNames(parent.name, "Routine", "procedure");
                 this.handleResults(data, parent, StoredProcedureSymbol);
 
                 break;
             }
 
             case SymbolKind.Function: {
-                const data = await this.backend.getSchemaObjects(parent.name, "Routine", "function");
+                const data = await this.backend.getSchemaObjectNames(parent.name, "Routine", "function");
                 this.handleResults(data, parent, StoredFunctionSymbol);
 
                 break;
             }
 
             case SymbolKind.Udf: {
-                const data = await this.backend.getSchemaObjects(parent.name, "Routine");
+                const data = await this.backend.getSchemaObjectNames(parent.name, "Routine");
                 this.handleResults(data, parent, UdfSymbol);
 
                 break;
             }
 
             case SymbolKind.View: {
-                const data = await this.backend.getSchemaObjects(parent.name, "View");
+                const data = await this.backend.getSchemaObjectNames(parent.name, "View");
                 this.handleResults(data, parent, ViewSymbol);
 
                 break;
@@ -159,14 +159,14 @@ export class DynamicSymbolTable extends DBSymbolTable {
             }
 
             case SymbolKind.Trigger: {
-                const data = await this.backend.getSchemaObjects(parent.name, "Trigger");
+                const data = await this.backend.getSchemaObjectNames(parent.name, "Trigger");
                 this.handleResults(data, parent, TriggerSymbol);
 
                 break;
             }
 
             case SymbolKind.LogfileGroup: {
-                const data = await this.backend.getSchemaObjects(parent.name, "Routine");
+                const data = await this.backend.getSchemaObjectNames(parent.name, "Routine");
                 this.handleResults(data, parent, LogfileGroupSymbol);
 
                 break;
@@ -180,14 +180,14 @@ export class DynamicSymbolTable extends DBSymbolTable {
             }
 
             case SymbolKind.Tablespace: {
-                const data = await this.backend.getSchemaObjects(parent.name, "Tablespace");
+                const data = await this.backend.getSchemaObjectNames(parent.name, "Tablespace");
                 this.handleResults(data, parent, TablespaceSymbol);
 
                 break;
             }
 
             case SymbolKind.Event: {
-                const data = await this.backend.getSchemaObjects(parent.name, "Event");
+                const data = await this.backend.getSchemaObjectNames(parent.name, "Event");
                 this.handleResults(data, parent, EventSymbol);
 
                 break;

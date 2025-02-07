@@ -6681,7 +6681,12 @@ graphQlPair:
         | AT_KEY_SYMBOL
         | AT_DATATYPE_SYMBOL OPEN_PAR_SYMBOL graphQlDatatypeValue CLOSE_PAR_SYMBOL
         | graphQlCrudOptions
+        | graphQlValueJsonSchema
     )? graphQlObj?
+;
+
+graphQlValueJsonSchema:
+    JSON_SYMBOL DATABASE_SYMBOL jsonValue
 ;
 
 graphQlAllowedKeyword:

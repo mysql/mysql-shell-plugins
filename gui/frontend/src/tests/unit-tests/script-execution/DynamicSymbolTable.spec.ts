@@ -82,7 +82,7 @@ class MockShellInterfaceDb extends ShellInterfaceDb {
         }
     }
 
-    public override async getSchemaObjects(schema: string, type: string, routineType?: RoutineType,
+    public override async getSchemaObjectNames(schema: string, type: string, routineType?: RoutineType,
         _filter?: string): Promise<string[]> {
         await nextProcessTick();
 

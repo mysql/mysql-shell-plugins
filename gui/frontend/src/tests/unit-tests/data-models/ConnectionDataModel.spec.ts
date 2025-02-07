@@ -59,9 +59,26 @@ jest.mock("../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js", () =>
                 getCatalogObjects: jest.fn().mockReturnValue([
                     "sakila", "mysql_rest_service_metadata",
                 ]),
-                getSchemaObjects: jest.fn().mockReturnValue([
+                getSchemaObjectNames: jest.fn().mockReturnValue([
                     "actor", "address", "category", "city", "country", "customer", "film", "film_actor",
                     "film_category", "inventory", "language", "payment", "rental", "staff", "store",
+                ]),
+                getSchemaObjects: jest.fn().mockReturnValue([
+                    { type: "PROCEDURE", language: "SQL", name: "proc1" },
+                    { type: "PROCEDURE", language: "SQL", name: "proc2" },
+                    { type: "PROCEDURE", language: "SQL", name: "proc3" },
+                    { type: "PROCEDURE", language: "SQL", name: "proc4" },
+                    { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc5" },
+                    { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc6" },
+                    { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc7" },
+                    { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc8" },
+                    { type: "PROCEDURE", language: "SQL", name: "proc9" },
+                    { type: "PROCEDURE", language: "SQL", name: "proc10" },
+                    { type: "PROCEDURE", language: "SQL", name: "proc11" },
+                    { type: "PROCEDURE", language: "SQL", name: "proc12" },
+                    { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc13" },
+                    { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc14" },
+                    { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc15" }
                 ]),
                 getTableObjectNames: jest.fn().mockReturnValue([
                     "object1", "object1", // In lieu of any database object name.
