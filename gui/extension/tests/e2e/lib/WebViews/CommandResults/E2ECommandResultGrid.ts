@@ -209,7 +209,8 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                 if (method === constants.editButton) {
                     await keyboard.type(nutKey.Tab);
                 } else {
-                    await keyboard.type(nutKey.Enter);
+                    await this.resultContext
+                        .findElement(locator.notebook.codeEditor.editor.result.toolbar.exists).click();
                 }
 
             } else {

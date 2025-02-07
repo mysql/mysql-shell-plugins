@@ -1183,7 +1183,6 @@ describe("DATABASE CONNECTIONS", () => {
                     if (tasks.length > 0) {
                         for (const task of tasks) {
                             if (task.name === `Loading ${newTask.name}`) {
-                                console.log(task.id);
                                 await driver.wait(lakehouseTables.untilLakeHouseTaskIsCompleted(task.id!),
                                     constants.wait10seconds);
                                 expect(task.name).toBe(`Loading ${newTask.name}`);
