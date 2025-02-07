@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { error, until } from "selenium-webdriver";
+import { error } from "selenium-webdriver";
 import { basename } from "path";
 import { Misc } from "../lib/misc.js";
 import { driver, loadDriver } from "../lib/driver.js";
@@ -313,7 +313,7 @@ describe("MYSQL REST SERVICE", () => {
         await Misc.dismissNotifications();
     });
 
-    fit("Disable MySQL REST Service", async () => {
+    it("Disable MySQL REST Service", async () => {
         try {
             const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
             await treeMySQLRestService.openContextMenuAndSelect(constants.disableRESTService);
@@ -402,7 +402,7 @@ describe("MYSQL REST SERVICE", () => {
 
     it("Edit REST Service", async () => {
         try {
-            let treeServiceToEdit = await dbTreeSection.getTreeItem(serviceToEdit.treeName!);
+            const treeServiceToEdit = await dbTreeSection.getTreeItem(serviceToEdit.treeName!);
             await treeServiceToEdit.openContextMenuAndSelect(constants.editRESTService);
 
             const editedService = {
@@ -430,8 +430,8 @@ describe("MYSQL REST SERVICE", () => {
             const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
             await (await treeGlobalConn.getActionButton(constants.refreshConnection))!.click();
             await driver.wait(dbTreeSection.untilTreeItemExists(serviceToEdit.treeName!), constants.wait10seconds);
-            treeServiceToEdit = await dbTreeSection.getTreeItem(serviceToEdit.treeName!);
-            await treeServiceToEdit.openContextMenuAndSelect(constants.editRESTService);
+            await dbTreeSection.openContextMenuAndSelect(serviceToEdit.treeName!, constants.editRESTService);
+
             const service = await RestServiceDialog.get();
             expect(editedService).toStrictEqual(service);
         } catch (e) {
@@ -500,8 +500,7 @@ describe("MYSQL REST SERVICE", () => {
 
     it("Set as Current REST Service", async () => {
         try {
-            const treeGlobalService = await dbTreeSection.getTreeItem(globalService.treeName!);
-            await treeGlobalService.openContextMenuAndSelect(constants.setAsCurrentREST);
+            await dbTreeSection.openContextMenuAndSelect(globalService.treeName!, constants.setAsCurrentREST);
             const notification = await new E2EToastNotification().create();
             expect(notification!.message).toBe("The MRS service has been set as the new default service.");
             await notification!.close();
@@ -516,7 +515,7 @@ describe("MYSQL REST SERVICE", () => {
                         throw e;
                     }
                 }
-            }, constants.wait3seconds, `${treeGlobalService.caption} was not marked as DEFAULT`);
+            }, constants.wait3seconds, `${globalService.treeName!} was not marked as DEFAULT`);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -737,14 +736,13 @@ describe("MYSQL REST SERVICE", () => {
 
     it("Add and Link New REST Authentication App", async () => {
         try {
-            let treeGlobalService = await dbTreeSection.getTreeItem(globalService.treeName!);
-            await treeGlobalService.openContextMenuAndSelect(constants.addLinkAuthApp);
+            await dbTreeSection.openContextMenuAndSelect(globalService.treeName!, constants.addLinkAuthApp);
             globalService.authenticationApps = [await AuthenticationAppDialog.set(restAuthenticationApp)];
             const notification = await new E2EToastNotification().create();
             expect(notification!.message).toBe("The MRS Authentication App has been added.");
             await notification!.close();
 
-            treeGlobalService = await dbTreeSection.getTreeItem(globalService.treeName!);
+            const treeGlobalService = await dbTreeSection.getTreeItem(globalService.treeName!);
             await treeGlobalService.expand();
             await driver.wait(dbTreeSection.untilTreeItemExists(globalService.authenticationApps[0].treeName!),
                 constants.wait5seconds);
@@ -820,9 +818,6 @@ describe("MYSQL REST SERVICE", () => {
             editedUser.assignedRoles = "Full Access";
             editedUser.password = "[Stored Password]";
             expect(editedUser).toStrictEqual(user);
-            await driver.wait(until.stalenessOf(treeUser), constants.wait2seconds).catch(() => {
-                // continue
-            });
         } catch (e) {
             testFailed = true;
             throw e;
@@ -886,9 +881,6 @@ describe("MYSQL REST SERVICE", () => {
             const authApp = await AuthenticationAppDialog.get();
             expect(authApp).toStrictEqual(editedApp);
             globalService.authenticationApps![0].user = [restAuthenticationApp.user![0]];
-            await driver.wait(until.stalenessOf(treeRestAuthApp), constants.wait2seconds).catch(() => {
-                // continue
-            });
         } catch (e) {
             testFailed = true;
             throw e;
@@ -897,8 +889,8 @@ describe("MYSQL REST SERVICE", () => {
 
     it("Delete Authentication App", async () => {
         try {
-            const treeRestAuthApp = await dbTreeSection.getTreeItem(globalService.authenticationApps![0].treeName!);
-            await treeRestAuthApp.openContextMenuAndSelect(constants.deleteAuthenticationApp);
+            await dbTreeSection.openContextMenuAndSelect(globalService.authenticationApps![0].treeName!,
+                constants.deleteAuthenticationApp);
 
             await (await new ConfirmDialog().untilExists()).accept();
 
@@ -911,7 +903,8 @@ describe("MYSQL REST SERVICE", () => {
 
             const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
             await (await treeGlobalConn.getActionButton(constants.refreshConnection))!.click();
-            expect(await treeRestAuthApp.exists()).toBe(false);
+            await driver.wait(dbTreeSection.untilTreeItemDoesNotExists(globalService.authenticationApps![0].treeName!),
+                constants.wait3seconds);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -951,7 +944,7 @@ describe("MYSQL REST SERVICE", () => {
 
 });
 
-xdescribe("MYSQL REST SERVICE - CLIPBOARD", () => {
+describe("MYSQL REST SERVICE - CLIPBOARD", () => {
 
     let treeGlobalConn: E2ETreeItem | undefined;
 
@@ -1003,8 +996,6 @@ xdescribe("MYSQL REST SERVICE - CLIPBOARD", () => {
             await driver.wait(dbTreeSection.untilTreeItemExists(otherService.restSchemas![0].treeName!),
                 constants.wait10seconds);
 
-            const treeRestSakila = await dbTreeSection.getTreeItem(otherService.restSchemas![0].treeName!);
-            await treeRestSakila.expand();
             treeSakila = await dbTreeSection.getTreeItem(otherService.restSchemas![0].settings!.schemaName!);
             await treeSakila.expand();
             const treeTables = await dbTreeSection.getTreeItem("Tables");
@@ -1015,6 +1006,9 @@ xdescribe("MYSQL REST SERVICE - CLIPBOARD", () => {
             await treeAddress.openContextMenuAndSelect(constants.addDBObjToREST);
             await RestObjectDialog.set({ restServicePath: otherService.treeName });
 
+            const treeRestSakila = await dbTreeSection.getTreeItem(otherService.restSchemas![0].treeName!);
+            await treeRestSakila.expand();
+
             await driver.wait(dbTreeSection
                 .untilTreeItemExists(otherService.restSchemas![0].restObjects![1].treeName!), constants.wait3seconds);
             notification = await new E2EToastNotification().create();
@@ -1023,6 +1017,7 @@ xdescribe("MYSQL REST SERVICE - CLIPBOARD", () => {
             for (const ntf of notifications) {
                 await ntf?.close();
             }
+
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_MysqlRESTService_CLIPBOARD");
             throw e;

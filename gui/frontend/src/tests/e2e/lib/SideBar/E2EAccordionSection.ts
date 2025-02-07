@@ -498,4 +498,28 @@ export class E2EAccordionSection {
         }
     };
 
+    /**
+     * Right-clicks on an element and selects the item on the context menu
+     * @param treeItemCaption The tree item caption
+     * @param ctxMenuItem The context menu item
+     */
+    public openContextMenuAndSelect = async (
+        treeItemCaption: string,
+        ctxMenuItem: string | string[]): Promise<void> => {
+
+        await driver.wait(async () => {
+            try {
+                const treeItem = await this.getTreeItem(treeItemCaption);
+                await treeItem.openContextMenuAndSelect(ctxMenuItem);
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, `Could not select '${ctxMenuItem.toString()}' for tree item ${treeItemCaption}`);
+
+    };
+
 }

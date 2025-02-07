@@ -29,6 +29,9 @@ import * as constants from "../../constants";
 import * as locator from "../../locators";
 import * as errors from "../../errors";
 
+const objStorageItem = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
+    .objectStorageItem.item;
+
 export class ObjectStorageBrowser {
 
     /**
@@ -161,55 +164,113 @@ export class ObjectStorageBrowser {
     };
 
     /**
+     * Verifies if the tree element has children
+     * @param caption The item caption
+     * @returns A condition resolving to true if the element has children, false otherwise
+     */
+    public untilItemHasChildren = (caption: string): Condition<boolean> => {
+        return new Condition(`for ${caption} to have children`, async () => {
+            try {
+                const element = await this.getItem(caption);
+                const elementLevel = (await element.getAttribute("class")).match(/tabulator-tree-level-(\d+)/)[1];
+                const nextSibling: WebElement | undefined = await driver
+                    .executeScript("return arguments[0].nextElementSibling;", element);
+
+                if (nextSibling) {
+                    const siblingLevel = (await nextSibling.getAttribute("class"))
+                        .match(/tabulator-tree-level-(\d+)/)[1];
+
+                    return parseInt(siblingLevel, 10) > parseInt(elementLevel, 10);
+                } else {
+                    return false;
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                } else {
+                    return false;
+                }
+            }
+        });
+    };
+
+    /**
+     * Verifies if the tree element is expanded
+     * @param caption The item caption
+     * @returns A condition resolving to true if the element is expanded, false otherwise
+     */
+    public itemIsExpanded = async (caption: string): Promise<boolean> => {
+        let isExpanded = false;
+
+        await driver.wait(async () => {
+            try {
+                const item = await this.getItem(caption);
+                const itemToggle = await item.findElement(objStorageItem.treeToggle);
+                isExpanded = (await (itemToggle.getAttribute("class"))).includes("expanded");
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, `Could not verify if item '${caption}' is expanded`);
+
+        return isExpanded;
+    };
+
+    /**
+     * Expands the tree item
+     * @param caption The item caption
+     */
+    public expandItem = async (caption: string): Promise<void> => {
+        await driver.wait(async () => {
+            try {
+                const item = await this.getItem(caption);
+
+                if (!(await this.itemIsExpanded(caption))) {
+                    const itemToggle = await item.findElement(objStorageItem.treeToggle);
+                    await driver.executeScript("arguments[0].click()", itemToggle);
+
+                    return this.itemIsExpanded(caption);
+                } else {
+                    return true;
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, `Could not expand item '${caption}'`);
+
+    };
+
+    /**
      * Expands object storage compartments
      * @param path The compartments as a tree path
      * @returns A promise resolving when the compartments are expanded and loaded
      */
     public openObjectStorageCompartment = async (path: string[]): Promise<void> => {
-        await Misc.switchBackToTopFrame();
-        await Misc.switchToFrame();
-
-        const objStorageItem = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
-            .objectStorageItem.item;
         const scrollTable = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.scroll;
 
         for (let i = 0; i <= path.length - 1; i++) {
-            await driver.wait(async () => {
-                try {
-
-                    if (i === path.length - 1) {
-                        await driver.executeScript("arguments[0].scrollBy(0, 150)",
-                            await driver.findElement(scrollTable));
-
-                    }
-
-                    if (await this.existsItem("Error")) { // flaky failure without solution yet
-                        throw new Error("Skip");
-                    }
-
-                    let item = await this.getItem(path[i], String(i));
-                    let itemToggle = await item.findElement(objStorageItem.treeToggle);
-
-                    if (!(await (itemToggle.getAttribute("class"))).includes("expanded")) {
-                        await driver.executeScript("arguments[0].click()",
-                            await item.findElement(objStorageItem.treeToggle));
-                        await driver.wait(this.untilItemsAreLoaded(), constants.wait15seconds,
-                            ` ${path[i + 1]} to be loaded`);
-                    }
-
-                    item = await this.getItem(path[i], String(i));
-                    itemToggle = await item.findElement(objStorageItem.treeToggle);
-
-                    return (await (itemToggle.getAttribute("class"))).includes("expanded");
-                } catch (e) {
-                    if (!(e instanceof error.StaleElementReferenceError)) {
-                        throw e;
-                    }
+            if (i !== 0) {
+                if (!(await this.itemIsExpanded(path[i - 1]))) {
+                    i--;
                 }
-            }, constants.wait30seconds, `item '${path[i]}' was not expanded`);
+            }
+
+            if (i === path.length - 1) {
+                await driver.executeScript("arguments[0].scrollBy(0, 150)",
+                    await driver.findElement(scrollTable));
+            }
+
+            await this.expandItem(path[i]);
+            await driver.wait(this.untilItemHasChildren(path[i]), constants.wait20seconds);
+            await driver.wait(this.untilItemsAreLoaded(), constants.wait15seconds,
+                ` ${path[i + 1]} to be loaded`);
         }
     };
-
     /**
      * Clicks on the object storage item checkbox
      * @param itemName The item name
