@@ -312,6 +312,22 @@ describe("General Supplement Tests", (): void => {
             expect(actual).toEqual([]);
         });
 
+        it("Test with no database selected", async () => {
+            const actual = await getColumnsMetadataForEmptyResultSet(
+                table, QueryType.Select, DBType.MySQL, {
+                    getCurrentSchema: jest.fn().mockResolvedValue(""),
+                } as unknown as ShellInterfaceSqlEditor,
+            );
+            expect(actual).toEqual([]);
+        });
+
+        it("Test with empty table name", async () => {
+            const actual = await getColumnsMetadataForEmptyResultSet(
+                "``", QueryType.Select, DBType.MySQL, mockBackend,
+            );
+            expect(actual).toEqual([]);
+        });
+
         it("Test with getColumnsMetadataResponse", async () => {
             const expected: Array<IGetColumnsMetadataItem & { length: number; }> = [
                 {
