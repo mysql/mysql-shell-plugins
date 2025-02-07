@@ -386,7 +386,10 @@ export const getColumnsMetadataForEmptyResultSet = async (
         return metadata;
     }
 
-    const { schema, table } = await parseSchemaTable(fullTableName);
+    const { schema, table } = await parseSchemaTable(fullTableName, backend);
+    if (!schema || !table) {
+        return metadata;
+    }
 
     const columnNames = await backend.getTableObjectNames(schema, table, "Column");
     const request = columnNames.map((column) => {
