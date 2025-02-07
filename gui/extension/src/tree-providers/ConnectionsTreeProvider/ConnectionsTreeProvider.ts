@@ -31,7 +31,7 @@ import type {
 import { requisitions } from "../../../../frontend/src/supplement/Requisitions.js";
 
 import {
-    CdmEntityType, ConnectionDataModelEntry, ICdmRestRootEntry, ICdmSchemaEntry, cdmDbEntityTypes,
+    CdmEntityType, ConnectionDataModelEntry, ICdmRestRootEntry, ICdmRoutineEntry, ICdmSchemaEntry, cdmDbEntityTypes,
     type ConnectionDataModel, type ICdmConnectionEntry,
 } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 
@@ -451,18 +451,22 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
                         // name including the schema, just the name of the procedure / functions with backticks
                         sql = sql.replaceAll(/PROCEDURE `(.*?)`/gm, `${procedureKeyword} ${qualifiedName}`);
                         sql = sql.replaceAll(/FUNCTION `(.*?)`/gm, `${functionKeyword} ${qualifiedName}`);
-                    }
 
-                    if (withDelimiter) {
-                        if (withDrop) {
-                            const name = Array.from(sql.matchAll(/PROCEDURE `(.*?)`/gm), (m) => { return m[1]; });
-                            if (name.length > 0) {
-                                sql = `${dropKeyword} ${procedureKeyword} ${qualifiedName}%%\n${sql}`;
-                            } else {
-                                sql = `${dropKeyword} ${functionKeyword} ${qualifiedName}%%\n${sql}`;
+                        if (withDelimiter) {
+                            let isJSRoutine = (entry as ICdmRoutineEntry).language == "JAVASCRIPT";
+                            let isProcedure = (entry as ICdmRoutineEntry).type == CdmEntityType.StoredProcedure;
+                            if (withDrop) {
+                                const name = Array.from(sql.matchAll(/PROCEDURE `(.*?)`/gm), (m) => { return m[1]; });
+                                if (isProcedure) {
+                                    sql = `${dropKeyword} ${procedureKeyword} ${qualifiedName}`
+                                        + `${isJSRoutine ? ";" : "%%"}\n${sql}`;
+                                } else {
+                                    sql = `${dropKeyword} ${functionKeyword} ${qualifiedName}`
+                                        + `${isJSRoutine ? ";" : "%%"}\n${sql}`;
+                                }
                             }
+                            sql = !isJSRoutine ? `${delimiterKeyword} %%\n${sql}%%\n${delimiterKeyword} ;` : `${delimiterKeyword} ;\n${sql};\n${delimiterKeyword} ;`;
                         }
-                        sql = `${delimiterKeyword} %%\n${sql}%%\n${delimiterKeyword} ;`;
                     }
                 }
             }

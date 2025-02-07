@@ -110,11 +110,11 @@ describe("ShellInterfaceDb Tests", () => {
             let objects = await db.getCatalogObjects("Schema");
             expect(objects).toContain("mysql");
 
-            await expect(db.getSchemaObjects("mysql", "table")).rejects
+            await expect(db.getSchemaObjectNames("mysql", "table")).rejects
                 .toBeInstanceOf(ResponseError).catch((reason) => {
                     expect(reason.message).toEqual("Unsupported None object type (table)");
                 });
-            objects = await db.getSchemaObjects("mysql", "Table");
+            objects = await db.getSchemaObjectNames("mysql", "Table");
             expect(objects).toContain("help_topic");
 
             await expect(db.getTableObjectNames("mysql", "help_topic", "trigger")).rejects
@@ -129,7 +129,7 @@ describe("ShellInterfaceDb Tests", () => {
 
         let objects = await db.getCatalogObjects("Schema");
         expect(objects).toHaveLength(0);
-        objects = await db.getSchemaObjects("mysql", "Table");
+        objects = await db.getSchemaObjectNames("mysql", "Table");
         expect(objects).toHaveLength(0);
         objects = await db.getTableObjectNames("mysql", "help_topic", "Column");
         expect(objects).toHaveLength(0);

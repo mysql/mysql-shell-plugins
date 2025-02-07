@@ -845,6 +845,7 @@ export interface IProtocolGuiResults {
 export const multiResultAPIs = [
     ShellAPIGui.GuiCoreListFiles,
     ShellAPIGui.GuiDbGetSchemaObjectNames,
+    ShellAPIGui.GuiDbGetSchemaObjects,
     ShellAPIGui.GuiDbConnectionsListDbConnections,
     ShellAPIGui.GuiModulesGetProfileDataTree,
     ShellAPIGui.GuiShellComplete,

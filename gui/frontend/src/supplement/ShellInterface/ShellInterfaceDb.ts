@@ -24,8 +24,11 @@
  */
 
 import { MessageScheduler } from "../../communication/MessageScheduler.js";
-import { IGetColumnsMetadataItem, IShellDbConnection, ITableObjectInfo,
-    ShellAPIGui } from "../../communication/ProtocolGui.js";
+import {
+    IDBSchemaObjectEntry,
+    IGetColumnsMetadataItem, IShellDbConnection, ITableObjectInfo,
+    ShellAPIGui
+} from "../../communication/ProtocolGui.js";
 import { webSession } from "../WebSession.js";
 
 export type RoutineType = "function" | "procedure";
@@ -117,7 +120,7 @@ export class ShellInterfaceDb {
      *
      * @returns A promise which resolves when the operation was concluded.
      */
-    public async getSchemaObjects(schema: string, type: string, routineType?: RoutineType,
+    public async getSchemaObjectNames(schema: string, type: string, routineType?: RoutineType,
         filter?: string): Promise<string[]> {
         if (!this.moduleSessionId) {
             return [];
@@ -137,6 +140,30 @@ export class ShellInterfaceDb {
         });
 
         const result: string[] = [];
+        response.forEach((entry) => {
+            result.push(...entry.result);
+        });
+
+        return result;
+    }
+
+
+    public async getSchemaObjects(schema: string, type: string): Promise<(string | IDBSchemaObjectEntry)[]> {
+        if (!this.moduleSessionId) {
+            return [];
+        }
+
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbGetSchemaObjects,
+            parameters: {
+                args: {
+                    moduleSessionId: this.moduleSessionId,
+                    type,
+                    schemaName: schema
+                },
+            },
+        });
+        const result: (IDBSchemaObjectEntry | string)[] = [];
         response.forEach((entry) => {
             result.push(...entry.result);
         });

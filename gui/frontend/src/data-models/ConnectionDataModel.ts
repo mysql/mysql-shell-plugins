@@ -26,6 +26,7 @@
 // eslint-disable-next-line max-classes-per-file
 import { ui } from "../app-logic/UILayer.js";
 import type { DeepMutable, Mutable } from "../app-logic/general-types.js";
+import { IDBSchemaObjectEntry } from "../communication/ProtocolGui.js";
 import type {
     IMrsAuthAppData, IMrsContentFileData, IMrsContentSetData, IMrsDbObjectData, IMrsRouterData, IMrsRouterService,
     IMrsSchemaData, IMrsServiceData, IMrsUserData,
@@ -245,6 +246,7 @@ export interface ICdmRoutineEntry extends ICdmBaseEntry {
 
     readonly type: CdmEntityType.StoredProcedure | CdmEntityType.StoredFunction;
     readonly schema: string;
+    readonly language: string;
 }
 
 /** An entry for an event. */
@@ -1328,7 +1330,7 @@ export class ConnectionDataModel implements ICdmUpdater {
         tableGroup.members.length = 0;
 
         const schema = tableGroup.parent.caption;
-        const tableNames = await tableGroup.connection.backend.getSchemaObjects(schema, "Table");
+        const tableNames = await tableGroup.connection.backend.getSchemaObjectNames(schema, "Table");
         for (const table of tableNames) {
             const tableEntry: Partial<Mutable<ICdmTableEntry>> = {
                 parent: tableGroup as ICdmSchemaGroupEntry<CdmEntityType.Table>,
@@ -1448,7 +1450,7 @@ export class ConnectionDataModel implements ICdmUpdater {
         viewGroup.state.initialized = true;
 
         const schema = viewGroup.parent.caption;
-        const viewNames = await viewGroup.connection.backend.getSchemaObjects(schema, "View");
+        const viewNames = await viewGroup.connection.backend.getSchemaObjectNames(schema, "View");
         for (const view of viewNames) {
             const viewEntry: Mutable<ICdmViewEntry> = {
                 parent: viewGroup as ICdmSchemaGroupEntry<CdmEntityType.View>,
@@ -1476,7 +1478,7 @@ export class ConnectionDataModel implements ICdmUpdater {
         eventGroup.state.initialized = true;
 
         const schema = eventGroup.parent.caption;
-        const eventNames = await eventGroup.connection.backend.getSchemaObjects(schema, "Event");
+        const eventNames = await eventGroup.connection.backend.getSchemaObjectNames(schema, "Event");
         for (const event of eventNames) {
             const eventEntry: Mutable<ICdmEventEntry> = {
                 parent: eventGroup as ICdmSchemaGroupEntry<CdmEntityType.Event>,
@@ -1503,23 +1505,26 @@ export class ConnectionDataModel implements ICdmUpdater {
         group.state.initialized = true;
 
         const schema = group.parent.caption;
-        const procedureNames = await group.connection.backend.getSchemaObjects(schema, "Routine", "procedure");
-        for (const procedure of procedureNames) {
-            const procedureEntry: DeepMutable<ICdmRoutineEntry> = {
-                parent: group,
-                type: CdmEntityType.StoredProcedure,
-                id: uuid(),
-                state: createDataModelEntryState(true),
-                caption: procedure,
-                schema,
-                connection: group.connection,
-            };
+        const routines = await group.connection.backend.getSchemaObjects(schema, "Routine");
+        for (const routine of routines) {
+            if (typeof routine !== "string" && routine.type == "PROCEDURE") {
+                const procedureEntry: DeepMutable<ICdmRoutineEntry> = {
+                    parent: group,
+                    type: CdmEntityType.StoredProcedure,
+                    id: uuid(),
+                    state: createDataModelEntryState(true),
+                    caption: routine.name,
+                    schema,
+                    connection: group.connection,
+                    language: routine.language
+                };
 
-            procedureEntry.refresh = () => {
-                return this.initializeProcedure(procedureEntry);
-            };
+                procedureEntry.refresh = () => {
+                    return this.initializeProcedure(procedureEntry);
+                };
 
-            group.members.push(procedureEntry);
+                group.members.push(procedureEntry);
+            }
         }
 
         return true;
@@ -1530,23 +1535,26 @@ export class ConnectionDataModel implements ICdmUpdater {
         group.state.initialized = true;
 
         const schema = group.parent.caption;
-        const functionNames = await group.connection.backend.getSchemaObjects(schema, "Routine", "function");
-        for (const func of functionNames) {
-            const functionEntry: DeepMutable<ICdmRoutineEntry> = {
-                parent: group,
-                type: CdmEntityType.StoredFunction,
-                id: uuid(),
-                state: createDataModelEntryState(true),
-                caption: func,
-                schema,
-                connection: group.parent.parent,
-            };
+        const routines = await group.connection.backend.getSchemaObjects(schema, "Routine");
+        for (const routine of routines) {
+            if (typeof routine !== "string" && routine.type == "FUNCTION") {
+                const functionEntry: DeepMutable<ICdmRoutineEntry> = {
+                    parent: group,
+                    type: CdmEntityType.StoredFunction,
+                    id: uuid(),
+                    state: createDataModelEntryState(true),
+                    caption: routine.name,
+                    schema,
+                    connection: group.parent.parent,
+                    language: routine.language
+                };
 
-            functionEntry.refresh = () => {
-                return this.initializeFunction(functionEntry as ICdmRoutineEntry);
-            };
+                functionEntry.refresh = () => {
+                    return this.initializeFunction(functionEntry as ICdmRoutineEntry);
+                };
 
-            group.members.push(functionEntry as ICdmRoutineEntry);
+                group.members.push(functionEntry as ICdmRoutineEntry);
+            }
         }
 
         return true;
