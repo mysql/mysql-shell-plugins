@@ -165,7 +165,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await driver.wait(until.elementLocated(locator.dbConnectionOverview.tab),
                     constants.wait5seconds, "Could not find the 'Connection Overview tab'").click();
             } catch (e) {
-                await Misc.storeScreenShot("beforeAll_Connection_Overview");
+                await Misc.storeScreenShot("beforeEach_Connection_Overview");
                 throw e;
             }
 

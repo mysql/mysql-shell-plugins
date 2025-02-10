@@ -985,8 +985,10 @@ describe("MYSQL REST SERVICE - CLIPBOARD", () => {
                 constants.wait10seconds);
             await Misc.dismissNotifications();
 
-            let treeSakila = await dbTreeSection.getTreeItem(otherService.restSchemas![0].settings!.schemaName!);
-            await treeSakila.openContextMenuAndSelect(constants.addSchemaToREST);
+            await dbTreeSection.expandTree([otherService.restSchemas![0].settings!.schemaName!, "Tables"]);
+
+            await dbTreeSection.openContextMenuAndSelect(otherService.restSchemas![0].settings!.schemaName!,
+                constants.addSchemaToREST);
 
             otherService.restSchemas![0] = await RestSchemaDialog.set(otherService.restSchemas![0]);
             notification = await new E2EToastNotification().create();
@@ -996,21 +998,18 @@ describe("MYSQL REST SERVICE - CLIPBOARD", () => {
             await driver.wait(dbTreeSection.untilTreeItemExists(otherService.restSchemas![0].treeName!),
                 constants.wait10seconds);
 
-            treeSakila = await dbTreeSection.getTreeItem(otherService.restSchemas![0].settings!.schemaName!);
-            await treeSakila.expand();
-            const treeTables = await dbTreeSection.getTreeItem("Tables");
-            await treeTables.expand();
-            await driver.wait(treeTables.untilHasChildren(), constants.wait5seconds);
-
-            const treeAddress = await dbTreeSection.getTreeItem("address");
-            await treeAddress.openContextMenuAndSelect(constants.addDBObjToREST);
+            await dbTreeSection.openContextMenuAndSelect("address", constants.addDBObjToREST);
             await RestObjectDialog.set({ restServicePath: otherService.treeName });
+            await (await treeGlobalConn.getActionButton(constants.refreshConnection))!.click();
 
-            const treeRestSakila = await dbTreeSection.getTreeItem(otherService.restSchemas![0].treeName!);
-            await treeRestSakila.expand();
+            await dbTreeSection.expandTree([
+                otherService.servicePath,
+                otherService.restSchemas![0].treeName!,
+            ]);
 
             await driver.wait(dbTreeSection
                 .untilTreeItemExists(otherService.restSchemas![0].restObjects![1].treeName!), constants.wait3seconds);
+
             notification = await new E2EToastNotification().create();
             const notifications = await Misc.getToastNotifications();
 

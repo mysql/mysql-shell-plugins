@@ -1368,7 +1368,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Workbench.openEditor(globalConn.caption);
 
             const notebook = await new E2ENotebook().untilIsOpened(globalConn);
-            let result = await notebook.codeEditor.execute("select database();") as E2ECommandResultGrid;
+            let result = await notebook.codeEditor.execute("SELECT DATABASE();") as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
             expect(await result.resultContext.getAttribute("innerHTML"))
                 .to.match(new RegExp((globalConn.basic as interfaces.IConnBasicMySQL).schema));
@@ -1379,7 +1379,7 @@ describe("DATABASE CONNECTIONS", () => {
                 errors.notDefault("sakila")).to.be.false;
             await Workbench.openEditor(globalConn.caption);
             await notebook.codeEditor.clean();
-            result = await notebook.codeEditor.execute("select database();") as E2ECommandResultGrid;
+            result = await notebook.codeEditor.execute("SELECT DATABASE();") as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
             expect(await result.resultContext.getAttribute("innerHTML")).to.match(/world_x_cst/);
             await Workbench.closeAllEditors();
