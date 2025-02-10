@@ -489,12 +489,22 @@ export class E2EAccordionSection {
      */
     public expandTree = async (tree: string[]): Promise<void> => {
         for (const item of tree) {
-            const treeItem = await this.getTreeItem(item);
+            await driver.wait(async () => {
+                try {
+                    const treeItem = await this.getTreeItem(item);
 
-            if (await treeItem.isExpandable()) {
-                await treeItem.expand();
-                await driver.wait(treeItem.untilHasChildren(), constants.wait10seconds);
-            }
+                    if (await treeItem.isExpandable()) {
+                        await treeItem.expand();
+                        await driver.wait(treeItem.untilHasChildren(), constants.wait10seconds);
+                    }
+
+                    return true;
+                } catch (e) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
+                        throw e;
+                    }
+                }
+            }, constants.wait5seconds, `Could not expand tree ${tree.toString()}`);
         }
     };
 

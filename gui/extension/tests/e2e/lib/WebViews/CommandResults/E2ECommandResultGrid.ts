@@ -1547,7 +1547,11 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             if (await isFocused()) {
                 return;
             } else {
-                await keyboard.type(nutKey.Tab);
+                if (Os.isWindows()) {
+                    await driver.actions().keyDown(Key.TAB).keyUp(Key.TAB).perform();
+                } else {
+                    await keyboard.type(nutKey.Tab);
+                }
             }
         }
 
@@ -1606,7 +1610,12 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
                         case constants.pressEnter: {
                             await this.focusCell(rowNumber, columnName);
-                            await keyboard.type(nutKey.Enter);
+
+                            if (Os.isWindows()) {
+                                await driver.actions().keyDown(Key.ENTER).keyUp(Key.ENTER).perform();
+                            } else {
+                                await keyboard.type(nutKey.Enter);
+                            }
                             break;
                         }
 

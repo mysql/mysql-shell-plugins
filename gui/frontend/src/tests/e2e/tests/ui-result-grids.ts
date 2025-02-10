@@ -323,7 +323,11 @@ describe("RESULT GRIDS", () => {
                 }
 
                 for (let i = 1; i <= tableColumns.length - 1; i++) {
-                    await result.reduceCellWidth(rowNumber, tableColumns[i]);
+                    if (i === tableColumns.length - 1) {
+                        await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                    } else {
+                        await result.reduceCellWidth(rowNumber, tableColumns[i]);
+                    }
 
                     const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
                     await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),

@@ -641,7 +641,7 @@ export class E2ECodeEditor {
                     throw e;
                 }
             }
-        }, constants.wait5seconds);
+        }, constants.wait5seconds, `Could not verify if text '${text}' exists`);
 
         return isTextOnEditor;
     };

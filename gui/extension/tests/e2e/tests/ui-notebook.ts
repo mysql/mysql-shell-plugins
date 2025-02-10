@@ -732,7 +732,7 @@ describe("NOTEBOOKS", () => {
             try {
                 await dbTreeSection.createDatabaseConnection(heatWaveConn);
                 await (await new DatabaseConnectionOverview().getConnection(heatWaveConn.caption)).click();
-                await driver.wait(notebook.untilIsOpened(heatWaveConn), constants.wait5seconds);
+                await driver.wait(notebook.untilIsOpened(heatWaveConn), constants.wait10seconds);
                 let result = await notebook.codeEditor.getLastExistingCommandResult(true) as E2ECommandResultData;
                 await driver.wait(result.heatWaveChatIsDisplayed(), constants.wait5seconds);
                 result = await notebook.codeEditor.refreshResult(result.command, result.id) as E2ECommandResultData;

@@ -60,6 +60,7 @@ export class E2ENotebook {
             await Misc.switchToFrame();
             const confirmDialog = new ConfirmDialog();
             const existsFingerPrintDialog = await confirmDialog.exists();
+
             if (existsFingerPrintDialog) {
                 await confirmDialog.accept();
             }
