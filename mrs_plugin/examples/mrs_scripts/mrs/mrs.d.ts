@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -32,8 +32,15 @@ declare function print(out: string): void;
 declare class SqlError extends Error {
 }
 
+declare interface IMrsRow {
+    getField: (name: string) => unknown | null;
+}
+
 declare interface IMrsResultSet {
-    rows: IDictionary[];
+    fetchOneObject: () => IDictionary | null;
+    fetchOne: () => IMrsRow | unknown[] | IDictionary | null;
+    fetchAll: () => IMrsRow[] | unknown[][] | IDictionary[];
+    nextResult: () => boolean;
 }
 
 declare class Session {
@@ -43,4 +50,5 @@ declare class Session {
 }
 
 declare function getSession(readOnly?: boolean): Session;
+declare function getCurrentMrsUserId(): string | undefined;
 declare var contentSetPath: string;

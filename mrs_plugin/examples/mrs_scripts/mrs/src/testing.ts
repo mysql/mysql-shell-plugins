@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -29,6 +29,7 @@ export const describe = async (name: string, tests: () => Promise<void>): Promis
     // Initialize global session with a mock session
     globalThis.getSession = getSession;
     globalThis.contentSetPath = ".";
+    globalThis.getCurrentMrsUserId = () => { return ""; };
 
     const title = `Starting tests for ${name}`;
     print(`${title}\n${"=".repeat(title.length)}`);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -51,7 +51,7 @@ describe("MRS Script tests", async () => {
         // Push mock results so runSql() will return them instead of actually querying the database
         getSession().pushRunSqlResults([{ "name": userName }]);
 
-        const result = await MrsScriptModule.helloUser("0x12345678");
+        const result = await MrsScriptModule.helloUser();
         if (result.greeting !== `Hello ${userName}!`) {
             throw Error("The greeting was not composed correctly.");
         }
