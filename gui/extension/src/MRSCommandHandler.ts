@@ -1563,7 +1563,7 @@ export class MRSCommandHandler {
                     const routerBootstrapPath = routerBinDir !== undefined
                         ? join(routerBinDir, "mysqlrouter_bootstrap") : "mysqlrouter_bootstrap";
                     const basePort = 6446 + (entry?.connection.details.id ?? 0) * 4;
-                    const httpPort = 8443 + (entry?.connection.details.id ?? 0);
+                    const httpPort = 8443 + (entry?.connection.details.id ?? 0) * 2;
                     let bootstrapCommand =
                         `${routerBootstrapPath} ${connString} --mrs --directory "${routerConfigDir}" ` +
                         `"--conf-set-option=http_server.ssl_cert=${path.join(certDir, "server.crt")}" ` +
@@ -1574,7 +1574,8 @@ export class MRSCommandHandler {
 
                     // Add --mrs-developer option to set the development user for this router instance
                     if (mysqlConnOptions.user) {
-                        bootstrapCommand += ` --mrs-developer "${mysqlConnOptions.user}"`;
+                        bootstrapCommand += ` --mrs-developer "${mysqlConnOptions.user}" `;
+                        bootstrapCommand += ` --mrs-developer-debug-port "${(httpPort + 1).toString()}" `;
                     }
                     term.sendText(bootstrapCommand, !waitAndClosedWhenFinished);
 

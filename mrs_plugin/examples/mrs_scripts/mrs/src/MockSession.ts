@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,6 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { MockResultSet } from "./MockResultSet.js";
 import { Session } from "./Session.js"
 import { SqlError } from "./SqlError.js";
 
@@ -46,11 +47,16 @@ export class MockSession extends Session {
         }
     };
 
+
+    public get runSqlTestBuffer() {
+        return this.#runSqlTestBuffer;
+    }
+
     public async runSql(sql: string, params?: unknown): Promise<IMrsResultSet> {
         return new Promise((resolve, reject) => {
-            const res = this.#runSqlTestBuffer.shift();
-            if (res) {
-                resolve({ rows: res });
+            if (this.#runSqlTestBuffer.length > 0) {
+                const result = new MockResultSet(this);
+                resolve(result);
             } else {
                 throw new SqlError("No result available.");
             }

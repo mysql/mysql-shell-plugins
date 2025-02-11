@@ -105,18 +105,28 @@ class MrsScriptModule {
         rowOwnershipParameter: "userId",
         grants: { privileges: "SELECT", schema: "mysql_rest_service_metadata", object: "mrs_user" },
     })
-    public static async helloUser(userId: string): Promise<IMrsTimedGreeting> {
+    public static async helloUser(): Promise<IMrsTimedGreeting> {
         const now = new Date();
 
-        const userName: string = (await getSession().runSql(
-            "SELECT name FROM mysql_rest_service_metadata.mrs_user WHERE id = ?", [userId])
-        ).rows.at(0)?.["name"] as string;
-        if (userName === undefined) {
-            throw new SqlError("Unable to find the given user.")
+        const userId: string | undefined = (await getCurrentMrsUserId());
+
+        if (userId != undefined) {
+            const userName: string = (await getSession().runSql(
+                "SELECT name FROM mysql_rest_service_metadata.mrs_user WHERE id = UNHEX(?)", [userId])
+            ).fetchOneObject()?.["name"] as string;
+
+            if (userName === undefined) {
+                throw new SqlError("Unable to find the given user.")
+            }
+            return {
+                greeting: `Hello ${userName}!`,
+                timeStamp: now.toISOString().replace("T", " ").substring(0, 19),
+            };
         }
 
+
         return {
-            greeting: `Hello ${userName}!`,
+            greeting: `Hello anonymous user!`,
             timeStamp: now.toISOString().replace("T", " ").substring(0, 19),
         };
     }
@@ -133,11 +143,9 @@ class MrsScriptModule {
         let versions: IMrsVersion[] = [];
 
         for (const view of ["schema_version", "mrs_user_schema_version"]) {
-            const rows = (await getSession().runSql(
-                `SELECT major, minor, patch FROM mysql_rest_service_metadata.${view}`)).rows;
-            if (rows?.length > 0) {
-                const row = rows[0];
-
+            const row = (await getSession().runSql(
+                `SELECT major, minor, patch FROM mysql_rest_service_metadata.${view}`)).fetchOneObject();
+            if (row !== null) {
                 versions.push({
                     major: row["major"] as number,
                     minor: row["minor"] as number,

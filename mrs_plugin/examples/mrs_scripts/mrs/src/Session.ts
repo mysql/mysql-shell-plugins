@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+const fetchOneObject = (): IDictionary => { return {}; }
+const fetchOne = (): IMrsRow | null => { return null; }
+const fetchAll = (): IMrsRow[] => { return []; }
+const nextResult = (): boolean => { return true; }
+
 export class Session {
-    public pushRunSqlResults(...res: IDictionary[][]): void {}
+    public pushRunSqlResults(...res: IDictionary[][]): void { }
 
     public runSql(sql: string, params?: unknown): Promise<IMrsResultSet> {
         return new Promise((resolve, reject) => {
-            resolve({ rows: [] });
+            resolve({ fetchOneObject, fetchOne, fetchAll, nextResult });
         });
     };
 }
