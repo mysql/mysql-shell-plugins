@@ -281,12 +281,12 @@ Execute \\help or \\? for help;`;
     private mrsLoginResult?: IMrsLoginResult;
 
     // The global object that holds the properties which can be accessed across code blocks
-    #globalScriptingObject: IDictionary = {};
+    private globalScriptingObject: IDictionary = {};
 
     // This is set during rendering to have it available in code outside of the render method.
     // Another way would be to access it using `this.context as DBEditorContextType`, but for some unknown reason
     // that doesn't work in this component.
-    #documentDataModel: OpenDocumentDataModel | undefined;
+    private documentDataModel: OpenDocumentDataModel | undefined;
 
     public constructor(props: IDBConnectionTabProperties) {
         super(props);
@@ -388,7 +388,7 @@ Execute \\help or \\? for help;`;
         const className = this.getEffectiveClassNames(["connectionTabHost"]);
 
         return <DBEditorContext.Consumer>{(context) => {
-            this.#documentDataModel = context?.documentDataModel;
+            this.documentDataModel = context?.documentDataModel;
 
             let document;
             const activeEditor = this.findActiveEditor();
@@ -668,8 +668,8 @@ Execute \\help or \\? for help;`;
         const { id, onSelectItem, connection } = this.props;
 
         // Create a new document entry for the script. Its parent will be set by the editor module.
-        if (this.#documentDataModel) {
-            const script = this.#documentDataModel.openDocument(undefined, {
+        if (this.documentDataModel) {
+            const script = this.documentDataModel.openDocument(undefined, {
                 type: OdmEntityType.Script,
                 parameters: {
                     pageId: id!,
@@ -926,7 +926,7 @@ Execute \\help or \\? for help;`;
         const { id, connection } = this.props;
 
         if (id && connection) {
-            const document = this.#documentDataModel?.openDocument(undefined, {
+            const document = this.documentDataModel?.openDocument(undefined, {
                 type: OdmEntityType.AdminPage,
                 parameters: {
                     pageId: id,
@@ -2007,41 +2007,36 @@ Execute \\help or \\? for help;`;
         }
 
         switch (context.language) {
-            case "javascript": {
-                workerPool.runTask({ api: ScriptingApi.Request, code: context.code, contextId: context.id })
-                    .then((taskId: number, data: IConsoleWorkerResultData) => {
-                        void this.handleTaskResult(taskId, data);
-                    });
-
-                break;
-            }
-
+            case "javascript":
             case "typescript": {
                 await this.updateMrsServiceSdkCache();
 
                 const usesAwait = context.code.includes("await ");
+                let code = (usesAwait
+                    ? "(async () => {\n" + context.code + "})()"
+                    : context.code);
+
+                if (context.language === "typescript") {
+                    // The MRS service SDK is only available in TypeScript.
+                    code = ts.transpile((this.cachedMrsServiceSdk.code ?? "") + code, {
+                        alwaysStrict: true, target: ScriptTarget.ES2022, inlineSourceMap: true,
+                    });
+                }
 
                 // Execute the code
                 workerPool.runTask({
                     api: ScriptingApi.Request,
+
                     // Detect if the code includes "await " and if so, wrap the code in a self-executing async function.
                     // This is done to allow direct execution of awaits on async functions.
-                    // Further, the temporary string "\nexport{}\n" is removed from the code.
                     // Please note that the libCodeLineNumbers need to be adjusted accordingly.
                     // See EmbeddedPresentationInterface.tsx for details.
                     libCodeLineNumbers: (this.cachedMrsServiceSdk.codeLineCount
                         ? this.cachedMrsServiceSdk.codeLineCount - 1 : 0) +
                         (usesAwait ? 1 - 2 + 2 : 0),
-                    code: ts.transpile((this.cachedMrsServiceSdk.code ?? "") +
-                        (usesAwait
-                            ? "(async () => {\n" + context.code + "})()"
-                            : context.code), {
-                        alwaysStrict: true,
-                        target: ScriptTarget.ES2022,
-                        inlineSourceMap: true,
-                    }),
+                    code,
                     contextId: context.id,
-                    globalScriptingObject: this.#globalScriptingObject,
+                    globalScriptingObject: this.globalScriptingObject,
                 }).then((taskId: number, data: IConsoleWorkerResultData) => {
                     void this.handleTaskResult(taskId, data);
                 });
@@ -2363,7 +2358,7 @@ Execute \\help or \\? for help;`;
                     const context = this.runningContexts.get(data.contextId);
 
                     if (data.name !== undefined && context) {
-                        this.#globalScriptingObject[data.name] = data.value;
+                        this.globalScriptingObject[data.name] = data.value;
                     }
 
                     break;

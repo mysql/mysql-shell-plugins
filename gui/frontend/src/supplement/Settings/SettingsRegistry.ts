@@ -273,9 +273,10 @@ export const registerSettings = (): void => {
         false,
         {
             choices: [
-                ["Standard Set", "standard", "Includes only a solid marker for editor rows"],
+                ["Standard", "standard", "No special decoration for editor rows"],
+                ["Solid Lines", "line", "Shows a solid marker for editor rows"],
                 [
-                    "Alternative Set",
+                    "Hatched Lines",
                     "alternative",
                     "Uses a hatch pattern with different colors to separate editor content and result areas",
                 ],

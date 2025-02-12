@@ -127,11 +127,13 @@
                     "description": "Select one of the sets to be used to mark code block and results in mixed language code editors.",
                     "enum": [
                         "standard",
+                        "line",
                         "alternative"
                     ],
                     "enumDescriptions": [
-                        "Includes only a solid marker for editor rows",
-                        "Uses a hatch pattern with different colors to mark editor content and result areas"
+                        "No special decoration for editor rows",
+                        "Shows a solid marker for editor rows",
+                        "Uses a hatch pattern with different colors to separate editor content and result areas"
                     ]
                 },
                 "msg.editor.wordWrap": {
