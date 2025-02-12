@@ -683,9 +683,9 @@ def calculate_crud_operations(db_object_type, objects=None, options=None):
         return ["CREATE", "READ", "UPDATE"]
     if db_object_type == "PROCEDURE" or db_object_type == "FUNCTION":
         if options is not None and options.get("mysqlTask", None) is not None:
-            return ["READ", "UPDATE", "DELETE"]
+            return ["CREATE", "READ", "UPDATE", "DELETE"]
         else:
-            return ["UPDATE"]
+            return ["CREATE"]
 
     if objects is None:
         return ["READ"]
