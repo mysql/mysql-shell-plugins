@@ -329,7 +329,7 @@ export class E2EAccordionSection {
                                 }
                             }
 
-                            if (refCaption === caption) {
+                            if (refCaption.includes(caption)) {
                                 el = new E2ETreeItem(item);
                                 await el.setLevel();
                                 await el.setCaption();

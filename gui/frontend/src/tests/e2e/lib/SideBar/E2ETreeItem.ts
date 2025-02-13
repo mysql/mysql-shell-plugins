@@ -215,9 +215,9 @@ export class E2ETreeItem extends WebElement {
 
         await driver.actions().move({ origin: this }).perform();
 
-        if (actionButton === constants.openNewDatabaseConnectionOnNewTab) {
+        if (actionButton === constants.openNewConnectionUsingNotebook) {
             treeItemActionButton = await this
-                .findElement(locator.section.tree.element.actions.openNewDatabaseConnection);
+                .findElement(locator.section.tree.element.actions.openNewConnectionUsingNotebook);
         } else if (actionButton === constants.refreshConnection) {
             treeItemActionButton = await this
                 .findElement(locator.section.tree.element.actions.refreshConnection);

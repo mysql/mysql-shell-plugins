@@ -1007,7 +1007,8 @@ export const section = {
             openEditorTreeEntry: By.className("documentTreeEntry"),
             label: By.className("label"),
             actions: {
-                openNewDatabaseConnection: By.xpath(".//div[@data-tooltip='Open New Database Connection on New Tab']"),
+                openNewConnectionUsingNotebook: By
+                    .xpath(".//div[@data-tooltip='Open New Connection using Notebook']"),
                 refreshConnection: By.xpath(".//div[@data-tooltip='Refresh Connection']"),
                 newMySQLScript: By.xpath(".//div[@data-tooltip='New MySQL Script']"),
                 loadSQLScriptFromDisk: By.xpath(".//div[@data-tooltip='Load SQL Script from Disk...']"),

@@ -467,6 +467,8 @@ Execute \\help or \\? for help;`;
                     }
 
                     case OdmEntityType.AdminPage: {
+                        this.notebookRef.current = null;
+                        this.scriptRef.current = null;
                         switch (activeEditor.document.pageType) {
                             case "serverStatus": {
                                 document = <ServerStatus

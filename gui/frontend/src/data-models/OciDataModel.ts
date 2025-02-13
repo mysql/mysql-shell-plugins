@@ -656,11 +656,23 @@ export class OciDataModel {
                 const error = errorLine.substring(errorLine.indexOf("{"));
 
                 // OCI errors are just serialized python dictionaries, so they use single quotes.
-                // TODO: check if this is still true. It doesn't work with embedded single quotes.
-                const json = error.replace(/'/g, "\"");
-                const errorDetails = JsonParser.parseJson(json) as IDictionary;
+                // TODO: check if this is still true. It doesn't work with embedded single quotes, so replace only
+                //       selected single quotes.
+                const json = error
+                    .replace(/: '/g, ": \"")
+                    .replace(/':/g, "\":")
+                    .replace(/',/g, "\",")
+                    .replace(/, '/g, ", \"")
+                    .replace(/{'/g, "{\"")
+                    .replace(/'}/g, ",\"}");
 
-                return errorDetails.message as string;
+                try {
+                    const errorDetails = JsonParser.parseJson(json) as IDictionary;
+
+                    return errorDetails.message as string;
+                } catch {
+                    return "Failed to parse the OCI server error message.";
+                }
             }
         }
     }

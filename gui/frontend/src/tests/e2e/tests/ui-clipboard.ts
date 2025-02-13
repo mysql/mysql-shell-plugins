@@ -485,7 +485,7 @@ describe("CLIPBOARD", () => {
                 await dbTreeSection.focus();
                 await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.wait5seconds);
                 const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
-                await (await treeGlobalConn.getActionButton(constants.openNewDatabaseConnectionOnNewTab))!.click();
+                await (await treeGlobalConn.getActionButton(constants.openNewConnectionUsingNotebook))!.click();
                 notebook = await new E2ENotebook().untilIsOpened(globalConn);
                 await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
             } catch (e) {
@@ -769,7 +769,7 @@ describe("CLIPBOARD", () => {
         beforeAll(async () => {
             try {
                 const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
-                await (await treeGlobalConn.getActionButton(constants.openNewDatabaseConnectionOnNewTab))!.click();
+                await (await treeGlobalConn.getActionButton(constants.openNewConnectionUsingNotebook))!.click();
                 notebook = await new E2ENotebook().untilIsOpened(globalConn);
             } catch (e) {
                 await Misc.storeScreenShot("beforeAll_NOTEBOOKS_clipboard");

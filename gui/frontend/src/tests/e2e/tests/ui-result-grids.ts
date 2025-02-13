@@ -94,7 +94,7 @@ describe("RESULT GRIDS", () => {
 
             const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
             await treeGlobalConn.expand(globalConn);
-            await (await treeGlobalConn.getActionButton(constants.openNewDatabaseConnectionOnNewTab))!.click();
+            await (await treeGlobalConn.getActionButton(constants.openNewConnectionUsingNotebook))!.click();
             notebook = await new E2ENotebook().untilIsOpened(globalConn);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_RESULT-GRIDS");
@@ -1507,21 +1507,21 @@ describe("RESULT GRIDS", () => {
                 expect(await dialog.getText()).toMatch(dialogMessage);
                 await dialog.alternative();
                 expect((await anotherConnNotebook.toolbar.editorSelector.getCurrentEditor()).label)
-                    .toBe(constants.dbNotebook);
+                    .toBe(`${constants.dbNotebook} 1`);
 
                 await (await dbTreeSection.getTreeItem(constants.clientConnections)).click();
                 dialog = await new ConfirmDialog().untilExists();
                 expect(await dialog.getText()).toMatch(dialogMessage);
                 await dialog.alternative();
                 expect((await anotherConnNotebook.toolbar.editorSelector.getCurrentEditor()).label)
-                    .toBe(constants.dbNotebook);
+                    .toBe(`${constants.dbNotebook} 1`);
 
                 await (await dbTreeSection.getTreeItem(constants.performanceDashboard)).click();
                 dialog = await new ConfirmDialog().untilExists();
                 expect(await dialog.getText()).toMatch(dialogMessage);
                 await dialog.alternative();
                 expect((await anotherConnNotebook.toolbar.editorSelector.getCurrentEditor()).label)
-                    .toBe(constants.dbNotebook);
+                    .toBe(`${constants.dbNotebook} 1`);
 
                 await anotherConnNotebook.toolbar.editorSelector.selectEditor(/DB Connection Overview/);
                 dialog = await new ConfirmDialog().untilExists();

@@ -60,8 +60,7 @@ import { Assets } from "../../../supplement/Assets.js";
 import { appParameters, requisitions } from "../../../supplement/Requisitions.js";
 import { DBType } from "../../../supplement/ShellInterface/index.js";
 import { EditorLanguage } from "../../../supplement/index.js";
-import { convertErrorToString } from "../../../utilities/helpers.js";
-import { DBEditorModuleId } from "../../ModuleInfo.js";
+import { convertErrorToString, uuid } from "../../../utilities/helpers.js";
 import { EnabledState } from "../../mrs/mrs-helpers.js";
 import { MrsDbObjectType } from "../../mrs/types.js";
 import {
@@ -1513,16 +1512,44 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         switch (data.dataModelEntry.type) {
             case CdmEntityType.Connection: {
                 const connection = data.dataModelEntry;
-                const playButton = <Button
+                const runNotebookButton = <Button
                     className="actionButton"
-                    data-tooltip="Open New Database Connection on New Tab"
+                    data-tooltip="Open New Connection using Notebook"
                     imageOnly
                     onClick={() => {
-                        void requisitions.execute("showPage",
-                            { module: DBEditorModuleId, page: String(connection.details.id) });
+                        void requisitions.execute("openDocument", {
+                            pageId: String(connection.details.id),
+                            connection: connection.details,
+                            documentDetails: {
+                                id: uuid(),
+                                type: OdmEntityType.Notebook,
+                                caption: connection.caption,
+                                language: "msg",
+                            },
+                        });
                     }}
                 >
-                    <Icon src={Codicon.Play} data-tooltip="inherit" />
+                    <Icon src={Assets.db.runNotebookIcon} data-tooltip="inherit" />
+                </Button>;
+
+                const runScriptButton = <Button
+                    className="actionButton"
+                    data-tooltip="Open New Connection using SQL Script"
+                    imageOnly
+                    onClick={() => {
+                        void requisitions.execute("openDocument", {
+                            pageId: String(connection.details.id),
+                            connection: connection.details,
+                            documentDetails: {
+                                id: uuid(),
+                                type: OdmEntityType.Script,
+                                caption: "SQL Script",
+                                language: connection.details.dbType === DBType.MySQL ? "mysql" : "sql",
+                            },
+                        });
+                    }}
+                >
+                    <Icon src={Assets.db.runScriptIcon} data-tooltip="inherit" />
                 </Button>;
 
                 const refreshButton = <Button
@@ -1537,7 +1564,8 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                 </Button>;
 
                 actionBox = <Container className="actionBox" orientation={Orientation.LeftToRight}>
-                    {playButton}
+                    {runNotebookButton}
+                    {runScriptButton}
                     {refreshButton}
                 </Container>;
 
@@ -3068,7 +3096,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                             });
                         }
 
-                        await this.diffTreeEntries(row, generator, children);
+                        await this.diffTreeEntries(row, generator, recursive, children);
                     }
 
                     break;
@@ -3076,7 +3104,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 case CdmEntityType.Schema:
                 case CdmEntityType.SchemaGroup: {
-                    await this.diffTreeEntries(row, generator, children);
+                    await this.diffTreeEntries(row, generator, recursive, children);
 
                     break;
                 }
@@ -3084,20 +3112,20 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                 case CdmEntityType.TableGroup:
                 case CdmEntityType.Table: {
 
-                    await this.diffTreeEntries(row, generator, children);
+                    await this.diffTreeEntries(row, generator, recursive, children);
 
                     break;
                 }
 
                 case CdmEntityType.MrsSchema: {
                     generator = this.generateConnectionTreeChild.bind(this, entry.caption, undefined);
-                    await this.diffTreeEntries(row, generator, children);
+                    await this.diffTreeEntries(row, generator, recursive, children);
 
                     break;
                 }
 
                 default: {
-                    await this.diffTreeEntries(row, generator, children);
+                    await this.diffTreeEntries(row, generator, recursive, children);
                 }
             }
 
@@ -3141,7 +3169,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
             switch (entry.type) {
                 case OdmEntityType.ConnectionPage:
                 case OdmEntityType.ShellSessionRoot: {
-                    await this.diffTreeEntries(row, this.generateTreeItem, entry.getChildren?.());
+                    await this.diffTreeEntries(row, this.generateTreeItem, false, entry.getChildren?.());
 
                     break;
                 }
@@ -3184,13 +3212,13 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
             switch (entry.type) {
                 case OciDmEntityType.ConfigurationProfile: {
                     await entry.refresh?.();
-                    await this.diffTreeEntries(row, generator, entry.getChildren?.());
+                    await this.diffTreeEntries(row, generator, false, entry.getChildren?.());
 
                     break;
                 }
 
                 case OciDmEntityType.Bastion: {
-                    await this.diffTreeEntries(row, generator, entry.getChildren?.());
+                    await this.diffTreeEntries(row, generator, false, entry.getChildren?.());
 
                     break;
                 }
@@ -3211,10 +3239,11 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
      *
      * @param row The row to add the children to.
      * @param generator The function to generate a tree item for a given data model entry.
+     * @param recursive Whether to update the children recursively.
      * @param entries The entries to compare.
      */
     private async diffTreeEntries<T extends IDataModelBaseEntry>(row: RowComponent,
-        generator: TreeItemGenerator<T>, entries?: T[]): Promise<void> {
+        generator: TreeItemGenerator<T>, recursive: boolean, entries?: T[]): Promise<void> {
 
         if (!entries) {
             const data = row.getData() as IBaseTreeItem<T>;
@@ -3251,8 +3280,8 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                 newList.push(data.dataModelEntry);
 
                 // Diff children if the entry was expanded once.
-                if (data.dataModelEntry.state.expandedOnce) {
-                    await this.diffTreeEntries(item, generator, entry.getChildren?.() as T[]);
+                if (data.dataModelEntry.state.expandedOnce && recursive) {
+                    await this.diffTreeEntries(item, generator, true, entry.getChildren?.() as T[]);
                 }
             } else {
                 newList.push(entry);
