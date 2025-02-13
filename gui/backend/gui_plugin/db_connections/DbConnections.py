@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -34,7 +34,7 @@ from gui_plugin.core.Error import MSGException
 from gui_plugin.core.modules.DbModuleSession import DbModuleSession
 
 
-@plugin_function('gui.dbConnections.addDbConnection', shell=False, web=True)
+@plugin_function('gui.dbConnections.addDbConnection', cli=True, shell=True, web=True)
 def add_db_connection(profile_id, connection, folder_path='',
                       be_session=None):
     """Add a new db_connection and associate the connection with a profile
@@ -111,7 +111,7 @@ def add_db_connection(profile_id, connection, folder_path='',
     return connection_id
 
 
-@plugin_function('gui.dbConnections.updateDbConnection', shell=False, web=True)
+@plugin_function('gui.dbConnections.updateDbConnection', cli=True, shell=True, web=True)
 def update_db_connection(profile_id, connection_id, connection, folder_path='', be_session=None):
     """Update the data for a database connection
 
@@ -175,7 +175,7 @@ def update_db_connection(profile_id, connection_id, connection, folder_path='', 
                            (index, profile_id, connection['folder_path'], connection_id))
 
 
-@plugin_function('gui.dbConnections.removeDbConnection', shell=False, web=True)
+@plugin_function('gui.dbConnections.removeDbConnection', cli=True, shell=True, web=True)
 def remove_db_connection(profile_id, connection_id, be_session=None):
     """Remove a db_connection by disassociating the connection from a profile
 
@@ -206,7 +206,7 @@ def remove_db_connection(profile_id, connection_id, be_session=None):
                     WHERE id=?''', (connection_id,))
 
 
-@plugin_function('gui.dbConnections.listDbConnections', shell=False, web=True)
+@plugin_function('gui.dbConnections.listDbConnections', cli=True, shell=True, web=True)
 def list_db_connections(profile_id, folder_path='', be_session=None):
     """Lists the db_connections for the given profile
 
@@ -230,7 +230,7 @@ def list_db_connections(profile_id, folder_path='', be_session=None):
                          (profile_id, '%' if folder_path == '' else folder_path))
 
 
-@plugin_function('gui.dbConnections.getDbConnection', shell=False, web=True)
+@plugin_function('gui.dbConnections.getDbConnection', cli=True, shell=True, web=True)
 def get_db_connection(db_connection_id, be_session=None):
     """Get the a db_connection
 
@@ -247,7 +247,7 @@ def get_db_connection(db_connection_id, be_session=None):
                          (db_connection_id,))[0]
 
 
-@plugin_function('gui.dbConnections.getDbTypes', shell=False, web=True)
+@plugin_function('gui.dbConnections.getDbTypes', cli=True, shell=True, web=True)
 def get_db_types():
     """Get the list of db_types
 
@@ -258,7 +258,7 @@ def get_db_types():
     return DbSessionFactory.getSessionTypes()
 
 
-@plugin_function('gui.dbConnections.setCredential', shell=False, web=True)
+@plugin_function('gui.dbConnections.setCredential', cli=True, shell=True, web=True)
 def set_credential(url, password):
     """Set the password of a db_connection url
 
@@ -276,7 +276,7 @@ def set_credential(url, password):
     mysqlsh.globals.shell.store_credential(url, password)
 
 
-@plugin_function('gui.dbConnections.deleteCredential', shell=False, web=True)
+@plugin_function('gui.dbConnections.deleteCredential', cli=True, shell=True, web=True)
 def delete_credential(url):
     """Deletes the password of a db_connection url
 
@@ -293,7 +293,7 @@ def delete_credential(url):
     mysqlsh.globals.shell.delete_credential(url)
 
 
-@plugin_function('gui.dbConnections.listCredentials', shell=False, web=True)
+@plugin_function('gui.dbConnections.listCredentials', cli=True, shell=True, web=True)
 def list_credentials():
     """Lists the db_connection urls that have a password stored
 
@@ -306,7 +306,7 @@ def list_credentials():
     return mysqlsh.globals.shell.list_credentials()
 
 
-@plugin_function('gui.dbConnections.testConnection', shell=False, web=True)
+@plugin_function('gui.dbConnections.testConnection', cli=True, shell=True, web=True)
 def test_connection(connection, password=None):
     """Opens test connection
 
