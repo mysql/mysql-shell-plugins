@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -309,7 +309,7 @@ def get_gui_module_list(user_id, be_session=None):
     return modules
 
 
-@plugin_function('gui.users.listProfiles', shell=False, web=True)
+@plugin_function('gui.users.listProfiles', cli=True, shell=True, web=True)
 def list_profiles(user_id, be_session=None):
     """Returns the list of profile for the given user
 
@@ -326,7 +326,7 @@ def list_profiles(user_id, be_session=None):
             WHERE user_id = ?''', (user_id,))
 
 
-@plugin_function('gui.users.getProfile', shell=False, web=True)
+@plugin_function('gui.users.getProfile', cli=True, shell=True, web=True)
 def get_profile(profile_id, be_session=None):
     """Returns the specified profile.
 
@@ -344,7 +344,7 @@ def get_profile(profile_id, be_session=None):
     return profile
 
 
-@plugin_function('gui.users.updateProfile', shell=False, web=True)
+@plugin_function('gui.users.updateProfile', cli=True, shell=True, web=True)
 def update_profile(profile, be_session=None):
     """Updates a user profile.
 
@@ -376,7 +376,7 @@ def update_profile(profile, be_session=None):
                     profile.get('id')))
 
 
-@plugin_function('gui.users.addProfile', shell=False, web=True)
+@plugin_function('gui.users.addProfile', cli=True, shell=True, web=True)
 def add_profile(user_id, profile, be_session=None):
     """Returns the specified profile.
 
@@ -400,7 +400,7 @@ def add_profile(user_id, profile, be_session=None):
     return profile_id
 
 
-@plugin_function('gui.users.deleteProfile', shell=False, web=True)
+@plugin_function('gui.users.deleteProfile', cli=True, shell=True, web=True)
 def delete_profile(user_id, profile_id, be_session=None):
     """Deletes a profile for the current user.
 
@@ -419,7 +419,7 @@ def delete_profile(user_id, profile_id, be_session=None):
                                f"Could not delete any profile with the supplied criteria.")
 
 
-@plugin_function('gui.users.getDefaultProfile', shell=False, web=True)
+@plugin_function('gui.users.getDefaultProfile', cli=True, shell=True, web=True)
 def get_default_profile(user_id, be_session=None):
     """Returns the default profile for the given user.
 
@@ -437,7 +437,7 @@ def get_default_profile(user_id, be_session=None):
     return profile
 
 
-@plugin_function('gui.users.setDefaultProfile', shell=False, web=True)
+@plugin_function('gui.users.setDefaultProfile', cli=True, shell=True, web=True)
 def set_default_profile(user_id, profile_id, be_session=None):
     """Sets the default profile for the given user.
 
@@ -455,7 +455,7 @@ def set_default_profile(user_id, profile_id, be_session=None):
             backend.set_default_profile(db, user_id, profile_id)
 
 
-@plugin_function('gui.users.setCurrentProfile', shell=False, web=True)
+@plugin_function('gui.users.setCurrentProfile', cli=True, shell=True, web=True)
 def set_current_profile(profile_id):
     """Sets the profile of the user's current web session.
 
