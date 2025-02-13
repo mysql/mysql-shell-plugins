@@ -891,7 +891,7 @@ describe("DATABASE CONNECTIONS", () => {
         it("Performance Dashboard - MLE Enabled", async () => {
             try {
                 let treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
-                await (await treeGlobalConn.getActionButton(constants.openNewDatabaseConnectionOnNewTab))!.click();
+                await (await treeGlobalConn.getActionButton(constants.openNewConnectionUsingNotebook))!.click();
                 let notebook = await new E2ENotebook().untilIsOpened(globalConn);
                 let result = await notebook.codeEditor
                     .execute(`INSTALL COMPONENT "file://component_mle";`) as E2ECommandResultData;
@@ -1366,7 +1366,7 @@ describe("DATABASE CONNECTIONS", () => {
                     .schema!)).openContextMenuAndSelect(constants.setAsCurrentDatabaseSchema);
                 let treeSakila = await dbTreeSection.getTreeItem("sakila");
                 await driver.wait(treeSakila.untilIsDefault(), constants.wait3seconds);
-                await (await treeGlobalConn?.getActionButton(constants.openNewDatabaseConnectionOnNewTab))!.click();
+                await (await treeGlobalConn?.getActionButton(constants.openNewConnectionUsingNotebook))!.click();
                 await (await tabContainer.getTab(globalConn.caption!)).click();
 
                 const notebook = await new E2ENotebook().untilIsOpened(globalConn);
@@ -1401,8 +1401,9 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Schema - Send to SQL Editor", async () => {
             try {
+                await dbTreeSection.focus();
                 const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
-                await (await treeGlobalConn.getActionButton(constants.openNewDatabaseConnectionOnNewTab))!.click();
+                await (await treeGlobalConn.getActionButton(constants.openNewConnectionUsingNotebook))!.click();
                 const notebook = await new E2ENotebook().untilIsOpened(globalConn);
                 const schemaName = (globalConn.basic as interfaces.IConnBasicMySQL).schema!;
                 const treeSakila = await dbTreeSection.getTreeItem(schemaName);

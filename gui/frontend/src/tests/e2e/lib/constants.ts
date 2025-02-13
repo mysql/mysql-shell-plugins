@@ -169,7 +169,6 @@ export const refreshConnectionList = "Refresh the connection list";
 export const collapseAll = "Collapse All";
 export const addConsole = "Add new console";
 export const reloadOCIProfiles = "Reload OCI profiles";
-export const openNewDatabaseConnectionOnNewTab = "Open New Database Connection on New Tab";
 export const refreshConnection = "Refresh Connection";
 
 // CONTEXT MENUS

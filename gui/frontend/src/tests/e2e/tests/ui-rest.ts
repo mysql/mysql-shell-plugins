@@ -831,14 +831,14 @@ describe("MYSQL REST SERVICE", () => {
 
             const treeUser = await dbTreeSection.getTreeItem(globalService.authenticationApps![0].user![0].username);
             await treeUser.openContextMenuAndSelect(constants.deleteRESTUser);
-
             await (await new ConfirmDialog().untilExists()).accept();
-            const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
-            await (await treeGlobalConn.getActionButton(constants.refreshConnection))!.click();
+
             const notification = await new E2EToastNotification().create();
             expect(notification!.message).toBe(`The MRS user ${globalService.authenticationApps![0].user![0]
                 .username} has been deleted successfully.`);
             await notification!.close();
+            const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
+            await (await treeGlobalConn.getActionButton(constants.refreshConnection))!.click();
             expect(await treeUser.exists()).toBe(false);
         } catch (e) {
             testFailed = true;

@@ -1240,7 +1240,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
      * @returns A condition resolving to true if status matches the regex
      */
     public untilStatusMatches = (regex: RegExp): Condition<boolean> => {
-        return new Condition("", async () => {
+        return new Condition(`for status to match ${regex.toString()}`, async () => {
             const codeEditor = new E2ECodeEditor(this.id);
             const result = await codeEditor.getResult(this.command, this.id);
             this.resultContext = result;

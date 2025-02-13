@@ -297,10 +297,14 @@ export class ObjectStorageBrowser {
                 } catch (e) {
                     if (!(e instanceof error.StaleElementReferenceError)) {
                         if (String(e).includes("Could not get item")) {
-                            if (!(await this.itemIsExpanded(path[i - 1]))) {
-                                i--;
+                            if (path[i - 1]) {
+                                if (!(await this.itemIsExpanded(path[i - 1]))) {
+                                    i--;
+                                } else {
+                                    (e as Error).message = `${(e as Error).message}. Parent item was not expanded`;
+                                    throw e;
+                                }
                             } else {
-                                e.message = `${e.message}. Parent item was not expanded`;
                                 throw e;
                             }
                         } else {

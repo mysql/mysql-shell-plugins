@@ -80,7 +80,7 @@ describe("NOTEBOOKS", () => {
             const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
 
             await (await treeGlobalConn.getActionButton(
-                constants.openNewDatabaseConnectionOnNewTab))!.click();
+                constants.openNewConnectionUsingNotebook))!.click();
             notebook = await new E2ENotebook().untilIsOpened(globalConn);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_NOTEBOOKS");
@@ -98,7 +98,7 @@ describe("NOTEBOOKS", () => {
 
         let cleanEditor = false;
         let testFailed = false;
-        const destFile = `${process.cwd()}/${globalConn.caption} - ${constants.dbNotebook}.mysql-notebook`;
+        const destFile = `${process.cwd()}/${globalConn.caption} - ${constants.dbNotebook} 1.mysql-notebook`;
 
         afterEach(async () => {
             if (testFailed) {
