@@ -666,8 +666,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                             db_object_id=db_object.get("id"), session=self.session
                         )
 
-                print(f"{json.dumps(mrs_object.get("objects"), indent=4)}=")
-
                 db_object_id, grants = lib.db_objects.add_db_object(
                     session=self.session,
                     schema_id=lib.core.id_to_binary(schema_id, "schema_id"),
@@ -897,11 +895,10 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 # and delete it.
                 if do_replace == True:
                     auth_app = lib.auth_apps.get_auth_app(
-                        service_id=service_id, name=name, session=self.session
+                        name=name, session=self.session
                     )
                     if auth_app is not None:
                         lib.auth_apps.delete_auth_app(
-                            service_id=service_id,
                             app_id=auth_app.get("id"),
                             session=self.session,
                         )
@@ -964,6 +961,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     enabled=mrs_object.get("enabled", 1),
                 )
 
+                if auth_app_id is None:
+                    raise Exception("REST auth app could not be created.")
+
                 self.results.append(
                     {
                         "statementIndex": len(self.results) + 1,
@@ -1009,10 +1009,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 if password == "":
                     raise Exception("The password must not be empty.")
 
-                service_id = self.get_given_or_current_service_id(mrs_object)
-
                 auth_app = lib.auth_apps.get_auth_app(
-                    service_id=service_id, name=authAppName, session=self.session
+                    name=authAppName, session=self.session
                 )
                 if auth_app is None:
                     raise Exception(
@@ -1515,7 +1513,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 service_id = self.get_given_or_current_service_id(mrs_object)
 
                 auth_app = lib.auth_apps.get_auth_app(
-                    service_id=service_id, name=authAppName, session=self.session
+                    name=authAppName, session=self.session
                 )
                 if auth_app is None:
                     raise Exception(
@@ -1847,7 +1845,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 service_id = self.get_given_or_current_service_id(mrs_object)
 
                 auth_app = lib.auth_apps.get_auth_app(
-                    service_id=service_id, name=name, session=self.session
+                    name=name, session=self.session
                 )
                 if auth_app is None:
                     raise Exception(
@@ -1896,7 +1894,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 service_id = self.get_given_or_current_service_id(mrs_object)
 
                 auth_app = lib.auth_apps.get_auth_app(
-                    service_id=service_id, name=authAppName, session=self.session
+                    name=authAppName, session=self.session
                 )
                 if auth_app is None:
                     raise Exception(
@@ -3142,7 +3140,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             )
 
             auth_app = lib.auth_apps.get_auth_app(
-                service_id=service_id, name=name, session=self.session
+                name=name, session=self.session
             )
             if auth_app is None:
                 raise Exception(
