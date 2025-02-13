@@ -240,7 +240,7 @@ def resolve_user(session, user_query:str | bytes):
         if not service:
             raise Exception("service not found")
 
-        auth_app = lib.auth_apps.get_auth_app(session, service_id=service["id"], name=auth_app_name)
+        auth_app = lib.auth_apps.get_auth_app(session, name=auth_app_name)
 
         if not auth_app:
             raise Exception("auth_app not found")

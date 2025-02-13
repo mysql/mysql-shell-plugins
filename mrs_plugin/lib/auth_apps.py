@@ -97,7 +97,7 @@ def get_auth_vendor(session, vendor_id=None, name=None):
         return core.MrsDbExec(sql, [name]).exec(session).first
 
 
-def get_auth_app(session, app_id=None, service_id=None, name=None):
+def get_auth_app(session, app_id=None, name=None):
     with core.MrsDbSession(exception_handler=core.print_exception, session=session) as session:
         # Get current version of metadata schema
         current_version = core.get_mrs_schema_version(session)
@@ -128,7 +128,7 @@ def get_auth_app(session, app_id=None, service_id=None, name=None):
 
             return core.MrsDbExec(sql, [app_id]).exec(session).first
 
-        if service_id is not None and name is not None:
+        if name is not None:
             if current_version[0] <= 2:
                 sql = """
                     SELECT a.id, a.auth_vendor_id, a.service_id, a.name,
@@ -138,7 +138,7 @@ def get_auth_app(session, app_id=None, service_id=None, name=None):
                     FROM `mysql_rest_service_metadata`.`auth_app` a
                         LEFT OUTER JOIN `mysql_rest_service_metadata`.`auth_vendor` v
                             ON v.id = a.auth_vendor_id
-                    WHERE a.service_id = ? AND UPPER(a.name) = UPPER(?)
+                    WHERE UPPER(a.name) = UPPER(?)
                     """
             else:
                 sql = """
@@ -151,10 +151,10 @@ def get_auth_app(session, app_id=None, service_id=None, name=None):
                             ON sa.auth_app_id = a.id
                         LEFT OUTER JOIN `mysql_rest_service_metadata`.`auth_vendor` v
                             ON v.id = a.auth_vendor_id
-                    WHERE sa.service_id = ? AND UPPER(a.name) = UPPER(?)
+                    WHERE UPPER(a.name) = UPPER(?)
                     """
 
-            return core.MrsDbExec(sql, [service_id, name]).exec(session).first
+            return core.MrsDbExec(sql, [name]).exec(session).first
 
 
 def get_auth_apps(session, service_id: bytes, include_enable_state=None):

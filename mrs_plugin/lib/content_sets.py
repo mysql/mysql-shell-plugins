@@ -268,10 +268,21 @@ def add_content_set(session, service_id, request_path, requires_auth=False, comm
     # Example usage:
     # mysqlsh dba@localhost --sql -e "CREATE OR REPLACE REST CONTENT SET /mrsScriptsContent ON SERVICE /myService FROM '~/git/shell-plugins/mrs_plugin/examples/mrs_scripts/' LOAD SCRIPTS"
 
+    if service is None:
+        service = services.get_service(
+            session=session, service_id=service_id)
+
     core.Validations.request_path(request_path, session=session)
 
     if ignore_list is None:
         ignore_list = "*node_modules/*, */.*"
+
+    open_api_ui = False
+    # Expand ${openApiUi} variable path to actual OpenAPI UI
+    if content_dir == r"${openApiUi}":
+        open_api_ui = True
+        content_dir = prepare_open_api_ui(
+            service=service, request_path=request_path, send_gui_message=send_gui_message)
 
     if content_dir is not None and os.path.isdir(os.path.expanduser(content_dir)) is False:
         raise ValueError(
@@ -293,13 +304,7 @@ def add_content_set(session, service_id, request_path, requires_auth=False, comm
 
     # Check if the open_api_ui should be downloaded and if so, download it, extract and patch it and
     # update the content_dir to point to the temporary directory holding it
-    open_api_ui = False
     if content_dir is not None:
-        if content_dir.lower() == "${openApiUi}":
-            open_api_ui = True
-            content_dir = prepare_open_api_ui(
-                service=service, request_path=request_path, send_gui_message=send_gui_message)
-
         # Convert Unix path to Windows
         content_dir = os.path.abspath(
             os.path.expanduser(content_dir))
