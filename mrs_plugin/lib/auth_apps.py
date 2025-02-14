@@ -292,20 +292,28 @@ def add_auth_app(session, service_id, auth_vendor_id, app_name, description, url
 
 def link_auth_app(session, auth_app_id, service_id):
     with core.MrsDbSession(exception_handler=core.print_exception, session=session) as session:
-        core.insert(table="service_has_auth_app", values=[
-            "service_id", "auth_app_id"
-        ]).exec(session, [
-            service_id,
-            auth_app_id,
-        ])
+        try:
+            core.insert(table="service_has_auth_app", values=[
+                "service_id", "auth_app_id"
+            ]).exec(session, [
+                service_id,
+                auth_app_id,
+            ])
+        except Exception as e:
+            if "1062" in str(e):
+                raise Exception("The REST auth app as already been added to the REST service.")
+            else:
+                raise
 
 
 def unlink_auth_app(session, auth_app_id, service_id):
     with core.MrsDbSession(exception_handler=core.print_exception, session=session) as session:
-        core.MrsDbExec("""
+        res = core.MrsDbExec("""
             DELETE FROM `mysql_rest_service_metadata`.`service_has_auth_app`
             WHERE service_id = ? AND auth_app_id = ?
         """, [service_id, auth_app_id]).exec(session)
+        if res.affected_count == 0:
+            raise Exception("The REST auth app cannot be removed as it is not assigned to the REST service.")
 
 
 def delete_auth_app(session, app_id):

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -64,6 +64,7 @@ def test_get_current_service(phone_book):
         "published": 0,
         "sorted_developers": None,
         "name": "mrs",
+        "auth_apps": ["MRS Auth App"],
     }
 
 def test_get_current_content_set():
@@ -153,6 +154,7 @@ def test_validate_service_path(phone_book):
             "published": 0,
             "sorted_developers": None,
             "name": "mrs",
+            "auth_apps": ["MRS Auth App"],
         }
 
         assert schema is not None

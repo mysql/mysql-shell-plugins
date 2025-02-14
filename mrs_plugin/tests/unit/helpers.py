@@ -657,6 +657,7 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
         "published": 0,
         "sorted_developers": None,
         "name": "mrs",
+        "auth_apps": service["auth_apps"],
     }
     assert service == expected, f"{service}\n{expected}"
 

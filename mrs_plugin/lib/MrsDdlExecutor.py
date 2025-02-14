@@ -452,6 +452,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         context_root = mrs_object.get("url_context_root", "")
         url_host_name = mrs_object.pop("url_host_name", "")
         line = mrs_object.pop("line", None)
+        add_auth_apps = mrs_object.pop("add_auth_apps", [])
+        mrs_object.pop("remove_auth_apps", []) # No need to remove auth apps during creation
 
         full_path = self.getFullServicePath(mrs_object=mrs_object)
 
@@ -494,6 +496,16 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     lib.services.set_current_service_id(
                         session=self.session, service_id=self.current_service_id
                     )
+
+                for auth_app_name in add_auth_apps:
+                    auth_app = lib.auth_apps.get_auth_app(
+                        session=self.session, name=auth_app_name)
+                    if auth_app is None:
+                        raise ValueError(f"The given REST authentication app `{auth_app}` was not found.")
+                    lib.auth_apps.link_auth_app(
+                        session=self.session,
+                        auth_app_id=auth_app["id"],
+                        service_id=service_id)
 
                 self.results.append(
                     {
@@ -883,14 +895,10 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         do_replace = mrs_object.pop("do_replace")
 
         name = mrs_object.get("name")
-        full_path = self.getFullServicePath(
-            mrs_object=mrs_object, request_path=f":{name}"
-        )
+        full_path = name
 
         with lib.core.MrsDbTransaction(self.session):
             try:
-                service_id = self.get_given_or_current_service_id(mrs_object)
-
                 # If the OR REPLACE was specified, check if there is an existing content set on the same service
                 # and delete it.
                 if do_replace == True:
@@ -908,7 +916,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     role = lib.roles.get_role(
                         session=self.session,
                         caption=mrs_object.get("default_role"),
-                        specific_to_service_id=service_id,
                     )
                     if role is None:
                         raise Exception(
@@ -948,7 +955,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
                 auth_app_id = lib.auth_apps.add_auth_app(
                     session=self.session,
-                    service_id=service_id,
+                    service_id=None,
                     auth_vendor_id=auth_vendor["id"],
                     app_name=name,
                     description=mrs_object.get("comments"),
@@ -1178,6 +1185,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             service.pop("full_service_path", None)
             service.pop("is_current", None)
             service.pop("sorted_developers", None)
+            service.pop("auth_apps", None)
 
             # Add the service
             service_id = lib.services.add_service(
@@ -1215,6 +1223,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
 
+        add_auth_apps = mrs_object.pop("add_auth_apps", [])
+        remove_auth_apps = mrs_object.pop("remove_auth_apps", [])
+
         full_path = self.getFullServicePath(mrs_object)
 
         try:
@@ -1246,6 +1257,26 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             lib.services.update_services(
                 session=self.session, service_ids=[service_id], value=mrs_object
             )
+
+            for auth_app_name in add_auth_apps:
+                auth_app = lib.auth_apps.get_auth_app(
+                    session=self.session, name=auth_app_name)
+                if auth_app is None:
+                    raise ValueError(f"The given REST authentication app `{auth_app}` was not found.")
+                lib.auth_apps.link_auth_app(
+                    session=self.session,
+                    auth_app_id=auth_app["id"],
+                    service_id=service_id)
+
+            for auth_app_name in remove_auth_apps:
+                auth_app = lib.auth_apps.get_auth_app(
+                    session=self.session, name=auth_app_name)
+                if auth_app is None:
+                    raise ValueError(f"The given REST authentication app `{auth_app}` was not found.")
+                lib.auth_apps.unlink_auth_app(
+                    session=self.session,
+                    auth_app_id=auth_app["id"],
+                    service_id=service_id)
 
             self.results.append(
                 {
@@ -1634,7 +1665,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
         with lib.core.MrsDbTransaction(self.session):
             try:
-
                 service_id = self.get_given_or_current_service_id(mrs_object)
 
                 schema = lib.schemas.get_schema(
@@ -1842,8 +1872,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
         with lib.core.MrsDbTransaction(self.session):
             try:
-                service_id = self.get_given_or_current_service_id(mrs_object)
-
                 auth_app = lib.auth_apps.get_auth_app(
                     name=name, session=self.session
                 )
@@ -1853,7 +1881,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     )
 
                 lib.auth_apps.delete_auth_app(
-                    service_id=service_id,
                     app_id=auth_app.get("id"),
                     session=self.session,
                 )
@@ -2107,6 +2134,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     auth_app_name=auth_app_name,
                 )
 
+                if user is None:
+                    raise Exception(f"The given user `{user_name}` was not found.")
+
                 lib.users.delete_user_roles(
                     session=self.session,
                     user_id=user.get("id"),
@@ -2324,7 +2354,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     {
                         "REST SERVICE Path": service.get("full_service_path"),
                         "enabled": getEnabledStatusCaption(service.get("enabled")),
-                        "current": (service.get("id") == self.current_service_id),
+                        "current": "YES" if (service.get("id") == self.current_service_id) else "NO",
+                        "auth_apps": service.get("auth_apps", "")
                     }
                 )
 
@@ -2756,10 +2787,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         continue
                     output.append(lib.content_sets.get_create_statement(self.session, content_set))
 
-                for auth_app in lib.auth_apps.get_auth_apps(self.session, service_id):
-                    output.append(lib.auth_apps.get_create_statement(self.session, auth_app, service, include_all_objects))
-
-
             result = [{"CREATE REST SERVICE": "\n\n".join(output)}]
 
             self.results.append(
@@ -2788,20 +2815,32 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def showCreateRestSchema(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
-        include_all_objects = mrs_object.pop("include_all_objects")
-        schema = mrs_object.get("schema")
+        include_all_objects = mrs_object.pop("include_all_objects", False)
 
         full_path = self.getFullSchemaPath(mrs_object=mrs_object)
 
         try:
-            if schema is None:
-                raise Exception("The REST schema was not found.")
-
             service_id = self.get_given_or_current_service_id(mrs_object)
-
             service = lib.services.get_service(
                 session=self.session, service_id=service_id
             )
+            if service is None:
+                raise Exception(
+                    f"The specified REST SERVICE {self.getFullServicePath(mrs_object=mrs_object)} could not be found."
+                )
+
+            schema_id = self.get_given_or_current_schema_id(mrs_object)
+            schema = lib.schemas.get_schema(
+                schema_id=schema_id,
+                session=self.session,
+            )
+            if schema is None:
+                raise Exception(
+                    f"The given REST SCHEMA `{full_path}` could not be found."
+                )
+
+            if schema is None:
+                raise Exception("The REST schema was not found.")
 
             stmt = f'CREATE OR REPLACE REST SCHEMA {schema.get("request_path")} ON SERVICE {service.get("host_ctx")}\n'
             stmt += f'    FROM `{schema.get("name")}`\n'
@@ -3127,24 +3166,15 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         self.current_operation = mrs_object.pop("current_operation")
 
         name = mrs_object.get("name")
-        full_path = self.getFullServicePath(
-            mrs_object=mrs_object, request_path=f":{name}"
-        )
-        include_all_objects = mrs_object.pop("include_all_objects")
+        include_all_objects = mrs_object.pop("include_all_objects", None)
 
         try:
-            service_id = self.get_given_or_current_service_id(mrs_object)
-
-            service = lib.services.get_service(
-                session=self.session, service_id=service_id
-            )
-
             auth_app = lib.auth_apps.get_auth_app(
                 name=name, session=self.session
             )
             if auth_app is None:
                 raise Exception(
-                    f"The given REST AUTH APP `{full_path}` could not be found."
+                    f"The given REST AUTH APP `{name}` could not be found."
                 )
 
             if auth_app["auth_vendor"].upper() == "MRS":
@@ -3156,7 +3186,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
             stmt = (
                 f'CREATE OR REPLACE REST AUTH APP "{auth_app.get("name")}"\n'
-                + f'    ON SERVICE {service.get("host_ctx")}\n'
                 + f"    VENDOR {vendor}\n"
             )
 
@@ -3203,7 +3232,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "statementIndex": len(self.results) + 1,
                     "line": mrs_object.get("line"),
                     "type": "error",
-                    "message": f"Failed to get the REST AUTH APP `{full_path}`. {e}",
+                    "message": f"Failed to get the REST AUTH APP `{name}`. {e}",
                     "operation": self.current_operation,
                 }
             )

@@ -110,20 +110,7 @@ CREATE OR REPLACE REST CONTENT FILE "/somebinaryfile.bin"
     OPTIONS {
         "last_modification": "__SOMEBINARYFILE_BIN_LAST_MODIFICATION__"
     }
-    BINARY CONTENT 'AAECAwQFBgc=';
-
-CREATE OR REPLACE REST AUTH APP "MRS Auth App"
-    ON SERVICE localhost/test
-    VENDOR MRS
-    COMMENTS "Authentication via MySQL accounts"
-    ALLOW NEW USERS TO REGISTER
-    DEFAULT ROLE "Full Access";
-
-CREATE OR REPLACE REST USER "User 1"@"MRS Auth App"
-    IDENTIFIED BY "[Stored Password]"
-    APP OPTIONS {}
-GRANT REST ROLE "Full Access" TO "User 1"@"MRS Auth App"
-    COMMENTS "Default role.";"""
+    BINARY CONTENT 'AAECAwQFBgc=';"""
 
 def test_add_service(phone_book, table_contents):
     session = phone_book["session"]
@@ -185,6 +172,7 @@ def test_get_services(phone_book, table_contents):
         "published": 0,
         "sorted_developers": None,
         "name": "mrs",
+        "auth_apps": ["MRS Auth App"],
     }]
 
 
@@ -219,6 +207,7 @@ def test_get_service(phone_book, table_contents):
         "published": 0,
         "sorted_developers": None,
         "name": "mrs",
+        "auth_apps": ["MRS Auth App"],
     }
     assert service_table.snapshot[0] == {
         "comments": "Test service",
@@ -281,6 +270,7 @@ def test_get_service(phone_book, table_contents):
             "published": 0,
             "sorted_developers": None,
             "name": "mrs",
+            "auth_apps": None,
         }
 
 
@@ -522,14 +512,7 @@ CREATE OR REPLACE REST VIEW /addresses
     OPTIONS {
         "aaa": "val aaa",
         "bbb": "val bbb"
-    };
-
-CREATE OR REPLACE REST AUTH APP "Test Auth App 2"
-    ON SERVICE localhost/test2
-    VENDOR MYSQL
-    COMMENTS "Authentication via MySQL accounts 2"
-    ALLOW NEW USERS TO REGISTER
-    DEFAULT ROLE "Full Access";"""
+    };"""
     create_function = lambda file_path, service_id, overwrite=True, include_all_objects=True: \
         store_create_statement(file_path=file_path,
                                     overwrite=overwrite,
@@ -584,7 +567,7 @@ CREATE OR REPLACE REST AUTH APP "Test Auth App 2"
 
     results = lib.script.run_mrs_script(mrs_script=script)
 
-    assert len(results) == 7 # for the 7 statements in create_statement
+    assert len(results) == 6 # for the 6 statements in create_statement
 
     for result in results:
         assert result["type"] == "success"
@@ -609,12 +592,6 @@ def test_service_selection(phone_book, table_contents):
     service_table: TableContents = table_contents("service")
     content_file_table: TableContents = table_contents("content_file")
     session = phone_book["session"]
-
-    expected_service_create_statement = string_replace(service_create_statement_include_all_objects, {
-            "__README_TXT_LAST_MODIFICATION__": content_file_table.filter("request_path", "/readme.txt")[0]["options"]["last_modification"],
-            "__SOMEBINARYFILE_BIN_LAST_MODIFICATION__": content_file_table.filter("request_path", "/somebinaryfile.bin")[0]["options"]["last_modification"],
-        })
-
 
     with ServiceCT(session, url_host_name="localhost", url_context_root="/service2", **{ "comments": "Test service2" }) as service2_id:
         assert service2_id is not None

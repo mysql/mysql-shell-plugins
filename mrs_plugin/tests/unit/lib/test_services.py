@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -56,7 +56,7 @@ def test_get_service(phone_book, table_contents):
             "published": 0,
             "sorted_developers": None,
             "name": "mrs",
-
+            "auth_apps": ["MRS Auth App"]
         }
 
         with ServiceCT(session, "/service2", "localhost") as service_id:
@@ -100,6 +100,7 @@ def test_get_service(phone_book, table_contents):
                 "published": 0,
                 "sorted_developers": None,
                 "name": "mrs",
+                "auth_apps": None,
             }
 
             assert service_table.get("id", service_id) == {

@@ -2,7 +2,7 @@
 Copyright (c) 2023, 2025, Oracle and/or its affiliates.*/
 
 # cSpell:ignore gtid
-/* CONFIGURE REST METADATA
+CONFIGURE REST METADATA
     ENABLED
     UPDATE IF AVAILABLE;
 
@@ -310,7 +310,10 @@ NEW REQUEST PATH /sakila;
 
 SHOW REST SCHEMAS;
 
-CREATE REST AUTH APP "MRS" ON SERVICE localhost/myTestService VENDOR MRS;
+CREATE OR REPLACE REST AUTH APP "MRS" VENDOR MRS;
+
+ALTER REST SERVICE localhost/myTestService
+ADD AUTH APP "MRS";
 
 CREATE REST USER "mike"@"MRS" IDENTIFIED BY "1234";
 CREATE REST USER "mike2"@"MRS" IDENTIFIED BY "543243";
@@ -374,21 +377,24 @@ DROP REST ROLE "role1";
 
 DROP REST USER "mike"@"MRS";
 
-CREATE REST AUTH APP "MySQL" ON SERVICE localhost/myTestService VENDOR MySQL
+CREATE OR REPLACE REST AUTH APP "MySQL" VENDOR MySQL
 ALLOW NEW USERS TO REGISTER
 DEFAULT ROLE "Full Access";
 
+ALTER REST SERVICE localhost/myTestService
+ADD AUTH APP "MySQL";
+
 SHOW REST AUTH APPS FROM SERVICE localhost/myTestService;
 
-SHOW CREATE REST AUTH APP "MRS" FROM SERVICE localhost/myTestService;
+SHOW CREATE REST AUTH APP "MRS";
 
-SHOW CREATE REST AUTH APP "MySQL" FROM SERVICE localhost/myTestService;
+SHOW CREATE REST AUTH APP "MySQL";
 
 ALTER REST SERVICE localhost/myTestService DISABLED;
 
 DROP REST AUTH APP "MRS";
 
-DROP REST AUTH APP "MySQL" FROM SERVICE localhost/myTestService;
+DROP REST AUTH APP "MySQL";
 
 DROP REST DATA MAPPING VIEW /country
 FROM SERVICE localhost/myTestService SCHEMA /sakila;
@@ -556,12 +562,9 @@ FROM SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService;
 ALTER REST SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService
     PUBLISHED;
 
--- CREATE REST AUTH APP "MRS" ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService VENDOR MRS;
--- DROP REST AUTH APP "MRS" ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService;
-
 DROP REST SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService;
 
-*/
+
 
 CREATE OR REPLACE REST SERVICE /myTest;
 
@@ -610,3 +613,5 @@ AS `test`.`t1` {
         "required": [ "height" ]
     }
 };
+
+DROP REST SERVICE /myTest;

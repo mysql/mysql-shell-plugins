@@ -233,6 +233,24 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#addAuthApp.
+    def enterAddAuthApp(self, ctx:MRSParser.AddAuthAppContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#addAuthApp.
+    def exitAddAuthApp(self, ctx:MRSParser.AddAuthAppContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#removeAuthApp.
+    def enterRemoveAuthApp(self, ctx:MRSParser.RemoveAuthAppContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#removeAuthApp.
+    def exitRemoveAuthApp(self, ctx:MRSParser.RemoveAuthAppContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#createRestSchemaStatement.
     def enterCreateRestSchemaStatement(self, ctx:MRSParser.CreateRestSchemaStatementContext):
         pass

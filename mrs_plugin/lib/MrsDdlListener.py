@@ -202,6 +202,16 @@ class MrsDdlListener(MRSListener):
             ctx.quotedText().getText()
         )
 
+    def enterAddAuthApp(self, ctx):
+        add_auth_apps = self.mrs_object.get("add_auth_apps", [])
+        add_auth_apps.append(get_text_without_quotes(ctx.authAppName().getText()))
+        self.mrs_object["add_auth_apps"] = add_auth_apps
+
+    def enterRemoveAuthApp(self, ctx):
+        add_auth_apps = self.mrs_object.get("remove_auth_apps", [])
+        add_auth_apps.append(get_text_without_quotes(ctx.authAppName().getText()))
+        self.mrs_object["remove_auth_apps"] = add_auth_apps
+
     # ==================================================================================================================
     # CREATE REST statements
 
@@ -1924,6 +1934,8 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "SHOW CREATE REST SCHEMA",
+            "schema_request_path": get_text_without_quotes(
+                ctx.schemaRequestPath().getText()) if ctx.schemaRequestPath() is not None else None,
         }
 
     def exitShowCreateRestSchemaStatement(self, ctx):
