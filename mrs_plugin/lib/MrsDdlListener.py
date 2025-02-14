@@ -138,7 +138,7 @@ class MrsDdlListener(MRSListener):
                 if "new_developer_list" in self.mrs_object.keys():
                     self.mrs_object.pop("new_developer_list", None)
             else:
-                self.mrs_object["url_host_name"] = ctx.getText()
+                self.mrs_object["url_host_name"] = get_text_without_quotes(ctx.getText())
                 if "in_development" in self.mrs_object.keys():
                     self.mrs_object.pop("in_development", None)
 
@@ -166,7 +166,7 @@ class MrsDdlListener(MRSListener):
         if val is not None:
             # Make sure to remove a leading @ that could appear because of a hack
             # to prevent the Lexer matching AT_TEXT_SUFFIX
-            self.mrs_object["url_host_name"] = val.getText().lstrip("@")
+            self.mrs_object["url_host_name"] = get_text_without_quotes(val.getText().lstrip("@"))
 
     def enterServiceSchemaSelector(self, ctx):
         self.mrs_object["schema_request_path"] = get_text_without_quotes(
@@ -407,7 +407,7 @@ class MrsDdlListener(MRSListener):
                 )
 
                 if serviceRequestPath.hostAndPortIdentifier() is not None:
-                    url_host_name = (
+                    url_host_name = get_text_without_quotes(
                         ctx.serviceSchemaSelector()
                         .serviceRequestPath()
                         .hostAndPortIdentifier()
@@ -442,7 +442,7 @@ class MrsDdlListener(MRSListener):
                         is None
                         and serviceRequestPath.hostAndPortIdentifier() is None
                     ):
-                        self.mrs_object["url_host_name"] = (
+                        self.mrs_object["url_host_name"] = get_text_without_quotes(
                             serviceRequestPath.serviceDevelopersIdentifier().getText()
                         )
                         url_host_name = self.mrs_object["url_host_name"]
@@ -1390,7 +1390,7 @@ class MrsDdlListener(MRSListener):
         # Check if there was a host:port defined as well
         val = ctx.hostAndPortIdentifier()
         if val is not None:
-            self.mrs_object["new_url_host_name"] = val.getText().lstrip("@")
+            self.mrs_object["new_url_host_name"] = get_text_without_quotes(val.getText().lstrip("@"))
 
     def exitAlterRestServiceStatement(self, ctx):
         self.mrs_ddl_executor.alterRestService(self.mrs_object)
