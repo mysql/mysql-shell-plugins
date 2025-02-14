@@ -301,8 +301,8 @@ def test_sql_show(phone_book):
 
     session.run_sql("use rest service /rtest2")
 
-    session.run_sql('create rest auth app "MRSApp" on service /rtest vendor MRS')
-    session.run_sql('create rest auth app "MySQLApp" on service /rtest vendor MySQL')
+    session.run_sql('create rest auth app "MRSApp" vendor MRS')
+    session.run_sql('create rest auth app "MySQLApp" vendor MySQL')
 
     session.run_sql('create rest role "roleA" on any service')
     session.run_sql('create rest role "roleB" on any service')

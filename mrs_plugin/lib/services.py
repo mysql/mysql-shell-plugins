@@ -303,7 +303,11 @@ def query_services(session, service_id: bytes = None, url_context_root=None, url
                     FROM JSON_TABLE(
                     se.in_development->>'$.developers', '$[*]' COLUMNS (item text path '$')
                     ) AS jt) AS sorted_developers,
-                se.name
+                se.name,
+                (SELECT JSON_ARRAYAGG(aa.name) FROM `mysql_rest_service_metadata`.`service_has_auth_app` sa2
+                    JOIN `mysql_rest_service_metadata`.`auth_app` AS aa ON
+                        sa2.auth_app_id = aa.id
+                WHERE sa2.service_id = se.id) AS auth_apps
             FROM `mysql_rest_service_metadata`.`service` se
                 LEFT JOIN `mysql_rest_service_metadata`.url_host h
                     ON se.url_host_id = h.id

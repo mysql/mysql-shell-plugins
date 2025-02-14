@@ -5924,6 +5924,8 @@ restServiceOptions: (
         | jsonOptions
         | comments
         | metadata
+        | addAuthApp
+        | removeAuthApp
     )+
 ;
 
@@ -5933,10 +5935,7 @@ publishedUnpublished:
 ;
 
 restProtocol:
-    PROTOCOL_SYMBOL (
-        HTTP_SYMBOL
-        | HTTPS_SYMBOL
-    )
+    PROTOCOL_SYMBOL (HTTP_SYMBOL | HTTPS_SYMBOL)
 ;
 
 restAuthentication:
@@ -5969,6 +5968,14 @@ userManagementSchema:
         schemaName
         | DEFAULT_SYMBOL
     )
+;
+
+addAuthApp:
+    ADD_SYMBOL AUTH_SYMBOL APP_SYMBOL authAppName
+;
+
+removeAuthApp:
+    REMOVE_SYMBOL AUTH_SYMBOL APP_SYMBOL authAppName
 ;
 
 // - CREATE REST SCHEMA -----------------------------------------------------
@@ -6107,9 +6114,11 @@ createRestAuthAppStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL (
         AUTH_SYMBOL
         | AUTHENTICATION_SYMBOL
-    ) APP_SYMBOL authAppName (
-        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
-    )? VENDOR_SYMBOL (MRS_SYMBOL | MYSQL_SYMBOL | vendorName) restAuthAppOptions?
+    ) APP_SYMBOL authAppName VENDOR_SYMBOL (
+        MRS_SYMBOL
+        | MYSQL_SYMBOL
+        | vendorName
+    ) restAuthAppOptions?
 ;
 
 authAppName:
@@ -6279,9 +6288,8 @@ alterRestAuthAppStatement:
     ALTER_SYMBOL REST_SYMBOL (
         AUTH_SYMBOL
         | AUTHENTICATION_SYMBOL
-    ) APP_SYMBOL authAppName (
-        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
-    )? (NEW_SYMBOL NAME_SYMBOL newAuthAppName)? restAuthAppOptions?
+    ) APP_SYMBOL authAppName
+    (NEW_SYMBOL NAME_SYMBOL newAuthAppName)? restAuthAppOptions?
 ;
 
 newAuthAppName:
@@ -6339,9 +6347,7 @@ dropRestContentFileStatement:
 ;
 
 dropRestAuthAppStatement:
-    DROP_SYMBOL REST_SYMBOL (AUTH_SYMBOL | AUTHENTICATION_SYMBOL) APP_SYMBOL authAppName (
-        FROM_SYMBOL SERVICE_SYMBOL? serviceRequestPath
-    )?
+    DROP_SYMBOL REST_SYMBOL (AUTH_SYMBOL | AUTHENTICATION_SYMBOL) APP_SYMBOL authAppName
 ;
 
 dropRestUserStatement:
@@ -6514,9 +6520,7 @@ showCreateRestContentFileStatement:
 ;
 
 showCreateRestAuthAppStatement:
-    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL AUTH_SYMBOL APP_SYMBOL authAppName (
-        (ON_SYMBOL | FROM_SYMBOL) SERVICE_SYMBOL? serviceRequestPath
-    )?
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL AUTH_SYMBOL APP_SYMBOL authAppName
 ;
 
 // Named identifiers ========================================================

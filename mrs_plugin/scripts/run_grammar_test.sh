@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -23,4 +23,4 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 mysqlsh dba@localhost --sql -f "./grammar/test/grammar_test_setup.sql"
-mysqlsh dba@localhost --sql --interactive=full --log-level=debug3 --verbose=4 -f ./grammar/test/grammar_test.mrs
+mysqlsh dba@localhost --sql --interactive=full --log-level=debug3 --verbose=4 -f ./grammar/test/grammar_test.sql

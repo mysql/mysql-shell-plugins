@@ -425,8 +425,8 @@ def test_user_sql_service(phone_book):
     script = [
         "CREATE REST SERVICE localhost/one",
         "CREATE REST SERVICE localhost/two",
-        'CREATE REST AUTH APP "app1" ON SERVICE localhost/one VENDOR MySQL COMMENTS "svc1"',
-        'CREATE REST AUTH APP "app2" ON SERVICE localhost/two VENDOR MySQL COMMENTS "svc2"',
+        'CREATE REST AUTH APP "app1" VENDOR MySQL COMMENTS "svc1"',
+        'CREATE REST AUTH APP "app2" VENDOR MySQL COMMENTS "svc2"',
         'CREATE REST USER "usr"@"app1" ON SERVICE localhost/one OPTIONS {"email": "one"}',
         'CREATE REST USER "usr"@"app2" ON SERVICE localhost/two OPTIONS {"email": "two"}',
     ]

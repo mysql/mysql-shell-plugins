@@ -252,6 +252,7 @@ restServiceOptions: (
         | jsonOptions
         | comments
         | metadata
+        | addAuthApp
     )+
 ;
 ```
@@ -415,9 +416,24 @@ restProtocol:
 ;
 ```
 
+### Assigning a REST Authentication App to a REST Service
+
+To enable authentication for a REST service, a REST authentication app needs to be linked to the REST service. REST authentication apps are created using the [CREATE REST AUTH APP](#create-rest-auth-app) statement.
+
+REST authentication apps can be linked while creating the REST service or they can be added alter using the [ALTER REST SERVICE](#alter-rest-service) statement.
+
+```antlr
+addAuthApp:
+    ADD AUTH APP authAppName
+;
+```
+
+addAuthApp ::=
+![addAuthApp](../../images/sql/addAuthApp.svg "addAuthApp")
+
 ### REST Service Authentication Settings
 
-Each REST service requires allows for specific authentication settings.
+Each REST service can be configured with specific authentication settings.
 
 ```antlr
 restAuthentication:
@@ -1020,10 +1036,10 @@ The following additional options can be configured for most database object endp
   - `wait` (_bool_)
     - when querying data from a secondary server, controls whether to wait until the transaction GTID specified through the `asof` clause are applied. Effectively enables read-own-writes semantics.
 - `result`
-    - `cacheTimeToLive` (_double_)
-        - enables caching for GET requests. Specifies the number of seconds (including sub-second values) to keep the response in the cache, after which it will be discarded until a new request comes in or when the cache fills up.
-    - `includeLinks` (_bool_)
-        - whether to include links in returned JSON objects (default true)
+  - `cacheTimeToLive` (_double_)
+    - enables caching for GET requests. Specifies the number of seconds (including sub-second values) to keep the response in the cache, after which it will be discarded until a new request comes in or when the cache fills up.
+  - `includeLinks` (_bool_)
+    - whether to include links in returned JSON objects (default true)
 - `returnInternalErrorDetails` (_bool_)
   - controls debug logging
 - `disableAutomaticGrants` (_bool_)
@@ -1250,7 +1266,11 @@ restContentSetOptions ::=
 
 ## CREATE REST AUTH APP
 
-The `CREATE REST AUTH APP` statement is used to add REST authentication app to a REST service. The MySQL REST Service supports a list of authentication vendors, including dedicated MRS authentication, MYSQL user account authentication as well as several OAuth2 vendors, like OCI OAuth2, Facebook and Google.
+The `CREATE REST AUTH APP` statement is used to create a new REST authentication app. The MySQL REST Service supports a list of authentication vendors, including dedicated MRS authentication, MYSQL user account authentication as well as several OAuth2 vendors, like OCI OAuth2, Facebook and Google.
+
+Once a REST authentication app has been created, it can be linked to REST services to enable the required authentication support.
+
+The [CREATE REST SERVICE](#create-rest-service) and [ALTER REST SERVICE](#alter-rest-service) statements support the addition or removal of REST authentication apps when using the ADD AUTH APP and REMOVE AUTH APP clauses
 
 **_SYNTAX_**
 
@@ -1259,9 +1279,11 @@ createRestAuthAppStatement:
     CREATE (OR REPLACE)? REST (
         AUTH
         | AUTHENTICATION
-    ) APP authAppName (
-        ON SERVICE? serviceRequestPath
-    )? VENDOR (MRS | MYSQL | vendorName) restAuthAppOptions?
+    ) APP authAppName VENDOR (
+        MRS
+        | MYSQL
+        | vendorName
+    ) restAuthAppOptions?
 ;
 
 restAuthAppOptions: (
@@ -1321,20 +1343,22 @@ url ::=
 
 **_Examples_**
 
-The following example creates an REST authentication app for the REST service `/myService`.
+The following example creates an REST authentication app using the MRS authentication vendor and links it to the REST service `/myService`.
 
 ```sql
 CREATE REST AUTHENTICATION APP "MRS" ON SERVICE /myService VENDOR MRS;
+
+ALTER REST SERVICE /myService ADD AUTH APP "MRS";
 ```
 
 The next example creates an REST authentication app for the OCI OAuth2 service.
 
 ```sql
-CREATE REST AUTHENTICATION APP "OCI" ON SERVICE /myService
+CREATE REST AUTHENTICATION APP "OCI"
     VENDOR "OCI OAuth2"
     URL "https://idcs-f84866196ff54e3b93a15651865191da.identity.oraclecloud.com:443";
     CLIENT ID "f2abc2c0f19a4c40a1abc48edcdfe60b"
-    CLIENT SECRET "53310d82-5f6f-4030-b62b-2e4c5fefd52a"
+    CLIENT SECRET "**********************"
 ```
 
 ### REST Authentication App Vendors

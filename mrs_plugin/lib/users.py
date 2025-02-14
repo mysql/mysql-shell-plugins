@@ -147,8 +147,8 @@ def get_user(
     auth_app_name=None,
     mask_password=True,
 ):
-    if not user_id and not service_id and not auth_app_id:
-        raise ValueError("One of user_id or service_id or auth_app_id is required")
+    if not user_id and not service_id and not auth_app_id and not auth_app_name:
+        raise ValueError("One of user_id or service_id or auth_app_id or auth_app_name is required")
 
     result = get_users(
         session,

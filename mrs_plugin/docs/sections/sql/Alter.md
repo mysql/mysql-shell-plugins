@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -42,7 +42,17 @@ restServiceOptions: (
         | jsonOptions
         | comments
         | metadata
+        | addAuthApp
+        | removeAuthApp
     )+
+;
+
+addAuthApp:
+    ADD AUTH APP authAppName
+;
+
+removeAuthApp:
+    REMOVE AUTH APP authAppName
 ;
 ```
 
@@ -51,6 +61,12 @@ alterRestServiceStatement ::=
 
 restServiceOptions ::=
 ![restServiceOptions](../../images/sql/restServiceOptions.svg "restServiceOptions")
+
+addAuthApp ::=
+![addAuthApp](../../images/sql/addAuthApp.svg "addAuthApp")
+
+removeAuthApp ::=
+![removeAuthApp](../../images/sql/removeAuthApp.svg "removeAuthApp")
 
 **_Examples_**
 
