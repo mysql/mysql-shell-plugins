@@ -233,13 +233,6 @@ export class E2ECommandResultData extends E2ECommandResult {
      */
     public setChat = async (): Promise<void> => {
         const resultLocator = locator.notebook.codeEditor.editor.result;
-        const chatResultIsProcessed = (): Condition<boolean> => {
-            return new Condition(` for the chat result to be processed for cmd ${this.command}`, async () => {
-                return (await this.resultContext!.findElements(resultLocator.chat.isProcessingResult)).length === 0;
-            });
-        };
-
-        await driver.wait(chatResultIsProcessed(), constants.wait1minute);
         const text = await this.resultContext!.findElement(resultLocator.chat.resultText);
         this.#chat = await text.getText();
     };

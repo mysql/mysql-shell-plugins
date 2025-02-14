@@ -382,7 +382,6 @@ export class E2ECodeEditor {
                 } else {
                     throw e;
                 }
-
             }
         } else {
             return driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.result.script),
@@ -390,6 +389,10 @@ export class E2ECodeEditor {
         }
 
         await this.scrollDown();
+
+        await driver.wait(async () => {
+            return (await driver.findElements(locator.notebook.codeEditor.editor.result.isWaiting)).length === 0;
+        }, constants.wait30seconds, `Waiting for result id ${resultId} on command '${cmd}'`);
 
         return result!;
     };
@@ -443,7 +446,7 @@ export class E2ECodeEditor {
                 type = constants.isHWAboutInfo;
             }
 
-            if ((await context.findElements(resultLocator.chat.isProcessingResult)).length > 0) {
+            if ((await context.findElements(resultLocator.chat.resultText)).length > 0) {
                 type = constants.isChat;
             }
 

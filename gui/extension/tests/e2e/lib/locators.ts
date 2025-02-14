@@ -116,6 +116,7 @@ export const notebook = {
             scrollBar: By.className("editor-scrollable"),
             result: {
                 exists: By.className("zoneHost"),
+                isWaiting: By.css(".editorPromptFirst.waiting"),
                 hasContent: By.className("content"),
                 existsById: (view: string): By => {
                     let xpath = `//div[@class='zoneHost' and (`;
@@ -495,6 +496,7 @@ export const hwDialog = {
 };
 
 export const section = {
+    toggle: By.className("pane-header"),
     item: By.className("custom-view-tree-node-item-resourceLabel"),
     itemIcon: By.className("custom-view-tree-node-item-icon"),
     itemName: By.className("monaco-highlighted-label"),

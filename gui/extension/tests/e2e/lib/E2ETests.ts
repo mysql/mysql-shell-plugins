@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -748,12 +748,16 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
      * @returns True if VSCode exists for the test suite, false otherwise
      */
     private static existsVSCode = (testSuite: IE2ETestSuite): boolean => {
-        const files = readdirSync(testSuite.testResources);
+        if (existsSync(testSuite.testResources)) {
+            const files = readdirSync(testSuite.testResources);
 
-        for (const file of files) {
-            if (file.toLowerCase().includes("code")) {
-                return true;
+            for (const file of files) {
+                if (file.toLowerCase().includes("code")) {
+                    return true;
+                }
             }
+        } else {
+            return false;
         }
     };
 
@@ -763,12 +767,16 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
      * @returns True if Chromedriver exists for the test suite, false otherwise
      */
     private static existsChromedriver = (testSuite: IE2ETestSuite): boolean => {
-        const files = readdirSync(testSuite.testResources);
+        if (existsSync(testSuite.testResources)) {
+            const files = readdirSync(testSuite.testResources);
 
-        for (const file of files) {
-            if (file.toLowerCase().includes("chromedriver")) {
-                return true;
+            for (const file of files) {
+                if (file.toLowerCase().includes("chromedriver")) {
+                    return true;
+                }
             }
+        } else {
+            return false;
         }
     };
 

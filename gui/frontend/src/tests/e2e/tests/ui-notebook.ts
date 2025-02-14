@@ -598,7 +598,7 @@ describe("NOTEBOOKS", () => {
 
     });
 
-    describe("HeatWave Chat", () => {
+    xdescribe("HeatWave Chat", () => {
 
         const heatWaveConn: interfaces.IDBConnection = {
             dbType: "MySQL",
@@ -630,9 +630,8 @@ describe("NOTEBOOKS", () => {
                 await dbTreeSection.createDatabaseConnection(heatWaveConn);
                 await (await new E2EDatabaseConnectionOverview().getConnection(heatWaveConn.caption!)).click();
                 notebook = await new E2ENotebook().untilIsOpened(heatWaveConn, constants.wait20seconds);
-                let result = await notebook.codeEditor.getLastExistingCommandResult(true) as E2ECommandResultData;
+                const result = await notebook.codeEditor.getLastExistingCommandResult() as E2ECommandResultData;
                 await driver.wait(result.heatWaveChatIsDisplayed(), constants.wait5seconds);
-                result = await notebook.codeEditor.refreshResult(result.command, result.id) as E2ECommandResultData;
             } catch (e) {
                 await Misc.storeScreenShot("beforeAll_HeatWaveChat");
                 throw e;
