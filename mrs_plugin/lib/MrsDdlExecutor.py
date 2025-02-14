@@ -1456,8 +1456,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
                 if "url_context_root" in mrs_object:
                     mrs_object.pop("url_context_root")
-                if "file_ignore_list" in mrs_object:
-                    file_ignore_list = mrs_object.pop("file_ignore_list")
+
+                file_ignore_list = mrs_object.pop("file_ignore_list", None)
 
                 lib.content_sets.update_content_set(
                     session=self.session,
