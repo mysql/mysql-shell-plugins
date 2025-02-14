@@ -141,24 +141,24 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
         let staticContentFolder = "";
         if (request.values && request.values.options) {
             const options = JSON.parse(request.values.options as string);
-            if ("containsMrsScripts" in options) {
-                containsMrsScripts = options.containsMrsScripts === true;
+            if ("contains_mrs_scripts" in options) {
+                containsMrsScripts = options.contains_mrs_scripts === true;
                 options.containsMrsScripts = undefined;
             }
-            if ("scriptDefinitions" in options) {
-                if ("buildFolder" in options.scriptDefinitions) {
-                    buildFolder = options.scriptDefinitions.buildFolder;
+            if ("script_definitions" in options) {
+                if ("build_folder" in options.script_definitions) {
+                    buildFolder = options.script_definitions.build_folder;
                 }
-                if ("language" in options.scriptDefinitions) {
-                    scriptingLanguage = options.scriptDefinitions.language;
+                if ("language" in options.script_definitions) {
+                    scriptingLanguage = options.script_definitions.language;
                 }
-                if ("staticContentFolder" in options.scriptDefinitions) {
-                    staticContentFolder = options.scriptDefinitions.staticContentFolder;
+                if ("static_content_folder" in options.script_definitions) {
+                    staticContentFolder = options.script_definitions.static_content_folder;
                 }
-                this.#mrsScriptDefinitions = options.scriptDefinitions;
-                options.scriptDefinitions = undefined;
+                this.#mrsScriptDefinitions = options.script_definitions;
+                options.script_definitions = undefined;
             }
-            if ("scriptModuleFiles" in options) {
+            if ("script_module_files" in options) {
                 this.#mrsScriptModuleFiles = options.scriptModuleFiles;
                 options.scriptModuleFiles = undefined;
             }
@@ -476,15 +476,15 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
 
         if (mainSection && settingsSection && optionsSection && scriptSection) {
             const options = JSON.parse(optionsSection.values.options.value as string || "{}");
-            options.containsMrsScripts = settingsSection.values.containsMrsScripts.value as boolean;
-            if (options.containsMrsScripts) {
-                options.mrsScriptingLanguage = this.#mrsScriptLanguage;
+            options.contains_mrs_scripts = settingsSection.values.containsMrsScripts.value as boolean;
+            if (options.contains_mrs_scripts) {
+                options.mrs_scripting_language = this.#mrsScriptLanguage;
             }
             if (this.#mrsScriptDefinitions) {
-                options.scriptDefinitions = this.#mrsScriptDefinitions;
+                options.script_definitions = this.#mrsScriptDefinitions;
             }
             if (this.#mrsScriptModuleFiles) {
-                options.scriptModuleFiles = this.#mrsScriptModuleFiles;
+                options.script_module_files = this.#mrsScriptModuleFiles;
             }
             const newOptions = JSON.stringify(options, undefined, 4);
 
