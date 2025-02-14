@@ -204,7 +204,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Workbench.closeAllEditors();
             await dbTreeSection.selectMoreActionsItem(constants.resetExtension);
             let notification = "This will completely reset the MySQL Shell for VS Code extension by ";
-            notification += "deleting the web certificate and user settings directory.";
+            notification += "deleting the web certificate and optionally deleting the user settings directory.";
             const ntf = await Workbench.getNotification(notification, false);
             await Workbench.clickOnNotificationButton(ntf, constants.cancel);
 
@@ -1549,6 +1549,8 @@ describe("DATABASE CONNECTIONS", () => {
             existsInQueue = true;
             await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
+            await dbTreeSection.focus();
+
             await driver.wait(new Condition("", async () => {
                 try {
                     const actorTable = await dbTreeSection.tree.getElement("actor");
@@ -1689,6 +1691,8 @@ describe("DATABASE CONNECTIONS", () => {
             await TestQueue.push(this.test.title);
             existsInQueue = true;
             await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
+
+            await dbTreeSection.focus();
 
             await (await dbTreeSection.tree.getElement("Tables")).collapse();
             const treeRoutines = await dbTreeSection.tree.getElement("Functions");

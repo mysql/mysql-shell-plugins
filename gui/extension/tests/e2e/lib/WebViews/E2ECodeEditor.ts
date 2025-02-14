@@ -403,6 +403,10 @@ export class E2ECodeEditor {
 
         await this.scrollDown();
 
+        await driver.wait(async () => {
+            return (await driver.findElements(locator.notebook.codeEditor.editor.result.isWaiting)).length === 0;
+        }, constants.wait30seconds, `Waiting for result id ${resultId} on command '${cmd}'`);
+
         return result;
     };
 

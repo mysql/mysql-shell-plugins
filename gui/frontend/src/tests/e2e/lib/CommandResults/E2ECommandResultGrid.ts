@@ -506,7 +506,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `The cell width was not reduced on column ${gridRowColumn}`);
+        }, constants.wait2seconds, `The cell width was not reduced on column ${gridRowColumn}`);
 
     };
 
@@ -542,7 +542,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     throw e;
                 }
             }
-        }, constants.wait10seconds,
+        }, constants.wait3seconds,
             `Could not get the tooltip for cell on row '${gridRow}' and column '${columnName}'`);
 
         return tooltipText;

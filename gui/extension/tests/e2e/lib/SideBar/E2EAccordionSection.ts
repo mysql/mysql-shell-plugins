@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,6 +26,7 @@
 import {
     Condition, CustomTreeSection, error, SideBarView, until, WebElement,
     ActivityBar,
+    ViewSection,
 } from "vscode-extension-tester";
 import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
 import * as constants from "../constants";
@@ -102,8 +103,10 @@ export class E2EAccordionSection {
                 }, constants.wait5seconds, `Toolbar buttons for ${this.accordionSectionName} were not displayed`);
 
                 const actionItems = await sectionActions.findElements(locator.htmlTag.li);
+
                 for (const action of actionItems) {
                     const title = await action.getAttribute("title");
+
                     if (title === button) {
                         await action.findElement(locator.htmlTag.a).click();
 
@@ -183,127 +186,82 @@ export class E2EAccordionSection {
             await Misc.switchBackToTopFrame();
         }
 
-        const treeDBSection = await new SideBarView().getContent().getSection(constants.dbTreeSection);
-        const treeOCISection = await new SideBarView().getContent().getSection(constants.ociTreeSection);
-        const treeOpenEditorsSection = await new SideBarView().getContent()
-            .getSection(constants.openEditorsTreeSection);
-        const treeTasksSection = await new SideBarView().getContent().getSection(constants.tasksTreeSection);
-        await driver.actions().move({ origin: treeTasksSection }).perform();
+        const sections = [
+            constants.dbTreeSection,
+            constants.ociTreeSection,
+            constants.openEditorsTreeSection,
+            constants.tasksTreeSection,
+        ];
 
-        if ((await treeDBSection.getTitle()) === this.accordionSectionName) {
-            await driver.wait(new Condition("", async () => {
-                try {
-                    await treeDBSection.expand();
-                    await treeOCISection.collapse();
-                    await treeOpenEditorsSection.collapse();
-                    await treeTasksSection.collapse();
+        for (const sectionName of sections) {
+            await driver.wait(async () => {
+                const section = await new SideBarView().getContent().getSection(sectionName);
 
-                    return (await treeDBSection.isExpanded()) &&
-                        !(await treeOCISection.isExpanded()) &&
-                        !(await treeOpenEditorsSection.isExpanded()) &&
-                        !(await treeTasksSection.isExpanded());
-                } catch (e) {
-                    if (!(e instanceof error.TimeoutError || e instanceof error.ElementClickInterceptedError)) {
-                        throw e;
-                    }
+                if (await section.getTitle() === this.accordionSectionName) {
+                    await this.expand(sectionName);
+
+                    return section.isExpanded();
+                } else {
+                    await this.collapse(sectionName);
+
+                    return !(await section.isExpanded());
                 }
-            }), constants.wait5seconds, `${this.accordionSectionName} was not focused`);
-        } else if ((await treeOCISection.getTitle()) === this.accordionSectionName) {
-            await driver.wait(new Condition("", async () => {
-                try {
-                    await treeOCISection.expand();
-                    await treeDBSection.collapse();
-                    await treeOpenEditorsSection.collapse();
-                    await treeTasksSection.collapse();
+            }, constants.wait5seconds, `Could not focus on ${this.accordionSectionName}`);
 
-                    return (await treeOCISection.isExpanded()) &&
-                        !(await treeDBSection.isExpanded()) &&
-                        !(await treeOpenEditorsSection.isExpanded()) &&
-                        !(await treeTasksSection.isExpanded());
-                } catch (e) {
-                    console.log("error");
-                    console.log(e);
-                    if (!(e instanceof error.TimeoutError || e instanceof error.ElementClickInterceptedError)) {
-                        throw e;
-                    }
-                }
-            }), constants.wait5seconds, `${this.accordionSectionName} was not focused`);
-        } else if ((await treeOpenEditorsSection.getTitle()) === this.accordionSectionName) {
-            await driver.wait(new Condition("", async () => {
-                try {
-                    await treeOpenEditorsSection.expand();
-                    await treeDBSection.collapse();
-                    await treeOCISection.collapse();
-                    await treeTasksSection.collapse();
-
-                    return (await treeOpenEditorsSection.isExpanded()) &&
-                        !(await treeDBSection.isExpanded()) &&
-                        !(await treeOCISection.isExpanded()) &&
-                        !(await treeTasksSection.isExpanded());
-                } catch (e) {
-                    if (!(e instanceof error.TimeoutError || e instanceof error.ElementClickInterceptedError)) {
-                        throw e;
-                    }
-                }
-            }), constants.wait5seconds, `${this.accordionSectionName} was not focused`);
-        } else if ((await treeTasksSection.getTitle()) === this.accordionSectionName) {
-            await driver.wait(new Condition("", async () => {
-                try {
-                    await treeTasksSection.expand();
-                    await treeDBSection.collapse();
-                    await treeOCISection.collapse();
-                    await treeOpenEditorsSection.collapse();
-
-                    return (await treeTasksSection.isExpanded()) &&
-                        !(await treeDBSection.isExpanded()) &&
-                        !(await treeOCISection.isExpanded()) &&
-                        !(await treeOpenEditorsSection.isExpanded());
-                } catch (e) {
-                    if (!(e instanceof error.TimeoutError || e instanceof error.ElementClickInterceptedError)) {
-                        throw e;
-                    }
-                }
-
-            }), constants.wait5seconds, `${this.accordionSectionName} was not focused`);
-        } else {
-            throw new Error(`Unknown section: ${this.accordionSectionName}`);
         }
     };
 
     /**
      * Expands the section
+     * @param sectionName The section name
      * @returns A promise resolving when the section is expanded
      */
-    public expand = async (): Promise<void> => {
+    public expand = async (sectionName?: string): Promise<void> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
 
-        const thisSection = await this.getWebElement();
-        if (!(await thisSection.isExpanded())) {
-            await driver.wait(async () => {
-                await thisSection.expand();
+        let section: ViewSection;
 
-                return thisSection.isExpanded();
+        if (section) {
+            section = await new SideBarView().getContent().getSection(sectionName);
+        } else {
+            section = await new SideBarView().getContent().getSection(this.accordionSectionName);
+        }
+
+        if (!(await section.isExpanded())) {
+            await driver.wait(async () => {
+                await driver.executeScript("arguments[0].click()", await section.findElement(locator.section.toggle));
+
+                return section.isExpanded();
             }, constants.wait5seconds, `Could not expand '${this.accordionSectionName}' tree explorer`);
         }
     };
 
     /**
      * Collapse the section
+     * @param sectionName The section name
      * @returns A promise resolving when the section is collapsed
      */
-    public collapse = async (): Promise<void> => {
+    public collapse = async (sectionName?: string): Promise<void> => {
         if ((await Misc.insideIframe())) {
             await Misc.switchBackToTopFrame();
         }
-        const thisSection = await this.getWebElement();
-        if (await thisSection.isExpanded()) {
-            await driver.wait(async () => {
-                await thisSection.collapse();
 
-                return (await thisSection.isExpanded()) === false;
-            }, constants.wait5seconds, `Could not expand '${this.accordionSectionName}' section`);
+        let section: ViewSection;
+
+        if (sectionName) {
+            section = await new SideBarView().getContent().getSection(sectionName);
+        } else {
+            section = await new SideBarView().getContent().getSection(this.accordionSectionName);
+        }
+
+        if (await section.isExpanded()) {
+            await driver.wait(async () => {
+                await driver.executeScript("arguments[0].click()", await section.findElement(locator.section.toggle));
+
+                return !(await section.isExpanded());
+            }, constants.wait5seconds, `Could not collapse '${this.accordionSectionName}' tree explorer`);
         }
     };
 

@@ -72,8 +72,9 @@ describe("MySQL REST Service", () => {
             await driver.wait(Workbench.untilExtensionIsReady(), constants.wait1minute * 2);
             await Workbench.toggleBottomBar(false);
             Misc.removeDatabaseConnections();
-            await dbTreeSection.clickToolbarButton(constants.reloadConnections);
+
             await dbTreeSection.focus();
+            await dbTreeSection.clickToolbarButton(constants.reloadConnections);
             await dbTreeSection.createDatabaseConnection(globalConn);
             await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption), constants.wait5seconds);
             await (await new DatabaseConnectionOverview().getConnection(globalConn.caption)).click();

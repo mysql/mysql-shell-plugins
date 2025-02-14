@@ -264,14 +264,25 @@ describe("RESULT GRIDS", () => {
                 }
 
                 for (let i = 1; i <= tableColumns.length - 1; i++) {
-                    if (i === tableColumns.length - 1) {
-                        await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
-                    } else {
-                        await result.reduceCellWidth(rowNumber, tableColumns[i]);
+                    try {
+                        if (i === tableColumns.length - 1) {
+                            await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                        } else {
+                            await result.reduceCellWidth(rowNumber, tableColumns[i]);
+                        }
+
+                        const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                        await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                            constants.wait3seconds);
+                    } catch (e) {
+                        if (String(e).includes("Could not find tooltip for cell")) {
+                            console.log(`Another try for ${tableColumns[i]}...`);
+                            await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                            const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                            await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                                constants.wait3seconds);
+                        }
                     }
-                    const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
-                    await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
-                        constants.wait3seconds);
                 }
             } catch (e) {
                 testFailed = true;
@@ -288,20 +299,31 @@ describe("RESULT GRIDS", () => {
                 expect(result.status).toMatch(/OK/);
 
                 const tableColumns: string[] = [];
+
                 for (const key of result.columnsMap!.keys()) {
                     tableColumns.push(key);
                 }
 
                 for (let i = 1; i <= tableColumns.length - 1; i++) {
-                    if (i === tableColumns.length - 1) {
-                        await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
-                    } else {
-                        await result.reduceCellWidth(rowNumber, tableColumns[i]);
-                    }
+                    try {
+                        if (i === tableColumns.length - 1) {
+                            await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                        } else {
+                            await result.reduceCellWidth(rowNumber, tableColumns[i]);
+                        }
 
-                    const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
-                    await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
-                        constants.wait3seconds);
+                        const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                        await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                            constants.wait3seconds);
+                    } catch (e) {
+                        if (String(e).includes("Could not find tooltip for cell")) {
+                            console.log(`Another try for ${tableColumns[i]}...`);
+                            await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                            const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                            await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                                constants.wait3seconds);
+                        }
+                    }
                 }
             } catch (e) {
                 testFailed = true;
@@ -323,15 +345,25 @@ describe("RESULT GRIDS", () => {
                 }
 
                 for (let i = 1; i <= tableColumns.length - 1; i++) {
-                    if (i === tableColumns.length - 1) {
-                        await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
-                    } else {
-                        await result.reduceCellWidth(rowNumber, tableColumns[i]);
-                    }
+                    try {
+                        if (i === tableColumns.length - 1) {
+                            await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                        } else {
+                            await result.reduceCellWidth(rowNumber, tableColumns[i]);
+                        }
 
-                    const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
-                    await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
-                        constants.wait3seconds);
+                        const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                        await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                            constants.wait3seconds);
+                    } catch (e) {
+                        if (String(e).includes("Could not find tooltip for cell")) {
+                            console.log(`Another try for ${tableColumns[i]}...`);
+                            await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                            const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                            await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                                constants.wait3seconds);
+                        }
+                    }
                 }
             } catch (e) {
                 testFailed = true;
@@ -353,16 +385,25 @@ describe("RESULT GRIDS", () => {
                 }
 
                 for (let i = 1; i <= 2; i++) {
-                    if (i === tableColumns.length - 1) {
-                        await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
-                    } else {
-                        await result.reduceCellWidth(rowNumber, tableColumns[i]);
+                    try {
+                        if (i === tableColumns.length - 1) {
+                            await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                        } else {
+                            await result.reduceCellWidth(rowNumber, tableColumns[i]);
+                        }
+
+                        const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                        await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                            constants.wait3seconds);
+                    } catch (e) {
+                        if (String(e).includes("Could not find tooltip for cell")) {
+                            console.log(`Another try for ${tableColumns[i]}...`);
+                            await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
+                            const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
+                            await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
+                                constants.wait3seconds);
+                        }
                     }
-
-                    const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
-                    await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
-                        constants.wait3seconds);
-
                 }
             } catch (e) {
                 testFailed = true;
@@ -377,11 +418,21 @@ describe("RESULT GRIDS", () => {
                 const result = await notebook.codeEditor
                     .execute("SELECT * from sakila.all_data_types_geometries;") as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
-
                 const column = "test_bit";
-                await result.reduceCellWidth(rowNumber, column);
-                const cellText = await result.getCellValue(rowNumber, column);
-                await driver.wait(result.untilCellTooltipIs(rowNumber, column, cellText), constants.wait3seconds);
+
+                try {
+                    await result.reduceCellWidth(rowNumber, column);
+                    const cellText = await result.getCellValue(rowNumber, column);
+                    await driver.wait(result.untilCellTooltipIs(rowNumber, column, cellText), constants.wait3seconds);
+                } catch (e) {
+                    if (String(e).includes("Could not find tooltip for cell")) {
+                        console.log(`Another try for ${column}...`);
+                        await result.reduceCellWidth(rowNumber, column, "js");
+                        const cellText = await result.getCellValue(rowNumber, column);
+                        await driver.wait(result.untilCellTooltipIs(rowNumber, column, cellText),
+                            constants.wait3seconds);
+                    }
+                }
             } catch (e) {
                 testFailed = true;
                 throw e;

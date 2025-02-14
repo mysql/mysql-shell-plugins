@@ -316,6 +316,7 @@ export const notebook = {
             autoCompleteListItem: By.css(".monaco-list .monaco-highlighted-label"),
             result: {
                 exists: By.className("zoneHost"),
+                isWaiting: By.css(".editorPromptFirst.waiting"),
                 hasContent: By.className("content"),
                 existsById: (id: string): By => {
                     let xpath = `//div[@class='zoneHost' and (`;
