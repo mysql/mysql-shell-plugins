@@ -61,9 +61,10 @@ let startupCompleted = false;
 const restartMessage = "This will close all MySQL Shell tabs and restart the underlying process. " +
     "After that a new connection will automatically be established.";
 const resetMessage = "This will completely reset the MySQL Shell for VS Code extension by deleting the " +
-    "web certificate and user settings directory.";
+    "web certificate and optionally deleting the user settings directory.";
 const resetRestartMessage = "The MySQL Shell for VS Code extension has been reset. Please restart VS Code " +
     "to initialize the extension again or press [Cancel] and remove the Extension from the Extensions View Container.";
+const resetShellUserDirDataMessage = "Do you want to delete the user settings directory?";
 
 /**
  * Prints the given content on the MySQL Shell for VS Code output channel.
@@ -238,31 +239,37 @@ export const activate = (context: ExtensionContext): void => {
         });
     }));
 
-    context.subscriptions.push(commands.registerCommand("msg.resetExtension", () => {
-        void ui.showWarningMessage(resetMessage, {}, "Reset Extension", "Cancel").then((choice) => {
-            if (choice === "Reset Extension") {
-                // Reset the MySQLShellInitialRun flag
-                void context.globalState.update("MySQLShellInitialRun", "");
+    context.subscriptions.push(commands.registerCommand("msg.resetExtension", async (): Promise<void> => {
+        const choice = await ui.showWarningMessage(resetMessage, {}, "Reset Extension", "Cancel");
 
-                const configuration = workspace.getConfiguration(`msg.debugLog`);
-                const logLevel = configuration.get<LogLevel>("level", "INFO");
+        if (choice === "Reset Extension") {
+            // Reset the MySQLShellInitialRun flag
+            void context.globalState.update("MySQLShellInitialRun", "");
 
-                // Delete the web certificate before removing shell user config dir.
-                const config: IShellLaunchConfiguration = {
-                    rootPath: context.extensionPath,
-                    inDevelopment: context.extensionMode === ExtensionMode.Development,
-                    parameters: [
-                        "--", "gui", "core", "remove-shell-web-certificate",
-                    ],
-                    logLevel,
-                    onStdOutData: (output: string) => {
-                        if (output.includes("true")) {
-                            // Delete the shell user settings folder, only if it is the dedicated one for the extension.
-                            const shellUserConfigDir = MySQLShellLauncher.getShellUserConfigDir(
-                                context.extensionMode === ExtensionMode.Development);
-                            if (shellUserConfigDir
-                                .endsWith(MySQLShellLauncher.extensionShellUserConfigFolderBaseName)) {
-                                rmSync(shellUserConfigDir, { recursive: true, force: true });
+            const configuration = workspace.getConfiguration(`msg.debugLog`);
+            const logLevel = configuration.get<LogLevel>("level", "INFO");
+
+            // Delete the web certificate before removing shell user config dir.
+            const config: IShellLaunchConfiguration = {
+                rootPath: context.extensionPath,
+                inDevelopment: context.extensionMode === ExtensionMode.Development,
+                parameters: [
+                    "--", "gui", "core", "remove-shell-web-certificate",
+                ],
+                logLevel,
+                onStdOutData: (output: string) => {
+                    if (output.includes("true")) {
+                        void ui.showWarningMessage(resetShellUserDirDataMessage, {},
+                            "Reset All User Data", "Cancel").then( (choice) => {
+                            if (choice === "Reset All User Data") {
+                                // Delete the shell user settings folder, only if it is the dedicated one for the
+                                // extension.
+                                const shellUserConfigDir = MySQLShellLauncher.getShellUserConfigDir(
+                                    context.extensionMode === ExtensionMode.Development);
+                                if (shellUserConfigDir
+                                    .endsWith(MySQLShellLauncher.extensionShellUserConfigFolderBaseName)) {
+                                    rmSync(shellUserConfigDir, { recursive: true, force: true });
+                                }
                             }
 
                             void ui.showWarningMessage(resetRestartMessage, {}, "Restart VS Code", "Cancel")
@@ -271,18 +278,16 @@ export const activate = (context: ExtensionContext): void => {
                                         void commands.executeCommand("workbench.action.reloadWindow");
                                     }
                                 });
-                        } else if (!output.startsWith("Starting embedded MySQL Shell") && !output.includes("DEBUG")
-                            && !output.includes("LC_ALL")) {
-                            void ui.showInformationMessage(`The following error occurred while deleting the ` +
-                                `certificate: ${output} Cancelled reset operation.`, {});
-                        }
+                            });
+                    } else if (output.toLowerCase().includes("error")) {
+                        void ui.showInformationMessage(`The following error occurred while deleting the ` +
+                            `certificate: ${output} Cancelled reset operation.`, {});
+                    }
+                },
+            };
 
-                    },
-                };
-
-                MySQLShellLauncher.runMysqlShell(config);
-            }
-        });
+            MySQLShellLauncher.runMysqlShell(config);
+        }
     }));
 
     context.subscriptions.push(commands.registerCommand("msg.fileBugReport", () => {

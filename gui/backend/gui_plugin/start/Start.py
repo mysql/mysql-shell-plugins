@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -50,7 +50,8 @@ from gui_plugin.core import Filtering
 
 @plugin_function('gui.start.webServer', cli=True)
 def web_server(port=None, secure=None, webrootpath=None,
-               single_instance_token=None, read_token_on_stdin=False):
+               single_instance_token=None, read_token_on_stdin=False,
+               accept_remote_connections=False):
     """Starts a web server that will serve the MySQL Shell GUI
 
     Args:
@@ -65,6 +66,8 @@ def web_server(port=None, secure=None, webrootpath=None,
             local user mode.
         read_token_on_stdin (bool): If set to True, the token will be read
             from STDIN
+        accept_remote_connections (bool): If set to True, the web server will
+            accept remote connections
 
     Allowed options for secure:
         keyfile (str): The path to the server private key file
@@ -147,32 +150,36 @@ def web_server(port=None, secure=None, webrootpath=None,
                                  'be of type dict')
 
             # If the default cert is used, check if it is already installed
-            logger.info('\tChecking web server certificate...')
-            if default_cert_used:
-                try:
-                    if not is_shell_web_certificate_installed(check_keychain=True):
-                        logger.info('\tCertificate is not installed. '
-                                    'Use gui.core.installShellWebCertificate() to install one.')
+            if not accept_remote_connections:
+                logger.info('\tChecking web server certificate...')
+                if default_cert_used:
+                    try:
+                        if not is_shell_web_certificate_installed(check_keychain=True):
+                            logger.info('\tCertificate is not installed. '
+                                        'Use gui.core.installShellWebCertificate() to install one.')
+                            return
+                    except Exception as e:
+                        logger.info('\tCertificate is not correctly installed. '
+                                    'Use gui.core.installShellWebCertificate() to fix the installation.')
+                        logger.exception(e)
                         return
-                except Exception as e:
-                    logger.info('\tCertificate is not correctly installed. '
-                                'Use gui.core.installShellWebCertificate() to fix the installation.')
-                    logger.exception(e)
-                    return
 
-            logger.info('\tCertificate is installed.')
+                logger.info('\tCertificate is installed.')
 
         # Replace WSSimpleEcho with your own subclass of HTTPWebSocketHandler
         server = ThreadedHTTPServer(
-            ('127.0.0.1', port), ShellGuiWebSocketHandler)
+            ('127.0.0.1' if not accept_remote_connections else '0.0.0.0', port), ShellGuiWebSocketHandler)
         server.daemon_threads = True
-        server.host = f'{"https" if secure else "http"}://127.0.0.1'
+        server.host = (
+            f'{"https" if secure else "http"}://'
+            f'{"127.0.0.1" if not accept_remote_connections else socket.getfqdn()}')
         server.port = port
         server.single_instance_token = single_instance_token
 
         if secure:
             context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-            context.load_cert_chain(certfile=secure['certfile'], keyfile=secure['keyfile'])
+            context.load_cert_chain(
+                certfile=secure['certfile'], keyfile=secure['keyfile'])
             server.socket = context.wrap_socket(
                 server.socket,
                 server_side=True)
