@@ -46,7 +46,7 @@ export class RestObjectDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.exists),
-            constants.wait20seconds, "Edit REST Object dialog was not displayed");
+            constants.wait10seconds, "Edit REST Object dialog was not displayed");
 
         const processColumnActivation = async (colOption: interfaces.IRestObjectColumn): Promise<void> => {
             const inColumns = await driver.wait(until
@@ -378,8 +378,6 @@ export class RestObjectDialog {
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The MRS Object dialog was not closed");
 
-        restObject.treeName = `${restObject.restObjectPath}`;
-
         return restObject;
     };
 
@@ -518,8 +516,6 @@ export class RestObjectDialog {
                 return (await DialogHelper.existsDialog()) === false;
             }, constants.wait10seconds, "The MRS Object dialog was not closed");
         }
-
-        restObject.treeName = `${restObject.restObjectPath}`;
 
         return restObject;
     };

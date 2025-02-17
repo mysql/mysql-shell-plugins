@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -109,12 +109,6 @@ export class RestServiceDialog {
             }
         }
 
-        if (restService.advanced && restService.advanced.hostNameFilter) {
-            restService.treeName = `${restService.servicePath} (${restService.advanced.hostNameFilter})`;
-        } else {
-            restService.treeName = restService.servicePath;
-        }
-
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsServiceDialog.ok).click();
 
@@ -176,12 +170,6 @@ export class RestServiceDialog {
             restService.advanced = {
                 hostNameFilter: hostnameFilter,
             };
-        }
-
-        if (restService.advanced && restService.advanced.hostNameFilter) {
-            restService.treeName = `${restService.servicePath} (${restService.advanced.hostNameFilter})`;
-        } else {
-            restService.treeName = restService.servicePath;
         }
 
         await driver.wait(async () => {

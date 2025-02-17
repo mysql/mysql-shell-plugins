@@ -138,15 +138,16 @@ export interface IRestServiceAuthentication {
 }
 
 export interface IRestService {
-    treeName?: string;
     servicePath: string;
     enabled?: boolean;
     default?: boolean;
     published?: boolean;
     settings?: IRestServiceSettings;
     options?: string;
-    advanced?: IRestServiceAdvanced;
     authentication?: IRestServiceAuthentication;
+    advanced?: IRestServiceAdvanced;
+    authenticationApps?: IRestAuthenticationApp[];
+    restSchemas?: IRestSchema[];
 }
 
 export interface IRestServiceAdvanced {
@@ -155,13 +156,13 @@ export interface IRestServiceAdvanced {
 }
 
 export interface IRestSchema {
-    treeName?: string;
     restServicePath?: string;
     restSchemaPath?: string;
     accessControl?: string;
     requiresAuth?: boolean;
     settings?: IRestSchemaSettings;
     options?: string;
+    restObjects?: IRestObject[];
 }
 
 export interface IRestSchemaSettings {
@@ -171,7 +172,6 @@ export interface IRestSchemaSettings {
 }
 
 export interface IRestObject {
-    treeName?: string;
     restServicePath?: string;
     restSchemaPath?: string;
     restObjectPath?: string;
@@ -219,7 +219,6 @@ export interface IRestObjectAuthorization {
 }
 
 export interface IRestAuthenticationApp {
-    treeName?: string;
     vendor: string;
     name: string;
     enabled?: boolean;
@@ -235,6 +234,7 @@ export interface IRestAuthenticationApp {
         customURLforAccessToken?: string;
     },
     options?: string;
+    user?: IRestUser[];
 }
 
 export interface IRestUser {

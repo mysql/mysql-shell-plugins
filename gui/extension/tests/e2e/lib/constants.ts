@@ -494,10 +494,10 @@ export const restObjCtxMenu = new Map([
 ]);
 
 export const restAppCtxMenu1 = new Map([
-    [dumpToDisk, 1],
+    [dumpToDisk, 2],
     [createStatement3Dots, 0],
     [createStatementIncludingAllObjects3Dots, 1],
-    [copyToClipboard, 2],
+    [copyToClipboard, 3],
     [createStatement, 0],
     [createStatementIncludingAllObjects, 1],
 ]);

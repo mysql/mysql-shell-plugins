@@ -284,10 +284,17 @@ export interface IRestObject {
     restObjectPath?: string;
     accessControl?: string;
     requiresAuth?: boolean;
-    jsonRelDuality?: IRestObjectJsonDual;
+    dataMapping?: IDataMapping;
     settings?: IRestObjectSettings;
     authorization?: IRestObjectAuthorization;
     options?: string;
+}
+
+export interface IDataMapping {
+    dbObject?: string;
+    sdkLanguage?: string;
+    columns?: IRestObjectColumn[];
+    crud?: IRestObjectCrud;
 }
 
 export interface IRestObjectJsonDual {

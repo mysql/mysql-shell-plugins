@@ -89,13 +89,13 @@ const globalService: interfaces.IRestService = {
             restObjects: [
                 {
                     treeName: `/actor`,
-                    jsonRelDuality: {
+                    dataMapping: {
                         dbObject: "actor",
                     },
                 },
                 {
                     treeName: `/address`,
-                    jsonRelDuality: {
+                    dataMapping: {
                         dbObject: "address",
                     },
                 },
@@ -114,7 +114,7 @@ const globalService: interfaces.IRestService = {
             restObjects: [
                 {
                     treeName: `/address`,
-                    jsonRelDuality: {
+                    dataMapping: {
                         dbObject: "address",
                     },
                 },
@@ -222,13 +222,13 @@ let otherService: interfaces.IRestService = {
             restObjects: [
                 {
                     treeName: `/actor`,
-                    jsonRelDuality: {
+                    dataMapping: {
                         dbObject: "actor",
                     },
                 },
                 {
                     treeName: `/address`,
-                    jsonRelDuality: {
+                    dataMapping: {
                         dbObject: "address",
                     },
                 },
@@ -247,7 +247,7 @@ let otherService: interfaces.IRestService = {
             restObjects: [
                 {
                     treeName: `/city`,
-                    jsonRelDuality: {
+                    dataMapping: {
                         dbObject: "city",
                     },
                 },
@@ -570,8 +570,8 @@ describe("MYSQL REST SERVICE", () => {
                 restObjectPath: `/editedObject`,
                 accessControl: constants.accessControlDisabled,
                 requiresAuth: true,
-                jsonRelDuality: {
-                    dbObject: globalService.restSchemas![0].restObjects![0].jsonRelDuality?.dbObject,
+                dataMapping: {
+                    dbObject: globalService.restSchemas![0].restObjects![0].dataMapping?.dbObject,
                     //sdkLanguage: "TypeScript",
                     sdkLanguage: "SDK Language",
                     columns: [
@@ -641,7 +641,7 @@ describe("MYSQL REST SERVICE", () => {
 
             globalService.restSchemas![0].restObjects![0] = await RestObjectDialog.set(editedObject);
 
-            let ntf = `The MRS Database Object ${editedObject.jsonRelDuality!.dbObject}`;
+            let ntf = `The MRS Database Object ${editedObject.dataMapping!.dbObject}`;
             ntf += ` was successfully updated.`;
 
             const notifications = await Misc.getToastNotifications(true);
@@ -685,7 +685,7 @@ describe("MYSQL REST SERVICE", () => {
 
             const service = globalService.servicePath;
             const sakila = globalService.restSchemas![0].settings?.schemaName;
-            const address = globalService.restSchemas![0].restObjects![1].jsonRelDuality?.dbObject;
+            const address = globalService.restSchemas![0].restObjects![1].dataMapping?.dbObject;
 
             const regex = new RegExp(`localhost:(\\d+)${service}/${sakila}/${address}`);
             expect(await driver.getCurrentUrl()).toMatch(regex);
@@ -1139,7 +1139,7 @@ describe("MYSQL REST SERVICE - CLIPBOARD", () => {
         try {
             const service = otherService.servicePath;
             const sakila = otherService.restSchemas![0].settings?.schemaName;
-            const address = otherService.restSchemas![0].restObjects![1].jsonRelDuality?.dbObject;
+            const address = otherService.restSchemas![0].restObjects![1].dataMapping?.dbObject;
             const regex = new RegExp(`(localhost:(\\d+)${service}/${sakila}/${address}|${constants.jsError})`);
 
             const treeRestObject = await dbTreeSection

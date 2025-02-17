@@ -230,26 +230,26 @@ export class RestObjectDialog {
             await DialogHelper.setCheckboxValue("requiresAuth", restObject.requiresAuth);
         }
 
-        if (restObject.jsonRelDuality) {
+        if (restObject.dataMapping) {
 
-            if (restObject.jsonRelDuality.dbObject) {
+            if (restObject.dataMapping.dbObject) {
                 await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.jsonDuality.dbObject,
-                    restObject.jsonRelDuality.dbObject);
+                    restObject.dataMapping.dbObject);
             }
 
-            if (restObject.jsonRelDuality.sdkLanguage) {
-                if (restObject.jsonRelDuality.sdkLanguage !== "SDK Language") {
+            if (restObject.dataMapping.sdkLanguage) {
+                if (restObject.dataMapping.sdkLanguage !== "SDK Language") {
                     const inSdk = await dialog.findElement(locator.mrsDbObjectDialog.jsonDuality.sdkLanguage);
                     await inSdk.click();
                     const popup = await driver.wait(until
                         .elementLocated(locator.mrsDbObjectDialog.jsonDuality.sdkLanguageList),
                         constants.wait5seconds, "SDK Language drop down list was not found");
-                    await popup.findElement(By.id(restObject.jsonRelDuality.sdkLanguage)).click();
+                    await popup.findElement(By.id(restObject.dataMapping.sdkLanguage)).click();
                 }
             }
 
-            if (restObject.jsonRelDuality.columns) {
-                for (const column of restObject.jsonRelDuality.columns) {
+            if (restObject.dataMapping.columns) {
+                for (const column of restObject.dataMapping.columns) {
                     await processColumnActivation(column);
                     const colKeys = Object.keys(column).splice(0);
                     for (let i = 0; i <= colKeys.length - 1; i++) {
@@ -262,7 +262,7 @@ export class RestObjectDialog {
                 }
             }
 
-            if (restObject.jsonRelDuality.crud) {
+            if (restObject.dataMapping.crud) {
                 const processCrudItem = async (item: { name: string, value: boolean | undefined; }): Promise<void> => {
                     const crudDivs = await dialog.findElements(locator.mrsDbObjectDialog.jsonDuality.crud);
                     for (const crudDiv of crudDivs) {
@@ -284,10 +284,10 @@ export class RestObjectDialog {
                     }
                 };
 
-                for (const key of Object.keys(restObject.jsonRelDuality.crud)) {
+                for (const key of Object.keys(restObject.dataMapping.crud)) {
                     try {
                         await processCrudItem({
-                            name: key, value: restObject.jsonRelDuality
+                            name: key, value: restObject.dataMapping
                                 .crud[key as keyof interfaces.IRestObjectCrud],
                         });
                     } catch (e) {
@@ -295,7 +295,7 @@ export class RestObjectDialog {
                             throw e;
                         } else {
                             await processCrudItem({
-                                name: key, value: restObject.jsonRelDuality
+                                name: key, value: restObject.dataMapping
                                     .crud[key as keyof interfaces.IRestObjectCrud],
                             });
                         }
@@ -394,7 +394,7 @@ export class RestObjectDialog {
             restServicePath: await dialog.findElement(locator.mrsDbObjectDialog.serviceLabel).getText(),
             restSchemaPath: await dialog.findElement(locator.mrsDbObjectDialog.schemaLabel).getText(),
             restObjectPath: await DialogHelper.getFieldValue(dialog, locator.mrsDbObjectDialog.requestPath),
-            jsonRelDuality: {
+            dataMapping: {
                 dbObject: await DialogHelper.getFieldValue(dialog, locator.mrsDbObjectDialog.jsonDuality.dbObject),
                 sdkLanguage: await dialog.findElement(locator.mrsDbObjectDialog.jsonDuality.sdkLanguageLabel).getText(),
             },
@@ -448,7 +448,7 @@ export class RestObjectDialog {
             }
             restColumns.push(restObjectColumn);
         }
-        restObject.jsonRelDuality!.columns = restColumns;
+        restObject.dataMapping!.columns = restColumns;
 
         const restObjectCrud: interfaces.IRestObjectCrud = {
             insert: undefined,
@@ -467,7 +467,7 @@ export class RestObjectDialog {
                 }
             }
         }
-        restObject.jsonRelDuality!.crud = restObjectCrud;
+        restObject.dataMapping!.crud = restObjectCrud;
 
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsDbObjectDialog.settingsTab).click();

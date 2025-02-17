@@ -562,7 +562,7 @@ export class Workbench {
 
                     if (expectFailure === false) {
                         if (await notification.getType() === NotificationType.Error) {
-                            throw new Error("There is a notification with error");
+                            throw new Error(`There is a notification with error: ${await notification.getMessage()}`);
                         }
                     }
 
