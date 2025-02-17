@@ -35,6 +35,31 @@ import { StatusBar } from "../../../components/ui/Statusbar/Statusbar.js";
 import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { EnabledState, getEnabledState } from "../mrs-helpers.js";
 
+/** Content set field names we know and we cannot convert to camelCase. */
+export enum KnownMrsContentSetFieldNames {
+    ContainsMrsScripts = "contains_mrs_scripts",
+    ScriptDefinitions = "script_definitions",
+    BuildFolder = "build_folder",
+    Language = "language",
+    StaticContentFolder = "static_content_folder",
+    ScriptModuleFiles = "script_module_files",
+    MrsScriptingLanguage = "mrs_scripting_language",
+}
+
+/** Content set option field names we known and cannot convert to camelCase. */
+export interface IMrsContentSetOptions extends IDictionary {
+    [KnownMrsContentSetFieldNames.ContainsMrsScripts]?: boolean;
+    [KnownMrsContentSetFieldNames.ScriptDefinitions]?: IMrsContentSetScriptDefinitions;
+    [KnownMrsContentSetFieldNames.ScriptModuleFiles]?: IMrsScriptModuleFile[];
+}
+
+/** We need a special variant of the IMrsScriptDefinitions interface. */
+export interface IMrsContentSetScriptDefinitions extends IDictionary {
+    [KnownMrsContentSetFieldNames.BuildFolder]?: string;
+    [KnownMrsContentSetFieldNames.Language]?: string;
+    [KnownMrsContentSetFieldNames.StaticContentFolder]?: string;
+}
+
 export interface IMrsContentSetDialogData extends IDictionary {
     serviceId: string;
     requestPath: string;
@@ -49,7 +74,7 @@ export interface IMrsContentSetDialogData extends IDictionary {
 export class MrsContentSetDialog extends AwaitableValueEditDialog {
     #backend!: ShellInterfaceSqlEditor;
     #mrsScriptLanguage?: string;
-    #mrsScriptDefinitions?: IMrsScriptDefinitions;
+    #mrsScriptDefinitions?: IMrsContentSetScriptDefinitions;
     #mrsScriptModuleFiles?: IMrsScriptModuleFile[];
 
     protected override get id(): string {
@@ -140,28 +165,35 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
         let scriptingLanguage = "";
         let staticContentFolder = "";
         if (request.values && request.values.options) {
-            const options = JSON.parse(request.values.options as string);
-            if ("contains_mrs_scripts" in options) {
-                containsMrsScripts = options.contains_mrs_scripts === true;
+            const options = JSON.parse(request.values.options as string) as IMrsContentSetOptions;
+            if (options[KnownMrsContentSetFieldNames.ContainsMrsScripts] === true) {
+                containsMrsScripts = true;
                 options.containsMrsScripts = undefined;
             }
-            if ("script_definitions" in options) {
-                if ("build_folder" in options.script_definitions) {
-                    buildFolder = options.script_definitions.build_folder;
+
+            const scriptDefinitions = options[KnownMrsContentSetFieldNames.ScriptDefinitions];
+            if (scriptDefinitions) {
+                if (scriptDefinitions[KnownMrsContentSetFieldNames.BuildFolder]) {
+                    buildFolder = scriptDefinitions[KnownMrsContentSetFieldNames.BuildFolder];
                 }
-                if ("language" in options.script_definitions) {
-                    scriptingLanguage = options.script_definitions.language;
+
+                if (scriptDefinitions[KnownMrsContentSetFieldNames.Language]) {
+                    scriptingLanguage = scriptDefinitions[KnownMrsContentSetFieldNames.Language];
                 }
-                if ("static_content_folder" in options.script_definitions) {
-                    staticContentFolder = options.script_definitions.static_content_folder;
+
+                if (scriptDefinitions[KnownMrsContentSetFieldNames.StaticContentFolder]) {
+                    staticContentFolder = scriptDefinitions[KnownMrsContentSetFieldNames.StaticContentFolder];
                 }
-                this.#mrsScriptDefinitions = options.script_definitions;
-                options.script_definitions = undefined;
+
+                this.#mrsScriptDefinitions = scriptDefinitions;
+                options[KnownMrsContentSetFieldNames.ScriptDefinitions] = undefined;
             }
-            if ("script_module_files" in options) {
-                this.#mrsScriptModuleFiles = options.scriptModuleFiles;
+
+            if (options[KnownMrsContentSetFieldNames.ScriptModuleFiles]) {
+                this.#mrsScriptModuleFiles = options[KnownMrsContentSetFieldNames.ScriptModuleFiles];
                 options.scriptModuleFiles = undefined;
             }
+
             newOptions = JSON.stringify(options, undefined, 4);
             if (newOptions === "{}") {
                 newOptions = "";
@@ -388,7 +420,7 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
 
         this.updateMrsScriptSection(values).then((values) => {
             dialog.setDialogValues(values);
-        }).catch((_reason) => {
+        }).catch(() => {
         });
     };
 
@@ -476,18 +508,21 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
 
         if (mainSection && settingsSection && optionsSection && scriptSection) {
             const options = JSON.parse(optionsSection.values.options.value as string || "{}");
-            options.contains_mrs_scripts = settingsSection.values.containsMrsScripts.value as boolean;
-            if (options.contains_mrs_scripts) {
-                options.mrs_scripting_language = this.#mrsScriptLanguage;
+            options[KnownMrsContentSetFieldNames.ContainsMrsScripts] =
+                settingsSection.values.containsMrsScripts.value as boolean;
+            if (options[KnownMrsContentSetFieldNames.ContainsMrsScripts]) {
+                options[KnownMrsContentSetFieldNames.MrsScriptingLanguage] = this.#mrsScriptLanguage;
             }
-            if (this.#mrsScriptDefinitions) {
-                options.script_definitions = this.#mrsScriptDefinitions;
-            }
-            if (this.#mrsScriptModuleFiles) {
-                options.script_module_files = this.#mrsScriptModuleFiles;
-            }
-            const newOptions = JSON.stringify(options, undefined, 4);
 
+            if (this.#mrsScriptDefinitions) {
+                options[KnownMrsContentSetFieldNames.ScriptDefinitions] = this.#mrsScriptDefinitions;
+            }
+
+            if (this.#mrsScriptModuleFiles) {
+                options[KnownMrsContentSetFieldNames.ScriptModuleFiles] = this.#mrsScriptModuleFiles;
+            }
+
+            const newOptions = JSON.stringify(options, undefined, 4);
             const values: IMrsContentSetDialogData = {
                 serviceId: services.find((service) => {
                     return mainSection.values.service.value === service.fullServicePath;
