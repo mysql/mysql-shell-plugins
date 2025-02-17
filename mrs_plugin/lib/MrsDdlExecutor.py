@@ -158,10 +158,15 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         current_in_development=None,
         current_schema_id=None,
         current_schema=None,
-        state_data={},
+        state_data=None
     ):
-        self.state_data = state_data
         self.session = session
+        # state_data will contain shared state data that must persist across calls
+        if state_data is None:
+            state_data = {}
+        self.state_data = state_data
+        self.service_state_data_checked = False
+        self.schema_state_data_checked = False
         self.results = []
         # Updates the values of the provided parameters only if they are not None,
         # this is done to avoid overriding values that are cached in the Session
@@ -185,20 +190,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
         self.current_operation = None
 
-    def lookup_current_service(self):
-        if (
-            self.state_data.get("current_service_id") is None
-            and self.session is not None
-        ):
-            service = lib.services.get_current_service(self.session)
-            if service is not None:
-                self.state_data["current_service_id"] = service.get("id")
-                self.state_data["current_service"] = service.get("url_context_root")
-                self.state_data["current_service_host"] = service.get("url_host_name")
-
     @property
     def current_service_id(self):
-        self.lookup_current_service()
+        self.check_current_service()
         return self.state_data.get("current_service_id")
 
     @current_service_id.setter
@@ -207,6 +201,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
     @property
     def current_schema_id(self):
+        self.check_current_schema()
         return self.state_data.get("current_schema_id")
 
     @current_schema_id.setter
@@ -215,7 +210,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
     @property
     def current_service(self):
-        self.lookup_current_service()
+        self.check_current_service()
         return self.state_data.get("current_service")
 
     @current_service.setter
@@ -224,7 +219,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
     @property
     def current_service_host(self):
-        self.lookup_current_service()
+        self.check_current_service()
         return self.state_data.get("current_service_host")
 
     @current_service_host.setter
@@ -233,6 +228,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
     @property
     def current_in_development(self):
+        self.check_current_service()
         return self.state_data.get("current_in_development")
 
     @current_in_development.setter
@@ -241,29 +237,46 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
     @property
     def current_schema(self):
+        self.check_current_schema()
         return self.state_data.get("current_schema")
 
     @current_schema.setter
     def current_schema(self, value):
         self.state_data["current_schema"] = value
 
+    def check_current_service(self):
+        if self.service_state_data_checked:
+            return
+        self.service_state_data_checked = True
+        id = self.state_data.get("current_service_id")
+        if id and not lib.services.get_service(self.session, id):
+            self.current_service_id = None
+            self.current_service = None
+            self.current_service_host = None
+            self.current_in_development = None
+            self.current_schema = None
+            self.current_schema_id = None
+
+    def check_current_schema(self):
+        if self.schema_state_data_checked:
+            return
+        self.schema_state_data_checked = True
+        id = self.state_data.get("current_schema_id")
+        if id and not lib.schemas.get_schema(self.session, id):
+            self.current_schema = None
+            self.current_schema_id = None
+
     # Check if the current mrs_object includes a services request_path or if a
     # current service has been set via USE REST SERVICE
-    def get_given_or_current_service_id(
-        self, mrs_object, allow_not_set=False, allow_wildcards=False
-    ):
-        service_id, _ = self.get_given_or_current_service_id_and_path(
-            mrs_object, allow_wildcards=allow_wildcards
-        )
+    def get_given_or_current_service_id(self, mrs_object, allow_not_set=False):
+        service_id, _ = self.get_given_or_current_service_id_and_path(mrs_object)
         if service_id is None and not allow_not_set:
             raise Exception("No REST SERVICE specified.")
         return service_id
 
     # Check if the current mrs_object includes a services request_path or if a
     # current service has been set via USE REST SERVICE
-    def get_given_or_current_service_id_and_path(
-        self, mrs_object, allow_wildcards=False
-    ):
+    def get_given_or_current_service_id_and_path(self, mrs_object):
         # Prefer the given service if specified
         service_id = None
         service_path = None
@@ -271,30 +284,27 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         # Prefer the given service if specified
         url_context_root = mrs_object.get("url_context_root")
         if url_context_root is not None:
-            if not allow_wildcards or not lib.core.contains_wildcards(url_context_root):
-                url_host_name = mrs_object.get("url_host_name", "")
-                developer_list = (
-                    mrs_object.get("in_development").get("developers", [])
-                    if mrs_object.get("in_development")
-                    else None
+            url_host_name = mrs_object.get("url_host_name", "")
+            developer_list = (
+                mrs_object.get("in_development").get("developers", [])
+                if mrs_object.get("in_development")
+                else None
+            )
+            service = lib.services.get_service(
+                url_context_root=url_context_root,
+                url_host_name=url_host_name,
+                developer_list=developer_list,
+                session=self.session,
+                get_default=False,
+            )
+            if service is None:
+                raise Exception(
+                    f"Could not find the REST SERVICE {self.get_service_sorted_developers(developer_list)}"
+                    + f"{url_host_name}{url_context_root}."
                 )
-                service = lib.services.get_service(
-                    url_context_root=url_context_root,
-                    url_host_name=url_host_name,
-                    developer_list=developer_list,
-                    session=self.session,
-                    get_default=False,
-                )
-                if service is None:
-                    raise Exception(
-                        f"Could not find the REST SERVICE {self.get_service_sorted_developers(developer_list)}"
-                        + f"{url_host_name}{url_context_root}."
-                    )
 
-                service_id = service.get("id")
-                service_path = service.get("url_context_root")
-            else:
-                service_path = url_context_root
+            service_id = service.get("id")
+            service_path = service.get("url_context_root")
 
         if service_path is None and self.current_service_id is not None:
             service_id = self.current_service_id
@@ -304,6 +314,20 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             mrs_object["in_development"] = self.current_in_development
 
         return service_id, service_path
+
+    def get_given_or_current_full_service_path(self, mrs_object):
+        # Prefer the given service if specified
+        url_context_root = mrs_object.get("url_context_root")
+        url_host_name = mrs_object.get("url_host_name", "")
+
+        if url_context_root is None:
+            if self.current_service_id is None:
+                raise Exception("No REST SERVICE specified.")
+
+            url_context_root = self.current_service
+            url_host_name = self.current_service_host or ""
+
+        return url_host_name + url_context_root
 
     def get_service_sorted_developers(self, developer_list: list):
         sorted_developers = ""
@@ -456,7 +480,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         mrs_object.pop("remove_auth_apps", []) # No need to remove auth apps during creation
 
         full_path = self.getFullServicePath(mrs_object=mrs_object)
-
         with lib.core.MrsDbTransaction(self.session):
             try:
                 # If the OR REPLACE was specified, check if there is an existing service on the same host
@@ -485,14 +508,11 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     service=mrs_object,
                 )
 
+                # TODO this code doesn't belong here, it should be moved to the GUI layer
                 # If this is the first service, make it the current one
                 services = lib.services.get_services(session=self.session)
                 if len(services) == 1:
-                    self.current_service_id = service_id
-                    self.current_service = context_root
-                    self.current_service_host = url_host_name
-                    self.current_in_development = mrs_object.get("in_development")
-                    # Also set the stored current session
+                    # Set the stored current session
                     lib.services.set_current_service_id(
                         session=self.session, service_id=self.current_service_id
                     )
@@ -506,7 +526,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         session=self.session,
                         auth_app_id=auth_app["id"],
                         service_id=service_id)
-
                 self.results.append(
                     {
                         "statementIndex": len(self.results) + 1,
@@ -1083,7 +1102,10 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         any_service = mrs_object.get("any_service", False)
         json_options = mrs_object.get("options", {})
 
-        specific_to_service_id = self.get_given_or_current_service_id(mrs_object)
+        if not any_service:
+            specific_to_service_id = self.get_given_or_current_service_id(mrs_object, allow_not_set=False)
+        else:
+            specific_to_service_id = None
 
         with lib.core.MrsDbTransaction(self.session):
             try:
@@ -1100,9 +1122,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 # and delete it.
                 if do_replace == True:
                     role = lib.roles.get_role(
-                        specific_to_service_id=(
-                            None if any_service else specific_to_service_id
-                        ),
+                        specific_to_service_id=specific_to_service_id,
                         caption=caption,
                         session=self.session,
                     )
@@ -1115,9 +1135,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     session=self.session,
                     derived_from_role_id=extends_role_id,
                     caption=caption,
-                    specific_to_service_id=(
-                        None if any_service else specific_to_service_id
-                    ),
+                    specific_to_service_id=specific_to_service_id,
                     description=comments,
                     options=json_options,
                 )
@@ -2005,25 +2023,33 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         role_name = mrs_object.get("role")
         privileges = mrs_object.get("privileges")
         schema_request_path = mrs_object.get("schema_request_path")
+        if schema_request_path is None:
+            schema_request_path = "*"
         object_request_path = mrs_object.get("object_request_path")
+        if object_request_path is None:
+            object_request_path = "*"
+
+        if schema_request_path not in ("*", "") and not schema_request_path.startswith("/"):
+            raise ValueError('schema_path must be "", "*" or start with a /')
+        if object_request_path not in ("*", "") and not object_request_path.startswith("/"):
+            raise ValueError('object_path must be "", "*" or start with a /')
+
         with lib.core.MrsDbTransaction(self.session):
             try:
                 role = lib.roles.get_role(caption=role_name, session=self.session)
                 if not role:
                     raise Exception(f"Role `{role_name}` was not found.")
 
-                service_id, service_path = (
-                    self.get_given_or_current_service_id_and_path(mrs_object)
+                full_service_path = self.get_given_or_current_full_service_path(
+                    mrs_object
                 )
-
                 priv_id = lib.roles.add_role_privilege(
                     session=self.session,
                     role_id=role.get("id"),
                     privileges=privileges,
-                    service_id=service_id,
-                    service_path=service_path,
+                    service_path=full_service_path,
                     schema_path=schema_request_path,
-                    object_path=object_request_path,
+                    object_path=object_request_path
                 )
 
                 self.results.append(
@@ -2171,10 +2197,10 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
         role_name = mrs_object.get("role")
         privileges = mrs_object.get("privileges")
-        schema_request_path = mrs_object.get("schema_request_path")
-        object_request_path = mrs_object.get("object_request_path")
+        schema_request_path = mrs_object.get("schema_request_path") or ""
+        object_request_path = mrs_object.get("object_request_path") or ""
 
-        service_id, service_path = self.get_given_or_current_service_id_and_path(
+        full_service_path = self.get_given_or_current_full_service_path(
             mrs_object
         )
 
@@ -2188,8 +2214,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     session=self.session,
                     role_id=role.get("id"),
                     privileges=privileges,
-                    service_id=service_id,
-                    service_path=service_path,
+                    service_path=full_service_path,
                     schema_path=schema_request_path,
                     object_path=object_request_path,
                 )
@@ -2240,10 +2265,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     self.current_service = service.get("url_context_root")
                     self.current_service_host = mrs_object.get("url_host_name", "")
                     self.current_in_development = service.get("in_development")
-                    # Also set the stored current session
-                    lib.services.set_current_service_id(
-                        session=self.session, service_id=self.current_service_id
-                    )
                 else:
                     raise Exception(
                         f"A REST SERVICE with the request path {url_context_root} could not be found."
@@ -2563,7 +2584,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         show_users = False
         show_services = False
         try:
-            service_id = self.get_given_or_current_service_id(mrs_object)
+            service_id = self.get_given_or_current_service_id(mrs_object, allow_not_set=True)
+            if not service_id:
+                any_service = True
 
             if user_name is not None and auth_app_name is not None and not any_service:
                 user = lib.users.get_user(
@@ -2592,6 +2615,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 roles = lib.roles.get_roles(
                     session=self.session,
                     specific_to_service_id=service_id if not any_service else None,
+                    include_global=True
                 )
 
             result = []
@@ -2774,7 +2798,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
             output = [stmt[:-1] + ";"]
             if include_all_objects:
-                for role in lib.roles.get_roles(self.session, service_id):
+                for role in lib.roles.get_roles(self.session, service_id, include_global=False):
                     output.append(lib.roles.get_create_statement(self.session, role))
 
                 for schema in lib.schemas.get_schemas(self.session, service_id):
@@ -3329,6 +3353,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     raise Exception("The service, which this role is specific to, does not exist.")
 
                 stmt += f" ON SERVICE {service['full_service_path']}"
+            else:
+                stmt += f" ON ANY SERVICE"
 
             stmt += "\n"
 

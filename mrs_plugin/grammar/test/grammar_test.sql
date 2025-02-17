@@ -615,3 +615,25 @@ AS `test`.`t1` {
 };
 
 DROP REST SERVICE /myTest;
+
+CREATE OR REPLACE REST SERVICE localhost/testService;
+
+USE REST SERVICE localhost/testService;
+
+CREATE OR REPLACE REST ROLE "role1";
+
+GRANT REST READ ON SERVICE "*" TO 'Role1';
+
+GRANT REST READ ON SERVICE localhost/testService TO 'Role1';
+
+GRANT REST READ ON SERVICE localhost/testService SCHEMA /testSchema TO 'Role1';
+
+GRANT REST READ ON SERVICE localhost/testService SCHEMA /testSchema
+    OBJECT /testObject TO 'Role1';
+
+GRANT REST READ ON SERVICE localhost/testService SCHEMA ''
+    OBJECT '' TO 'Role1';
+
+DROP REST ROLE "role1";
+
+DROP REST SERVICE localhost/testService;

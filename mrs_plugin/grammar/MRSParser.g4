@@ -559,8 +559,9 @@ alterRestAuthAppStatement:
     ALTER_SYMBOL REST_SYMBOL (
         AUTH_SYMBOL
         | AUTHENTICATION_SYMBOL
-    ) APP_SYMBOL authAppName
-    (NEW_SYMBOL NAME_SYMBOL newAuthAppName)? restAuthAppOptions?
+    ) APP_SYMBOL authAppName (
+        NEW_SYMBOL NAME_SYMBOL newAuthAppName
+    )? restAuthAppOptions?
 ;
 
 newAuthAppName:
@@ -633,9 +634,12 @@ dropRestRoleStatement:
 
 grantRestPrivilegeStatement:
     GRANT_SYMBOL REST_SYMBOL privilegeList (
-        ON_SYMBOL serviceSchemaSelector (
-            OBJECT_SYMBOL objectRequestPath
-        )?
+        (ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath)
+        | (
+            ON_SYMBOL serviceSchemaSelector (
+                OBJECT_SYMBOL objectRequestPath
+            )?
+        )
     )? TO_SYMBOL roleName
 ;
 
@@ -660,9 +664,11 @@ grantRestRoleStatement:
 
 revokeRestPrivilegeStatement:
     REVOKE_SYMBOL REST_SYMBOL privilegeList (
-        ON_SYMBOL serviceSchemaSelector (
-            OBJECT_SYMBOL objectRequestPath
-        )?
+        (ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath)
+        | ( ON_SYMBOL serviceSchemaSelector (
+                OBJECT_SYMBOL objectRequestPath
+            )?
+        )
     )? FROM_SYMBOL roleName
 ;
 

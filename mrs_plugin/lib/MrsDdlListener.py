@@ -867,10 +867,8 @@ class MrsDdlListener(MRSListener):
                     break
             else:
                 raise Exception(
-                    f"The table `{db_schema_name}`.`{
-                        db_object_name}` has no reference to "
-                    f'`{self.mrs_object.get("schema_name")}`.`{
-                        self.mrs_object.get("name")}`.'
+                    f"The table `{db_schema_name}`.`{db_object_name}` has no reference to "
+                    f'`{self.mrs_object.get("schema_name")}`.`{self.mrs_object.get("name")}`.'
                 )
 
     def exitGraphQlPair(self, ctx):
@@ -919,10 +917,8 @@ class MrsDdlListener(MRSListener):
                             reduce_to_field_name = reduce_to_field.get("name")
                         else:
                             raise Exception(
-                                f"Only one column `{
-                                    reduce_to_field_name}` must be defined for a N:1 unnest operation. "
-                                f'The column `{reduce_to_field.get(
-                                    "name")}` needs to be removed.'
+                                f"Only one column `{reduce_to_field_name}` must be defined for a N:1 unnest operation. "
+                                f'The column `{reduce_to_field.get("name")}` needs to be removed.'
                             )
 
                 if obj_reference.get("reduce_to_value_of_field_id") is None:

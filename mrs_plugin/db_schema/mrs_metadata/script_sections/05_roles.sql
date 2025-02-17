@@ -5,18 +5,22 @@
 -- The mysql_rest_service_admin ROLE allows to fully manage the REST services
 -- The mysql_rest_service_schema_admin ROLE allows to manage the database schemas assigned to REST services
 -- The mysql_rest_service_dev ROLE allows to develop new REST objects for given REST services and upload static files
+-- The mysql_rest_service_user ROLE can be assigned to MySQL users that are granted access via MySQL Internal authentication.
 -- The mysql_rest_service_meta_provider ROLE is used by the MySQL Router to read the mrs metadata and make inserts into the auth_user table
 -- The mysql_rest_service_data_provider ROLE is used by the MySQL Router to read the actual schema data that is exposed via REST
 
 CREATE ROLE IF NOT EXISTS 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_user',
     'mysql_rest_service_meta_provider', 'mysql_rest_service_data_provider';
 
+-- Allow the 'mysql_rest_service_user' role to access the same data as 'mysql_rest_service_data_provider'
+GRANT 'mysql_rest_service_data_provider' TO 'mysql_rest_service_user';
+
 -- Allow the 'mysql_rest_service_data_provider' role to create temporary tables
 GRANT CREATE TEMPORARY TABLES ON *.*
     TO 'mysql_rest_service_data_provider';
 
--- `mysql_rest_service_metadata`.`schema_version`
-GRANT SELECT ON `mysql_rest_service_metadata`.`schema_version`
+-- `mysql_rest_service_metadata`.`msm_schema_version`
+GRANT SELECT ON `mysql_rest_service_metadata`.`msm_schema_version`
     TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
 
 -- `mysql_rest_service_metadata`.`audit_log`
@@ -162,7 +166,7 @@ GRANT SELECT ON `mysql_rest_service_metadata`.`auth_vendor`
 GRANT SELECT, INSERT, UPDATE, DELETE
     ON `mysql_rest_service_metadata`.`mrs_user`
     TO 'mysql_rest_service_admin';
-GRANT SELECT, INSERT ON `mysql_rest_service_metadata`.`mrs_user`
+GRANT SELECT, INSERT, UPDATE ON `mysql_rest_service_metadata`.`mrs_user`
     TO 'mysql_rest_service_meta_provider';
 GRANT SELECT ON `mysql_rest_service_metadata`.`mrs_user`
     TO 'mysql_rest_service_data_provider';
@@ -320,4 +324,9 @@ GRANT SELECT
 GRANT SELECT
     ON `mysql_rest_service_metadata`.`object_fields_with_references`
     TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
+
+-- -----------------------------------------------------
+-- Grant the necessary mysql_tasks privileges to the MySQL REST Service roles
+GRANT 'mysql_task_user' TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_user',
+	'mysql_rest_service_meta_provider', 'mysql_rest_service_data_provider';
 

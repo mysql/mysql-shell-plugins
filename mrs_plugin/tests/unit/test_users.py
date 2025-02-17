@@ -427,8 +427,8 @@ def test_user_sql_service(phone_book):
         "CREATE REST SERVICE localhost/two",
         'CREATE REST AUTH APP "app1" VENDOR MySQL COMMENTS "svc1"',
         'CREATE REST AUTH APP "app2" VENDOR MySQL COMMENTS "svc2"',
-        'CREATE REST USER "usr"@"app1" ON SERVICE localhost/one OPTIONS {"email": "one"}',
-        'CREATE REST USER "usr"@"app2" ON SERVICE localhost/two OPTIONS {"email": "two"}',
+        'CREATE REST USER "usr"@"app1" ON SERVICE localhost/one OPTIONS {"email": "one@site.com"}',
+        'CREATE REST USER "usr"@"app2" ON SERVICE localhost/two OPTIONS {"email": "two@site.com"}',
     ]
     for sql in script:
         try:
@@ -441,16 +441,16 @@ def test_user_sql_service(phone_book):
     id_two = lib.services.get_service(session=session, url_host_name="localhost",url_context_root="/two")["id"]
 
     user = lib.users.get_user(session=session, user_name="usr", auth_app_name="app1", service_id=id_one)
-    assert user["email"] == "one"
+    assert user["email"] == "one@site.com"
     user = lib.users.get_user(session=session, user_name="usr", auth_app_name="app2", service_id=id_two)
-    assert user["email"] == "two"
+    assert user["email"] == "two@site.com"
 
-    session.run_sql('ALTER REST USER "usr"@"app1" ON SERVICE localhost/one OPTIONS {"email": "ONE"}')
-    session.run_sql('ALTER REST USER "usr"@"app2" ON SERVICE localhost/two OPTIONS {"email": "TWO"}')
+    session.run_sql('ALTER REST USER "usr"@"app1" ON SERVICE localhost/one OPTIONS {"email": "ONE@site.com"}')
+    session.run_sql('ALTER REST USER "usr"@"app2" ON SERVICE localhost/two OPTIONS {"email": "TWO@site.com"}')
     user = lib.users.get_user(session=session, user_name="usr", auth_app_name="app1", service_id=id_one)
-    assert user["email"] == "ONE"
+    assert user["email"] == "ONE@site.com"
     user = lib.users.get_user(session=session, user_name="usr", auth_app_name="app2", service_id=id_two)
-    assert user["email"] == "TWO"
+    assert user["email"] == "TWO@site.com"
 
     session.run_sql("DROP REST SERVICE localhost/one")
     session.run_sql("DROP REST SERVICE localhost/two")

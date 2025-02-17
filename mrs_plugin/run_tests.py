@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -100,6 +100,16 @@ arg_parser.add_argument('-k', '--only',
                         type=str,
                         default=None,
                         help='Run only the tests that apply to the pattern')
+arg_parser.add_argument('-P', '--pytest',
+                        required=False,
+                        type=str,
+                        default=None,
+                        help='Pass additional options to pytest')
+arg_parser.add_argument('-M', '--mysqlsh',
+                        required=False,
+                        type=str,
+                        default=None,
+                        help='Pass additional options to mysqlsh')
 
 try:
     args = arg_parser.parse_args()
@@ -206,9 +216,12 @@ create_symlink(paths.source.code,
 
 LOGS = ""
 PATTERN = ""
+MYSQLSH_FLAGS = args.mysqlsh or ""
+EXTRA_OPTIONS = ""
 # Enables verbose execution
 if args.verbose is not None or args.debug is not None:
     LOGS = "-sv"
+    MYSQLSH_FLAGS += " --verbose"
 
 if args.only is not None:
     PATTERN = f"-k {args.only}"
@@ -222,7 +235,7 @@ with pushd(paths.source.plugin):
     if args.debug is not None:
         env['ATTACH_DEBUGGER'] = args.debug
 
-    command = f"{paths.shell} --pym pytest --cov={paths.source.code} --cov-append -vv -c {paths.source.pytest_config} {LOGS} {paths.source.plugin} {PATTERN}"
+    command = f"{paths.shell} {MYSQLSH_FLAGS} --pym pytest {args.pytest or ''} --cov={paths.source.code} --cov-append -vv -c {paths.source.pytest_config} {LOGS} {paths.source.plugin} {PATTERN}"
     print(command)
     shell = subprocess.run(command, shell=True, env=env)
 

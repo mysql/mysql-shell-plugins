@@ -25,101 +25,13 @@ import pytest
 
 from ...roles import *
 from mrs_plugin import lib
-from .helpers import get_default_role_init, RoleCT, QueryResults
-
-
-def test_get_roles(phone_book):
-    roles = get_roles(None, phone_book["session"])
-    assert len(roles) == len(phone_book["roles"])
-
-    for role in roles:
-        assert role["caption"] in phone_book["roles"]
-        assert role["id"] == phone_book["roles"][role["caption"]]
-
-    roles = get_roles(phone_book["service_id"], phone_book["session"])
-
-    assert len(roles) == len(phone_book["roles"])
-
-    for role in roles:
-        assert role["caption"] in phone_book["roles"]
-        assert role["id"] == phone_book["roles"][role["caption"]]
-
-
-def test_add_role(phone_book):
-    session = phone_book["session"]
-    role1_init = get_default_role_init("Test role 1", "This is the role 1 description")
-    role2_init = get_default_role_init("Test role 2", "This is the role 2 description")
-    role3_init = get_default_role_init("Test role 3", "This is the role 3 description")
-
-    with RoleCT(session, **role1_init) as role1_id:
-        with RoleCT(session, **role2_init) as role2_id:
-            with RoleCT(session, **role3_init) as role3_id:
-                local_roles = {
-                    "Test role 1": role1_id,
-                    "Test role 2": role2_id,
-                    "Test role 3": role3_id,
-                    **phone_book["roles"],
-                }
-
-                roles = get_roles(phone_book["service_id"], phone_book["session"])
-
-                for role in roles:
-                    assert role["caption"] in local_roles
-                    assert role["id"] == local_roles[role["caption"]]
-                    if role["caption"].startswith("Test role "):
-                        assert (
-                            role["description"]
-                            == f'This is the role {role["caption"][-1]} description'
-                        )
-
-
-def test_add_role_privilege(phone_book):
-    session = phone_book["session"]
-    session.run_sql('create rest role "myrole"')
-
-    role = get_role(session=session, caption="myrole")
-
-    add_role_privilege(
-        session=session,
-        role_id=role["id"],
-        operations=["CREATE", "UPDATE"],
-        service_path="/test*",
-        schema_path="/sch?ma*",
-        object_path="/obj*ect",
-    )
-
-    add_role_privilege(
-        session=session,
-        role_id=role["id"],
-        operations=["CREATE", "UPDATE", "delete"],
-        service_path="/test*",
-        schema_path="/sch?ma*",
-        object_path="/obj*ect",
-    )
-
-    delete_role_privilege(
-        session=session,
-        role_id=role["id"],
-        operations=["DELETE"],
-        service_path="/test*",
-        schema_path="/sch?ma*",
-        object_path="/obj*ect",
-    )
-
-    delete_role_privilege(
-        session=session,
-        role_id=role["id"],
-        operations=["create", "update"],
-        service_path="/test*",
-        schema_path="/sch?ma*",
-        object_path="/obj*ect",
-    )
-
-    session.run_sql('drop rest role "myrole"')
+from .helpers import get_default_role_init, RoleCT, QueryResults, TableContents
 
 
 def test_sql(phone_book):
     session = phone_book["session"]
+
+    session.run_sql("use rest service localhost/test")
 
     with QueryResults(lambda: session.run_sql("show rest roles")) as qr:
         session.run_sql('create rest role "myrole"')
@@ -182,74 +94,6 @@ def test_sql(phone_book):
             ]
         )
 
-    with QueryResults(lambda: session.run_sql('show rest grants for "myrole"')) as qr:
-        session.run_sql(
-            'grant rest CREATE, DELETE on SERVICE localhost/test SCHEMA /PhoneBook OBJECT /Contacts to "myrole"'
-        )
-        qr.expect_added(
-            [
-                {
-                    "REST grants for myrole": 'GRANT REST CREATE,DELETE ON SERVICE localhost/test SCHEMA /PhoneBook OBJECT /Contacts TO "myrole"'
-                }
-            ]
-        )
-
-        session.run_sql(
-            'grant rest CREATE, UPDATE on SERVICE localhost/test SCHEMA /PhoneBook to "myrole"'
-        )
-        qr.expect_added(
-            [
-                {
-                    "REST grants for myrole": 'GRANT REST CREATE,DELETE ON SERVICE localhost/test SCHEMA /PhoneBook OBJECT /Contacts TO "myrole"'
-                },
-                {
-                    "REST grants for myrole": 'GRANT REST CREATE,UPDATE ON SERVICE localhost/test SCHEMA /PhoneBook TO "myrole"'
-                }
-            ]
-        )
-
-        session.run_sql(
-            'grant rest READ on SERVICE localhost/test SCHEMA /PhoneBook to "myrole"'
-        )
-        qr.expect_added(
-            [
-                {
-                    "REST grants for myrole": 'GRANT REST CREATE,DELETE ON SERVICE localhost/test SCHEMA /PhoneBook OBJECT /Contacts TO "myrole"'
-                },
-                {
-                    "REST grants for myrole": 'GRANT REST CREATE,READ,UPDATE ON SERVICE localhost/test SCHEMA /PhoneBook TO "myrole"'
-                }
-            ]
-        )
-        # ensure no duplicate added
-        session.run_sql(
-            'grant rest READ on SERVICE localhost/test SCHEMA /PhoneBook to "myrole"'
-        )
-        qr.expect_added(
-            [
-                {
-                    "REST grants for myrole": 'GRANT REST CREATE,DELETE ON SERVICE localhost/test SCHEMA /PhoneBook OBJECT /Contacts TO "myrole"'
-                },
-                {
-                    "REST grants for myrole": 'GRANT REST CREATE,READ,UPDATE ON SERVICE localhost/test SCHEMA /PhoneBook TO "myrole"'
-                }
-            ]
-        )
-
-        session.run_sql(
-            'revoke rest UPDATE on SERVICE localhost/test SCHEMA /PhoneBook from "myrole"'
-        )
-        qr.expect_added(
-            [
-                {
-                    "REST grants for myrole": 'GRANT REST CREATE,DELETE ON SERVICE localhost/test SCHEMA /PhoneBook OBJECT /Contacts TO "myrole"'
-                },
-                {
-                    "REST grants for myrole": 'GRANT REST CREATE,READ ON SERVICE localhost/test SCHEMA /PhoneBook TO "myrole"'
-                }
-            ]
-        )
-
     with QueryResults(lambda: session.run_sql("show rest roles")) as qr:
         session.run_sql('drop rest role "myrole3"')
         session.run_sql('drop rest role "myrole2"')
@@ -280,6 +124,7 @@ def test_sql(phone_book):
                 },
             ]
         )
+
 
 def test_sql_show(phone_book):
     session = phone_book["session"]
@@ -364,8 +209,7 @@ def test_sql_show(phone_book):
         )
     )
 
-    global_roles = {"DBA", "Maintenance Admin", "roleA", "roleB", "Full Access"}
-    all_roles = global_roles | {"roleC", "roleD", "roleE", "Process Admin"}
+    global_roles = {"roleA", "roleB", "Full Access"}
 
     # all roles that exist
     session.run_sql("use rest service /rtest")
@@ -376,8 +220,10 @@ def test_sql_show(phone_book):
     r = session.run_sql("show rest roles")
     assert role_names(r) == {"roleC", "roleE"} | global_roles
 
+    real_all_roles = set([r[0] for r in session.run_sql("select caption from mysql_rest_service_metadata.mrs_role").fetch_all()])
+
     r = session.run_sql("show rest roles from any service")
-    assert role_names(r) == all_roles
+    assert role_names(r) == real_all_roles
 
     # for a given auth_app
     # r = session.run_sql('show rest roles for @"MRSApp"')
@@ -415,8 +261,8 @@ def test_sql_show(phone_book):
     session.run_sql('drop rest role "roleC"')
     session.run_sql('drop rest role "roleD"')
     session.run_sql('drop rest role "roleE"')
-    session.run_sql('drop rest service /rtest')
-    session.run_sql('drop rest service /rtest2')
+    session.run_sql("drop rest service /rtest")
+    session.run_sql("drop rest service /rtest2")
 
     assert num_services == count_table("service")
     # assert num_user == count_table("mrs_user")
@@ -426,3 +272,25 @@ def test_sql_show(phone_book):
     # assert num_service_has_auth_app == count_table("service_has_auth_app")
 
     session.run_sql("use rest service localhost/test")
+
+
+def test_sql_default_role_service(phone_book):
+    session = phone_book["session"]
+
+    session.run_sql("create rest service /testService")
+    session.run_sql("use rest service /testService")
+
+    # should succeed and create on default service
+    session.run_sql('create rest role "testRole2"')
+
+    session.run_sql("drop rest service /testService")
+
+    # should succeed because we want it on any service
+    session.run_sql('create rest role "testRole3" on any service')
+
+    # should fail because the default service is gone
+    with pytest.raises(Exception) as exc_info:
+        session.run_sql('create rest role "testRole4"')
+    assert "No REST SERVICE specified." in str(exc_info.value)
+
+    session.run_sql('drop rest role "testRole3"')

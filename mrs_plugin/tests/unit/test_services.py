@@ -34,19 +34,16 @@ service_create_statement = """CREATE REST SERVICE localhost/test
 service_create_statement_include_all_objects = """CREATE REST SERVICE localhost/test
     COMMENTS "Test service";
 
-CREATE REST ROLE "Process Admin" EXTENDS "Maintenance Admin" ON SERVICE localhost/test
-    COMMENTS "Process administrator."
-    OPTIONS {};
-
-CREATE REST ROLE "DBA"
+CREATE REST ROLE "DBA" ON SERVICE localhost/test
     COMMENTS "Database administrator."
     OPTIONS {};
 
-CREATE REST ROLE "Full Access"
-    COMMENTS "Full access to all db_objects";
-
-CREATE REST ROLE "Maintenance Admin" EXTENDS "DBA"
+CREATE REST ROLE "Maintenance Admin" EXTENDS "DBA" ON SERVICE localhost/test
     COMMENTS "Maintenance administrator."
+    OPTIONS {};
+
+CREATE REST ROLE "Process Admin" EXTENDS "Maintenance Admin" ON SERVICE localhost/test
+    COMMENTS "Process administrator."
     OPTIONS {};
 
 CREATE OR REPLACE REST SCHEMA /AnalogPhoneBook ON SERVICE localhost/test
@@ -141,6 +138,9 @@ def test_add_service(phone_book, table_contents):
 
 
 def test_get_services(phone_book, table_contents):
+    session = phone_book["session"]
+    session.run_sql("use rest service localhost/test")
+
     services = get_services()
     assert services is not None
 
@@ -179,8 +179,11 @@ def test_get_services(phone_book, table_contents):
 def test_get_service(phone_book, table_contents):
     service_table = table_contents("service")
     session = phone_book["session"]
+    session.run_sql("use rest service localhost/test")
+
     args = {
     }
+
     service = get_service(url_host_name="localhost", url_context_root="/test", **args)
 
     assert service is not None
@@ -463,6 +466,8 @@ def test_dump_create_statement(phone_book, table_contents):
 
 
 def test_dump_and_recover(phone_book, table_contents):
+    # drop stuff created by fixture
+    session = phone_book["session"]
     create_statement = """CREATE REST SERVICE localhost/test2
     OPTIONS {
         "http": {
@@ -487,17 +492,6 @@ def test_dump_and_recover(phone_book, table_contents):
         "returnInternalErrorDetails": true
     };
 
-CREATE REST ROLE "DBA"
-    COMMENTS "Database administrator."
-    OPTIONS {};
-
-CREATE REST ROLE "Full Access"
-    COMMENTS "Full access to all db_objects";
-
-CREATE REST ROLE "Maintenance Admin" EXTENDS "DBA"
-    COMMENTS "Maintenance administrator."
-    OPTIONS {};
-
 CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE localhost/test2
     FROM `PhoneBook`;
 
@@ -513,13 +507,12 @@ CREATE OR REPLACE REST VIEW /addresses
         "aaa": "val aaa",
         "bbb": "val bbb"
     };"""
-    create_function = lambda file_path, service_id, overwrite=True, include_all_objects=True: \
+    dump_service = lambda file_path, service_id, overwrite=True, include_all_objects=True: \
         store_create_statement(file_path=file_path,
                                     overwrite=overwrite,
                                     include_all_objects=include_all_objects,
                                     service_id=service_id,
                                     session=phone_book["session"])
-    session = phone_book["session"]
 
     script = ""
 
@@ -529,11 +522,11 @@ CREATE OR REPLACE REST VIEW /addresses
     services = lib.services.get_services(session)
     assert len(services) == 1
 
-    with ServiceCT(session, "/test2", "localhost") as service_id:
-        with SchemaCT(session, service_id, "PhoneBook", "/PhoneBook2") as schema_id:
+    with ServiceCT(session, "/test2", "localhost") as test2_service_id:
+        with SchemaCT(session, test2_service_id, "PhoneBook", "/PhoneBook2") as schema_id:
             auth_app_init = {
                 "name": "Test Auth App 3",
-                "service_id": service_id,
+                "service_id": test2_service_id,
                 "auth_vendor_id": lib.core.id_to_binary("0x31000000000000000000000000000000", "auth_vendor_id"),
                 "default_role_id": lib.core.id_to_binary("0x31000000000000000000000000000000", "default_role_id"),
                 "description": "Authentication via MySQL accounts 3",
@@ -547,7 +540,7 @@ CREATE OR REPLACE REST VIEW /addresses
 
                 db_object = get_default_db_object_init(session, schema_id, name="Addresses", request_path="/addresses")
                 with DbObjectCT(session, **db_object) as db_object_id:
-                    result = create_function(file_path=full_path_file, service_id=service_id, include_all_objects=True)
+                    result = dump_service(file_path=full_path_file, service_id=test2_service_id, include_all_objects=True)
 
                     assert result == True
 
@@ -565,9 +558,10 @@ CREATE OR REPLACE REST VIEW /addresses
     with open(full_path_file, "r") as f:
         script = f.read()
 
-    results = lib.script.run_mrs_script(mrs_script=script)
+    state_data = {}
+    results = lib.script.run_mrs_script(mrs_script=script, state_data=state_data)
 
-    assert len(results) == 6 # for the 6 statements in create_statement
+    assert len(results) == 3 # for the 3 statements in create_statement
 
     for result in results:
         assert result["type"] == "success"
@@ -577,7 +571,7 @@ CREATE OR REPLACE REST VIEW /addresses
 
     for service in services:
         if service["host_ctx"] == "localhost/test2":
-            create_function(full_path_file2, service["id"], include_all_objects=True)
+            dump_service(full_path_file2, service["id"], include_all_objects=True)
             lib.services.delete_service(session, service["id"])
 
     services = lib.services.get_services(session)

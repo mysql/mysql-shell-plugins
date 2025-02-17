@@ -41,27 +41,9 @@ k_role_query = """
 
 k_privilege_query = """
     SELECT p.id, p.role_id, r.caption as role_name, p.crud_operations,
-        p.service_id, CONCAT(h.name, svc.url_context_root) AS full_service_path,
-        p.db_schema_id, s.request_path as schema_path,
-        p.db_object_id, o.request_path as object_path
+        p.service_path, p.schema_path, p.object_path
         FROM `mysql_rest_service_metadata`.mrs_privilege p
         JOIN `mysql_rest_service_metadata`.mrs_role r ON p.role_id = r.id
-        LEFT JOIN `mysql_rest_service_metadata`.service svc ON p.service_id = svc.id
-        LEFT JOIN `mysql_rest_service_metadata`.url_host h ON svc.url_host_id = h.id
-        LEFT JOIN `mysql_rest_service_metadata`.db_schema s ON p.db_schema_id = s.id
-        LEFT JOIN `mysql_rest_service_metadata`.db_object o ON p.db_object_id = o.id
-    """
-
-k_privilege_query_3_0_1 = """
-    SELECT p.id, p.role_id, r.caption as role_name, p.crud_operations,
-        p.service_id,
-        CONCAT(h.name, p.service_path) AS full_service_path,
-        p.schema_path as schema_path,
-        p.object_path as object_path
-        FROM `mysql_rest_service_metadata`.mrs_privilege p
-        JOIN `mysql_rest_service_metadata`.mrs_role r ON p.role_id = r.id
-        LEFT JOIN `mysql_rest_service_metadata`.service svc ON p.service_id = svc.id
-        LEFT JOIN `mysql_rest_service_metadata`.url_host h ON svc.url_host_id = h.id
     """
 
 k_granted_roles_query = """
@@ -85,12 +67,21 @@ k_granted_roles_query = """
     """
 
 
-def get_roles(session, specific_to_service_id=None):
+def get_roles(session, specific_to_service_id=None, include_global=True):
     sql = k_role_query
     params = []
-    if specific_to_service_id:
-        sql += " WHERE r.specific_to_service_id IS NULL OR r.specific_to_service_id = ?"
+    if specific_to_service_id and include_global:
+        sql += " WHERE r.specific_to_service_id = ? OR r.specific_to_service_id is NULL"
         params.append(specific_to_service_id)
+    elif specific_to_service_id and not include_global:
+        sql += " WHERE r.specific_to_service_id = ?"
+        params.append(specific_to_service_id)
+    else:
+        if include_global:
+            pass
+        else:
+            sql += " WHERE r.specific_to_service_id IS NOT NULL"
+
     return core.MrsDbExec(sql, params).exec(session).items
 
 
@@ -153,6 +144,16 @@ def add_role(
     description,
     options={},
 ):
+
+    # workaround for no check on duplicate roles for any service
+    if specific_to_service_id is None:
+        role = get_role(caption=caption, session=session)
+        if role:
+            raise Exception(
+                f"DUPLICATION ERROR: The REST role `{caption}` has already been defined for the given service. "
+                "Use the SHOW REST ROLES; command to display all existing roles."
+            )
+
     sql = """
     INSERT INTO `mysql_rest_service_metadata`.mrs_role
         (id, derived_from_role_id, specific_to_service_id, caption, description, options)
@@ -177,7 +178,8 @@ def add_role(
         if str(e).startswith("MySQL Error (1062)"):
             raise Exception(
                 f"DUPLICATION ERROR: The REST role `{caption}` has already been defined for the given service. "
-                "Use the SHOW REST ROLES; command to display all existing roles.")
+                "Use the SHOW REST ROLES; command to display all existing roles."
+            )
         raise
 
     return id
@@ -195,61 +197,62 @@ def delete_role(session, role_id):
         if str(e).startswith("MySQL Error (1451)"):
             raise Exception(
                 "REFERENCE ERROR: This role is referenced by other roles. Please drop those roles first. "
-                "Use the SHOW REST ROLES; command to display all existing roles.")
+                "Use the SHOW REST ROLES; command to display all existing roles."
+            )
         raise
 
 
-def get_role_privileges(session,
-                        role_id=None,
-                        service_path=core.NotSet,
-                        schema_path=core.NotSet,
-                        object_path=core.NotSet):
+def get_role_privileges(
+    session,
+    role_id=None,
+    service_path=core.NotSet,
+    schema_path=core.NotSet,
+    object_path=core.NotSet
+):
     md_version = core.get_mrs_schema_version_int(session)
-    if md_version and md_version < 30001:
-        sql = k_privilege_query + " WHERE p.role_id=?"
-    else:
-        sql = k_privilege_query_3_0_1 + " WHERE p.role_id=?"
+    if md_version < 40000:
+        raise Exception("MRS metadata version must be 4.0.0 or newer")
+
+    sql = k_privilege_query + " WHERE p.role_id=?"
     conds = []
     args = [role_id]
     if service_path is not core.NotSet:
-        conds.append(f" AND service_path {'=' if service_path else 'IS'} ?")
+        conds.append(f" AND service_path = ?")
         args.append(service_path)
     if schema_path is not core.NotSet:
-        conds.append(f" AND schema_path {'=' if schema_path else 'IS'} ?")
+        conds.append(f" AND schema_path = ?")
         args.append(schema_path)
     if object_path is not core.NotSet:
-        conds.append(f" AND object_path {'=' if object_path else 'IS'} ?")
+        conds.append(f" AND object_path = ?")
         args.append(object_path)
     sql += "".join(conds)
     return core.MrsDbExec(sql, args).exec(session).items
 
 
 def get_role_privilege(session, privilege_id=None):
-    md_version = core.get_mrs_schema_version_int(session)
-    if md_version and md_version < 30001:
-        sql = k_privilege_query + " WHERE p.id=?"
-    else:
-        sql = k_privilege_query_3_0_1 + " WHERE p.id=?"
+    sql = k_privilege_query + " WHERE p.id=?"
     return core.MrsDbExec(sql, [privilege_id]).exec(session).first
+
 
 def add_role_privilege(
     session,
     role_id,
     privileges,
-    service_id=None,
     service_path=None,
     schema_path=None,
-    object_path=None,
+    object_path=None
 ):
     md_version = core.get_mrs_schema_version_int(session)
+    if md_version < 40000:
+        raise Exception("MRS metadata version must be 4.0.0 or newer")
 
-    wildcards_allowed = md_version >= 30001
-
-    privs = get_role_privileges(session,
+    privs = get_role_privileges(
+        session,
         role_id=role_id,
         service_path=service_path,
         schema_path=schema_path,
-        object_path=object_path)
+        object_path=object_path
+    )
     if privs:
         priv = privs[0]
         # add grants to existing privilege
@@ -263,74 +266,23 @@ def add_role_privilege(
         core.MrsDbExec(sql, params).exec(session)
         return priv["id"]
 
-    # NOTE: eventually service_id, db_schema_id and db_object_id will be removed from the DB,
-    # but for now we must set them for backwards compatibility
-    schema_id = None
-    if schema_path:
-        if not wildcards_allowed or not core.contains_wildcards(schema_path):
-            assert service_id
-            schema = schemas.get_schema(
-                service_id=service_id,
-                request_path=schema_path,
-                session=session,
-            )
-            if schema:
-                schema_id = schema.get("id")
-            else:
-                raise Exception(f"Schema `{schema_path}` was not found.")
-
-    object_id = None
-    if object_path:
-        if not wildcards_allowed or not core.contains_wildcards(object_path):
-            if not schema_id:
-                raise Exception(f"The schema for `{object_path}` must be specified")
-
-            object = db_objects.get_db_object(
-                session=session,
-                schema_id=schema_id,
-                request_path=object_path,
-            )
-            if object:
-                object_id = object.get("id")
-            else:
-                raise Exception(f"Object `{object_path}` was not found.")
-
     id = core.get_sequence_id(session)
 
-    if md_version < 30001:
-        sql = """
-        INSERT INTO `mysql_rest_service_metadata`.mrs_privilege
-            (id, role_id, crud_operations, service_id, db_schema_id, db_object_id)
-        VALUES
-            (?, ?, ?, ?, ?, ?)
-        """
-        params = [
-            id,
-            role_id,
-            ",".join(privileges),
-            service_id,
-            schema_id,
-            object_id,
-        ]
-    else:
-        sql = """
-        INSERT INTO `mysql_rest_service_metadata`.mrs_privilege
-            (id, role_id, crud_operations, service_id, db_schema_id, db_object_id,
-                service_path, schema_path, object_path)
-        VALUES
-            (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """
-        params = [
-            id,
-            role_id,
-            ",".join(privileges),
-            service_id,
-            schema_id,
-            object_id,
-            service_path,
-            schema_path,
-            object_path,
-        ]
+    sql = """
+    INSERT INTO `mysql_rest_service_metadata`.mrs_privilege
+        (id, role_id, crud_operations,
+            service_path, schema_path, object_path)
+    VALUES
+        (?, ?, ?, ?, ?, ?)
+    """
+    params = [
+        id,
+        role_id,
+        ",".join(privileges),
+        service_path or "",
+        schema_path or "",
+        object_path or "",
+    ]
 
     core.MrsDbExec(sql, params).exec(session)
 
@@ -342,36 +294,24 @@ def delete_role_privilege(
     role_id,
     privileges,
     service_path=None,
-    service_id=None,
     schema_path=None,
-    db_schema_id=None,
     object_path=None,
-    db_object_id=None,
 ):
     assert role_id and privileges
 
     md_version = core.get_mrs_schema_version_int(session)
+    if md_version < 40000:
+        raise Exception("MRS metadata version must be 4.0.0 or newer")
 
     found = False
     privs = get_role_privileges(session, role_id=role_id)
     for priv in privs:
-        if md_version >= 30001 and (not db_schema_id and not db_object_id):
-            if not (
-                (
-                    priv.get("full_service_path") == service_path
-                    or priv.get("service_id") == service_id
-                )
-                and priv.get("schema_path") == schema_path
-                and priv.get("object_path") == object_path
-            ):
-                continue
-        else:
-            if not (
-                priv.get("service_id") == service_id
-                and priv.get("db_schema_id") == db_schema_id
-                and priv.get("db_object_id") == db_object_id
-            ):
-                continue
+        if (
+            priv.get("service_path") != service_path
+            or priv.get("schema_path") != schema_path
+            or priv.get("object_path") != object_path
+        ):
+            continue
 
         found = True
 
@@ -405,38 +345,41 @@ def delete_role_privilege(
 
 
 def format_role_grant_statement(grant: dict) -> str:
-    service = grant.get("full_service_path")
+    service = grant.get("service_path")
     schema = grant.get("schema_path")
     object = grant.get("object_path")
 
     where = []
-    if service:
-        if core.contains_wildcards(service):
-            service = core.quote_str(service)
-        where.append(f"SERVICE {service}")
-    if schema:
-        if core.contains_wildcards(schema):
-            schema = core.quote_str(schema)
+    if service is not None:
+        # need to break the full service path to host/service
+        if service.startswith("/") or service == "*":
+            url_host_name = ""
+            url_context_root = service
+        else:
+            url_host_name, sep, url_context_root = service.partition("/")
+            url_context_root = sep + url_context_root
+        url_context_root = core.quote_str(url_context_root)
+        if url_host_name:
+            url_host_name = core.quote_str(url_host_name)
+            where.append(f"SERVICE {url_host_name} {url_context_root}")
+        else:
+            where.append(f"SERVICE {url_context_root}")
+    if schema is not None:
+        schema = core.quote_str(schema)
         where.append(f"SCHEMA {schema}")
-    if object:
-        if core.contains_wildcards(object):
-            object = core.quote_str(object)
+    if object is not None:
+        object = core.quote_str(object)
         where.append(f"OBJECT {object}")
 
     return f"""GRANT REST {",".join(grant.get("crud_operations"))} ON {" ".join(where)} TO {core.quote_str(grant.get('role_name'))}"""
 
 
 def get_create_statement(session, role) -> str:
-    executor = MrsDdlExecutor(
-        session=session
-    )
+    executor = MrsDdlExecutor(session=session)
 
-    executor.showCreateRestRole({
-        "current_operation": "SHOW CREATE REST ROLE",
-        **role
-    })
+    executor.showCreateRestRole({"current_operation": "SHOW CREATE REST ROLE", **role})
 
     if executor.results[0]["type"] == "error":
-        raise Exception(executor.results[0]['message'])
+        raise Exception(executor.results[0]["message"])
 
     return executor.results[0]["result"][0]["CREATE REST ROLE "]

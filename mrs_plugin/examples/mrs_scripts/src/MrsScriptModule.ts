@@ -135,7 +135,7 @@ class MrsScriptModule {
         requestPath: "/getMrsVersions",
         comments: "Returns the current version of both, the MRS metadata schema and the MRS user schema.",
         grants: [
-            { privileges: "SELECT", schema: "mysql_rest_service_metadata", object: "schema_version" },
+            { privileges: "SELECT", schema: "mysql_rest_service_metadata", object: "msm_schema_version" },
             { privileges: "SELECT", schema: "mysql_rest_service_metadata", object: "mrs_user_schema_version" },
         ],
     })
