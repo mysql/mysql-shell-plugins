@@ -260,7 +260,7 @@ def test_auth_app_grant_options(phone_book, table_contents):
 
         grants = [
             "GRANT SELECT ON `mysql_rest_service_metadata`.`mrs_user` TO `mysql_rest_service_data_provider`@`%`",
-            "GRANT SELECT ON `mysql_rest_service_metadata`.`schema_version` TO `mysql_rest_service_data_provider`@`%`",
+            "GRANT SELECT ON `mysql_rest_service_metadata`.`msm_schema_version` TO `mysql_rest_service_data_provider`@`%`",
             "GRANT SELECT ON `mysql_rest_service_metadata`.`mrs_user_schema_version` TO `mysql_rest_service_data_provider`@`%`",
         ]
         found = 0

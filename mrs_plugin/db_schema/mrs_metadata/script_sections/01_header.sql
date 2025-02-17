@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -40,5 +40,5 @@ CREATE SCHEMA `mysql_rest_service_metadata` DEFAULT CHARACTER SET utf8mb4 COLLAT
 USE `mysql_rest_service_metadata`;
 
 -- Set schema_version to 0.0.0 to indicate an ongoing creation/upgrade of the schema
-CREATE SQL SECURITY INVOKER VIEW `mysql_rest_service_metadata`.`schema_version` (major, minor, patch) AS SELECT 0, 0, 0;
+CREATE SQL SECURITY INVOKER VIEW `mysql_rest_service_metadata`.`msm_schema_version` (major, minor, patch) AS SELECT 0, 0, 0;
 

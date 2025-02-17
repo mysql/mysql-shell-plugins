@@ -1,5 +1,5 @@
 -- Copyright (c) 2025, Oracle and/or its affiliates.
--- Fri Feb  7 13:06:11 2025
+-- Sat Feb 22 12:36:25 2025
 -- Model: New Model    Version: 1.0
 -- MySQL Workbench Forward Engineering
 
@@ -186,6 +186,9 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_user` (
   `options` JSON NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_auth_user_auth_app1_idx` (`auth_app_id` ASC) VISIBLE,
+  INDEX `mrs_use_vendor_user_id` (`vendor_user_id` ASC) VISIBLE,
+  INDEX `mrs_user_name` (`name` ASC) VISIBLE,
+  INDEX `mrs_user_email` (`email` ASC) VISIBLE,
   CONSTRAINT `fk_auth_user_auth_app1`
     FOREIGN KEY (`auth_app_id`)
     REFERENCES `mysql_rest_service_metadata`.`auth_app` (`id`)
@@ -409,35 +412,14 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_privilege` (
   `id` BINARY(16) NOT NULL,
   `role_id` BINARY(16) NOT NULL,
   `crud_operations` SET('CREATE', 'READ', 'UPDATE', 'DELETE') NOT NULL DEFAULT '',
-  `service_id` BINARY(16) NULL,
-  `db_schema_id` BINARY(16) NULL,
-  `db_object_id` BINARY(16) NULL,
-  `service_path` VARCHAR(255) NULL,
-  `schema_path` VARCHAR(255) NULL,
-  `object_path` VARCHAR(255) NULL,
+  `service_path` VARCHAR(512) NOT NULL DEFAULT '*',
+  `schema_path` VARCHAR(255) NOT NULL DEFAULT '*',
+  `object_path` VARCHAR(255) NOT NULL DEFAULT '*',
   `options` JSON NULL,
   PRIMARY KEY (`id`),
-  INDEX `fk_priv_on_schema_db_schema1_idx` (`db_schema_id` ASC) VISIBLE,
-  INDEX `fk_priv_on_schema_service1_idx` (`service_id` ASC) VISIBLE,
-  INDEX `fk_priv_on_schema_db_object1_idx` (`db_object_id` ASC) VISIBLE,
   CONSTRAINT `fk_priv_on_schema_auth_role1`
     FOREIGN KEY (`role_id`)
     REFERENCES `mysql_rest_service_metadata`.`mrs_role` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_priv_on_schema_db_schema1`
-    FOREIGN KEY (`db_schema_id`)
-    REFERENCES `mysql_rest_service_metadata`.`db_schema` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_priv_on_schema_service1`
-    FOREIGN KEY (`service_id`)
-    REFERENCES `mysql_rest_service_metadata`.`service` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_priv_on_schema_db_object1`
-    FOREIGN KEY (`db_object_id`)
-    REFERENCES `mysql_rest_service_metadata`.`db_object` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -822,7 +804,7 @@ USE `mysql_rest_service_metadata` ;
 -- View `mysql_rest_service_metadata`.`mrs_user_schema_version`
 -- -----------------------------------------------------
 USE `mysql_rest_service_metadata`;
-CREATE  OR REPLACE SQL SECURITY INVOKER VIEW mrs_user_schema_version (major, minor, patch) AS SELECT 3, 1, 0;
+CREATE  OR REPLACE SQL SECURITY INVOKER VIEW mrs_user_schema_version (major, minor, patch) AS SELECT 4, 0, 0;
 
 -- -----------------------------------------------------
 -- View `mysql_rest_service_metadata`.`router_services`
@@ -979,7 +961,6 @@ USE `mysql_rest_service_metadata`$$
 CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`db_schema_BEFORE_DELETE` BEFORE DELETE ON `db_schema` FOR EACH ROW
 BEGIN
 	DELETE FROM `mysql_rest_service_metadata`.`db_object` WHERE `db_schema_id` = OLD.`id`;
-    DELETE FROM `mysql_rest_service_metadata`.`mrs_privilege` WHERE `db_schema_id` = OLD.`id`;
 END$$
 
 USE `mysql_rest_service_metadata`$$
@@ -1021,7 +1002,6 @@ END$$
 USE `mysql_rest_service_metadata`$$
 CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`db_object_BEFORE_DELETE` BEFORE DELETE ON `db_object` FOR EACH ROW
 BEGIN
-    DELETE FROM `mysql_rest_service_metadata`.`mrs_privilege` WHERE `db_object_id` = OLD.`id`;
     DELETE FROM `mysql_rest_service_metadata`.`mrs_db_object_row_group_security` WHERE `db_object_id` = OLD.`id`;
     DELETE FROM `mysql_rest_service_metadata`.`object` WHERE `db_object_id` = OLD.`id`;
 END$$
@@ -1293,7 +1273,7 @@ COMMIT;
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `mysql_rest_service_metadata`;
-INSERT INTO `mysql_rest_service_metadata`.`mrs_privilege` (`id`, `role_id`, `crud_operations`, `service_id`, `db_schema_id`, `db_object_id`, `service_path`, `schema_path`, `object_path`, `options`) VALUES (0x31, 0x31, 'CREATE,READ,UPDATE,DELETE', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO `mysql_rest_service_metadata`.`mrs_privilege` (`id`, `role_id`, `crud_operations`, `service_path`, `schema_path`, `object_path`, `options`) VALUES (0x31, 0x31, 'CREATE,READ,UPDATE,DELETE', DEFAULT, DEFAULT, DEFAULT, NULL);
 
 COMMIT;
 

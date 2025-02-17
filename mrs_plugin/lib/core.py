@@ -315,19 +315,36 @@ def get_current_session(session=None):
 
 
 def get_mrs_schema_version(session):
-    row = (
-        select(
-            table="schema_version",
-            cols=[
-                "major",
-                "minor",
-                "patch",
-                "CONCAT(major, '.', minor, '.', patch) AS version",
-            ],
+    try:
+        # As of MRS metadata schema version 4.0.0 the version VIEW has been
+        # renamed to msm_schema_version, so try that one first
+        row = (
+            select(
+                table="msm_schema_version",
+                cols=[
+                    "major",
+                    "minor",
+                    "patch",
+                    "CONCAT(major, '.', minor, '.', patch) AS version",
+                ],
+            )
+            .exec(session)
+            .first
         )
-        .exec(session)
-        .first
-    )
+    except:
+        row = (
+            select(
+                table="schema_version",
+                cols=[
+                    "major",
+                    "minor",
+                    "patch",
+                    "CONCAT(major, '.', minor, '.', patch) AS version",
+                ],
+            )
+            .exec(session)
+            .first
+        )
 
     if not row:
         raise Exception("Unable to fetch MRS metadata database schema version.")

@@ -138,7 +138,7 @@ def add_role_privilege(role_id=None, session=None, operations=[], **kwargs):
         **kwargs: Additional options
 
     Keyword Args:
-        service_path (str): The service path or pattern to grant privileges on.
+        service_path (str): The full service path or pattern to grant privileges on.
         schema_path (str): The schema path or pattern to grant privileges on.
         object_path (str): The object path or pattern to grant privileges on.
     """

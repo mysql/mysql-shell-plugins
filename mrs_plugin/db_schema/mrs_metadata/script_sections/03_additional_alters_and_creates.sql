@@ -26,6 +26,11 @@ INSERT INTO `mysql_rest_service_metadata`.`auth_app` (`id`, `auth_vendor_id`, `n
 VALUES (0x31, 0x31, 'MySQL', 'Provide login capabilities for MySQL Server user accounts.',
     TRUE, FALSE, 0x31, NULL);
 
+-- Ensure an email cannot be used as user name and a user name cannot be used as email
+ALTER TABLE `mysql_rest_service_metadata`.`mrs_user`
+    ADD CONSTRAINT `mrs_user_no_at_symbol_in_user_name` CHECK (INSTR(name, '@') = 0),
+    ADD CONSTRAINT `mrs_user_at_symbol_in_email` CHECK (INSTR(email, '@') > 0 OR email IS NULL OR email = '');
+
 DELIMITER $$
 
 CREATE FUNCTION `mysql_rest_service_metadata`.`get_sequence_id`() RETURNS BINARY(16) SQL SECURITY INVOKER NOT DETERMINISTIC NO SQL

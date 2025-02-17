@@ -42,13 +42,13 @@ INSERT IGNORE INTO `mysql_tasks`.`config` (`id`, `data`)
 VALUES (1, '{ "limits": { "maximumPreparedStmtAsyncTasks": 100, "maximumHeatWaveLoadingTasks": 5 } }');
 
 
+DELIMITER %%
+
 -- -----------------------------------------------------
 -- Trigger `mysql_tasks`.`task_impl_BEFORE_INSERT`
-
 -- Populate server_uuid and alias on insert
 -- -----------------------------------------------------
-DROP TRIGGER IF EXISTS `mysql_tasks`.`task_impl_BEFORE_INSERT`;
-DELIMITER $$
+DROP TRIGGER IF EXISTS `mysql_tasks`.`task_impl_BEFORE_INSERT`%%
 CREATE TRIGGER `mysql_tasks`.`task_impl_BEFORE_INSERT`
 BEFORE INSERT ON `mysql_tasks`.`task_impl` FOR EACH ROW
 BEGIN
@@ -70,30 +70,35 @@ BEGIN
   FROM
     `mysql_tasks`.`task_impl`
   WHERE
-    `mysql_user` = NEW.mysql_user
+    `mysql_user` = BINARY NEW.mysql_user
+    AND (
+      (NEW.app_user_id IS NOT NULL AND `app_user_id` = BINARY NEW.app_user_id)
+      OR
+      (NEW.app_user_id IS NULL AND `app_user_id` IS NULL)
+    )
     AND alias LIKE CONCAT(day_abbr, '-%');
 
   -- Set the alias (if not set)
   SET NEW.`alias` = COALESCE(NEW.`alias`, CONCAT(day_abbr, '-', max_index));
 
   -- Set the server uuid (if not set)
-  SET NEW.`server_uuid` = COALESCE(NEW.`server_uuid`, UUID_TO_BIN(@@server_uuid, 1));
+  SET NEW.`server_uuid` =
+    COALESCE(NEW.`server_uuid`, UUID_TO_BIN(@@server_uuid, 1));
 
-END$$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Trigger `mysql_tasks`.`task_impl_BEFORE_DELETE`
 -- -----------------------------------------------------
-DROP TRIGGER IF EXISTS `mysql_tasks`.`task_impl_BEFORE_DELETE`;
-DELIMITER $$
+DROP TRIGGER IF EXISTS `mysql_tasks`.`task_impl_BEFORE_DELETE`%%
 CREATE TRIGGER `mysql_tasks`.`task_impl_BEFORE_DELETE`
 BEFORE DELETE ON `mysql_tasks`.`task_impl` FOR EACH ROW
 BEGIN
   DELETE FROM `mysql_tasks`.`task_log_impl`
   WHERE
     `task_id` = OLD.`id`;
-END$$
+END%%
+
 DELIMITER ;
 
 -- -----------------------------------------------------
@@ -101,7 +106,8 @@ DELIMITER ;
 -- Useful for inserts. Prevents an invoker from setting
 -- a different mysql_user for a record.
 -- Note: grant only INSERT on this view to users
---       (not SELECT)
+--   (not SELECT)
+--   for internal use
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `mysql_tasks`.`task_i`;
 CREATE SQL SECURITY DEFINER VIEW `mysql_tasks`.`task_i` AS
@@ -118,15 +124,18 @@ CREATE SQL SECURITY DEFINER VIEW `mysql_tasks`.`task_i` AS
     `task_impl`.`log_data_json_schema` AS `log_data_json_schema`
   FROM `mysql_tasks`.`task_impl`
   WHERE
-    (LEFT(`mysql_user`, (LENGTH(`mysql_user`) - locate('@', reverse(`mysql_user`)))) =
-      LEFT(user(),(length(user()) - locate('@', reverse(user())))));
+    (LEFT(
+      `mysql_user`,
+      (LENGTH(`mysql_user`) - locate('@', reverse(`mysql_user`)))
+    ) = BINARY LEFT(user(),(length(user()) - locate('@', reverse(user())))));
 
 -- -----------------------------------------------------
 -- View `mysql_tasks`.`task_log_i`
 -- Useful for inserts. Prevents an invoker from setting
 -- a different mysql_user for a record.
 -- Note: grant only INSERT on this view to users
---       (not SELECT)
+--   (not SELECT)
+--   for internal use
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `mysql_tasks`.`task_log_i`;
 CREATE SQL SECURITY DEFINER VIEW `mysql_tasks`.`task_log_i` AS
@@ -140,8 +149,10 @@ SELECT
   `task_log_impl`.`status` AS `status`
 FROM `mysql_tasks`.`task_log_impl`
 WHERE
-  (LEFT(`mysql_user`, (LENGTH(`mysql_user`) - LOCATE('@', REVERSE(`mysql_user`)))) =
-    LEFT(user(),(length(user()) - LOCATE('@', REVERSE(user())))));
+  (LEFT(
+    `mysql_user`,
+    (LENGTH(`mysql_user`) - LOCATE('@', REVERSE(`mysql_user`)))
+  ) = BINARY LEFT(user(),(length(user()) - LOCATE('@', REVERSE(user())))));
 
 -- -----------------------------------------------------
 -- View `mysql_tasks`.`task_status_impl`
@@ -260,17 +271,12 @@ JOIN (
   WHERE VARIABLE_NAME = 'server_uuid'
 ) server_info ON 1 = 1;
 
+DELIMITER %%
+
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`app_task_list`
--- Returns a paginated list of application tasks
--- Parameters:
--- - app_user_id: application user id to filter the list on
--- - task_type: type to filter on, if NULL returns all types
--- - offset: pagination offset
--- - limit: pagination limit
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`app_task_list`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`app_task_list`%%
 CREATE FUNCTION `mysql_tasks`.`app_task_list`(
   `app_user_id` VARCHAR(255),
   `task_type` VARCHAR(80),
@@ -280,6 +286,13 @@ CREATE FUNCTION `mysql_tasks`.`app_task_list`(
   RETURNS JSON
   READS SQL DATA
   SQL SECURITY DEFINER
+  COMMENT '
+    Returns a paginated list of application tasks.
+    Parameters:
+    - app_user_id: application user id to filter the list on
+    - task_type: type to filter on, if NULL returns all types
+    - offset: pagination offset
+    - limit: pagination limit'
 BEGIN
   DECLARE tasks JSON DEFAULT NULL;
 
@@ -309,28 +322,23 @@ BEGIN
     FROM
       `mysql_tasks`.`task_impl` t1
     WHERE
-      (LEFT(t1.`mysql_user`, (LENGTH(t1.`mysql_user`) - locate('@', reverse(t1.`mysql_user`)))) =
-        LEFT(user(),(length(user()) - locate('@', reverse(user())))))
-      AND (`app_user_id` IS NULL OR t1.app_user_id = `app_user_id`)
+      (LEFT(
+        t1.`mysql_user`,
+        (LENGTH(t1.`mysql_user`) - locate('@', reverse(t1.`mysql_user`)))
+      ) = BINARY LEFT(user(),(length(user()) - locate('@', reverse(user())))))
+      AND (`app_user_id` IS NULL OR t1.app_user_id = BINARY `app_user_id`)
       AND t1.task_type LIKE `task_type`
     ORDER BY t1.id DESC
     LIMIT `limit` OFFSET `offset`
   ) t;
 
   RETURN tasks;
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`task_list`
--- Returns a paginated list of tasks
--- Parameters:
--- - task_type: type to filter on, if NULL returns all types
--- - offset: pagination offset
--- - limit: pagination limit
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`task_list`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`task_list`%%
 CREATE FUNCTION `mysql_tasks`.`task_list`(
   `task_type` VARCHAR(80),
   `offset` INT UNSIGNED,
@@ -339,23 +347,23 @@ CREATE FUNCTION `mysql_tasks`.`task_list`(
   RETURNS JSON
   READS SQL DATA
   SQL SECURITY INVOKER
+  COMMENT '
+    Returns a paginated list of tasks
+    Parameters:
+    - task_type: type to filter on, if NULL returns all types
+    - offset: pagination offset
+    - limit: pagination limit'
 BEGIN
   RETURN (
     SELECT /*+ SET_VAR(use_secondary_engine=off) */
     `mysql_tasks`.`app_task_list`(NULL, `task_type`, `offset`, `limit`)
   );
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`app_task`
--- Returns information about a single application task
--- Parameters:
--- - app_user_id: application user id to filter the list on
--- - id_or_alias: task UUID or its unique alias
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`app_task`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`app_task`%%
 CREATE FUNCTION `mysql_tasks`.`app_task`(
     app_user_id VARCHAR(255),
     id_or_alias VARCHAR(36)
@@ -363,6 +371,11 @@ CREATE FUNCTION `mysql_tasks`.`app_task`(
   RETURNS JSON
   READS SQL DATA
   SQL SECURITY DEFINER
+  COMMENT '
+    Returns information about a single application task
+    Parameters:
+    - app_user_id: application user id to filter the list on
+    - id_or_alias: task UUID or its unique alias'
 BEGIN
   DECLARE tasks JSON DEFAULT NULL;
   DECLARE task_id VARCHAR(36);
@@ -384,47 +397,40 @@ BEGIN
   FROM
     `mysql_tasks`.`task_impl` t
   WHERE
-    (LEFT(t.`mysql_user`, (LENGTH(t.`mysql_user`) - locate('@', reverse(t.`mysql_user`)))) =
-      LEFT(user(),(length(user()) - locate('@', reverse(user())))))
-    AND (`app_user_id` IS NULL OR t.app_user_id = `app_user_id`)
+    (LEFT(
+      t.`mysql_user`,
+      (LENGTH(t.`mysql_user`) - locate('@', reverse(t.`mysql_user`)))
+    ) = BINARY LEFT(user(),(length(user()) - locate('@', reverse(user())))))
+    AND (`app_user_id` IS NULL OR t.app_user_id = BINARY `app_user_id`)
     AND t.id = UUID_TO_BIN(`task_id`, 1);
 
   RETURN tasks;
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`task`
--- Returns information about a single task
--- Parameters:
--- - id_or_alias: task UUID or its unique alias
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`task`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`task`%%
 CREATE FUNCTION `mysql_tasks`.`task`(
     id_or_alias VARCHAR(36)
   )
   RETURNS JSON
   READS SQL DATA
   SQL SECURITY DEFINER
+  COMMENT '
+    Returns information about a single task
+    Parameters:
+    - id_or_alias: task UUID or its unique alias'
 BEGIN
   RETURN (
     SELECT `mysql_tasks`.`app_task`(NULL, id_or_alias)
   );
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`app_task_logs`
--- Returns a list of logs belonging to an application task
--- Parameters:
--- - app_user_id: application user id to filter the list on
--- - id_or_alias: task UUID or its unique alias
--- - newer_than_log_time: if not NULL, only return log entries
---     newer than the specified timestamp
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`app_task_logs`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`app_task_logs`%%
 CREATE FUNCTION `mysql_tasks`.`app_task_logs`(
     app_user_id VARCHAR(255),
     id_or_alias VARCHAR(36),
@@ -433,6 +439,13 @@ CREATE FUNCTION `mysql_tasks`.`app_task_logs`(
   RETURNS JSON
   READS SQL DATA
   SQL SECURITY DEFINER
+  COMMENT '
+    Returns a list of logs belonging to an application task
+    Parameters:
+    - app_user_id: application user id to filter the list on
+    - id_or_alias: task UUID or its unique alias
+    - newer_than_log_time: if not NULL, only return log entries
+        newer than the specified timestamp'
 BEGIN
   DECLARE task_logs JSON DEFAULT NULL;
   DECLARE task_id VARCHAR(36);
@@ -457,27 +470,22 @@ BEGIN
   ON
     tl.task_id = t.id
   WHERE
-    (LEFT(tl.`mysql_user`, (LENGTH(tl.`mysql_user`) - locate('@', reverse(tl.`mysql_user`)))) =
-      LEFT(user(),(length(user()) - locate('@', reverse(user())))))
-    AND (`app_user_id` IS NULL OR t.app_user_id = `app_user_id`)
+    (LEFT(
+      tl.`mysql_user`,
+      (LENGTH(tl.`mysql_user`) - locate('@', reverse(tl.`mysql_user`)))
+    ) = BINARY LEFT(user(),(length(user()) - locate('@', reverse(user())))))
+    AND (`app_user_id` IS NULL OR t.app_user_id = BINARY `app_user_id`)
     AND tl.task_id = UUID_TO_BIN(`task_id`, 1)
     AND tl.log_time > COALESCE(unix_timestamp(newer_than_log_time), '1970-01-01')
   ORDER BY tl.log_time DESC;
 
   RETURN task_logs;
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`task_logs`
--- Returns a list of logs belonging to a task
--- Parameters:
--- - id_or_alias: task UUID or its unique alias
--- - newer_than_log_time: if not NULL, only return log entries
---     newer than the specified timestamp
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`task_logs`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`task_logs`%%
 CREATE FUNCTION `mysql_tasks`.`task_logs`(
     id_or_alias VARCHAR(36),
     newer_than_log_time TIMESTAMP(6)
@@ -485,25 +493,23 @@ CREATE FUNCTION `mysql_tasks`.`task_logs`(
   RETURNS JSON
   READS SQL DATA
   SQL SECURITY DEFINER
+  COMMENT '
+    Returns a list of logs belonging to a task
+    Parameters:
+    - id_or_alias: task UUID or its unique alias
+    - newer_than_log_time: if not NULL, only return log entries
+        newer than the specified timestamp'
 BEGIN
   RETURN (
     SELECT /*+ SET_VAR(use_secondary_engine=off) */
     `mysql_tasks`.`app_task_logs`(NULL, id_or_alias, newer_than_log_time)
   );
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`app_task_status_list`
--- Returns a paginated list of application task statuses
--- Parameters:
--- - app_user_id: application user id to filter the list on
--- - task_type: type to filter on, if NULL returns all types
--- - offset: pagination offset
--- - limit: pagination limit
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`app_task_status_list`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`app_task_status_list`%%
 CREATE FUNCTION `mysql_tasks`.`app_task_status_list`(
     `app_user_id` VARCHAR(255),
     `task_type` VARCHAR(80),
@@ -513,6 +519,13 @@ CREATE FUNCTION `mysql_tasks`.`app_task_status_list`(
   RETURNS JSON
   READS SQL DATA
   SQL SECURITY DEFINER
+  COMMENT '
+    Returns a paginated list of application task statuses
+    Parameters:
+    - app_user_id: application user id to filter the list on
+    - task_type: type to filter on, if NULL returns all types
+    - offset: pagination offset
+    - limit: pagination limit'
 BEGIN
 
   IF `task_type` IS NULL THEN
@@ -530,7 +543,7 @@ BEGIN
   RETURN (
     SELECT /*+ SET_VAR(use_secondary_engine=off) */ JSON_ARRAYAGG(
       JSON_OBJECT(
-        'id', sq.id,
+        'id', BIN_TO_UUID(sq.id, 1),
         'alias', sq.alias,
         'server_uuid', BIN_TO_UUID(sq.server_uuid, 1),
         'name', sq.name,
@@ -546,8 +559,9 @@ BEGIN
         'estimated_remaining_time', sq.estimated_remaining_time,
         'progress_bar', sq.progress_bar,
         'row_hash', MD5(CONCAT_WS(',',
-            sq.status, sq.message, sq.progress, sq.data, sq.log_data, sq.scheduled_time,
-            sq.starting_time, sq.estimated_completion_time, sq.estimated_remaining_time
+            sq.status, sq.message, sq.progress, sq.data, sq.log_data,
+            sq.scheduled_time, sq.starting_time, sq.estimated_completion_time,
+            sq.estimated_remaining_time
           )
         )
       )
@@ -556,27 +570,25 @@ BEGIN
       SELECT * FROM
         `mysql_tasks`.`task_status_impl` tsi
       WHERE
-        LEFT(tsi.mysql_user, LENGTH(tsi.mysql_user) - LOCATE('@', REVERSE(tsi.mysql_user))) =
-        LEFT(SESSION_USER(), LENGTH(SESSION_USER()) - LOCATE('@', REVERSE(SESSION_USER())))
-        AND (`app_user_id` IS NULL OR tsi.app_user_id = `app_user_id`)
+        LEFT(
+          tsi.mysql_user,
+          LENGTH(tsi.mysql_user) - LOCATE('@', REVERSE(tsi.mysql_user))
+        ) = BINARY LEFT(
+          SESSION_USER(),
+          LENGTH(SESSION_USER()) - LOCATE('@', REVERSE(SESSION_USER()))
+        )
+        AND (`app_user_id` IS NULL OR tsi.app_user_id = BINARY `app_user_id`)
         AND tsi.task_type LIKE `task_type`
       ORDER BY tsi.id DESC
       LIMIT `limit` OFFSET `offset`
     ) sq
   );
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`task_status_list`
--- Returns a paginated list of task statuses
--- Parameters:
--- - task_type: type to filter on, if NULL returns all types
--- - offset: pagination offset
--- - limit: pagination limit
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`task_status_list`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`task_status_list`%%
 CREATE FUNCTION `mysql_tasks`.`task_status_list`(
     `task_type` VARCHAR(80),
     `offset` INT UNSIGNED,
@@ -585,23 +597,23 @@ CREATE FUNCTION `mysql_tasks`.`task_status_list`(
   RETURNS JSON
   READS SQL DATA
   SQL SECURITY DEFINER
+  COMMENT '
+    Returns a paginated list of task statuses
+    Parameters:
+    - task_type: type to filter on, if NULL returns all types
+    - offset: pagination offset
+    - limit: pagination limit'
 BEGIN
   RETURN (
     SELECT /*+ SET_VAR(use_secondary_engine=off) */
     `mysql_tasks`.`app_task_status_list`(NULL, `task_type`, `offset`, `limit`)
   );
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`app_task_status`
--- Returns status of an application task
--- Parameters:
--- - app_user_id: application user id to filter the list on
--- - id_or_alias: task UUID or its unique alias
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`app_task_status`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`app_task_status`%%
 CREATE FUNCTION `mysql_tasks`.`app_task_status`(
     app_user_id VARCHAR(255),
     id_or_alias VARCHAR(36)
@@ -609,6 +621,11 @@ CREATE FUNCTION `mysql_tasks`.`app_task_status`(
   RETURNS JSON
   READS SQL DATA
   SQL SECURITY DEFINER
+  COMMENT '
+    Returns status of an application task
+    Parameters:
+    - app_user_id: application user id to filter the list on
+    - id_or_alias: task UUID or its unique alias'
 BEGIN
   DECLARE task_id VARCHAR(36);
 
@@ -635,8 +652,9 @@ BEGIN
         'estimated_remaining_time', sq.estimated_remaining_time,
         'progress_bar', sq.progress_bar,
         'row_hash', MD5(CONCAT_WS(',',
-            sq.status, sq.message, sq.progress, sq.data, sq.log_data, sq.scheduled_time,
-            sq.starting_time, sq.estimated_completion_time, sq.estimated_remaining_time
+            sq.status, sq.message, sq.progress, sq.data, sq.log_data,
+            sq.scheduled_time, sq.starting_time, sq.estimated_completion_time,
+            sq.estimated_remaining_time
           )
         )
       )
@@ -644,46 +662,44 @@ BEGIN
       SELECT * FROM
         `mysql_tasks`.`task_status_impl` tsi
       WHERE
-        LEFT(tsi.mysql_user, LENGTH(tsi.mysql_user) - LOCATE('@', REVERSE(tsi.mysql_user))) =
-        LEFT(SESSION_USER(), LENGTH(SESSION_USER()) - LOCATE('@', REVERSE(SESSION_USER())))
-        AND (`app_user_id` IS NULL OR tsi.app_user_id = `app_user_id`)
+        LEFT(
+          tsi.mysql_user,
+          LENGTH(tsi.mysql_user) - LOCATE('@', REVERSE(tsi.mysql_user))
+        ) = BINARY LEFT(
+          SESSION_USER(),
+          LENGTH(SESSION_USER()) - LOCATE('@', REVERSE(SESSION_USER()))
+        )
+        AND (`app_user_id` IS NULL OR tsi.app_user_id = BINARY `app_user_id`)
         AND tsi.id = UUID_TO_BIN(`task_id`, 1)
     ) sq
   );
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`task_status`
--- Returns task status
--- Parameters:
--- - id_or_alias: task UUID or its unique alias
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`task_status`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`task_status`%%
 CREATE FUNCTION `mysql_tasks`.`task_status`(
     id_or_alias VARCHAR(36)
   )
   RETURNS JSON
   READS SQL DATA
   SQL SECURITY DEFINER
+  COMMENT '
+    Returns task status
+    Parameters:
+    - id_or_alias: task UUID or its unique alias'
 BEGIN
   RETURN (
     SELECT /*+ SET_VAR(use_secondary_engine=off) */
     `mysql_tasks`.`app_task_status`(NULL, id_or_alias)
   );
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`app_task_status_brief`
--- Returns a brief status of an application task
--- Parameters:
--- - app_user_id: application user id to filter the list on
--- - id_or_alias: task UUID or its unique alias
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`app_task_status_brief`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`app_task_status_brief`%%
 CREATE FUNCTION `mysql_tasks`.`app_task_status_brief`(
     app_user_id VARCHAR(255),
     id_or_alias VARCHAR(36)
@@ -691,6 +707,11 @@ CREATE FUNCTION `mysql_tasks`.`app_task_status_brief`(
   RETURNS JSON
   READS SQL DATA
   SQL SECURITY DEFINER
+  COMMENT '
+    Returns a brief status of an application task
+    Parameters:
+    - app_user_id: application user id to filter the list on
+    - id_or_alias: task UUID or its unique alias'
 BEGIN
 
   DECLARE task_id VARCHAR(36);
@@ -710,44 +731,47 @@ BEGIN
       SELECT * FROM
         `mysql_tasks`.`task_status_impl` tsi
       WHERE
-        LEFT(tsi.mysql_user, LENGTH(tsi.mysql_user) - LOCATE('@', REVERSE(tsi.mysql_user))) =
-        LEFT(SESSION_USER(), LENGTH(SESSION_USER()) - LOCATE('@', REVERSE(SESSION_USER())))
-        AND (`app_user_id` IS NULL OR tsi.app_user_id = `app_user_id`)
+        LEFT(
+          tsi.mysql_user,
+          LENGTH(tsi.mysql_user) - LOCATE('@', REVERSE(tsi.mysql_user))
+        ) = BINARY LEFT(
+          SESSION_USER(),
+          LENGTH(SESSION_USER()) - LOCATE('@', REVERSE(SESSION_USER()))
+        )
+        AND (`app_user_id` IS NULL OR tsi.app_user_id = BINARY `app_user_id`)
         AND tsi.id = UUID_TO_BIN(`task_id`, 1)
       LIMIT 1
     ) sq
   );
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`task_status_brief`
--- Returns a brief task status
--- Parameters:
--- - id_or_alias: task UUID or its unique alias
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`task_status_brief`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`task_status_brief`%%
 CREATE FUNCTION `mysql_tasks`.`task_status_brief`(
     id_or_alias VARCHAR(36)
   )
   RETURNS JSON
   READS SQL DATA
   SQL SECURITY DEFINER
+  COMMENT '
+    Returns a brief task status
+    Parameters:
+    - id_or_alias: task UUID or its unique alias
+  '
 BEGIN
   RETURN (
     SELECT /*+ SET_VAR(use_secondary_engine=off) */
     `mysql_tasks`.`app_task_status_brief`(NULL, id_or_alias)
   );
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`find_task_log_msg`
 --   for internal use
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`find_task_log_msg`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`find_task_log_msg`%%
 CREATE FUNCTION `mysql_tasks`.`find_task_log_msg`(
     task_id VARCHAR(36),
     log_msg TEXT
@@ -771,15 +795,13 @@ BEGIN
     AND tl.message = log_msg;
 
   RETURN task_log;
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`get_task_log_data_json_schema`
 --   for internal use
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`get_task_log_data_json_schema`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`get_task_log_data_json_schema`%%
 CREATE FUNCTION `mysql_tasks`.`get_task_log_data_json_schema`(
     task_id VARCHAR(36)
   )
@@ -794,15 +816,13 @@ BEGIN
     WHERE
       t.id = UUID_TO_BIN(`task_id`, 1)
   );
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`get_task_connection_id`
 --   for internal use
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`get_task_connection_id`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`get_task_connection_id`%%
 CREATE FUNCTION `mysql_tasks`.`get_task_connection_id`(
     task_id VARCHAR(36)
   )
@@ -817,15 +837,13 @@ BEGIN
     WHERE
       t.id = UUID_TO_BIN(`task_id`, 1)
   );
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`active_task_count`
 --   for internal use
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`active_task_count`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`active_task_count`%%
 CREATE FUNCTION `mysql_tasks`.`active_task_count`(task_type VARCHAR(80))
   RETURNS INT UNSIGNED
   READS SQL DATA
@@ -855,19 +873,56 @@ BEGIN
       )
     ) active_task
   );
-END $$
-DELIMITER ;
+END%%
+
+-- -----------------------------------------------------
+-- Function `mysql_tasks`.`active_user_task_count`
+--   for internal use
+-- -----------------------------------------------------
+DROP FUNCTION IF EXISTS `mysql_tasks`.`active_user_task_count`%%
+CREATE FUNCTION `mysql_tasks`.`active_user_task_count`(task_type VARCHAR(80))
+  RETURNS INT UNSIGNED
+  READS SQL DATA
+  SQL SECURITY DEFINER
+BEGIN
+  RETURN (
+    SELECT /*+ SET_VAR(use_secondary_engine=off) */
+    COUNT(active_task.task_id) FROM (
+      SELECT
+        DISTINCT(tl.task_id) AS task_id
+      FROM
+        `mysql_tasks`.`task_log_impl` tl
+      JOIN
+        `mysql_tasks`.`task_impl` t
+      ON
+        tl.task_id = t.id
+      WHERE
+        LEFT(
+          t.mysql_user,
+          LENGTH(t.mysql_user) - LOCATE('@', REVERSE(t.mysql_user))
+        ) = BINARY LEFT(
+          SESSION_USER(),
+          LENGTH(SESSION_USER()) - LOCATE('@', REVERSE(SESSION_USER()))
+        )
+        AND tl.status IN ('RUNNING', 'SCHEDULED')
+      AND
+        (t.task_type = task_type OR task_type IS NULL)
+      AND tl.task_id NOT IN (
+        SELECT DISTINCT(tli.task_id)
+        FROM
+          `mysql_tasks`.`task_log_impl` tli
+        WHERE
+          tli.status IN ('COMPLETED', 'ERROR', 'CANCELLED')
+      )
+    ) active_task
+  );
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`get_app_task_ids_from_alias`
--- Returns a list of the task UUIDs with a given alias,
--- belonging to a given application user.
--- Parameters:
--- - app_user_id: application user id to filter the list on
--- - alias: task alias
+--   for internal use
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`get_app_task_ids_from_alias`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`get_app_task_ids_from_alias`%%
 CREATE FUNCTION `mysql_tasks`.`get_app_task_ids_from_alias`(
     app_user_id VARCHAR(255),
     alias VARCHAR(16)
@@ -875,6 +930,12 @@ CREATE FUNCTION `mysql_tasks`.`get_app_task_ids_from_alias`(
   RETURNS JSON
   READS SQL DATA
   SQL SECURITY DEFINER
+  COMMENT '
+    Returns a list of the task UUIDs with a given alias,
+    belonging to a given application user.
+    Parameters:
+    - app_user_id: application user id to filter the list on
+    - alias: task alias'
 BEGIN
   RETURN (
     SELECT /*+ SET_VAR(use_secondary_engine=off) */ JSON_ARRAYAGG(
@@ -883,47 +944,45 @@ BEGIN
     FROM
       `mysql_tasks`.`task_impl` t
     WHERE
-      LEFT(t.mysql_user, LENGTH(t.mysql_user) - LOCATE('@', REVERSE(t.mysql_user))) =
-      LEFT(SESSION_USER(), LENGTH(SESSION_USER()) - LOCATE('@', REVERSE(SESSION_USER())))
-      AND (`app_user_id` IS NULL OR t.app_user_id = `app_user_id`)
+      LEFT(
+        t.mysql_user,
+        LENGTH(t.mysql_user) - LOCATE('@', REVERSE(t.mysql_user))
+      ) = BINARY LEFT(
+        SESSION_USER(),
+        LENGTH(SESSION_USER()) - LOCATE('@', REVERSE(SESSION_USER()))
+      )
+      AND (`app_user_id` IS NULL OR t.app_user_id = BINARY `app_user_id`)
       AND t.alias = alias
   );
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`get_task_ids_from_alias`
--- Returns a list of the task UUIDs with a given alias.
--- Parameters:
--- - alias: task alias
+--   for internal use
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`get_task_ids_from_alias`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`get_task_ids_from_alias`%%
 CREATE FUNCTION `mysql_tasks`.`get_task_ids_from_alias`(
     alias VARCHAR(16)
   )
   RETURNS JSON
   READS SQL DATA
   SQL SECURITY DEFINER
+  COMMENT '
+    Returns a list of the task UUIDs with a given alias.
+    Parameters:
+    - alias: task alias'
 BEGIN
   RETURN (
     SELECT /*+ SET_VAR(use_secondary_engine=off) */
     `mysql_tasks`.`get_app_task_ids_from_alias`(NULL, alias)
   );
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`get_app_task_id`
--- Returns an application task UUID.
--- Parameters:
--- - app_user_id: application user id to filter the list on
--- - id_or_alias: task UUID or its unique alias.
---     if UUID, returns it.
---     if alias, looks up its UUID.
+--   for internal use
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`get_app_task_id`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`get_app_task_id`%%
 CREATE FUNCTION `mysql_tasks`.`get_app_task_id`(
     app_user_id VARCHAR(255),
     id_or_alias VARCHAR(36)
@@ -931,6 +990,13 @@ CREATE FUNCTION `mysql_tasks`.`get_app_task_id`(
   RETURNS VARCHAR(36)
   READS SQL DATA
   SQL SECURITY INVOKER
+  COMMENT '
+    Returns an application task UUID.
+    Parameters:
+    - app_user_id: application user id to filter the list on
+    - id_or_alias: task UUID or its unique alias.
+        if UUID, returns it.
+        if alias, looks up its UUID.'
 BEGIN
   DECLARE task_ids JSON;
   DECLARE task_id VARCHAR(36);
@@ -943,53 +1009,53 @@ BEGIN
 
     -- Replace task_alias with task_id
     SELECT /*+ SET_VAR(use_secondary_engine=off) */
-    `mysql_tasks`.`get_app_task_ids_from_alias`(app_user_id, id_or_alias) INTO task_ids;
+    `mysql_tasks`.`get_app_task_ids_from_alias`(
+      app_user_id,
+      id_or_alias
+    ) INTO task_ids;
 
     IF JSON_LENGTH(task_ids) > 1 THEN
       SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'Multiple tasks for this alias, re-run using a task_id. For a list IDs: SELECT mysql_tasks.get_task_ids_from_alias(alias);';
+      SET MESSAGE_TEXT = 'Multiple tasks for this alias, re-run using a'
+        ' task_id. For a list IDs: SELECT'
+        ' mysql_tasks.get_task_ids_from_alias(alias);';
     END IF;
 
     SELECT task_ids->>'$[0]' INTO task_id;
   END IF;
 
   RETURN task_id;
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`get_task_id`
--- Returns a task UUID.
--- Parameters:
--- - id_or_alias: task UUID or its unique alias.
---     if UUID, returns it.
---     if alias, looks up its UUID.
+--   for internal use
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`get_task_id`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`get_task_id`%%
 CREATE FUNCTION `mysql_tasks`.`get_task_id`(
     id_or_alias VARCHAR(36)
   )
   RETURNS VARCHAR(36)
   READS SQL DATA
   SQL SECURITY INVOKER
+  COMMENT '
+    Returns a task UUID.
+    Parameters:
+    - id_or_alias: task UUID or its unique alias.
+        if UUID, returns it.
+        if alias, looks up its UUID.'
 BEGIN
   RETURN (
     SELECT /*+ SET_VAR(use_secondary_engine=off) */
     `mysql_tasks`.`get_app_task_id`(NULL, id_or_alias)
   );
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`get_app_task_alias`
--- Returns an application task alias given its UUID.
--- Parameters:
--- - app_user_id: application user id to filter the list on
--- - id: task UUID
+--   for internal use
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`get_app_task_alias`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`get_app_task_alias`%%
 CREATE FUNCTION `mysql_tasks`.`get_app_task_alias`(
     app_user_id VARCHAR(255),
     id VARCHAR(36)
@@ -997,150 +1063,195 @@ CREATE FUNCTION `mysql_tasks`.`get_app_task_alias`(
   RETURNS VARCHAR(16)
   READS SQL DATA
   SQL SECURITY INVOKER
+  COMMENT '
+    Returns an application task alias given its UUID.
+    Parameters:
+    - app_user_id: application user id to filter the list on
+    - id: task UUID'
 BEGIN
   DECLARE task_info JSON;
   SELECT /*+ SET_VAR(use_secondary_engine=off) */
   `mysql_tasks`.`app_task`(app_user_id, id) INTO task_info;
   RETURN task_info->>'$.alias';
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Function `mysql_tasks`.`get_task_alias`
--- Returns a task alias given its UUID.
--- Parameters:
--- - id: task UUID
+--   for internal use
 -- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`get_task_alias`;
-DELIMITER $$
+DROP FUNCTION IF EXISTS `mysql_tasks`.`get_task_alias`%%
 CREATE FUNCTION `mysql_tasks`.`get_task_alias`(
     id VARCHAR(36)
   )
   RETURNS VARCHAR(16)
   READS SQL DATA
   SQL SECURITY INVOKER
+  COMMENT '
+    Returns a task alias given its UUID.
+    Parameters:
+    - id: task UUID'
 BEGIN
   RETURN (
     SELECT /*+ SET_VAR(use_secondary_engine=off) */
     `mysql_tasks`.`get_app_task_alias`(NULL, id)
   );
-END $$
-DELIMITER ;
+END%%
+
+-- -----------------------------------------------------
+-- FUNCTION `mysql_tasks`.`quote_identifier`
+--   for internal use
+-- (copy of sys.quote_identifier to avoid permission issues)
+-- -----------------------------------------------------
+DROP FUNCTION IF EXISTS `mysql_tasks`.`quote_identifier`%%
+CREATE FUNCTION `mysql_tasks`.`quote_identifier`(in_identifier TEXT)
+    RETURNS TEXT CHARSET UTF8MB4
+    SQL SECURITY INVOKER
+    DETERMINISTIC
+    NO SQL
+BEGIN
+    RETURN CONCAT('`', REPLACE(in_identifier, '`', '``'), '`');
+END%%
 
 -- -----------------------------------------------------
 -- Procedure `mysql_tasks`.`create_app_task`
--- Creates an application task and returns its UUID.
--- Parameters:
--- - app_user_id: application user id to filter the list on
--- - name: name for the task
--- - task_type: type for the task
--- - data: JSON field holding additional task data
--- - data_json_schema: JSON schema for the data field
--- - log_data_json_schema: JSON schema for task log's data filed
--- - OUT task_id: UUID of the created task
 -- -----------------------------------------------------
-DROP PROCEDURE IF EXISTS `mysql_tasks`.`create_app_task`;
-DELIMITER $$
+DROP PROCEDURE IF EXISTS `mysql_tasks`.`create_app_task`%%
 CREATE PROCEDURE `mysql_tasks`.`create_app_task`(
   IN `app_user_id` VARCHAR(255),
 	IN `name` VARCHAR(255), IN `task_type` VARCHAR(45), IN `data` JSON,
   IN `data_json_schema` JSON, IN `log_data_json_schema` JSON,
   OUT `task_id` VARCHAR(36))
 SQL SECURITY INVOKER
+COMMENT '
+  Creates an application task and returns its UUID.
+  Parameters:
+  - app_user_id: application user id to filter the list on
+  - name: name for the task
+  - task_type: type for the task
+  - data: JSON field holding additional task data
+  - data_json_schema: JSON schema for the data field
+  - log_data_json_schema: JSON schema for task log\'s data filed
+  - OUT task_id: UUID of the created task'
 BEGIN
   SET task_id = UUID();
-  CALL `mysql_tasks`.`create_app_task_with_id`(`app_user_id`, task_id, `name`, task_type, `data`, `data_json_schema`, `log_data_json_schema`);
-END$$
-DELIMITER ;
+  CALL `mysql_tasks`.`create_app_task_with_id`(
+    `app_user_id`,
+    `task_id`,
+    `name`,
+    `task_type`,
+    `data`,
+    `data_json_schema`,
+    `log_data_json_schema`
+  );
+END%%
 
 -- -----------------------------------------------------
 -- Procedure `mysql_tasks`.`create_app_task_with_id`
--- Creates an application task given its UUID.
--- Parameters:
--- - app_user_id: application user id to filter the list on
--- - id: task UUID
--- - name: name for the task
--- - task_type: type for the task
--- - data: JSON field holding additional task data
--- - data_json_schema: JSON schema for the data field
--- - log_data_json_schema: JSON schema for task log's data filed
 -- -----------------------------------------------------
-DROP PROCEDURE IF EXISTS `mysql_tasks`.`create_app_task_with_id`;
-DELIMITER $$
+DROP PROCEDURE IF EXISTS `mysql_tasks`.`create_app_task_with_id`%%
 CREATE PROCEDURE `mysql_tasks`.`create_app_task_with_id`(
   IN `app_user_id` VARCHAR(255),
   IN `id` VARCHAR(36), IN `name` VARCHAR(255), IN `task_type` VARCHAR(45), IN `data` JSON,
   IN `data_json_schema` JSON, IN `log_data_json_schema` JSON)
 SQL SECURITY INVOKER
+COMMENT '
+  Creates an application task given its UUID.
+  Parameters:
+  - app_user_id: application user id to filter the list on
+  - id: task UUID
+  - name: name for the task
+  - task_type: type for the task
+  - data: JSON field holding additional task data
+  - data_json_schema: JSON schema for the data field
+  - log_data_json_schema: JSON schema for task log\'s data filed'
 BEGIN
   -- insert entry into task table
-  INSERT INTO `mysql_tasks`.`task_i`(`id`, `app_user_id`, `server_uuid`, `name`, `connection_id`, `task_type`, `data`, `data_json_schema`, `log_data_json_schema`)
-    VALUES (UUID_TO_BIN(id, 1), app_user_id, UUID_TO_BIN(@@server_uuid, 1), `name`, CONNECTION_ID(), task_type, `data`, `data_json_schema`, `log_data_json_schema`);
+  INSERT INTO `mysql_tasks`.`task_i`(`id`, `app_user_id`, `server_uuid`,
+    `name`, `connection_id`, `task_type`, `data`,
+    `data_json_schema`, `log_data_json_schema`)
+  VALUES (UUID_TO_BIN(id, 1), app_user_id, UUID_TO_BIN(@@server_uuid, 1),
+    `name`, CONNECTION_ID(), task_type, `data`,
+    `data_json_schema`, `log_data_json_schema`);
 
   IF `data_json_schema` IS NOT NULL AND NOT JSON_SCHEMA_VALID(`data_json_schema`, `data`) THEN
     SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'The provided task data does not conform to the given data_json_schema.',
+      SET MESSAGE_TEXT = 'The provided task data does not conform to the given'
+        ' data_json_schema.',
       MYSQL_ERRNO = 5400;
   END IF;
 
-  CALL `mysql_tasks`.`add_task_log`(id, 'Task created by user.', NULL, 0, 'SCHEDULED');
-END$$
-DELIMITER ;
+  CALL `mysql_tasks`.`add_task_log`(
+    id,
+    'Task created by user.',
+    NULL,
+    0,
+    'SCHEDULED'
+  );
+END%%
 
 -- -----------------------------------------------------
 -- Procedure `mysql_tasks`.`create_task`
--- Creates a task and returns its UUID.
--- Parameters:
--- - name: name for the task
--- - task_type: type for the task
--- - data: JSON field holding additional task data
--- - OUT task_id: UUID of the created task
 -- -----------------------------------------------------
-DROP PROCEDURE IF EXISTS `mysql_tasks`.`create_task`;
-DELIMITER $$
+DROP PROCEDURE IF EXISTS `mysql_tasks`.`create_task`%%
 CREATE PROCEDURE `mysql_tasks`.`create_task`(
-	IN `name` VARCHAR(255), IN `task_type` VARCHAR(45), IN `data` JSON, OUT `task_id` VARCHAR(36))
-SQL SECURITY INVOKER
+	IN `name` VARCHAR(255),
+  IN `task_type` VARCHAR(45),
+  IN `data` JSON,
+  OUT `task_id` VARCHAR(36)
+) SQL SECURITY INVOKER
+COMMENT '
+  Creates a task and returns its UUID.
+  Parameters:
+  - name: name for the task
+  - task_type: type for the task
+  - data: JSON field holding additional task data
+  - OUT task_id: UUID of the created task'
 BEGIN
-  CALL `mysql_tasks`.`create_app_task`(NULL, `name`, task_type, `data`, NULL, NULL, `task_id`);
-END$$
-DELIMITER ;
+  CALL `mysql_tasks`.`create_app_task`(
+    NULL, `name`, task_type, `data`, NULL, NULL, `task_id`);
+END%%
 
 -- -----------------------------------------------------
 -- Procedure `mysql_tasks`.`create_task_with_id`
--- Creates a task given its UUID.
--- Parameters:
--- - id: task UUID
--- - name: name for the task
--- - task_type: type for the task
--- - data: JSON field holding additional task data
 -- -----------------------------------------------------
-DROP PROCEDURE IF EXISTS `mysql_tasks`.`create_task_with_id`;
-DELIMITER $$
+DROP PROCEDURE IF EXISTS `mysql_tasks`.`create_task_with_id`%%
 CREATE PROCEDURE `mysql_tasks`.`create_task_with_id`(
-  IN `id` VARCHAR(36), IN `name` VARCHAR(255), IN `task_type` VARCHAR(45), IN `data` JSON)
-SQL SECURITY INVOKER
+  IN `id` VARCHAR(36),
+  IN `name` VARCHAR(255),
+  IN `task_type` VARCHAR(45),
+  IN `data` JSON
+) SQL SECURITY INVOKER
+COMMENT '
+  Creates a task given its UUID.
+  Parameters:
+  - id: task UUID
+  - name: name for the task
+  - task_type: type for the task
+  - data: JSON field holding additional task data'
 BEGIN
-  CALL `mysql_tasks`.`create_app_task_with_id`(NULL, `id`, `name`, `task_type`, `data`, NULL, NULL);
-END$$
-DELIMITER ;
+  CALL `mysql_tasks`.`create_app_task_with_id`(
+    NULL, `id`, `name`, `task_type`, `data`, NULL, NULL);
+END%%
 
 -- -----------------------------------------------------
 -- Procedure `mysql_tasks`.`add_task_log`
--- Persists a task log entry.
--- Parameters:
--- - task_id: UUID of the task owning the log entry
--- - message: a log message
--- - data: JSON field holding additional log data
--- - progress: task execution progress (0 - 100)
--- - status: enumeration for the task status
 -- -----------------------------------------------------
-DROP PROCEDURE IF EXISTS `mysql_tasks`.`add_task_log`;
-DELIMITER $$
+DROP PROCEDURE IF EXISTS `mysql_tasks`.`add_task_log`%%
 CREATE PROCEDURE `mysql_tasks`.`add_task_log`(
-  IN `task_id` VARCHAR(36), IN `message` VARCHAR(2000), IN `data` JSON,
-  IN `progress` SMALLINT, IN `status` ENUM('SCHEDULED', 'RUNNING', 'COMPLETED', 'ERROR', 'CANCELLED'))
-SQL SECURITY INVOKER
+  IN `task_id` VARCHAR(36),
+  IN `message` VARCHAR(2000),
+  IN `data` JSON,
+  IN `progress` SMALLINT,
+  IN `status` ENUM('SCHEDULED', 'RUNNING', 'COMPLETED', 'ERROR', 'CANCELLED')
+) SQL SECURITY INVOKER
+COMMENT '
+  Persists a task log entry.
+  Parameters:
+  - task_id: UUID of the task owning the log entry
+  - message: a log message
+  - data: JSON field holding additional log data
+  - progress: task execution progress (0 - 100)
+  - status: enumeration for the task status'
 BEGIN
   DECLARE log_id BINARY(16) DEFAULT UUID_TO_BIN(UUID(), 1);
   DECLARE log_data_json_schema JSON DEFAULT NULL;
@@ -1148,28 +1259,34 @@ BEGIN
   SELECT /*+ SET_VAR(use_secondary_engine=off) */
   `mysql_tasks`.`get_task_log_data_json_schema`(task_id) INTO log_data_json_schema;
 
-  IF `log_data_json_schema` IS NOT NULL AND NOT JSON_SCHEMA_VALID(`log_data_json_schema`, `data`) THEN
+  IF `log_data_json_schema` IS NOT NULL
+      AND NOT JSON_SCHEMA_VALID(`log_data_json_schema`, `data`) THEN
     SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = 'The provided log data does not conform to the given log_data_json_schema.',
+      SET MESSAGE_TEXT = 'The provided log data does not conform to the'
+        ' given log_data_json_schema.',
       MYSQL_ERRNO = 5400;
   END IF;
 
-  INSERT INTO `mysql_tasks`.`task_log_i` (`id`, `task_id`, `log_time`, `message`, `data`, `progress`, `status`)
-    VALUES (log_id, UUID_TO_BIN(task_id, 1), NOW(6), message, `data`, progress, `status`);
-END$$
-DELIMITER ;
+  INSERT INTO `mysql_tasks`.`task_log_i` (
+    `id`, `task_id`, `log_time`, `message`, `data`, `progress`, `status`)
+  VALUES (
+    log_id, UUID_TO_BIN(task_id, 1), NOW(6), message, `data`, progress, `status`
+  );
+END%%
 
 -- -----------------------------------------------------
 -- Procedure `mysql_tasks`.`kill_app_task`
--- Kills an application task.
--- Parameters:
--- - app_user_id: application user id to filter the list on
--- - id_or_alias: UUID or a unique alias of the task to kill.
 -- -----------------------------------------------------
-DROP PROCEDURE IF EXISTS `mysql_tasks`.`kill_app_task`;
-DELIMITER $$
-CREATE PROCEDURE `mysql_tasks`.`kill_app_task`(IN `app_user_id` VARCHAR(255), IN `id_or_alias` VARCHAR(36))
-    SQL SECURITY INVOKER
+DROP PROCEDURE IF EXISTS `mysql_tasks`.`kill_app_task`%%
+CREATE PROCEDURE `mysql_tasks`.`kill_app_task`(
+  IN `app_user_id` VARCHAR(255),
+  IN `id_or_alias` VARCHAR(36)
+) SQL SECURITY INVOKER
+COMMENT '
+  Kills an application task.
+  Parameters:
+  - app_user_id: application user id to filter the list on
+  - id_or_alias: UUID or a unique alias of the task to kill.'
 BEGIN
   DECLARE task_id VARCHAR(36);
   DECLARE task_status JSON DEFAULT NULL;
@@ -1209,47 +1326,56 @@ BEGIN
   SET @stmt = CONCAT('KILL ', cid);
   PREPARE stmt FROM @stmt; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
+  -- kill task monitor
+  IF JSON_LENGTH(task_status->'$.task_data.mysqlMetadata.events') > 1 THEN
+    CALL `mysql_tasks`.`stop_task_monitor`(
+      task_status->'$.task_data.mysqlMetadata.events[last]', task_id);
+  END IF;
+
   -- drop associated events
-  IF JSON_CONTAINS_PATH(task_status, 'one', '$.task_data.mysqlMetadata.events') THEN
+  IF JSON_CONTAINS_PATH(
+      task_status, 'one', '$.task_data.mysqlMetadata.events') THEN
     WHILE i < JSON_LENGTH(task_status->'$.task_data.mysqlMetadata.events') DO
-      SET event_name = JSON_UNQUOTE(JSON_EXTRACT(task_status->'$.task_data.mysqlMetadata.events', CONCAT('$[',i,']')));
+      SET event_name = JSON_UNQUOTE(
+        JSON_EXTRACT(
+          task_status->'$.task_data.mysqlMetadata.events', CONCAT('$[',i,']')
+        ));
       CALL `mysql_tasks`.`drop_event`(event_name);
       SELECT i+1 INTO i;
     END WHILE;
   END IF;
 
-  CALL `mysql_tasks`.`add_task_log`(task_id, 'Cancelled by user.', NULL, 100, 'CANCELLED');
+  CALL `mysql_tasks`.`add_task_log`(
+    task_id, 'Cancelled by user.', NULL, 100, 'CANCELLED');
 
-END$$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Procedure `mysql_tasks`.`kill_task`
--- Kills a task.
--- Parameters:
--- - app_user_id: application user id to filter the list on
--- - id_or_alias: UUID or a unique alias of the task to kill.
 -- -----------------------------------------------------
-DROP PROCEDURE IF EXISTS `mysql_tasks`.`kill_task`;
-DELIMITER $$
+DROP PROCEDURE IF EXISTS `mysql_tasks`.`kill_task`%%
 CREATE PROCEDURE `mysql_tasks`.`kill_task`(IN `id_or_alias` VARCHAR(36))
-    SQL SECURITY INVOKER
+SQL SECURITY INVOKER
+COMMENT '
+  Kills a task.
+  Parameters:
+  - app_user_id: application user id to filter the list on
+  - id_or_alias: UUID or a unique alias of the task to kill.'
 BEGIN
   CALL `mysql_tasks`.`kill_app_task`(NULL, id_or_alias);
-END$$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Procedure `mysql_tasks`.`drop_event`
 --   for internal use
--- Drops an event owned by a task.
--- Parameters:
--- - event_name: the name of the event to be dropped.
 -- -----------------------------------------------------
-DROP PROCEDURE IF EXISTS `mysql_tasks`.`drop_event`;
-DELIMITER $$
+DROP PROCEDURE IF EXISTS `mysql_tasks`.`drop_event`%%
 CREATE PROCEDURE `mysql_tasks`.`drop_event`(IN `event_name` TEXT)
   SQL SECURITY INVOKER
+COMMENT '
+  Drops an event owned by a task.
+  Parameters:
+  - event_name: the name of the event to be dropped.'
 BEGIN
   DECLARE event_cmnt TEXT DEFAULT NULL;
   DECLARE version_string VARCHAR(255);
@@ -1263,7 +1389,9 @@ BEGIN
   -- get schema version
   SELECT
     /*+ SET_VAR(use_secondary_engine=off) */
-    v.major, v.minor, v.patch INTO task_mgmt_major, task_mgmt_minor, task_mgmt_patch
+    v.major, v.minor, v.patch
+  INTO
+    task_mgmt_major, task_mgmt_minor, task_mgmt_patch
   FROM
     `mysql_tasks`.`msm_schema_version` v;
 
@@ -1274,12 +1402,18 @@ BEGIN
   FROM
     information_schema.events e
   WHERE
-    CONCAT(mysql_tasks.quote_identifier(e.EVENT_SCHEMA), '.', mysql_tasks.quote_identifier(e.EVENT_NAME)) = `event_name`
+    CONCAT(mysql_tasks.quote_identifier(e.EVENT_SCHEMA),
+      '.', mysql_tasks.quote_identifier(e.EVENT_NAME)) = `event_name`
     AND e.EVENT_COMMENT LIKE 'mysql_tasks_schema_version=%';
 
-  SET version_string = SUBSTRING_INDEX(event_cmnt, 'mysql_tasks_schema_version=', -1); -- Get the part after "="
+  SET version_string = SUBSTRING_INDEX(
+    event_cmnt, 'mysql_tasks_schema_version=', -1); -- Get the part after "="
   SET major = CAST(SUBSTRING_INDEX(version_string, '.', 1) AS UNSIGNED);
-  SET minor = CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(version_string, '.', 2), '.', -1) AS UNSIGNED);
+  SET minor = CAST(
+    SUBSTRING_INDEX(
+      SUBSTRING_INDEX(version_string, '.', 2), '.', -1
+    ) AS UNSIGNED
+  );
   SET patch = CAST(SUBSTRING_INDEX(version_string, '.', -1) AS UNSIGNED);
 
   -- drop event if it has the comment with the supported version
@@ -1294,28 +1428,12 @@ BEGIN
     DEALLOCATE PREPARE stmt;
   END IF;
 
-END $$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Procedure `mysql_tasks`.`execute_prepared_stmt_from_app_async`
--- Executes a prepared statement asynchronously from an application.
--- Parameters:
--- - sql_statements: one or multiple SQL statements (separated by ;)
---     that are to be executed in a detached thread
--- - app_user_id: application user id to filter the list on
--- - schema_name: name of the schema that hosts MySQL Events running in dedicated threads
--- - task_type: type of the task
--- - task_name: name of the task
--- - task_data: additional data/metadata of a task
--- - data_json_schema: JSON schema of the task_data field
--- - log_data_json_schema: JSON schema for the data field for the task logs
--- - progress_monitor_sql_statements: one or multiple SQL statements (separated by ;)
--- -   that are executed periodically and that can update the progress of the background task
--- - OUT task_id: UUID of the task that runs the prepared statement
 -- -----------------------------------------------------
-DROP PROCEDURE IF EXISTS `mysql_tasks`.`execute_prepared_stmt_from_app_async`;
-DELIMITER $$
+DROP PROCEDURE IF EXISTS `mysql_tasks`.`execute_prepared_stmt_from_app_async`%%
 CREATE PROCEDURE `mysql_tasks`.`execute_prepared_stmt_from_app_async`(
   IN `sql_statements` TEXT,
   IN `app_user_id` VARCHAR(255),
@@ -1326,8 +1444,28 @@ CREATE PROCEDURE `mysql_tasks`.`execute_prepared_stmt_from_app_async`(
   IN `data_json_schema` JSON,
   IN `log_data_json_schema` JSON,
   IN `progress_monitor_sql_statements` TEXT,
+  IN `progress_monitor_refresh_period` DECIMAL(5,2),
   OUT task_id VARCHAR(36))
   SQL SECURITY INVOKER
+  COMMENT '
+    Executes a prepared statement asynchronously from an application.
+    Parameters:
+    - sql_statements: one or multiple SQL statements (separated by ;)
+        that are to be executed in a detached thread
+    - app_user_id: application user id to filter the list on
+    - schema_name: name of the schema that hosts MySQL Events running
+        in dedicated threads
+    - task_type: type of the task
+    - task_name: name of the task
+    - task_data: additional data/metadata of a task
+    - data_json_schema: JSON schema of the task_data field
+    - log_data_json_schema: JSON schema for the data field for the task logs
+    - progress_monitor_sql_statements: one or multiple SQL statements
+        (separated by ;) that are executed periodically and that can update
+        the progress of the background task
+    - progress_monitor_refresh_period: interval at which progress monitor sql
+        statements are executed (in seconds)
+    - OUT task_id: UUID of the task that runs the prepared statement'
 BEGIN
   DECLARE event_name, progress_event_name TEXT DEFAULT NULL;
   DECLARE task_mgmt_version TEXT DEFAULT NULL;
@@ -1339,12 +1477,15 @@ BEGIN
 
   DECLARE EXIT HANDLER FOR SQLEXCEPTION
   BEGIN
-      GET DIAGNOSTICS CONDITION 1 @p1 = RETURNED_SQLSTATE, @p2 = MYSQL_ERRNO, @p3 = MESSAGE_TEXT;
-      SELECT RELEASE_LOCK('execute_prepared_stmt_async') INTO @__lock;
-      SET @__lock = NULL;
+      GET DIAGNOSTICS CONDITION 1
+        @p1 = RETURNED_SQLSTATE,
+        @p2 = MYSQL_ERRNO,
+        @p3 = MESSAGE_TEXT;
+      DO RELEASE_LOCK('execute_prepared_stmt_async');
       IF @p3 = 'No schema set.' THEN
         SIGNAL SQLSTATE '45000'
-          SET MESSAGE_TEXT = 'No schema set. Please pass in the schema name or set the current schema with USE.',
+          SET MESSAGE_TEXT = 'No schema set. Please pass in the schema name'
+            ' or set the current schema with USE.',
           MYSQL_ERRNO = 5400;
       ELSE
         RESIGNAL;
@@ -1353,11 +1494,22 @@ BEGIN
 
   SELECT
     /*+ SET_VAR(use_secondary_engine=off) */
-    JSON_EXTRACT(data, '$.limits.maximumPreparedStmtAsyncTasks') INTO max_parallel_tasks
+    JSON_EXTRACT(data, '$.limits.maximumPreparedStmtAsyncTasks')
+  INTO
+    max_parallel_tasks
   FROM
     `mysql_tasks`.`config`
   WHERE id = 1
   LIMIT 1;
+
+  IF progress_monitor_refresh_period IS NULL THEN
+    SET progress_monitor_refresh_period = 5;
+  ELSEIF progress_monitor_refresh_period <= 0 THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'progress_monitor_refresh_period must be a '
+        'positive number',
+      MYSQL_ERRNO = 5400;
+  END IF;
 
   IF task_type IS NULL THEN
     SET task_type = 'Async_SQL';
@@ -1378,7 +1530,8 @@ BEGIN
       AND nesting_event_level=0;
   END IF;
   IF schema_name IS NULL THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No schema set.', MYSQL_ERRNO = 5400;
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No schema set.',
+    MYSQL_ERRNO = 5400;
   END IF;
 
   -- ensure the SQL statements end with a semicolon
@@ -1387,8 +1540,10 @@ BEGIN
   END IF;
 
   -- make sure the reserved property is not used
-  IF JSON_CONTAINS_PATH(data_json_schema, 'one', '$.properties.mysqlMetadata') THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'data_json_schema must not contain a reserved property "mysqlMetadata".', MYSQL_ERRNO = 5400;
+  IF JSON_CONTAINS_PATH(
+      data_json_schema, 'one', '$.properties.mysqlMetadata') THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'data_json_schema must not'
+      ' contain a reserved property "mysqlMetadata".', MYSQL_ERRNO = 5400;
   END IF;
 
   SET internal_data_json_schema = JSON_OBJECT(
@@ -1416,25 +1571,47 @@ BEGIN
   );
 
   -- merge the provided schema and the internal schema
-  SET data_json_schema = COALESCE(data_json_schema, JSON_OBJECT("required", JSON_ARRAY()));
-  SELECT JSON_UNQUOTE(JSON_MERGE_PRESERVE(JSON_EXTRACT(internal_data_json_schema, '$.required'), JSON_EXTRACT(data_json_schema, '$.required'))) INTO data_json_schema_required;
-  SET data_json_schema = JSON_MERGE_PATCH(internal_data_json_schema, data_json_schema);
-  SET data_json_schema = JSON_SET(data_json_schema, '$.required', data_json_schema_required);
+  SET data_json_schema = COALESCE(
+    data_json_schema, JSON_OBJECT("required", JSON_ARRAY()));
+  SELECT JSON_UNQUOTE(JSON_MERGE_PRESERVE(
+    JSON_EXTRACT(internal_data_json_schema, '$.required'),
+    JSON_EXTRACT(data_json_schema, '$.required')
+  )) INTO data_json_schema_required;
+  SET data_json_schema = JSON_MERGE_PATCH(
+    internal_data_json_schema, data_json_schema);
+  SET data_json_schema = JSON_SET(
+    data_json_schema, '$.required', data_json_schema_required);
 
-  SELECT /*+ SET_VAR(use_secondary_engine=off) */ CONCAT(mysql_tasks.quote_identifier(schema_name), '.', mysql_tasks.quote_identifier(UUID())) INTO event_name;
-  SELECT /*+ SET_VAR(use_secondary_engine=off) */ CONCAT(mysql_tasks.quote_identifier(schema_name), '.', mysql_tasks.quote_identifier(UUID())) INTO progress_event_name;
-  SELECT /*+ SET_VAR(use_secondary_engine=off) */ CONCAT(major, '.', minor, '.', patch) FROM `mysql_tasks`.`msm_schema_version` INTO task_mgmt_version;
+  SELECT /*+ SET_VAR(use_secondary_engine=off) */
+  CONCAT(
+    mysql_tasks.quote_identifier(schema_name),
+    '.',
+    mysql_tasks.quote_identifier(UUID())
+  ) INTO event_name;
+  SELECT /*+ SET_VAR(use_secondary_engine=off) */
+  CONCAT(
+    mysql_tasks.quote_identifier(schema_name),
+    '.',
+    mysql_tasks.quote_identifier(UUID())
+  ) INTO progress_event_name;
+  SELECT /*+ SET_VAR(use_secondary_engine=off) */
+  CONCAT(major, '.', minor, '.', patch)
+  FROM `mysql_tasks`.`msm_schema_version` INTO task_mgmt_version;
 
   SET internal_data = JSON_OBJECT(
     "mysqlMetadata", JSON_OBJECT(
-      "events", IF (progress_monitor_sql_statements IS NULL, JSON_ARRAY(event_name), JSON_ARRAY(event_name, progress_event_name)),
+      "events", IF (progress_monitor_sql_statements IS NULL,
+                  JSON_ARRAY(event_name),
+                  JSON_ARRAY(event_name, progress_event_name)
+                ),
       "autoGc", true
     )
   );
 
   -- make sure reserved property is not used
   IF JSON_CONTAINS_PATH(task_data, 'one', '$.mysqlMetadata') THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'task_data must not contain a reserved property "mysqlMetadata".', MYSQL_ERRNO = 5400;
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'task_data must not contain a'
+        ' reserved property "mysqlMetadata".', MYSQL_ERRNO = 5400;
   END IF;
 
   -- merge the provided task data and the internal metadata
@@ -1443,17 +1620,21 @@ BEGIN
 
   SELECT GET_LOCK('execute_prepared_stmt_async', 2) INTO @__lock;
   IF @__lock = 0 THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot acquire lock. Try again later', MYSQL_ERRNO = 5400;
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot acquire lock.'
+      ' Try again later', MYSQL_ERRNO = 5400;
   END IF;
 
   -- READ COMMITTED does not acquire lock on the task_log table,
-  -- avoiding a potential deadlock between this SELECT and INSERTS in concurrent events
+  -- avoiding a potential deadlock between this SELECT and
+  -- INSERTS in concurrent events
   SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
-  SELECT /*+ SET_VAR(use_secondary_engine=off) */ `mysql_tasks`.`active_task_count`(NULL) INTO active_task_cnt;
+  SELECT /*+ SET_VAR(use_secondary_engine=off) */
+    `mysql_tasks`.`active_task_count`(NULL) INTO active_task_cnt;
   COMMIT ;
 
   IF active_task_cnt >= max_parallel_tasks THEN
-    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Maximum number of parallel tasks reached, try again later.', MYSQL_ERRNO = 5400;
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Maximum number of parallel'
+    ' tasks reached, try again later.', MYSQL_ERRNO = 5400;
   END IF;
 
   SET task_id = UUID();
@@ -1464,9 +1645,14 @@ BEGIN
     'COMMENT "mysql_tasks_schema_version=', task_mgmt_version, '" ',
     'DO BEGIN ',
     'DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN ',
-    '  GET DIAGNOSTICS CONDITION 1 @p1 = RETURNED_SQLSTATE, @p2 = MYSQL_ERRNO, @p3 = MESSAGE_TEXT; ',
-    '  CALL `mysql_tasks`.`stop_task_monitor`(', QUOTE(progress_event_name), '); ',
-    '  CALL `mysql_tasks`.`add_task_log`("', task_id, '", CONCAT("Error: ", @p3), NULL, 100, "ERROR"); ',
+    '  GET DIAGNOSTICS CONDITION 1',
+    '     @p1 = RETURNED_SQLSTATE,',
+    '     @p2 = MYSQL_ERRNO,',
+    '     @p3 = MESSAGE_TEXT; ',
+    '  CALL `mysql_tasks`.`stop_task_monitor`(',
+          QUOTE(progress_event_name), ', ', QUOTE(task_id), '); ',
+    '  CALL `mysql_tasks`.`add_task_log`("',
+          task_id, '", CONCAT("Error: ", @p3), NULL, 100, "ERROR"); ',
     'END; ',
     'SET ROLE ALL; ',
     'SET @task_id ="', task_id, '"; SET @task_result = NULL; ',
@@ -1484,14 +1670,19 @@ BEGIN
     'CALL `mysql_tasks`.`start_task_monitor`(',
       QUOTE(progress_event_name), ', ',
       QUOTE(task_id), ', ',
-      QUOTE(progress_monitor_sql_statements),
+      QUOTE(progress_monitor_sql_statements), ', ',
+      progress_monitor_refresh_period,
     '); '
 
-    'CALL `mysql_tasks`.`add_task_log`(@task_id, "Event execution started...", NULL, 0, "RUNNING"); ',
+    'CALL `mysql_tasks`.`add_task_log`(',
+      '@task_id, "Event execution started...", NULL, 0, "RUNNING"); ',
     sql_statements,
 
-    'CALL `mysql_tasks`.`stop_task_monitor`(', QUOTE(progress_event_name), '); ',
-    'CALL `mysql_tasks`.`add_task_log`(@task_id, "Execution finished.", CAST(@task_result AS JSON), 100, "COMPLETED"); ',
+    'CALL `mysql_tasks`.`stop_task_monitor`(',
+      QUOTE(progress_event_name), ', ', QUOTE(task_id), '); ',
+    'CALL `mysql_tasks`.`add_task_log`(',
+      '@task_id, "Execution finished.", ',
+      'CAST(@task_result AS JSON), 100, "COMPLETED"); ',
     'SET @task_id = NULL; SET @task_result = NULL; ',
     'END;');
 
@@ -1501,22 +1692,12 @@ BEGIN
 
   SELECT RELEASE_LOCK('execute_prepared_stmt_async') INTO @__lock;
   SET @__lock = NULL;
-END$$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Procedure `mysql_tasks`.`execute_prepared_stmt_async`
--- Executes a prepared statement asynchronously.
--- Parameters:
--- - sql_statements: one or multiple SQL statements (separated by ;)
---     that are to be executed in a detached thread
--- - schema_name: name of the schema that hosts MySQL Events running in dedicated threads
--- - task_name: name of the task
--- - task_data: additional data/metadata of a task
--- - OUT task_id: UUID of the task that runs the prepared statement
 -- -----------------------------------------------------
-DROP PROCEDURE IF EXISTS `mysql_tasks`.`execute_prepared_stmt_async`;
-DELIMITER $$
+DROP PROCEDURE IF EXISTS `mysql_tasks`.`execute_prepared_stmt_async`%%
 CREATE PROCEDURE `mysql_tasks`.`execute_prepared_stmt_async`(
   IN `sql_statements` TEXT,
   IN `schema_name` VARCHAR(255),
@@ -1524,32 +1705,55 @@ CREATE PROCEDURE `mysql_tasks`.`execute_prepared_stmt_async`(
   IN `task_data` JSON,
   OUT task_id VARCHAR(36))
   SQL SECURITY INVOKER
+  COMMENT '
+    Executes a prepared statement asynchronously.
+    Parameters:
+    - sql_statements: one or multiple SQL statements (separated by ;)
+        that are to be executed in a detached thread
+    - schema_name: name of the schema that hosts MySQL Events running in
+        dedicated threads
+    - task_name: name of the task
+    - task_data: additional data/metadata of a task
+    - OUT task_id: UUID of the task that runs the prepared statement'
 BEGIN
   CALL `mysql_tasks`.`execute_prepared_stmt_from_app_async`(
-    `sql_statements`, NULL, `schema_name`, NULL, `task_name`, `task_data`, NULL, NULL, NULL, task_id);
-END$$
-DELIMITER ;
+    `sql_statements`, NULL, `schema_name`, NULL, `task_name`,
+    `task_data`, NULL, NULL, NULL, NULL, task_id);
+END%%
 
 -- -----------------------------------------------------
 -- Procedure `mysql_tasks`.`start_task_monitor`
--- Starts a task monitor SQL Event. It periodically updates the task progress.
--- Parameters:
--- - event_name: fully qualified name of the SQL Event that runs the monitoring SQL statements
--- - task_id: UUID of the task being monitored
--- - sql_statements: the monitoring SQL statements (separated by ;)
+--   for internal use
 -- -----------------------------------------------------
-DROP PROCEDURE IF EXISTS `mysql_tasks`.`start_task_monitor`;
-DELIMITER $$
+DROP PROCEDURE IF EXISTS `mysql_tasks`.`start_task_monitor`%%
 CREATE PROCEDURE `mysql_tasks`.`start_task_monitor`(
   IN `event_name` TEXT,
   IN `task_id` VARCHAR(36),
-  IN `sql_statements` TEXT
+  IN `sql_statements` TEXT,
+  IN `refresh_period` DECIMAL(5,2)
 )
 SQL SECURITY INVOKER
+COMMENT '
+  Starts a task monitor SQL Event. It periodically updates the task progress.
+  Parameters:
+  - event_name: fully qualified name of the SQL Event that runs the
+      monitoring SQL statements
+  - task_id: UUID of the task being monitored
+  - sql_statements: the monitoring SQL statements (separated by ;)
+  - refresh_period: interval at which the monitoring sql statements
+      are executed (in seconds)'
 BEGIN
   DECLARE task_mgmt_version TEXT DEFAULT NULL;
 
-  IF sql_statements IS NOT NULL THEN
+  IF sql_statements IS NOT NULL AND event_name IS NOT NULL THEN
+    IF refresh_period IS NULL THEN
+      SET refresh_period = 5;
+    ELSEIF refresh_period <= 0 THEN
+      SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'refresh_period must be a positive number',
+        MYSQL_ERRNO = 5400;
+    END IF;
+
     SELECT /*+ SET_VAR(use_secondary_engine=off) */
       CONCAT(major, '.', minor, '.', patch)
     FROM
@@ -1561,16 +1765,44 @@ BEGIN
     END IF;
 
     SET @eventSql = CONCAT(
-      'CREATE EVENT ', event_name, ' ON SCHEDULE EVERY 5 SECOND ',
+      'CREATE EVENT ', event_name, ' ',
+      'ON SCHEDULE AT NOW() ON COMPLETION NOT PRESERVE ENABLE ',
       'COMMENT "mysql_tasks_schema_version=', task_mgmt_version, '" ',
       'DO BEGIN ',
+      'DECLARE do_run BOOLEAN DEFAULT TRUE; ',
       'DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN ',
-      '  GET DIAGNOSTICS CONDITION 1 @p1 = RETURNED_SQLSTATE, @p2 = MYSQL_ERRNO, @p3 = MESSAGE_TEXT; ',
-      '  CALL `mysql_tasks`.`add_task_log`(', QUOTE(task_id),', CONCAT("Error: ", @p3), NULL, 100, "ERROR"); ',
+      '  GET DIAGNOSTICS CONDITION 1 ',
+      '   @p1 = RETURNED_SQLSTATE, @p2 = MYSQL_ERRNO, @p3 = MESSAGE_TEXT; ',
+      '  CALL `mysql_tasks`.`add_task_log`(',
+          QUOTE(task_id),', CONCAT("Error: ", @p3), NULL, 100, "ERROR"); ',
       'END; ',
       'SET ROLE ALL; ',
       'SET @task_id =', QUOTE(task_id), '; ',
-      sql_statements,
+
+      -- synchronization with thread calling end_task_monitor
+      -- if the event was dropped (not found in information_schema.events)
+      -- terminate it
+      'IF (GET_LOCK(', QUOTE(event_name),', 60) <=> 1 AND ',
+      '(SELECT COUNT(*)>0 FROM information_schema.events ise ',
+      '   WHERE CONCAT(mysql_tasks.quote_identifier(ise.event_schema), ',
+      '   ".", mysql_tasks.quote_identifier(ise.event_name)) = ',
+          QUOTE(event_name), ')) THEN ',
+      '  CALL `mysql_tasks`.`add_task_log`(@task_id, ',
+      '     "Progress monitor started.", ',
+      '     JSON_OBJECT("connection_id", CONNECTION_ID()), 0, "RUNNING"); ',
+      'END IF; ',
+      'WHILE IS_USED_LOCK(', QUOTE(event_name), ') <=> CONNECTION_ID() DO ',
+      '  DO RELEASE_LOCK(', QUOTE(event_name), '); ',
+      'END WHILE; ',
+
+      -- if at any time event gets killed, terminate its while loop
+      'WHILE (SELECT COUNT(*)>0 FROM information_schema.events ise ',
+      '   WHERE CONCAT(mysql_tasks.quote_identifier(ise.event_schema), ',
+      '   ".", mysql_tasks.quote_identifier(ise.event_name)) = ',
+          QUOTE(event_name), ') DO ',
+         sql_statements,
+      '  DO SLEEP(', refresh_period, '); ',
+      'END WHILE; ',
       'SET @task_id = NULL; ',
       'END'
     );
@@ -1580,49 +1812,80 @@ BEGIN
     DEALLOCATE PREPARE dynamic_statement;
 
   END IF;
-END$$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- Procedure `mysql_tasks`.`stop_task_monitor`
--- Stops a task monitor SQL Event.
--- Parameters:
--- - event_name: fully qualified name of the SQL Event that runs the monitoring SQL statements
+--   for internal use
 -- -----------------------------------------------------
-DROP PROCEDURE IF EXISTS `mysql_tasks`.`stop_task_monitor`;
-DELIMITER $$
+DROP PROCEDURE IF EXISTS `mysql_tasks`.`stop_task_monitor`%%
 CREATE PROCEDURE `mysql_tasks`.`stop_task_monitor`(
-  IN `event_name` TEXT
+  IN `event_name` TEXT,
+  IN `task_id` VARCHAR(36)
 )
 SQL SECURITY INVOKER
+COMMENT '
+  Stops a task monitor SQL Event.
+  Parameters:
+  - event_name: fully qualified name of the SQL Event that runs the
+     monitoring SQL statements
+  - task_id: ID of the task for which the task monitor has been started'
 BEGIN
+  DECLARE log_msg JSON DEFAULT NULL;
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN
+    DO RELEASE_LOCK(QUOTE(event_name));
+  END;
 
-  SET @eventSql = CONCAT(
-    'DROP EVENT IF EXISTS ', event_name
-  );
+  IF event_name IS NOT NULL THEN
+    -- synchronization with thread running task_monitor
+    DO GET_LOCK(event_name, 60);
 
-  PREPARE dynamic_statement FROM @eventSql;
-  EXECUTE dynamic_statement;
-  DEALLOCATE PREPARE dynamic_statement;
+    SELECT `mysql_tasks`.`find_task_log_msg`(
+      task_id, 'Progress monitor started.') INTO log_msg;
 
-END$$
-DELIMITER ;
+    IF (log_msg IS NOT NULL) THEN
+      -- due to a race condition, we might not enter here
+      -- but the task monitor event may be started
+      SET @killSql = CONCAT(
+        'KILL ', log_msg->>'$.data.connection_id'
+      );
+
+      PREPARE dynamic_statement FROM @killSql;
+      EXECUTE dynamic_statement;
+      DEALLOCATE PREPARE dynamic_statement;
+    END IF;
+
+    -- dropping the event will not kill its active process
+    SET @eventSql = CONCAT(
+      'DROP EVENT IF EXISTS ', event_name
+    );
+
+    PREPARE dynamic_statement FROM @eventSql;
+    EXECUTE dynamic_statement;
+    DEALLOCATE PREPARE dynamic_statement;
+
+    WHILE IS_USED_LOCK(event_name) <=> CONNECTION_ID() DO
+      DO RELEASE_LOCK(event_name);
+    END WHILE;
+
+  END IF;
+
+END%%
 
 -- -----------------------------------------------------
 -- EVENT `mysql_tasks`.`task_cleanup`
 -- Periodically cleans up data from old tasks.
--- Old tasks must have finished (COMPLETED, CANCELED)
+-- Old tasks must have finished (COMPLETED, CANCELLED)
 -- at least 6 days ago.
 -- -----------------------------------------------------
-DROP EVENT IF EXISTS `mysql_tasks`.`task_cleanup`;
-DELIMITER $$
+DROP EVENT IF EXISTS `mysql_tasks`.`task_cleanup`%%
 CREATE EVENT `mysql_tasks`.`task_cleanup` ON SCHEDULE EVERY 1 DAY
 ON COMPLETION NOT PRESERVE ENABLE COMMENT 'Clean up old tasks' DO
 BEGIN
   DECLARE task_ids_to_del JSON DEFAULT NULL;
 
   -- find all tasks with last tog time
-  -- more than 6 days old from the current date
+  -- 6 days or older from the current date
   SELECT /*+ SET_VAR(use_secondary_engine=off) */ JSON_ARRAYAGG(
     BIN_TO_UUID(last_tl.task_id, 1)
   ) INTO @task_ids_to_del
@@ -1639,15 +1902,14 @@ BEGIN
     `mysql_tasks`.`task_log_impl`  last_tl
     ON tl.task_id = last_tl.task_id AND tl.last_log_time = last_tl.log_time
   WHERE (last_tl.status <> 'SCHEDULED' AND last_tl.status <> 'RUNNING')
-    AND last_tl.log_time < DATE_SUB(CURDATE(), INTERVAL 6 DAY);
+    AND last_tl.log_time <= DATE_SUB(CURDATE(), INTERVAL 6 DAY);
 
   -- delete all old tasks
   DELETE FROM
     `mysql_tasks`.`task_impl`
   WHERE BIN_TO_UUID(id, 1) MEMBER OF(@task_ids_to_del);
 
-END$$
-DELIMITER ;
+END%%
 
 -- -----------------------------------------------------
 -- EVENT `mysql_tasks`.`task_gc`
@@ -1655,8 +1917,7 @@ DELIMITER ;
 -- which are in the active state but their
 -- process does not exist.
 -- -----------------------------------------------------
-DROP EVENT IF EXISTS `mysql_tasks`.`task_gc`;
-DELIMITER $$
+DROP EVENT IF EXISTS `mysql_tasks`.`task_gc`%%
 CREATE EVENT `mysql_tasks`.`task_gc` ON SCHEDULE EVERY 1 MINUTE
 ON COMPLETION NOT PRESERVE ENABLE COMMENT 'Garbage collector' DO
 BEGIN
@@ -1671,7 +1932,14 @@ BEGIN
 
   -- Find active tasks without alive process
   SELECT /*+ SET_VAR(use_secondary_engine=off) */
-  JSON_ARRAYAGG(BIN_TO_UUID(t.id, 1)), JSON_ARRAYAGG(t.mysql_user), JSON_ARRAYAGG(t.data) INTO json_id, json_user, json_data
+  JSON_ARRAYAGG(
+    BIN_TO_UUID(t.id, 1)),
+    JSON_ARRAYAGG(t.mysql_user),
+    JSON_ARRAYAGG(t.data)
+  INTO
+    json_id,
+    json_user,
+    json_data
   FROM `mysql_tasks`.`task_log_impl` tl
   JOIN (
     SELECT task_id, MAX(log_time) AS max_log_time, MAX(id) AS max_id
@@ -1686,25 +1954,32 @@ BEGIN
     (tl.status = 'RUNNING' OR tl.status = 'SCHEDULED')
     AND p.id IS NULL
     AND t.server_uuid = UUID_TO_BIN(@@server_uuid, 1)
-    AND t.data->'$.autoGc' = true;
+    AND t.data->'$.mysqlMetadata.autoGc' = true;
 
   WHILE i < JSON_LENGTH(json_id) DO
     SET curr_id = JSON_UNQUOTE(JSON_EXTRACT(json_id, CONCAT('$[', i, ']')));
     SET curr_user = JSON_UNQUOTE(JSON_EXTRACT(json_user, CONCAT('$[', i, ']')));
     SET curr_data = JSON_EXTRACT(json_data, CONCAT('$[', i, ']'));
 
-    IF curr_data IS NOT NULL AND JSON_CONTAINS_PATH(curr_data, 'one', '$.events')  THEN
+    IF curr_data IS NOT NULL AND
+        JSON_CONTAINS_PATH(curr_data, 'one', '$.mysqlMetadata.events')  THEN
       SET j = 0;
-      WHILE j < JSON_LENGTH(JSON_EXTRACT(curr_data, '$.events')) DO
-        SET event_name = JSON_UNQUOTE(JSON_EXTRACT(curr_data, CONCAT('$.events[', j, ']')));
+      WHILE j < JSON_LENGTH(
+          JSON_EXTRACT(curr_data, '$.mysqlMetadata.events')) DO
+        SET event_name = JSON_UNQUOTE(
+          JSON_EXTRACT(curr_data, CONCAT('$.mysqlMetadata.events[', j, ']')));
         CALL `mysql_tasks`.`drop_event`(event_name);
         SET j = j + 1;
       END WHILE;
     END IF;
 
     IF curr_id IS NOT NULL THEN
-      INSERT INTO `mysql_tasks`.`task_log_impl` (`id`, `mysql_user`, `task_id`, `log_time`, `message`, `data`, `progress`, `status`)
-        VALUES (UUID_TO_BIN(UUID(), 1), curr_user, UUID_TO_BIN(curr_id, 1), NOW(6), 'Cleaned up by system.', NULL, 100, 'CANCELLED');
+      INSERT INTO `mysql_tasks`.`task_log_impl`(
+        `id`, `mysql_user`, `task_id`, `log_time`,
+        `message`, `data`, `progress`, `status`)
+      VALUES (
+        UUID_TO_BIN(UUID(), 1), curr_user, UUID_TO_BIN(curr_id, 1), NOW(6),
+        'Cleaned up by system.', NULL, 100, 'CANCELLED');
     END IF;
 
     SELECT i + 1 INTO i;
@@ -1712,7 +1987,9 @@ BEGIN
 
   -- Find dangling events from tasks which are no longer running
   SELECT /*+ SET_VAR(use_secondary_engine=off) */
-  JSON_ARRAYAGG(BIN_TO_UUID(t.id, 1)), JSON_ARRAYAGG(t.data) INTO json_id, json_data
+    JSON_ARRAYAGG(BIN_TO_UUID(t.id, 1)), JSON_ARRAYAGG(t.data)
+  INTO
+    json_id, json_data
   FROM `mysql_tasks`.`task_log_impl` tl
   JOIN (
     SELECT task_id, MAX(log_time) AS max_log_time, MAX(id) AS max_id
@@ -1723,21 +2000,27 @@ BEGIN
   JOIN `mysql_tasks`.`task_impl` t
   ON tl.task_id = t.id
   JOIN information_schema.events ise
-    ON JSON_UNQUOTE(t.data->'$.events[0]') =  CONCAT(mysql_tasks.quote_identifier(ise.EVENT_SCHEMA), '.', mysql_tasks.quote_identifier(ise.EVENT_NAME))
+    ON JSON_UNQUOTE(
+      t.data->'$.mysqlMetadata.events[0]') =
+      CONCAT(mysql_tasks.quote_identifier(
+        ise.EVENT_SCHEMA), '.', mysql_tasks.quote_identifier(ise.EVENT_NAME))
   LEFT JOIN `performance_schema`.`processlist` p ON t.connection_id = p.id
   WHERE
     (tl.status <> 'RUNNING' AND tl.status <> 'SCHEDULED')
     AND p.id IS NULL
     AND t.server_uuid = UUID_TO_BIN(@@server_uuid, 1)
-    AND t.data->'$.autoGc' = true;
+    AND t.data->'$.mysqlMetadata.autoGc' = true;
 
   WHILE i < JSON_LENGTH(json_id) DO
     SET curr_data = JSON_EXTRACT(json_data, CONCAT('$[', i, ']'));
 
-    IF curr_data IS NOT NULL AND JSON_CONTAINS_PATH(curr_data, 'one', '$.events')  THEN
+    IF curr_data IS NOT NULL AND
+        JSON_CONTAINS_PATH(curr_data, 'one', '$.mysqlMetadata.events')  THEN
       SET j = 0;
-      WHILE j < JSON_LENGTH(JSON_EXTRACT(curr_data, '$.events')) DO
-        SET event_name = JSON_UNQUOTE(JSON_EXTRACT(curr_data, CONCAT('$.events[', j, ']')));
+      WHILE j < JSON_LENGTH(
+          JSON_EXTRACT(curr_data, '$.mysqlMetadata.events')) DO
+        SET event_name = JSON_UNQUOTE(
+          JSON_EXTRACT(curr_data, CONCAT('$.mysqlMetadata.events[', j, ']')));
         CALL `mysql_tasks`.`drop_event`(event_name);
         SET j = j + 1;
       END WHILE;
@@ -1745,25 +2028,18 @@ BEGIN
 
     SELECT i + 1 INTO i;
   END WHILE;
-END$$
+END%%
+
 DELIMITER ;
 
 
--- -----------------------------------------------------
--- FUNCTION `mysql_tasks`.`quote_identifier`
--- (copy of sys.quote_identifier to avoid permission issues)
--- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`quote_identifier`;
-DELIMITER $$
-CREATE FUNCTION `mysql_tasks`.`quote_identifier`(in_identifier TEXT)
-    RETURNS TEXT CHARSET UTF8MB4
-    SQL SECURITY INVOKER
-    DETERMINISTIC
-    NO SQL
-BEGIN
-    RETURN CONCAT('`', REPLACE(in_identifier, '`', '``'), '`');
-END$$
-DELIMITER ;
+
+GRANT SELECT ON `performance_schema`.`events_statements_current` TO
+  'mysql_task_admin';
+
+GRANT EXECUTE ON FUNCTION `mysql_tasks`.`active_user_task_count` TO
+  'mysql_task_user';
+
 
 -- -----------------------------------------------------
 -- Set the schema_version VIEW to the correct version at the very end

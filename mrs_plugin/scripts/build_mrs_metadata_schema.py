@@ -126,7 +126,7 @@ def append_mrs_version_view(version, version_view_path, target_path):
     if len(lines) > 0 and lines[0].startswith("-- Copyright"):
         lines.pop(0)
 
-    update_version_view_version_in_lines(lines, "schema_version", version)
+    update_version_view_version_in_lines(lines, "msm_schema_version", version)
 
     with open(target_path, 'a') as file:
         file.write(''.join(lines))
@@ -159,8 +159,11 @@ check_and_add_copyright_header(os.path.join(SCRIPT_SECTION_PATH, "04_audit_log_t
 # Generate the new MRS metadata schema files
 print(f"\nGenerating new MRS metadata schema version {target_version}...")
 
-# Start with the header section
-shutil.copyfile(os.path.join(SCRIPT_SECTION_PATH, "01_header.sql"), SQL_FILE_TARGET)
+# Start with mysql_tasks schema
+shutil.copyfile(MYSQL_TASKS_SCHEMA_PATH, SQL_FILE_TARGET)
+
+# Append header section
+append_files(os.path.join(SCRIPT_SECTION_PATH, "01_header.sql"), SQL_FILE_TARGET)
 
 # Append the new MRS metadata schema with updated version
 append_mrs_metadata_schema(
@@ -173,12 +176,6 @@ append_files(os.path.join(SCRIPT_SECTION_PATH, "05_roles.sql"), SQL_FILE_TARGET)
 append_files(os.path.join(SCRIPT_SECTION_PATH, "06_insert_default_static_content.sql"), SQL_FILE_TARGET)
 append_mrs_version_view(
     target_version, os.path.join(SCRIPT_SECTION_PATH, "07_schema_version_view.sql"), SQL_FILE_TARGET)
-
-# Append the mysql_tasks schema
-append_files(MYSQL_TASKS_SCHEMA_PATH, SQL_FILE_TARGET)
-
-# Append the grants on mysql_tasks schema to the mrs user roles
-append_files(os.path.join(SCRIPT_SECTION_PATH, "09_mysql_tasks_grants.sql"), SQL_FILE_TARGET)
 
 # Copy the final file to the version directory
 sql_versioned_file_path = os.path.join(

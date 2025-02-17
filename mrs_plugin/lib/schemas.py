@@ -41,17 +41,20 @@ def format_schema_listing(schemas, print_header=False):
         return "No items available."
 
     if print_header:
-        output = (f"{'ID':>3} {'PATH':38} {'SCHEMA NAME':30} {'ENABLED':8} "
-                  f"{'AUTH':9}\n")
+        output = (
+            f"{'ID':>3} {'PATH':38} {'SCHEMA NAME':30} {'ENABLED':8} " f"{'AUTH':9}\n"
+        )
     else:
         output = ""
 
     for i, item in enumerate(schemas, start=1):
-        url = (item['host_ctx'] + item['request_path'])
-        output += (f"{i:>3} {url[:37]:38} "
-                   f"{item['name'][:29]:30} "
-                   f"{'Yes' if item['enabled'] else '-':8} "
-                   f"{'Yes' if item['requires_auth'] else '-':5}")
+        url = item["host_ctx"] + item["request_path"]
+        output += (
+            f"{i:>3} {url[:37]:38} "
+            f"{item['name'][:29]:30} "
+            f"{'Yes' if item['enabled'] else '-':8} "
+            f"{'Yes' if item['requires_auth'] else '-':5}"
+        )
         if i < len(schemas):
             output += "\n"
 
@@ -60,22 +63,28 @@ def format_schema_listing(schemas, print_header=False):
 
 def prompt_for_request_path(schema_name) -> str:
     return core.prompt(
-        "Please enter the request path for this schema ["
-        f"/{schema_name}]: ",
-        {'defaultValue': '/' + schema_name}).strip()
+        "Please enter the request path for this schema [" f"/{schema_name}]: ",
+        {"defaultValue": "/" + schema_name},
+    ).strip()
 
 
 def prompt_for_requires_auth() -> bool:
-    return core.prompt(
-        "Should the schema require authentication? [y/N]: ",
-        {'defaultValue': 'n'}).strip().lower() == 'y'
+    return (
+        core.prompt(
+            "Should the schema require authentication? [y/N]: ", {"defaultValue": "n"}
+        )
+        .strip()
+        .lower()
+        == "y"
+    )
 
 
 def prompt_for_items_per_page() -> int:
     while True:
         result = core.prompt(
             "How many items should be listed per page? [Schema Default]: ",
-            {'defaultValue': '25'}).strip()
+            {"defaultValue": "25"},
+        ).strip()
 
         try:
             int_result = int(result)
@@ -90,11 +99,13 @@ def delete_schema(session, schema_id):
         raise ValueError("No schema_id given.")
 
     result = core.delete(table="db_schema", where=["id=?"]).exec(
-        session, params=[schema_id])
+        session, params=[schema_id]
+    )
 
     if not result.success:
         raise Exception(
-            f"The specified schema with id {core.convert_id_to_string(schema_id)} was not found.")
+            f"The specified schema with id {core.convert_id_to_string(schema_id)} was not found."
+        )
 
 
 def delete_schemas(session, schemas: list):
@@ -116,34 +127,45 @@ def update_schema(session, schemas: list, value: dict):
         if not schema:
             raise Exception(
                 f"The specified schema with id {core.convert_id_to_string(schema_id)} was not "
-                "found.")
+                "found."
+            )
 
         # metadata column was only added in 3.0.0
         current_version = core.get_mrs_schema_version(session)
         if current_version[0] <= 2:
             value.pop("metadata", None)
 
-        core.update(table="db_schema",
-                    sets=value,
-                    where=["id=?"]
-                    ).exec(session, [schema_id])
+        core.update(table="db_schema", sets=value, where=["id=?"]).exec(
+            session, [schema_id]
+        )
 
 
-def query_schemas(session, schema_id=None, service_id=None,
-                  schema_name=None, request_path=None, include_enable_state=None, auto_select_single=False):
+def query_schemas(
+    session,
+    schema_id=None,
+    service_id=None,
+    schema_name=None,
+    request_path=None,
+    include_enable_state=None,
+    auto_select_single=False,
+):
 
     if not session:
         raise ValueError("The session is invalid.")
 
     if schema_id is None and auto_select_single:
-        record = core.select(table="db_schema",
-                             cols=["count(*) as service_count", "min(id)"]
-                             ).exec(session).first
+        record = (
+            core.select(
+                table="db_schema", cols=["count(*) as service_count", "min(id)"]
+            )
+            .exec(session)
+            .first
+        )
 
         if record["service_count"] == 1:
             schema_id = record["id"]
 
-    if request_path and not request_path.startswith('/'):
+    if request_path and not request_path.startswith("/"):
         raise Exception("The request_path has to start with '/'.")
 
     # Build SQL based on which input has been provided
@@ -211,11 +233,19 @@ def get_schemas(session, service_id: bytes = None, include_enable_state=None):
     Returns:
         List of dicts representing the schemas
     """
-    return query_schemas(session, service_id=service_id, include_enable_state=include_enable_state)
+    return query_schemas(
+        session, service_id=service_id, include_enable_state=include_enable_state
+    )
 
 
-def get_schema(session, schema_id: bytes = None, service_id: bytes = None,
-               schema_name=None, request_path=None, auto_select_single=False):
+def get_schema(
+    session,
+    schema_id: bytes = None,
+    service_id: bytes = None,
+    schema_name=None,
+    request_path=None,
+    auto_select_single=False,
+):
     """Gets a specific MRS schema
 
     Args:
@@ -228,14 +258,32 @@ def get_schema(session, schema_id: bytes = None, service_id: bytes = None,
     Returns:
         The schema as dict or None on error in interactive mode
     """
-    result = query_schemas(session, schema_id=schema_id, service_id=service_id,
-                           schema_name=schema_name, request_path=request_path, auto_select_single=False)
+    result = query_schemas(
+        session,
+        schema_id=schema_id,
+        service_id=service_id,
+        schema_name=schema_name,
+        request_path=request_path,
+        auto_select_single=False,
+    )
     return result[0] if result else None
 
 
-def add_schema(session, schema_name, service_id: bytes = None, request_path=None, requires_auth=None,
-               enabled=1, items_per_page=None, comments=None, options=None, metadata=None,
-               schema_type="DATABASE_SCHEMA", internal=False, schema_id=None):
+def add_schema(
+    session,
+    schema_name,
+    service_id: bytes = None,
+    request_path=None,
+    requires_auth=None,
+    enabled=1,
+    items_per_page=None,
+    comments=None,
+    options=None,
+    metadata=None,
+    schema_type="DATABASE_SCHEMA",
+    internal=False,
+    schema_id=None,
+):
     """Add a schema to the given MRS service
 
     Args:
@@ -261,16 +309,16 @@ def add_schema(session, schema_name, service_id: bytes = None, request_path=None
 
         if row is None:
             raise ValueError(
-                f"The given database schema name '{schema_name}' does not exists.")
+                f"The given database schema name '{schema_name}' does not exists."
+            )
 
         schema_name = row["SCHEMA_NAME"]
     elif schema_name is None:
-        raise ValueError(
-            f"No schema name given.")
+        raise ValueError(f"No schema name given.")
 
     # Get request_path and default it to '/'
     if request_path is None:
-        request_path = '/' + schema_name
+        request_path = "/" + schema_name
 
     core.Validations.request_path(request_path)
 
@@ -303,7 +351,8 @@ def add_schema(session, schema_name, service_id: bytes = None, request_path=None
         "options": core.convert_json(options) if options else None,
         "metadata": core.convert_json(metadata) if metadata else None,
         "schema_type": schema_type,
-        "internal": int(internal)}
+        "internal": int(internal),
+    }
 
     # metadata column was only added in 3.0.0
     current_version = core.get_mrs_schema_version(session)
@@ -328,7 +377,7 @@ def get_current_schema(session):
     """
     # Get current_service_id from the global mrs_config
     mrs_config = core.get_current_config()
-    current_schema_id = mrs_config.get('current_schema_id')
+    current_schema_id = mrs_config.get("current_schema_id")
 
     current_schema = None
     if current_schema_id:
@@ -336,19 +385,23 @@ def get_current_schema(session):
 
     return current_schema
 
-def get_create_statement(session, schema, include_all_objects: bool=False) -> str:
+
+def get_create_statement(session, schema, include_all_objects: bool = False) -> str:
     executor = MrsDdlExecutor(
         session=session,
         current_service_id=schema["service_id"],
-        current_schema_id=schema["id"])
+        current_schema_id=schema["id"],
+    )
 
-    executor.showCreateRestSchema({
-        "current_operation": "SHOW CREATE REST SCHEMA",
-        "include_all_objects": include_all_objects,
-        "schema": schema
-    })
+    executor.showCreateRestSchema(
+        {
+            "current_operation": "SHOW CREATE REST SCHEMA",
+            "include_all_objects": include_all_objects,
+            "schema": schema,
+        }
+    )
 
     if executor.results[0]["type"] == "error":
-        raise Exception(executor.results[0]['message'])
+        raise Exception(executor.results[0]["message"])
 
     return executor.results[0]["result"][0]["CREATE REST SCHEMA "]

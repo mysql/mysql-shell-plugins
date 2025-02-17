@@ -461,7 +461,7 @@ def set_current_service_id(session, service_id: bytes):
     config.store()
 
 
-def get_create_statement(session, service:bytes, include_all_objects: bool=False) -> str:
+def get_create_statement(session, service, include_all_objects: bool=False) -> str:
     executor = MrsDdlExecutor(
         session=session,
         current_service_id=service["id"])

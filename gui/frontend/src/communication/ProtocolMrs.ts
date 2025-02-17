@@ -1437,7 +1437,7 @@ export interface IShellMrsAddRoleKwargs {
 }
 
 export interface IShellMrsAddRolePrivilegeKwargs {
-    /** The service path or pattern to grant privileges on. */
+    /** The full service path or pattern to grant privileges on. */
     servicePath?: string;
     /** The schema path or pattern to grant privileges on. */
     schemaPath?: string;

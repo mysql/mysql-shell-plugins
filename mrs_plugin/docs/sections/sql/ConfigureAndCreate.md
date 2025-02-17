@@ -1088,7 +1088,7 @@ The following example grants two privileges.
         {
             "privileges": "SELECT",
             "schema": "mysql_rest_service_metadata",
-            "object": "schema_version"
+            "object": "msm_schema_version"
         },
         {
             "privileges": "SELECT",

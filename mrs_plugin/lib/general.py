@@ -26,7 +26,7 @@ from mrs_plugin import lib
 # Define plugin version
 VERSION = "1.19.2"
 
-DB_VERSION = [3, 1, 0]
+DB_VERSION = [4, 0, 0]
 REQUIRED_ROUTER_VERSION = [8, 1, 0]
 SUPPORTED_MAJOR_VERSION = 3
 
@@ -48,8 +48,11 @@ def get_status(session):
             'major_upgrade_required': False,
             'service_being_upgraded': False,
         }
-    # Check if the schema_version VIEW already exists
-    row = lib.database.get_db_object(session, "mysql_rest_service_metadata", "schema_version", "VIEW")
+    # Check if the msm_schema_version VIEW already exists
+    row = lib.database.get_db_object(session, "mysql_rest_service_metadata", "msm_schema_version", "VIEW")
+    if row is None:
+        # Also check the schema_version VIEW that was used for versions <= 3.1.0
+        row = lib.database.get_db_object(session, "mysql_rest_service_metadata", "schema_version", "VIEW")
     if row is None:
         return {
             'service_configured': False,

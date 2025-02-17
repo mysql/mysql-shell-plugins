@@ -1,4 +1,5 @@
 -- Copyright (c) 2025, Oracle and/or its affiliates.
+-- -----------------------------------------------------
 -- Create audit_log triggers
 --
 
@@ -1373,9 +1374,6 @@ BEGIN
             "id", NEW.id,
             "role_id", NEW.role_id,
             "crud_operations", NEW.crud_operations,
-            "service_id", NEW.service_id,
-            "db_schema_id", NEW.db_schema_id,
-            "db_object_id", NEW.db_object_id,
             "service_path", NEW.service_path,
             "schema_path", NEW.schema_path,
             "object_path", NEW.object_path,
@@ -1400,9 +1398,6 @@ BEGIN
             "id", OLD.id,
             "role_id", OLD.role_id,
             "crud_operations", OLD.crud_operations,
-            "service_id", OLD.service_id,
-            "db_schema_id", OLD.db_schema_id,
-            "db_object_id", OLD.db_object_id,
             "service_path", OLD.service_path,
             "schema_path", OLD.schema_path,
             "object_path", OLD.object_path,
@@ -1411,9 +1406,6 @@ BEGIN
             "id", NEW.id,
             "role_id", NEW.role_id,
             "crud_operations", NEW.crud_operations,
-            "service_id", NEW.service_id,
-            "db_schema_id", NEW.db_schema_id,
-            "db_object_id", NEW.db_object_id,
             "service_path", NEW.service_path,
             "schema_path", NEW.schema_path,
             "object_path", NEW.object_path,
@@ -1438,9 +1430,6 @@ BEGIN
             "id", OLD.id,
             "role_id", OLD.role_id,
             "crud_operations", OLD.crud_operations,
-            "service_id", OLD.service_id,
-            "db_schema_id", OLD.db_schema_id,
-            "db_object_id", OLD.db_object_id,
             "service_path", OLD.service_path,
             "schema_path", OLD.schema_path,
             "object_path", OLD.object_path,
