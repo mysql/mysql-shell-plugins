@@ -144,8 +144,6 @@ export class AuthenticationAppDialog {
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The Authentication App Dialog was not closed");
 
-        authApp.treeName = authApp.name;
-
         return authApp;
 
     };
@@ -195,8 +193,6 @@ export class AuthenticationAppDialog {
         authenticationApp.options = (await dialog
             .findElement(locator.mrsAuthenticationAppDialog.options)
             .getAttribute("value")).replace(/\r?\n|\r|\s+/gm, "").trim();
-
-        authenticationApp.treeName = authenticationApp.name;
 
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsAuthenticationAppDialog.ok).click();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -122,8 +122,6 @@ export class RestSchemaDialog {
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The REST Schema Dialog was not closed");
 
-        restSchema.treeName = `${restSchema.restSchemaPath} (${restSchema.settings.schemaName})`;
-
         return restSchema;
 
     };
@@ -182,8 +180,6 @@ export class RestSchemaDialog {
                 return (await DialogHelper.existsDialog()) === false;
             }, constants.wait10seconds, "The MRS Service dialog was not closed");
         }
-
-        restSchema.treeName = `${restSchema.restSchemaPath} (${restSchema.settings.schemaName})`;
 
         return restSchema;
     };
