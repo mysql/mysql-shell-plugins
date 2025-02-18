@@ -75,8 +75,8 @@ export class Icon extends ComponentBase<IIconProperties> {
         ]);
 
         let maskImage = `url("${src}")`;
-        let maskSize = "100% 100%";
-        let maskComposite = "subtract";
+        let maskSize: string | undefined = "100% 100%";
+        let maskComposite: string | undefined = "subtract";
         const olLayers: ComponentChild[] = [];
         if (overlays) {
             className += " withOverlay";
@@ -92,6 +92,9 @@ export class Icon extends ComponentBase<IIconProperties> {
                     />,
                 );
             });
+        } else {
+            maskSize = undefined;
+            maskComposite = undefined;
         }
 
 

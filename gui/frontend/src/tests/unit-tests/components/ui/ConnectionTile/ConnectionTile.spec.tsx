@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,13 +23,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import mysqlIcon from "../../../../../assets/images/file-icons/scriptMysql.svg";
-
 import { mount } from "enzyme";
 
-import { DBType, IConnectionDetails } from "../../../../../supplement/ShellInterface/index.js";
 import { BrowserTileType } from "../../../../../components/ui/BrowserTile/BrowserTile.js";
 import { ConnectionTile } from "../../../../../components/ui/ConnectionTile/ConnectionTile.js";
+import { Assets } from "../../../../../supplement/Assets.js";
+import { DBType, IConnectionDetails } from "../../../../../supplement/ShellInterface/index.js";
 
 describe("ConnectionTile component tests", (): void => {
 
@@ -49,7 +48,7 @@ describe("ConnectionTile component tests", (): void => {
                 caption={details.caption}
                 description={details.description}
                 type={BrowserTileType.Open}
-                icon={mysqlIcon}
+                icon={Assets.file.mysqlIcon}
 
             />,
         );

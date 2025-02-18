@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,28 +23,28 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import overviewPageIcon from "../../../../assets/images/overviewPage.svg";
-
 import { mount, shallow } from "enzyme";
 
 import { act } from "preact/test-utils";
+
 import { Orientation } from "../../../../components/ui/Container/Container.js";
 import { Label } from "../../../../components/ui/Label/Label.js";
 import { Selector } from "../../../../components/ui/Selector/Selector.js";
+import { Assets } from "../../../../supplement/Assets.js";
 
 describe("Selector component tests", (): void => {
 
     const itemArray = [
-        { caption: "1", icon: overviewPageIcon },
-        { caption: "2", icon: overviewPageIcon },
-        { caption: "3", icon: overviewPageIcon },
-        { caption: "4", icon: overviewPageIcon },
-        { caption: "5", icon: overviewPageIcon },
-        { caption: "6", icon: overviewPageIcon },
-        { caption: "7", icon: overviewPageIcon },
-        { caption: "8", icon: overviewPageIcon },
-        { caption: "9", icon: overviewPageIcon },
-        { caption: "10", icon: overviewPageIcon },
+        { caption: "1", icon: Assets.documents.overviewPageIcon },
+        { caption: "2", icon: Assets.documents.overviewPageIcon },
+        { caption: "3", icon: Assets.documents.overviewPageIcon },
+        { caption: "4", icon: Assets.documents.overviewPageIcon },
+        { caption: "5", icon: Assets.documents.overviewPageIcon },
+        { caption: "6", icon: Assets.documents.overviewPageIcon },
+        { caption: "7", icon: Assets.documents.overviewPageIcon },
+        { caption: "8", icon: Assets.documents.overviewPageIcon },
+        { caption: "9", icon: Assets.documents.overviewPageIcon },
+        { caption: "10", icon: Assets.documents.overviewPageIcon },
     ];
 
     it("Test Selector onSelect callback", async () => {
@@ -55,16 +55,16 @@ describe("Selector component tests", (): void => {
                 smoothScroll={true}
                 onSelect={jest.fn()}
                 items={[
-                    { caption: "1", icon: overviewPageIcon },
-                    { caption: "2", icon: overviewPageIcon },
-                    { caption: "3", icon: overviewPageIcon },
-                    { caption: "4", icon: overviewPageIcon },
-                    { caption: "5", icon: overviewPageIcon },
-                    { caption: "6", icon: overviewPageIcon },
-                    { caption: "7", icon: overviewPageIcon },
-                    { caption: "8", icon: overviewPageIcon },
-                    { caption: "9", icon: overviewPageIcon },
-                    { caption: "10", icon: overviewPageIcon },
+                    { caption: "1", icon: Assets.documents.overviewPageIcon },
+                    { caption: "2", icon: Assets.documents.overviewPageIcon },
+                    { caption: "3", icon: Assets.documents.overviewPageIcon },
+                    { caption: "4", icon: Assets.documents.overviewPageIcon },
+                    { caption: "5", icon: Assets.documents.overviewPageIcon },
+                    { caption: "6", icon: Assets.documents.overviewPageIcon },
+                    { caption: "7", icon: Assets.documents.overviewPageIcon },
+                    { caption: "8", icon: Assets.documents.overviewPageIcon },
+                    { caption: "9", icon: Assets.documents.overviewPageIcon },
+                    { caption: "10", icon: Assets.documents.overviewPageIcon },
                 ]}
             />,
         );

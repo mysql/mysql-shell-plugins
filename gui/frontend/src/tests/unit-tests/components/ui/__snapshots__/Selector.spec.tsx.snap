@@ -76,7 +76,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url("overviewPage.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -93,7 +93,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url("overviewPage.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -110,7 +110,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url("overviewPage.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -127,7 +127,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url("overviewPage.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -144,7 +144,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url("overviewPage.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -161,7 +161,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url("overviewPage.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -178,7 +178,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url("overviewPage.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -195,7 +195,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url("overviewPage.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -212,7 +212,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url("overviewPage.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -229,7 +229,7 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
             <div
               class="msg icon"
               data-tooltip="inherit"
-              style="mask-image: url("overviewPage.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+              style="mask-image: url("overviewPage.svg");"
             />
             <label
               class="msg label"
@@ -366,9 +366,9 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                     "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("overviewPage.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -436,9 +436,9 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                     "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("overviewPage.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -506,9 +506,9 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                     "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("overviewPage.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -576,9 +576,9 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                     "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("overviewPage.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -646,9 +646,9 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                     "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("overviewPage.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -716,9 +716,9 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                     "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("overviewPage.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -786,9 +786,9 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                     "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("overviewPage.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -856,9 +856,9 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                     "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("overviewPage.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -926,9 +926,9 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                     "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("overviewPage.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -996,9 +996,9 @@ exports[`Selector component tests Test Selector output (snapshot) 1`] = `
                     "WebkitMaskImage": "url("overviewPage.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("overviewPage.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }

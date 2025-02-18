@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,12 +26,6 @@
 import { ComponentChild, createRef } from "preact";
 import { Children } from "preact/compat";
 
-import addIcon from "../assets/images/add.svg";
-import defaultIcon from "../assets/images/chevron-right.svg";
-import deleteIcon from "../assets/images/close2.svg";
-import editIcon from "../assets/images/edit.svg";
-import currentIcon from "../assets/images/overviewPage.svg";
-
 import { IShellProfile } from "../communication/ProtocolGui.js";
 import { ConfirmDialog } from "../components/Dialogs/ConfirmDialog.js";
 import {
@@ -45,6 +39,7 @@ import { Label } from "../components/ui/Label/Label.js";
 import { Menu } from "../components/ui/Menu/Menu.js";
 import { IMenuItemProperties, MenuItem } from "../components/ui/Menu/MenuItem.js";
 import type { IStatusBarItem } from "../components/ui/Statusbar/StatusBarItem.js";
+import { Assets } from "../supplement/Assets.js";
 import { requisitions } from "../supplement/Requisitions.js";
 import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
 import { webSession } from "../supplement/WebSession.js";
@@ -119,17 +114,17 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
                     <MenuItem
                         key="add"
                         command={{ title: "Add Profile", command: "add" }}
-                        icon={addIcon}
+                        icon={Assets.misc.addIcon}
                     />
                     <MenuItem
                         key="edit"
                         command={{ title: "Edit Profile", command: "edit" }}
-                        icon={editIcon}
+                        icon={Assets.misc.editIcon}
                     />
                     <MenuItem
                         key="delete"
                         command={{ title: "Delete Profile", command: "delete" }}
-                        icon={deleteIcon}
+                        icon={Assets.misc.close2Icon}
                     />
                 </Menu>
             </>
@@ -200,11 +195,11 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
             (value: IShellProfile, index: number) => {
                 let icon;
                 if (value.id === webSession.currentProfileId) {
-                    icon = currentIcon;
+                    icon = Assets.documents.overviewPageIcon;
                 }
 
                 if (value.id === this.defaultProfile?.id) {
-                    icon = defaultIcon;
+                    icon = Assets.file.defaultIcon;
                 }
                 const menuItem = (
                     <MenuItem

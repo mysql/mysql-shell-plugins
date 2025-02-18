@@ -23,11 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import historyBackIcon from "../../assets/images/toolbar/toolbar-history-back.svg";
-import historyForwardIcon from "../../assets/images/toolbar/toolbar-history-forward.svg";
-import loadNotebookIcon from "../../assets/images/toolbar/toolbar-load-editor.svg";
-import saveNotebookIcon from "../../assets/images/toolbar/toolbar-save-editor.svg";
-
 import { type IPosition } from "monaco-editor";
 import { ComponentChild, createRef } from "preact";
 
@@ -46,6 +41,7 @@ import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
 import { PresentationInterface } from "../../script-execution/PresentationInterface.js";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
 import { INotebookFileFormat } from "../../script-execution/index.js";
+import { Assets } from "../../supplement/Assets.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
@@ -167,7 +163,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                 imageOnly={true}
                 style={{ marginLeft: "4px" }}
             >
-                <Icon src={saveNotebookIcon} data-tooltip="inherit" />
+                <Icon src={Assets.toolbar.saveEditorIcon} data-tooltip="inherit" />
             </Button>,
             <Button
                 key="editorLoadNotebookButton"
@@ -175,7 +171,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                 requestType="editorLoadNotebook"
                 imageOnly={true}
             >
-                <Icon src={loadNotebookIcon} data-tooltip="inherit" />
+                <Icon src={Assets.toolbar.loadEditorIcon} data-tooltip="inherit" />
             </Button>,
         );
 
@@ -196,7 +192,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                 onClick={this.navigateHistory.bind(this, true)}
                 disabled={!canGoBackInHistory}
             >
-                <Icon src={historyBackIcon} data-tooltip="inherit" />
+                <Icon src={Assets.toolbar.historyBackIcon} data-tooltip="inherit" />
             </Button>,
             <Button
                 key="editorNotebookHistoryForwardButton"
@@ -205,7 +201,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                 onClick={this.navigateHistory.bind(this, false)}
                 disabled={!canGoForwardInHistory}
             >
-                <Icon src={historyForwardIcon} data-tooltip="inherit" />
+                <Icon src={Assets.toolbar.historyForwardIcon} data-tooltip="inherit" />
             </Button>,
         );
 

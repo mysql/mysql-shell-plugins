@@ -436,6 +436,7 @@ export class ExecutionContext implements IExecutionContext {
      * @param data The data that must be visualized in the result (if not given then remove any existing result).
      * @param dataOptions Additional information for the result data.
      * @param presentationOptions Additional information about the data visualization.
+     * @param queryType The type of query that was executed.
      *
      * @returns A promise resolving to true if the operation was concluded successfully, otherwise false.
      */

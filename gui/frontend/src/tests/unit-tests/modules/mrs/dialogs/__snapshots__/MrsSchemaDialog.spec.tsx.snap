@@ -29,7 +29,7 @@ exports[`MRS Schema dialog tests Show MRS Schema Dialog (snapshot) and escape 1`
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>

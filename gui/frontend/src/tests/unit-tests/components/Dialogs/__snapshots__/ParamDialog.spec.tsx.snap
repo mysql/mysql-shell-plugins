@@ -147,7 +147,7 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>
@@ -164,7 +164,7 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
         >
           <div
             class="msg icon"
-            style="mask-image: url("parameters.svg"); mask-size: 100% 100%; mask-composite: subtract; width: 128px; height: 128px;"
+            style="mask-image: url("parameters.svg"); width: 128px; height: 128px;"
           />
         </div>
         <div
@@ -278,7 +278,7 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>
@@ -295,7 +295,7 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
         >
           <div
             class="msg icon"
-            style="mask-image: url("parameters.svg"); mask-size: 100% 100%; mask-composite: subtract; width: 128px; height: 128px;"
+            style="mask-image: url("parameters.svg"); width: 128px; height: 128px;"
           />
         </div>
         <div

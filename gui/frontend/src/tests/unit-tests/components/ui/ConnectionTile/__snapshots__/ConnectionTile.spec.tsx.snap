@@ -51,9 +51,9 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
               "WebkitMaskImage": "url("scriptMysql.svg")",
               "backgroundColor": undefined,
               "height": undefined,
-              "maskComposite": "subtract",
+              "maskComposite": undefined,
               "maskImage": "url("scriptMysql.svg")",
-              "maskSize": "100% 100%",
+              "maskSize": undefined,
               "width": undefined,
             }
           }
@@ -135,7 +135,7 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
                 <div
                   class="msg icon"
                   data-tooltip="inherit"
-                  style="mask-image: url("toolbar-menu.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                  style="mask-image: url("toolbar-menu.svg");"
                 />
               </div>
               <div
@@ -148,7 +148,7 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
                 <div
                   class="msg icon"
                   data-tooltip="inherit"
-                  style="mask-image: url("newNotebook.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                  style="mask-image: url("newNotebook.svg");"
                 />
               </div>
               <div
@@ -161,7 +161,7 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
                 <div
                   class="msg icon"
                   data-tooltip="inherit"
-                  style="mask-image: url("newScript.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                  style="mask-image: url("newScript.svg");"
                 />
               </div>
             </div>,
@@ -215,9 +215,9 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
                       "WebkitMaskImage": "url("toolbar-menu.svg")",
                       "backgroundColor": undefined,
                       "height": undefined,
-                      "maskComposite": "subtract",
+                      "maskComposite": undefined,
                       "maskImage": "url("toolbar-menu.svg")",
-                      "maskSize": "100% 100%",
+                      "maskSize": undefined,
                       "width": undefined,
                     }
                   }
@@ -258,9 +258,9 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
                       "WebkitMaskImage": "url("newNotebook.svg")",
                       "backgroundColor": undefined,
                       "height": undefined,
-                      "maskComposite": "subtract",
+                      "maskComposite": undefined,
                       "maskImage": "url("newNotebook.svg")",
-                      "maskSize": "100% 100%",
+                      "maskSize": undefined,
                       "width": undefined,
                     }
                   }
@@ -301,9 +301,9 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
                       "WebkitMaskImage": "url("newScript.svg")",
                       "backgroundColor": undefined,
                       "height": undefined,
-                      "maskComposite": "subtract",
+                      "maskComposite": undefined,
                       "maskImage": "url("newScript.svg")",
-                      "maskSize": "100% 100%",
+                      "maskSize": undefined,
                       "width": undefined,
                     }
                   }

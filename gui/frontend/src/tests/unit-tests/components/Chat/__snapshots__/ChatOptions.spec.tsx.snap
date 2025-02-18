@@ -72,9 +72,9 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                       "WebkitMaskImage": "url("chatOptions.svg")",
                       "backgroundColor": undefined,
                       "height": undefined,
-                      "maskComposite": "subtract",
+                      "maskComposite": undefined,
                       "maskImage": "url("chatOptions.svg")",
-                      "maskSize": "100% 100%",
+                      "maskSize": undefined,
                       "width": undefined,
                     }
                   }

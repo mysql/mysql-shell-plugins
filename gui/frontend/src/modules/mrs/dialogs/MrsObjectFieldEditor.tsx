@@ -23,33 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import allowSortingIcon from "../../../assets/images/allowSorting.svg";
-import arrowIcon from "../../../assets/images/arrow.svg";
-import checkAllIcon from "../../../assets/images/checkAll.svg";
-import checkNoneIcon from "../../../assets/images/checkNone.svg";
-import closeIcon from "../../../assets/images/close2.svg";
-import inIcon from "../../../assets/images/in.svg";
-import inOutIcon from "../../../assets/images/inOut.svg";
-import keyIcon from "../../../assets/images/isKey.svg";
-import mrsObjectIcon from "../../../assets/images/mrsDbObject.svg";
-import noCheckIcon from "../../../assets/images/noCheck.svg";
-import noFilterIcon from "../../../assets/images/noFilter.svg";
-import noUpdateIcon from "../../../assets/images/noUpdate.svg";
-import outIcon from "../../../assets/images/out.svg";
-import addIcon from "../../../assets/images/plus.svg";
-import rowOwnershipIcon from "../../../assets/images/rowOwnership.svg";
-import functionIcon from "../../../assets/images/schemaFunction.svg";
-import procedureIcon from "../../../assets/images/schemaProcedure.svg";
-import tableIcon from "../../../assets/images/schemaTable.svg";
-import columnIcon from "../../../assets/images/schemaTableColumn.svg";
-import columnNnIcon from "../../../assets/images/schemaTableColumnNN.svg";
-import columnPkIcon from "../../../assets/images/schemaTableColumnPK.svg";
-import fkIcon11 from "../../../assets/images/schemaTableForeignKey11.svg";
-import fkIcon1N from "../../../assets/images/schemaTableForeignKey1N.svg";
-import fkIconN1 from "../../../assets/images/schemaTableForeignKeyN1.svg";
-import viewIcon from "../../../assets/images/schemaView.svg";
-import unnestedIcon from "../../../assets/images/unnest.svg";
-
 import "./MrsObjectFieldEditor.css";
 
 import { ComponentChild, createRef, render } from "preact";
@@ -60,8 +33,7 @@ import {
 import { ui } from "../../../app-logic/UILayer.js";
 import { IDictionary } from "../../../app-logic/general-types.js";
 import {
-    IMrsDbObjectData, IMrsObject, IMrsObjectFieldWithReference, IMrsObjectReference,
-    IMrsTableColumn,
+    IMrsDbObjectData, IMrsObject, IMrsObjectFieldWithReference, IMrsObjectReference, IMrsTableColumn,
 } from "../../../communication/ProtocolMrs.js";
 import { IValueEditCustomProperties, ValueEditCustom } from "../../../components/Dialogs/ValueEditCustom.js";
 import { Button } from "../../../components/ui/Button/Button.js";
@@ -78,6 +50,7 @@ import { Icon } from "../../../components/ui/Icon/Icon.js";
 import { IInputChangeProperties, Input } from "../../../components/ui/Input/Input.js";
 import { Label } from "../../../components/ui/Label/Label.js";
 import { ITreeGridOptions, TreeGrid } from "../../../components/ui/TreeGrid/TreeGrid.js";
+import { Assets } from "../../../supplement/Assets.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
 import { ShellInterfaceSqlEditor } from "../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { convertErrorToString, uuidBinary16Base64 } from "../../../utilities/helpers.js";
@@ -780,7 +753,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         orientation={Orientation.LeftToRight}
                         crossAlignment={ContentAlignment.Center}
                     >
-                        <Icon className="tableIcon" src={mrsObjectIcon} width={16} height={16} />
+                        <Icon className="tableIcon" src={Assets.mrs.dbObjectIcon} width={16} height={16} />
                         <Label className={data.showSdkOptions === undefined ? "tableName" : "datatype"}
                             caption={data.showSdkOptions === undefined
                                 ? mrsObject?.name : this.getMrsObjectName(cellData)} />
@@ -793,17 +766,17 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     >
                         {showFieldListOpenActionIcons && data.dbObject.objectType !== MrsDbObjectType.Script &&
                             <Icon className={mrsObject?.options?.dataMappingViewNoCheck
-                                ? "selected" : "notSelected"} src={noCheckIcon} width={16} height={16}
+                                ? "selected" : "notSelected"} src={Assets.misc.noCheckIcon} width={16} height={16}
                                 onClick={() => { this.handleIconClick(cell, ActionIconName.Check); }}
                                 data-tooltip="Disable ETAG calculations for this table." />
                         }
                         {data.dbObject.objectType !== MrsDbObjectType.Script &&
                             <>
                                 <Icon className="action"
-                                    src={checkAllIcon} width={16} height={16}
+                                    src={Assets.misc.checkAllIcon} width={16} height={16}
                                     onClick={() => { this.handleIconClick(cell, ActionIconName.CheckAll); }} />
                                 <Icon className="action"
-                                    src={checkNoneIcon} width={16} height={16}
+                                    src={Assets.misc.checkNoneIcon} width={16} height={16}
                                     onClick={() => { this.handleIconClick(cell, ActionIconName.CheckNone); }} />
                                 <Label caption="…" />
                             </>
@@ -847,7 +820,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                             orientation={Orientation.LeftToRight}
                             crossAlignment={ContentAlignment.Center}>
                             <Label className="referenceFieldName" caption={`(`} />
-                            <Icon className="unnestedIcon" src={unnestedIcon} width={16} height={16} />
+                            <Icon className="unnestedIcon" src={Assets.misc.unnestIcon} width={16} height={16} />
                             <Label className="referenceFieldName" caption={
                                 `${cellData.unnested.referenceFieldName})`} />
                         </Container>
@@ -858,7 +831,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                             <Label className="datatype" caption={
                                 // Reverse order because of CSS {direction: rtl;} setting
                                 `${cellData.field.dbColumn?.isArray ? "[ ]" : ""}${this.getJsonFieldDatatype(cellData)}`
-                            } data-tooltip={JSON.stringify(cellData.field.jsonSchemaDef, undefined, 4)}/>
+                            } data-tooltip={JSON.stringify(cellData.field.jsonSchemaDef, undefined, 4)} />
                         </>
                     }
                 </Container>
@@ -874,7 +847,9 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                                     (cellData.field.id === mrsObject?.rowOwnershipFieldId ||
                                         cellData.field.id === mrsObjectReference?.rowOwnershipFieldId)
                                         ? "selected" : "notSelected"}
-                                    src={rowOwnershipIcon} width={16} height={16}
+                                    src={Assets.misc.rowOwnershipIcon}
+                                    width={16}
+                                    height={16}
                                     onClick={() => { this.handleIconClick(cell, ActionIconName.Ownership); }}
                                     data-tooltip="Set as row ownership field" />
                             }
@@ -882,54 +857,99 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                                 data.dbObject.objectType !== MrsDbObjectType.Function &&
                                 data.dbObject.objectType !== MrsDbObjectType.Script) &&
                                 <>
-                                    <Icon className={cellData.field.storedDbColumn?.isPrimary
-                                        ? "selected" : "notSelected"} src={keyIcon} width={16} height={16}
+                                    <Icon
+                                        className={cellData.field.storedDbColumn?.isPrimary
+                                            ? "selected"
+                                            : "notSelected"}
+                                        src={Assets.misc.isKeyIcon}
+                                        width={16}
+                                        height={16}
                                         onClick={() => { this.handleIconClick(cell, ActionIconName.IncludeInKey); }}
-                                        data-tooltip="Include field in object composite key" />
-                                    <Icon className={cellData.field.allowSorting
-                                        ? "selected" : "notSelected"} src={allowSortingIcon} width={16} height={16}
+                                        data-tooltip="Include field in object composite key"
+                                    />
+                                    <Icon
+                                        className={cellData.field.allowSorting
+                                            ? "selected"
+                                            : "notSelected"}
+                                        src={Assets.misc.allowSortingIcon}
+                                        width={16}
+                                        height={16}
                                         onClick={() => { this.handleIconClick(cell, ActionIconName.Sorting); }}
-                                        data-tooltip="Allow sorting operations using this field" />
-                                    <Icon className={!cellData.field.allowFiltering
-                                        ? "selected" : "notSelected"} src={noFilterIcon} width={16} height={16}
+                                        data-tooltip="Allow sorting operations using this field"
+                                    />
+                                    <Icon
+                                        className={!cellData.field.allowFiltering
+                                            ? "selected"
+                                            : "notSelected"}
+                                        src={Assets.misc.noFilterIcon}
+                                        width={16}
+                                        height={16}
                                         onClick={() => { this.handleIconClick(cell, ActionIconName.Filtering); }}
-                                        data-tooltip="Prevent filtering operations on this field" />
-                                    <Icon className={cellData.field.noUpdate
-                                        ? "selected" : "notSelected"} src={noUpdateIcon} width={16} height={16}
+                                        data-tooltip="Prevent filtering operations on this field"
+                                    />
+                                    <Icon
+                                        className={cellData.field.noUpdate
+                                            ? "selected"
+                                            : "notSelected"}
+                                        src={Assets.misc.noUpdateIcon}
+                                        width={16}
+                                        height={16}
                                         onClick={() => { this.handleIconClick(cell, ActionIconName.Update); }}
-                                        data-tooltip="Prevent updates on this field" />
-                                    <Icon className={cellData.field.noCheck
-                                        ? "selected" : "notSelected"} src={noCheckIcon} width={16} height={16}
+                                        data-tooltip="Prevent updates on this field"
+                                    />
+                                    <Icon
+                                        className={cellData.field.noCheck
+                                            ? "selected"
+                                            : "notSelected"}
+                                        src={Assets.misc.noCheckIcon}
+                                        width={16} height={16}
                                         onClick={() => { this.handleIconClick(cell, ActionIconName.Check); }}
-                                        data-tooltip="Exclude this field from ETAG calculations" />
+                                        data-tooltip="Exclude this field from ETAG calculations"
+                                    />
                                 </>
                             }
                             {(mrsObject?.kind === MrsObjectKind.Parameters &&
                                 data.dbObject.objectType !== MrsDbObjectType.Function) &&
                                 <Icon className={"selected"} src={
                                     cellData.field.dbColumn?.in && cellData.field.dbColumn?.out
-                                        ? inOutIcon : (cellData.field.dbColumn?.out ? outIcon : inIcon)}
-                                    width={16} height={16}
+                                        ? Assets.misc.inOutIcon
+                                        : (cellData.field.dbColumn?.out
+                                            ? Assets.misc.outIcon
+                                            : Assets.misc.inIcon)}
+                                    width={16}
+                                    height={16}
                                     data-tooltip={cellData.field.dbColumn?.in && cellData.field.dbColumn?.out
                                         ? "INOUT parameter"
                                         : (cellData.field.dbColumn?.out
                                             ? "OUT parameter"
-                                            : "IN parameter")} />
+                                            : "IN parameter")}
+                                />
                             }
                         </>
                     }
                     {cellData.field.objectReference &&
                         <>
-                            <Icon className={cellData.field.objectReference.options?.dataMappingViewNoCheck
-                                ? "selected" : "notSelected"} src={noCheckIcon} width={16} height={16}
+                            <Icon
+                                className={cellData.field.objectReference.options?.dataMappingViewNoCheck
+                                    ? "selected"
+                                    : "notSelected"}
+                                src={Assets.misc.noCheckIcon}
+                                width={16}
+                                height={16}
                                 onClick={() => { this.handleIconClick(cell, ActionIconName.Check); }}
-                                data-tooltip="Disable ETAG calculations for this table." />
-                            <Icon className="action notSelected"
-                                src={checkAllIcon} width={16} height={16}
+                                data-tooltip="Disable ETAG calculations for this table."
+                            />
+                            <Icon
+                                className="action notSelected"
+                                src={Assets.misc.checkAllIcon}
+                                width={16}
+                                height={16}
                                 onClick={() => { this.handleIconClick(cell, ActionIconName.CheckAll); }}
                                 data-tooltip="Select all fields" />
                             <Icon className="action notSelected"
-                                src={checkNoneIcon} width={16} height={16}
+                                src={Assets.misc.checkNoneIcon}
+                                width={16}
+                                height={16}
                                 onClick={() => { this.handleIconClick(cell, ActionIconName.CheckNone); }}
                                 data-tooltip="Deselect all fields" />
                         </>
@@ -939,25 +959,28 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                         && mrsObject?.kind === MrsObjectKind.Result) &&
                         <>
                             <Icon className="action"
-                                src={closeIcon} width={16} height={16}
+                                src={Assets.misc.closeIcon}
+                                width={16}
+                                height={16}
                                 onClick={() => { this.handleIconClick(cell, ActionIconName.Delete); }}
-                                data-tooltip="Delete field" />
+                                data-tooltip="Delete field"
+                            />
                         </>
                     }
                     {(!(cellData.field.objectReference === undefined
-                        && !((data.dbObject.objectType === MrsDbObjectType.Procedure ||
-                            data.dbObject.objectType === MrsDbObjectType.Function ||
-                            data.dbObject.objectType === MrsDbObjectType.Script)
-                            && mrsObject?.kind === MrsObjectKind.Result) &&
-                        (cellData.field.id === mrsObject?.rowOwnershipFieldId ||
-                            cellData.field.id === mrsObjectReference?.rowOwnershipFieldId)
+                        && !((data.dbObject.objectType === MrsDbObjectType.Procedure
+                            || data.dbObject.objectType === MrsDbObjectType.Function
+                            || data.dbObject.objectType === MrsDbObjectType.Script)
+                            && mrsObject?.kind === MrsObjectKind.Result)
+                        && (cellData.field.id === mrsObject?.rowOwnershipFieldId
+                            || cellData.field.id === mrsObjectReference?.rowOwnershipFieldId)
                     )
                         || !((cellData.field.objectReference === undefined
-                            && (data.dbObject.objectType !== MrsDbObjectType.Procedure &&
-                                data.dbObject.objectType !== MrsDbObjectType.Function &&
-                                data.dbObject.objectType !== MrsDbObjectType.Script) &&
-                            (cellData.field.id === mrsObject?.rowOwnershipFieldId ||
-                                cellData.field.id === mrsObjectReference?.rowOwnershipFieldId)
+                            && (data.dbObject.objectType !== MrsDbObjectType.Procedure
+                                && data.dbObject.objectType !== MrsDbObjectType.Function
+                                && data.dbObject.objectType !== MrsDbObjectType.Script)
+                            && (cellData.field.id === mrsObject?.rowOwnershipFieldId
+                                || cellData.field.id === mrsObjectReference?.rowOwnershipFieldId)
                         )
                             && !cellData.field.allowFiltering
                             && cellData.field.allowSorting
@@ -986,7 +1009,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                             data-tooltip="inherit"
                             width={16}
                             height={16}
-                            src={unnestedIcon} />
+                            src={Assets.misc.unnestIcon} />
                         <Label data-tooltip="inherit">
                             Unnest
                         </Label>
@@ -995,13 +1018,20 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             </>;
         } else if (cellData.type === MrsObjectFieldTreeEntryType.FieldListClose) {
             content = <>
-                {data.dbObject.objectType === MrsDbObjectType.Procedure &&
-                    mrsObject?.kind === MrsObjectKind.Result &&
-                    <Icon className="addField" width="11px" height="11px"
-                        src={addIcon} onClick={() => { this.addNewField(cell.getRow()); }} />
+                {data.dbObject.objectType === MrsDbObjectType.Procedure
+                    && mrsObject?.kind === MrsObjectKind.Result &&
+                    <Icon
+                        className="addField"
+                        width="11px"
+                        height="11px"
+                        src={Assets.misc.addIcon}
+                        onClick={() => { this.addNewField(cell.getRow()); }}
+                    />
                 }
-                <Label className="bracket" caption={
-                    `}${cellData.field.objectReference?.referenceMapping.kind === "1:n" ? ", ... ]" : ""}`} />
+                <Label
+                    className="bracket"
+                    caption={`}${cellData.field.objectReference?.referenceMapping.kind === "1:n" ? ", ... ]" : ""}`}
+                />
             </>;
         }
 
@@ -1034,9 +1064,11 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             if (options.dataMappingViewInsert) {
                 tableCrud.push("INSERT");
             }
+
             if (options.dataMappingViewUpdate) {
                 tableCrud.push("UPDATE");
             }
+
             if (options.dataMappingViewDelete) {
                 tableCrud.push("DELETE");
             }
@@ -1081,17 +1113,17 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
             let dbObjIcon;
             switch (data.dbObject.objectType) {
                 case MrsDbObjectType.View:
-                    dbObjIcon = viewIcon;
+                    dbObjIcon = Assets.db.viewIcon;
                     break;
                 case MrsDbObjectType.Procedure:
-                    dbObjIcon = procedureIcon;
+                    dbObjIcon = Assets.db.procedureIcon;
                     break;
                 case MrsDbObjectType.Function:
                 case MrsDbObjectType.Script:
-                    dbObjIcon = functionIcon;
+                    dbObjIcon = Assets.db.functionIcon;
                     break;
                 default:
-                    dbObjIcon = tableIcon;
+                    dbObjIcon = Assets.db.tableIcon;
                     break;
             }
 
@@ -1103,33 +1135,37 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                             data-tooltip="Database schema table" />
                     </>
                 }
-                {(!cell.getRow().getPrevRow() && data.dbObject.objectType !== MrsDbObjectType.Procedure &&
-                    data.dbObject.objectType !== MrsDbObjectType.Function &&
-                    data.dbObject.objectType !== MrsDbObjectType.Script) &&
-                    crudDiv
+                {(!cell.getRow().getPrevRow() && data.dbObject.objectType !== MrsDbObjectType.Procedure
+                    && data.dbObject.objectType !== MrsDbObjectType.Function
+                    && data.dbObject.objectType !== MrsDbObjectType.Script)
+                    && crudDiv
                 }
             </>;
         } else if (cellData.type === MrsObjectFieldTreeEntryType.Field
             || cellData.type === MrsObjectFieldTreeEntryType.DeletedField) {
-            let iconName = dbColumn?.isPrimary ? columnPkIcon :
-                (dbColumn?.notNull ? columnNnIcon : columnIcon);
+            let iconName = dbColumn?.isPrimary ? Assets.db.columnPkIcon :
+                (dbColumn?.notNull ? Assets.db.columnNotNullIcon : Assets.db.columnNullableIcon);
             let tooltip = dbColumn?.isPrimary ? "Primary key column" :
                 (dbColumn?.notNull ? "Table column that must not be NULL" : "Table column");
 
             if (cellData.field.objectReference) {
                 switch (cellData.field.objectReference.referenceMapping.kind) {
                     case "1:1": {
-                        iconName = fkIcon11;
+                        iconName = Assets.db.schemaTableForeignKey11Icon;
                         tooltip = "Table with a 1:1 relationship";
+
                         break;
                     }
+
                     case "n:1": {
-                        iconName = fkIconN1;
+                        iconName = Assets.db.schemaTableForeignKey1NIcon;
                         tooltip = "Table with a n:1 relationship";
+
                         break;
                     }
+
                     default: {
-                        iconName = fkIcon1N;
+                        iconName = Assets.db.schemaTableForeignKey1NIcon;
                         tooltip = "Table with a 1:n relationship";
                     }
                 }
@@ -1140,7 +1176,7 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                     : `${cellData.unnested.schemaTable}.${String(dbColumn?.name)}`;
 
                 content = <>
-                    <Icon src={arrowIcon} width={16} height={16} />
+                    <Icon src={Assets.misc.arrowIcon} width={16} height={16} />
                     <Icon src={iconName} width={16} height={16}
                         data-tooltip={tooltip} />
                     <Label className="columnName" caption={dbColName} />
@@ -1157,10 +1193,10 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 }
 
                 content = <>
-                    <Icon src={arrowIcon} width={16} height={16} />
+                    <Icon src={Assets.misc.arrowIcon} width={16} height={16} />
                     <Icon src={iconName} width={16} height={16}
                         data-tooltip={tooltip} />
-                    <Icon src={tableIcon} width={16} height={16} />
+                    <Icon src={Assets.db.tableIcon} width={16} height={16} />
                     <Label className="tableName" caption={refTbl} />
                     {cellData.field.enabled && data.dbObject.objectType !== MrsDbObjectType.Script &&
                         crudDiv}

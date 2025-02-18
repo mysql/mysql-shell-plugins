@@ -23,8 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import addProperty from "../../assets/images/add.svg";
-import removeProperty from "../../assets/images/remove.svg";
 import "./ValueEditDialog.css";
 
 import { cloneElement, ComponentChild, createRef, render, VNode } from "preact";
@@ -32,6 +30,7 @@ import { Children } from "preact/compat";
 import { ColumnDefinition, RowComponent, type CellComponent } from "tabulator-tables";
 
 import { DialogResponseClosure, MessageType, type IDictionary } from "../../app-logic/general-types.js";
+import { Assets } from "../../supplement/Assets.js";
 import { type IOpenDialogFilters } from "../../supplement/RequisitionTypes.js";
 import { Button, type IButtonProperties } from "../ui/Button/Button.js";
 import { Checkbox, CheckState, type ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
@@ -1269,14 +1268,14 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                                         data-tooltip="Add new property entry"
                                         onClick={this.handleAddProperty}
                                     >
-                                        <Icon src={addProperty} data-tooltip="inherit" />
+                                        <Icon src={Assets.misc.addIcon} data-tooltip="inherit" />
                                     </Button>
                                     <Button
                                         id="buttonRemoveEntry"
                                         data-tooltip="Remove selected entries"
                                         onClick={this.handleRemoveProperty}
                                     >
-                                        <Icon src={removeProperty} data-tooltip="inherit" />
+                                        <Icon src={Assets.misc.removeIcon} data-tooltip="inherit" />
                                     </Button>
                                 </Container>
                             </Container>

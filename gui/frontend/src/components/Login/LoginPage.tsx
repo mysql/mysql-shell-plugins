@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,26 +24,25 @@
  */
 
 import "./LoginPage.css";
-import logo from "../../assets/images/modules/module-shell.svg";
-import chevronRight from "../../assets/images/chevron-right.svg";
 
 import { ComponentChild } from "preact";
 
 import { MessageType } from "../../app-logic/general-types.js";
-import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 import { ResponseError } from "../../communication/ResponseError.js";
+import { Assets } from "../../supplement/Assets.js";
+import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
-import { IComponentState, ComponentBase } from "../ui/Component/ComponentBase.js";
-import { Container, Orientation, ContentAlignment, ContentWrap } from "../ui/Container/Container.js";
+import { helpUrlMap } from "../../supplement/index.js";
+import { Button } from "../ui/Button/Button.js";
+import { ComponentBase, IComponentState } from "../ui/Component/ComponentBase.js";
+import { Container, ContentAlignment, ContentWrap, Orientation } from "../ui/Container/Container.js";
 import { Grid } from "../ui/Grid/Grid.js";
 import { GridCell } from "../ui/Grid/GridCell.js";
+import { HelpLinkList } from "../ui/HelpLinkList/HelpLinkList.js";
 import { Icon } from "../ui/Icon/Icon.js";
-import { Input, IInputChangeProperties } from "../ui/Input/Input.js";
+import { IInputChangeProperties, Input } from "../ui/Input/Input.js";
 import { Label } from "../ui/Label/Label.js";
 import { Message } from "../ui/Message/Message.js";
-import { Button } from "../ui/Button/Button.js";
-import { HelpLinkList } from "../ui/HelpLinkList/HelpLinkList.js";
-import { helpUrlMap } from "../../supplement/index.js";
 
 interface ILoginPageState extends IComponentState {
     userName: string;
@@ -70,7 +69,7 @@ export class LoginPage extends ComponentBase<{}, ILoginPageState> {
 
         return (
             <Container id="loginDialog" orientation={Orientation.TopDown}>
-                <Icon src={logo} id="loginDialogSakilaLogo" />
+                <Icon src={Assets.modules.moduleShellIcon} id="loginDialogSakilaLogo" />
                 <Container id="heading" orientation={Orientation.TopDown}>
                     <Label id="headingLabel">
                         MySQL Shell
@@ -117,7 +116,7 @@ export class LoginPage extends ComponentBase<{}, ILoginPageState> {
                     </GridCell>
                     <GridCell orientation={Orientation.TopDown} mainAlignment={ContentAlignment.Center}>
                         <Button id="loginButton" round onClick={this.login}>
-                            <Icon src={chevronRight} />
+                            <Icon src={Assets.misc.chevronIcon} />
                         </Button>
                     </GridCell>
                 </Grid>

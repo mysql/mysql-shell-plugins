@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,10 +25,9 @@
 
 import "./FrontPage.css";
 
-import closeButton from "../../../assets/images/close2.svg";
-
 import { ComponentChild } from "preact";
 
+import { Assets } from "../../../supplement/Assets.js";
 import { appParameters } from "../../../supplement/Requisitions.js";
 import { helpUrlMap } from "../../../supplement/index.js";
 import { Button } from "../Button/Button.js";
@@ -99,7 +98,7 @@ export class FrontPage extends ComponentBase<IFrontPageProperties> {
                             data-tooltip="Close Greeting"
                             onClick={this.handleCloseClick}
                         >
-                            <Icon src={closeButton} data-tooltip="inherit" />
+                            <Icon src={Assets.misc.close2Icon} data-tooltip="inherit" />
                         </Button>
                     </>
                 }

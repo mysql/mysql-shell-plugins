@@ -47,9 +47,9 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
                 "WebkitMaskImage": "url("overviewPage.svg")",
                 "backgroundColor": undefined,
                 "height": undefined,
-                "maskComposite": "subtract",
+                "maskComposite": undefined,
                 "maskImage": "url("overviewPage.svg")",
-                "maskSize": "100% 100%",
+                "maskSize": undefined,
                 "width": undefined,
               }
             }
@@ -66,9 +66,9 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
                 "WebkitMaskImage": "url("overviewPage.svg")",
                 "backgroundColor": undefined,
                 "height": undefined,
-                "maskComposite": "subtract",
+                "maskComposite": undefined,
                 "maskImage": "url("overviewPage.svg")",
-                "maskSize": "100% 100%",
+                "maskSize": undefined,
                 "width": undefined,
               }
             }
@@ -85,9 +85,9 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
                 "WebkitMaskImage": "url("overviewPage.svg")",
                 "backgroundColor": undefined,
                 "height": undefined,
-                "maskComposite": "subtract",
+                "maskComposite": undefined,
                 "maskImage": "url("overviewPage.svg")",
-                "maskSize": "100% 100%",
+                "maskSize": undefined,
                 "width": undefined,
               }
             }
@@ -104,9 +104,9 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
                 "WebkitMaskImage": "url("overviewPage.svg")",
                 "backgroundColor": undefined,
                 "height": undefined,
-                "maskComposite": "subtract",
+                "maskComposite": undefined,
                 "maskImage": "url("overviewPage.svg")",
-                "maskSize": "100% 100%",
+                "maskSize": undefined,
                 "width": undefined,
               }
             }
@@ -123,9 +123,9 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
                 "WebkitMaskImage": "url("overviewPage.svg")",
                 "backgroundColor": undefined,
                 "height": undefined,
-                "maskComposite": "subtract",
+                "maskComposite": undefined,
                 "maskImage": "url("overviewPage.svg")",
-                "maskSize": "100% 100%",
+                "maskSize": undefined,
                 "width": undefined,
               }
             }
@@ -142,9 +142,9 @@ exports[`Container component tests Test Container output (snapshot) 1`] = `
                 "WebkitMaskImage": "url("overviewPage.svg")",
                 "backgroundColor": undefined,
                 "height": undefined,
-                "maskComposite": "subtract",
+                "maskComposite": undefined,
                 "maskImage": "url("overviewPage.svg")",
-                "maskSize": "100% 100%",
+                "maskSize": undefined,
                 "width": undefined,
               }
             }

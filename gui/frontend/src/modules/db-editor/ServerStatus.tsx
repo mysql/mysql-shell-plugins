@@ -23,24 +23,23 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import mysqlIcon from "../../assets/images/admin/mysql-logo.svg";
-
 import * as os from "os";
+
 import { ComponentChild } from "preact";
 
-
-import { IToolbarItems } from "./index.js";
-import { StatusMark } from "../../components/ui/StatusMark/StatusMark.js";
 import { CheckState } from "../../components/ui/Checkbox/Checkbox.js";
-import { IComponentProperties, IComponentState, ComponentBase } from "../../components/ui/Component/ComponentBase.js";
-import { Container, Orientation, ContentAlignment, ContentWrap } from "../../components/ui/Container/Container.js";
+import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase.js";
+import { Container, ContentAlignment, ContentWrap, Orientation } from "../../components/ui/Container/Container.js";
 import { Divider } from "../../components/ui/Divider/Divider.js";
 import { Grid } from "../../components/ui/Grid/Grid.js";
 import { GridCell } from "../../components/ui/Grid/GridCell.js";
 import { Icon } from "../../components/ui/Icon/Icon.js";
 import { Label } from "../../components/ui/Label/Label.js";
+import { StatusMark } from "../../components/ui/StatusMark/StatusMark.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
+import { Assets } from "../../supplement/Assets.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { IToolbarItems } from "./index.js";
 
 type TriState = true | false | undefined;
 
@@ -200,7 +199,7 @@ export class ServerStatus extends ComponentBase<IServerStatusProperties, IServer
                 >
                     <Grid columns={2} rowGap={15} columnGap={12} id="header">
                         <GridCell rowSpan={2}>
-                            <Icon src={mysqlIcon} id="mysqlLogo" />
+                            <Icon src={Assets.misc.mysqlLogoIcon} id="mysqlLogo" />
                         </GridCell>
                         <GridCell
                             orientation={Orientation.TopDown}

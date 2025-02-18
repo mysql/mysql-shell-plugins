@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,12 +24,12 @@
  */
 
 import "./SessionTile.css";
-import closeIcon from "../../../assets/images/close2.svg";
 
 import { ComponentChild } from "preact";
 
-import { BrowserTile, IBrowserTileProperties } from "../BrowserTile/BrowserTile.js";
+import { Assets } from "../../../supplement/Assets.js";
 import { IShellSessionDetails } from "../../../supplement/ShellInterface/index.js";
+import { BrowserTile, IBrowserTileProperties } from "../BrowserTile/BrowserTile.js";
 import { Icon } from "../Icon/Icon.js";
 
 export interface ISessionTileProperties extends IBrowserTileProperties {
@@ -55,7 +55,7 @@ export class SessionTile extends BrowserTile<ISessionTileProperties> {
     protected renderTileActionUI = (): ComponentChild => {
         return (
             <Icon
-                src={closeIcon}
+                src={Assets.misc.close2Icon}
                 onClick={this.handleActionClick}
             />
         );

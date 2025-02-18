@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,13 +23,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
-import closeButton from "../../../../assets/images/close.svg";
-
-import React from "react";
 import { mount } from "enzyme";
 
 import { Icon } from "../../../../components/ui/Icon/Icon.js";
+import { Assets } from "../../../../supplement/Assets.js";
 
 describe("Icon component tests", (): void => {
 
@@ -46,7 +43,7 @@ describe("Icon component tests", (): void => {
 
     it("Standard Rendering", () => {
         const component = mount<Icon>(
-            <Icon src={closeButton} />,
+            <Icon src={Assets.misc.closeIcon} />,
         );
         expect(component).toMatchSnapshot();
 

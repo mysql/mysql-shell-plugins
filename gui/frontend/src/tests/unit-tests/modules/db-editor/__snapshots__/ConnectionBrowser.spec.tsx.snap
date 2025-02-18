@@ -385,9 +385,9 @@ DB Notebooks are modern editors for working with databases. You can use them to 
                         "WebkitMaskImage": "url("close2.svg")",
                         "backgroundColor": undefined,
                         "height": undefined,
-                        "maskComposite": "subtract",
+                        "maskComposite": undefined,
                         "maskImage": "url("close2.svg")",
-                        "maskSize": "100% 100%",
+                        "maskSize": undefined,
                         "width": undefined,
                       }
                     }

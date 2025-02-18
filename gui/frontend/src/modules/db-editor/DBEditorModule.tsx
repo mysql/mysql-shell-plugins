@@ -23,14 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import defaultIcon from "../../assets/images/file-icons/default.svg";
-
-import connectionIconMySQL from "../../assets/images/connectionMysql.svg";
-import connectionIconSQLite from "../../assets/images/connectionSqlite.svg";
-import moduleIcon from "../../assets/images/modules/module-sql.svg";
-import overviewPageIcon from "../../assets/images/overviewPage.svg";
-import scriptingIcon from "../../assets/images/scripting.svg";
-
 import { ComponentChild, createRef, type RefObject } from "preact";
 
 import { IModuleInfo, IModuleProperties, IModuleState, ModuleBase } from "../ModuleBase.js";
@@ -221,7 +213,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         return {
             id: DBEditorModuleId,
             caption: "DB Editor",
-            icon: moduleIcon,
+            icon: Assets.modules.moduleSqlIcon,
         };
     }
 
@@ -366,7 +358,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                 id="connections"
                 key="connections"
                 caption="DB Connection Overview"
-                picture={<Icon src={overviewPageIcon} />}
+                picture={<Icon src={Assets.documents.overviewPageIcon} />}
             />,
         ];
 
@@ -377,8 +369,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
             // Add one entry per connection.
             const iconName = page.details.dbType === DBType.MySQL
-                ? connectionIconMySQL
-                : connectionIconSQLite;
+                ? Assets.db.mysqlConnectionIcon
+                : Assets.db.sqliteConnectionIcon;
 
             dropDownItems.push(
                 <DropdownItem
@@ -396,12 +388,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     const language = entry.state.model.getLanguageId() as EditorLanguage;
                     const iconName = documentTypeToFileIcon.get(language);
                     if (language === "msg") {
-                        picture = <Icon src={iconName ?? defaultIcon} />;
+                        picture = <Icon src={iconName ?? Assets.file.defaultIcon} />;
                     } else {
-                        picture = <Image src={iconName as string ?? defaultIcon} />;
+                        picture = <Image src={iconName as string ?? Assets.file.defaultIcon} />;
                     }
                 } else if (entry.document.type === OdmEntityType.AdminPage) {
-                    const name = pageTypeToDocumentIcon.get((entry.document).pageType) ?? defaultIcon;
+                    const name = pageTypeToDocumentIcon.get((entry.document).pageType) ?? Assets.file.defaultIcon;
                     picture = <Icon src={name} />;
                 }
 
@@ -513,7 +505,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             </>;
 
             pages.push({
-                icon: overviewPageIcon,
+                icon: Assets.documents.overviewPageIcon,
                 caption: "Open Connection",
                 id: "progress",
                 content,
@@ -536,7 +528,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             );
 
             pages.push({
-                icon: overviewPageIcon,
+                icon: Assets.documents.overviewPageIcon,
                 caption: "Connection Overview",
                 id: "connections",
                 content: overview,
@@ -571,7 +563,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             }
 
             pages.push({
-                icon: scriptingIcon,
+                icon: Assets.misc.scriptingIcon,
                 caption: page.caption,
                 id: page.id,
                 content,
@@ -581,7 +573,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         className="closeButton"
                         round={true}
                         onClick={this.handleCloseTab}>
-                        <Icon src={Assets.misc.closeIcon2} />
+                        <Icon src={Assets.misc.close2Icon} />
                     </Button>
                 ),
                 canClose: !appParameters.embedded,
@@ -603,7 +595,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             }
 
             pages.push({
-                icon: scriptingIcon,
+                icon: Assets.misc.scriptingIcon,
                 caption: document.caption,
                 id: document.id,
                 content,
@@ -613,7 +605,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         className="closeButton"
                         round={true}
                         onClick={this.handleCloseTab}>
-                        <Icon src={Assets.misc.closeIcon2} />
+                        <Icon src={Assets.misc.close2Icon} />
                     </Button>
                 ),
                 canClose: !appParameters.embedded,
@@ -635,7 +627,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             }
 
             pages.push({
-                icon: scriptingIcon,
+                icon: Assets.misc.scriptingIcon,
                 caption: document.caption,
                 id: document.id,
                 content,
@@ -645,7 +637,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                         className="closeButton"
                         round={true}
                         onClick={this.handleCloseTab}>
-                        <Icon src={Assets.misc.closeIcon2} />
+                        <Icon src={Assets.misc.close2Icon} />
                     </Button>
                 ),
                 canClose: !appParameters.embedded,

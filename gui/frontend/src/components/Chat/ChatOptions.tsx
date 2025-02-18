@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,8 +25,9 @@ import "./ChatOptions.css";
 
 import { ComponentChild, createRef, render } from "preact";
 import { CellComponent, RowComponent } from "tabulator-tables";
-import chatOptionsIcon from "../../assets/images/chatOptions.svg";
+
 import { IMdsChatData, IMdsChatStatus } from "../../communication/ProtocolMds.js";
+import { Assets } from "../../supplement/Assets.js";
 import { Accordion, IAccordionProperties } from "../ui/Accordion/Accordion.js";
 import { Button } from "../ui/Button/Button.js";
 import { CheckState } from "../ui/Checkbox/Checkbox.js";
@@ -144,7 +145,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
                         mainAlignment={ContentAlignment.Stretch}
                         crossAlignment={ContentAlignment.Center}
                     >
-                        <Icon src={chatOptionsIcon} />
+                        <Icon src={Assets.lakehouse.chatOptionsIcon} />
                         <Label>HeatWave Chat</Label>
                     </Container>
                     <Label>AI Profile Editor</Label>

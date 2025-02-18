@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,12 +23,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import overviewPageIcon from "../../../../assets/images/overviewPage.svg";
 
 import { act } from "preact/test-utils";
 import { mount } from "enzyme";
 import { Accordion, IAccordionProperties } from "../../../../components/ui/Accordion/Accordion.js";
 import { Codicon } from "../../../../components/ui/Codicon.js";
+import { Assets } from "../../../../supplement/Assets.js";
 
 describe("Accordion component tests", (): void => {
 
@@ -76,9 +76,24 @@ describe("Accordion component tests", (): void => {
                         ],
                         id: "second",
                         content: [
-                            <Accordion.Item id="item5" key="item5" caption="Item 5" picture={overviewPageIcon} />,
-                            <Accordion.Item id="item6" key="item6" caption="Item 6" picture={overviewPageIcon} />,
-                            <Accordion.Item id="item7" key="item7" caption="Item 7" picture={overviewPageIcon} />,
+                            <Accordion.Item
+                                id="item5"
+                                key="item5"
+                                caption="Item 5"
+                                picture={Assets.documents.overviewPageIcon}
+                            />,
+                            <Accordion.Item
+                                id="item6"
+                                key="item6"
+                                caption="Item 6"
+                                picture={Assets.documents.overviewPageIcon}
+                            />,
+                            <Accordion.Item
+                                id="item7"
+                                key="item7"
+                                caption="Item 7"
+                                picture={Assets.documents.overviewPageIcon}
+                            />,
                         ],
                     },
                     {
@@ -154,9 +169,23 @@ describe("Accordion component tests", (): void => {
                         caption: "SECOND SECTION",
                         id: "second",
                         content: [
-                            <Accordion.Item id="item5" key="item5" caption="Item 5" picture={overviewPageIcon} />,
-                            <Accordion.Item id="item6" key="item6" caption="Item 6" picture={overviewPageIcon} />,
-                            <Accordion.Item id="item7" key="item7" caption="Item 7" picture={overviewPageIcon} />,
+                            <Accordion.Item
+                                id="item5"
+                                key="item5"
+                                caption="Item 5"
+                                picture={Assets.documents.overviewPageIcon}
+                            />,
+                            <Accordion.Item
+                                id="item6"
+                                key="item6"
+                                caption="Item 6"
+                                picture={Assets.documents.overviewPageIcon}
+                            />,
+                            <Accordion.Item
+                                id="item7"
+                                key="item7"
+                                caption="Item 7" picture={Assets.documents.overviewPageIcon}
+                            />,
                         ],
                     },
                     {

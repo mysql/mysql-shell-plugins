@@ -23,29 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import chatOptionsIcon from "../../assets/images/chatOptions.svg";
-import lakehouseNavigatorIcon from "../../assets/images/lakehouseNavigator.svg";
-import autoCommitActiveIcon from "../../assets/images/toolbar/toolbar-auto_commit-active.svg";
-import autoCommitInactiveIcon from "../../assets/images/toolbar/toolbar-auto_commit-inactive.svg";
-import commitIcon from "../../assets/images/toolbar/toolbar-commit.svg";
-import executeCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret.svg";
-import executePrintTextIcon from "../../assets/images/toolbar/toolbar-execute_print_text.svg";
-
-import executeIcon from "../../assets/images/toolbar/toolbar-execute.svg";
-import executeHeatWaveCaretIcon from "../../assets/images/toolbar/toolbar-execute_caret_heatwave.svg";
-import executeHeatWaveIcon from "../../assets/images/toolbar/toolbar-execute_heatwave.svg";
-import rollbackIcon from "../../assets/images/toolbar/toolbar-rollback.svg";
-import searchIcon from "../../assets/images/toolbar/toolbar-search.svg";
-import showHiddenActiveIcon from "../../assets/images/toolbar/toolbar-show_hidden-active.svg";
-import showHiddenInactiveIcon from "../../assets/images/toolbar/toolbar-show_hidden-inactive.svg";
-import stopExecutionIcon from "../../assets/images/toolbar/toolbar-stop_execution.svg";
-import stopOnErrorActiveIcon from "../../assets/images/toolbar/toolbar-stop_on_error-active.svg";
-import stopOnErrorInactiveIcon from "../../assets/images/toolbar/toolbar-stop_on_error-inactive.svg";
-import wordWrapActiveIcon from "../../assets/images/toolbar/toolbar-word_wrap-active.svg";
-import wordWrapInactiveIcon from "../../assets/images/toolbar/toolbar-word_wrap-inactive.svg";
-
 import { ComponentChild } from "preact";
 
+import { ui } from "../../app-logic/UILayer.js";
 import { Button } from "../../components/ui/Button/Button.js";
 import type { IPosition } from "../../components/ui/CodeEditor/index.js";
 import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase.js";
@@ -54,13 +34,13 @@ import { Icon } from "../../components/ui/Icon/Icon.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
 import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
 import { LoadingState } from "../../script-execution/index.js";
+import { Assets } from "../../supplement/Assets.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { convertErrorToString } from "../../utilities/helpers.js";
 import { IOpenDocumentState } from "./DBConnectionTab.js";
 import { IToolbarItems } from "./index.js";
-import { ui } from "../../app-logic/UILayer.js";
-import { convertErrorToString } from "../../utilities/helpers.js";
 
 interface IDBEditorToolbarProperties extends IComponentProperties {
     /**
@@ -179,15 +159,19 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
         const selectionText = canExecuteSubparts ? "the selection or " : "";
 
         const stopOnErrors = Settings.get("editor.stopOnErrors", true);
-        const stopOnErrorIcon = stopOnErrors ? stopOnErrorActiveIcon : stopOnErrorInactiveIcon;
+        const stopOnErrorIcon = stopOnErrors
+            ? Assets.toolbar.stopOnErrorActiveIcon
+            : Assets.toolbar.stopOnErrorInactiveIcon;
 
-        const autoCommitIcon = autoCommit ? autoCommitActiveIcon : autoCommitInactiveIcon;
+        const autoCommitIcon = autoCommit ? Assets.toolbar.autoCommitActiveIcon : Assets.toolbar.autoCommitInactiveIcon;
 
         const showHidden = Settings.get("editor.showHidden", false);
-        const showHiddenIcon = showHidden ? showHiddenActiveIcon : showHiddenInactiveIcon;
+        const showHiddenIcon = showHidden ? Assets.toolbar.showHiddenActiveIcon : Assets.toolbar.showHiddenInactiveIcon;
 
         const wordWrap = Settings.get("editor.wordWrap", "off");
-        const wordWrapIcon = wordWrap === "on" ? wordWrapActiveIcon : wordWrapInactiveIcon;
+        const wordWrapIcon = wordWrap === "on"
+            ? Assets.toolbar.wordWrapActiveIcon
+            : Assets.toolbar.wordWrapInactiveIcon;
 
         const executionItems = toolbarItems.execution.slice();
         if (language === "msg") {
@@ -204,7 +188,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                         }
                     }
                 >
-                    <Icon src={executeIcon} data-tooltip="inherit" />
+                    <Icon src={Assets.toolbar.executeIcon} data-tooltip="inherit" />
                 </Button>);
         } else {
             executionItems.push(
@@ -220,7 +204,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                         }
                     }
                 >
-                    <Icon src={executeIcon} data-tooltip="inherit" />
+                    <Icon src={Assets.toolbar.executeIcon} data-tooltip="inherit" />
                 </Button>);
         }
 
@@ -238,7 +222,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                         }
                     }
                 >
-                    <Icon src={executeCaretIcon} data-tooltip="inherit" />
+                    <Icon src={Assets.toolbar.executeCaretIcon} data-tooltip="inherit" />
                 </Button>,
             );
 
@@ -255,7 +239,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                         }
                     }
                 >
-                    <Icon src={executePrintTextIcon} data-tooltip="inherit" />
+                    <Icon src={Assets.toolbar.executePrintTextIcon} data-tooltip="inherit" />
                 </Button>,
             );
 
@@ -273,7 +257,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                             }
                         }
                     >
-                        <Icon src={executeHeatWaveIcon} data-tooltip="inherit" />
+                        <Icon src={Assets.toolbar.executeHeatwaveIcon} data-tooltip="inherit" />
                     </Button>,
                     <Button
                         key="executeFromCaretHeatWave"
@@ -287,7 +271,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                             }
                         }
                     >
-                        <Icon src={executeHeatWaveCaretIcon} data-tooltip="inherit" />
+                        <Icon src={Assets.toolbar.executeCaretHeatwaveIcon} data-tooltip="inherit" />
                     </Button>,
                 );
             }
@@ -300,7 +284,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                     imageOnly={true}
                     disabled={!canStop}
                 >
-                    <Icon src={stopExecutionIcon} data-tooltip="inherit" />
+                    <Icon src={Assets.toolbar.stopExecutionIcon} data-tooltip="inherit" />
                 </Button>,
                 <Button
                     key="editorStpExecutionOnErrorButton"
@@ -325,7 +309,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                     imageOnly={true}
                     disabled={autoCommit}
                 >
-                    <Icon src={commitIcon} data-tooltip="inherit" />
+                    <Icon src={Assets.toolbar.commitIcon} data-tooltip="inherit" />
                 </Button>,
                 <Button
                     key="rollbackButton"
@@ -334,7 +318,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                     imageOnly={true}
                     disabled={autoCommit}
                 >
-                    <Icon src={rollbackIcon} data-tooltip="inherit" />
+                    <Icon src={Assets.toolbar.rollbackIcon} data-tooltip="inherit" />
                 </Button>,
                 <Button
                     key="autoCommitButton"
@@ -365,7 +349,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                 requestType="editorFind"
                 imageOnly={true}
             >
-                <Icon src={searchIcon} data-tooltip="inherit" />
+                <Icon src={Assets.toolbar.searchIcon} data-tooltip="inherit" />
             </Button>,
             <Button
                 key="editorShowHiddenButton"
@@ -384,7 +368,8 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                 <Icon src={wordWrapIcon} data-tooltip="inherit" />
             </Button>,
         );
-        if (heatWaveEnabled /*&& contextLanguage === "text"*/) {
+
+        if (heatWaveEnabled) {
             editorItems.push(
                 <Divider key="formatDividerChatOptions" vertical={true} thickness={1} />,
                 <Button
@@ -393,7 +378,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                     imageOnly={true}
                     requestType="showChatOptions"
                 >
-                    <Icon src={chatOptionsIcon} id="ChatOptionsButton" data-tooltip="inherit" />
+                    <Icon src={Assets.lakehouse.chatOptionsIcon} id="ChatOptionsButton" data-tooltip="inherit" />
                 </Button>,
                 <Button
                     key="editorLakehouseNavigatorButton"
@@ -401,7 +386,11 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
                     imageOnly={true}
                     requestType="showLakehouseNavigator"
                 >
-                    <Icon src={lakehouseNavigatorIcon} id="lakehouseNavigatorButton" data-tooltip="inherit" />
+                    <Icon
+                        src={Assets.lakehouse.navigatorIcon}
+                        id="lakehouseNavigatorButton"
+                        data-tooltip="inherit"
+                    />
                 </Button>);
         }
 

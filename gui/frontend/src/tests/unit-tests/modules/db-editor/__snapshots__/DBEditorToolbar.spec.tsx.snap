@@ -71,9 +71,9 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
                     "WebkitMaskImage": "url("toolbar-execute.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("toolbar-execute.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -128,9 +128,9 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
                     "WebkitMaskImage": "url("toolbar-search.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("toolbar-search.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -170,9 +170,9 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
                     "WebkitMaskImage": "url("toolbar-show_hidden-inactive.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("toolbar-show_hidden-inactive.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -212,9 +212,9 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
                     "WebkitMaskImage": "url("toolbar-word_wrap-inactive.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("toolbar-word_wrap-inactive.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -272,9 +272,9 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
                     "WebkitMaskImage": "url("chatOptions.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("chatOptions.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -316,9 +316,9 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
                     "WebkitMaskImage": "url("lakehouseNavigator.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("lakehouseNavigator.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -406,9 +406,9 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
                     "WebkitMaskImage": "url("toolbar-execute.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("toolbar-execute.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -463,9 +463,9 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
                     "WebkitMaskImage": "url("toolbar-search.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("toolbar-search.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -505,9 +505,9 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
                     "WebkitMaskImage": "url("toolbar-show_hidden-inactive.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("toolbar-show_hidden-inactive.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -547,9 +547,9 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
                     "WebkitMaskImage": "url("toolbar-word_wrap-inactive.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("toolbar-word_wrap-inactive.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -637,9 +637,9 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation language=msg 1
                     "WebkitMaskImage": "url("toolbar-execute.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("toolbar-execute.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -694,9 +694,9 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation language=msg 1
                     "WebkitMaskImage": "url("toolbar-search.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("toolbar-search.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -736,9 +736,9 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation language=msg 1
                     "WebkitMaskImage": "url("toolbar-show_hidden-inactive.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("toolbar-show_hidden-inactive.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
@@ -778,9 +778,9 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation language=msg 1
                     "WebkitMaskImage": "url("toolbar-word_wrap-inactive.svg")",
                     "backgroundColor": undefined,
                     "height": undefined,
-                    "maskComposite": "subtract",
+                    "maskComposite": undefined,
                     "maskImage": "url("toolbar-word_wrap-inactive.svg")",
-                    "maskSize": "100% 100%",
+                    "maskSize": undefined,
                     "width": undefined,
                   }
                 }
