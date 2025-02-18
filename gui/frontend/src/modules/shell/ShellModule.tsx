@@ -23,15 +23,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import closeButton from "../../assets/images/close2.svg";
-import shellIcon from "../../assets/images/modules/module-shell.svg";
-import sessionIcon from "../../assets/images/terminal.svg";
-
 import { ComponentChild, RefObject } from "preact";
 
 import { IModuleInfo, IModuleProperties, IModuleState, ModuleBase } from "../ModuleBase.js";
 
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
+import { ui } from "../../app-logic/UILayer.js";
 import type { ISqlUpdateResult } from "../../app-logic/general-types.js";
 import { Button } from "../../components/ui/Button/Button.js";
 import { CodeEditorMode, Monaco } from "../../components/ui/CodeEditor/index.js";
@@ -45,9 +42,11 @@ import { ProgressIndicator } from "../../components/ui/ProgressIndicator/Progres
 import { ITabviewPage, TabPosition, Tabview } from "../../components/ui/Tabview/Tabview.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
 import { defaultEditorOptions } from "../../components/ui/index.js";
+import type { IOdmShellSessionEntry } from "../../data-models/OpenDocumentDataModel.js";
 import { parseVersion } from "../../parsing/mysql/mysql-helpers.js";
 import { DynamicSymbolTable } from "../../script-execution/DynamicSymbolTable.js";
 import { ExecutionContexts } from "../../script-execution/ExecutionContexts.js";
+import { Assets } from "../../supplement/Assets.js";
 import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
@@ -57,8 +56,6 @@ import { ShellModuleId } from "../ModuleInfo.js";
 import { ShellPromptHandler } from "../common/ShellPromptHandler.js";
 import { IShellTabPersistentState, ShellTab } from "./ShellTab.js";
 import { IShellEditorModel } from "./index.js";
-import type { IOdmShellSessionEntry } from "../../data-models/OpenDocumentDataModel.js";
-import { ui } from "../../app-logic/UILayer.js";
 
 interface IShellTabInfo {
     details: IShellSessionDetails;
@@ -86,7 +83,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
         return {
             id: ShellModuleId,
             caption: "Shell",
-            icon: shellIcon,
+            icon: Assets.modules.moduleShellIcon,
         };
     }
 
@@ -183,7 +180,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
             });
         } else {
             pages.push({
-                icon: shellIcon,
+                icon: Assets.modules.moduleShellIcon,
                 caption: "GUI Console",
                 id: "sessions",
                 content: <div />,
@@ -193,7 +190,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                 const state = this.sessionState.get(info.id)!;
 
                 pages.push({
-                    icon: sessionIcon,
+                    icon: Assets.modules.moduleShellIcon,
                     caption: info.caption,
                     id: info.id,
                     content: <ShellTab
@@ -213,7 +210,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                             className="closeButton"
                             round={true}
                             onClick={this.closeTab}>
-                            <Icon src={closeButton} />
+                            <Icon src={Assets.misc.close2Icon} />
                         </Button>
                     ),
                 });
@@ -228,7 +225,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                     id="sessions"
                     key="sessions"
                     caption="MySQL Shell Consoles"
-                    picture={<Icon src={sessionIcon} />}
+                    picture={<Icon src={Assets.documents.sessionIcon} />}
                 />,
             ];
 
@@ -237,7 +234,7 @@ export class ShellModule extends ModuleBase<IShellModuleProperties, IShellModule
                     id={info.id}
                     key={info.id}
                     caption={info.caption}
-                    picture={<Icon src={sessionIcon} />}
+                    picture={<Icon src={Assets.documents.sessionIcon} />}
                 />);
             });
 

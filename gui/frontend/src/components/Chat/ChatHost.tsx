@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,14 +24,15 @@
 import "./ChatHost.css";
 
 import { ComponentChild } from "preact";
+
+import { IMdsChatData } from "../../communication/ProtocolMds.js";
+import { Assets } from "../../supplement/Assets.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { Button } from "../ui/Button/Button.js";
 import { ComponentBase, IComponentProperties, IComponentState } from "../ui/Component/ComponentBase.js";
 import { Container, Orientation } from "../ui/Container/Container.js";
-import { Label } from "../ui/Label/Label.js";
-import { Button } from "../ui/Button/Button.js";
-import { IMdsChatData } from "../../communication/ProtocolMds.js";
-import { requisitions } from "../../supplement/Requisitions.js";
-import chatOptionsIcon from "../../assets/images/chatOptions.svg";
 import { Icon } from "../ui/Icon/Icon.js";
+import { Label } from "../ui/Label/Label.js";
 
 export enum ChatAction {
     Execute,
@@ -68,7 +69,11 @@ export class ChatHost extends ComponentBase<IChatHostProperties, IChatHostState>
                         <Container className="scopeToolbar" orientation={Orientation.RightToLeft}>
                             <Button className="chatScopeBtn" onClick={this.handleRefineChatScopeClick} imageOnly={true}
                             >
-                                <Icon src={chatOptionsIcon} id="ChatOptionsIcon" data-tooltip="inherit" />
+                                <Icon
+                                    src={Assets.lakehouse.chatOptionsIcon}
+                                    id="ChatOptionsIcon"
+                                    data-tooltip="inherit"
+                                />
                             </Button>
                         </Container>
                         {(answer !== undefined) &&

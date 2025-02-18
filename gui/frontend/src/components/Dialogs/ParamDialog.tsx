@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,20 +23,20 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import paramIcon from "../../assets/images/parameters.svg";
 import "./ParamDialog.css";
 
 import { ComponentChild, createRef } from "preact";
 
+import { Assets } from "../../supplement/Assets.js";
 import { Button, IButtonProperties } from "../ui/Button/Button.js";
 import { Codicon } from "../ui/Codicon.js";
-import { IComponentProperties, IComponentState, ComponentBase } from "../ui/Component/ComponentBase.js";
+import { ComponentBase, IComponentProperties, IComponentState } from "../ui/Component/ComponentBase.js";
 import { ContentAlignment } from "../ui/Container/Container.js";
 import { Dialog } from "../ui/Dialog/Dialog.js";
 import { Grid } from "../ui/Grid/Grid.js";
 import { GridCell } from "../ui/Grid/GridCell.js";
 import { Icon } from "../ui/Icon/Icon.js";
-import { Input, IInputChangeProperties } from "../ui/Input/Input.js";
+import { IInputChangeProperties, Input } from "../ui/Input/Input.js";
 import { Label } from "../ui/Label/Label.js";
 
 interface IParamDialogProperties extends IComponentProperties {
@@ -87,7 +87,7 @@ export class ParamDialog extends ComponentBase<IParamDialogProperties, IParamDia
             }
             content={
                 <Grid columns={["128px", "auto", "auto"]} columnGap={8}>
-                    <GridCell rowSpan={4}><Icon src={paramIcon} width={128} height={128} /></GridCell>
+                    <GridCell rowSpan={4}><Icon src={Assets.misc.parametersIcon} width={128} height={128} /></GridCell>
                     <GridCell columnSpan={2} crossAlignment={ContentAlignment.Center}>
                         <Label id="caption" caption={dlgCaption} />
                     </GridCell>

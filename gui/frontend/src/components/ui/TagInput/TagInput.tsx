@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,16 +24,16 @@
  */
 
 import "./TagInput.css";
-import closeButton from "../../../assets/images/close.svg";
 
 import { ComponentChild, VNode } from "preact";
 
-import { IComponentProperties, ComponentBase, DragEventType } from "../Component/ComponentBase.js";
-import { Orientation, Container, ContentWrap } from "../Container/Container.js";
+import { Assets } from "../../../supplement/Assets.js";
+import { Button } from "../Button/Button.js";
+import { ComponentBase, DragEventType, IComponentProperties } from "../Component/ComponentBase.js";
+import { Container, ContentWrap, Orientation } from "../Container/Container.js";
 import { IIconProperties, Icon } from "../Icon/Icon.js";
 import { IImageProperties } from "../Image/Image.js";
 import { Label } from "../Label/Label.js";
-import { Button } from "../Button/Button.js";
 
 export interface ITag {
     id: string;
@@ -79,7 +79,7 @@ export class TagInput extends ComponentBase<ITagInputProperties> {
                         id={tag.id}
                         onClick={this.handleCloseButtonClick}
                     >
-                        <Icon src={closeButton} />
+                        <Icon src={Assets.misc.closeIcon} />
                     </Button>
                 }
             </Label>;

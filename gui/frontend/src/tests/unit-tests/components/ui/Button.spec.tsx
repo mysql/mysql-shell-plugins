@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,18 +23,17 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import image from "../../../../assets/images/close.svg";
-
 import { mount, shallow } from "enzyme";
-import { act } from "preact/test-utils";
 import { createRef } from "preact";
+import { act } from "preact/test-utils";
 
-import { requisitions } from "../../../../supplement/Requisitions.js";
-import { mouseEventMock } from "../../__mocks__/EventMocks.js";
 import { Button, IButtonProperties } from "../../../../components/ui/Button/Button.js";
 import { ComponentSize } from "../../../../components/ui/Component/ComponentBase.js";
-import { Image } from "../../../../components/ui/Image/Image.js";
 import { Container, Orientation } from "../../../../components/ui/Container/Container.js";
+import { Image } from "../../../../components/ui/Image/Image.js";
+import { Assets } from "../../../../supplement/Assets.js";
+import { requisitions } from "../../../../supplement/Requisitions.js";
+import { mouseEventMock } from "../../__mocks__/EventMocks.js";
 
 let clicked = false;
 
@@ -140,7 +139,7 @@ describe("Button component tests", (): void => {
                         Button<h2>with content</h2>
                     </Button>
                     <Button id="button4">
-                        <Image src={image} />
+                        <Image src={Assets.misc.closeIcon} />
                         Image Button
                     </Button>
                 </Container>
@@ -159,7 +158,7 @@ describe("Button component tests", (): void => {
                 <Container>
                     <Button round>M</Button>
                     <Button round>
-                        <Image src={image} />
+                        <Image src={Assets.misc.closeIcon} />
                     </Button>
                 </Container>
             </div>,

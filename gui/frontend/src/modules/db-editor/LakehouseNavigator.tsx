@@ -21,17 +21,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import dataLakeIcon from "../../assets/images/dataLake.svg";
-import ensurePrivilegesIcon from "../../assets/images/ensurePrivileges.svg";
-import onPremiseIcon from "../../assets/images/folder.svg";
-import currentFolderIcon from "../../assets/images/folderCurrent.svg";
-import lakehouseIcon from "../../assets/images/lakehouseHouse.svg";
-import lakehouseNavigatorIcon from "../../assets/images/lakehouseNavigator.svg";
-import lakeHouseDiagram from "../../assets/images/lakehouseNavigatorLakeHouse.svg";
-import objectStorageDiagram from "../../assets/images/lakehouseNavigatorObjectStorage.svg";
-import onPremiseDiagram from "../../assets/images/lakehouseNavigatorOnPremise.svg";
-import schemaTableIcon from "../../assets/images/schemaTable.svg";
-import shellTaskIcon from "../../assets/images/shellTask.svg";
 import "./assets/LakehouseNavigator.css";
 
 import { ComponentChild, createRef, render } from "preact";
@@ -62,6 +51,7 @@ import { Tabview } from "../../components/ui/Tabview/Tabview.js";
 import { Toggle } from "../../components/ui/Toggle/Toggle.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
 import { SetDataAction, TreeGrid } from "../../components/ui/TreeGrid/TreeGrid.js";
+import { Assets } from "../../supplement/Assets.js";
 import { IOpenFileDialogResult } from "../../supplement/RequisitionTypes.js";
 import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
@@ -428,7 +418,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                 imageOnly={true}
                 onClick={() => { void this.handleEnsureUserPrivileges(); }}
             >
-                <Icon src={ensurePrivilegesIcon} data-tooltip="inherit" />
+                <Icon src={Assets.misc.ensurePrivilegesIcon} data-tooltip="inherit" />
             </Button>,
         ];
     };
@@ -453,12 +443,12 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     crossAlignment={ContentAlignment.Center}
                 >
                     <Container className="iconLabel">
-                        <Icon src={onPremiseIcon} color="#ffffff" />
+                        <Icon src={Assets.file.folderIcon} color="#ffffff" />
                         <Label className="title" caption="On-Premise" />
                     </Container>
                     <Label className="subTitle">Data to be analyzed<br />
                         (on your local storage)</Label>
-                    <Image className="diagram onPremiseDiagram" src={onPremiseDiagram} />
+                    <Image className="diagram onPremiseDiagram" src={Assets.lakehouse.navigatorOnPremiseIcon} />
                     <Container
                         className={"actionPanel"}
                         orientation={Orientation.TopDown}
@@ -481,12 +471,12 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     crossAlignment={ContentAlignment.Center}
                 >
                     <Container className="iconLabel">
-                        <Icon src={dataLakeIcon} color="#ffffff" />
+                        <Icon src={Assets.lakehouse.dataLakeIcon} color="#ffffff" />
                         <Label className="title" caption="Object Storage" />
                     </Container>
                     <Label className="subTitle">Data to be analyzed<br />
                         (on OCI Object Storage)</Label>
-                    <Image className="diagram objectStorageDiagram" src={objectStorageDiagram} />
+                    <Image className="diagram objectStorageDiagram" src={Assets.lakehouse.navigatorObjectStorageIcon} />
                     <Container
                         className={"actionPanel"}
                         orientation={Orientation.TopDown}
@@ -509,12 +499,12 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                     crossAlignment={ContentAlignment.Center}
                 >
                     <Container className="iconLabel">
-                        <Icon src={lakehouseIcon} color="#ffffff" />
+                        <Icon src={Assets.lakehouse.houseIcon} color="#ffffff" />
                         <Label className="title" caption="Lakehouse" />
                     </Container>
                     <Label className="subTitle">Data ready for analysis<br />
                         (held in memory)</Label>
-                    <Image className="diagram lakeHouseDiagram" src={lakeHouseDiagram} />
+                    <Image className="diagram lakeHouseDiagram" src={Assets.lakehouse.navigatorLakeHouseIcon} />
                     <Container
                         className={"actionPanel"}
                         orientation={Orientation.TopDown}
@@ -860,7 +850,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                         mainAlignment={ContentAlignment.Stretch}
                         crossAlignment={ContentAlignment.Stretch}
                     >
-                        <Icon src={lakehouseNavigatorIcon} className="loadingTaskPreviewIcon" />
+                        <Icon src={Assets.lakehouse.navigatorIcon} className="loadingTaskPreviewIcon" />
                         <Container className="taskInputLabelContainer" orientation={Orientation.TopDown}>
                             <Label caption="Vector Store Table Name" />
                             <Input id="loadTaskTableName" className="taskTableName" autoFocus={true}
@@ -1703,7 +1693,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
             case ObjectStorageTreeItemType.Compartment: {
                 iconSrc = Codicon.Folder;
                 if (cellData.data.isCurrent) {
-                    iconSrc = currentFolderIcon;
+                    iconSrc = Assets.file.folderCurrentIcon;
                     iconClassName = "current-compartment";
                 }
                 break;
@@ -1874,7 +1864,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         switch (field) {
             case "tableName": {
                 caption = cellData.tableName;
-                iconSrc = schemaTableIcon;
+                iconSrc = Assets.db.tableIcon;
                 if (!cellData.loaded && cellData.progress > 0) {
                     statusIconClassName = "itemLoading";
                 } else if (!cellData.loaded) {
@@ -1982,7 +1972,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
         if (isTask(cellData)) {
             switch (field) {
                 case "title": {
-                    iconSrc = shellTaskIcon;
+                    iconSrc = Assets.misc.shellTaskIcon;
                     caption = cellData.title ?? "Task";
                     statusIconClassName = cellData.status?.toLowerCase();
                     hint = cellData.description;
@@ -2045,7 +2035,7 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
                         schemaName = (parent.getData as ILakehouseTask).schemaName + ".";
                     }
                     caption = `${schemaName}${cellData.tableName ?? "table"}`;
-                    iconSrc = schemaTableIcon;
+                    iconSrc = Assets.db.tableIcon;
                     break;
                 }
 

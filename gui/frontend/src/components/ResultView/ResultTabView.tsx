@@ -23,19 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import commitIcon from "../../assets/images/toolbar/toolbar-commit.svg";
-import gridIcon from "../../assets/images/toolbar/toolbar-grid.svg";
-import maximizeIcon from "../../assets/images/toolbar/toolbar-maximize.svg";
-import menuIcon from "../../assets/images/toolbar/toolbar-menu.svg";
-import normalizeIcon from "../../assets/images/toolbar/toolbar-normalize.svg";
-import nextPageIcon from "../../assets/images/toolbar/toolbar-page_next.svg";
-import previousPageIcon from "../../assets/images/toolbar/toolbar-page_previous.svg";
-import refreshIcon from "../../assets/images/toolbar/toolbar-refresh.svg";
-import rollbackIcon from "../../assets/images/toolbar/toolbar-rollback.svg";
-
-import editIcon from "../../assets/images/toolbar/toolbar-edit.svg";
-import previewIcon from "../../assets/images/toolbar/toolbar-preview.svg";
-
 import { ComponentChild, createRef } from "preact";
 
 import { DialogHost } from "../../app-logic/DialogHost.js";
@@ -43,6 +30,7 @@ import {
     DialogResponseClosure, DialogType, IColumnInfo, IStatusInfo, MessageType, defaultValues, type ISqlUpdateResult,
 } from "../../app-logic/general-types.js";
 import { IResultSet, IResultSetRows, IResultSets } from "../../script-execution/index.js";
+import { Assets } from "../../supplement/Assets.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { IScriptRequest } from "../../supplement/index.js";
@@ -222,7 +210,10 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             data-tooltip="Maximize Result Tab"
             onClick={this.handleResultToggle}
         >
-            <Icon src={showMaximized ? normalizeIcon : maximizeIcon} data-tooltip="inherit" />
+            <Icon
+                src={showMaximized ? Assets.toolbar.normalizeIcon : Assets.toolbar.maximizeIcon}
+                data-tooltip="inherit"
+            />
         </Button>;
 
         const currentEditingInfo = this.#editingInfo.get(currentResultSet?.resultId ?? "");
@@ -351,12 +342,12 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                                     <DropdownItem
                                         id="grid"
                                         caption="Data Grid"
-                                        picture={<Icon src={gridIcon} data-tooltip="inherit" />}
+                                        picture={<Icon src={Assets.toolbar.gridIcon} data-tooltip="inherit" />}
                                     />
                                     <DropdownItem
                                         id="preview"
                                         caption="Preview Changes"
-                                        picture={<Icon src={previewIcon} data-tooltip="inherit" />}
+                                        picture={<Icon src={Assets.toolbar.previewIcon} data-tooltip="inherit" />}
                                         disabled={!currentEditingInfo}
                                     />
                                 </Dropdown>
@@ -369,7 +360,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                                     data-tooltip="Previous Page"
                                     onClick={this.previousPage}
                                 >
-                                    <Icon src={previousPageIcon} data-tooltip="inherit" />
+                                    <Icon src={Assets.toolbar.pagePreviousIcon} data-tooltip="inherit" />
                                 </Button>
                                 <Button
                                     id="nextPageButton"
@@ -378,7 +369,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                                     data-tooltip="Next Page"
                                     onClick={this.nextPage}
                                 >
-                                    <Icon src={nextPageIcon} data-tooltip="inherit" />
+                                    <Icon src={Assets.toolbar.pageNextIcon} data-tooltip="inherit" />
                                 </Button>
                                 <Divider vertical={true} />
                                 <Label className="autoHide">Edit:</Label>
@@ -389,7 +380,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                                     data-tooltip={editButtonTooltip}
                                     onClick={this.startEditingFirstField}
                                 >
-                                    <Icon src={editIcon} data-tooltip="inherit" />
+                                    <Icon src={Assets.toolbar.editIcon2} data-tooltip="inherit" />
                                 </Button>
                                 <Button
                                     id="previewButton"
@@ -398,7 +389,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                                     data-tooltip="Preview Changes"
                                     onClick={this.previewChanges}
                                 >
-                                    <Icon src={previewIcon} data-tooltip="inherit" />
+                                    <Icon src={Assets.toolbar.previewIcon} data-tooltip="inherit" />
                                 </Button>
                                 <Button
                                     id="applyButton"
@@ -407,7 +398,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                                     data-tooltip="Apply Changes"
                                     onClick={() => { return this.commitChanges(); }}
                                 >
-                                    <Icon src={commitIcon} data-tooltip="inherit" />
+                                    <Icon src={Assets.toolbar.commitIcon} data-tooltip="inherit" />
                                 </Button>
                                 <Button
                                     id="rollbackButton"
@@ -416,7 +407,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                                     data-tooltip="Rollback Changes"
                                     onClick={this.cancelEditingAndRollbackChanges}
                                 >
-                                    <Icon src={rollbackIcon} data-tooltip="inherit" />
+                                    <Icon src={Assets.toolbar.rollbackIcon} data-tooltip="inherit" />
                                 </Button>
                                 <Button
                                     id="refreshButton"
@@ -425,7 +416,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                                     data-tooltip="Refresh"
                                     onClick={this.refresh}
                                 >
-                                    <Icon src={refreshIcon} data-tooltip="inherit" />
+                                    <Icon src={Assets.toolbar.refreshIcon2} data-tooltip="inherit" />
                                 </Button>
                                 <Divider id="editSeparator" vertical={true} />
                                 {showMaximizeButton === "statusBar" && toggleStateButton}
@@ -436,7 +427,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                                     data-tooltip="Show Action Menu"
                                     onClick={this.showActionMenu}
                                 >
-                                    <Icon src={menuIcon} data-tooltip="inherit" />
+                                    <Icon src={Assets.toolbar.menuIcon} data-tooltip="inherit" />
                                 </Button>
                             </Toolbar>
                         }

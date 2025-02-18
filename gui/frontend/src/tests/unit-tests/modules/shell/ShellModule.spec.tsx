@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,8 +25,6 @@
 
 /* eslint-disable dot-notation */
 
-import icon from "../../../../assets/images/modules/module-shell.svg";
-
 import { mount } from "enzyme";
 import { createRef } from "preact";
 
@@ -35,13 +33,14 @@ import { MySQLConnectionScheme } from "../../../../communication/MySQL.js";
 import { IModuleProperties } from "../../../../modules/ModuleBase.js";
 import { ShellModuleId } from "../../../../modules/ModuleInfo.js";
 import { ShellModule } from "../../../../modules/shell/ShellModule.js";
-import { DBType, IConnectionDetails, IShellSessionDetails } from "../../../../supplement/ShellInterface/index.js";
+import { Assets } from "../../../../supplement/Assets.js";
+import { appParameters } from "../../../../supplement/Requisitions.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
+import { DBType, IConnectionDetails, IShellSessionDetails } from "../../../../supplement/ShellInterface/index.js";
 import { webSession } from "../../../../supplement/WebSession.js";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
-import { getDbCredentials, ITestDbCredentials, setupShellForTests } from "../../test-helpers.js";
-import { appParameters } from "../../../../supplement/Requisitions.js";
 import { uuid } from "../../../../utilities/helpers.js";
+import { ITestDbCredentials, getDbCredentials, setupShellForTests } from "../../test-helpers.js";
 
 describe("Shell module tests", (): void => {
     let launcher: MySQLShellLauncher;
@@ -92,7 +91,7 @@ describe("Shell module tests", (): void => {
         expect(ShellModule.info).toStrictEqual({
             id: ShellModuleId,
             caption: "Shell",
-            icon,
+            icon: Assets.modules.moduleShellIcon,
         });
         expect(component).toMatchSnapshot();
         component.unmount();

@@ -25,8 +25,6 @@
 
 /* eslint-disable dot-notation */
 
-import icon from "../../../../assets/images/modules/module-sql.svg";
-
 import { mount, shallow } from "enzyme";
 import { createRef, type ComponentChild } from "preact";
 
@@ -44,6 +42,7 @@ import { DBEditorModuleId } from "../../../../modules/ModuleInfo.js";
 import { DBEditorModule, type IDBEditorModuleState } from "../../../../modules/db-editor/DBEditorModule.js";
 import type { IDBEditorSideBarSectionState } from "../../../../modules/db-editor/DBEditorSideBar/DBEditorSideBar.js";
 import type { DBEditorContextType } from "../../../../modules/db-editor/index.js";
+import { Assets } from "../../../../supplement/Assets.js";
 import { appParameters, requisitions } from "../../../../supplement/Requisitions.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
@@ -148,7 +147,7 @@ describe("DBEditor module tests", (): void => {
         expect(DBEditorModule.info).toStrictEqual({
             id: DBEditorModuleId,
             caption: "DB Editor",
-            icon,
+            icon: Assets.modules.moduleSqlIcon,
         });
         expect(component).toMatchSnapshot();
         component.unmount();
@@ -170,7 +169,7 @@ describe("DBEditor module tests", (): void => {
         expect(DBEditorModule.info).toStrictEqual({
             id: DBEditorModuleId,
             caption: "DB Editor",
-            icon,
+            icon: Assets.modules.moduleSqlIcon,
         });
 
         await requisitions.execute("refreshConnection", undefined);

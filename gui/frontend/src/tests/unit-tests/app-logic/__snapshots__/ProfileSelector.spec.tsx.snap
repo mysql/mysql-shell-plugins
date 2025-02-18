@@ -79,7 +79,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                 >
                   <div
                     class="msg icon"
-                    style="mask-image: url("add.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                    style="mask-image: url("add.svg");"
                   />
                   <label
                     class="msg label"
@@ -94,7 +94,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                 >
                   <div
                     class="msg icon"
-                    style="mask-image: url("edit.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                    style="mask-image: url("edit.svg");"
                   />
                   <label
                     class="msg label"
@@ -109,7 +109,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                 >
                   <div
                     class="msg icon"
-                    style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                    style="mask-image: url("close2.svg");"
                   />
                   <label
                     class="msg label"
@@ -158,7 +158,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   >
                     <div
                       class="msg icon"
-                      style="mask-image: url("add.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                      style="mask-image: url("add.svg");"
                     />
                     <label
                       class="msg label"
@@ -173,7 +173,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   >
                     <div
                       class="msg icon"
-                      style="mask-image: url("edit.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                      style="mask-image: url("edit.svg");"
                     />
                     <label
                       class="msg label"
@@ -188,7 +188,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   >
                     <div
                       class="msg icon"
-                      style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                      style="mask-image: url("close2.svg");"
                     />
                     <label
                       class="msg label"
@@ -258,7 +258,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                 >
                   <div
                     class="msg icon"
-                    style="mask-image: url("add.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                    style="mask-image: url("add.svg");"
                   />
                   <label
                     class="msg label"
@@ -273,7 +273,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                 >
                   <div
                     class="msg icon"
-                    style="mask-image: url("edit.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                    style="mask-image: url("edit.svg");"
                   />
                   <label
                     class="msg label"
@@ -288,7 +288,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                 >
                   <div
                     class="msg icon"
-                    style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                    style="mask-image: url("close2.svg");"
                   />
                   <label
                     class="msg label"
@@ -339,7 +339,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   >
                     <div
                       class="msg icon"
-                      style="mask-image: url("add.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                      style="mask-image: url("add.svg");"
                     />
                     <label
                       class="msg label"
@@ -354,7 +354,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   >
                     <div
                       class="msg icon"
-                      style="mask-image: url("edit.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                      style="mask-image: url("edit.svg");"
                     />
                     <label
                       class="msg label"
@@ -369,7 +369,7 @@ exports[`ProfileSelector test Standard Rendering (snapshot) 1`] = `
                   >
                     <div
                       class="msg icon"
-                      style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                      style="mask-image: url("close2.svg");"
                     />
                     <label
                       class="msg label"

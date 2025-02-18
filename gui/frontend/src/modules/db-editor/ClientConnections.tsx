@@ -23,20 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import mysqlIcon from "../../assets/images/admin/mysql-logo.svg";
-import nullIcon from "../../assets/images/data-icons/data-null.svg";
-
-import hideBackgroundThreadsActiveIcon from "../../assets/images/toolbar/toolbar-background-threads-active.svg";
-import hideBackgroundThreadsInactiveIcon from "../../assets/images/toolbar/toolbar-background-threads-inactive.svg";
-import noFullInfoActiveIcon from "../../assets/images/toolbar/toolbar-info-active.svg";
-import noFullInfoInactiveIcon from "../../assets/images/toolbar/toolbar-info-inactive.svg";
-import killConnectionIcon from "../../assets/images/toolbar/toolbar-kill_connection.svg";
-import killQueryIcon from "../../assets/images/toolbar/toolbar-kill_query.svg";
-import showDetailsActiveIcon from "../../assets/images/toolbar/toolbar-show-details-active.svg";
-import showDetailsInactiveIcon from "../../assets/images/toolbar/toolbar-show-details-inactive.svg";
-import hideSleepConnectionsActiveIcon from "../../assets/images/toolbar/toolbar-sleeping_conns-active.svg";
-import hideSleepConnectionsInactiveIcon from "../../assets/images/toolbar/toolbar-sleeping_conns-inactive.svg";
-
 import { ComponentChild, createRef, render } from "preact";
 
 import { CellComponent, ColumnDefinition, Formatter, RowComponent } from "tabulator-tables";
@@ -46,6 +32,7 @@ import {
 } from "../../app-logic/general-types.js";
 import { IToolbarItems } from "./index.js";
 
+import { ui } from "../../app-logic/UILayer.js";
 import { IPromptReplyBackend } from "../../communication/Protocol.js";
 import { Button } from "../../components/ui/Button/Button.js";
 import {
@@ -63,12 +50,12 @@ import { TabPosition, Tabview } from "../../components/ui/Tabview/Tabview.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
 import { ITreeGridOptions, TreeGrid } from "../../components/ui/TreeGrid/TreeGrid.js";
 import { IResultSet } from "../../script-execution/index.js";
+import { Assets } from "../../supplement/Assets.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType } from "../../supplement/ShellInterface/index.js";
 import { convertRows, generateColumnInfo } from "../../supplement/index.js";
 import { convertErrorToString, uuid } from "../../utilities/helpers.js";
-import { ui } from "../../app-logic/UILayer.js";
 
 interface IGlobalStatus {
     threadConnected?: number;
@@ -269,19 +256,19 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                                             caption: "Details",
                                             id: "propsTab",
                                             content: this.getClientConnectionDetails(),
-                                            icon: mysqlIcon,
+                                            icon: Assets.file.mysqlIcon,
                                         },
                                         {
                                             caption: "Locks",
                                             id: "locksTab",
                                             content: this.getClientConnectionLocks(),
-                                            icon: mysqlIcon,
+                                            icon: Assets.file.mysqlIcon,
                                         },
                                         {
                                             caption: "Attributes",
                                             id: "attrTab",
                                             content: this.getClientConnectionAttributes(),
-                                            icon: mysqlIcon,
+                                            icon: Assets.file.mysqlIcon,
                                         },
 
                                     ]}
@@ -429,12 +416,18 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
     private toolbarContent = (): ComponentChild[] => {
         const { showDetails } = this.state;
 
-        const showDetailsIcon = showDetails ? showDetailsActiveIcon : showDetailsInactiveIcon;
-        const hideSleepConnectionsIcon = this.hideSleepingConnections ?
-            hideSleepConnectionsActiveIcon : hideSleepConnectionsInactiveIcon;
-        const noFullInfoIcon = this.noFullInfo ? noFullInfoActiveIcon : noFullInfoInactiveIcon;
-        const hideBackgroundThreadsIcon = this.hideBackgroundThreads ?
-            hideBackgroundThreadsActiveIcon : hideBackgroundThreadsInactiveIcon;
+        const showDetailsIcon = showDetails
+            ? Assets.toolbar.showDetailsActiveIcon
+            : Assets.toolbar.showDetailsInactiveIcon;
+        const hideSleepConnectionsIcon = this.hideSleepingConnections
+            ? Assets.toolbar.sleepingConnsActiveIcon
+            : Assets.toolbar.sleepingConnsInactiveIcon;
+        const noFullInfoIcon = this.noFullInfo
+            ? Assets.toolbar.infoActiveIcon
+            : Assets.toolbar.infoInactiveIcon;
+        const hideBackgroundThreadsIcon = this.hideBackgroundThreads
+            ? Assets.toolbar.backgroundThreadsActiveIcon
+            : Assets.toolbar.backgroundThreadsInactiveIcon;
 
         const intervals: number[] = [0.5, 1, 2, 3, 4, 5, 10, 15, 30, 0];
         const items: ComponentChild[] = [];
@@ -500,7 +493,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 imageOnly={true}
                 onClick={this.handleKillQuery}
             >
-                <Icon src={killQueryIcon} data-tooltip="inherit" />
+                <Icon src={Assets.toolbar.killQueryIcon} data-tooltip="inherit" />
             </Button>,
             <Button
                 disabled={this.selectedRow ? false : true}
@@ -509,7 +502,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                 imageOnly={true}
                 onClick={this.handleKillConnection}
             >
-                <Icon src={killConnectionIcon} data-tooltip="inherit" />
+                <Icon src={Assets.toolbar.killConnectionIcon} data-tooltip="inherit" />
             </Button>,
         ];
 
@@ -587,7 +580,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
             const host = document.createElement("div");
             host.className = "iconHost";
 
-            element = <Icon src={nullIcon} width={30} height={11} />;
+            element = <Icon src={Assets.data.nullIcon} width={30} height={11} />;
             render(element, host);
 
             return host;

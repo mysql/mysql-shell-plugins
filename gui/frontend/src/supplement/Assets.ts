@@ -36,9 +36,9 @@ import sqliteSchemaCurrentIcon from "../assets/images/schemaSqliteCurrent.svg";
 import tableIcon from "../assets/images/schemaTable.svg";
 import tablesIcon from "../assets/images/schemaTables.svg";
 
-import columnIconNullable from "../assets/images/schemaTableColumn.svg";
-import columnIconNotNull from "../assets/images/schemaTableColumnNN.svg";
-import columnIconPK from "../assets/images/schemaTableColumnPK.svg";
+import columnNullableIcon from "../assets/images/schemaTableColumn.svg";
+import columnNotNullIcon from "../assets/images/schemaTableColumnNN.svg";
+import columnPkIcon from "../assets/images/schemaTableColumnPK.svg";
 import columnsIcon from "../assets/images/schemaTableColumns.svg";
 
 import procedureIcon from "../assets/images/schemaProcedure.svg";
@@ -82,8 +82,8 @@ import sessionIcon from "../assets/images/terminal.svg";
 import adminDashboardIcon from "../assets/images/admin/adminDashboard.svg";
 import adminPerformanceDashboardIcon from "../assets/images/admin/adminPerformanceDashboard.svg";
 import adminServerStatusIcon from "../assets/images/admin/adminServerStatus.svg";
+import mysqlLogoIcon from "../assets/images/admin/mysql-logo.svg";
 import clientConnectionsIcon from "../assets/images/admin/clientConnections.svg";
-import lakehouseNavigatorIcon from "../assets/images/lakehouseNavigator.svg";
 import notebookIcon from "../assets/images/notebook.svg";
 
 import docsIcon from "../assets/images/docs.svg";
@@ -126,7 +126,7 @@ import folderIcon from "../assets/images/folder.svg";
 import folderCurrentIcon from "../assets/images/folderCurrent.svg";
 
 import closeIcon from "../assets/images/close.svg";
-import closeIcon2 from "../assets/images/close2.svg";
+import close2Icon from "../assets/images/close2.svg";
 
 import newNotebookIcon from "../assets/images/newNotebook.svg";
 import newScriptIcon from "../assets/images/newScript.svg";
@@ -192,6 +192,8 @@ import stopOnErrorActiveIcon from "../assets/images/toolbar/toolbar-stop_on_erro
 import stopOnErrorInactiveIcon from "../assets/images/toolbar/toolbar-stop_on_error-inactive.svg";
 import wordWrapActiveIcon from "../assets/images/toolbar/toolbar-word_wrap-active.svg";
 import wordWrapInactiveIcon from "../assets/images/toolbar/toolbar-word_wrap-inactive.svg";
+import historyBackIcon from "../assets/images/toolbar/toolbar-history-back.svg";
+import historyForwardIcon from "../assets/images/toolbar/toolbar-history-forward.svg";
 
 // Overlays.
 import overlayDisabled from "../assets/images/overlays/disabled.svg";
@@ -218,6 +220,7 @@ import overlayStatusDotMask from "../assets/images/overlays/statusDotMask.svg";
 import chatOptionsIcon from "../assets/images/chatOptions.svg";
 import dataLakeIcon from "../assets/images/dataLake.svg";
 import lakehouseHouseIcon from "../assets/images/lakehouseHouse.svg";
+import lakehouseNavigatorIcon from "../assets/images/lakehouseNavigator.svg";
 import lakehouseNavigatorLakeHouseIcon from "../assets/images/lakehouseNavigatorLakeHouse.svg";
 import lakehouseNavigatorObjectStorageIcon from "../assets/images/lakehouseNavigatorObjectStorage.svg";
 import lakehouseNavigatorOnPremiseIcon from "../assets/images/lakehouseNavigatorOnPremise.svg";
@@ -240,6 +243,7 @@ import editorSideLineIcon from "../assets/images/editor-side-line.svg";
 import ensurePrivilegesIcon from "../assets/images/ensurePrivileges.svg";
 import inIcon from "../assets/images/in.svg";
 import inOutIcon from "../assets/images/inOut.svg";
+import isKeyIcon from "../assets/images/isKey.svg";
 import noIcon from "../assets/images/no-preview.svg";
 import noCheckIcon from "../assets/images/noCheck.svg";
 import noFilterIcon from "../assets/images/noFilter.svg";
@@ -256,6 +260,16 @@ import shellTaskIcon from "../assets/images/shellTask.svg";
 import squiggleIcon from "../assets/images/squiggle.svg";
 import unnestIcon from "../assets/images/unnest.svg";
 
+import blobIcon from "../assets/images/data-icons/data-blob.svg";
+import geometryIcon from "../assets/images/data-icons/data-geometry.svg";
+import nullIcon from "../assets/images/data-icons/data-null.svg";
+import vectorIcon from "../assets/images/data-icons/data-vector.svg";
+import jsonIcon from "../assets/images/data-icons/data-json.svg";
+
+import moduleShellIcon from "../assets/images/modules/module-shell.svg";
+import moduleSqlIcon from "../assets/images/modules/module-sql.svg";
+import moduleClusterIcon from "../assets/images/modules/module-cluster.svg";
+
 /** A module which imports application assets and provides access to them application-wide. */
 export class Assets {
     public static db = {
@@ -269,9 +283,9 @@ export class Assets {
         sqliteSchemaCurrentIcon,
         tableIcon,
         tablesIcon,
-        columnIconNullable,
-        columnIconNotNull,
-        columnIconPK,
+        columnNullableIcon,
+        columnNotNullIcon,
+        columnPkIcon,
         columnsIcon,
         procedureIcon,
         proceduresIcon,
@@ -311,7 +325,6 @@ export class Assets {
         adminServerStatusIcon,
         clientConnectionsIcon,
         notebookIcon,
-        lakehouseNavigatorIcon,
     };
 
     public static mrs = {
@@ -359,9 +372,10 @@ export class Assets {
     };
 
     public static misc = {
+        mysqlLogoIcon,
         docsIcon,
         closeIcon,
-        closeIcon2,
+        close2Icon,
         newNotebookIcon,
         newScriptIcon,
         scriptIcon,
@@ -383,6 +397,7 @@ export class Assets {
         ensurePrivilegesIcon,
         inIcon,
         inOutIcon,
+        isKeyIcon,
         noIcon,
         noCheckIcon,
         noFilterIcon,
@@ -480,16 +495,33 @@ export class Assets {
         stopOnErrorInactiveIcon,
         wordWrapActiveIcon,
         wordWrapInactiveIcon,
+        historyBackIcon,
+        historyForwardIcon,
     };
 
     public static lakehouse = {
         chatOptionsIcon,
         dataLakeIcon,
-        lakehouseHouseIcon,
-        lakehouseNavigatorLakeHouseIcon,
-        lakehouseNavigatorObjectStorageIcon,
-        lakehouseNavigatorOnPremiseIcon,
+        navigatorIcon: lakehouseNavigatorIcon,
+        houseIcon: lakehouseHouseIcon,
+        navigatorLakeHouseIcon: lakehouseNavigatorLakeHouseIcon,
+        navigatorObjectStorageIcon: lakehouseNavigatorObjectStorageIcon,
+        navigatorOnPremiseIcon: lakehouseNavigatorOnPremiseIcon,
         workflowSeparatorIcon,
         workflowTopLineIcon,
+    };
+
+    public static modules = {
+        moduleShellIcon,
+        moduleSqlIcon,
+        moduleClusterIcon,
+    };
+
+    public static data = {
+        blobIcon,
+        geometryIcon,
+        nullIcon,
+        vectorIcon,
+        jsonIcon,
     };
 }

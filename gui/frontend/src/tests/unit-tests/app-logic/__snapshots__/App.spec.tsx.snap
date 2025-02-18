@@ -33,9 +33,9 @@ exports[`Application tests Application readiness 1`] = `
                   "WebkitMaskImage": "url("module-shell.svg")",
                   "backgroundColor": undefined,
                   "height": undefined,
-                  "maskComposite": "subtract",
+                  "maskComposite": undefined,
                   "maskImage": "url("module-shell.svg")",
-                  "maskSize": "100% 100%",
+                  "maskSize": undefined,
                   "width": undefined,
                 }
               }
@@ -319,9 +319,9 @@ exports[`Application tests Application readiness 1`] = `
                                 "WebkitMaskImage": "url("chevron-right.svg")",
                                 "backgroundColor": undefined,
                                 "height": undefined,
-                                "maskComposite": "subtract",
+                                "maskComposite": undefined,
                                 "maskImage": "url("chevron-right.svg")",
-                                "maskSize": "100% 100%",
+                                "maskSize": undefined,
                                 "width": undefined,
                               }
                             }
@@ -606,22 +606,6 @@ exports[`Application tests Application readiness 1`] = `
         placement="top-start"
       />
     </ProfileSelector>
-    <ColorPopup>
-      <Popup
-        className="msg colorPopup"
-        onOpen={[Function]}
-        orientation="column"
-        pinned={false}
-        placement="bottom"
-        showArrow={true}
-      >
-        <Portal
-          className="popupPortal"
-          onClose={[Function]}
-          onOpen={[Function]}
-        />
-      </Popup>
-    </ColorPopup>
   </ErrorBoundary>
 </App>
 `;

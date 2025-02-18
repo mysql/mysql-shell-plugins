@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,10 +25,10 @@
 
 import { type IPosition, languages } from "monaco-editor";
 
-import { IDbModuleResultData } from "../app-logic/ApplicationDB.js";
+import type { IDbModuleResultData } from "../app-logic/ApplicationDB.js";
 
 import { IColumnInfo, IDictionary, IStatusInfo, MessageType } from "../app-logic/general-types.js";
-import { ICodeEditorViewState, IExecutionContextState } from "../components/ui/CodeEditor/index.js";
+import type { ICodeEditorViewState, IExecutionContextState } from "../components/ui/CodeEditor/index.js";
 
 import { LanguageCompletionKind } from "../parsing/parser-common.js";
 import type { IExecutionContext } from "../supplement/index.js";

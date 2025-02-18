@@ -89,7 +89,7 @@ const cdmTypeToEntryIcon: Map<CdmEntityType, string> = new Map([
     [CdmEntityType.StoredProcedure, Assets.db.procedureIcon],
     [CdmEntityType.Event, Assets.db.eventIcon],
     [CdmEntityType.Trigger, Assets.db.triggerIcon],
-    [CdmEntityType.Column, Assets.db.columnIconNullable],
+    [CdmEntityType.Column, Assets.db.columnNullableIcon],
     [CdmEntityType.Index, Assets.db.indexIcon],
     [CdmEntityType.ForeignKey, Assets.db.foreignKeyIcon],
     [CdmEntityType.TableGroup, Assets.db.tablesIcon],
@@ -139,7 +139,7 @@ export const pageTypeToDocumentIcon: Map<AdminPageType, string> = new Map([
     ["serverStatus", Assets.documents.adminServerStatusIcon],
     ["clientConnections", Assets.documents.clientConnectionsIcon],
     ["performanceDashboard", Assets.documents.adminPerformanceDashboardIcon],
-    ["lakehouseNavigator", Assets.documents.lakehouseNavigatorIcon],
+    ["lakehouseNavigator", Assets.lakehouse.navigatorIcon],
 ]);
 
 /** Standard mapping from OCI types to their icons. */
@@ -1378,11 +1378,11 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
             case CdmEntityType.Column: {
                 if (data.dataModelEntry.inPK) {
-                    iconName = Assets.db.columnIconPK;
+                    iconName = Assets.db.columnPkIcon;
                 } else if (data.dataModelEntry.nullable) {
-                    iconName = Assets.db.columnIconNullable;
+                    iconName = Assets.db.columnNullableIcon;
                 } else {
-                    iconName = Assets.db.columnIconNotNull;
+                    iconName = Assets.db.columnNotNullIcon;
                 }
                 break;
             }

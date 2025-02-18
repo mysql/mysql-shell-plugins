@@ -29,7 +29,7 @@ exports[`Value Edit Dialog Tests Footer, Heading, Description and Payload 1`] = 
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>
@@ -167,7 +167,7 @@ exports[`Value Edit Dialog Tests Grouped Sections 1`] = `
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>
@@ -376,7 +376,7 @@ exports[`Value Edit Dialog Tests Grouped Sections 2`] = `
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>
@@ -585,7 +585,7 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>
@@ -804,7 +804,7 @@ exports[`Value Edit Dialog Tests Simple Dialog 1`] = `
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>
@@ -904,7 +904,7 @@ exports[`Value Edit Dialog Tests Update Contexts 1`] = `
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>
@@ -1004,7 +1004,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>
@@ -1199,7 +1199,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
                 <div
                   class="msg icon"
                   data-tooltip="inherit"
-                  style="mask-image: url("add.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                  style="mask-image: url("add.svg");"
                 />
               </div>
               <div
@@ -1212,7 +1212,7 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
                 <div
                   class="msg icon"
                   data-tooltip="inherit"
-                  style="mask-image: url("remove.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                  style="mask-image: url("remove.svg");"
                 />
               </div>
             </div>
@@ -1491,7 +1491,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
       >
         <div
           class="msg icon"
-          style="mask-image: url("close2.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+          style="mask-image: url("close2.svg");"
         />
       </div>
     </div>
@@ -1686,7 +1686,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
                 <div
                   class="msg icon"
                   data-tooltip="inherit"
-                  style="mask-image: url("add.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                  style="mask-image: url("add.svg");"
                 />
               </div>
               <div
@@ -1699,7 +1699,7 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
                 <div
                   class="msg icon"
                   data-tooltip="inherit"
-                  style="mask-image: url("remove.svg"); mask-size: 100% 100%; mask-composite: subtract;"
+                  style="mask-image: url("remove.svg");"
                 />
               </div>
             </div>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,11 +25,8 @@
 
 import { ComponentChild } from "preact";
 
-import newNotebookIcon from "../../../assets/images/newNotebook.svg";
-import newScriptIcon from "../../../assets/images/newScript.svg";
-import toolbarMenuIcon from "../../../assets/images/toolbar/toolbar-menu.svg";
-
 import type { ICdmConnectionEntry } from "../../../data-models/ConnectionDataModel.js";
+import { Assets } from "../../../supplement/Assets.js";
 import { BrowserTile, IBrowserTileProperties } from "../BrowserTile/BrowserTile.js";
 import { Button } from "../Button/Button.js";
 import { Icon } from "../Icon/Icon.js";
@@ -63,7 +60,7 @@ export class ConnectionTile extends BrowserTile<IConnectionTileProperties> {
                     imageOnly
                     onClick={this.handleActionClick}
                 >
-                    <Icon src={toolbarMenuIcon} data-tooltip="inherit" />
+                    <Icon src={Assets.toolbar.menuIcon} data-tooltip="inherit" />
                 </Button>
                 <Button
                     id="tileNewNotebookAction"
@@ -71,7 +68,7 @@ export class ConnectionTile extends BrowserTile<IConnectionTileProperties> {
                     imageOnly
                     onClick={this.handleActionClick}
                 >
-                    <Icon src={newNotebookIcon} data-tooltip="inherit" />
+                    <Icon src={Assets.misc.newNotebookIcon} data-tooltip="inherit" />
                 </Button>
                 <Button
                     id="tileNewScriptAction"
@@ -79,7 +76,7 @@ export class ConnectionTile extends BrowserTile<IConnectionTileProperties> {
                     imageOnly
                     onClick={this.handleActionClick}
                 >
-                    <Icon src={newScriptIcon} data-tooltip="inherit" />
+                    <Icon src={Assets.misc.newScriptIcon} data-tooltip="inherit" />
                 </Button>
             </>
         );

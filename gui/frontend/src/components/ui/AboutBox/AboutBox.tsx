@@ -23,12 +23,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import logo from "../../../assets/images/modules/module-shell.svg";
 import "./AboutBox.css";
 
 import { ComponentChild } from "preact";
 
 import { ui } from "../../../app-logic/UILayer.js";
+import { Assets } from "../../../supplement/Assets.js";
 import { ShellInterface } from "../../../supplement/ShellInterface/ShellInterface.js";
 import { IBackendInformation } from "../../../supplement/ShellInterface/index.js";
 import { helpUrlMap } from "../../../supplement/index.js";
@@ -133,7 +133,7 @@ export class AboutBox extends ComponentBase<{}, IAboutBoxState> {
                 mainAlignment={ContentAlignment.Center}
                 crossAlignment={ContentAlignment.Center}
             >
-                <Icon src={logo} id="sakilaLogo" />
+                <Icon src={Assets.modules.moduleShellIcon} id="sakilaLogo" />
                 <Container id="heading" orientation={Orientation.TopDown}>
                     <Label id="headingLabel">
                         About MySQL Shell

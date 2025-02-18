@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,13 +23,13 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import settingsIcon from "../../assets/images/settings.svg";
 import "./SettingsEditor.css";
 
 import { ComponentChild, createRef, render } from "preact";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
 import type { IDictionary } from "../../app-logic/general-types.js";
+import { Assets } from "../../supplement/Assets.js";
 import { settingCategories, type ISettingCategory } from "../../supplement/Settings/SettingsRegistry.js";
 import { AboutBox } from "../ui/AboutBox/AboutBox.js";
 import { CheckState, Checkbox, type ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
@@ -107,13 +107,13 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
         const className = this.getEffectiveClassNames(["settingsEditor"]);
 
         const pages: ITabviewPage[] = [{
-            icon: settingsIcon,
+            icon: Assets.misc.settingsIcon,
             caption: "Settings",
             id: "settings",
             content: this.renderSettings(),
         },
         {
-            icon: settingsIcon,
+            icon: Assets.misc.settingsIcon,
             caption: "About",
             id: "about",
             content: <AboutBox />,

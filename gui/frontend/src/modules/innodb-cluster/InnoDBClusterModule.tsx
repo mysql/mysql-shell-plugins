@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,8 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import Icon from "./../../assets/images/modules/module-cluster.svg";
-
+import { Assets } from "../../supplement/Assets.js";
 import { ModuleBase, IModuleInfo } from "../ModuleBase.js";
 import { InnoDBClusterModuleId } from "../ModuleInfo.js";
 
@@ -34,7 +33,7 @@ export class InnoDBClusterModule extends ModuleBase {
         return {
             id: InnoDBClusterModuleId,
             caption: "InnoDB",
-            icon: Icon,
+            icon: Assets.modules.moduleClusterIcon,
         };
     }
 

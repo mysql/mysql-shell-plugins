@@ -422,6 +422,7 @@ export class PresentationInterface {
      * @param data The data that must be visualized in the result (if not given then remove any existing result).
      * @param dataOptions Additional information for the result data.
      * @param presentationOptions Controls the result area presentation after adding the new data.
+     * @param queryType The type of the query that produced the result data.
      *
      * @returns A promise resolving to true if the operation was concluded successfully, otherwise false.
      */
@@ -1118,7 +1119,7 @@ export class PresentationInterface {
     };
 
     private handleSelectTab = (index: number): void => {
-        this.renderResults({currentSet: index});
+        this.renderResults({ currentSet: index });
     };
 
     private changeLoadingState = (newState: LoadingState): void => {

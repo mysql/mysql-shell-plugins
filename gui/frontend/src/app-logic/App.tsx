@@ -44,7 +44,6 @@ import { IStandaloneThemeService } from "monaco-editor/esm/vs/editor/standalone/
 import { MessageScheduler } from "../communication/MessageScheduler.js";
 import { IShellProfile } from "../communication/ProtocolGui.js";
 import { PasswordDialog } from "../components/Dialogs/PasswordDialog.js";
-import { ColorPopup } from "../components/ui/ColorPicker/ColorPopup.js";
 import { IComponentState } from "../components/ui/Component/ComponentBase.js";
 import { NotificationCenter, NotificationType } from "../components/ui/NotificationCenter/NotificationCenter.js";
 import { ProgressIndicator } from "../components/ui/ProgressIndicator/ProgressIndicator.js";
@@ -250,7 +249,6 @@ export class App extends Component<{}, IAppState> {
                     <>
                         {renderStatusBar()}
                         <ProfileSelector ref={this.actionMenuRef}></ProfileSelector>
-                        <ColorPopup />
                     </>
                 )}
             </ErrorBoundary>

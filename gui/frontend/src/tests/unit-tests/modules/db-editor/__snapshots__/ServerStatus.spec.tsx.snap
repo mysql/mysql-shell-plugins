@@ -136,9 +136,9 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                             "WebkitMaskImage": "url("mysql-logo.svg")",
                             "backgroundColor": undefined,
                             "height": undefined,
-                            "maskComposite": "subtract",
+                            "maskComposite": undefined,
                             "maskImage": "url("mysql-logo.svg")",
-                            "maskSize": "100% 100%",
+                            "maskSize": undefined,
                             "width": undefined,
                           }
                         }
@@ -2627,9 +2627,9 @@ exports[`Server status module tests Test ServerStatus instantiation: ServerStatu
                             "WebkitMaskImage": "url("mysql-logo.svg")",
                             "backgroundColor": undefined,
                             "height": undefined,
-                            "maskComposite": "subtract",
+                            "maskComposite": undefined,
                             "maskImage": "url("mysql-logo.svg")",
-                            "maskSize": "100% 100%",
+                            "maskSize": undefined,
                             "width": undefined,
                           }
                         }

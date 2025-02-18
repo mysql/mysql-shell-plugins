@@ -25,14 +25,6 @@
 
 import "./ResultView.css";
 
-import blobIcon from "../../assets/images/data-icons/data-blob.svg";
-import geometryIcon from "../../assets/images/data-icons/data-geometry.svg";
-import nullIcon from "../../assets/images/data-icons/data-null.svg";
-// import vectorIcon from "../../assets/images/data-icons/data-vector.svg";
-import jsonIcon from "../../assets/images/data-icons/data-json.svg";
-
-import addRowIcon from "../../assets/images/plus.svg";
-
 import { ComponentChild, createRef, render } from "preact";
 import {
     CellComponent, ColumnComponent, ColumnDefinition, Editor, EditorParams, EmptyCallback, Formatter, FormatterParams,
@@ -41,6 +33,7 @@ import {
 
 import { DBDataType, DialogType, IColumnInfo, MessageType } from "../../app-logic/general-types.js";
 import { IResultSet, IResultSetRows } from "../../script-execution/index.js";
+import { Assets } from "../../supplement/Assets.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { KeyboardKeys, saveArrayAsFile, saveTextAsFile, selectFile } from "../../utilities/helpers.js";
@@ -255,7 +248,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
                         focusOnClick={false}
                         onClick={this.handleAction}
                     >
-                        <Icon src={addRowIcon} data-tooltip="inherit" />
+                        <Icon src={Assets.misc.plusIcon} data-tooltip="inherit" />
                     </Button>}
                 </Container>
 
@@ -1429,7 +1422,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             const host = document.createElement("div");
             host.className = "iconHost";
 
-            const element = <Icon src={nullIcon} />;
+            const element = <Icon src={Assets.data.nullIcon} />;
             render(element, host);
 
             return host;
@@ -1456,7 +1449,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         const host = document.createElement("div");
         host.className = "iconHost";
 
-        const element = <Icon src={value == null ? nullIcon : jsonIcon} />;
+        const element = <Icon src={value == null ? Assets.data.nullIcon : Assets.data.jsonIcon} />;
         render(element, host);
 
         return host;
@@ -1477,7 +1470,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             const host = document.createElement("div");
             host.className = "iconHost";
 
-            const element = <Icon src={nullIcon} />;
+            const element = <Icon src={Assets.data.nullIcon} />;
             render(element, host);
 
             return host;
@@ -1502,7 +1495,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             const host = document.createElement("div");
             host.className = "iconHost";
 
-            element = <Icon src={nullIcon} />;
+            element = <Icon src={Assets.data.nullIcon} />;
             render(element, host);
 
             return host;
@@ -1525,7 +1518,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     private blobFormatter = (cell: CellComponent): string | HTMLElement => {
         this.markIfChanged(cell);
 
-        const source = cell.getValue() === null ? nullIcon : blobIcon;
+        const source = cell.getValue() === null ? Assets.data.nullIcon : Assets.data.blobIcon;
         const icon = <Icon src={source} />;
 
         const host = document.createElement("div");
@@ -1540,7 +1533,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     private geometryFormatter = (cell: CellComponent): string | HTMLElement => {
         this.markIfChanged(cell);
 
-        const source = cell.getValue() === null ? nullIcon : geometryIcon;
+        const source = cell.getValue() === null ? Assets.data.nullIcon : Assets.data.geometryIcon;
         const icon = <Icon src={source} />;
 
         const host = document.createElement("div");
@@ -1561,7 +1554,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             const host = document.createElement("div");
             host.className = "iconHost";
 
-            const element = <Icon src={nullIcon} />;
+            const element = <Icon src={Assets.data.nullIcon} />;
             render(element, host);
 
             return host;
@@ -1624,7 +1617,7 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
         const host = document.createElement("div");
         let element;
         if (cell.getValue() === null) {
-            element = <Icon src={nullIcon} />;
+            element = <Icon src={Assets.data.nullIcon} />;
             host.className = "iconHost";
             render(element, host);
 

@@ -23,9 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import closeButton from "../../assets/images/close2.svg";
-import connectedIcon from "../../assets/images/connected.svg";
-import disconnectedIcon from "../../assets/images/disconnected.svg";
 import "./CommunicationDebugger.css";
 
 import typings from "./debugger-runtime.d.ts?raw";
@@ -61,6 +58,7 @@ import { Toolbar } from "../ui/Toolbar/Toolbar.js";
 import { SetDataAction, TreeGrid, type ITreeGridOptions } from "../ui/TreeGrid/TreeGrid.js";
 import { defaultEditorOptions } from "../ui/index.js";
 import { ui } from "../../app-logic/UILayer.js";
+import { Assets } from "../../supplement/Assets.js";
 
 enum ScriptTreeType {
     Folder,
@@ -326,11 +324,11 @@ export class CommunicationDebugger
                     }
 
                     <Button className="rightAlign" onClick={this.connect}>
-                        <Icon src={connectedIcon} data-tooltip="inherit" />
+                        <Icon src={Assets.misc.connectedIcon} data-tooltip="inherit" />
                         <Label caption="Connect" />
                     </Button>
                     <Button onClick={this.disconnect}>
-                        <Icon src={disconnectedIcon} data-tooltip="inherit" />
+                        <Icon src={Assets.misc.disconnectedIcon} data-tooltip="inherit" />
                         <Label caption="Disconnect" />
                     </Button>
                     <Button onClick={this.clearContext}>
@@ -443,7 +441,7 @@ export class CommunicationDebugger
                         className="closeButton"
                         round={true}
                         onClick={this.closeScriptTab.bind(this, name)}>
-                        <Icon src={closeButton} />
+                        <Icon src={Assets.misc.close2Icon} />
                     </Button>,
                     canClose: true,
 

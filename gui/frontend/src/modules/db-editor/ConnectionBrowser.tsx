@@ -23,13 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import mysqlIcon from "../../assets/images/connectionMysql.svg";
-import sqliteIcon from "../../assets/images/connectionSqlite.svg";
-
-import cloneIcon from "../../assets/images/clone.svg";
-import editIcon from "../../assets/images/edit.svg";
-import plusIcon from "../../assets/images/plus.svg";
-
 import { ComponentChild, createRef } from "preact";
 import { Children } from "preact/compat";
 
@@ -55,6 +48,7 @@ import { Menu } from "../../components/ui/Menu/Menu.js";
 import { IMenuItemProperties, MenuItem } from "../../components/ui/Menu/MenuItem.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
 import type { ConnectionDataModel, ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
+import { Assets } from "../../supplement/Assets.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { DBType, IConnectionDetails, type IShellSessionDetails } from "../../supplement/ShellInterface/index.js";
 import { uuid } from "../../utilities/helpers.js";
@@ -73,8 +67,8 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     public static override contextType = DBEditorContext;
 
     private static dbTypeToIconMap = new Map<DBType, string>([
-        [DBType.Sqlite, sqliteIcon],
-        [DBType.MySQL, mysqlIcon],
+        [DBType.Sqlite, Assets.db.sqliteConnectionIcon],
+        [DBType.MySQL, Assets.db.mysqlConnectionIcon],
     ]);
 
     private editorRef = createRef<ConnectionEditor>();
@@ -168,7 +162,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                     })}
                     caption="New Connection"
                     description="Add a new database connection"
-                    icon={plusIcon}
+                    icon={Assets.misc.plusIcon}
                     type={BrowserTileType.CreateNew}
                     onAction={this.handleTileAction}
 
@@ -203,8 +197,11 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleMenuItemClick}
                 >
-                    <MenuItem command={{ title: "Edit Connection…", command: "edit" }} icon={editIcon} />
-                    <MenuItem command={{ title: "Duplicate Connection…", command: "duplicate" }} icon={cloneIcon} />
+                    <MenuItem command={{ title: "Edit Connection…", command: "edit" }} icon={Assets.misc.editIcon} />
+                    <MenuItem
+                        command={{ title: "Duplicate Connection…", command: "duplicate" }}
+                        icon={Assets.misc.cloneIcon}
+                    />
                     <MenuItem command={{ title: "-", command: "" }} />
                     <MenuItem command={{
                         title: "Open New MySQL Shell Console for this Connection",
