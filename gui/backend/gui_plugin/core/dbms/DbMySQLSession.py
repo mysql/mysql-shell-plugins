@@ -751,47 +751,27 @@ class DbMysqlSession(DbSession):
             return {"columns": result}
 
 
-    @check_supported_type
-    def get_schema_objects(self, type, schema_name):
+    def get_routines_metadata(self, schema_name):
         params = (schema_name,)
 
-        if type == "Table":
-            sql = """SELECT TABLE_NAME
-                FROM information_schema.tables
-                WHERE TABLE_SCHEMA = ?"""
-        elif type == "View":
-            sql = """SELECT TABLE_NAME
-                    FROM information_schema.views
-                    WHERE table_schema = ?"""
-        elif type == "Routine":
-            has_external_language = self._column_exists("ROUTINES", "EXTERNAL_LANGUAGE")
-            if has_external_language:
-                sql = """SELECT ROUTINE_NAME as 'name', ROUTINE_TYPE as 'type', EXTERNAL_LANGUAGE as 'language'
-                        FROM information_schema.ROUTINES
-                        WHERE ROUTINE_SCHEMA = ?"""
-            else:
-                sql = """SELECT ROUTINE_NAME as 'name', ROUTINE_TYPE as 'type', 'SQL' as 'language'
-                        FROM information_schema.ROUTINES
-                        WHERE ROUTINE_SCHEMA = ?"""
-        elif type == "Event":
-            sql = """SELECT EVENT_NAME
-                    FROM information_schema.EVENTS
-                    WHERE EVENT_SCHEMA = ?"""
+        has_external_language = self._column_exists("ROUTINES", "EXTERNAL_LANGUAGE")
+        if has_external_language:
+            sql = """SELECT ROUTINE_NAME as 'name', ROUTINE_TYPE as 'type', EXTERNAL_LANGUAGE as 'language'
+                    FROM information_schema.ROUTINES
+                    WHERE ROUTINE_SCHEMA = ?"""
+        else:
+            sql = """SELECT ROUTINE_NAME as 'name', ROUTINE_TYPE as 'type', 'SQL' as 'language'
+                    FROM information_schema.ROUTINES
+                    WHERE ROUTINE_SCHEMA = ?"""
 
         if self.threaded:
             context = get_context()
             task_id = context.request_id if context else None
 
-            if type == "Routine":
-                self.add_task(MySQLRoutinesListTask(self,
-                                                    task_id=task_id,
-                                                    sql=sql,
-                                                    params=params))
-            else:
-                self.add_task(MySQLOneFieldListTask(self,
-                                                    task_id=task_id,
-                                                    sql=sql,
-                                                    params=params))
+            self.add_task(MySQLRoutinesListTask(self,
+                                                task_id=task_id,
+                                                sql=sql,
+                                                params=params))
         else:
             cursor = self.execute(sql, params)
             if cursor:
@@ -801,7 +781,7 @@ class DbMysqlSession(DbSession):
             if not result:
                 raise MSGException(Error.DB_OBJECT_DOES_NOT_EXISTS,
                                     f"The '{schema_name}' does not exist.")
-            return {"objects": result}
+            return {"routines": result}
 
     @check_supported_type
     def get_table_objects(self, type, schema_name, table_name):

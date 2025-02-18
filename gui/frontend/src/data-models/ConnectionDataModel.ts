@@ -1610,7 +1610,7 @@ export class ConnectionDataModel implements ICdmUpdater {
         try {
             const schema = group.parent.caption;
             const procedures = await group.connection.backend
-                .getSchemaObjects(schema, "Routine") as IDBSchemaObjectEntry[];
+                .getRoutinesMetadata(schema);
 
             // Remove entries no longer in the procedure list.
             const procedureNames = procedures.map((e) => { return e.name; });
@@ -1670,7 +1670,7 @@ export class ConnectionDataModel implements ICdmUpdater {
         try {
             const schema = group.parent.caption;
             const functions = await group.connection.backend
-                .getSchemaObjects(schema, "Routine") as IDBSchemaObjectEntry[];
+                .getRoutinesMetadata(schema);
 
             // Remove entries no longer in the function list.
             const functionNames = functions.map((e) => { return e.name; });

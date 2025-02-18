@@ -529,23 +529,5 @@ class DbSqliteSession(DbSession):
                                                 params=params))
 
 
-    @check_supported_type
-    def get_schema_objects(self, type, schema_name):
-        if type == "Table":
-            sql = f"""SELECT name
-                        FROM `{schema_name}`.sqlite_master
-                        WHERE type = "table"
-                        ORDER BY name;""",
-        else:
-            if type == "View":
-                sql = f"""SELECT name
-                        FROM `{schema_name}`.sqlite_master
-                        WHERE type = 'view'
-                        ORDER BY name;"""
-
-        context = get_context()
-        task_id = context.request_id if context else None
-        self.add_task(SqliteOneFieldListTask(self,
-                                            task_id=task_id,
-                                            sql=sql,
-                                            params=()))
+    def get_routines_metadata(self, schema_name):
+        raise NotImplementedError()

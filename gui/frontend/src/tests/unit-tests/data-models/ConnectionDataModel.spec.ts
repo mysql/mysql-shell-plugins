@@ -63,7 +63,7 @@ jest.mock("../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js", () =>
                     "actor", "address", "category", "city", "country", "customer", "film", "film_actor",
                     "film_category", "inventory", "language", "payment", "rental", "staff", "store",
                 ]),
-                getSchemaObjects: jest.fn().mockReturnValue([
+                getRoutinesMetadata: jest.fn().mockReturnValue([
                     { type: "PROCEDURE", language: "SQL", name: "proc1" },
                     { type: "PROCEDURE", language: "SQL", name: "proc2" },
                     { type: "PROCEDURE", language: "SQL", name: "proc3" },
@@ -78,7 +78,7 @@ jest.mock("../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js", () =>
                     { type: "PROCEDURE", language: "SQL", name: "proc12" },
                     { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc13" },
                     { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc14" },
-                    { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc15" }
+                    { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc15" },
                 ]),
                 getTableObjectNames: jest.fn().mockReturnValue([
                     "object1", "object1", // In lieu of any database object name.
