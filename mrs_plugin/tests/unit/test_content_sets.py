@@ -48,11 +48,18 @@ def test_add_content_set(phone_book, table_contents):
         assert table_content_set.same_as_snapshot
 
         content_set["request_path"] = "/test_content_set2"
+        with pytest.raises(Exception) as exc_info:
+            result = add_content_set(content_dir=tmp, service_id=phone_book["service_id"], **content_set)
+        assert str(exc_info.value) == f"There are no files in '{tmp}' or it's not accessible."
+
+        with open(os.path.join(tmp, "file1.txt"), "w") as f:
+            f.write("This is a file")
+
         result = add_content_set(content_dir=tmp, service_id=phone_book["service_id"], **content_set)
         assert result is not None
         assert result == {
             'content_set_id': result["content_set_id"],
-            'number_of_files_uploaded': 0
+            'number_of_files_uploaded': 1
         }
         table_content_set.count == table_content_set.snapshot.count + 1
 
