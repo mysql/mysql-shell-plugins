@@ -195,6 +195,12 @@ def add_content_dir(session, content_set_id, content_dir, requires_auth, ignore_
             add_content_file(session, content_set_id,
                              request_path, requires_auth, options=options, data=data)
 
+
+    if len(file_list) == 0:
+        # if the content dir is empty, raise an error. This should only
+        # happen in the root of the content dir and not in sub directories.
+        raise Exception(f"There are no files in '{root}' or it's not accessible.")
+
     return file_list
 
 
