@@ -429,7 +429,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiModulesMoveData]: {};
     [ShellAPIGui.GuiInfo]: {};
     [ShellAPIGui.GuiVersion]: {};
-    [ShellAPIGui.GuiDbGetSchemaObjects]: { result: string[] | IDBSchemaObjectEntry[]; };
+    [ShellAPIGui.GuiDbGetRoutinesMetadata]: { result: IDBSchemaObjectEntry[]; };
     [ShellAPIGui.GuiDbGetTableObjects]: { result: string[] | IDBTableObjectEntry[]; };
 }
 
@@ -440,7 +440,7 @@ export interface IProtocolGuiResults {
 export const multiResultAPIs = [
     ShellAPIGui.GuiCoreListFiles,
     ShellAPIGui.GuiDbGetSchemaObjectNames,
-    ShellAPIGui.GuiDbGetSchemaObjects,
+    ShellAPIGui.GuiDbGetRoutinesMetadata,
     ShellAPIGui.GuiDbConnectionsListDbConnections,
     ShellAPIGui.GuiModulesGetProfileDataTree,
     ShellAPIGui.GuiShellComplete,

@@ -422,7 +422,7 @@ class DbSession(threading.Thread):
     def get_columns_metadata(self, names):
         raise NotImplementedError()
 
-    def get_schema_objects(self, type, schema_name):  # pragma: no cover
+    def get_routines_metadata(self, schema_name):  # pragma: no cover
         raise NotImplementedError()
 
     def run(self):

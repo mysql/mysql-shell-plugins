@@ -107,10 +107,10 @@ def test_get_table_object_by_shell(shell_session):
 
 
 @pytest.mark.usefixtures("shell_session")
-def test_get_schema_objects_by_shell(shell_session):
+def test_get_schema_object_names_by_shell(shell_session):
     # Test tables in mysql schema
-    result = mysqlsh.globals.gui.db.get_schema_objects(shell_session, "Table", "mysql")
-    tables = [row[0] for row in result["objects"]]
+    result = mysqlsh.globals.gui.db.get_schema_object_names(shell_session, "Table", "mysql")
+    tables = [row[0] for row in result.fetch_all()]
     assert len(tables) > 0
     assert "user" in tables
     assert "db" in tables

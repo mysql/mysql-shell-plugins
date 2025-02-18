@@ -121,7 +121,7 @@ export enum ShellAPIGui {
     /** Reconnects the DB Session */
     GuiDbReconnect = "gui.db.reconnect",
     /** Returns the schema objects of the given type in the given schema. */
-    GuiDbGetSchemaObjects = "gui.db.get_schema_objects",
+    GuiDbGetRoutinesMetadata = "gui.db.get_routines_metadata",
     /** Returns the table objects of the given type in the given table. */
     GuiDbGetTableObjects = "gui.db.get_table_objects",
     /** Creates a new Module Data record for the given module    and associates it to the active user profile and personal user group. */
@@ -331,7 +331,7 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiDbStartSession]: { args: { connection: IShellDbConnection | number; password?: string; }; };
     [ShellAPIGui.GuiDbCloseSession]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbReconnect]: { args: { moduleSessionId: string; }; };
-    [ShellAPIGui.GuiDbGetSchemaObjects]: { args: { moduleSessionId: string; type: string; schemaName: string; }; };
+    [ShellAPIGui.GuiDbGetRoutinesMetadata]: { args: { moduleSessionId: string; schemaName: string; }; };
     [ShellAPIGui.GuiDbGetTableObjects]: { args: { moduleSessionId: string; type: string; schemaName: string; tableName: string; }; };
     [ShellAPIGui.GuiModulesAddData]: { args: { caption: string; content: string; dataCategoryId: number; treeIdentifier: string; folderPath?: string; profileId?: number; }; };
     [ShellAPIGui.GuiModulesListData]: { args: { folderId: number; dataCategoryId?: number; }; };
@@ -834,7 +834,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiModulesMoveData]: {};
     [ShellAPIGui.GuiInfo]: {};
     [ShellAPIGui.GuiVersion]: {};
-    [ShellAPIGui.GuiDbGetSchemaObjects]: { result: string[] | IDBSchemaObjectEntry[]; };
+    [ShellAPIGui.GuiDbGetRoutinesMetadata]: { result: IDBSchemaObjectEntry[]; };
     [ShellAPIGui.GuiDbGetTableObjects]: { result: string[] | IDBTableObjectEntry[]; };
 }
 
@@ -845,7 +845,7 @@ export interface IProtocolGuiResults {
 export const multiResultAPIs = [
     ShellAPIGui.GuiCoreListFiles,
     ShellAPIGui.GuiDbGetSchemaObjectNames,
-    ShellAPIGui.GuiDbGetSchemaObjects,
+    ShellAPIGui.GuiDbGetRoutinesMetadata,
     ShellAPIGui.GuiDbConnectionsListDbConnections,
     ShellAPIGui.GuiModulesGetProfileDataTree,
     ShellAPIGui.GuiShellComplete,

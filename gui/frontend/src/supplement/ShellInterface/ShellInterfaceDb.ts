@@ -148,22 +148,21 @@ export class ShellInterfaceDb {
     }
 
 
-    public async getSchemaObjects(schema: string, type: string): Promise<Array<string | IDBSchemaObjectEntry>> {
+    public async getRoutinesMetadata(schema: string): Promise<IDBSchemaObjectEntry[]> {
         if (!this.moduleSessionId) {
             return [];
         }
 
         const response = await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIGui.GuiDbGetSchemaObjects,
+            requestType: ShellAPIGui.GuiDbGetRoutinesMetadata,
             parameters: {
                 args: {
                     moduleSessionId: this.moduleSessionId,
-                    type,
                     schemaName: schema,
                 },
             },
         });
-        const result: Array<IDBSchemaObjectEntry | string> = [];
+        const result: IDBSchemaObjectEntry[] = [];
         response.forEach((entry) => {
             result.push(...entry.result);
         });

@@ -231,13 +231,12 @@ def reconnect(module_session):
     """
     module_session.reconnect()
 
-@plugin_function('gui.db.getSchemaObjects', shell=True, web=True)
-def get_schema_objects(session, type, schema_name):
+@plugin_function('gui.db.getRoutinesMetadata', shell=True, web=True)
+def get_routines_metadata(session, schema_name):
     """Returns the schema objects of the given type in the given schema.
 
     Args:
         session (object): The session used to execute the operation
-        type (str): the schema object type
         schema_name (str): schema name
 
     Returns:
@@ -245,7 +244,7 @@ def get_schema_objects(session, type, schema_name):
     """
     session = backend.get_db_session(session)
 
-    return session.get_schema_objects(type=type, schema_name=schema_name)
+    return session.get_routines_metadata(schema_name=schema_name)
 
 @plugin_function('gui.db.getTableObjects', shell=True, web=True)
 def get_table_objects(session, type, schema_name, table_name):

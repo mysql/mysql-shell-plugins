@@ -819,71 +819,13 @@ await ws.sendAndValidate({
     }
 ])
 
-await ws.sendAndValidate({
-    "request": "execute",
-    "request_id": ws.generateRequestId(),
-    "command": "gui.db.get_schema_objects",
-    "args": {
-        "module_session_id": ws.lastModuleSessionId,
-        "type": "Table",
-        "schema_name": "test_user_story"
-    }
-}, [
-    responses.pending.executionStarted,
-    {
-        "request_state": {
-            "type": "PENDING",
-            "msg": ""
-        },
-        "request_id": ws.lastGeneratedRequestId,
-        "result": ["categories"]
-    },
-    {
-        "request_state": {
-            "type": "OK",
-            "msg": ""
-        },
-        "request_id": ws.lastGeneratedRequestId,
-        "done": true
-    }
-])
 
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
-    "command": "gui.db.get_schema_objects",
+    "command": "gui.db.get_routines_metadata",
     "args": {
         "module_session_id": ws.lastModuleSessionId,
-        "type": "View",
-        "schema_name": "test_user_story"
-    }
-}, [
-    responses.pending.executionStarted,
-    {
-        "request_state": {
-            "type": "PENDING",
-            "msg": ""
-        },
-        "request_id": ws.lastGeneratedRequestId,
-        "result": ["view_products"]
-    },
-    {
-        "request_state": {
-            "type": "OK",
-            "msg": ""
-        },
-        "request_id": ws.lastGeneratedRequestId,
-        "done": true
-    }
-])
-
-await ws.sendAndValidate({
-    "request": "execute",
-    "request_id": ws.generateRequestId(),
-    "command": "gui.db.get_schema_objects",
-    "args": {
-        "module_session_id": ws.lastModuleSessionId,
-        "type": "Routine",
         "schema_name": "test_user_story"
     }
 }, [
@@ -909,31 +851,3 @@ await ws.sendAndValidate({
     }
 ])
 
-await ws.sendAndValidate({
-    "request": "execute",
-    "request_id": ws.generateRequestId(),
-    "command": "gui.db.get_schema_objects",
-    "args": {
-        "module_session_id": ws.lastModuleSessionId,
-        "type": "Event",
-        "schema_name": "test_user_story"
-    }
-}, [
-    responses.pending.executionStarted,
-    {
-        "request_state": {
-            "type": "PENDING",
-            "msg": ""
-        },
-        "request_id": ws.lastGeneratedRequestId,
-        "result": []
-    },
-    {
-        "request_state": {
-            "type": "OK",
-            "msg": ""
-        },
-        "request_id": ws.lastGeneratedRequestId,
-        "done": true
-    }
-])
