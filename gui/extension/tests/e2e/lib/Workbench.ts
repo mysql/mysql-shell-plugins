@@ -174,32 +174,34 @@ export class Workbench {
      */
     public static dismissNotifications = async (): Promise<void> => {
         await Misc.switchBackToTopFrame();
-        const notifications = await new extWorkbench().getNotifications();
 
-        for (const notification of notifications) {
+        await driver.wait(async () => {
             try {
-                if (await notification.hasProgress()) {
-                    await keyboard.type(nutKey.Escape);
-                } else {
-                    await driver.wait(async () => {
-                        if (await notification.hasProgress()) {
-                            await keyboard.type(nutKey.Escape);
-                        } else {
-                            await notification.dismiss();
-                        }
+                const notifications = await new extWorkbench().getNotifications();
 
-                        return (await new extWorkbench().getNotifications()).length === 0;
-                    }, constants.wait5seconds, "There are still notifications displayed");
+                for (const notification of notifications) {
+                    if (await notification.hasProgress()) {
+                        await keyboard.type(nutKey.Escape);
+                    } else {
+                        await driver.wait(async () => {
+                            if (await notification.hasProgress()) {
+                                await keyboard.type(nutKey.Escape);
+                            } else {
+                                await notification.dismiss();
+                            }
+
+                            return (await new extWorkbench().getNotifications()).length === 0;
+                        }, constants.wait5seconds, "There are still notifications displayed");
+                    }
                 }
+
+                return true;
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
-                } else {
-                    continue;
                 }
             }
-
-        }
+        }, constants.wait10seconds, `Could not dismiss notifications`);
     };
 
     /**

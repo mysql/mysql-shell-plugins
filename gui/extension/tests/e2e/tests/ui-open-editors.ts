@@ -24,7 +24,7 @@
  */
 
 import { join } from "path";
-import { BottomBarPanel, ActivityBar, until } from "vscode-extension-tester";
+import { BottomBarPanel, ActivityBar, until, SideBarView, CustomTreeSection } from "vscode-extension-tester";
 import { expect } from "chai";
 import { driver, Misc } from "../lib/Misc";
 import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection";
@@ -66,7 +66,8 @@ describe("OPEN EDITORS", () => {
             await Workbench.dismissNotifications();
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.createDatabaseConnection(globalConn);
-            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption), constants.wait5seconds);
+            await dbTreeSection.focus();
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.wait5seconds);
             await Workbench.closeAllEditors();
             await new BottomBarPanel().toggle(false);
         } catch (e) {
@@ -99,101 +100,101 @@ describe("OPEN EDITORS", () => {
     it("New Shell Notebook", async () => {
 
         await openEditorsTreeSection.expand();
-        const treeDBConnections = await openEditorsTreeSection.tree.getElement(constants.dbConnectionsLabel);
-        await openEditorsTreeSection.tree.openContextMenuAndSelect(treeDBConnections, constants.openNewShellConsole);
+        await openEditorsTreeSection.openContextMenuAndSelect(constants.dbConnectionsLabel,
+            constants.openNewShellConsole);
         await driver.wait(new E2EShellConsole().untilIsOpened(globalConn), constants.wait15seconds,
             "Shell Console was not loaded");
-        const treeOEShellConsoles = await openEditorsTreeSection.tree.getElement(constants.mysqlShellConsoles);
+        const treeOEShellConsoles = await openEditorsTreeSection.getTreeItem(constants.mysqlShellConsoles);
         expect(await treeOEShellConsoles.findChildItem("Session 1"), errors.doesNotExistOnTree("Session 1")).to.exist;
     });
 
     it("Icon - New MySQL Script", async () => {
 
         await dbTreeSection.focus();
-        const treeLocalConn = await dbTreeSection.tree.getElement(globalConn.caption);
-        await (await dbTreeSection.tree.getActionButton(treeLocalConn,
+        await (await dbTreeSection.getTreeItemActionButton(globalConn.caption,
             constants.openNewConnectionUsingNotebook)).click();
         await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait15seconds);
-        const treeOEGlobalConn = await openEditorsTreeSection.tree.getElement(globalConn.caption);
-        const newMySQLScript = await openEditorsTreeSection.tree.getActionButton(treeOEGlobalConn,
+        const newMySQLScript = await openEditorsTreeSection.getTreeItemActionButton(globalConn.caption,
             constants.newMySQLScript);
         await driver.executeScript("arguments[0].click()", newMySQLScript);
         await driver.wait(Workbench.untilCurrentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
         expect((await new E2EScript().toolbar.editorSelector.getCurrentEditor()).icon,
             `The current editor icon should be 'Mysql'`)
             .to.include(constants.mysqlScriptIcon);
-        const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, constants.mysqlType);
-        await (await openEditorsTreeSection.tree.getActionButton(treeItem, constants.closeEditor)).click();
+        const treeItem = await openEditorsTreeSection.getTreeItem(/Untitled-/, constants.mysqlType);
+        await (await openEditorsTreeSection.getTreeItemActionButton(await treeItem.getLabel(),
+            constants.closeEditor)).click();
 
     });
 
     it("Icon - Load SQL Script from Disk", async () => {
 
         const sqlScript = "setup.sql";
-        const treeOEGlobalConn = await openEditorsTreeSection.tree.getElement(globalConn.caption);
-        const loadScriptFromDisk = await openEditorsTreeSection.tree.getActionButton(treeOEGlobalConn,
+        const loadScriptFromDisk = await openEditorsTreeSection.getTreeItemActionButton(globalConn.caption,
             constants.loadScriptFromDisk);
         await driver.executeScript("arguments[0].click()", loadScriptFromDisk);
         await Workbench.setInputPath(join(process.cwd(), "sql", sqlScript));
         await driver.wait(Workbench.untilCurrentEditorIs(new RegExp(sqlScript)), constants.wait5seconds);
-        await driver.wait(openEditorsTreeSection.tree.untilExists(sqlScript), constants.wait5seconds);
+        await driver.wait(openEditorsTreeSection.untilTreeItemExists(sqlScript), constants.wait5seconds);
         expect((await new E2EScript().codeEditor.existsText("GEOMETRYCOLLECTION"))).to.be.true;
-        const treeItem = await openEditorsTreeSection.tree.getScript(new RegExp(sqlScript), constants.mysqlType);
-        await (await openEditorsTreeSection.tree.getActionButton(treeItem, constants.closeEditor)).click();
+        const treeItem = await openEditorsTreeSection.getTreeItem(new RegExp(sqlScript), constants.mysqlType);
+        await (await openEditorsTreeSection.getTreeItemActionButton(await treeItem.getLabel(),
+            constants.closeEditor)).click();
 
     });
 
     it("Context menu - New MySQL Script", async () => {
 
         await openEditorsTreeSection.focus();
-        const item = await openEditorsTreeSection.tree.getElement(globalConn.caption);
-        await openEditorsTreeSection.tree.openContextMenuAndSelect(item, constants.newMySQLScript);
+        await openEditorsTreeSection.openContextMenuAndSelect(globalConn.caption, constants.newMySQLScript);
         await driver.wait(Workbench.untilCurrentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
         expect((await new E2EScript().toolbar.editorSelector.getCurrentEditor()).icon,
             `The current editor icon should be 'Mysql'`)
             .to.include(constants.mysqlScriptIcon);
-        const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, constants.mysqlType);
-        await (await openEditorsTreeSection.tree.getActionButton(treeItem, constants.closeEditor)).click();
+        const treeItem = await openEditorsTreeSection.getTreeItem(/Untitled-/, constants.mysqlType);
+        await (await openEditorsTreeSection.getTreeItemActionButton(await treeItem.getLabel(),
+            constants.closeEditor)).click();
 
     });
 
     it("Context menu - New JavaScript Script", async () => {
 
-        const item = await openEditorsTreeSection.tree.getElement(globalConn.caption);
-        await openEditorsTreeSection.tree.openContextMenuAndSelect(item, constants.newJS);
+        await openEditorsTreeSection.openContextMenuAndSelect(globalConn.caption, constants.newJS);
         await driver.wait(Workbench.untilCurrentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
         expect((await new E2EScript().toolbar.editorSelector.getCurrentEditor()).icon,
             `The current editor icon should be 'scriptJs'`)
             .to.include(constants.jsScriptIcon);
-        const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, constants.jsType);
-        await (await openEditorsTreeSection.tree.getActionButton(treeItem, constants.closeEditor)).click();
+        const treeItem = await openEditorsTreeSection.getTreeItem(/Untitled-/, constants.jsType);
+        await (await openEditorsTreeSection.getTreeItemActionButton(await treeItem.getLabel(),
+            constants.closeEditor)).click();
 
     });
 
     it("Context menu - New TypeScript Script", async () => {
 
-        const item = await openEditorsTreeSection.tree.getElement(globalConn.caption);
-        await openEditorsTreeSection.tree.openContextMenuAndSelect(item, constants.newTS);
+        await openEditorsTreeSection.openContextMenuAndSelect(globalConn.caption, constants.newTS);
         await driver.wait(Workbench.untilCurrentEditorIs(/Untitled-(\d+)/), constants.wait5seconds);
         expect((await new E2EScript().toolbar.editorSelector.getCurrentEditor()).icon,
-            `The current editor icon should be 'scriptTs'`)
-            .to.include(constants.tsScriptIcon);
-        const treeItem = await openEditorsTreeSection.tree.getScript(/Untitled-/, constants.tsType);
-        await (await openEditorsTreeSection.tree.getActionButton(treeItem, constants.closeEditor)).click();
+            `The current editor icon should be 'scriptTs'`).to.include(constants.tsScriptIcon);
+        const treeItem = await openEditorsTreeSection.getTreeItem(/Untitled-/, constants.tsType);
+        await (await openEditorsTreeSection.getTreeItemActionButton(await treeItem.getLabel(),
+            constants.closeEditor)).click();
 
     });
 
     it("Collapse All", async () => {
 
         await openEditorsTreeSection.clickToolbarButton(constants.collapseAll);
-        const treeVisibleItems = await (await openEditorsTreeSection.getWebElement()).getVisibleItems();
+        const treeOpenEditorsSection: CustomTreeSection = await new SideBarView().getContent()
+            .getSection(constants.openEditorsTreeSection);
+        const treeVisibleItems = await treeOpenEditorsSection.getVisibleItems();
         expect(treeVisibleItems.length, `The tree items were not collapsed`).to.equals(1);
     });
 
     it("Open DB Connection Overview", async () => {
 
-        await openEditorsTreeSection.tree.expandElement([constants.dbDefaultEditor]);
-        await (await openEditorsTreeSection.tree.getElement(constants.dbConnectionsLabel)).click();
+        await openEditorsTreeSection.expandTreeItem(constants.dbDefaultEditor);
+        await (await openEditorsTreeSection.getTreeItem(constants.dbConnectionsLabel)).click();
         await Misc.switchToFrame();
         expect(await driver.wait(until.elementLocated(locator.notebook.toolbar.editorSelector.exists),
             constants.wait10seconds, "DB Connection Overview page was not displayed")).to.exist;
@@ -202,9 +203,9 @@ describe("OPEN EDITORS", () => {
 
     it("Open DB Notebook", async () => {
 
-        const item = await openEditorsTreeSection.tree.getElement(globalConn.caption);
+        const item = await openEditorsTreeSection.getTreeItem(globalConn.caption);
         await item.expand();
-        await (await openEditorsTreeSection.tree.getElement(constants.openEditorsDBNotebook)).click();
+        await (await openEditorsTreeSection.getTreeItem(constants.openEditorsDBNotebook)).click();
         await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait15seconds,
             "Connection was not opened");
 
@@ -212,9 +213,9 @@ describe("OPEN EDITORS", () => {
 
     it("Open Shell Session", async () => {
 
-        const item = await openEditorsTreeSection.tree.getElement(constants.mysqlShellConsoles);
+        const item = await openEditorsTreeSection.getTreeItem(constants.mysqlShellConsoles);
         await item.expand();
-        await (await openEditorsTreeSection.tree.getElement("Session 1")).click();
+        await (await openEditorsTreeSection.getTreeItem("Session 1")).click();
         await driver.wait(new E2EShellConsole().untilIsOpened(globalConn), constants.wait15seconds,
             "Shell Console was not loaded");
         await Workbench.closeEditor(new RegExp(constants.mysqlShellConsoles));
@@ -225,12 +226,11 @@ describe("OPEN EDITORS", () => {
         const openedSessions: number[] = [];
 
         for (let i = 1; i <= 3; i++) {
-            const treeDBConnections = await openEditorsTreeSection.tree.getElement(constants.dbConnectionsLabel);
-            await openEditorsTreeSection.tree.openContextMenuAndSelect(treeDBConnections,
+            await openEditorsTreeSection.openContextMenuAndSelect(constants.dbConnectionsLabel,
                 constants.openNewShellConsole);
             await driver.wait(new E2EShellConsole().untilIsOpened(globalConn), constants.wait15seconds,
                 "Shell Console was not loaded");
-            await driver.wait(openEditorsTreeSection.tree.untilExists(`Session ${i}`), constants.wait5seconds);
+            await driver.wait(openEditorsTreeSection.untilTreeItemExists(`Session ${i}`), constants.wait5seconds);
             openedSessions.push(i);
         }
 

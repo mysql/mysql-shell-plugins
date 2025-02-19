@@ -569,3 +569,4 @@ export const ociComputeInstanceCtxMenu = new Map([
 export const restServiceMetadataSchema = "mysql_rest_service_metadata";
 export const ociFailure = "OCI Failure";
 export const mysqlRouters = "MySQL Routers";
+export const reloadDataBaseInformation = "Reload Database Information";
