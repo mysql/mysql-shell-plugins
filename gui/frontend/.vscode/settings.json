@@ -1,6 +1,6 @@
 {
     "jest.coverageFormatter": "GutterFormatter",
-    "jest.jestCommandLine": "npm run unit-tests:debug --",
+    "jest.jestCommandLine": "npm run unit-tests:generic --",
     "jest.monitorLongRun": "off",
     "files.exclude": {
         ".rollup.cache/**": true,
