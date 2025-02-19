@@ -83,11 +83,11 @@ describe("RESULT GRIDS", () => {
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.createDatabaseConnection(globalConn);
             await dbTreeSection.createDatabaseConnection(anotherConn);
-            await driver.wait(dbTreeSection.tree.untilExists(anotherConn.caption), constants.wait5seconds);
-            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption), constants.wait5seconds);
+            await dbTreeSection.focus();
+            await driver.wait(dbTreeSection.untilTreeItemExists(anotherConn.caption), constants.wait5seconds);
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.wait5seconds);
             await (await new DatabaseConnectionOverview().getConnection(globalConn.caption)).click();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
-            await dbTreeSection.focus();
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -141,8 +141,7 @@ describe("RESULT GRIDS", () => {
         after(async function () {
             try {
                 await Workbench.openMySQLShellForVSCode();
-                const treeGlobalConn = await dbTreeSection.tree.getElement(globalConn.caption);
-                await treeGlobalConn.collapse();
+                await (await dbTreeSection.getTreeItem(globalConn.caption)).collapse();
                 await Workbench.closeAllEditors();
             } catch (e) {
                 await Misc.processFailure(this);
@@ -1422,17 +1421,16 @@ describe("RESULT GRIDS", () => {
             const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
             await openEditorsSection.expand();
             await Workbench.dismissNotifications();
-            const openEditorsGlobalConn = await openEditorsSection.tree.getElement(globalConn.caption);
-            await (await openEditorsGlobalConn.getActionButton(constants.newMySQLScript)).click();
-            const anotherConnection = await dbTreeSection.tree
-                .getElement(anotherConn.caption);
-            await dbTreeSection.tree.openContextMenuAndSelect(anotherConnection, constants.openNewConnection);
+
+            await (await openEditorsSection.getTreeItemActionButton(globalConn.caption,
+                constants.newMySQLScript)).click();
+
+            await dbTreeSection.openContextMenuAndSelect(anotherConn.caption, constants.openNewConnection);
             const anotherConnNotebook = new E2ENotebook();
             await driver.wait(anotherConnNotebook.untilIsOpened(anotherConn), constants.wait5seconds);
-            const treeConn = await dbTreeSection.tree.getElement(globalConn.caption);
-            await dbTreeSection.tree.expandDatabaseConnection(treeConn,
-                (globalConn.basic as interfaces.IConnBasicMySQL).password);
-            await dbTreeSection.tree.expandElement([new RegExp(constants.mysqlAdmin)]);
+
+            await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
+            await dbTreeSection.expandTreeItem(new RegExp(constants.mysqlAdmin));
             await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.openEditorsDBNotebook),
                 globalConn.caption);
             await notebook.codeEditor.clean();
@@ -1448,7 +1446,7 @@ describe("RESULT GRIDS", () => {
                 }];
             await result.editCells(cellsToEdit, constants.doubleClick);
 
-            await (await dbTreeSection.tree.getElement(constants.serverStatus)).click();
+            await (await dbTreeSection.getTreeItem(constants.serverStatus)).click();
             let dialog = await driver
                 .wait(Workbench.untilConfirmationDialogExists(" after switching to Server Status page")
                     , constants.wait5seconds);
@@ -1459,7 +1457,7 @@ describe("RESULT GRIDS", () => {
             await driver.wait(until.stalenessOf(dialog), constants.wait3seconds, "The dialog was not closed");
             await driver.wait(Workbench.untilCurrentEditorIs(new RegExp(constants.openEditorsDBNotebook)),
                 constants.wait5seconds);
-            await (await dbTreeSection.tree.getElement(constants.clientConns)).click();
+            await (await dbTreeSection.getTreeItem(constants.clientConns)).click();
             dialog = await driver.wait(Workbench
                 .untilConfirmationDialogExists(" after switching to Client Connections page"), constants.wait5seconds);
             expect(await (await dialog.findElement(locator.confirmDialog.msg))
@@ -1470,7 +1468,7 @@ describe("RESULT GRIDS", () => {
             await driver.wait(Workbench.untilCurrentEditorIs(new RegExp(constants.openEditorsDBNotebook)),
                 constants.wait5seconds);
 
-            await (await dbTreeSection.tree.getElement(constants.perfDash)).click();
+            await (await dbTreeSection.getTreeItem(constants.perfDash)).click();
             dialog = await driver.wait(Workbench
                 .untilConfirmationDialogExists(" after switching to Performance Dashboard page"),
                 constants.wait5seconds);

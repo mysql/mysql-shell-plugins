@@ -24,7 +24,7 @@
  */
 import fs from "fs/promises";
 import { expect } from "chai";
-import { ActivityBar, Condition, InputBox, Key, until } from "vscode-extension-tester";
+import { ActivityBar, Condition, InputBox, Key, until, SideBarView } from "vscode-extension-tester";
 import { join } from "path";
 import clipboard from "clipboardy";
 import { browser, driver, Misc } from "../lib/Misc";
@@ -75,10 +75,11 @@ describe("NOTEBOOKS", () => {
 
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.createDatabaseConnection(globalConn);
-            await driver.wait(dbTreeSection.tree.untilExists(globalConn.caption), constants.wait5seconds);
+            await dbTreeSection.focus();
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.wait5seconds);
             await (await new DatabaseConnectionOverview().getConnection(globalConn.caption)).click();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
-            await dbTreeSection.focus();
+
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -132,7 +133,7 @@ describe("NOTEBOOKS", () => {
         after(async function () {
             try {
                 await Workbench.openMySQLShellForVSCode();
-                const treeGlobalConn = await dbTreeSection.tree.getElement(globalConn.caption);
+                const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption);
                 await treeGlobalConn.collapse();
                 await Workbench.closeAllEditors();
             } catch (e) {
@@ -568,8 +569,7 @@ describe("NOTEBOOKS", () => {
                 }
 
                 await dbTreeSection.focus();
-                const treeGlobalConn = await dbTreeSection.tree.getElement(globalConn.caption);
-                await (await dbTreeSection.tree.getActionButton(treeGlobalConn,
+                await (await dbTreeSection.getTreeItemActionButton(globalConn.caption,
                     constants.openNewConnectionUsingNotebook)).click();
                 await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
             } catch (e) {
@@ -635,7 +635,8 @@ describe("NOTEBOOKS", () => {
             await browser.openResources(process.cwd());
             await Workbench.dismissNotifications();
             await driver.wait(e2eTreeSection.untilExists(), constants.wait5seconds);
-            const file = await (await e2eTreeSection.getWebElement()).findItem("a_test.mysql-notebook", 3);
+            const file = await (await new SideBarView().getContent().getSection("e2e"))
+                .findItem("a_test.mysql-notebook", 3);
             await file.click();
             const input = await InputBox.create(constants.wait5seconds * 4);
             await (await input.findQuickPick(globalConn.caption)).select();
@@ -651,8 +652,7 @@ describe("NOTEBOOKS", () => {
             await Workbench.closeAllEditors();
             await browser.openResources(process.cwd());
             await driver.wait(e2eTreeSection.untilExists(), constants.wait5seconds);
-            const file = await (await e2eTreeSection.getWebElement()).findItem("a_test.mysql-notebook", 3);
-            await e2eTreeSection.tree.openContextMenuAndSelect(file, constants.openNotebookWithConn);
+            await e2eTreeSection.openContextMenuAndSelect("a_test.mysql-notebook", constants.openNotebookWithConn);
             const input = await InputBox.create();
             await (await input.findQuickPick(globalConn.caption)).select();
             await driver.wait(Workbench.untilTabIsOpened("a_test.mysql-notebook"), constants.wait5seconds);
@@ -663,14 +663,13 @@ describe("NOTEBOOKS", () => {
 
         it("Auto close notebook tab when DB connection is deleted", async () => {
 
-            await driver.wait(e2eTreeSection.untilExists(), constants.wait5seconds);
-            const file = await (await e2eTreeSection.getWebElement()).findItem("a_test.mysql-notebook", 3);
+            const file = await e2eTreeSection.getTreeItem("a_test.mysql-notebook");
             await file.click();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
             await Workbench.openEditor("a_test.mysql-notebook");
             const activityBar = new ActivityBar();
             await (await activityBar.getViewControl(constants.extensionName))?.openView();
-            await dbTreeSection.tree.deleteDatabaseConnection(globalConn.caption);
+            await dbTreeSection.deleteDatabaseConnection(globalConn.caption);
             const tabs = await Workbench.getOpenEditorTitles();
             expect(tabs, errors.tabIsNotOpened("a_test.mysql-notebook")).to.not.include("a_test.mysql-notebook");
 
@@ -678,17 +677,16 @@ describe("NOTEBOOKS", () => {
 
         it("Open the Notebook from file with no DB connections", async () => {
 
-            const conns = await dbTreeSection.getDatabaseConnections();
+            const conns = await dbTreeSection.getTreeDatabaseConnections();
 
             for (const conn of conns) {
-                await dbTreeSection.tree.deleteDatabaseConnection(conn.name, conn.isMySQL);
+                await dbTreeSection.deleteDatabaseConnection(conn.name, conn.isMySQL);
             }
 
             const activityBar = new ActivityBar();
             await (await activityBar.getViewControl("Explorer"))?.openView();
 
-            await driver.wait(e2eTreeSection.untilExists(), constants.wait5seconds);
-            const file = await (await e2eTreeSection.getWebElement()).findItem("a_test.mysql-notebook", 3);
+            const file = await e2eTreeSection.getTreeItem("a_test.mysql-notebook");
             await file.click();
             await Workbench.openEditor("a_test.mysql-notebook");
             await Workbench.getNotification("Please create a MySQL Database Connection first.", undefined, true);
@@ -696,7 +694,7 @@ describe("NOTEBOOKS", () => {
             expect(await driver.findElement(locator.htmlTag.h2).getText(), "'No connection selected' message was found")
                 .to.equals("No connection selected");
             await Workbench.closeAllEditors();
-            await e2eTreeSection.tree.openContextMenuAndSelect(file, constants.openNotebookWithConn);
+            await e2eTreeSection.openContextMenuAndSelect("a_test.mysql-notebook", constants.openNotebookWithConn);
             await Workbench.getNotification("Please create a MySQL Database Connection first.", undefined, true);
 
         });

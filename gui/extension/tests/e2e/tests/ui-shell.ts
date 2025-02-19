@@ -213,8 +213,7 @@ describe("MYSQL SHELL CONSOLES", () => {
             try {
 
                 await Workbench.closeAllEditors();
-                const treeDBConnections = await openEditorsTreeSection.tree.getElement(constants.dbConnectionsLabel);
-                await openEditorsTreeSection.tree.openContextMenuAndSelect(treeDBConnections,
+                await openEditorsTreeSection.openContextMenuAndSelect(constants.dbConnectionsLabel,
                     constants.openNewShellConsole);
                 shellConsole = new E2EShellConsole();
                 await driver.wait(shellConsole.untilIsOpened(globalConn), constants.wait15seconds,
