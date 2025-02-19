@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -163,8 +163,39 @@ DESCRIPTION
       Connections MySQL Shell GUI module
 
 FUNCTIONS
+      add_db_connection(profile_id, connection[, folder_path][, be_session])
+            Add a new db_connection and associate the connection with a profile
+
+      delete_credential(url)
+            Deletes the password of a db_connection url
+
+      get_db_connection(db_connection_id[, be_session])
+            Get the db_connection
+
+      get_db_types()
+            Get the list of db_types
+
       help([member])
-            Provides help about this object and it's members'''
+            Provides help about this object and it's members
+
+      list_credentials()
+            Lists the db_connection urls that have a password stored
+
+      list_db_connections(profile_id[, folder_path][, be_session])
+            Lists the db_connections for the given profile
+
+      remove_db_connection(profile_id, connection_id[, be_session])
+            Remove a db_connection by disassociating the connection from a
+            profile
+
+      set_credential(url, password)
+            Set the password of a db_connection url
+
+      test_connection(connection[, password])
+            Opens test connection
+
+      update_db_connection(profile_id, connection_id, connection[, folder_path][, be_session])
+            Update the data for a database connection'''
 
 
     assert help_text == mysqlsh.globals.gui.db_connections.help() # pylint: disable=no-member
@@ -329,6 +360,9 @@ DESCRIPTION
       Shell GUI module
 
 FUNCTIONS
+      add_profile(user_id, profile[, be_session])
+            Returns the specified profile.
+
       add_user_to_group(member_id, group_id[, owner][, be_session])
             Adds user to user group.
 
@@ -338,8 +372,17 @@ FUNCTIONS
       create_user_group(name, description[, be_session])
             Creates user group.
 
+      delete_profile(user_id, profile_id[, be_session])
+            Deletes a profile for the current user.
+
       delete_user(username[, be_session])
             Deletes a user account
+
+      get_default_profile(user_id[, be_session])
+            Returns the default profile for the given user.
+
+      get_profile(profile_id[, be_session])
+            Returns the specified profile.
 
       get_user_id(username[, be_session])
             Gets the id for a given user.
@@ -349,6 +392,9 @@ FUNCTIONS
 
       help([member])
             Provides help about this object and it's members
+
+      list_profiles(user_id[, be_session])
+            Returns the list of profile for the given user
 
       list_role_privileges(role[, be_session])
             Lists all privileges of a role.
@@ -378,6 +424,15 @@ FUNCTIONS
       set_allowed_hosts(user_id, allowed_hosts[, be_session])
             Sets the allowed hosts for the given user.
 
+      set_current_profile(profile_id)
+            Sets the profile of the user's current web session.
+
+      set_default_profile(user_id, profile_id[, be_session])
+            Sets the default profile for the given user.
+
+      update_profile(profile[, be_session])
+            Updates a user profile.
+
       update_user_group(group_id[, name][, description][, be_session])
             Updates user group.'''
 
@@ -403,7 +458,7 @@ FUNCTIONS
       native_ui()
             Starts the native Shell GUI client
 
-      web_server([port][, secure][, webrootpath][, single_instance_token][, read_token_on_stdin])
+      web_server([port][, secure][, webrootpath][, single_instance_token][, read_token_on_stdin][, accept_remote_connections])
             Starts a web server that will serve the MySQL Shell GUI'''
 
     assert help_text == mysqlsh.globals.gui.start.help() # pylint: disable=no-member
