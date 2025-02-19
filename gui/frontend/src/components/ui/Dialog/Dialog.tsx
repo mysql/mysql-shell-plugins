@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,9 +27,9 @@ import "./Dialog.css";
 
 import { ComponentChild, createRef } from "preact";
 
+import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
+import { IPortalOptions, Portal } from "../Portal/Portal.js";
 import { DialogContent } from "./DialogContent.js";
-import { IComponentProperties, ComponentBase } from "../Component/ComponentBase.js";
-import { Portal, IPortalOptions } from "../Portal/Portal.js";
 
 // Describes a collection of react nodes that should be rendered in an action area, separated
 // by their alignment.
@@ -87,6 +87,7 @@ export class Dialog extends ComponentBase<IDialogProperties> {
                     header={header}
                     content={content}
                     actions={actions}
+                    draggable
                     onCloseClick={this.handleCloseClick}
                 >
                     {children}

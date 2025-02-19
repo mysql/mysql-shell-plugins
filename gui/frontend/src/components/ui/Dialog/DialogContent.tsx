@@ -25,12 +25,14 @@
 
 import { ComponentChild, createRef } from "preact";
 
-import { IComponentProperties, ComponentBase, IComponentSnapshot } from "../Component/ComponentBase.js";
+import { Assets } from "../../../supplement/Assets.js";
+import { Button } from "../Button/Button.js";
+import {
+    ComponentBase, IComponentProperties, IComponentSnapshot, PointerEventType,
+} from "../Component/ComponentBase.js";
 import { Container, Orientation } from "../Container/Container.js";
 import { Icon } from "../Icon/Icon.js";
 import { IDialogActions } from "./Dialog.js";
-import { Button } from "../Button/Button.js";
-import { Assets } from "../../../supplement/Assets.js";
 
 interface IDialogContentProperties extends IComponentProperties {
     content?: ComponentChild;
@@ -41,19 +43,30 @@ interface IDialogContentProperties extends IComponentProperties {
     onCloseClick?: () => void;
 }
 
-// This component is the separated-out content for a dialog, but can be rendered anywhere.
+/** This component is the separated-out content for a dialog, but can be rendered anywhere. */
 export class DialogContent extends ComponentBase<IDialogContentProperties> {
-    #contentRef = createRef<HTMLDivElement>();
+    private contentRef = createRef<HTMLDivElement>();
+    private innerRef = createRef<HTMLDivElement>();
+
+    private isDragging = false;
+    private dragStartX = -1;
+    private dragStartY = -1;
+    private lastDeltaX = 0;
+    private lastDeltaY = 0;
 
     public constructor(props: IDialogContentProperties) {
         super(props);
 
-        this.addHandledProperties("content", "header", "caption", "actions", "onCloseClick");
+        this.addHandledProperties("content", "header", "caption", "actions", "onCloseClick", "draggable");
+
+        if (props.draggable) {
+            this.connectEvents("onPointerDown", "onPointerMove", "onPointerUp");
+        }
     }
 
     public override getSnapshotBeforeUpdate(): IComponentSnapshot | null {
-        if (this.#contentRef.current) {
-            const content = this.#contentRef.current;
+        if (this.contentRef.current) {
+            const content = this.contentRef.current;
 
             return {
                 scrollPosition: content.scrollHeight - content.scrollTop,
@@ -65,8 +78,8 @@ export class DialogContent extends ComponentBase<IDialogContentProperties> {
 
     public override componentDidUpdate(prevProps: IDialogContentProperties, prevState: never,
         snapshot: IComponentSnapshot | null): void {
-        if (snapshot !== null && this.#contentRef.current) {
-            const content = this.#contentRef.current;
+        if (snapshot !== null && this.contentRef.current) {
+            const content = this.contentRef.current;
             content.scrollTop = content.scrollHeight - (snapshot.scrollPosition ?? 0);
         }
     }
@@ -92,7 +105,7 @@ export class DialogContent extends ComponentBase<IDialogContentProperties> {
                     </div>
                     }
                     {header && <div className="header">{header}</div>}
-                    {content && <div ref={this.#contentRef} className="content fixedScrollbar">{content}</div>}
+                    {content && <div ref={this.contentRef} className="content fixedScrollbar">{content}</div>}
                     {actions &&
                         <div className="footer verticalCenterContent">
                             <Container
@@ -115,12 +128,57 @@ export class DialogContent extends ComponentBase<IDialogContentProperties> {
 
         return (
             <div
+                ref={this.innerRef}
                 className={className}
                 {...this.unhandledProperties}
             >
                 {dialogContent}
             </div>
         );
+    }
+
+    protected override handlePointerEvent(type: PointerEventType, e: PointerEvent): boolean {
+        const element = e.currentTarget as HTMLElement;
+        switch (type) {
+            case PointerEventType.Down: {
+                if (element === this.innerRef.current && (e.target as HTMLElement).classList.contains("title")) {
+                    this.isDragging = true;
+
+                    this.dragStartX = e.clientX - this.lastDeltaX;
+                    this.dragStartY = e.clientY - this.lastDeltaY;
+
+                    element.setPointerCapture(e.pointerId);
+                }
+
+                return true;
+            }
+
+            case PointerEventType.Move: {
+                if (this.isDragging) {
+                    e.stopPropagation();
+
+                    this.lastDeltaX = e.clientX - this.dragStartX;
+                    this.lastDeltaY = e.clientY - this.dragStartY;
+                    this.innerRef.current!.style.transform = `translate(calc(-50% + ${this.lastDeltaX}px), ` +
+                        `calc(-50% + ${this.lastDeltaY}px))`;
+                }
+
+                return true;
+            }
+
+            case PointerEventType.Up: {
+                if (this.isDragging) {
+                    this.isDragging = false;
+                    element.releasePointerCapture(e.pointerId);
+                }
+
+                return true;
+            }
+
+            default:
+        }
+
+        return false;
     }
 
     private handleCloseClick = () => {

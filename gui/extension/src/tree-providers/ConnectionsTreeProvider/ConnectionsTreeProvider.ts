@@ -31,7 +31,8 @@ import type {
 import { requisitions } from "../../../../frontend/src/supplement/Requisitions.js";
 
 import {
-    CdmEntityType, ConnectionDataModelEntry, ICdmRestRootEntry, ICdmRoutineEntry, ICdmSchemaEntry, cdmDbEntityTypes,
+    CdmEntityType, ConnectionDataModelEntry, ICdmRestRootEntry,
+    ICdmSchemaEntry, cdmDbEntityTypes,
     type ConnectionDataModel, type ICdmConnectionEntry,
 } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 
@@ -453,10 +454,9 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
                         sql = sql.replaceAll(/FUNCTION `(.*?)`/gm, `${functionKeyword} ${qualifiedName}`);
 
                         if (withDelimiter) {
-                            let isJSRoutine = (entry as ICdmRoutineEntry).language == "JAVASCRIPT";
-                            let isProcedure = (entry as ICdmRoutineEntry).type == CdmEntityType.StoredProcedure;
+                            const isJSRoutine = (entry).language === "JAVASCRIPT";
+                            const isProcedure = (entry).type === CdmEntityType.StoredProcedure;
                             if (withDrop) {
-                                const name = Array.from(sql.matchAll(/PROCEDURE `(.*?)`/gm), (m) => { return m[1]; });
                                 if (isProcedure) {
                                     sql = `${dropKeyword} ${procedureKeyword} ${qualifiedName}`
                                         + `${isJSRoutine ? ";" : "%%"}\n${sql}`;
@@ -465,7 +465,9 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
                                         + `${isJSRoutine ? ";" : "%%"}\n${sql}`;
                                 }
                             }
-                            sql = !isJSRoutine ? `${delimiterKeyword} %%\n${sql}%%\n${delimiterKeyword} ;` : `${delimiterKeyword} ;\n${sql};\n${delimiterKeyword} ;`;
+                            sql = !isJSRoutine
+                                ? `${delimiterKeyword} %%\n${sql}%%\n${delimiterKeyword} ;`
+                                : `${delimiterKeyword} ;\n${sql};\n${delimiterKeyword} ;`;
                         }
                     }
                 }

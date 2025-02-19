@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,23 +24,25 @@
  */
 
 import { mount } from "enzyme";
-
 import { screen, waitFor } from "@testing-library/preact";
+
+import { registerUiLayer } from "../../../../app-logic/UILayer.js";
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../communication/MySQL.js";
 import {
     IDialogValidations, IDialogValues, type IDialogSection,
 } from "../../../../components/Dialogs/ValueEditDialog.js";
+import { ConnectionDataModel } from "../../../../data-models/ConnectionDataModel.js";
 import { ConnectionEditor } from "../../../../modules/db-editor/ConnectionEditor.js";
+import { DBEditorContext, type DBEditorContextType } from "../../../../modules/db-editor/index.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
 import { webSession } from "../../../../supplement/WebSession.js";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
+import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
 import {
     DialogHelper, changeInputValue, getDbCredentials, nextRunLoop, setupShellForTests,
 } from "../../test-helpers.js";
-import { DBEditorContext, type DBEditorContextType } from "../../../../modules/db-editor/index.js";
-import { ConnectionDataModel } from "../../../../data-models/ConnectionDataModel.js";
 
 class TestConnectionEditor extends ConnectionEditor {
     public testValidateConnectionValues = (closing: boolean, values: IDialogValues,
@@ -80,6 +82,7 @@ describe("ConnectionEditor tests", (): void => {
     };
 
     beforeAll(async () => {
+        registerUiLayer(uiLayerMock);
         backend = new ShellInterfaceSqlEditor();
 
         launcher = await setupShellForTests(false, true, "DEBUG3");
