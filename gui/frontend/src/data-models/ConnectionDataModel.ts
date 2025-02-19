@@ -26,7 +26,6 @@
 // eslint-disable-next-line max-classes-per-file
 import { ui } from "../app-logic/UILayer.js";
 import type { DeepMutable, Mutable } from "../app-logic/general-types.js";
-import { IDBSchemaObjectEntry } from "../communication/ProtocolGui.js";
 import type {
     IMrsAuthAppData, IMrsContentFileData, IMrsContentSetData, IMrsDbObjectData, IMrsRouterData, IMrsRouterService,
     IMrsSchemaData, IMrsServiceData, IMrsUserData,
