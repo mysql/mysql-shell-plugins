@@ -62,7 +62,7 @@ export enum ShellAPIGui {
     GuiDbConnectionsRemoveDbConnection = "gui.dbConnections.remove_db_connection",
     /** Lists the db_connections for the given profile */
     GuiDbConnectionsListDbConnections = "gui.dbConnections.list_db_connections",
-    /** Get the a db_connection */
+    /** Get the db_connection */
     GuiDbConnectionsGetDbConnection = "gui.dbConnections.get_db_connection",
     /** Get the list of db_types */
     GuiDbConnectionsGetDbTypes = "gui.dbConnections.get_db_types",

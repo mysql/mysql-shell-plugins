@@ -232,7 +232,7 @@ def list_db_connections(profile_id, folder_path='', be_session=None):
 
 @plugin_function('gui.dbConnections.getDbConnection', cli=True, shell=True, web=True)
 def get_db_connection(db_connection_id, be_session=None):
-    """Get the a db_connection
+    """Get the db_connection
 
     Args:
         db_connection_id (int): The id of the db_connection
