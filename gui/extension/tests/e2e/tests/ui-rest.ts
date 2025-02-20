@@ -47,99 +47,6 @@ import { RestObjectDialog } from "../lib/WebViews/Dialogs/RestObjectDialog";
 import { AuthenticationAppDialog } from "../lib/WebViews/Dialogs/AuthenticationAppDialog";
 import { RestUserDialog } from "../lib/WebViews/Dialogs/RestUserDialog";
 
-const globalService: interfaces.IRestService = {
-    servicePath: `/service1`,
-    enabled: true,
-    default: false,
-    settings: {
-        mrsAdminUser: "testUser",
-        mrsAdminPassword: "testPassword",
-        comments: "testing",
-    },
-    authentication: {
-        redirectionUrl: "localhost:8000",
-        redirectionUrlValid: "(.*)",
-        authCompletedChangeCont: "<html>",
-    },
-    restSchemas: [
-        {
-            restServicePath: `/service1`,
-            restSchemaPath: `/sakila`,
-            accessControl: constants.accessControlEnabled,
-            requiresAuth: false,
-            settings: {
-                schemaName: "sakila",
-                itemsPerPage: "35",
-                comments: "Hello",
-            },
-            restObjects: [
-                {
-                    restObjectPath: "/actor",
-                    dataMapping: {
-                        dbObject: "actor",
-                    },
-                },
-                {
-                    restObjectPath: "/address",
-                    dataMapping: {
-                        dbObject: "address",
-                    },
-                },
-            ],
-        },
-        {
-            restServicePath: `/service1`,
-            restSchemaPath: `/world_x_cst`,
-            accessControl: constants.accessControlEnabled,
-            requiresAuth: false,
-            settings: {
-                schemaName: "world_x_cst",
-                itemsPerPage: "35",
-                comments: "Hello",
-            },
-            restObjects: [
-                {
-                    restObjectPath: "/actor",
-                    dataMapping: {
-                        dbObject: "address",
-                    },
-                },
-            ],
-        },
-    ],
-};
-
-let serviceToEdit: interfaces.IRestService = {
-    servicePath: `/service2`,
-    enabled: true,
-    default: false,
-    settings: {
-        comments: "testing",
-    },
-    authentication: {
-        redirectionUrl: "localhost:8000",
-        redirectionUrlValid: "(.*)",
-        authCompletedChangeCont: "<html>",
-    },
-    authenticationApps: [
-        {
-            vendor: "MRS",
-            name: "test",
-            enabled: false,
-            limitToRegisteredUsers: false,
-            settings: {
-                description: "testing",
-            },
-            oauth2settings: {
-                appId: "OAuth2",
-                appSecret: "1234",
-                customURL: "http://testing",
-                customURLforAccessToken: "http://testing/1234",
-            },
-        },
-    ],
-};
-
 const sakilaRestSchema: interfaces.IRestSchema = {
     restSchemaPath: `/sakila`,
     accessControl: constants.accessControlEnabled,
@@ -149,34 +56,6 @@ const sakilaRestSchema: interfaces.IRestSchema = {
         itemsPerPage: "35",
         comments: "Hello",
     },
-};
-
-const restAuthenticationApp: interfaces.IRestAuthenticationApp = {
-    vendor: constants.vendorOCIOAuth2,
-    name: "new app",
-    enabled: true,
-    limitToRegisteredUsers: true,
-    settings: {
-        description: "this is an authentication app",
-        defaultRole: "Full Access",
-    },
-    oauth2settings: {
-        appId: "1234",
-        appSecret: "1234test",
-        customURL: "http://localhost",
-        customURLforAccessToken: "http://localhost/1234",
-    },
-    options: `{ "name": "test options" }`,
-    user: [{
-        username: "gui",
-        authenticationApp: "new app",
-        email: "user@oracle.com",
-        assignedRoles: undefined,
-        userOptions: "",
-        permitLogin: true,
-        vendorUserId: "1234",
-        mappedUserId: "testing",
-    }],
 };
 
 describe("MySQL REST Service", () => {
@@ -194,7 +73,7 @@ describe("MySQL REST Service", () => {
         },
     };
 
-    const schemaToDump = "dummyschema";
+
     const tableToDump = "abc";
     let routerPort: string;
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
@@ -235,7 +114,7 @@ describe("MySQL REST Service", () => {
         }
     });
 
-    describe("Main Context Menus", () => {
+    describe("MySQL Rest Service Context Menu", () => {
 
         before(async () => {
             await Os.deleteCredentials();
@@ -358,34 +237,26 @@ describe("MySQL REST Service", () => {
 
     });
 
-    describe("Service Context Menus", () => {
+    describe("Rest Services", () => {
 
-        const destDumpSchema = join(process.cwd(), schemaToDump);
-        const destDumpTable = join(process.cwd(), tableToDump);
-        const destDumpSdk = join(process.cwd(), "dump.sdk");
+        let service1: interfaces.IRestService = {
+            servicePath: `/service1`,
+            enabled: true,
+            default: false,
+            settings: {
+                mrsAdminUser: "testUser",
+                mrsAdminPassword: "testPassword",
+                comments: "testing",
+            },
+            authentication: {
+                redirectionUrl: "localhost:8000",
+                redirectionUrlValid: "(.*)",
+                authCompletedChangeCont: "<html>",
+            },
+        };
+
         let existsInQueue = false;
-
-        before(async function () {
-            try {
-                const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
-                await treeMySQLRestService.expand();
-
-                const services = [globalService, serviceToEdit];
-
-                for (let i = 0; i <= services.length - 1; i++) {
-                    await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.addRESTService);
-                    services[i] = await RestServiceDialog.set(services[i]);
-                    await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
-                        constants.wait20seconds);
-                    await driver.wait(dbTreeSection.untilTreeItemExists(services[i].servicePath),
-                        constants.wait10seconds);
-                }
-                await dbTreeSection.focus();
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-        });
+        const destDumpSdk = join(process.cwd(), "dump.sdk");
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
@@ -395,6 +266,7 @@ describe("MySQL REST Service", () => {
                 await Workbench.dismissNotifications();
             } catch (e) {
                 await Misc.processFailure(this);
+                throw e;
             }
         });
 
@@ -415,103 +287,84 @@ describe("MySQL REST Service", () => {
             await fs.rm(destDumpSdk, { force: true, recursive: true });
         });
 
-        it("Set as Current REST Service", async () => {
+        it("Create a Rest Service", async () => {
+            await dbTreeSection.focus();
+            const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
+            await treeMySQLRestService.expand();
 
-            await dbTreeSection.openContextMenuAndSelect(globalService.servicePath, constants.setAsCurrentREST);
+            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.addRESTService);
+            service1 = await RestServiceDialog.set(service1);
+            await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
+                constants.wait20seconds);
+            await driver.wait(dbTreeSection.untilTreeItemExists(service1.servicePath), constants.wait10seconds);
+        });
+
+        it("Set as Current", async () => {
+
+            await dbTreeSection.openContextMenuAndSelect(service1.servicePath, constants.setAsCurrentREST);
             await driver.wait(Workbench
                 .untilNotificationExists("The MRS service has been set as the new default service."),
                 constants.wait10seconds);
-            await driver.wait(dbTreeSection.untilTreeItemIsDefault(globalService.servicePath),
+            await driver.wait(dbTreeSection.untilTreeItemIsDefault(service1.servicePath),
                 constants.wait5seconds, "REST Service tree item did not became default");
 
         });
 
-        it("Add REST Service Schemas", async () => {
-
-            for (let i = 0; i <= globalService.restSchemas.length - 1; i++) {
-                await dbTreeSection.openContextMenuAndSelect(globalService.restSchemas[i].settings.schemaName,
-                    constants.addSchemaToREST);
-
-                globalService.restSchemas[i] = await RestSchemaDialog.set(globalService.restSchemas[i]);
-                await driver.wait(Workbench.untilNotificationExists("The MRS schema has been added successfully."),
-                    constants.wait10seconds);
-
-                await dbTreeSection.expandTreeItem(globalService.servicePath);
-                const schemaTreeName = `${globalService.restSchemas[i].restSchemaPath} (${globalService.restSchemas[i]
-                    .settings.schemaName})`;
-                await driver.wait(dbTreeSection.untilTreeItemExists(schemaTreeName), constants.wait3seconds);
-            }
-
-        });
-
-        it("Add Tables to REST Service", async () => {
-
-            const tables = ["actor", "address"];
-
-            await dbTreeSection.expandTree([globalService.restSchemas[0].settings.schemaName, "Tables"]);
-            const schemaTreeName = `${globalService.restSchemas[0].restSchemaPath} (${globalService.restSchemas[0]
-                .settings.schemaName})`;
-            await dbTreeSection.expandTreeItem(schemaTreeName);
-
-            for (const table of tables) {
-
-                await dbTreeSection.openContextMenuAndSelect(table, constants.addDBObjToREST);
-                await RestObjectDialog.set({
-                    restServicePath: globalService.servicePath,
-                });
-
-                let notification = `The MRS Database Object ${table}`;
-                notification += " was successfully updated";
-                await driver.wait(Workbench.untilNotificationExists(notification), constants.wait5seconds);
-                await driver.wait(dbTreeSection.untilTreeItemExists(`/${table}`), constants.wait5seconds);
-            }
-
-        });
-
-        it("Service - Dump to Disk - Create Statements", async () => {
+        it("Dump to Disk - Create Statements", async () => {
 
             let dumpedService = join(process.cwd(), "dumpedService.mrs.sql");
             await fs.rm(dumpedService, { recursive: true, force: true });
-            await dbTreeSection.openContextMenuAndSelect(globalService.servicePath,
+            await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
                 [constants.dumpToDisk, constants.exportCreateServiceStatement], constants.restServiceCtxMenu);
             await Workbench.setInputPath(dumpedService);
             await driver.wait(Workbench.untilNotificationExists(`The REST Service SQL was exported`),
                 constants.wait5seconds);
             await fs.access(dumpedService);
             let fileData = (await fs.readFile(dumpedService)).toString();
-            expect(fileData).to.match(new RegExp(globalService.servicePath));
+            expect(fileData).to.match(new RegExp(service1.servicePath));
 
             await fs.unlink(dumpedService);
             dumpedService = join(process.cwd(), "dumpedServiceAllObjects.mrs.sql");
             await fs.rm(dumpedService, { recursive: true, force: true });
-            await dbTreeSection.openContextMenuAndSelect(globalService.servicePath,
+
+            await dbTreeSection.openContextMenuAndSelect("sakila", constants.addSchemaToREST);
+            await RestSchemaDialog.set();
+            await driver.wait(Workbench.untilNotificationExists("The MRS schema has been added successfully."),
+                constants.wait5seconds);
+            await (await dbTreeSection.getTreeItem("sakila")).expand();
+            await (await dbTreeSection.getTreeItem("Tables")).expand();
+            await dbTreeSection.openContextMenuAndSelect("actor", constants.addDBObjToREST);
+            await RestObjectDialog.set();
+            const notification = `The MRS Database Object actor was successfully updated`;
+            await driver.wait(Workbench.untilNotificationExists(notification), constants.wait5seconds);
+
+            await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
                 [constants.dumpToDisk, constants.exportCreateServiceStatementAll], constants.restServiceCtxMenu);
             await Workbench.setInputPath(dumpedService);
             await driver.wait(Workbench.untilNotificationExists(`The REST Service SQL was exported`),
                 constants.wait5seconds);
             await fs.access(dumpedService);
             fileData = (await fs.readFile(dumpedService)).toString();
-            expect(fileData).to.match(new RegExp(globalService.servicePath));
+            expect(fileData).to.match(new RegExp(service1.servicePath));
             expect(fileData).to.match(new RegExp(sakilaRestSchema.restSchemaPath));
             expect(fileData).to.match(/actor/);
-            expect(fileData).to.match(/address/);
             await fs.unlink(dumpedService);
 
         });
 
-        it("Service - Copy to clipboard - Create Statements", async () => {
+        it("Copy to clipboard - Create Statements", async () => {
 
-            await dbTreeSection.openContextMenuAndSelect(globalService.servicePath,
+            await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
                 [constants.copyToClipboard, constants.copyCreateServiceStatement], constants.restServiceCtxMenu);
 
-            let regex = new RegExp(`CREATE REST SERVICE ${globalService.servicePath}`);
+            let regex = new RegExp(`CREATE REST SERVICE ${service1.servicePath}`);
 
             await driver.wait(async () => {
                 if (clipboard.readSync()
                     .match(regex) === null) {
 
                     console.log(`[DEBUG] clipboard content: ${clipboard.readSync()}`);
-                    await dbTreeSection.openContextMenuAndSelect(globalService.servicePath,
+                    await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
                         [constants.copyToClipboard, constants.copyCreateServiceStatement],
                         constants.restServiceCtxMenu);
 
@@ -525,10 +378,10 @@ describe("MySQL REST Service", () => {
                 return true;
             }, constants.wait5seconds, "Service create statement was not copied to the clipboard");
 
-            await dbTreeSection.openContextMenuAndSelect(globalService.servicePath,
+            await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
                 [constants.copyToClipboard, constants.copyCreateServiceStatementAll], constants.restServiceCtxMenu);
 
-            regex = new RegExp(`CREATE REST SERVICE ${globalService.servicePath}`);
+            regex = new RegExp(`CREATE REST SERVICE ${service1.servicePath}`);
             const regexSchema = new RegExp(`CREATE OR REPLACE REST SCHEMA ${sakilaRestSchema.restSchemaPath}`);
             const regexObject = new RegExp(`CREATE OR REPLACE REST VIEW /actor`);
 
@@ -541,7 +394,7 @@ describe("MySQL REST Service", () => {
                 ) {
 
                     console.log(`[DEBUG] clipboard content: ${clipboardContent}`);
-                    await dbTreeSection.openContextMenuAndSelect(globalService.servicePath,
+                    await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
                         [constants.copyToClipboard, constants.copyCreateServiceStatementAll],
                         constants.restServiceCtxMenu);
 
@@ -557,10 +410,202 @@ describe("MySQL REST Service", () => {
 
         });
 
+        it("Dump to Disk - Rest Service SDK files", async () => {
+
+            await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
+                [constants.dumpToDisk, constants.restClientSDKFiles], constants.restServiceCtxMenu);
+            await fs.rm(destDumpSdk, { force: true, recursive: true });
+            await Workbench.setInputPath(destDumpSdk);
+            await ExportSDKDialog.set(undefined);
+            await driver.wait(Workbench.untilNotificationExists("MRS SDK Files exported successfully"),
+                constants.wait5seconds);
+            const files = await fs.readdir(destDumpSdk);
+            expect(files.length, `No exported files found at ${destDumpSdk}`).to.be.greaterThan(0);
+
+        });
+
+        it("MRS Service Documentation", async () => {
+
+            await dbTreeSection.openContextMenuAndSelect(service1.servicePath, constants.mrsServiceDocs);
+            await driver.wait(async () => {
+                await Misc.switchBackToTopFrame();
+                await Misc.switchToFrame();
+
+                return (await driver.findElements(locator.mrsDocumentation.restServiceProperties)).length > 0;
+            }, constants.wait5seconds, "MRS Service Docs tab was not opened");
+            await Workbench.closeEditor(new RegExp(constants.mrsDocs));
+
+        });
+
+        it("Edit a Rest Service", async () => {
+            const editedService = {
+                servicePath: `/edited`,
+                enabled: true,
+                default: true,
+                settings: {
+                    comments: "change testing",
+                },
+                options: `{"test":"value"}`,
+                authentication: {
+                    authenticationPath: "/authenticationPath",
+                    redirectionUrl: "localhost:8001",
+                    redirectionUrlValid: "(.*)(.*)",
+                    authCompletedChangeCont: "<body>",
+                },
+                advanced: {
+                    hostNameFilter: "127.0.0.1",
+                },
+            };
+
+            await dbTreeSection.expandTreeItem(service1.servicePath);
+            await dbTreeSection.openContextMenuAndSelect(service1.servicePath, constants.editRESTService);
+            service1 = await RestServiceDialog.set(editedService);
+
+            await driver.wait(Workbench.untilNotificationExists("The MRS service has been successfully updated."),
+                constants.wait10seconds);
+
+            const treeName = `${service1.servicePath} (${service1.advanced.hostNameFilter})`;
+            await driver.wait(dbTreeSection.untilTreeItemExists(treeName), constants.wait3seconds);
+
+            await dbTreeSection.openContextMenuAndSelect(treeName, constants.editRESTService);
+
+            const thisService = await RestServiceDialog.get();
+            expect(editedService).to.deep.equal(thisService);
+        });
+
+        it("Delete REST Service", async () => {
+
+            await dbTreeSection.openContextMenuAndSelect(new RegExp(service1.servicePath),
+                constants.deleteRESTService);
+
+            const ntf = await Workbench
+                .getNotification(`Are you sure the MRS service ${service1.servicePath} should be deleted`, false);
+            await Workbench.clickOnNotificationButton(ntf, "Yes");
+            await driver.wait(Workbench.untilNotificationExists("The MRS service has been deleted successfully"),
+                constants.wait5seconds);
+
+            await driver.wait(async () => {
+                return !(await dbTreeSection.treeItemExists(service1.servicePath));
+            }, constants.wait3seconds, `Item ${service1.servicePath} should not exist on the tree`);
+        });
+
+    });
+
+    describe("Rest Schemas", () => {
+
+        const service2: interfaces.IRestService = {
+            servicePath: `/service2`,
+            restSchemas: [
+                {
+                    restServicePath: `/service2`,
+                    restSchemaPath: `/sakila`,
+                    accessControl: constants.accessControlEnabled,
+                    requiresAuth: false,
+                    settings: {
+                        schemaName: "sakila",
+                        itemsPerPage: "35",
+                        comments: "Hello",
+                    },
+                },
+                {
+                    restServicePath: `/service2`,
+                    restSchemaPath: `/world_x_cst`,
+                    accessControl: constants.accessControlEnabled,
+                    requiresAuth: false,
+                    settings: {
+                        schemaName: "world_x_cst",
+                        itemsPerPage: "35",
+                        comments: "Hello",
+                    },
+                },
+            ],
+        };
+
+        let existsInQueue = false;
+        const schemaToDump = "dummyschema";
+        const destDumpSchema = join(process.cwd(), schemaToDump);
+
+        before(async () => {
+            try {
+                await dbTreeSection.focus();
+                const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
+                await treeMySQLRestService.expand();
+                const children = await treeMySQLRestService.getChildren();
+
+                for (const child of children) {
+                    await child.collapse();
+                }
+                await (await dbTreeSection.getTreeItem("sakila")).collapse();
+
+                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.addRESTService);
+                await RestServiceDialog.set(service2);
+                await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
+                    constants.wait20seconds);
+                await driver.wait(dbTreeSection.untilTreeItemExists(service2.servicePath), constants.wait10seconds);
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
+        });
+
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+            try {
+                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
+                    `${constants.dbTreeSection} is still loading`);
+                await Workbench.dismissNotifications();
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
+        });
+
+        afterEach(async function () {
+            if (this.currentTest.state === "failed") {
+                await Misc.processFailure(this);
+            }
+
+            if (existsInQueue) {
+                await TestQueue.pop(this.currentTest.title);
+                existsInQueue = false;
+            }
+
+            await Workbench.dismissNotifications();
+        });
+
+        after(async function () {
+            try {
+                await (await dbTreeSection.getTreeItem(service2.servicePath)).collapse();
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
+        });
+
+        it("Add REST Service Schemas", async () => {
+
+            for (let i = 0; i <= service2.restSchemas.length - 1; i++) {
+                await dbTreeSection.openContextMenuAndSelect(service2.restSchemas[i].settings.schemaName,
+                    constants.addSchemaToREST);
+
+                service2.restSchemas[i] = await RestSchemaDialog.set(service2.restSchemas[i]);
+                await driver.wait(Workbench.untilNotificationExists("The MRS schema has been added successfully."),
+                    constants.wait10seconds);
+
+                await dbTreeSection.expandTreeItem(service2.servicePath);
+                const schemaTreeName = `${service2.restSchemas[i].restSchemaPath} (${service2.restSchemas[i]
+                    .settings.schemaName})`;
+                await (await dbTreeSection.getTreeItemActionButton(globalConn.caption,
+                    constants.reloadDataBaseInformation)).click();
+                await driver.wait(dbTreeSection.untilTreeItemExists(schemaTreeName), constants.wait3seconds);
+            }
+
+        });
+
         it("Schema - Dump to Disk - Create Statements", async () => {
 
             let dumpedSchema = join(process.cwd(), "dumpedSchema.mrs.sql");
-            const treeSchema = `${globalService.restSchemas[0].restSchemaPath} (${globalService.restSchemas[0]
+            const treeSchema = `${service2.restSchemas[0].restSchemaPath} (${service2.restSchemas[0]
                 .settings.schemaName})`;
             await fs.rm(dumpedSchema, { recursive: true, force: true });
             await dbTreeSection.openContextMenuAndSelect(treeSchema,
@@ -570,11 +615,19 @@ describe("MySQL REST Service", () => {
                 constants.wait5seconds);
             await fs.access(dumpedSchema);
             let fileData = (await fs.readFile(dumpedSchema)).toString();
-            expect(fileData).to.match(new RegExp(globalService.restSchemas[0].restSchemaPath));
+            expect(fileData).to.match(new RegExp(service2.restSchemas[0].restSchemaPath));
 
             await fs.unlink(dumpedSchema);
             dumpedSchema = join(process.cwd(), "dumpedSchemaAllObjects.mrs.sql");
             await fs.rm(dumpedSchema, { recursive: true, force: true });
+
+            await (await dbTreeSection.getTreeItem("sakila")).expand();
+            await (await dbTreeSection.getTreeItem("Tables")).expand();
+            await dbTreeSection.openContextMenuAndSelect("actor", constants.addDBObjToREST);
+            await RestObjectDialog.set();
+            const notification = `The MRS Database Object actor was successfully updated`;
+            await driver.wait(Workbench.untilNotificationExists(notification), constants.wait5seconds);
+
             await dbTreeSection.openContextMenuAndSelect(treeSchema,
                 [constants.dumpToDisk, constants.exportCreateSchemaStatementAll], constants.restSchemaCtxMenu);
             await Workbench.setInputPath(dumpedSchema);
@@ -584,18 +637,17 @@ describe("MySQL REST Service", () => {
             fileData = (await fs.readFile(dumpedSchema)).toString();
             expect(fileData).to.match(new RegExp(sakilaRestSchema.restSchemaPath));
             expect(fileData).to.match(/actor/);
-            expect(fileData).to.match(/address/);
             await fs.unlink(dumpedSchema);
         });
 
         it("Schema - Copy to clipboard - Create Statements", async () => {
 
-            const treeSchema = `${globalService.restSchemas[0].restSchemaPath} (${globalService.restSchemas[0]
+            const treeSchema = `${service2.restSchemas[0].restSchemaPath} (${service2.restSchemas[0]
                 .settings.schemaName})`;
             await dbTreeSection.openContextMenuAndSelect(treeSchema,
                 [constants.copyToClipboard, constants.copyCreateSchemaStatement], constants.restSchemaCtxMenu);
 
-            let regexSchema = new RegExp(`CREATE OR REPLACE REST SCHEMA ${globalService.restSchemas[0]
+            let regexSchema = new RegExp(`CREATE OR REPLACE REST SCHEMA ${service2.restSchemas[0]
                 .restSchemaPath}`);
 
             await driver.wait(async () => {
@@ -648,10 +700,227 @@ describe("MySQL REST Service", () => {
 
         });
 
+        it("Dump Rest Schema to Json file", async () => {
+
+            await dbTreeSection.expandTreeItem(service2.servicePath);
+            const dummySchema = service2.restSchemas[1];
+            const schemaTreeName = `${dummySchema.restSchemaPath} (${dummySchema.settings.schemaName})`;
+            await fs.rm(`${destDumpSchema}.mrs.json`, { recursive: true, force: true });
+            await dbTreeSection.openContextMenuAndSelect(schemaTreeName,
+                [constants.dumpToDisk, constants.dumpRESTSchemaToJSON], constants.restSchemaCtxMenu);
+            await Workbench.setInputPath(destDumpSchema);
+            await driver.wait(Workbench.untilNotificationExists(`The REST Schema has been dumped successfully`),
+                constants.wait5seconds);
+            await fs.access(`${destDumpSchema}.mrs.json`);
+        });
+
+        it("Delete REST Schema", async () => {
+
+            const treeSchema = `${service2.restSchemas[1].restSchemaPath} (${service2.restSchemas[1]
+                .settings.schemaName})`;
+            await dbTreeSection.openContextMenuAndSelect(treeSchema, constants.deleteRESTSchema);
+
+            const txt = `Are you sure the MRS schema ${service2.restSchemas[1]
+                .settings.schemaName} should be deleted?`;
+            const ntf = await Workbench.getNotification(txt, false);
+            await Workbench.clickOnNotificationButton(ntf, "Yes");
+
+            await driver.wait(Workbench.untilNotificationExists("The MRS schema has been deleted successfully"),
+                constants.wait5seconds);
+
+            await dbTreeSection.expandTreeItem(service2.servicePath);
+
+            await driver.wait(async () => {
+                return !(await dbTreeSection.treeItemExists(treeSchema));
+            }, constants.wait3seconds, `Item ${treeSchema} should not exist on the tree`);
+        });
+
+        it("Load REST Schema from JSON file", async () => {
+
+            await dbTreeSection.openContextMenuAndSelect(service2.servicePath,
+                [constants.loadFromDisk, constants.restSchemaFromJSONFile], constants.restServiceCtxMenu);
+            await Workbench.setInputPath(`${destDumpSchema}.mrs.json`);
+
+            await driver.wait(Workbench.untilNotificationExists("The REST Schema has been loaded successfully"),
+                constants.wait5seconds);
+
+            await dbTreeSection.expandTreeItem(service2.servicePath);
+            const schemaToLoad = service2.restSchemas[1];
+            await driver.wait(dbTreeSection.untilTreeItemExists(`${schemaToLoad.restSchemaPath} (${schemaToLoad.settings
+                .schemaName})`), constants.wait5seconds);
+
+        });
+
+        it("Edit REST Schema", async () => {
+            const worldSchema = service2.restSchemas[1];
+            const editedSchema = {
+                restServicePath: worldSchema.restServicePath,
+                restSchemaPath: `/schemaEdited`,
+                accessControl: constants.accessControlDisabled,
+                requiresAuth: true,
+                settings: {
+                    schemaName: "schemaEdited",
+                    itemsPerPage: "5",
+                    comments: "Hi",
+                },
+                options: `{"test":"value"}`,
+            };
+
+            let treeName = `${worldSchema.restSchemaPath} (${worldSchema.settings.schemaName})`;
+            await dbTreeSection.openContextMenuAndSelect(treeName, constants.editRESTSchema);
+            service2.restSchemas[1] = await RestSchemaDialog.set(editedSchema);
+
+            await driver.wait(Workbench.untilNotificationExists("The MRS schema has been updated successfully."),
+                constants.wait10seconds);
+
+            treeName = `${editedSchema.restSchemaPath} (${editedSchema.settings.schemaName})`;
+            await driver.wait(dbTreeSection.untilTreeItemExists(treeName), constants.wait10seconds);
+
+            await dbTreeSection.openContextMenuAndSelect(treeName, constants.editRESTSchema);
+            expect(await RestSchemaDialog.get()).to.deep.equal(editedSchema);
+        });
+
+    });
+
+    describe("Rest Objects", () => {
+
+        const service3: interfaces.IRestService = {
+            servicePath: `/service3`,
+            restSchemas: [
+                {
+                    restServicePath: `/service3`,
+                    restSchemaPath: `/sakila`,
+                    accessControl: constants.accessControlEnabled,
+                    requiresAuth: false,
+                    settings: {
+                        schemaName: "sakila",
+                    },
+                    restObjects: [
+                        {
+                            restObjectPath: "/actor",
+                            dataMapping: {
+                                dbObject: "actor",
+                            },
+                        },
+                        {
+                            restObjectPath: "/address",
+                            dataMapping: {
+                                dbObject: "address",
+                            },
+                        },
+                    ],
+                },
+            ],
+        };
+
+        const destDumpTable = join(process.cwd(), tableToDump);
+        let existsInQueue = false;
+
+        before(async () => {
+            try {
+                await dbTreeSection.focus();
+                const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
+                await treeMySQLRestService.expand();
+
+                const children = await treeMySQLRestService.getChildren();
+
+                for (const child of children) {
+                    await child.collapse();
+                }
+
+                await (await dbTreeSection.getTreeItem("sakila")).collapse();
+
+                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.addRESTService);
+                await RestServiceDialog.set(service3);
+                await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
+                    constants.wait20seconds);
+                await driver.wait(dbTreeSection.untilTreeItemExists(service3.servicePath), constants.wait10seconds);
+                await dbTreeSection.openContextMenuAndSelect(service3.servicePath, constants.setAsCurrentREST);
+                await driver.wait(Workbench
+                    .untilNotificationExists("The MRS service has been set as the new default service."),
+                    constants.wait10seconds);
+
+                await dbTreeSection.openContextMenuAndSelect(service3.restSchemas[0].settings.schemaName,
+                    constants.addSchemaToREST);
+
+                service3.restSchemas[0] = await RestSchemaDialog.set(service3.restSchemas[0]);
+                await driver.wait(Workbench.untilNotificationExists("The MRS schema has been added successfully."),
+                    constants.wait10seconds);
+
+                await dbTreeSection.expandTreeItem(service3.servicePath);
+                const schemaTreeName = `${service3.restSchemas[0].restSchemaPath} (${service3.restSchemas[0]
+                    .settings.schemaName})`;
+                await driver.wait(dbTreeSection.untilTreeItemExists(schemaTreeName), constants.wait3seconds);
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
+        });
+
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+            try {
+                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
+                    `${constants.dbTreeSection} is still loading`);
+                await Workbench.dismissNotifications();
+            } catch (e) {
+                await Misc.processFailure(this);
+            }
+        });
+
+        afterEach(async function () {
+            if (this.currentTest.state === "failed") {
+                await Misc.processFailure(this);
+            }
+
+            if (existsInQueue) {
+                await TestQueue.pop(this.currentTest.title);
+                existsInQueue = false;
+            }
+
+            await Workbench.dismissNotifications();
+        });
+
+        after(async function () {
+            try {
+                await (await dbTreeSection.getTreeItem(service3.servicePath)).collapse();
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
+        });
+
+        it("Add Object to Rest Service", async () => {
+
+            const tables = ["actor", "address"];
+
+            await dbTreeSection.expandTreeItem(service3.restSchemas[0].settings.schemaName);
+            await dbTreeSection.expandTreeItem("Tables");
+            const schemaTreeName = `${service3.restSchemas[0].restSchemaPath} (${service3.restSchemas[0]
+                .settings.schemaName})`;
+            await dbTreeSection.expandTreeItem(schemaTreeName);
+
+            for (const table of tables) {
+
+                await dbTreeSection.openContextMenuAndSelect(table, constants.addDBObjToREST);
+                await RestObjectDialog.set({
+                    restServicePath: service3.servicePath,
+                });
+
+                let notification = `The MRS Database Object ${table}`;
+                notification += " was successfully updated";
+                await driver.wait(Workbench.untilNotificationExists(notification), constants.wait5seconds);
+                await (await dbTreeSection.getTreeItem(`${service3.restSchemas[0]
+                    .restSchemaPath} (${service3.restSchemas[0].settings.schemaName})`)).expand();
+                await driver.wait(dbTreeSection.untilTreeItemExists(`/${table}`), constants.wait5seconds);
+            }
+
+        });
+
         it("Object - Dump to Disk - Create Statements", async () => {
 
             const dumpedObject = join(process.cwd(), "dumpedObject.mrs.sql");
-            const objectTreeName = `/${globalService.restSchemas[0].restObjects[0].dataMapping.dbObject}`;
+            const objectTreeName = `/${service3.restSchemas[0].restObjects[0].dataMapping.dbObject}`;
 
             await fs.rm(dumpedObject, { recursive: true, force: true });
             await dbTreeSection.openContextMenuAndSelect(objectTreeName,
@@ -661,14 +930,14 @@ describe("MySQL REST Service", () => {
                 constants.wait5seconds);
             await fs.access(dumpedObject);
             const fileData = (await fs.readFile(dumpedObject)).toString();
-            expect(fileData).to.match(new RegExp(globalService.restSchemas[0].restObjects[0].dataMapping.dbObject));
+            expect(fileData).to.match(new RegExp(service3.restSchemas[0].restObjects[0].dataMapping.dbObject));
             await fs.unlink(dumpedObject);
 
         });
 
         it("Object - Copy to clipboard - Create Statements", async () => {
 
-            const objectTreeName = `/${globalService.restSchemas[0].restObjects[0].dataMapping.dbObject}`;
+            const objectTreeName = `/${service3.restSchemas[0].restObjects[0].dataMapping.dbObject}`;
 
             await dbTreeSection.openContextMenuAndSelect(objectTreeName,
                 [constants.copyToClipboard, constants.createStatement], constants.restObjCtxMenu);
@@ -698,12 +967,12 @@ describe("MySQL REST Service", () => {
         it("Dump REST Object to JSON file", async () => {
 
             const tree = [
-                globalService.servicePath,
-                `${globalService.restSchemas[0].restSchemaPath} (${globalService.restSchemas[0].settings.schemaName})`,
+                service3.servicePath,
+                `${service3.restSchemas[0].restSchemaPath} (${service3.restSchemas[0].settings.schemaName})`,
             ];
 
             await dbTreeSection.expandTree(tree);
-            const treeTableToDump = globalService.restSchemas[0].restObjects[0].restObjectPath;
+            const treeTableToDump = service3.restSchemas[0].restObjects[0].restObjectPath;
             await fs.rm(`${destDumpTable}.mrs.json`, { recursive: true, force: true });
             await dbTreeSection.openContextMenuAndSelect(treeTableToDump,
                 [constants.dumpToDisk, constants.restObjectToJSONFile], constants.restObjCtxMenu);
@@ -722,13 +991,13 @@ describe("MySQL REST Service", () => {
             existsInQueue = true;
             await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
-            const treeActor = globalService.restSchemas[0].restObjects[0].restObjectPath;
+            const treeActor = service3.restSchemas[0].restObjects[0].restObjectPath;
             await dbTreeSection.openContextMenuAndSelect(treeActor,
                 [constants.copyToClipboard, constants.restObjectRequestPath], constants.restObjCtxMenu);
 
-            const servicePath = globalService.servicePath;
-            const schemaPath = globalService.restSchemas[0].restSchemaPath;
-            const actorTable = globalService.restSchemas[0].restObjects[0].restObjectPath;
+            const servicePath = service3.servicePath;
+            const schemaPath = service3.restSchemas[0].restSchemaPath;
+            const actorTable = service3.restSchemas[0].restObjects[0].restObjectPath;
 
             const url = `https://localhost.*${servicePath}${schemaPath}${actorTable}`;
             await driver.wait(async () => {
@@ -748,107 +1017,17 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Add and Link New REST Authentication App", async () => {
-
-            await dbTreeSection.openContextMenuAndSelect(globalService.servicePath, constants.addAndLinkNewAuthApp);
-            globalService.authenticationApps = [await AuthenticationAppDialog.set(restAuthenticationApp)];
-            await driver.wait(Workbench.untilNotificationExists("The MRS Authentication App has been added"),
-                constants.wait5seconds);
-            await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);
-            await driver.wait(dbTreeSection.untilTreeItemExists(restAuthenticationApp.name), constants.wait5seconds);
-        });
-
-        it("Add User", async () => {
-
-            await (await dbTreeSection.getTreeItem(globalService.servicePath)).collapse();
-            await dbTreeSection.openContextMenuAndSelect(globalService.authenticationApps[0].name,
-                constants.addRESTUser);
-            globalService.authenticationApps[0].user = [await RestUserDialog.set(restAuthenticationApp.user[0])];
-
-            await driver.wait(Workbench.untilNotificationExists(`The MRS User "${restAuthenticationApp.user[0]
-                .username}" has been added`),
-                constants.wait5seconds);
-            await dbTreeSection.expandTreeItem(globalService.authenticationApps[0].name);
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalService.authenticationApps[0].user[0].username),
-                constants.wait5seconds);
-        });
-
-        it("Edit REST Service", async () => {
-            const editedService = {
-                servicePath: `/edited`,
-                enabled: true,
-                default: true,
-                settings: {
-                    comments: "change testing",
-                },
-                options: `{"test":"value"}`,
-                authentication: {
-                    authenticationPath: "/authenticationPath",
-                    redirectionUrl: "localhost:8001",
-                    redirectionUrlValid: "(.*)(.*)",
-                    authCompletedChangeCont: "<body>",
-                },
-                advanced: {
-                    hostNameFilter: "127.0.0.1",
-                },
-            };
-
-            await dbTreeSection.expandTreeItem(globalService.servicePath);
-            await dbTreeSection.openContextMenuAndSelect(serviceToEdit.servicePath, constants.editRESTService);
-            serviceToEdit = await RestServiceDialog.set(editedService);
-
-            await driver.wait(Workbench.untilNotificationExists("The MRS service has been successfully updated."),
-                constants.wait10seconds);
-
-            const treeName = `${serviceToEdit.servicePath} (${serviceToEdit.advanced.hostNameFilter})`;
-            await driver.wait(dbTreeSection.untilTreeItemExists(treeName), constants.wait3seconds);
-
-            await dbTreeSection.openContextMenuAndSelect(treeName, constants.editRESTService);
-
-            const service = await RestServiceDialog.get();
-            expect(editedService).to.deep.equal(service);
-        });
-
-        it("Edit REST Schema", async () => {
-            const worldSchema = globalService.restSchemas[1];
-            const editedSchema = {
-                restServicePath: worldSchema.restServicePath,
-                restSchemaPath: `/schemaEdited`,
-                accessControl: constants.accessControlDisabled,
-                requiresAuth: true,
-                settings: {
-                    schemaName: "schemaEdited",
-                    itemsPerPage: "5",
-                    comments: "Hi",
-                },
-                options: `{"test":"value"}`,
-            };
-
-            let treeName = `${worldSchema.restSchemaPath} (${worldSchema.settings.schemaName})`;
-            await dbTreeSection.openContextMenuAndSelect(treeName, constants.editRESTSchema);
-            globalService.restSchemas[1] = await RestSchemaDialog.set(editedSchema);
-
-            await driver.wait(Workbench.untilNotificationExists("The MRS schema has been updated successfully."),
-                constants.wait10seconds);
-
-            treeName = `${editedSchema.restSchemaPath} (${editedSchema.settings.schemaName})`;
-            await driver.wait(dbTreeSection.untilTreeItemExists(treeName), constants.wait10seconds);
-
-            await dbTreeSection.openContextMenuAndSelect(treeName, constants.editRESTSchema);
-            expect(await RestSchemaDialog.get()).to.deep.equal(editedSchema);
-        });
-
         it("Edit REST Object", async () => {
-            const actorTable = globalService.restSchemas[0].restObjects[0];
+            const actorTable = service3.restSchemas[0].restObjects[0];
 
             const editedObject: interfaces.IRestObject = {
-                restServicePath: globalService.servicePath,
-                restSchemaPath: globalService.restSchemas[0].restSchemaPath,
+                restServicePath: service3.servicePath,
+                restSchemaPath: service3.restSchemas[0].restSchemaPath,
                 restObjectPath: `/editedObject`,
                 accessControl: constants.accessControlDisabled,
                 requiresAuth: true,
                 dataMapping: {
-                    dbObject: globalService.restSchemas[0].restObjects[0].dataMapping?.dbObject,
+                    dbObject: service3.restSchemas[0].restObjects[0].dataMapping?.dbObject,
                     //sdkLanguage: "TypeScript",
                     sdkLanguage: "SDK Language",
                     columns: [
@@ -912,45 +1091,45 @@ describe("MySQL REST Service", () => {
                 options: `{"test":"value"}`,
             };
 
-            const schemaTreeName = `${globalService.restSchemas[0].restSchemaPath} (${globalService.restSchemas[0]
+            const schemaTreeName = `${service3.restSchemas[0].restSchemaPath} (${service3.restSchemas[0]
                 .settings.schemaName})`;
             await dbTreeSection.expandTreeItem(schemaTreeName);
             await dbTreeSection.openContextMenuAndSelect(actorTable.restObjectPath, constants.editRESTObj);
-            globalService.restSchemas[0].restObjects[0] = await RestObjectDialog.set(editedObject);
+            service3.restSchemas[0].restObjects[0] = await RestObjectDialog.set(editedObject);
 
             let notification = `The MRS Database Object ${editedObject.dataMapping.dbObject}`;
             notification += ` was successfully updated`;
             await driver.wait(Workbench.untilNotificationExists(notification), constants.wait5seconds);
 
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalService.restSchemas[0].restObjects[0]
+            await driver.wait(dbTreeSection.untilTreeItemExists(service3.restSchemas[0].restObjects[0]
                 .restObjectPath), constants.wait5seconds);
 
-            await dbTreeSection.openContextMenuAndSelect(globalService.restSchemas[0].restObjects[0]
+            await dbTreeSection.openContextMenuAndSelect(service3.restSchemas[0].restObjects[0]
                 .restObjectPath, constants.editRESTObj);
             expect(await RestObjectDialog.get()).to.deep.equal(editedObject);
         });
 
         it("Delete REST Object", async () => {
 
-            await dbTreeSection.expandTreeItem(globalService.servicePath);
-            const objectName = globalService.restSchemas[0].restObjects[0].restObjectPath;
+            await dbTreeSection.expandTreeItem(service3.servicePath);
+            const objectName = service3.restSchemas[0].restObjects[0].restObjectPath;
 
-            const schema = globalService.restSchemas[0].settings.schemaName;
-            await dbTreeSection.expandTree([globalService.servicePath,
-            `${globalService.restSchemas[0].restSchemaPath} (${schema})`]);
+            const schema = service3.restSchemas[0].settings.schemaName;
+            await dbTreeSection.expandTree([service3.servicePath,
+            `${service3.restSchemas[0].restSchemaPath} (${schema})`]);
 
             await dbTreeSection.openContextMenuAndSelect(objectName, constants.deleteRESTObj);
 
             await driver.wait(Workbench.untilModalDialogIsOpened(), constants.wait10seconds);
             await new ModalDialog().pushButton(`Delete DB Object`);
             await driver.wait(Workbench
-                .untilNotificationExists(`The REST DB Object ${globalService.restSchemas[0].restObjects[0]
+                .untilNotificationExists(`The REST DB Object ${service3.restSchemas[0].restObjects[0]
                     .dataMapping.dbObject} has been deleted`,
                     false), constants.wait5seconds);
 
             const tree = [
-                globalService.servicePath,
-                `${globalService.restSchemas[0].restSchemaPath} (${globalService.restSchemas[0].settings.schemaName})`,
+                service3.servicePath,
+                `${service3.restSchemas[0].restSchemaPath} (${service3.restSchemas[0].settings.schemaName})`,
             ];
             await dbTreeSection.expandTree(tree);
 
@@ -961,10 +1140,10 @@ describe("MySQL REST Service", () => {
 
         it("Load REST Object from JSON file", async () => {
 
-            const schema = globalService.restSchemas[0].settings.schemaName;
-            await dbTreeSection.expandTree([globalService.servicePath,
-            `${globalService.restSchemas[0].restSchemaPath} (${schema})`]);
-            await dbTreeSection.openContextMenuAndSelect(`${globalService.restSchemas[0].restSchemaPath} (${schema})`,
+            const schema = service3.restSchemas[0].settings.schemaName;
+            await dbTreeSection.expandTree([service3.servicePath,
+            `${service3.restSchemas[0].restSchemaPath} (${schema})`]);
+            await dbTreeSection.openContextMenuAndSelect(`${service3.restSchemas[0].restSchemaPath} (${schema})`,
                 [constants.loadFromDisk, constants.restObjectFromJSONFile], constants.restSchemaCtxMenu);
             await Workbench.setInputPath(`${destDumpTable}.mrs.json`);
 
@@ -976,8 +1155,8 @@ describe("MySQL REST Service", () => {
             const json = JSON.parse(objectFile);
 
             const tree = [
-                globalService.servicePath,
-                `${globalService.restSchemas[0].restSchemaPath} (${schema})`,
+                service3.servicePath,
+                `${service3.restSchemas[0].restSchemaPath} (${schema})`,
             ];
 
             await dbTreeSection.expandTree(tree);
@@ -985,90 +1164,117 @@ describe("MySQL REST Service", () => {
                 constants.wait10seconds);
         });
 
-        it("Edit Authentication App", async () => {
+    });
 
-            const authAppToEdit = globalService.authenticationApps[0];
-            const editedApp: interfaces.IRestAuthenticationApp = {
-                vendor: constants.vendorOCIOAuth2,
-                name: "another new app",
-                enabled: false,
-                limitToRegisteredUsers: false,
-                settings: {
-                    description: "this is another authentication app",
-                    defaultRole: "Full Access",
+    describe("Rest Authentication Apps", () => {
+
+        const service4: interfaces.IRestService = {
+            servicePath: `/service4`,
+            authenticationApps: [
+                {
+                    vendor: constants.vendorOCIOAuth2,
+                    name: "new app",
+                    enabled: true,
+                    limitToRegisteredUsers: true,
+                    settings: {
+                        description: "this is an authentication app",
+                        defaultRole: "Full Access",
+                    },
+                    oauth2settings: {
+                        appId: "1234",
+                        appSecret: "1234test",
+                        customURL: "http://localhost",
+                        customURLforAccessToken: "http://localhost/1234",
+                    },
+                    options: `{ "name": "test options" }`,
+                    user: [
+                        {
+                            username: "gui",
+                            email: "user@oracle.com",
+                            assignedRoles: undefined,
+                            userOptions: "",
+                            permitLogin: true,
+                            vendorUserId: "1234",
+                            mappedUserId: "testing",
+                        },
+                    ],
                 },
-                oauth2settings: {
-                    appId: "0000",
-                    appSecret: "111test",
-                    customURL: "http://127.0.0.1",
-                    customURLforAccessToken: "http://127.0.0.1/1234",
-                },
-                options: `{"name":"option123"}`,
-                user: globalService.authenticationApps[0].user,
-            };
+            ],
+        };
 
-            await (await dbTreeSection.getTreeItem(globalService.servicePath)).collapse();
+        let existsInQueue = false;
 
-            await dbTreeSection.openContextMenuAndSelect(authAppToEdit.name, constants.editAuthenticationApp);
-            globalService.authenticationApps[0] = await AuthenticationAppDialog.set(editedApp);
+        before(async () => {
+            try {
+                await dbTreeSection.focus();
+                const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
+                await treeMySQLRestService.expand();
 
-            await driver.wait(Workbench.untilNotificationExists("The MRS Authentication App has been updated"),
-                constants.wait5seconds);
+                const children = await treeMySQLRestService.getChildren();
 
-            await driver.wait(dbTreeSection.untilTreeItemExists(editedApp.name), constants.wait5seconds);
-            await dbTreeSection.openContextMenuAndSelect(editedApp.name, constants.editAuthenticationApp);
+                for (const child of children) {
+                    await child.collapse();
+                }
 
-            const app = await AuthenticationAppDialog.get();
-            app.user = globalService.authenticationApps[0].user;
+                await (await dbTreeSection.getTreeItem("sakila")).collapse();
 
-            expect(app).to.deep.equal(editedApp);
+                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.addRESTService);
+                await RestServiceDialog.set(service4);
+                await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
+                    constants.wait20seconds);
+                await driver.wait(dbTreeSection.untilTreeItemExists(service4.servicePath), constants.wait10seconds);
+                await dbTreeSection.openContextMenuAndSelect(service4.servicePath, constants.setAsCurrentREST);
+                await driver.wait(Workbench
+                    .untilNotificationExists("The MRS service has been set as the new default service."),
+                    constants.wait10seconds);
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
         });
 
-        it("Edit User", async () => {
-
-            const userToEdit = globalService.authenticationApps[0].user[0];
-
-            const editedUser: interfaces.IRestUser = {
-                username: "testUser",
-                authenticationApp: globalService.authenticationApps[0].name,
-                email: "testuser@oracle.com",
-                assignedRoles: "Full Access",
-                userOptions: `{"test":"value"}`,
-                permitLogin: false,
-                vendorUserId: "123467",
-                mappedUserId: "stillTesting",
-            };
-
-            await dbTreeSection.expandTreeItem(globalService.authenticationApps[0].name);
-            await dbTreeSection.openContextMenuAndSelect(userToEdit.username, constants.editRESTUser);
-            globalService.authenticationApps[0].user[0] = await RestUserDialog.set(editedUser);
-
-            await driver.wait(Workbench
-                .untilNotificationExists(`The MRS User "${editedUser.username}" has been updated.`),
-                constants.wait5seconds);
-
-            await dbTreeSection.expandTreeItem(globalService.authenticationApps[0].name);
-
-            await driver.wait(dbTreeSection.untilTreeItemExists(editedUser.username), constants.wait5seconds);
-            await dbTreeSection.openContextMenuAndSelect(editedUser.username, constants.editRESTUser);
-
-            const userInfo = await RestUserDialog.get();
-            editedUser.password = "[Stored Password]";
-            expect(userInfo).to.deep.equal(editedUser);
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+            try {
+                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
+                    `${constants.dbTreeSection} is still loading`);
+                await Workbench.dismissNotifications();
+            } catch (e) {
+                await Misc.processFailure(this);
+            }
         });
 
-        it("Dump Rest Schema to Json file", async () => {
+        afterEach(async function () {
+            if (this.currentTest.state === "failed") {
+                await Misc.processFailure(this);
+            }
 
-            await dbTreeSection.expandTreeItem(globalService.servicePath);
-            const dummySchema = globalService.restSchemas[0];
-            const schemaTreeName = `${dummySchema.restSchemaPath} (${dummySchema.settings.schemaName})`;
-            await fs.rm(`${destDumpSchema}.mrs.json`, { recursive: true, force: true });
-            await dbTreeSection.openContextMenuAndSelect(schemaTreeName,
-                [constants.dumpToDisk, constants.dumpRESTSchemaToJSON], constants.restSchemaCtxMenu);
-            await Workbench.setInputPath(destDumpSchema);
-            await driver.wait(Workbench.untilNotificationExists(`The REST Schema has been dumped successfully`),
+            if (existsInQueue) {
+                await TestQueue.pop(this.currentTest.title);
+                existsInQueue = false;
+            }
+
+            await Workbench.dismissNotifications();
+        });
+
+        after(async function () {
+            try {
+                await (await dbTreeSection.getTreeItem(service4.servicePath)).collapse();
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
+        });
+
+        it("Add and Link New REST Authentication App", async () => {
+
+            await dbTreeSection.openContextMenuAndSelect(service4.servicePath, constants.addAndLinkNewAuthApp);
+            service4.authenticationApps = [await AuthenticationAppDialog.set(service4.authenticationApps[0])];
+            await driver.wait(Workbench.untilNotificationExists("The MRS Authentication App has been added"),
                 constants.wait5seconds);
-            await fs.access(`${destDumpSchema}.mrs.json`);
+            await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);
+            await driver.wait(dbTreeSection.untilTreeItemExists(service4.authenticationApps[0].name),
+                constants.wait5seconds);
         });
 
         it("Authentication App - Dump to disk - Create statements", async () => {
@@ -1076,9 +1282,9 @@ describe("MySQL REST Service", () => {
             let dumpedAuthApp = join(process.cwd(), "dumpedAuthApp.mrs.sql");
             await fs.rm(dumpedAuthApp, { recursive: true, force: true });
             await (await dbTreeSection.getTreeItem(constants.restAuthenticationApps)).collapse();
-            await dbTreeSection.expandTreeItem(globalService.servicePath);
+            await dbTreeSection.expandTreeItem(service4.servicePath);
 
-            await dbTreeSection.openContextMenuAndSelect(globalService.authenticationApps[0].name,
+            await dbTreeSection.openContextMenuAndSelect(service4.authenticationApps[0].name,
                 [constants.dumpToDisk, constants.createStatement3Dots], constants.restAppCtxMenu1);
             await Workbench.setInputPath(dumpedAuthApp);
             await driver.wait(Workbench.untilNotificationExists(`The REST Authentication App SQL was exported`),
@@ -1086,14 +1292,26 @@ describe("MySQL REST Service", () => {
             await fs.access(dumpedAuthApp);
             let fileData = (await fs.readFile(dumpedAuthApp)).toString();
 
-            let regex = new RegExp(`CREATE OR REPLACE REST AUTH APP "${globalService.authenticationApps[0]
-                .name}"`);
+            let regex = new RegExp(`CREATE OR REPLACE REST AUTH APP "${service4.authenticationApps[0].name}"`);
             expect(fileData).to.match(regex);
 
             await fs.unlink(dumpedAuthApp);
             dumpedAuthApp = join(process.cwd(), "dumpedAuthAppAllObjects.mrs.sql");
             await fs.rm(dumpedAuthApp, { recursive: true, force: true });
-            await dbTreeSection.openContextMenuAndSelect(globalService.authenticationApps[0].name,
+
+            await (await dbTreeSection.getTreeItem(service4.servicePath)).collapse();
+            await (await dbTreeSection.getTreeItem(constants.restAuthenticationApps)).expand();
+            await dbTreeSection.openContextMenuAndSelect(service4.authenticationApps[0].name, constants.addRESTUser);
+
+            await RestUserDialog.set(service4.authenticationApps[0].user[0]);
+            await driver.wait(Workbench.untilNotificationExists(`The MRS User "${service4.authenticationApps[0].user[0]
+                .username}" has been added`),
+                constants.wait5seconds);
+
+            await (await dbTreeSection.getTreeItem(service4.servicePath)).expand();
+            await (await dbTreeSection.getTreeItem(constants.restAuthenticationApps)).collapse();
+
+            await dbTreeSection.openContextMenuAndSelect(service4.authenticationApps[0].name,
                 [constants.dumpToDisk, constants.createStatementIncludingAllObjects3Dots], constants.restAppCtxMenu1);
             await Workbench.setInputPath(dumpedAuthApp);
             await driver.wait(Workbench.untilNotificationExists(`The REST Authentication App SQL was exported`),
@@ -1102,8 +1320,8 @@ describe("MySQL REST Service", () => {
             fileData = (await fs.readFile(dumpedAuthApp)).toString();
 
             expect(fileData).to.match(regex);
-            regex = new RegExp(`CREATE OR REPLACE REST USER "${globalService.authenticationApps[0].user[0]
-                .username}"`);
+            regex = new RegExp(`CREATE OR REPLACE REST USER "${service4.authenticationApps[0].user[0].username}"`);
+
             expect(fileData).to.match(regex);
             await fs.unlink(dumpedAuthApp);
 
@@ -1111,10 +1329,10 @@ describe("MySQL REST Service", () => {
 
         it("Authentication App - Copy to clipboard - Create Statements", async () => {
 
-            await dbTreeSection.openContextMenuAndSelect(globalService.authenticationApps[0].name,
+            await dbTreeSection.openContextMenuAndSelect(service4.authenticationApps[0].name,
                 [constants.copyToClipboard, constants.createStatement], constants.restAppCtxMenu1);
 
-            let regex = new RegExp(`CREATE OR REPLACE REST AUTH APP "${globalService.authenticationApps[0]
+            let regex = new RegExp(`CREATE OR REPLACE REST AUTH APP "${service4.authenticationApps[0]
                 .name}"`);
 
             await driver.wait(async () => {
@@ -1122,7 +1340,7 @@ describe("MySQL REST Service", () => {
                     .match(regex) === null) {
 
                     console.log(`[DEBUG] clipboard content: ${clipboard.readSync()}`);
-                    await dbTreeSection.openContextMenuAndSelect(globalService.authenticationApps[0].name,
+                    await dbTreeSection.openContextMenuAndSelect(service4.authenticationApps[0].name,
                         [constants.copyToClipboard, constants.createStatement], constants.restAppCtxMenu1);
 
                     return false;
@@ -1135,10 +1353,10 @@ describe("MySQL REST Service", () => {
                 return true;
             }, constants.wait5seconds, "Authentication app Create statement was not copied to the clipboard");
 
-            await dbTreeSection.openContextMenuAndSelect(globalService.authenticationApps[0].name,
+            await dbTreeSection.openContextMenuAndSelect(service4.authenticationApps[0].name,
                 [constants.copyToClipboard, constants.createStatementIncludingAllObjects], constants.restAppCtxMenu1);
 
-            regex = new RegExp(`CREATE OR REPLACE REST USER "${globalService.authenticationApps[0].user[0]
+            regex = new RegExp(`CREATE OR REPLACE REST USER "${service4.authenticationApps[0].user[0]
                 .username}"`);
 
             await driver.wait(async () => {
@@ -1147,7 +1365,7 @@ describe("MySQL REST Service", () => {
                 if (clipboardContent.match(regex) === null) {
 
                     console.log(`[DEBUG] clipboard content: ${clipboardContent}`);
-                    await dbTreeSection.openContextMenuAndSelect(globalService.authenticationApps[0].name,
+                    await dbTreeSection.openContextMenuAndSelect(service4.authenticationApps[0].name,
                         [constants.copyToClipboard, constants.createStatementIncludingAllObjects],
                         constants.restAppCtxMenu1);
 
@@ -1164,13 +1382,233 @@ describe("MySQL REST Service", () => {
 
         });
 
+        it("Edit Authentication App", async () => {
+
+            const authAppToEdit = service4.authenticationApps[0];
+            const editedApp: interfaces.IRestAuthenticationApp = {
+                vendor: constants.vendorOCIOAuth2,
+                name: "another new app",
+                enabled: false,
+                limitToRegisteredUsers: false,
+                settings: {
+                    description: "this is another authentication app",
+                    defaultRole: "Full Access",
+                },
+                oauth2settings: {
+                    appId: "0000",
+                    appSecret: "111test",
+                    customURL: "http://127.0.0.1",
+                    customURLforAccessToken: "http://127.0.0.1/1234",
+                },
+                options: `{"name":"option123"}`,
+            };
+
+            await (await dbTreeSection.getTreeItem(service4.servicePath)).collapse();
+            await (await dbTreeSection.getTreeItem(constants.restAuthenticationApps)).expand();
+
+            await dbTreeSection.openContextMenuAndSelect(authAppToEdit.name, constants.editAuthenticationApp);
+            service4.authenticationApps[0] = await AuthenticationAppDialog.set(editedApp);
+
+            await driver.wait(Workbench.untilNotificationExists("The MRS Authentication App has been updated"),
+                constants.wait5seconds);
+
+            await driver.wait(dbTreeSection.untilTreeItemExists(editedApp.name), constants.wait5seconds);
+            await dbTreeSection.openContextMenuAndSelect(editedApp.name, constants.editAuthenticationApp);
+
+            const app = await AuthenticationAppDialog.get();
+            expect(app).to.deep.equal(editedApp);
+        });
+
+        it("Delete Authentication App", async () => {
+
+            const authAppToDelete = service4.authenticationApps[0].name;
+            await (await dbTreeSection.getTreeItem(service4.servicePath)).collapse();
+            await dbTreeSection.openContextMenuAndSelect(authAppToDelete, constants.deleteAuthenticationApp);
+
+            const ntf = await Workbench.getNotification(
+                `Are you sure the MRS authentication app ${authAppToDelete} should be deleted`, false);
+            await Workbench.clickOnNotificationButton(ntf, "Yes");
+            let notification = `The MRS Authentication App ${authAppToDelete}`;
+            notification += ` has been deleted`;
+            await driver.wait(Workbench.untilNotificationExists(notification), constants.wait5seconds);
+
+            await driver.wait(async () => {
+                return !(await dbTreeSection.treeItemExists(authAppToDelete));
+            }, constants.wait3seconds, `Item ${authAppToDelete} should not exist on the tree`);
+
+            await dbTreeSection.expandTreeItem(service4.servicePath);
+
+            await driver.wait(async () => {
+                return !(await dbTreeSection.treeItemExists(authAppToDelete));
+            }, constants.wait3seconds, `Item ${authAppToDelete} should not exist on the tree`);
+
+        });
+
+    });
+
+    describe("Rest Users", () => {
+
+        const service5: interfaces.IRestService = {
+            servicePath: `/service5`,
+            authenticationApps: [
+                {
+                    vendor: constants.vendorOCIOAuth2,
+                    name: "Auth App",
+                    enabled: true,
+                    limitToRegisteredUsers: true,
+                    settings: {
+                        description: "this is an authentication app",
+                        defaultRole: "Full Access",
+                    },
+                    oauth2settings: {
+                        appId: "1234",
+                        appSecret: "1234test",
+                        customURL: "http://localhost",
+                        customURLforAccessToken: "http://localhost/1234",
+                    },
+                    options: `{ "name": "test options" }`,
+                    user: [{
+                        username: "gui",
+                        authenticationApp: "new app",
+                        email: "user@oracle.com",
+                        assignedRoles: undefined,
+                        userOptions: "",
+                        permitLogin: true,
+                        vendorUserId: "1234",
+                        mappedUserId: "testing",
+                    }],
+                },
+            ],
+        };
+
+        let existsInQueue = false;
+
+        before(async () => {
+            try {
+                await dbTreeSection.focus();
+                const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
+                await treeMySQLRestService.expand();
+
+                const children = await treeMySQLRestService.getChildren();
+
+                for (const child of children) {
+                    await child.collapse();
+                }
+
+                await (await dbTreeSection.getTreeItem("sakila")).collapse();
+
+                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.addRESTService);
+                await RestServiceDialog.set(service5);
+                await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
+                    constants.wait20seconds);
+                await driver.wait(dbTreeSection.untilTreeItemExists(service5.servicePath), constants.wait10seconds);
+                await dbTreeSection.openContextMenuAndSelect(service5.servicePath, constants.setAsCurrentREST);
+                await driver.wait(Workbench
+                    .untilNotificationExists("The MRS service has been set as the new default service."),
+                    constants.wait10seconds);
+
+                await dbTreeSection.openContextMenuAndSelect(constants.restAuthenticationApps,
+                    constants.addNewAuthenticationApp);
+                service5.authenticationApps = [await AuthenticationAppDialog.set(service5.authenticationApps[0])];
+                await driver.wait(Workbench.untilNotificationExists("The MRS Authentication App has been added"),
+                    constants.wait5seconds);
+                await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);
+                await driver.wait(dbTreeSection.untilTreeItemExists(service5.authenticationApps[0].name),
+                    constants.wait5seconds);
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
+        });
+
+        beforeEach(async function () {
+            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
+            try {
+                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
+                    `${constants.dbTreeSection} is still loading`);
+                await Workbench.dismissNotifications();
+            } catch (e) {
+                await Misc.processFailure(this);
+            }
+        });
+
+        afterEach(async function () {
+            if (this.currentTest.state === "failed") {
+                await Misc.processFailure(this);
+            }
+
+            if (existsInQueue) {
+                await TestQueue.pop(this.currentTest.title);
+                existsInQueue = false;
+            }
+
+            await Workbench.dismissNotifications();
+        });
+
+        after(async function () {
+            try {
+                await (await dbTreeSection.getTreeItem(service5.servicePath)).collapse();
+            } catch (e) {
+                await Misc.processFailure(this);
+                throw e;
+            }
+        });
+
+        it("Add User", async () => {
+
+            await (await dbTreeSection.getTreeItem(service5.servicePath)).collapse();
+            await dbTreeSection.openContextMenuAndSelect(service5.authenticationApps[0].name,
+                constants.addRESTUser);
+            service5.authenticationApps[0].user = [await RestUserDialog.set(service5.authenticationApps[0].user[0])];
+
+            await driver.wait(Workbench.untilNotificationExists(`The MRS User "${service5.authenticationApps[0].user[0]
+                .username}" has been added`),
+                constants.wait5seconds);
+            await dbTreeSection.expandTreeItem(service5.authenticationApps[0].name);
+            await driver.wait(dbTreeSection.untilTreeItemExists(service5.authenticationApps[0].user[0].username),
+                constants.wait5seconds);
+        });
+
+        it("Edit User", async () => {
+
+            const userToEdit = service5.authenticationApps[0].user[0];
+
+            const editedUser: interfaces.IRestUser = {
+                username: "testUser",
+                authenticationApp: service5.authenticationApps[0].name,
+                email: "testuser@oracle.com",
+                assignedRoles: "Full Access",
+                userOptions: `{"test":"value"}`,
+                permitLogin: false,
+                vendorUserId: "123467",
+                mappedUserId: "stillTesting",
+            };
+
+            await dbTreeSection.expandTreeItem(service5.authenticationApps[0].name);
+            await dbTreeSection.openContextMenuAndSelect(userToEdit.username, constants.editRESTUser);
+            service5.authenticationApps[0].user[0] = await RestUserDialog.set(editedUser);
+
+            await driver.wait(Workbench
+                .untilNotificationExists(`The MRS User "${editedUser.username}" has been updated.`),
+                constants.wait5seconds);
+
+            await dbTreeSection.expandTreeItem(service5.authenticationApps[0].name);
+
+            await driver.wait(dbTreeSection.untilTreeItemExists(editedUser.username), constants.wait5seconds);
+            await dbTreeSection.openContextMenuAndSelect(editedUser.username, constants.editRESTUser);
+
+            const userInfo = await RestUserDialog.get();
+            editedUser.password = "[Stored Password]";
+            expect(userInfo).to.deep.equal(editedUser);
+        });
+
         it("User - Dump to disk - Create statements", async () => {
 
             let dumpedUser = join(process.cwd(), "dumpedUser.mrs.sql");
             await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);
 
             await fs.rm(dumpedUser, { recursive: true, force: true });
-            await dbTreeSection.openContextMenuAndSelect(globalService.authenticationApps[0].user[0].username,
+            await dbTreeSection.openContextMenuAndSelect(service5.authenticationApps[0].user[0].username,
                 [constants.dumpToDisk, constants.createStatement3Dots], constants.restUserCtxMenu);
             await Workbench.setInputPath(dumpedUser);
             await driver.wait(Workbench.untilNotificationExists(`The REST User SQL was exported`),
@@ -1178,14 +1616,14 @@ describe("MySQL REST Service", () => {
             await fs.access(dumpedUser);
             let fileData = (await fs.readFile(dumpedUser)).toString();
 
-            let regex = new RegExp(`CREATE OR REPLACE REST USER "${globalService.authenticationApps[0].user[0]
+            let regex = new RegExp(`CREATE OR REPLACE REST USER "${service5.authenticationApps[0].user[0]
                 .username}"`);
             expect(fileData).to.match(regex);
 
             await fs.unlink(dumpedUser);
             dumpedUser = join(process.cwd(), "dumpedAuthAppAllObjects.mrs.sql");
             await fs.rm(dumpedUser, { recursive: true, force: true });
-            await dbTreeSection.openContextMenuAndSelect(globalService.authenticationApps[0].user[0].username,
+            await dbTreeSection.openContextMenuAndSelect(service5.authenticationApps[0].user[0].username,
                 [constants.dumpToDisk, constants.createStatementIncludingAllObjects3Dots], constants.restUserCtxMenu);
             await Workbench.setInputPath(dumpedUser);
             await driver.wait(Workbench.untilNotificationExists(`The REST User SQL was exported`),
@@ -1194,7 +1632,7 @@ describe("MySQL REST Service", () => {
             fileData = (await fs.readFile(dumpedUser)).toString();
 
             expect(fileData).to.match(regex);
-            regex = new RegExp(`CREATE OR REPLACE REST USER "${globalService.authenticationApps[0].user[0]
+            regex = new RegExp(`CREATE OR REPLACE REST USER "${service5.authenticationApps[0].user[0]
                 .username}"`);
 
             expect(fileData).to.match(regex);
@@ -1205,10 +1643,10 @@ describe("MySQL REST Service", () => {
 
         it("User - Copy to clipboard - Create Statements", async () => {
 
-            await dbTreeSection.openContextMenuAndSelect(globalService.authenticationApps[0].user[0].username,
+            await dbTreeSection.openContextMenuAndSelect(service5.authenticationApps[0].user[0].username,
                 [constants.copyToClipboard, constants.createStatement], constants.restUserCtxMenu);
 
-            let regex = new RegExp(`CREATE OR REPLACE REST USER "${globalService.authenticationApps[0]
+            let regex = new RegExp(`CREATE OR REPLACE REST USER "${service5.authenticationApps[0]
                 .user[0].username}"`);
 
             await driver.wait(async () => {
@@ -1216,7 +1654,7 @@ describe("MySQL REST Service", () => {
                     .match(regex) === null) {
 
                     console.log(`[DEBUG] clipboard content: ${clipboard.readSync()}`);
-                    await dbTreeSection.openContextMenuAndSelect(globalService.authenticationApps[0].user[0].username,
+                    await dbTreeSection.openContextMenuAndSelect(service5.authenticationApps[0].user[0].username,
                         [constants.copyToClipboard, constants.createStatement], constants.restUserCtxMenu);
 
                     return false;
@@ -1229,10 +1667,10 @@ describe("MySQL REST Service", () => {
                 return true;
             }, constants.wait5seconds, "User Create statement was not copied to the clipboard");
 
-            await dbTreeSection.openContextMenuAndSelect(globalService.authenticationApps[0].user[0].username,
+            await dbTreeSection.openContextMenuAndSelect(service5.authenticationApps[0].user[0].username,
                 [constants.copyToClipboard, constants.createStatementIncludingAllObjects], constants.restUserCtxMenu);
 
-            regex = new RegExp(`CREATE OR REPLACE REST USER "${globalService.authenticationApps[0].user[0]
+            regex = new RegExp(`CREATE OR REPLACE REST USER "${service5.authenticationApps[0].user[0]
                 .username}"`);
 
             await driver.wait(async () => {
@@ -1241,7 +1679,7 @@ describe("MySQL REST Service", () => {
                 if (clipboardContent.match(regex) === null && clipboardContent.match(/GRANT REST ROLE/)) {
 
                     console.log(`[DEBUG] clipboard content: ${clipboardContent}`);
-                    await dbTreeSection.openContextMenuAndSelect(globalService.authenticationApps[0].user[0].username,
+                    await dbTreeSection.openContextMenuAndSelect(service5.authenticationApps[0].user[0].username,
                         [constants.copyToClipboard, constants.createStatementIncludingAllObjects],
                         constants.restUserCtxMenu);
 
@@ -1260,7 +1698,7 @@ describe("MySQL REST Service", () => {
 
         it("Delete User", async () => {
 
-            const userToDelete = globalService.authenticationApps[0].user[0].username;
+            const userToDelete = service5.authenticationApps[0].user[0].username;
             await dbTreeSection.openContextMenuAndSelect(userToDelete, constants.deleteRESTUser);
 
             const ntf = await Workbench
@@ -1270,129 +1708,11 @@ describe("MySQL REST Service", () => {
             await driver.wait(Workbench.untilNotificationExists(`The MRS User ${userToDelete} has been deleted`),
                 constants.wait5seconds);
 
-            const tree = [
-                globalService.servicePath,
-                globalService.authenticationApps[0].name,
-            ];
-
-            await dbTreeSection.expandTree(tree);
+            await dbTreeSection.expandTreeItem(service5.authenticationApps[0].name);
 
             await driver.wait(async () => {
                 return !(await dbTreeSection.treeItemExists(userToDelete));
             }, constants.wait3seconds, `Item ${userToDelete} should not exist on the tree`);
-        });
-
-        it("Delete Authentication App", async () => {
-
-            const authAppToDelete = globalService.authenticationApps[0].name;
-            await (await dbTreeSection.getTreeItem(globalService.servicePath)).collapse();
-            await dbTreeSection.openContextMenuAndSelect(authAppToDelete, constants.deleteAuthenticationApp);
-
-            const ntf = await Workbench.getNotification(
-                `Are you sure the MRS authentication app ${authAppToDelete} should be deleted`, false);
-            await Workbench.clickOnNotificationButton(ntf, "Yes");
-            let notification = `The MRS Authentication App ${authAppToDelete}`;
-            notification += ` has been deleted`;
-            await driver.wait(Workbench.untilNotificationExists(notification), constants.wait5seconds);
-
-            await driver.wait(async () => {
-                return !(await dbTreeSection.treeItemExists(authAppToDelete));
-            }, constants.wait3seconds, `Item ${authAppToDelete} should not exist on the tree`);
-
-            await dbTreeSection.expandTreeItem(globalService.servicePath);
-
-            await driver.wait(async () => {
-                return !(await dbTreeSection.treeItemExists(authAppToDelete));
-            }, constants.wait3seconds, `Item ${authAppToDelete} should not exist on the tree`);
-
-        });
-
-        it("Delete REST Schema", async () => {
-
-            const treeSchema = `${globalService.restSchemas[0].restSchemaPath} (${globalService.restSchemas[0]
-                .settings.schemaName})`;
-            await dbTreeSection.openContextMenuAndSelect(treeSchema, constants.deleteRESTSchema);
-
-            const txt = `Are you sure the MRS schema ${globalService.restSchemas[0]
-                .settings.schemaName} should be deleted?`;
-            const ntf = await Workbench.getNotification(txt, false);
-            await Workbench.clickOnNotificationButton(ntf, "Yes");
-
-            await driver.wait(Workbench.untilNotificationExists("The MRS schema has been deleted successfully"),
-                constants.wait5seconds);
-
-            await dbTreeSection.expandTreeItem(globalService.servicePath);
-
-            await driver.wait(async () => {
-                return !(await dbTreeSection.treeItemExists(treeSchema));
-            }, constants.wait3seconds, `Item ${treeSchema} should not exist on the tree`);
-        });
-
-        it("Load REST Schema from JSON file", async () => {
-
-            await dbTreeSection.openContextMenuAndSelect(globalService.servicePath,
-                [constants.loadFromDisk, constants.restSchemaFromJSONFile], constants.restServiceCtxMenu);
-            await Workbench.setInputPath(`${destDumpSchema}.mrs.json`);
-
-            await driver.wait(Workbench.untilNotificationExists("The REST Schema has been loaded successfully"),
-                constants.wait5seconds);
-
-            await dbTreeSection.expandTreeItem(globalService.servicePath);
-            const schemaToLoad = globalService.restSchemas[0];
-            await driver.wait(dbTreeSection.untilTreeItemExists(`${schemaToLoad.restSchemaPath} (${schemaToLoad.settings
-                .schemaName})`), constants.wait5seconds);
-
-        });
-
-        it("Dump to Disk - Rest Service SDK files", async () => {
-
-            await dbTreeSection.openContextMenuAndSelect(globalService.servicePath,
-                [constants.dumpToDisk, constants.restClientSDKFiles], constants.restServiceCtxMenu);
-            await fs.rm(destDumpSdk, { force: true, recursive: true });
-            await Workbench.setInputPath(destDumpSdk);
-            await ExportSDKDialog.set(undefined);
-            await driver.wait(Workbench.untilNotificationExists("MRS SDK Files exported successfully"),
-                constants.wait5seconds);
-            const files = await fs.readdir(destDumpSdk);
-            expect(files.length, `No exported files found at ${destDumpSdk}`).to.be.greaterThan(0);
-
-        });
-
-        it("MRS Service Documentation", async () => {
-
-            await dbTreeSection.openContextMenuAndSelect(globalService.servicePath, constants.mrsServiceDocs);
-            await driver.wait(async () => {
-                await Misc.switchBackToTopFrame();
-                await Misc.switchToFrame();
-
-                return (await driver.findElements(locator.mrsDocumentation.restServiceProperties)).length > 0;
-            }, constants.wait5seconds, "MRS Service Docs tab was not opened");
-            await Workbench.closeEditor(new RegExp(constants.mrsDocs));
-
-        });
-
-        it("Delete REST Services", async () => {
-
-            const services = [
-                globalService,
-                serviceToEdit,
-            ];
-
-            for (const service of services) {
-                await dbTreeSection.openContextMenuAndSelect(new RegExp(service.servicePath),
-                    constants.deleteRESTService);
-
-                const ntf = await Workbench
-                    .getNotification(`Are you sure the MRS service ${service.servicePath} should be deleted`, false);
-                await Workbench.clickOnNotificationButton(ntf, "Yes");
-                await driver.wait(Workbench.untilNotificationExists("The MRS service has been deleted successfully"),
-                    constants.wait5seconds);
-
-                await driver.wait(async () => {
-                    return !(await dbTreeSection.treeItemExists(service.servicePath));
-                }, constants.wait3seconds, `Item ${service.servicePath} should not exist on the tree`);
-            }
-
         });
 
     });
@@ -1437,6 +1757,7 @@ describe("MySQL REST Service", () => {
 
         before(async function () {
             try {
+                await dbTreeSection.focus();
                 await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
                 crudService.advanced.hostNameFilter = `127.0.0.1:${routerPort}`;
                 crudSchema.restServicePath = `${crudService.advanced.hostNameFilter}${crudService.servicePath}`;
@@ -1451,6 +1772,11 @@ describe("MySQL REST Service", () => {
                 await RestServiceDialog.set(crudService);
                 await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
                     constants.wait20seconds);
+                await dbTreeSection.openContextMenuAndSelect(new RegExp(crudService.servicePath),
+                    constants.setAsCurrentREST);
+                await driver.wait(Workbench
+                    .untilNotificationExists("The MRS service has been set as the new default service."),
+                    constants.wait10seconds);
                 await dbTreeSection.expandTreeItem(constants.mysqlRestService);
 
                 await dbTreeSection.openContextMenuAndSelect(crudSchema.settings.schemaName, constants.addSchemaToREST);
@@ -1491,6 +1817,7 @@ describe("MySQL REST Service", () => {
         after(async function () {
             try {
                 await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.killRouters);
+                await dbTreeSection.expandTreeItem(constants.mysqlRouters);
                 const router = await dbTreeSection.getTreeItem(new RegExp(hostname()));
                 const routerName = await router.getLabel();
                 await dbTreeSection.openContextMenuAndSelect(routerName, constants.deleteRouter);
