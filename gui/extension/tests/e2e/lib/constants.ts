@@ -445,6 +445,10 @@ export const createStatementIncludingAllObjects = "Create Statement Including Al
 export const createStatementIncludingAllObjects3Dots = `${createStatementIncludingAllObjects}...`;
 export const restAuthenticationApps = "REST Authentication Apps";
 
+export const restAuthenticationAppsCtxMenu = new Map([
+    [addNewAuthenticationApp, 1],
+]);
+
 export const restServiceCtxMenu = new Map([
     [editRESTService, 1],
     [setAsCurrentREST, 2],
