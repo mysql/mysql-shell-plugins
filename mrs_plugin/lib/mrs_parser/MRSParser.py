@@ -711,112 +711,112 @@ class MRSParser ( Parser ):
 
     sharedContextCache = PredictionContextCache()
 
-    literalNames = [ "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "'='", "':='", "'<=>'", "'>='", 
-                     "'>'", "'<='", "'<'", "'!='", "'+'", "'-'", "'*'", 
-                     "'/'", "'%'", "'!'", "'~'", "'<<'", "'>>'", "'&&'", 
-                     "'&'", "'^'", "'||'", "'|'", "'.'", "','", "';'", "':'", 
-                     "'('", "')'", "'{'", "'}'", "'_'", "'['", "']'", "'->'", 
-                     "'->>'", "'@'", "<INVALID>", "'@@'", "'\\N'", "'?'", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
+    literalNames = [ "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "'='", "':='", "'<=>'", "'>='",
+                     "'>'", "'<='", "'<'", "'!='", "'+'", "'-'", "'*'",
+                     "'/'", "'%'", "'!'", "'~'", "'<<'", "'>>'", "'&&'",
+                     "'&'", "'^'", "'||'", "'|'", "'.'", "','", "';'", "':'",
+                     "'('", "')'", "'{'", "'}'", "'_'", "'['", "']'", "'->'",
+                     "'->>'", "'@'", "<INVALID>", "'@@'", "'\\N'", "'?'",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>",
                      "'<>'" ]
 
-    symbolicNames = [ "<INVALID>", "CREATE_SYMBOL", "OR_SYMBOL", "REPLACE_SYMBOL", 
-                      "ALTER_SYMBOL", "SHOW_SYMBOL", "STATUS_SYMBOL", "NEW_SYMBOL", 
-                      "ON_SYMBOL", "FROM_SYMBOL", "IN_SYMBOL", "DATABASES_SYMBOL", 
-                      "DATABASE_SYMBOL", "JSON_SYMBOL", "VIEW_SYMBOL", "PROCEDURE_SYMBOL", 
-                      "FUNCTION_SYMBOL", "DROP_SYMBOL", "USE_SYMBOL", "AS_SYMBOL", 
-                      "FILTER_SYMBOL", "AUTHENTICATION_SYMBOL", "PATH_SYMBOL", 
-                      "VALIDATION_SYMBOL", "DEFAULT_SYMBOL", "USER_SYMBOL", 
-                      "OPTIONS_SYMBOL", "IF_SYMBOL", "NOT_SYMBOL", "EXISTS_SYMBOL", 
-                      "PAGE_SYMBOL", "HOST_SYMBOL", "TYPE_SYMBOL", "FORMAT_SYMBOL", 
-                      "UPDATE_SYMBOL", "NULL_SYMBOL", "TRUE_SYMBOL", "FALSE_SYMBOL", 
-                      "SET_SYMBOL", "IDENTIFIED_SYMBOL", "BY_SYMBOL", "ROLE_SYMBOL", 
-                      "TO_SYMBOL", "IGNORE_SYMBOL", "CLONE_SYMBOL", "FILE_SYMBOL", 
-                      "BINARY_SYMBOL", "DATA_SYMBOL", "LOAD_SYMBOL", "GRANT_SYMBOL", 
-                      "READ_SYMBOL", "DELETE_SYMBOL", "GROUP_SYMBOL", "REVOKE_SYMBOL", 
-                      "ACCOUNT_SYMBOL", "LOCK_SYMBOL", "UNLOCK_SYMBOL", 
-                      "GRANTS_SYMBOL", "FOR_SYMBOL", "LEVEL_SYMBOL", "ANY_SYMBOL", 
-                      "CLIENT_SYMBOL", "URL_SYMBOL", "NAME_SYMBOL", "DO_SYMBOL", 
-                      "ALL_SYMBOL", "PARAMETERS_SYMBOL", "ADD_SYMBOL", "REMOVE_SYMBOL", 
-                      "CONFIGURE_SYMBOL", "REST_SYMBOL", "METADATA_SYMBOL", 
-                      "SERVICES_SYMBOL", "SERVICE_SYMBOL", "VIEWS_SYMBOL", 
-                      "PROCEDURES_SYMBOL", "FUNCTIONS_SYMBOL", "RESULT_SYMBOL", 
-                      "ENABLED_SYMBOL", "PUBLISHED_SYMBOL", "DISABLED_SYMBOL", 
-                      "PRIVATE_SYMBOL", "UNPUBLISHED_SYMBOL", "PROTOCOL_SYMBOL", 
-                      "HTTP_SYMBOL", "HTTPS_SYMBOL", "COMMENTS_SYMBOL", 
-                      "REQUEST_SYMBOL", "REDIRECTION_SYMBOL", "MANAGEMENT_SYMBOL", 
-                      "AVAILABLE_SYMBOL", "REQUIRED_SYMBOL", "ITEMS_SYMBOL", 
-                      "PER_SYMBOL", "CONTENT_SYMBOL", "MEDIA_SYMBOL", "AUTODETECT_SYMBOL", 
-                      "FEED_SYMBOL", "ITEM_SYMBOL", "SETS_SYMBOL", "FILES_SYMBOL", 
-                      "AUTH_SYMBOL", "APPS_SYMBOL", "APP_SYMBOL", "ID_SYMBOL", 
-                      "SECRET_SYMBOL", "VENDOR_SYMBOL", "MRS_SYMBOL", "MYSQL_SYMBOL", 
-                      "USERS_SYMBOL", "ALLOW_SYMBOL", "REGISTER_SYMBOL", 
-                      "CLASS_SYMBOL", "DEVELOPMENT_SYMBOL", "SCRIPTS_SYMBOL", 
-                      "MAPPING_SYMBOL", "TYPESCRIPT_SYMBOL", "ROLES_SYMBOL", 
-                      "EXTENDS_SYMBOL", "OBJECT_SYMBOL", "HIERARCHY_SYMBOL", 
-                      "INCLUDE_SYMBOL", "OBJECTS_SYMBOL", "AT_INOUT_SYMBOL", 
-                      "AT_IN_SYMBOL", "AT_OUT_SYMBOL", "AT_CHECK_SYMBOL", 
-                      "AT_NOCHECK_SYMBOL", "AT_NOUPDATE_SYMBOL", "AT_SORTABLE_SYMBOL", 
-                      "AT_NOFILTERING_SYMBOL", "AT_ROWOWNERSHIP_SYMBOL", 
-                      "AT_UNNEST_SYMBOL", "AT_DATATYPE_SYMBOL", "AT_SELECT_SYMBOL", 
-                      "AT_NOSELECT_SYMBOL", "AT_INSERT_SYMBOL", "AT_NOINSERT_SYMBOL", 
-                      "AT_UPDATE_SYMBOL", "AT_DELETE_SYMBOL", "AT_NODELETE_SYMBOL", 
-                      "AT_KEY_SYMBOL", "EQUAL_OPERATOR", "ASSIGN_OPERATOR", 
-                      "NULL_SAFE_EQUAL_OPERATOR", "GREATER_OR_EQUAL_OPERATOR", 
-                      "GREATER_THAN_OPERATOR", "LESS_OR_EQUAL_OPERATOR", 
-                      "LESS_THAN_OPERATOR", "NOT_EQUAL_OPERATOR", "PLUS_OPERATOR", 
-                      "MINUS_OPERATOR", "MULT_OPERATOR", "DIV_OPERATOR", 
-                      "MOD_OPERATOR", "LOGICAL_NOT_OPERATOR", "BITWISE_NOT_OPERATOR", 
-                      "SHIFT_LEFT_OPERATOR", "SHIFT_RIGHT_OPERATOR", "LOGICAL_AND_OPERATOR", 
-                      "BITWISE_AND_OPERATOR", "BITWISE_XOR_OPERATOR", "LOGICAL_OR_OPERATOR", 
-                      "BITWISE_OR_OPERATOR", "DOT_SYMBOL", "COMMA_SYMBOL", 
-                      "SEMICOLON_SYMBOL", "COLON_SYMBOL", "OPEN_PAR_SYMBOL", 
-                      "CLOSE_PAR_SYMBOL", "OPEN_CURLY_SYMBOL", "CLOSE_CURLY_SYMBOL", 
-                      "UNDERLINE_SYMBOL", "OPEN_SQUARE_SYMBOL", "CLOSE_SQUARE_SYMBOL", 
-                      "JSON_SEPARATOR_SYMBOL", "JSON_UNQUOTED_SEPARATOR_SYMBOL", 
-                      "AT_SIGN_SYMBOL", "AT_TEXT_SUFFIX", "AT_AT_SIGN_SYMBOL", 
-                      "NULL2_SYMBOL", "PARAM_MARKER", "HEX_NUMBER", "BIN_NUMBER", 
-                      "INT_NUMBER", "DECIMAL_NUMBER", "FLOAT_NUMBER", "WHITESPACE", 
-                      "INVALID_INPUT", "IDENTIFIER", "NCHAR_TEXT", "BACK_TICK_QUOTED_ID", 
-                      "DOUBLE_QUOTED_TEXT", "SINGLE_QUOTED_TEXT", "BLOCK_COMMENT", 
+    symbolicNames = [ "<INVALID>", "CREATE_SYMBOL", "OR_SYMBOL", "REPLACE_SYMBOL",
+                      "ALTER_SYMBOL", "SHOW_SYMBOL", "STATUS_SYMBOL", "NEW_SYMBOL",
+                      "ON_SYMBOL", "FROM_SYMBOL", "IN_SYMBOL", "DATABASES_SYMBOL",
+                      "DATABASE_SYMBOL", "JSON_SYMBOL", "VIEW_SYMBOL", "PROCEDURE_SYMBOL",
+                      "FUNCTION_SYMBOL", "DROP_SYMBOL", "USE_SYMBOL", "AS_SYMBOL",
+                      "FILTER_SYMBOL", "AUTHENTICATION_SYMBOL", "PATH_SYMBOL",
+                      "VALIDATION_SYMBOL", "DEFAULT_SYMBOL", "USER_SYMBOL",
+                      "OPTIONS_SYMBOL", "IF_SYMBOL", "NOT_SYMBOL", "EXISTS_SYMBOL",
+                      "PAGE_SYMBOL", "HOST_SYMBOL", "TYPE_SYMBOL", "FORMAT_SYMBOL",
+                      "UPDATE_SYMBOL", "NULL_SYMBOL", "TRUE_SYMBOL", "FALSE_SYMBOL",
+                      "SET_SYMBOL", "IDENTIFIED_SYMBOL", "BY_SYMBOL", "ROLE_SYMBOL",
+                      "TO_SYMBOL", "IGNORE_SYMBOL", "CLONE_SYMBOL", "FILE_SYMBOL",
+                      "BINARY_SYMBOL", "DATA_SYMBOL", "LOAD_SYMBOL", "GRANT_SYMBOL",
+                      "READ_SYMBOL", "DELETE_SYMBOL", "GROUP_SYMBOL", "REVOKE_SYMBOL",
+                      "ACCOUNT_SYMBOL", "LOCK_SYMBOL", "UNLOCK_SYMBOL",
+                      "GRANTS_SYMBOL", "FOR_SYMBOL", "LEVEL_SYMBOL", "ANY_SYMBOL",
+                      "CLIENT_SYMBOL", "URL_SYMBOL", "NAME_SYMBOL", "DO_SYMBOL",
+                      "ALL_SYMBOL", "PARAMETERS_SYMBOL", "ADD_SYMBOL", "REMOVE_SYMBOL",
+                      "CONFIGURE_SYMBOL", "REST_SYMBOL", "METADATA_SYMBOL",
+                      "SERVICES_SYMBOL", "SERVICE_SYMBOL", "VIEWS_SYMBOL",
+                      "PROCEDURES_SYMBOL", "FUNCTIONS_SYMBOL", "RESULT_SYMBOL",
+                      "ENABLED_SYMBOL", "PUBLISHED_SYMBOL", "DISABLED_SYMBOL",
+                      "PRIVATE_SYMBOL", "UNPUBLISHED_SYMBOL", "PROTOCOL_SYMBOL",
+                      "HTTP_SYMBOL", "HTTPS_SYMBOL", "COMMENTS_SYMBOL",
+                      "REQUEST_SYMBOL", "REDIRECTION_SYMBOL", "MANAGEMENT_SYMBOL",
+                      "AVAILABLE_SYMBOL", "REQUIRED_SYMBOL", "ITEMS_SYMBOL",
+                      "PER_SYMBOL", "CONTENT_SYMBOL", "MEDIA_SYMBOL", "AUTODETECT_SYMBOL",
+                      "FEED_SYMBOL", "ITEM_SYMBOL", "SETS_SYMBOL", "FILES_SYMBOL",
+                      "AUTH_SYMBOL", "APPS_SYMBOL", "APP_SYMBOL", "ID_SYMBOL",
+                      "SECRET_SYMBOL", "VENDOR_SYMBOL", "MRS_SYMBOL", "MYSQL_SYMBOL",
+                      "USERS_SYMBOL", "ALLOW_SYMBOL", "REGISTER_SYMBOL",
+                      "CLASS_SYMBOL", "DEVELOPMENT_SYMBOL", "SCRIPTS_SYMBOL",
+                      "MAPPING_SYMBOL", "TYPESCRIPT_SYMBOL", "ROLES_SYMBOL",
+                      "EXTENDS_SYMBOL", "OBJECT_SYMBOL", "HIERARCHY_SYMBOL",
+                      "INCLUDE_SYMBOL", "OBJECTS_SYMBOL", "AT_INOUT_SYMBOL",
+                      "AT_IN_SYMBOL", "AT_OUT_SYMBOL", "AT_CHECK_SYMBOL",
+                      "AT_NOCHECK_SYMBOL", "AT_NOUPDATE_SYMBOL", "AT_SORTABLE_SYMBOL",
+                      "AT_NOFILTERING_SYMBOL", "AT_ROWOWNERSHIP_SYMBOL",
+                      "AT_UNNEST_SYMBOL", "AT_DATATYPE_SYMBOL", "AT_SELECT_SYMBOL",
+                      "AT_NOSELECT_SYMBOL", "AT_INSERT_SYMBOL", "AT_NOINSERT_SYMBOL",
+                      "AT_UPDATE_SYMBOL", "AT_DELETE_SYMBOL", "AT_NODELETE_SYMBOL",
+                      "AT_KEY_SYMBOL", "EQUAL_OPERATOR", "ASSIGN_OPERATOR",
+                      "NULL_SAFE_EQUAL_OPERATOR", "GREATER_OR_EQUAL_OPERATOR",
+                      "GREATER_THAN_OPERATOR", "LESS_OR_EQUAL_OPERATOR",
+                      "LESS_THAN_OPERATOR", "NOT_EQUAL_OPERATOR", "PLUS_OPERATOR",
+                      "MINUS_OPERATOR", "MULT_OPERATOR", "DIV_OPERATOR",
+                      "MOD_OPERATOR", "LOGICAL_NOT_OPERATOR", "BITWISE_NOT_OPERATOR",
+                      "SHIFT_LEFT_OPERATOR", "SHIFT_RIGHT_OPERATOR", "LOGICAL_AND_OPERATOR",
+                      "BITWISE_AND_OPERATOR", "BITWISE_XOR_OPERATOR", "LOGICAL_OR_OPERATOR",
+                      "BITWISE_OR_OPERATOR", "DOT_SYMBOL", "COMMA_SYMBOL",
+                      "SEMICOLON_SYMBOL", "COLON_SYMBOL", "OPEN_PAR_SYMBOL",
+                      "CLOSE_PAR_SYMBOL", "OPEN_CURLY_SYMBOL", "CLOSE_CURLY_SYMBOL",
+                      "UNDERLINE_SYMBOL", "OPEN_SQUARE_SYMBOL", "CLOSE_SQUARE_SYMBOL",
+                      "JSON_SEPARATOR_SYMBOL", "JSON_UNQUOTED_SEPARATOR_SYMBOL",
+                      "AT_SIGN_SYMBOL", "AT_TEXT_SUFFIX", "AT_AT_SIGN_SYMBOL",
+                      "NULL2_SYMBOL", "PARAM_MARKER", "HEX_NUMBER", "BIN_NUMBER",
+                      "INT_NUMBER", "DECIMAL_NUMBER", "FLOAT_NUMBER", "WHITESPACE",
+                      "INVALID_INPUT", "IDENTIFIER", "NCHAR_TEXT", "BACK_TICK_QUOTED_ID",
+                      "DOUBLE_QUOTED_TEXT", "SINGLE_QUOTED_TEXT", "BLOCK_COMMENT",
                       "POUND_COMMENT", "DASHDASH_COMMENT", "WS", "NOT_EQUAL2_OPERATOR" ]
 
     RULE_mrsScript = 0
@@ -977,63 +977,63 @@ class MRSParser ( Parser ):
     RULE_simpleIdentifier = 155
     RULE_dotIdentifier = 156
 
-    ruleNames =  [ "mrsScript", "mrsStatement", "enabledDisabled", "enabledDisabledPrivate", 
-                   "quotedTextOrDefault", "jsonOptions", "metadata", "comments", 
-                   "authenticationRequired", "itemsPerPage", "itemsPerPageNumber", 
-                   "serviceSchemaSelector", "configureRestMetadataStatement", 
-                   "restMetadataOptions", "updateIfAvailable", "createRestServiceStatement", 
-                   "restServiceOptions", "publishedUnpublished", "restProtocol", 
-                   "restAuthentication", "authPath", "authRedirection", 
-                   "authValidation", "authPageContent", "userManagementSchema", 
-                   "addAuthApp", "removeAuthApp", "createRestSchemaStatement", 
-                   "restSchemaOptions", "createRestViewStatement", "restObjectOptions", 
-                   "restViewMediaType", "restViewFormat", "restViewAuthenticationProcedure", 
-                   "createRestProcedureStatement", "restProcedureResult", 
-                   "createRestFunctionStatement", "restFunctionResult", 
-                   "createRestContentSetStatement", "directoryFilePath", 
-                   "restContentSetOptions", "fileIgnoreList", "loadScripts", 
-                   "createRestContentFileStatement", "restContentFileOptions", 
-                   "createRestAuthAppStatement", "authAppName", "vendorName", 
-                   "restAuthAppOptions", "allowNewUsersToRegister", "defaultRole", 
-                   "appId", "appSecret", "url", "createRestUserStatement", 
-                   "userName", "userPassword", "userOptions", "appOptions", 
-                   "accountLock", "createRestRoleStatement", "restRoleOptions", 
-                   "parentRoleName", "roleName", "cloneRestServiceStatement", 
-                   "alterRestServiceStatement", "alterRestSchemaStatement", 
-                   "alterRestViewStatement", "alterRestProcedureStatement", 
-                   "alterRestFunctionStatement", "alterRestContentSetStatement", 
-                   "alterRestAuthAppStatement", "newAuthAppName", "alterRestUserStatement", 
-                   "dropRestServiceStatement", "dropRestSchemaStatement", 
-                   "dropRestViewStatement", "dropRestProcedureStatement", 
-                   "dropRestFunctionStatement", "dropRestContentSetStatement", 
-                   "dropRestContentFileStatement", "dropRestAuthAppStatement", 
-                   "dropRestUserStatement", "dropRestRoleStatement", "grantRestPrivilegeStatement", 
-                   "privilegeList", "privilegeName", "grantRestRoleStatement", 
-                   "revokeRestPrivilegeStatement", "revokeRestRoleStatement", 
-                   "useStatement", "serviceAndSchemaRequestPaths", "showRestMetadataStatusStatement", 
-                   "showRestServicesStatement", "showRestSchemasStatement", 
-                   "showRestViewsStatement", "showRestProceduresStatement", 
-                   "showRestFunctionsStatement", "showRestContentSetsStatement", 
-                   "showRestContentFilesStatement", "showRestAuthAppsStatement", 
-                   "showRestRolesStatement", "showRestGrantsStatement", 
-                   "showCreateRestServiceStatement", "showCreateRestSchemaStatement", 
-                   "showCreateRestViewStatement", "showCreateRestProcedureStatement", 
-                   "showCreateRestFunctionStatement", "showCreateRestContentSetStatement", 
-                   "showCreateRestContentFileStatement", "showCreateRestAuthAppStatement", 
-                   "serviceRequestPath", "newServiceRequestPath", "schemaRequestPath", 
-                   "newSchemaRequestPath", "viewRequestPath", "newViewRequestPath", 
-                   "restObjectName", "restResultName", "objectRequestPath", 
-                   "procedureRequestPath", "functionRequestPath", "newProcedureRequestPath", 
-                   "newFunctionRequestPath", "contentSetRequestPath", "newContentSetRequestPath", 
-                   "contentFileRequestPath", "serviceDeveloperIdentifier", 
-                   "serviceDevelopersIdentifier", "dottedIdentifier", "hostAndPortIdentifier", 
-                   "requestPathIdentifier", "quotedText", "jsonObj", "jsonPair", 
-                   "jsonArr", "jsonValue", "graphQlObj", "graphQlCrudOptions", 
-                   "graphQlPair", "graphQlValueJsonSchema", "graphQlAllowedKeyword", 
-                   "graphQlPairKey", "graphQlPairValue", "graphQlReduceToValue", 
-                   "graphQlDatatypeValue", "graphQlValue", "schemaName", 
-                   "viewName", "procedureName", "pureIdentifier", "identifier", 
-                   "identifierList", "identifierListWithParentheses", "qualifiedIdentifier", 
+    ruleNames =  [ "mrsScript", "mrsStatement", "enabledDisabled", "enabledDisabledPrivate",
+                   "quotedTextOrDefault", "jsonOptions", "metadata", "comments",
+                   "authenticationRequired", "itemsPerPage", "itemsPerPageNumber",
+                   "serviceSchemaSelector", "configureRestMetadataStatement",
+                   "restMetadataOptions", "updateIfAvailable", "createRestServiceStatement",
+                   "restServiceOptions", "publishedUnpublished", "restProtocol",
+                   "restAuthentication", "authPath", "authRedirection",
+                   "authValidation", "authPageContent", "userManagementSchema",
+                   "addAuthApp", "removeAuthApp", "createRestSchemaStatement",
+                   "restSchemaOptions", "createRestViewStatement", "restObjectOptions",
+                   "restViewMediaType", "restViewFormat", "restViewAuthenticationProcedure",
+                   "createRestProcedureStatement", "restProcedureResult",
+                   "createRestFunctionStatement", "restFunctionResult",
+                   "createRestContentSetStatement", "directoryFilePath",
+                   "restContentSetOptions", "fileIgnoreList", "loadScripts",
+                   "createRestContentFileStatement", "restContentFileOptions",
+                   "createRestAuthAppStatement", "authAppName", "vendorName",
+                   "restAuthAppOptions", "allowNewUsersToRegister", "defaultRole",
+                   "appId", "appSecret", "url", "createRestUserStatement",
+                   "userName", "userPassword", "userOptions", "appOptions",
+                   "accountLock", "createRestRoleStatement", "restRoleOptions",
+                   "parentRoleName", "roleName", "cloneRestServiceStatement",
+                   "alterRestServiceStatement", "alterRestSchemaStatement",
+                   "alterRestViewStatement", "alterRestProcedureStatement",
+                   "alterRestFunctionStatement", "alterRestContentSetStatement",
+                   "alterRestAuthAppStatement", "newAuthAppName", "alterRestUserStatement",
+                   "dropRestServiceStatement", "dropRestSchemaStatement",
+                   "dropRestViewStatement", "dropRestProcedureStatement",
+                   "dropRestFunctionStatement", "dropRestContentSetStatement",
+                   "dropRestContentFileStatement", "dropRestAuthAppStatement",
+                   "dropRestUserStatement", "dropRestRoleStatement", "grantRestPrivilegeStatement",
+                   "privilegeList", "privilegeName", "grantRestRoleStatement",
+                   "revokeRestPrivilegeStatement", "revokeRestRoleStatement",
+                   "useStatement", "serviceAndSchemaRequestPaths", "showRestMetadataStatusStatement",
+                   "showRestServicesStatement", "showRestSchemasStatement",
+                   "showRestViewsStatement", "showRestProceduresStatement",
+                   "showRestFunctionsStatement", "showRestContentSetsStatement",
+                   "showRestContentFilesStatement", "showRestAuthAppsStatement",
+                   "showRestRolesStatement", "showRestGrantsStatement",
+                   "showCreateRestServiceStatement", "showCreateRestSchemaStatement",
+                   "showCreateRestViewStatement", "showCreateRestProcedureStatement",
+                   "showCreateRestFunctionStatement", "showCreateRestContentSetStatement",
+                   "showCreateRestContentFileStatement", "showCreateRestAuthAppStatement",
+                   "serviceRequestPath", "newServiceRequestPath", "schemaRequestPath",
+                   "newSchemaRequestPath", "viewRequestPath", "newViewRequestPath",
+                   "restObjectName", "restResultName", "objectRequestPath",
+                   "procedureRequestPath", "functionRequestPath", "newProcedureRequestPath",
+                   "newFunctionRequestPath", "contentSetRequestPath", "newContentSetRequestPath",
+                   "contentFileRequestPath", "serviceDeveloperIdentifier",
+                   "serviceDevelopersIdentifier", "dottedIdentifier", "hostAndPortIdentifier",
+                   "requestPathIdentifier", "quotedText", "jsonObj", "jsonPair",
+                   "jsonArr", "jsonValue", "graphQlObj", "graphQlCrudOptions",
+                   "graphQlPair", "graphQlValueJsonSchema", "graphQlAllowedKeyword",
+                   "graphQlPairKey", "graphQlPairValue", "graphQlReduceToValue",
+                   "graphQlDatatypeValue", "graphQlValue", "schemaName",
+                   "viewName", "procedureName", "pureIdentifier", "identifier",
+                   "identifierList", "identifierListWithParentheses", "qualifiedIdentifier",
                    "simpleIdentifier", "dotIdentifier" ]
 
     EOF = Token.EOF
@@ -1300,20 +1300,20 @@ class MRSParser ( Parser ):
                 _alt = self._interp.adaptivePredict(self._input,1,self._ctx)
                 while _alt!=2 and _alt!=ATN.INVALID_ALT_NUMBER:
                     if _alt==1:
-                        self.state = 316 
+                        self.state = 316
                         self._errHandler.sync(self)
                         _la = self._input.LA(1)
                         while True:
                             self.state = 315
                             self.match(MRSParser.SEMICOLON_SYMBOL)
-                            self.state = 318 
+                            self.state = 318
                             self._errHandler.sync(self)
                             _la = self._input.LA(1)
                             if not (_la==166):
                                 break
 
                         self.state = 320
-                        self.mrsStatement() 
+                        self.mrsStatement()
                     self.state = 325
                     self._errHandler.sync(self)
                     _alt = self._interp.adaptivePredict(self._input,1,self._ctx)
@@ -2553,7 +2553,7 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 435 
+            self.state = 435
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while True:
@@ -2575,7 +2575,7 @@ class MRSParser ( Parser ):
                 else:
                     raise NoViableAltException(self)
 
-                self.state = 437 
+                self.state = 437
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if not (((((_la - 26)) & ~0x3f) == 0 and ((1 << (_la - 26)) & 22517998136852737) != 0)):
@@ -2825,7 +2825,7 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 464 
+            self.state = 464
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while True:
@@ -2871,7 +2871,7 @@ class MRSParser ( Parser ):
                 else:
                     raise NoViableAltException(self)
 
-                self.state = 466 
+                self.state = 466
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if not (_la==21 or _la==26 or ((((_la - 67)) & ~0x3f) == 0 and ((1 << (_la - 67)) & 636947) != 0)):
@@ -3671,7 +3671,7 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 541 
+            self.state = 541
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while True:
@@ -3705,7 +3705,7 @@ class MRSParser ( Parser ):
                 else:
                     raise NoViableAltException(self)
 
-                self.state = 543 
+                self.state = 543
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if not (_la==21 or _la==26 or ((((_la - 71)) & ~0x3f) == 0 and ((1 << (_la - 71)) & 2131585) != 0)):
@@ -3988,7 +3988,7 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 587 
+            self.state = 587
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while True:
@@ -4041,7 +4041,7 @@ class MRSParser ( Parser ):
                     pass
 
 
-                self.state = 589 
+                self.state = 589
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if not ((((_la) & ~0x3f) == 0 and ((1 << _la) & 8659140608) != 0) or ((((_la - 71)) & ~0x3f) == 0 and ((1 << (_la - 71)) & 18908801) != 0)):
@@ -4916,7 +4916,7 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 704 
+            self.state = 704
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while True:
@@ -4950,7 +4950,7 @@ class MRSParser ( Parser ):
                 else:
                     raise NoViableAltException(self)
 
-                self.state = 706 
+                self.state = 706
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if not ((((_la) & ~0x3f) == 0 and ((1 << _la) & 290271138938880) != 0) or ((((_la - 78)) & ~0x3f) == 0 and ((1 << (_la - 78)) & 269) != 0)):
@@ -5294,7 +5294,7 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 751 
+            self.state = 751
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while True:
@@ -5316,7 +5316,7 @@ class MRSParser ( Parser ):
                 else:
                     raise NoViableAltException(self)
 
-                self.state = 753 
+                self.state = 753
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if not (((((_la - 21)) & ~0x3f) == 0 and ((1 << (_la - 21)) & 1873497444986126369) != 0)):
@@ -5624,7 +5624,7 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 784 
+            self.state = 784
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while True:
@@ -5667,7 +5667,7 @@ class MRSParser ( Parser ):
                     pass
 
 
-                self.state = 786 
+                self.state = 786
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if not ((((_la) & ~0x3f) == 0 and ((1 << _la) & 6917529027657859072) != 0) or ((((_la - 64)) & ~0x3f) == 0 and ((1 << (_la - 64)) & 70918504267777) != 0)):
@@ -6020,13 +6020,6 @@ class MRSParser ( Parser ):
         def REPLACE_SYMBOL(self):
             return self.getToken(MRSParser.REPLACE_SYMBOL, 0)
 
-        def ON_SYMBOL(self):
-            return self.getToken(MRSParser.ON_SYMBOL, 0)
-
-        def serviceRequestPath(self):
-            return self.getTypedRuleContext(MRSParser.ServiceRequestPathContext,0)
-
-
         def IDENTIFIED_SYMBOL(self):
             return self.getToken(MRSParser.IDENTIFIED_SYMBOL, 0)
 
@@ -6040,9 +6033,6 @@ class MRSParser ( Parser ):
         def userOptions(self):
             return self.getTypedRuleContext(MRSParser.UserOptionsContext,0)
 
-
-        def SERVICE_SYMBOL(self):
-            return self.getToken(MRSParser.SERVICE_SYMBOL, 0)
 
         def getRuleIndex(self):
             return MRSParser.RULE_createRestUserStatement
@@ -6087,41 +6077,23 @@ class MRSParser ( Parser ):
             self.match(MRSParser.AT_SIGN_SYMBOL)
             self.state = 823
             self.authAppName()
-            self.state = 829
-            self._errHandler.sync(self)
-            _la = self._input.LA(1)
-            if _la==8:
-                self.state = 824
-                self.match(MRSParser.ON_SYMBOL)
-                self.state = 826
-                self._errHandler.sync(self)
-                _la = self._input.LA(1)
-                if _la==73:
-                    self.state = 825
-                    self.match(MRSParser.SERVICE_SYMBOL)
-
-
-                self.state = 828
-                self.serviceRequestPath()
-
-
-            self.state = 834
+            self.state = 827
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==39:
-                self.state = 831
+                self.state = 824
                 self.match(MRSParser.IDENTIFIED_SYMBOL)
-                self.state = 832
+                self.state = 825
                 self.match(MRSParser.BY_SYMBOL)
-                self.state = 833
+                self.state = 826
                 self.userPassword()
 
 
-            self.state = 837
+            self.state = 830
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==26 or _la==54 or _la==103:
-                self.state = 836
+                self.state = 829
                 self.userOptions()
 
 
@@ -6165,7 +6137,7 @@ class MRSParser ( Parser ):
         self.enterRule(localctx, 110, self.RULE_userName)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 839
+            self.state = 832
             self.quotedText()
         except RecognitionException as re:
             localctx.exception = re
@@ -6207,7 +6179,7 @@ class MRSParser ( Parser ):
         self.enterRule(localctx, 112, self.RULE_userPassword)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 841
+            self.state = 834
             self.quotedText()
         except RecognitionException as re:
             localctx.exception = re
@@ -6267,29 +6239,29 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 846 
+            self.state = 839
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while True:
-                self.state = 846
+                self.state = 839
                 self._errHandler.sync(self)
                 token = self._input.LA(1)
                 if token in [54]:
-                    self.state = 843
+                    self.state = 836
                     self.accountLock()
                     pass
                 elif token in [103]:
-                    self.state = 844
+                    self.state = 837
                     self.appOptions()
                     pass
                 elif token in [26]:
-                    self.state = 845
+                    self.state = 838
                     self.jsonOptions()
                     pass
                 else:
                     raise NoViableAltException(self)
 
-                self.state = 848 
+                self.state = 841
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if not (_la==26 or _la==54 or _la==103):
@@ -6341,11 +6313,11 @@ class MRSParser ( Parser ):
         self.enterRule(localctx, 116, self.RULE_appOptions)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 850
+            self.state = 843
             self.match(MRSParser.APP_SYMBOL)
-            self.state = 851
+            self.state = 844
             self.match(MRSParser.OPTIONS_SYMBOL)
-            self.state = 852
+            self.state = 845
             self.jsonValue()
         except RecognitionException as re:
             localctx.exception = re
@@ -6393,9 +6365,9 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 854
+            self.state = 847
             self.match(MRSParser.ACCOUNT_SYMBOL)
-            self.state = 855
+            self.state = 848
             _la = self._input.LA(1)
             if not(_la==55 or _la==56):
                 self._errHandler.recoverInline(self)
@@ -6482,59 +6454,59 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 857
+            self.state = 850
             self.match(MRSParser.CREATE_SYMBOL)
-            self.state = 860
+            self.state = 853
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==2:
-                self.state = 858
+                self.state = 851
                 self.match(MRSParser.OR_SYMBOL)
-                self.state = 859
+                self.state = 852
                 self.match(MRSParser.REPLACE_SYMBOL)
 
 
-            self.state = 862
+            self.state = 855
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 863
+            self.state = 856
             self.match(MRSParser.ROLE_SYMBOL)
-            self.state = 864
+            self.state = 857
             self.roleName()
-            self.state = 867
+            self.state = 860
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==118:
-                self.state = 865
+                self.state = 858
                 self.match(MRSParser.EXTENDS_SYMBOL)
-                self.state = 866
+                self.state = 859
                 self.parentRoleName()
 
 
-            self.state = 878
+            self.state = 871
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==8:
-                self.state = 869
+                self.state = 862
                 self.match(MRSParser.ON_SYMBOL)
-                self.state = 876
+                self.state = 869
                 self._errHandler.sync(self)
                 token = self._input.LA(1)
                 if token in [60]:
-                    self.state = 870
+                    self.state = 863
                     self.match(MRSParser.ANY_SYMBOL)
-                    self.state = 871
+                    self.state = 864
                     self.match(MRSParser.SERVICE_SYMBOL)
                     pass
                 elif token in [73, 153, 178, 189, 191, 192, 193]:
-                    self.state = 873
+                    self.state = 866
                     self._errHandler.sync(self)
                     _la = self._input.LA(1)
                     if _la==73:
-                        self.state = 872
+                        self.state = 865
                         self.match(MRSParser.SERVICE_SYMBOL)
 
 
-                    self.state = 875
+                    self.state = 868
                     self.serviceRequestPath()
                     pass
                 else:
@@ -6542,11 +6514,11 @@ class MRSParser ( Parser ):
 
 
 
-            self.state = 881
+            self.state = 874
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==26 or _la==86:
-                self.state = 880
+                self.state = 873
                 self.restRoleOptions()
 
 
@@ -6601,25 +6573,25 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 885 
+            self.state = 878
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while True:
-                self.state = 885
+                self.state = 878
                 self._errHandler.sync(self)
                 token = self._input.LA(1)
                 if token in [26]:
-                    self.state = 883
+                    self.state = 876
                     self.jsonOptions()
                     pass
                 elif token in [86]:
-                    self.state = 884
+                    self.state = 877
                     self.comments()
                     pass
                 else:
                     raise NoViableAltException(self)
 
-                self.state = 887 
+                self.state = 880
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if not (_la==26 or _la==86):
@@ -6665,7 +6637,7 @@ class MRSParser ( Parser ):
         self.enterRule(localctx, 124, self.RULE_parentRoleName)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 889
+            self.state = 882
             self.quotedText()
         except RecognitionException as re:
             localctx.exception = re
@@ -6707,7 +6679,7 @@ class MRSParser ( Parser ):
         self.enterRule(localctx, 126, self.RULE_roleName)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 891
+            self.state = 884
             self.quotedText()
         except RecognitionException as re:
             localctx.exception = re
@@ -6771,21 +6743,21 @@ class MRSParser ( Parser ):
         self.enterRule(localctx, 128, self.RULE_cloneRestServiceStatement)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 893
+            self.state = 886
             self.match(MRSParser.CLONE_SYMBOL)
-            self.state = 894
+            self.state = 887
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 895
+            self.state = 888
             self.match(MRSParser.SERVICE_SYMBOL)
-            self.state = 896
+            self.state = 889
             self.serviceRequestPath()
-            self.state = 897
+            self.state = 890
             self.match(MRSParser.NEW_SYMBOL)
-            self.state = 898
+            self.state = 891
             self.match(MRSParser.REQUEST_SYMBOL)
-            self.state = 899
+            self.state = 892
             self.match(MRSParser.PATH_SYMBOL)
-            self.state = 900
+            self.state = 893
             self.newServiceRequestPath()
         except RecognitionException as re:
             localctx.exception = re
@@ -6854,33 +6826,33 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 902
+            self.state = 895
             self.match(MRSParser.ALTER_SYMBOL)
-            self.state = 903
+            self.state = 896
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 904
+            self.state = 897
             self.match(MRSParser.SERVICE_SYMBOL)
-            self.state = 905
+            self.state = 898
             self.serviceRequestPath()
-            self.state = 910
+            self.state = 903
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==7:
-                self.state = 906
+                self.state = 899
                 self.match(MRSParser.NEW_SYMBOL)
-                self.state = 907
+                self.state = 900
                 self.match(MRSParser.REQUEST_SYMBOL)
-                self.state = 908
+                self.state = 901
                 self.match(MRSParser.PATH_SYMBOL)
-                self.state = 909
+                self.state = 902
                 self.newServiceRequestPath()
 
 
-            self.state = 913
+            self.state = 906
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==21 or _la==26 or ((((_la - 67)) & ~0x3f) == 0 and ((1 << (_la - 67)) & 636947) != 0):
-                self.state = 912
+                self.state = 905
                 self.restServiceOptions()
 
 
@@ -6968,67 +6940,67 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 915
+            self.state = 908
             self.match(MRSParser.ALTER_SYMBOL)
-            self.state = 916
+            self.state = 909
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 917
+            self.state = 910
             self.match(MRSParser.DATABASE_SYMBOL)
-            self.state = 919
+            self.state = 912
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if ((((_la - 153)) & ~0x3f) == 0 and ((1 << (_la - 153)) & 1649267441665) != 0):
-                self.state = 918
+                self.state = 911
                 self.schemaRequestPath()
 
 
-            self.state = 926
+            self.state = 919
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==8:
-                self.state = 921
+                self.state = 914
                 self.match(MRSParser.ON_SYMBOL)
-                self.state = 923
+                self.state = 916
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if _la==73:
-                    self.state = 922
+                    self.state = 915
                     self.match(MRSParser.SERVICE_SYMBOL)
 
 
-                self.state = 925
+                self.state = 918
                 self.serviceRequestPath()
+
+
+            self.state = 925
+            self._errHandler.sync(self)
+            _la = self._input.LA(1)
+            if _la==7:
+                self.state = 921
+                self.match(MRSParser.NEW_SYMBOL)
+                self.state = 922
+                self.match(MRSParser.REQUEST_SYMBOL)
+                self.state = 923
+                self.match(MRSParser.PATH_SYMBOL)
+                self.state = 924
+                self.newSchemaRequestPath()
+
+
+            self.state = 929
+            self._errHandler.sync(self)
+            _la = self._input.LA(1)
+            if _la==9:
+                self.state = 927
+                self.match(MRSParser.FROM_SYMBOL)
+                self.state = 928
+                self.schemaName()
 
 
             self.state = 932
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==7:
-                self.state = 928
-                self.match(MRSParser.NEW_SYMBOL)
-                self.state = 929
-                self.match(MRSParser.REQUEST_SYMBOL)
-                self.state = 930
-                self.match(MRSParser.PATH_SYMBOL)
-                self.state = 931
-                self.newSchemaRequestPath()
-
-
-            self.state = 936
-            self._errHandler.sync(self)
-            _la = self._input.LA(1)
-            if _la==9:
-                self.state = 934
-                self.match(MRSParser.FROM_SYMBOL)
-                self.state = 935
-                self.schemaName()
-
-
-            self.state = 939
-            self._errHandler.sync(self)
-            _la = self._input.LA(1)
             if _la==21 or _la==26 or ((((_la - 71)) & ~0x3f) == 0 and ((1 << (_la - 71)) & 2131585) != 0):
-                self.state = 938
+                self.state = 931
                 self.restSchemaOptions()
 
 
@@ -7127,85 +7099,85 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 941
+            self.state = 934
             self.match(MRSParser.ALTER_SYMBOL)
-            self.state = 942
+            self.state = 935
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 944
+            self.state = 937
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==47:
-                self.state = 943
+                self.state = 936
                 self.match(MRSParser.DATA_SYMBOL)
 
 
-            self.state = 947
+            self.state = 940
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==115:
-                self.state = 946
+                self.state = 939
                 self.match(MRSParser.MAPPING_SYMBOL)
 
 
-            self.state = 949
+            self.state = 942
             self.match(MRSParser.VIEW_SYMBOL)
-            self.state = 950
+            self.state = 943
             self.viewRequestPath()
-            self.state = 953
+            self.state = 946
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==8:
-                self.state = 951
+                self.state = 944
                 self.match(MRSParser.ON_SYMBOL)
-                self.state = 952
+                self.state = 945
                 self.serviceSchemaSelector()
 
 
-            self.state = 959
+            self.state = 952
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==7:
-                self.state = 955
+                self.state = 948
                 self.match(MRSParser.NEW_SYMBOL)
-                self.state = 956
+                self.state = 949
                 self.match(MRSParser.REQUEST_SYMBOL)
-                self.state = 957
+                self.state = 950
                 self.match(MRSParser.PATH_SYMBOL)
-                self.state = 958
+                self.state = 951
                 self.newViewRequestPath()
 
 
-            self.state = 969
+            self.state = 962
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==112:
-                self.state = 961
+                self.state = 954
                 self.match(MRSParser.CLASS_SYMBOL)
-                self.state = 962
+                self.state = 955
                 self.restObjectName()
-                self.state = 964
+                self.state = 957
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if ((((_la - 126)) & ~0x3f) == 0 and ((1 << (_la - 126)) & 31751) != 0):
-                    self.state = 963
+                    self.state = 956
                     self.graphQlCrudOptions()
 
 
-                self.state = 967
+                self.state = 960
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if _la==170:
-                    self.state = 966
+                    self.state = 959
                     self.graphQlObj()
 
 
 
 
-            self.state = 972
+            self.state = 965
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if (((_la) & ~0x3f) == 0 and ((1 << _la) & 8659140608) != 0) or ((((_la - 71)) & ~0x3f) == 0 and ((1 << (_la - 71)) & 18908801) != 0):
-                self.state = 971
+                self.state = 964
                 self.restObjectOptions()
 
 
@@ -7301,71 +7273,71 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 974
+            self.state = 967
             self.match(MRSParser.ALTER_SYMBOL)
-            self.state = 975
+            self.state = 968
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 976
+            self.state = 969
             self.match(MRSParser.PROCEDURE_SYMBOL)
-            self.state = 977
+            self.state = 970
             self.procedureRequestPath()
-            self.state = 980
+            self.state = 973
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==8:
-                self.state = 978
+                self.state = 971
                 self.match(MRSParser.ON_SYMBOL)
-                self.state = 979
+                self.state = 972
                 self.serviceSchemaSelector()
+
+
+            self.state = 979
+            self._errHandler.sync(self)
+            _la = self._input.LA(1)
+            if _la==7:
+                self.state = 975
+                self.match(MRSParser.NEW_SYMBOL)
+                self.state = 976
+                self.match(MRSParser.REQUEST_SYMBOL)
+                self.state = 977
+                self.match(MRSParser.PATH_SYMBOL)
+                self.state = 978
+                self.newProcedureRequestPath()
 
 
             self.state = 986
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==7:
-                self.state = 982
-                self.match(MRSParser.NEW_SYMBOL)
-                self.state = 983
-                self.match(MRSParser.REQUEST_SYMBOL)
-                self.state = 984
-                self.match(MRSParser.PATH_SYMBOL)
-                self.state = 985
-                self.newProcedureRequestPath()
-
-
-            self.state = 993
-            self._errHandler.sync(self)
-            _la = self._input.LA(1)
             if _la==66:
-                self.state = 988
+                self.state = 981
                 self.match(MRSParser.PARAMETERS_SYMBOL)
-                self.state = 990
+                self.state = 983
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if _la==189 or _la==191:
-                    self.state = 989
+                    self.state = 982
                     self.restObjectName()
 
 
-                self.state = 992
+                self.state = 985
                 self.graphQlObj()
 
 
-            self.state = 998
+            self.state = 991
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while _la==77:
-                self.state = 995
+                self.state = 988
                 self.restProcedureResult()
-                self.state = 1000
+                self.state = 993
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
 
-            self.state = 1002
+            self.state = 995
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if (((_la) & ~0x3f) == 0 and ((1 << _la) & 8659140608) != 0) or ((((_la - 71)) & ~0x3f) == 0 and ((1 << (_la - 71)) & 18908801) != 0):
-                self.state = 1001
+                self.state = 994
                 self.restObjectOptions()
 
 
@@ -7461,71 +7433,71 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 1004
+            self.state = 997
             self.match(MRSParser.ALTER_SYMBOL)
-            self.state = 1005
+            self.state = 998
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 1006
+            self.state = 999
             self.match(MRSParser.FUNCTION_SYMBOL)
-            self.state = 1007
+            self.state = 1000
             self.functionRequestPath()
-            self.state = 1010
+            self.state = 1003
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==8:
-                self.state = 1008
+                self.state = 1001
                 self.match(MRSParser.ON_SYMBOL)
-                self.state = 1009
+                self.state = 1002
                 self.serviceSchemaSelector()
+
+
+            self.state = 1009
+            self._errHandler.sync(self)
+            _la = self._input.LA(1)
+            if _la==7:
+                self.state = 1005
+                self.match(MRSParser.NEW_SYMBOL)
+                self.state = 1006
+                self.match(MRSParser.REQUEST_SYMBOL)
+                self.state = 1007
+                self.match(MRSParser.PATH_SYMBOL)
+                self.state = 1008
+                self.newFunctionRequestPath()
 
 
             self.state = 1016
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==7:
-                self.state = 1012
-                self.match(MRSParser.NEW_SYMBOL)
-                self.state = 1013
-                self.match(MRSParser.REQUEST_SYMBOL)
-                self.state = 1014
-                self.match(MRSParser.PATH_SYMBOL)
-                self.state = 1015
-                self.newFunctionRequestPath()
-
-
-            self.state = 1023
-            self._errHandler.sync(self)
-            _la = self._input.LA(1)
             if _la==66:
-                self.state = 1018
+                self.state = 1011
                 self.match(MRSParser.PARAMETERS_SYMBOL)
-                self.state = 1020
+                self.state = 1013
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if _la==189 or _la==191:
-                    self.state = 1019
+                    self.state = 1012
                     self.restObjectName()
 
 
-                self.state = 1022
+                self.state = 1015
                 self.graphQlObj()
 
 
-            self.state = 1028
+            self.state = 1021
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while _la==77:
-                self.state = 1025
+                self.state = 1018
                 self.restFunctionResult()
-                self.state = 1030
+                self.state = 1023
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
 
-            self.state = 1032
+            self.state = 1025
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if (((_la) & ~0x3f) == 0 and ((1 << _la) & 8659140608) != 0) or ((((_la - 71)) & ~0x3f) == 0 and ((1 << (_la - 71)) & 18908801) != 0):
-                self.state = 1031
+                self.state = 1024
                 self.restObjectOptions()
 
 
@@ -7609,53 +7581,53 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 1034
+            self.state = 1027
             self.match(MRSParser.ALTER_SYMBOL)
-            self.state = 1035
+            self.state = 1028
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 1036
+            self.state = 1029
             self.match(MRSParser.CONTENT_SYMBOL)
-            self.state = 1037
+            self.state = 1030
             self.match(MRSParser.SET_SYMBOL)
-            self.state = 1038
+            self.state = 1031
             self.contentSetRequestPath()
-            self.state = 1044
+            self.state = 1037
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==8:
-                self.state = 1039
+                self.state = 1032
                 self.match(MRSParser.ON_SYMBOL)
-                self.state = 1041
+                self.state = 1034
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if _la==73:
-                    self.state = 1040
+                    self.state = 1033
                     self.match(MRSParser.SERVICE_SYMBOL)
 
 
-                self.state = 1043
+                self.state = 1036
                 self.serviceRequestPath()
 
 
-            self.state = 1050
+            self.state = 1043
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==7:
-                self.state = 1046
+                self.state = 1039
                 self.match(MRSParser.NEW_SYMBOL)
-                self.state = 1047
+                self.state = 1040
                 self.match(MRSParser.REQUEST_SYMBOL)
-                self.state = 1048
+                self.state = 1041
                 self.match(MRSParser.PATH_SYMBOL)
-                self.state = 1049
+                self.state = 1042
                 self.newContentSetRequestPath()
 
 
-            self.state = 1053
+            self.state = 1046
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if (((_la) & ~0x3f) == 0 and ((1 << _la) & 290271138938880) != 0) or ((((_la - 78)) & ~0x3f) == 0 and ((1 << (_la - 78)) & 269) != 0):
-                self.state = 1052
+                self.state = 1045
                 self.restContentSetOptions()
 
 
@@ -7729,38 +7701,38 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 1055
+            self.state = 1048
             self.match(MRSParser.ALTER_SYMBOL)
-            self.state = 1056
+            self.state = 1049
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 1057
+            self.state = 1050
             _la = self._input.LA(1)
             if not(_la==21 or _la==101):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
                 self.consume()
-            self.state = 1058
+            self.state = 1051
             self.match(MRSParser.APP_SYMBOL)
-            self.state = 1059
+            self.state = 1052
             self.authAppName()
-            self.state = 1063
+            self.state = 1056
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==7:
-                self.state = 1060
+                self.state = 1053
                 self.match(MRSParser.NEW_SYMBOL)
-                self.state = 1061
+                self.state = 1054
                 self.match(MRSParser.NAME_SYMBOL)
-                self.state = 1062
+                self.state = 1055
                 self.newAuthAppName()
 
 
-            self.state = 1066
+            self.state = 1059
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if (((_la) & ~0x3f) == 0 and ((1 << _la) & 6917529027657859072) != 0) or ((((_la - 64)) & ~0x3f) == 0 and ((1 << (_la - 64)) & 70918504267777) != 0):
-                self.state = 1065
+                self.state = 1058
                 self.restAuthAppOptions()
 
 
@@ -7804,7 +7776,7 @@ class MRSParser ( Parser ):
         self.enterRule(localctx, 144, self.RULE_newAuthAppName)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 1068
+            self.state = 1061
             self.quotedText()
         except RecognitionException as re:
             localctx.exception = re
@@ -7842,13 +7814,6 @@ class MRSParser ( Parser ):
             return self.getTypedRuleContext(MRSParser.AuthAppNameContext,0)
 
 
-        def ON_SYMBOL(self):
-            return self.getToken(MRSParser.ON_SYMBOL, 0)
-
-        def serviceRequestPath(self):
-            return self.getTypedRuleContext(MRSParser.ServiceRequestPathContext,0)
-
-
         def IDENTIFIED_SYMBOL(self):
             return self.getToken(MRSParser.IDENTIFIED_SYMBOL, 0)
 
@@ -7862,9 +7827,6 @@ class MRSParser ( Parser ):
         def userOptions(self):
             return self.getTypedRuleContext(MRSParser.UserOptionsContext,0)
 
-
-        def SERVICE_SYMBOL(self):
-            return self.getToken(MRSParser.SERVICE_SYMBOL, 0)
 
         def getRuleIndex(self):
             return MRSParser.RULE_alterRestUserStatement
@@ -7887,53 +7849,35 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 1070
+            self.state = 1063
             self.match(MRSParser.ALTER_SYMBOL)
-            self.state = 1071
+            self.state = 1064
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 1072
+            self.state = 1065
             self.match(MRSParser.USER_SYMBOL)
-            self.state = 1073
+            self.state = 1066
             self.userName()
-            self.state = 1074
+            self.state = 1067
             self.match(MRSParser.AT_SIGN_SYMBOL)
-            self.state = 1075
+            self.state = 1068
             self.authAppName()
-            self.state = 1081
-            self._errHandler.sync(self)
-            _la = self._input.LA(1)
-            if _la==8:
-                self.state = 1076
-                self.match(MRSParser.ON_SYMBOL)
-                self.state = 1078
-                self._errHandler.sync(self)
-                _la = self._input.LA(1)
-                if _la==73:
-                    self.state = 1077
-                    self.match(MRSParser.SERVICE_SYMBOL)
-
-
-                self.state = 1080
-                self.serviceRequestPath()
-
-
-            self.state = 1086
+            self.state = 1072
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==39:
-                self.state = 1083
+                self.state = 1069
                 self.match(MRSParser.IDENTIFIED_SYMBOL)
-                self.state = 1084
+                self.state = 1070
                 self.match(MRSParser.BY_SYMBOL)
-                self.state = 1085
+                self.state = 1071
                 self.userPassword()
 
 
-            self.state = 1089
+            self.state = 1075
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==26 or _la==54 or _la==103:
-                self.state = 1088
+                self.state = 1074
                 self.userOptions()
 
 
@@ -7986,13 +7930,13 @@ class MRSParser ( Parser ):
         self.enterRule(localctx, 148, self.RULE_dropRestServiceStatement)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 1091
+            self.state = 1077
             self.match(MRSParser.DROP_SYMBOL)
-            self.state = 1092
+            self.state = 1078
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 1093
+            self.state = 1079
             self.match(MRSParser.SERVICE_SYMBOL)
-            self.state = 1094
+            self.state = 1080
             self.serviceRequestPath()
         except RecognitionException as re:
             localctx.exception = re
@@ -8054,29 +7998,29 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 1096
+            self.state = 1082
             self.match(MRSParser.DROP_SYMBOL)
-            self.state = 1097
+            self.state = 1083
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 1098
+            self.state = 1084
             self.match(MRSParser.DATABASE_SYMBOL)
-            self.state = 1099
+            self.state = 1085
             self.schemaRequestPath()
-            self.state = 1105
+            self.state = 1091
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==9:
-                self.state = 1100
+                self.state = 1086
                 self.match(MRSParser.FROM_SYMBOL)
-                self.state = 1102
+                self.state = 1088
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if _la==73:
-                    self.state = 1101
+                    self.state = 1087
                     self.match(MRSParser.SERVICE_SYMBOL)
 
 
-                self.state = 1104
+                self.state = 1090
                 self.serviceRequestPath()
 
 
@@ -8143,37 +8087,37 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 1107
+            self.state = 1093
             self.match(MRSParser.DROP_SYMBOL)
-            self.state = 1108
+            self.state = 1094
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 1110
+            self.state = 1096
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==47:
-                self.state = 1109
+                self.state = 1095
                 self.match(MRSParser.DATA_SYMBOL)
 
 
-            self.state = 1113
+            self.state = 1099
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==115:
-                self.state = 1112
+                self.state = 1098
                 self.match(MRSParser.MAPPING_SYMBOL)
 
 
-            self.state = 1115
+            self.state = 1101
             self.match(MRSParser.VIEW_SYMBOL)
-            self.state = 1116
+            self.state = 1102
             self.viewRequestPath()
-            self.state = 1119
+            self.state = 1105
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==9:
-                self.state = 1117
+                self.state = 1103
                 self.match(MRSParser.FROM_SYMBOL)
-                self.state = 1118
+                self.state = 1104
                 self.serviceSchemaSelector()
 
 
@@ -8234,21 +8178,21 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 1121
+            self.state = 1107
             self.match(MRSParser.DROP_SYMBOL)
-            self.state = 1122
+            self.state = 1108
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 1123
+            self.state = 1109
             self.match(MRSParser.PROCEDURE_SYMBOL)
-            self.state = 1124
+            self.state = 1110
             self.procedureRequestPath()
-            self.state = 1127
+            self.state = 1113
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==9:
-                self.state = 1125
+                self.state = 1111
                 self.match(MRSParser.FROM_SYMBOL)
-                self.state = 1126
+                self.state = 1112
                 self.serviceSchemaSelector()
 
 
@@ -8309,21 +8253,21 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 1129
+            self.state = 1115
             self.match(MRSParser.DROP_SYMBOL)
-            self.state = 1130
+            self.state = 1116
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 1131
+            self.state = 1117
             self.match(MRSParser.FUNCTION_SYMBOL)
-            self.state = 1132
+            self.state = 1118
             self.functionRequestPath()
-            self.state = 1135
+            self.state = 1121
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==9:
-                self.state = 1133
+                self.state = 1119
                 self.match(MRSParser.FROM_SYMBOL)
-                self.state = 1134
+                self.state = 1120
                 self.serviceSchemaSelector()
 
 
@@ -8390,31 +8334,31 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 1137
+            self.state = 1123
             self.match(MRSParser.DROP_SYMBOL)
-            self.state = 1138
+            self.state = 1124
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 1139
+            self.state = 1125
             self.match(MRSParser.CONTENT_SYMBOL)
-            self.state = 1140
+            self.state = 1126
             self.match(MRSParser.SET_SYMBOL)
-            self.state = 1141
+            self.state = 1127
             self.contentSetRequestPath()
-            self.state = 1147
+            self.state = 1133
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==9:
-                self.state = 1142
+                self.state = 1128
                 self.match(MRSParser.FROM_SYMBOL)
-                self.state = 1144
+                self.state = 1130
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if _la==73:
-                    self.state = 1143
+                    self.state = 1129
                     self.match(MRSParser.SERVICE_SYMBOL)
 
 
-                self.state = 1146
+                self.state = 1132
                 self.serviceRequestPath()
 
 
@@ -8491,39 +8435,39 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 1149
+            self.state = 1135
             self.match(MRSParser.DROP_SYMBOL)
-            self.state = 1150
+            self.state = 1136
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 1151
+            self.state = 1137
             self.match(MRSParser.CONTENT_SYMBOL)
-            self.state = 1152
+            self.state = 1138
             self.match(MRSParser.FILE_SYMBOL)
-            self.state = 1153
+            self.state = 1139
             self.contentFileRequestPath()
-            self.state = 1154
+            self.state = 1140
             self.match(MRSParser.FROM_SYMBOL)
-            self.state = 1159
+            self.state = 1145
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==73 or ((((_la - 153)) & ~0x3f) == 0 and ((1 << (_la - 153)) & 1992898379777) != 0):
-                self.state = 1156
+                self.state = 1142
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if _la==73:
-                    self.state = 1155
+                    self.state = 1141
                     self.match(MRSParser.SERVICE_SYMBOL)
 
 
-                self.state = 1158
+                self.state = 1144
                 self.serviceRequestPath()
 
 
-            self.state = 1161
+            self.state = 1147
             self.match(MRSParser.CONTENT_SYMBOL)
-            self.state = 1162
+            self.state = 1148
             self.match(MRSParser.SET_SYMBOL)
-            self.state = 1163
+            self.state = 1149
             self.contentSetRequestPath()
         except RecognitionException as re:
             localctx.exception = re
@@ -8581,20 +8525,20 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 1165
+            self.state = 1151
             self.match(MRSParser.DROP_SYMBOL)
-            self.state = 1166
+            self.state = 1152
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 1167
+            self.state = 1153
             _la = self._input.LA(1)
             if not(_la==21 or _la==101):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
                 self.consume()
-            self.state = 1168
+            self.state = 1154
             self.match(MRSParser.APP_SYMBOL)
-            self.state = 1169
+            self.state = 1155
             self.authAppName()
         except RecognitionException as re:
             localctx.exception = re
@@ -8652,17 +8596,17 @@ class MRSParser ( Parser ):
         self.enterRule(localctx, 164, self.RULE_dropRestUserStatement)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 1171
+            self.state = 1157
             self.match(MRSParser.DROP_SYMBOL)
-            self.state = 1172
+            self.state = 1158
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 1173
+            self.state = 1159
             self.match(MRSParser.USER_SYMBOL)
-            self.state = 1174
+            self.state = 1160
             self.userName()
-            self.state = 1175
+            self.state = 1161
             self.match(MRSParser.AT_SIGN_SYMBOL)
-            self.state = 1176
+            self.state = 1162
             self.authAppName()
         except RecognitionException as re:
             localctx.exception = re
@@ -8713,13 +8657,13 @@ class MRSParser ( Parser ):
         self.enterRule(localctx, 166, self.RULE_dropRestRoleStatement)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 1178
+            self.state = 1164
             self.match(MRSParser.DROP_SYMBOL)
-            self.state = 1179
+            self.state = 1165
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 1180
+            self.state = 1166
             self.match(MRSParser.ROLE_SYMBOL)
-            self.state = 1181
+            self.state = 1167
             self.roleName()
         except RecognitionException as re:
             localctx.exception = re
@@ -8796,11 +8740,11 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 1183
+            self.state = 1169
             self.match(MRSParser.GRANT_SYMBOL)
-            self.state = 1184
+            self.state = 1170
             self.match(MRSParser.REST_SYMBOL)
-            self.state = 1185
+            self.state = 1171
             self.privilegeList()
             self.state = 1197
             self._errHandler.sync(self)
@@ -12749,7 +12693,7 @@ class MRSParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 1617 
+            self.state = 1617
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while True:
@@ -12760,7 +12704,7 @@ class MRSParser ( Parser ):
                 else:
                     self._errHandler.reportMatch(self)
                     self.consume()
-                self.state = 1619 
+                self.state = 1619
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if not (((((_la - 126)) & ~0x3f) == 0 and ((1 << (_la - 126)) & 31751) != 0)):
