@@ -437,9 +437,7 @@ url:
 
 createRestUserStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL
-        authAppName (
-        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
-    )? (IDENTIFIED_SYMBOL BY_SYMBOL userPassword)? userOptions?
+        authAppName (IDENTIFIED_SYMBOL BY_SYMBOL userPassword)? userOptions?
 ;
 
 userName:
@@ -572,8 +570,8 @@ newAuthAppName:
 
 alterRestUserStatement:
     ALTER_SYMBOL REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL authAppName (
-        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
-    )? (IDENTIFIED_SYMBOL BY_SYMBOL userPassword)? userOptions?
+        IDENTIFIED_SYMBOL BY_SYMBOL userPassword
+    )? userOptions?
 ;
 
 // DROP statements ==========================================================

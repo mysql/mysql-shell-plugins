@@ -232,11 +232,11 @@ It uses the same [extended GraphQL syntax](#defining-the-graphql-definition-for-
 
 ```antlr
 alterRestFunctionStatement:
-    ALTER_SYMBOL REST_SYMBOL FUNCTION_SYMBOL functionRequestPath (
-        ON_SYMBOL serviceSchemaSelector
+    ALTER REST FUNCTION functionRequestPath (
+        ON serviceSchemaSelector
     )? (
-        NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newFunctionRequestPath
-    )? (PARAMETERS_SYMBOL restObjectName? graphQlObj)? restFunctionResult* restObjectOptions?
+        NEW REQUEST PATH newFunctionRequestPath
+    )? (PARAMETERS restObjectName? graphQlObj)? restFunctionResult* restObjectOptions?
 ;
 
 serviceSchemaSelector:
@@ -274,10 +274,10 @@ The `ALTER REST CONTENT SET` statement is used to alter REST content sets.
 
 ```antlr
 alterRestContentSetStatement:
-    ALTER_SYMBOL REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath (
-        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
+    ALTER REST CONTENT SET contentSetRequestPath (
+        ON SERVICE? serviceRequestPath
     )? (
-        NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newContentSetRequestPath
+        NEW REQUEST PATH newContentSetRequestPath
     )? restContentSetOptions?
 ;
 ```
@@ -293,9 +293,9 @@ Change password and options for an existing REST user account.
 
 ```antlr
 alterRestUserStatement:
-    ALTER_SYMBOL REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL authAppName (
-        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
-    )? (IDENTIFIED_SYMBOL BY_SYMBOL userPassword)? userOptions?
+    ALTER REST USER userName AT_SIGN authAppName (
+        IDENTIFIED BY userPassword
+    )? userOptions?
 ;
 ```
 

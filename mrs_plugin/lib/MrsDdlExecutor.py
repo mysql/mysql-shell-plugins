@@ -1559,8 +1559,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 if password == "":
                     raise Exception("The password must not be empty.")
 
-                service_id = self.get_given_or_current_service_id(mrs_object)
-
                 auth_app = lib.auth_apps.get_auth_app(
                     name=authAppName, session=self.session
                 )
