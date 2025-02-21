@@ -33,7 +33,7 @@ import {
 } from "../../../../components/Dialogs/ValueEditDialog.js";
 import { ConnectionDataModel } from "../../../../data-models/ConnectionDataModel.js";
 import { ConnectionEditor } from "../../../../modules/db-editor/ConnectionEditor.js";
-import { DBEditorContext, type DBEditorContextType } from "../../../../modules/db-editor/index.js";
+import { DocumentContext, type DocumentContextType } from "../../../../modules/db-editor/index.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
@@ -76,8 +76,8 @@ describe("ConnectionEditor tests", (): void => {
     const testMySQLConnection: IConnectionDetails = {
         id: -1,
         dbType: DBType.MySQL,
-        caption: "DBEditorModule Test Connection 1",
-        description: "DBEditorModule Test MyQSL Connection",
+        caption: "DocumentModule Test Connection 1",
+        description: "DocumentModule Test MyQSL Connection",
         options,
     };
 
@@ -91,7 +91,7 @@ describe("ConnectionEditor tests", (): void => {
         expect(testMySQLConnection.id).toBeGreaterThan(-1);
         connID = testMySQLConnection.id;
 
-        await backend.startSession("dbEditorModuleTests");
+        await backend.startSession("documentModuleTests");
         await backend.openConnection(testMySQLConnection.id);
         dialogHelper = new DialogHelper("connectionEditor");
     });
@@ -113,15 +113,15 @@ describe("ConnectionEditor tests", (): void => {
 
     it("Test ConnectionEditor set connection timeout", async () => {
         const component = mount<ConnectionEditor>(
-            <DBEditorContext.Provider
+            <DocumentContext.Provider
                 value={{
                     connectionsDataModel: dataModel,
-                } as DBEditorContextType}>
+                } as DocumentContextType}>
 
                 <ConnectionEditor
                     onAddConnection={() => { }}
                     onUpdateConnection={() => { }} />,
-            </DBEditorContext.Provider>,
+            </DocumentContext.Provider>,
         );
 
         let portals = document.getElementsByClassName("portal");
@@ -159,15 +159,15 @@ describe("ConnectionEditor tests", (): void => {
 
     it("Test ConnectionEditor updating connection", async () => {
         const component = mount<TestConnectionEditor>(
-            <DBEditorContext.Provider
+            <DocumentContext.Provider
                 value={{
                     connectionsDataModel: dataModel,
-                } as DBEditorContextType}>
+                } as DocumentContextType}>
 
                 <TestConnectionEditor
                     onAddConnection={() => { }}
                     onUpdateConnection={() => { }} />,
-            </DBEditorContext.Provider>,
+            </DocumentContext.Provider>,
         );
 
         let portals = document.getElementsByClassName("portal");
@@ -221,15 +221,15 @@ describe("ConnectionEditor tests", (): void => {
 
     it("Test ConnectionEditor validateConnectionValues function when databaseType is not selected", () => {
         const component = mount<TestConnectionEditor>(
-            <DBEditorContext.Provider
+            <DocumentContext.Provider
                 value={{
                     connectionsDataModel: dataModel,
-                } as DBEditorContextType}>
+                } as DocumentContextType}>
 
                 <TestConnectionEditor
                     onAddConnection={() => { }}
                     onUpdateConnection={() => { }} />,
-            </DBEditorContext.Provider>,
+            </DocumentContext.Provider>,
         );
 
         const values: IDialogValues = {
@@ -267,15 +267,15 @@ describe("ConnectionEditor tests", (): void => {
 
     it("Test ConnectionEditor validateConnectionValues function when caption is empty", () => {
         const component = mount<TestConnectionEditor>(
-            <DBEditorContext.Provider
+            <DocumentContext.Provider
                 value={{
                     connectionsDataModel: dataModel,
-                } as DBEditorContextType}>
+                } as DocumentContextType}>
 
                 <TestConnectionEditor
                     onAddConnection={() => { }}
                     onUpdateConnection={() => { }} />,
-            </DBEditorContext.Provider>,
+            </DocumentContext.Provider>,
         );
 
         const values: IDialogValues = {
@@ -319,15 +319,15 @@ describe("ConnectionEditor tests", (): void => {
 
     it("Test ConnectionEditor validateConnectionValues function when dbFilePath is not specified for Sqlite", () => {
         const component = mount<TestConnectionEditor>(
-            <DBEditorContext.Provider
+            <DocumentContext.Provider
                 value={{
                     connectionsDataModel: dataModel,
-                } as DBEditorContextType}>
+                } as DocumentContextType}>
 
                 <TestConnectionEditor
                     onAddConnection={() => { }}
                     onUpdateConnection={() => { }} />,
-            </DBEditorContext.Provider>,
+            </DocumentContext.Provider>,
         );
 
         const values: IDialogValues = {
@@ -367,15 +367,15 @@ describe("ConnectionEditor tests", (): void => {
 
     it("Test ConnectionEditor validateConnectionValues function when hostName is not specified for MySQL", () => {
         const component = mount<TestConnectionEditor>(
-            <DBEditorContext.Provider
+            <DocumentContext.Provider
                 value={{
                     connectionsDataModel: dataModel,
-                } as DBEditorContextType}>
+                } as DocumentContextType}>
 
                 <TestConnectionEditor
                     onAddConnection={() => { }}
                     onUpdateConnection={() => { }} />,
-            </DBEditorContext.Provider>,
+            </DocumentContext.Provider>,
         );
 
         const values: IDialogValues = {
@@ -419,15 +419,15 @@ describe("ConnectionEditor tests", (): void => {
 
     it("Test ConnectionEditor validateConnectionValues function when userName is not specified for MySQL", () => {
         const component = mount<TestConnectionEditor>(
-            <DBEditorContext.Provider
+            <DocumentContext.Provider
                 value={{
                     connectionsDataModel: dataModel,
-                } as DBEditorContextType}>
+                } as DocumentContextType}>
 
                 <TestConnectionEditor
                     onAddConnection={() => { }}
                     onUpdateConnection={() => { }} />,
-            </DBEditorContext.Provider>,
+            </DocumentContext.Provider>,
         );
 
         const values: IDialogValues = {
@@ -471,15 +471,15 @@ describe("ConnectionEditor tests", (): void => {
 
     it("Test ConnectionEditor validateConnectionValues function when port is not a valid integer for MySQL", () => {
         const component = mount<TestConnectionEditor>(
-            <DBEditorContext.Provider
+            <DocumentContext.Provider
                 value={{
                     connectionsDataModel: dataModel,
-                } as DBEditorContextType}>
+                } as DocumentContextType}>
 
                 <TestConnectionEditor
                     onAddConnection={() => { }}
                     onUpdateConnection={() => { }} />,
-            </DBEditorContext.Provider>,
+            </DocumentContext.Provider>,
         );
 
         const values: IDialogValues = {
@@ -523,15 +523,15 @@ describe("ConnectionEditor tests", (): void => {
 
     it("Test ConnectionEditor generateEditorConfig function", () => {
         const component = mount<TestConnectionEditor>(
-            <DBEditorContext.Provider
+            <DocumentContext.Provider
                 value={{
                     connectionsDataModel: dataModel,
-                } as DBEditorContextType}>
+                } as DocumentContextType}>
 
                 <TestConnectionEditor
                     onAddConnection={() => { }}
                     onUpdateConnection={() => { }} />,
-            </DBEditorContext.Provider>,
+            </DocumentContext.Provider>,
         );
 
         const editor = component.find<TestConnectionEditor>(TestConnectionEditor);

@@ -71,7 +71,7 @@ import { showMessageWithTimeout } from "./utilities.js";
 import { WebviewProvider } from "./WebviewProviders/WebviewProvider.js";
 
 /** A class to handle all DB editor related commands and jobs. */
-export class DBEditorCommandHandler {
+export class DocumentCommandHandler {
     static #dmTypeToMrsType = new Map<CdmEntityType, MrsDbObjectType>([
         [CdmEntityType.Table, MrsDbObjectType.Table],
         [CdmEntityType.View, MrsDbObjectType.View],
@@ -978,7 +978,7 @@ export class DBEditorCommandHandler {
             enabled: 1,
             id: "",
             name: entry.caption,
-            objectType: DBEditorCommandHandler.#dmTypeToMrsType.get(entry.type)!,
+            objectType: DocumentCommandHandler.#dmTypeToMrsType.get(entry.type)!,
             requestPath: `/${convertSnakeToCamelCase(entry.caption)}`,
             requiresAuth: 1,
             rowUserOwnershipEnforced: 0,

@@ -36,12 +36,12 @@ import { CodeEditorMode, Monaco } from "../../../../components/ui/CodeEditor/ind
 import { ConnectionDataModel } from "../../../../data-models/ConnectionDataModel.js";
 import { OdmEntityType, OpenDocumentDataModel } from "../../../../data-models/OpenDocumentDataModel.js";
 import {
-    DBConnectionTab, IOpenDocumentState, type IConnectionPresentationState,
-} from "../../../../modules/db-editor/DBConnectionTab.js";
+    ConnectionTab, IOpenDocumentState, type IConnectionPresentationState,
+} from "../../../../modules/db-editor/ConnectionTab.js";
 import { LakehouseNavigatorTab } from "../../../../modules/db-editor/LakehouseNavigator.js";
 import type { ScriptEditor } from "../../../../modules/db-editor/ScriptEditor.js";
 import { ExecutionWorkerPool } from "../../../../modules/db-editor/execution/ExecutionWorkerPool.js";
-import { DBEditorContext, type DBEditorContextType } from "../../../../modules/db-editor/index.js";
+import { DocumentContext, type DocumentContextType } from "../../../../modules/db-editor/index.js";
 import { ExecutionContexts } from "../../../../script-execution/ExecutionContexts.js";
 import { PresentationInterface } from "../../../../script-execution/PresentationInterface.js";
 import { SQLExecutionContext } from "../../../../script-execution/SQLExecutionContext.js";
@@ -52,7 +52,7 @@ import { DBType } from "../../../../supplement/ShellInterface/index.js";
 import type { IScriptRequest, ISqlPageRequest } from "../../../../supplement/index.js";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
 import { uuid } from "../../../../utilities/helpers.js";
-import { notebookDocumentMock } from "../../__mocks__/DBEditorModuleMocks.js";
+import { notebookDocumentMock } from "../../__mocks__/DocumentModuleMocks.js";
 import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
 import { nextProcessTick, setupShellForTests } from "../../test-helpers.js";
 
@@ -175,8 +175,8 @@ describe("DBConnectionTab tests", (): void => {
             },
         });
 
-        const component = shallow<DBConnectionTab>(
-            <DBConnectionTab
+        const component = shallow<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -190,8 +190,8 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test DBConnectionTab instantiation", () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -210,8 +210,8 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test editorStopExecution requisition function call", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -232,8 +232,8 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test editorCommit requisition function call", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -263,8 +263,8 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test editorRollback requisition function call", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -292,8 +292,8 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test editorLoadScript requisition function call", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -324,8 +324,8 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test editorRenameScript requisition function call", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -357,8 +357,8 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test acceptMrsAuthentication requisition function call", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -392,8 +392,8 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test cancelMrsAuthentication requisition function call", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -426,8 +426,8 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test refreshMrsServiceSdk requisition function call", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -445,8 +445,8 @@ describe("DBConnectionTab tests", (): void => {
 
 
     it("Test editorRunCode function call with active notebook", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -484,8 +484,8 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test editorRunCode function call without active notebook", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -510,8 +510,8 @@ describe("DBConnectionTab tests", (): void => {
 
 
     it("Test editorRunScript when scriptWaiting is false", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -520,7 +520,7 @@ describe("DBConnectionTab tests", (): void => {
             />,
         );
 
-        const instance: DBConnectionTab = component.instance();
+        const instance: ConnectionTab = component.instance();
 
         const script: IScriptRequest = {
             id: "id1",
@@ -543,8 +543,8 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test editorRunScript when scriptWaiting is true and scriptRef is current", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -582,8 +582,8 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test editorRunScript when scriptWaiting is true and scriptRef is not current", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -617,8 +617,8 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test sqlShowDataAtPage requisition function call", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -629,7 +629,7 @@ describe("DBConnectionTab tests", (): void => {
 
         const ctx = new SQLExecutionContext(
             new PresentationInterface("sql"),
-            StoreType.DbEditor,
+            StoreType.Document,
             80024,
             "TRADITIONAL",
             "",
@@ -659,8 +659,8 @@ describe("DBConnectionTab tests", (): void => {
     it("Test editorSaveNotebook with openState", async () => {
         const originalEmbedded = appParameters.embedded;
         appParameters.embedded = true;
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -708,14 +708,14 @@ describe("DBConnectionTab tests", (): void => {
     it("Test showLakehouseNavigator requisition function call", async () => {
         const onSelectItemMock = jest.fn();
 
-        const component = mount<DBConnectionTab>(
-            <DBEditorContext.Provider
+        const component = mount<ConnectionTab>(
+            <DocumentContext.Provider
                 value={{
                     connectionsDataModel,
                     documentDataModel,
-                } as DBEditorContextType}>
+                } as DocumentContextType}>
 
-                <DBConnectionTab
+                <ConnectionTab
                     id="1"
                     connection={connection}
                     savedState={savedState}
@@ -724,7 +724,7 @@ describe("DBConnectionTab tests", (): void => {
                     toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
                     onSelectItem={onSelectItemMock}
                 />
-            </DBEditorContext.Provider>,
+            </DocumentContext.Provider>,
         );
 
         const result = await requisitions.execute("showLakehouseNavigator", undefined);
@@ -743,8 +743,8 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test showChatOptions requisition function call", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}
@@ -766,8 +766,8 @@ describe("DBConnectionTab tests", (): void => {
     });
 
     it("Test selectFile requisition function call", async () => {
-        const component = mount<DBConnectionTab>(
-            <DBConnectionTab
+        const component = mount<ConnectionTab>(
+            <ConnectionTab
                 connection={connection}
                 savedState={savedState}
                 workerPool={wp}

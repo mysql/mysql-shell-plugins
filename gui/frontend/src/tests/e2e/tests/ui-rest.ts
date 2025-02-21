@@ -1275,9 +1275,21 @@ describe("MYSQL REST SERVICE", () => {
 
         it("Edit User", async () => {
             try {
-                await dbTreeSection.expandTree([service5.authenticationApps![0].name]);
-                await dbTreeSection.openContextMenuAndSelect(service5.authenticationApps![0].user![0].username,
-                    constants.editRESTUser);
+                await driver.wait(async () => {
+                    try {
+                        await dbTreeSection.expandTree([service5.authenticationApps![0].name]);
+                        await dbTreeSection.openContextMenuAndSelect(service5.authenticationApps![0].user![0].username,
+                            constants.editRESTUser);
+
+                        return true;
+                    } catch (e) {
+                        if (!String(e).includes("Could not find context menu item 'Edit User...'")) {
+                            throw e;
+                        } else {
+                            await driver.actions().keyDown(Key.ESCAPE).keyUp(Key.ESCAPE).perform();
+                        }
+                    }
+                }, constants.wait10seconds, "Could not perform the Edit User");
 
                 const editedUser: interfaces.IRestUser = {
                     username: "testUser",

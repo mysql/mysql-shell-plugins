@@ -34,11 +34,11 @@ import { ui } from "./UILayer.js";
 
 export enum StoreType {
     Unused = "unused",
-    DbEditor = "dbModuleResultData",
+    Document = "documentResultData",
     Shell = "shellModuleResultData"
 }
 
-export interface IDbModuleResultData {
+export interface IDocumentResultData {
     // There's an auto incremented field (id) to make entries unique.
 
     /** The tab id is used to quickly remove all associated entries when a tab is closed. */
@@ -95,8 +95,8 @@ interface IAppStoreSchema extends DBSchema {
         indexes: { resultIndex: string; tabIndex: string; };
     };
 
-    dbModuleResultData: {
-        value: IDbModuleResultData;
+    documentResultData: {
+        value: IDocumentResultData;
         key: string;
         indexes: { resultIndex: string; tabIndex: string; };
     };
@@ -264,17 +264,17 @@ export class ApplicationDB {
             openDB<IAppStoreSchema>(ApplicationDB.dbName, ApplicationDB.dbVersion, {
                 upgrade: (db) => {
                     // Never called when the DB version did not change.
-                    if (db.objectStoreNames.contains(StoreType.DbEditor)) {
-                        db.deleteObjectStore(StoreType.DbEditor);
+                    if (db.objectStoreNames.contains(StoreType.Document)) {
+                        db.deleteObjectStore(StoreType.Document);
                     }
 
                     if (db.objectStoreNames.contains(StoreType.Shell)) {
                         db.deleteObjectStore(StoreType.Shell);
                     }
 
-                    const dbEditorStore = db.createObjectStore(StoreType.DbEditor, { autoIncrement: true });
-                    dbEditorStore.createIndex("resultIndex", "resultId", { unique: false });
-                    dbEditorStore.createIndex("tabIndex", "tabId", { unique: false });
+                    const documentStore = db.createObjectStore(StoreType.Document, { autoIncrement: true });
+                    documentStore.createIndex("resultIndex", "resultId", { unique: false });
+                    documentStore.createIndex("tabIndex", "tabId", { unique: false });
 
                     const shellDataStore = db.createObjectStore(StoreType.Shell, { autoIncrement: true });
                     shellDataStore.createIndex("resultIndex", "resultId", { unique: false });
@@ -284,7 +284,7 @@ export class ApplicationDB {
                 ApplicationDB.appDB = db;
                 if (clear) {
                     Promise.all([
-                        db.clear(StoreType.DbEditor),
+                        db.clear(StoreType.Document),
                         db.clear(StoreType.Shell),
                     ]).then(() => {
                         resolve();

@@ -52,7 +52,7 @@ import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.j
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
 import { DBConnectionEditorType, DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { basename, filterInt } from "../../utilities/string-helpers.js";
-import { DBEditorContext, type DBEditorContextType } from "./index.js";
+import { DocumentContext, type DocumentContextType } from "./index.js";
 import { convertErrorToString } from "../../utilities/helpers.js";
 
 const editorHeading = "Database Connection Configuration";
@@ -80,7 +80,7 @@ interface IConnectionEditorState extends IComponentState {
 }
 
 export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties, IConnectionEditorState> {
-    public static override contextType = DBEditorContext;
+    public static override contextType = DocumentContext;
 
     private editorRef = createRef<ValueEditDialog>();
     private confirmClearPasswordDialogRef = createRef<ConfirmDialog>();
@@ -295,7 +295,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             }
         } else {
             // Check duplicate captions.
-            const context = this.context as DBEditorContextType;
+            const context = this.context as DocumentContextType;
             const connections = context.connectionsDataModel.connections;
             const entry = connections.find((element: ICdmConnectionEntry) => {
                 return element.details.caption === informationSection.caption.value;
@@ -502,7 +502,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
      * @returns The necessary dialog values to edit this connection.
      */
     private generateEditorConfig = (details?: IConnectionDetails): IDialogValues => {
-        const context = this.context as DBEditorContextType;
+        const context = this.context as DocumentContextType;
         const connections = context.connectionsDataModel.connections;
 
         let caption = `New Connection`;

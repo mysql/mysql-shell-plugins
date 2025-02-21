@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "./assets/DBEditor.css";
+import "./assets/document.css";
 
 import { ComponentChild, createRef } from "preact";
 import { SetIntervalAsyncTimer, clearIntervalAsync, setIntervalAsync } from "set-interval-async/dynamic";
@@ -35,8 +35,7 @@ import {
     DBDataType, IColumnInfo, IDictionary, IServicePasswordRequest, IStatusInfo, MessageType,
 } from "../../app-logic/general-types.js";
 import {
-    ITableColumn, IDbEditorResultSetData,
-    type ISqlEditorHistoryEntry,
+    ITableColumn, type IDbEditorResultSetData, type ISqlEditorHistoryEntry,
 } from "../../communication/ProtocolGui.js";
 import { IMdsChatData, IMdsChatStatus } from "../../communication/ProtocolMds.js";
 import { ResponseError } from "../../communication/ResponseError.js";
@@ -50,7 +49,6 @@ import {
     OdmEntityType, type IOdmShellSessionEntry, type IOdmStandaloneDocumentEntry, type LeafDocumentEntry,
     type OpenDocumentDataModel,
 } from "../../data-models/OpenDocumentDataModel.js";
-import { getRouterPortForConnection } from "../../modules/mrs/mrs-helpers.js";
 import { QueryType } from "../../parsing/parser-common.js";
 import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
@@ -71,6 +69,7 @@ import {
 } from "../../supplement/index.js";
 import { convertErrorToString, saveTextAsFile, selectFile, uuid } from "../../utilities/helpers.js";
 import { formatBase64ToHex, formatTime, formatWithNumber } from "../../utilities/string-helpers.js";
+import { getRouterPortForConnection } from "../mrs/mrs-helpers.js";
 import { IMrsLoginResult } from "../mrs/sdk/MrsBaseClasses.js";
 import { IMrsAuthRequestPayload } from "../mrs/types.js";
 import { ClientConnections } from "./ClientConnections.js";
@@ -81,7 +80,7 @@ import { ScriptEditor } from "./ScriptEditor.js";
 import { ServerStatus } from "./ServerStatus.js";
 import { IConsoleWorkerResultData, ScriptingApi } from "./console.worker-types.js";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
-import { DBEditorContext, ISavedGraphData, IToolbarItems } from "./index.js";
+import { DocumentContext, ISavedGraphData, IToolbarItems } from "./index.js";
 
 const errorRexExp = new RegExp(`(You have an error in your SQL syntax; check the manual that corresponds to your ` +
     `MySQL server version for the right syntax to use near '(.*)' at line )(\\d+)`);
@@ -155,7 +154,7 @@ export interface ISelectItemDetails {
     content?: string;
 }
 
-interface IDBConnectionTabProperties extends IComponentProperties {
+interface IConnectionTabProperties extends IComponentProperties {
     /** The caption of this page used in the hosting tabview. */
     caption?: string;
 
@@ -193,7 +192,7 @@ interface IDBConnectionTabProperties extends IComponentProperties {
     onChatOptionsChange?: (id: string, data: Partial<IChatOptionsState>) => void;
 }
 
-interface IDBConnectionTabState extends IComponentState {
+interface IConnectionTabState extends IComponentState {
     errorMessage?: string;
 
     /** Set to true if a notebook has been loaded the app is embedded, emulating so a one editor-only mode. */
@@ -254,8 +253,8 @@ interface IMrsServiceSdkMetadata {
     schemaMetadataVersion?: string,
 }
 
-// A tab page for a single connection (managed by the scripting module).
-export class DBConnectionTab extends ComponentBase<IDBConnectionTabProperties, IDBConnectionTabState> {
+/** A tab page for a single connection (managed by the connection host). */
+export class ConnectionTab extends ComponentBase<IConnectionTabProperties, IConnectionTabState> {
     private static aboutMessage = `Welcome to the MySQL Shell - DB Notebook.
 
 Press %modifier%+Enter to execute the code block.
@@ -284,11 +283,11 @@ Execute \\help or \\? for help;`;
     private globalScriptingObject: IDictionary = {};
 
     // This is set during rendering to have it available in code outside of the render method.
-    // Another way would be to access it using `this.context as DBEditorContextType`, but for some unknown reason
+    // Another way would be to access it using `this.context as DocumentContextType`, but for some unknown reason
     // that doesn't work in this component.
     private documentDataModel: OpenDocumentDataModel | undefined;
 
-    public constructor(props: IDBConnectionTabProperties) {
+    public constructor(props: IConnectionTabProperties) {
         super(props);
 
         this.state = {
@@ -369,7 +368,7 @@ Execute \\help or \\? for help;`;
         requisitions.unregister("selectFile", this.selectFile);
     }
 
-    public override componentDidUpdate(prevProps: IDBConnectionTabProperties): void {
+    public override componentDidUpdate(prevProps: IConnectionTabProperties): void {
         const { id, connection } = this.props;
 
         if (connection) {
@@ -387,7 +386,7 @@ Execute \\help or \\? for help;`;
 
         const className = this.getEffectiveClassNames(["connectionTabHost"]);
 
-        return <DBEditorContext.Consumer>{(context) => {
+        return <DocumentContext.Consumer>{(context) => {
             this.documentDataModel = context?.documentDataModel;
 
             let document;
@@ -523,7 +522,7 @@ Execute \\help or \\? for help;`;
 
             return document;
         }}
-        </DBEditorContext.Consumer>;
+        </DocumentContext.Consumer>;
     }
 
     /**
@@ -849,8 +848,8 @@ Execute \\help or \\? for help;`;
                         persistentState.options = content.options;
 
                         // Restore the result data in the application DB.
-                        const transaction = ApplicationDB.db.transaction(StoreType.DbEditor, "readwrite");
-                        const objectStore = transaction.objectStore(StoreType.DbEditor);
+                        const transaction = ApplicationDB.db.transaction(StoreType.Document, "readwrite");
+                        const objectStore = transaction.objectStore(StoreType.Document);
                         for (const context of content.contexts) {
                             // Create new result IDs for the data, to avoid multiple result views pointing to the
                             // same data, for example when the same notebook is loaded twice.
@@ -1249,7 +1248,7 @@ Execute \\help or \\? for help;`;
                 // We are going to replace result data, instead of adding a complete new set.
                 // In this case remove the old data first from the storage.
                 if (resultId) {
-                    void ApplicationDB.removeDataByResultIds(StoreType.DbEditor, [resultId]);
+                    void ApplicationDB.removeDataByResultIds(StoreType.Document, [resultId]);
                 }
             }
             const columnsMetadata = await getColumnsMetadataForEmptyResultSet(
@@ -1351,7 +1350,7 @@ Execute \\help or \\? for help;`;
                         replaceData,
                     });
                 } else {
-                    void ApplicationDB.db.add("dbModuleResultData", {
+                    void ApplicationDB.db.add("documentResultData", {
                         tabId: id,
                         resultId,
                         rows,
@@ -1962,7 +1961,7 @@ Execute \\help or \\? for help;`;
                         }, { resultId: "" });
                     } else {
                         const isMac = navigator.userAgent.includes("Macintosh");
-                        const content = DBConnectionTab.aboutMessage.replace("%modifier%", isMac ? "Cmd" : "Ctrl");
+                        const content = ConnectionTab.aboutMessage.replace("%modifier%", isMac ? "Cmd" : "Ctrl");
                         await context?.addResultData({
                             type: "text",
                             text: [{ type: MessageType.Info, content, language: "ansi" }],

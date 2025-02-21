@@ -53,7 +53,7 @@ import { Settings } from "../../supplement/Settings/Settings.js";
 import { DBType, IConnectionDetails, type IShellSessionDetails } from "../../supplement/ShellInterface/index.js";
 import { uuid } from "../../utilities/helpers.js";
 import { ConnectionEditor } from "./ConnectionEditor.js";
-import { DBEditorContext, type DBEditorContextType, type IToolbarItems } from "./index.js";
+import { DocumentContext, type DocumentContextType, type IToolbarItems } from "./index.js";
 
 interface IConnectionBrowserProperties extends IComponentProperties {
     toolbarItems: IToolbarItems;
@@ -64,7 +64,7 @@ interface IConnectionBrowserProperties extends IComponentProperties {
 }
 
 export class ConnectionBrowser extends ComponentBase<IConnectionBrowserProperties> {
-    public static override contextType = DBEditorContext;
+    public static override contextType = DocumentContext;
 
     private static dbTypeToIconMap = new Map<DBType, string>([
         [DBType.Sqlite, Assets.db.sqliteConnectionIcon],
@@ -582,11 +582,11 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     };
 
     private get connections(): ICdmConnectionEntry[] {
-        return (this.context as DBEditorContextType)?.connectionsDataModel.connections ?? [];
+        return (this.context as DocumentContextType)?.connectionsDataModel.connections ?? [];
     }
 
     private get dataModel(): ConnectionDataModel | undefined {
-        return (this.context as DBEditorContextType)?.connectionsDataModel;
+        return (this.context as DocumentContextType)?.connectionsDataModel;
     }
 
     private dataModelChanged = (): void => {

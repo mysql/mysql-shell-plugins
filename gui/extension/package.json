@@ -247,11 +247,6 @@
                     "default": 1000,
                     "description": "Determines the number of result records that are sent in a single response from the backend."
                 },
-                "msg.shellSession.sessionBrowser.showGreeting": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "If set, a message section is shown with some useful links."
-                },
                 "msg.shellSession.startLanguage": {
                     "type": "string",
                     "default": "javascript",

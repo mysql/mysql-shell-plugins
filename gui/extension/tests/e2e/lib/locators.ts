@@ -285,7 +285,7 @@ export const notebook = {
         tooltip: By.className("tooltip"),
     },
     toolbar: {
-        exists: By.id("dbEditorToolbar"),
+        exists: By.id("documentToolbar"),
         button: {
             exists: By.className("button"),
             icon: By.className("icon"),

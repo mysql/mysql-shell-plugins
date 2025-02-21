@@ -23,7 +23,7 @@
 
 import { By } from "selenium-webdriver";
 
-export const pageIsLoaded = By.id("dbEditorSideBar");
+export const pageIsLoaded = By.id("connectionSectionHost");
 
 export const searchById = (id: string): By => {
     return By.id(id);
@@ -283,7 +283,7 @@ export const shellConsole = {
 export const notebook = {
     exists: By.id("notebookHost"),
     toolbar: {
-        exists: By.id("dbEditorToolbar"),
+        exists: By.id("documentToolbar"),
         button: {
             exists: By.className("button"),
             icon: By.className("icon"),
@@ -1204,7 +1204,7 @@ export const mrsDbObjectDialog = {
 };
 
 export const e2eDebugger = {
-    toggle: By.id("statusBarItem.1"),
+    toggle: By.id("statusBarItem.2"),
     exists: By.id("debuggerPaneHost"),
     scripts: {
         treeItem: By.css("#scriptSection .tabulator-row"),

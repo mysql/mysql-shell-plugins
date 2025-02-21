@@ -1,8 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`] = `
-<DBEditorToolbar
-  activeDocument="DbEditor"
+exports[`DocumentToolbar tests Test DocumentToolbar instantiation (HeatWave) 1`] = `
+<DocumentToolbar
+  activeDocument="document1"
   documentState={[]}
   heatWaveEnabled={true}
   language="js"
@@ -17,18 +17,18 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
 >
   <Toolbar
     dropShadow={false}
-    id="dbEditorToolbar"
+    id="documentToolbar"
     vibrant={false}
   >
     <Container
       className="msg toolbar verticalCenterContent"
       crossAlignment="center"
-      id="dbEditorToolbar"
+      id="documentToolbar"
       orientation="row"
     >
       <div
         className="msg container fixedScrollbar toolbar verticalCenterContent"
-        id="dbEditorToolbar"
+        id="documentToolbar"
         style={
           {
             "alignItems": "center",
@@ -332,12 +332,12 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation (HeatWave) 1`]
       </div>
     </Container>
   </Toolbar>
-</DBEditorToolbar>
+</DocumentToolbar>
 `;
 
-exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
-<DBEditorToolbar
-  activeDocument="DbEditor"
+exports[`DocumentToolbar tests Test DocumentToolbar instantiation 1`] = `
+<DocumentToolbar
+  activeDocument="document1"
   documentState={[]}
   heatWaveEnabled={false}
   language="ts"
@@ -352,18 +352,18 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
 >
   <Toolbar
     dropShadow={false}
-    id="dbEditorToolbar"
+    id="documentToolbar"
     vibrant={false}
   >
     <Container
       className="msg toolbar verticalCenterContent"
       crossAlignment="center"
-      id="dbEditorToolbar"
+      id="documentToolbar"
       orientation="row"
     >
       <div
         className="msg container fixedScrollbar toolbar verticalCenterContent"
-        id="dbEditorToolbar"
+        id="documentToolbar"
         style={
           {
             "alignItems": "center",
@@ -563,12 +563,12 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation 1`] = `
       </div>
     </Container>
   </Toolbar>
-</DBEditorToolbar>
+</DocumentToolbar>
 `;
 
-exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation language=msg 1`] = `
-<DBEditorToolbar
-  activeDocument="DbEditor"
+exports[`DocumentToolbar tests Test DocumentToolbar instantiation language=msg 1`] = `
+<DocumentToolbar
+  activeDocument="document1"
   documentState={[]}
   heatWaveEnabled={false}
   language="msg"
@@ -583,18 +583,18 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation language=msg 1
 >
   <Toolbar
     dropShadow={false}
-    id="dbEditorToolbar"
+    id="documentToolbar"
     vibrant={false}
   >
     <Container
       className="msg toolbar verticalCenterContent"
       crossAlignment="center"
-      id="dbEditorToolbar"
+      id="documentToolbar"
       orientation="row"
     >
       <div
         className="msg container fixedScrollbar toolbar verticalCenterContent"
-        id="dbEditorToolbar"
+        id="documentToolbar"
         style={
           {
             "alignItems": "center",
@@ -794,5 +794,5 @@ exports[`DBEditorToolbar tests Test DBEditorToolbar instantiation language=msg 1
       </div>
     </Container>
   </Toolbar>
-</DBEditorToolbar>
+</DocumentToolbar>
 `;

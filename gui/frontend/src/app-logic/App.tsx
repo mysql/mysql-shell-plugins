@@ -30,7 +30,6 @@ import { Component, VNode, createRef } from "preact";
 import { LoginPage } from "../components/Login/LoginPage.js";
 import { IThemeChangeData } from "../components/Theming/ThemeManager.js";
 import { TooltipProvider } from "../components/ui/Tooltip/Tooltip.js";
-import { ModuleRegistry } from "../modules/ModuleRegistry.js";
 import { appParameters, requisitions } from "../supplement/Requisitions.js";
 import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
 import { webSession } from "../supplement/WebSession.js";
@@ -51,9 +50,6 @@ import type {
     IStatusBarItem, IStatusBarItemOptions, StatusBarAlignment,
 } from "../components/ui/Statusbar/StatusBarItem.js";
 import { StatusBar, renderStatusBar } from "../components/ui/Statusbar/Statusbar.js";
-import { DBEditorModule } from "../modules/db-editor/DBEditorModule.js";
-import { InnoDBClusterModule } from "../modules/innodb-cluster/InnoDBClusterModule.js";
-import { ShellModule } from "../modules/shell/ShellModule.js";
 import { Settings } from "../supplement/Settings/Settings.js";
 import { versionMatchesExpected } from "../utilities/helpers.js";
 import { ApplicationDB } from "./ApplicationDB.js";
@@ -120,7 +116,7 @@ export class App extends Component<{}, IAppState> {
                 this.defaultProfile = data.activeProfile;
                 if (this.defaultProfile) {
                     webSession.loadProfile(this.defaultProfile);
-                    this.enableModules(this.defaultProfile.userId);
+                    this.setState({ loginInProgress: false });
                 }
             }
 
@@ -140,7 +136,7 @@ export class App extends Component<{}, IAppState> {
             this.defaultProfile = profile;
             if (this.defaultProfile) {
                 webSession.loadProfile(this.defaultProfile);
-                this.enableModules(this.defaultProfile.userId);
+                this.setState({ loginInProgress: false });
             }
 
             return Promise.resolve(true);
@@ -400,30 +396,6 @@ export class App extends Component<{}, IAppState> {
         const { showOptions } = this.state;
         this.setState({ showOptions: !showOptions });
     };
-
-    /**
-     * Determines which modules a user is allowed to use and enables them in the UI.
-     *
-     * @param userId The ID of the user for which modules must be enabled.
-     */
-    private enableModules(userId: number): void {
-        ShellInterface.users.getGuiModuleList(userId).then((list) => {
-            // Register the known modules first.
-            ModuleRegistry.registerModule(DBEditorModule);
-            ModuleRegistry.registerModule(ShellModule);
-            ModuleRegistry.registerModule(InnoDBClusterModule);
-
-            list.forEach((id: string) => {
-                ModuleRegistry.enableModule(id);
-            });
-
-            // Now we have the login actually finished and can show the main UI.
-            this.setState({ loginInProgress: false });
-        }).catch( /* istanbul ignore next */(reason) => {
-            const message = reason instanceof Error ? reason.message : String(reason);
-            void ui.showErrorMessage(`Cannot retrieve the module list: ${message}`, {});
-        });
-    }
 
     private dialogResponse = (response: IDialogResponse): Promise<boolean> => {
         if (appParameters.embedded) {
