@@ -46,8 +46,8 @@ import { Assets } from "../../supplement/Assets.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import type { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import type { EditorLanguage, IScriptRequest } from "../../supplement/index.js";
-import type { IOpenDocumentState, ISavedEditorState } from "./DBConnectionTab.js";
-import { DBEditorToolbar } from "./DBEditorToolbar.js";
+import type { IOpenDocumentState, ISavedEditorState } from "./ConnectionTab.js";
+import { DocumentToolbar } from "./DocumentToolbar.js";
 import { StandalonePresentationInterface } from "./execution/StandalonePresentationInterface.js";
 import type { IToolbarItems } from "./index.js";
 
@@ -170,7 +170,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
             // In normal mode the toolbar shows all parts and the normalize button acts as such.
             if (standaloneMode) {
                 toolbar = <Toolbar
-                    id="dbEditorToolbar"
+                    id="documentToolbar"
                     dropShadow={false}
                 >
                     {toolbarItemsTemplate.execution}
@@ -186,7 +186,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                 </Toolbar >;
             } else {
                 toolbar = <Toolbar
-                    id="dbEditorToolbar"
+                    id="documentToolbar"
                     dropShadow={false}
                 >
                     {toolbarItemsTemplate.navigation}
@@ -233,7 +233,7 @@ export class ScriptEditor extends ComponentBase<IScriptEditorProperties, IScript
                 <Icon src={Assets.toolbar.loadIcon} data-tooltip="inherit" />
             </Button>);
 
-            toolbar = <DBEditorToolbar
+            toolbar = <DocumentToolbar
                 toolbarItems={toolbarItems}
                 language={language}
                 activeDocument={savedState.activeEntry}

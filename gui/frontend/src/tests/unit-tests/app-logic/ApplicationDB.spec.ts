@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -32,7 +32,7 @@ describe("ApplicationDB tests", () => {
     });
 
     it("Add + remove data by tab ID", async () => {
-        await ApplicationDB.db.put(StoreType.DbEditor, {
+        await ApplicationDB.db.put(StoreType.Document, {
             tabId: "1",
             resultId: "123",
             rows: [],
@@ -41,23 +41,23 @@ describe("ApplicationDB tests", () => {
             hasMoreRows: false,
         });
 
-        let data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "tabIndex", "1");
+        let data = await ApplicationDB.db.getAllFromIndex(StoreType.Document, "tabIndex", "1");
         expect(data.length).toBe(1);
 
-        data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "tabIndex", "2");
+        data = await ApplicationDB.db.getAllFromIndex(StoreType.Document, "tabIndex", "2");
         expect(data.length).toBe(0);
 
-        await ApplicationDB.removeDataByTabId(StoreType.DbEditor, "1");
-        data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "tabIndex", "1");
+        await ApplicationDB.removeDataByTabId(StoreType.Document, "1");
+        data = await ApplicationDB.db.getAllFromIndex(StoreType.Document, "tabIndex", "1");
         expect(data.length).toBe(0);
-        data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "resultIndex", "123");
+        data = await ApplicationDB.db.getAllFromIndex(StoreType.Document, "resultIndex", "123");
         expect(data.length).toBe(0);
     });
 
     it("Add + remove data by request ID", async () => {
         await ApplicationDB.loaded;
 
-        await ApplicationDB.db.put(StoreType.DbEditor, {
+        await ApplicationDB.db.put(StoreType.Document, {
             tabId: "2",
             resultId: "456",
             index: 888,
@@ -67,29 +67,29 @@ describe("ApplicationDB tests", () => {
             hasMoreRows: false,
         });
 
-        let data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "resultIndex", "123");
+        let data = await ApplicationDB.db.getAllFromIndex(StoreType.Document, "resultIndex", "123");
         expect(data.length).toBe(0);
-        data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "resultIndex", "456");
+        data = await ApplicationDB.db.getAllFromIndex(StoreType.Document, "resultIndex", "456");
         expect(data.length).toBe(1);
         expect(data[0].index).toBe(888);
 
-        await ApplicationDB.removeDataByResultIds(StoreType.DbEditor, ["0", "1000"]);
-        data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "resultIndex", "456");
+        await ApplicationDB.removeDataByResultIds(StoreType.Document, ["0", "1000"]);
+        data = await ApplicationDB.db.getAllFromIndex(StoreType.Document, "resultIndex", "456");
         expect(data.length).toBe(1);
-        data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "resultIndex", "456");
+        data = await ApplicationDB.db.getAllFromIndex(StoreType.Document, "resultIndex", "456");
         expect(data.length).toBe(1);
 
-        await ApplicationDB.removeDataByResultIds(StoreType.DbEditor, ["456", "1000"]);
-        data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "resultIndex", "456");
+        await ApplicationDB.removeDataByResultIds(StoreType.Document, ["456", "1000"]);
+        data = await ApplicationDB.db.getAllFromIndex(StoreType.Document, "resultIndex", "456");
         expect(data.length).toBe(0);
 
-        await ApplicationDB.removeDataByResultIds(StoreType.DbEditor, []);
-        data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "resultIndex", "456");
+        await ApplicationDB.removeDataByResultIds(StoreType.Document, []);
+        data = await ApplicationDB.db.getAllFromIndex(StoreType.Document, "resultIndex", "456");
         expect(data.length).toBe(0);
     });
 
     it("Upgrade the DB", async () => {
-        await ApplicationDB.db.put(StoreType.DbEditor, {
+        await ApplicationDB.db.put(StoreType.Document, {
             tabId: "2",
             resultId: "456",
             rows: [],
@@ -98,7 +98,7 @@ describe("ApplicationDB tests", () => {
             hasMoreRows: false,
         });
 
-        await ApplicationDB.db.put(StoreType.DbEditor, {
+        await ApplicationDB.db.put(StoreType.Document, {
             tabId: "3",
             resultId: "456",
             index: 99,
@@ -112,7 +112,7 @@ describe("ApplicationDB tests", () => {
         ApplicationDB.db.close();
         await ApplicationDB.initialize(false);
 
-        let data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "resultIndex", "456");
+        let data = await ApplicationDB.db.getAllFromIndex(StoreType.Document, "resultIndex", "456");
         expect(data.length).toBe(2);
 
         // Close and reopen with a new DB version. This will remove all existing data.
@@ -120,7 +120,7 @@ describe("ApplicationDB tests", () => {
         ApplicationDB.dbVersion++;
         await ApplicationDB.initialize(false);
 
-        data = await ApplicationDB.db.getAllFromIndex(StoreType.DbEditor, "resultIndex", "456");
+        data = await ApplicationDB.db.getAllFromIndex(StoreType.Document, "resultIndex", "456");
         expect(data.length).toBe(0);
     });
 });

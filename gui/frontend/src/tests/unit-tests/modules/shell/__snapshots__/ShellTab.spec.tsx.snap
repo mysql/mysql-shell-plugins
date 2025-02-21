@@ -6,7 +6,7 @@ exports[`Shell tab tests Connection tests Test ShellModule instantiation 1`] = `
   mainAlignment="stretch"
   orientation="column"
 >
-  <DBEditorToolbar
+  <DocumentToolbar
     documentState={[]}
     heatWaveEnabled={false}
     language="msg"

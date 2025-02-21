@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import "./DBEditorSideBar.css";
+import "./DocumentSideBar.css";
 
 import { ComponentChild, createRef, render, type RefObject } from "preact";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
@@ -64,7 +64,7 @@ import { convertErrorToString, uuid } from "../../../utilities/helpers.js";
 import { EnabledState } from "../../mrs/mrs-helpers.js";
 import { MrsDbObjectType } from "../../mrs/types.js";
 import {
-    DBEditorContext, type DBEditorContextType, type IBaseTreeItem, type IConnectionTreeItem,
+    DocumentContext, type DocumentContextType, type IBaseTreeItem, type IConnectionTreeItem,
     type IDocumentTreeItem, type IOciTreeItem, type ISideBarCommandResult, type QualifiedName,
 } from "../index.js";
 
@@ -162,12 +162,12 @@ const mrsDbObjectTypeToIcon: Map<MrsDbObjectType, string> = new Map([
     //[MrsDbObjectType.Event, Assets.mrs.dbObjectEventIcon],
 ]);
 
-export interface IDBEditorSideBarSectionState {
+export interface IDocumentSideBarSectionState {
     expanded?: boolean;
     size?: number;
 }
 
-interface IDBEditorSideBarProperties extends IComponentProperties {
+interface IDocumentSideBarProperties extends IComponentProperties {
     /** Which document item is currently selected. */
     selectedOpenDocument: string;
 
@@ -175,12 +175,12 @@ interface IDBEditorSideBarProperties extends IComponentProperties {
     markedSchema: string;
 
     /** The state of each accordion section. */
-    savedSectionState?: Map<string, IDBEditorSideBarSectionState>;
+    savedSectionState?: Map<string, IDocumentSideBarSectionState>;
 
     onSelectConnectionItem?: (entry: ConnectionDataModelEntry) => Promise<void>;
     onSelectDocumentItem?: (entry: OpenDocumentDataModelEntry) => Promise<void>;
     onChangeItem?: (id: string, newCaption: string) => void;
-    onSaveState?: (state: Map<string, IDBEditorSideBarSectionState>) => void;
+    onSaveState?: (state: Map<string, IDocumentSideBarSectionState>) => void;
     onConnectionTreeCommand: (command: Command, entry?: ConnectionDataModelEntry,
         qualifiedName?: QualifiedName) => Promise<ISideBarCommandResult>;
     onDocumentTreeCommand: (command: Command, entry: OpenDocumentDataModelEntry) => Promise<ISideBarCommandResult>;
@@ -209,15 +209,15 @@ interface ISideBarTreeItems {
     ociTreeItems: IOciTreeItem[];
 }
 
-interface IDBEditorSideBarState extends IComponentState {
+interface IDocumentSideBarState extends IComponentState {
     treeItems: ISideBarTreeItems;
 
     editing?: string;     // If editing an editor's caption is active then this field holds its id.
     tempCaption?: string; // Keeps the new caption of an editor while it is being edited.
 }
 
-export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, IDBEditorSideBarState> {
-    public static override contextType = DBEditorContext;
+export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, IDocumentSideBarState> {
+    public static override contextType = DocumentContext;
 
     private cdmTypeToMenuRefMap = new Map<CdmEntityType, RefObject<Menu>>([
         [CdmEntityType.Connection, createRef<Menu>()],
@@ -273,7 +273,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
     // (we are the source of them in this case).
     private refreshRunning = 0;
 
-    public constructor(props: IDBEditorSideBarProperties) {
+    public constructor(props: IDocumentSideBarProperties) {
         super(props);
 
         this.state = {
@@ -293,7 +293,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         requisitions.register("refreshConnection", this.refreshConnection);
 
         // Create the initial tree items.
-        const context = this.context as DBEditorContextType;
+        const context = this.context as DocumentContextType;
         if (context) {
             context.connectionsDataModel.subscribe(this.connectionDataModelChanged);
             context.documentDataModel.subscribe(this.documentDataModelChanged);
@@ -306,7 +306,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
     }
 
     public override componentWillUnmount(): void {
-        const context = this.context as DBEditorContextType;
+        const context = this.context as DocumentContextType;
         if (context) {
             context.connectionsDataModel.unsubscribe(this.connectionDataModelChanged);
             context.documentDataModel.unsubscribe(this.documentDataModelChanged);
@@ -315,7 +315,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         requisitions.unregister("refreshConnection", this.refreshConnection);
     }
 
-    public override componentDidUpdate(prevProps: IDBEditorSideBarProperties): void {
+    public override componentDidUpdate(prevProps: IDocumentSideBarProperties): void {
         const { markedSchema, selectedOpenDocument } = this.props;
 
         // Check for data model changes and update our trees.
@@ -359,7 +359,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         const { savedSectionState } = this.props;
         const { editing } = this.state;
 
-        const context = this.context as DBEditorContextType;
+        const context = this.context as DocumentContextType;
         if (!context) {
             return null;
         }
@@ -374,7 +374,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         return (
             <>
                 <Accordion
-                    id="dbEditorSideBar"
+                    id="documentSideBar"
                     caption={title}
                     sections={[
                         {
@@ -2118,7 +2118,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
             }
 
             case "msg.mds.refreshOciProfiles": {
-                const context = this.context as DBEditorContextType;
+                const context = this.context as DocumentContextType;
                 void context.ociDataModel.updateProfiles().then(() => {
                     this.updateTreesFromContext();
                 });
@@ -2135,7 +2135,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
     };
 
     private handleSectionExpand = (props: IAccordionProperties, sectionId: string, expanded: boolean): void => {
-        const { onSaveState, savedSectionState = new Map<string, IDBEditorSideBarSectionState>() } = this.props;
+        const { onSaveState, savedSectionState = new Map<string, IDocumentSideBarSectionState>() } = this.props;
 
         const sectionState = savedSectionState?.get(sectionId) ?? {};
         sectionState.expanded = expanded;
@@ -2148,7 +2148,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
     private handleSectionResize = (_props: IAccordionProperties, info: ISplitterPaneSizeInfo[]): void => {
         const { onSaveState, savedSectionState } = this.props;
 
-        const newMap = savedSectionState ? new Map(savedSectionState) : new Map<string, IDBEditorSideBarSectionState>();
+        const newMap = savedSectionState ? new Map(savedSectionState) : new Map<string, IDocumentSideBarSectionState>();
         info.forEach((value) => {
             const sectionState = newMap.get(value.id) ?? {};
             sectionState.size = value.currentSize;
@@ -2576,7 +2576,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
                 case "msg.mds.setDefaultProfile": {
                     void onOciTreeCommand(command, entry.dataModelEntry).then((done) => {
                         if (done) {
-                            const context = this.context as DBEditorContextType;
+                            const context = this.context as DocumentContextType;
                             void context.ociDataModel.updateProfiles().then(() => {
                                 this.updateTreesFromContext();
                             });
@@ -2703,7 +2703,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
 
                 case "remove": {
                     if (action.entry?.type === CdmEntityType.Connection) {
-                        const context = this.context as DBEditorContextType;
+                        const context = this.context as DocumentContextType;
                         if (context) {
                             // Remove the connection from the backend.
                             void context.connectionsDataModel.dropItem(action.entry);
@@ -2887,7 +2887,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
      * state.
      */
     private updateTreesFromContext(): void {
-        const context = this.context as DBEditorContextType;
+        const context = this.context as DocumentContextType;
         if (!context) {
             return;
         }
@@ -2911,7 +2911,7 @@ export class DBEditorSideBar extends ComponentBase<IDBEditorSideBarProperties, I
         }
     }
 
-    private updateRootTreeItems(context: DBEditorContextType): [ISideBarTreeItems, boolean] {
+    private updateRootTreeItems(context: DocumentContextType): [ISideBarTreeItems, boolean] {
         const { treeItems } = this.state;
 
         let changed = false;

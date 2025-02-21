@@ -434,19 +434,6 @@ export const registerSettings = (): void => {
     );
 
     registerSettingCategory("shellSession", "Shell Session", "Settings related to a shell session");
-    registerSettingCategory(
-        "shellSession.sessionBrowser",
-        "Shell Session Browser",
-        "Settings related to the shell session overview page in the Shell Session Module",
-    );
-    registerSetting(
-        "shellSession.sessionBrowser.showGreeting",
-        "Show Greeting",
-        "If set, a message section is shown with some useful links.",
-        "boolean",
-        true,
-        false,
-    );
     registerSetting(
         "shellSession.startLanguage",
         "Start Language",

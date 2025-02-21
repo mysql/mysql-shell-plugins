@@ -56,7 +56,7 @@ import { EditorLanguage, convertRows, generateColumnInfo } from "../../supplemen
 import { convertErrorToString, flattenObject, uuid } from "../../utilities/helpers.js";
 import { unquote } from "../../utilities/string-helpers.js";
 import { ShellPromptHandler } from "../common/ShellPromptHandler.js";
-import { DBEditorToolbar } from "../db-editor/DBEditorToolbar.js";
+import { DocumentToolbar } from "../db-editor/DocumentToolbar.js";
 import type { IToolbarItems } from "../db-editor/index.js";
 import { ShellConsole } from "./ShellConsole.js";
 import { ShellPrompt } from "./ShellPrompt.js";
@@ -154,7 +154,7 @@ Execute \\help or \\? for help; \\quit to close the session.`;
                 orientation={Orientation.TopDown}
                 mainAlignment={ContentAlignment.Stretch}
             >
-                <DBEditorToolbar
+                <DocumentToolbar
                     toolbarItems={toolbarItemsTemplate}
                     language="msg"
                     activeDocument={savedState.dataModelEntry.id}

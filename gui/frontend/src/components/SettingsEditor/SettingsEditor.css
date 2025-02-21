@@ -34,15 +34,11 @@
     margin: 0;
 }
 
-.msg.settingsEditor .tabArea {
-    height: 32px;
-}
-
-.msg.settingsEditor .tabArea .selectorItem.normal {
+.msg.settingsEditor .selectorItem.normal {
     flex-basis: 10%;
 }
 
-.msg.settingsEditor .tabContent #settingsHost {
+.msg.settingsEditor #settingsHost {
     flex: 1 1 auto;
     width: 100%;
     max-width: 950px;
@@ -50,21 +46,21 @@
     padding: 0 15px;
 }
 
-.msg.settingsEditor .tabContent #advancedSettings {
+.msg.settingsEditor #advancedSettings {
     font-size: 0.9em;
 }
 
-.msg.settingsEditor .tabContent #optionsHost {
+.msg.settingsEditor #optionsHost {
     min-height: 36px;
     margin: 12px 0 6px 0;
 }
 
-.msg.settingsEditor .tabContent #settingsHost .searchContainer {
+.msg.settingsEditor #settingsHost .searchContainer {
     flex: 1 1 auto;
     margin-right: 20px;
 }
 
-.msg.settingsEditor .tabContent #settingsHost > #settingsTreeHost {
+.msg.settingsEditor #settingsHost > #settingsTreeHost {
     flex: 1 1 auto;
 }
 

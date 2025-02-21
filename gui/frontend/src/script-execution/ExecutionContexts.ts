@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ApplicationDB, IDbModuleResultData, StoreType } from "../app-logic/ApplicationDB.js";
+import { ApplicationDB, IDocumentResultData, StoreType } from "../app-logic/ApplicationDB.js";
 import type { ISqlUpdateResult } from "../app-logic/general-types.js";
 import { CodeEditor, ResultPresentationFactory } from "../components/ui/CodeEditor/CodeEditor.js";
 import { IPosition, Monaco } from "../components/ui/CodeEditor/index.js";
@@ -433,7 +433,7 @@ export class ExecutionContexts implements IContextProvider {
     };
 
     private updateRowsForResultId = async (resultSet: IResultSet) => {
-        await ApplicationDB.updateRowsForResultId(StoreType.DbEditor, resultSet.resultId, resultSet.data.rows);
+        await ApplicationDB.updateRowsForResultId(StoreType.Document, resultSet.resultId, resultSet.data.rows);
     };
 
     private onCommitChanges = async (resultSet: IResultSet, updateSql: string[]): Promise<ISqlUpdateResult> => {
@@ -446,16 +446,16 @@ export class ExecutionContexts implements IContextProvider {
     };
 
     private rollbackChanges = async (resultSet: IResultSet): Promise<void> => {
-        const rows = await ApplicationDB.getRowsForResultId(StoreType.DbEditor, resultSet.resultId);
+        const rows = await ApplicationDB.getRowsForResultId(StoreType.Document, resultSet.resultId);
         resultSet.data.rows = rows;
     };
 
     private sqlUpdateColumnInfo = async (data: IColumnDetails): Promise<boolean> => {
-        return ApplicationDB.updateColumnsForResultId(StoreType.DbEditor, data);
+        return ApplicationDB.updateColumnsForResultId(StoreType.Document, data);
     };
 
-    private isDbModuleResultData(data: unknown[]): data is IDbModuleResultData[] {
-        const array = data as IDbModuleResultData[];
+    private isDbModuleResultData(data: unknown[]): data is IDocumentResultData[] {
+        const array = data as IDocumentResultData[];
 
         return array.length > 0 && array[0].tabId !== undefined;
     }

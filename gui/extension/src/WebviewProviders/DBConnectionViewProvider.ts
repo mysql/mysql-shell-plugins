@@ -34,7 +34,6 @@ import {
 } from "../../../frontend/src/supplement/RequisitionTypes.js";
 
 import type { IMySQLDbSystem } from "../../../frontend/src/communication/index.js";
-import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo.js";
 import type { EditorLanguage, INewEditorRequest, IScriptRequest } from "../../../frontend/src/supplement/index.js";
 import type { IShellSessionDetails } from "../../../frontend/src/supplement/ShellInterface/index.js";
 import { WebviewProvider } from "./WebviewProvider.js";
@@ -58,10 +57,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
      * @returns A promise which resolves after the command was executed.
      */
     public show(page: string, editor?: InitialEditor): Promise<boolean> {
-        return this.runCommand("job", [
-            { requestType: "showModule", parameter: DBEditorModuleId },
-            { requestType: "showPage", parameter: { module: DBEditorModuleId, page, editor } },
-        ], "newConnection");
+        return this.runCommand("job", [{ requestType: "showPage", parameter: { page, editor } }], "newConnection");
     }
 
     /**
@@ -72,10 +68,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
      * @returns A promise which resolves after the command was executed.
      */
     public showDocument(data: IDocumentOpenData): Promise<boolean> {
-        return this.runCommand("job", [
-            { requestType: "showModule", parameter: DBEditorModuleId },
-            { requestType: "openDocument", parameter: data },
-        ], "newConnection");
+        return this.runCommand("job", [{ requestType: "openDocument", parameter: data }], "newConnection");
     }
 
     /**
@@ -88,8 +81,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
      */
     public runCode(page: string, details: IEditorExtendedExecutionOptions): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showModule", parameter: DBEditorModuleId },
-            { requestType: "showPage", parameter: { module: DBEditorModuleId, page, suppressAbout: true } },
+            { requestType: "showPage", parameter: { page, suppressAbout: true } },
             { requestType: "editorRunCode", parameter: details },
         ], details.linkId === -1 ? "newConnection" : "newConnectionWithEmbeddedSql");
     }
@@ -104,11 +96,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
      */
     public runScript(page: string, details: IScriptRequest): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showModule", parameter: DBEditorModuleId },
-            {
-                requestType: "showPage", parameter:
-                    { module: DBEditorModuleId, page, suppressAbout: true, noEditor: true },
-            },
+            { requestType: "showPage", parameter: { page, suppressAbout: true, noEditor: true } },
             { requestType: "editorRunScript", parameter: details },
         ], "newConnection");
     }
@@ -123,8 +111,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
      */
     public editScript(page: string, details: IScriptRequest): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showModule", parameter: DBEditorModuleId },
-            { requestType: "showPage", parameter: { module: DBEditorModuleId, page, suppressAbout: true } },
+            { requestType: "showPage", parameter: { page, suppressAbout: true } },
             { requestType: "editorEditScript", parameter: details },
         ], "newConnection");
     }
@@ -139,8 +126,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
      */
     public loadScript(page: string, details: IScriptRequest): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showModule", parameter: DBEditorModuleId },
-            { requestType: "showPage", parameter: { module: DBEditorModuleId, page, suppressAbout: true } },
+            { requestType: "showPage", parameter: { page, suppressAbout: true } },
             { requestType: "editorLoadScript", parameter: details },
         ], "newConnection");
     }
@@ -154,11 +140,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
      */
     public createNewEditor(details: INewEditorRequest): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showModule", parameter: DBEditorModuleId },
-            {
-                requestType: "showPage",
-                parameter: { module: DBEditorModuleId, page: details.page, suppressAbout: true },
-            },
+            { requestType: "showPage", parameter: { page: details.page, suppressAbout: true } },
             { requestType: "createNewEditor", parameter: details },
         ], "newConnection");
     }
@@ -173,8 +155,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
      */
     public addConnection(mdsData?: IMySQLDbSystem, profileName?: String): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showModule", parameter: DBEditorModuleId },
-            { requestType: "showPage", parameter: { module: DBEditorModuleId, page: "connections" } },
+            { requestType: "showPage", parameter: { page: "connections" } },
             { requestType: "addNewConnection", parameter: { mdsData, profileName } },
         ], "connections");
     }
@@ -189,10 +170,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
     public openSession(session: IShellSessionDetails): Promise<boolean> {
         //const command = session.sessionId === -1 ? "newSession" : "openSession";
 
-        return this.runCommand("job", [
-            { requestType: "showModule", parameter: DBEditorModuleId },
-            { requestType: "openSession", parameter: session },
-        ], "newShellConsole");
+        return this.runCommand("job", [{ requestType: "openSession", parameter: session }], "newShellConsole");
     }
 
     /**
@@ -204,8 +182,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
      */
     public removeConnection(connectionId: number): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showModule", parameter: DBEditorModuleId },
-            { requestType: "showPage", parameter: { module: DBEditorModuleId, page: "connections" } },
+            { requestType: "showPage", parameter: { page: "connections" } },
             { requestType: "removeConnection", parameter: connectionId },
         ], "connections");
     }
@@ -219,8 +196,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
      */
     public editConnection(connectionId: number): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showModule", parameter: DBEditorModuleId },
-            { requestType: "showPage", parameter: { module: DBEditorModuleId, page: "connections" } },
+            { requestType: "showPage", parameter: { page: "connections" } },
             { requestType: "editConnection", parameter: connectionId },
         ], "connections");
     }
@@ -234,17 +210,14 @@ export class DBConnectionViewProvider extends WebviewProvider {
      */
     public duplicateConnection(connectionId: number): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showModule", parameter: DBEditorModuleId },
-            { requestType: "showPage", parameter: { module: DBEditorModuleId, page: "connections" } },
+            { requestType: "showPage", parameter: { page: "connections" } },
             { requestType: "duplicateConnection", parameter: connectionId },
         ], "connections");
     }
 
     public renameFile(request: IScriptRequest): Promise<boolean> {
         // Can only be called if a connection is active. This is the bounce-back from a save request from a connection.
-        return this.runCommand("job", [
-            { requestType: "editorRenameScript", parameter: request },
-        ], "connections");
+        return this.runCommand("job", [{ requestType: "editorRenameScript", parameter: request }], "connections");
     }
 
     /**
@@ -268,10 +241,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
     public reselectLastDocument(): void {
         void requisitions.execute("proxyRequest", {
             provider: this,
-            original: {
-                requestType: "selectDocument",
-                parameter: { connectionId: -1, documentId: "" },
-            },
+            original: { requestType: "selectDocument", parameter: { connectionId: -1, documentId: "" } },
         });
     }
 
@@ -315,8 +285,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
      */
     public editMrsDbObject(page: string, data: IMrsDbObjectEditRequest): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showModule", parameter: DBEditorModuleId },
-            { requestType: "showPage", parameter: { module: DBEditorModuleId, page } },
+            { requestType: "showPage", parameter: { page } },
             { requestType: "showMrsDbObjectDialog", parameter: data },
         ], "newConnection");
     }
@@ -396,10 +365,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
     protected forwardRequest = async <K extends keyof IRequestTypeMap>(requestType: K,
         parameter: IRequisitionCallbackValues<K>): Promise<boolean> => {
 
-        return requisitions.execute("proxyRequest", {
-            provider: this,
-            original: { requestType, parameter },
-        });
+        return requisitions.execute("proxyRequest", { provider: this, original: { requestType, parameter } });
     };
 
     private createNewSession = async (_details: IShellSessionDetails): Promise<boolean> => {

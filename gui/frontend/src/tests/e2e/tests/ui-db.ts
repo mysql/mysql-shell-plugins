@@ -758,7 +758,6 @@ describe("DATABASE CONNECTIONS", () => {
         afterAll(async () => {
             try {
                 await dbTreeSection.collapseTreeItem(globalConn.caption!);
-                await dbTreeSection.collapseTreeItem(constants.mysqlAdministrationTreeElement);
                 await new E2ETabContainer().closeAllTabs();
             } catch (e) {
                 await Misc.storeScreenShot("afterAll_MySQLAdministration");

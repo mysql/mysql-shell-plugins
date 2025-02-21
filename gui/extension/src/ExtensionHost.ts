@@ -48,10 +48,9 @@ import type {
 } from "../../frontend/src/supplement/RequisitionTypes.js";
 import { requisitions } from "../../frontend/src/supplement/Requisitions.js";
 import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface.js";
-import { DBEditorCommandHandler } from "./DBEditorCommandHandler.js";
+import { DocumentCommandHandler } from "./DocumentCommandHandler.js";
 import { MDSCommandHandler } from "./MDSCommandHandler.js";
 import { MRSCommandHandler } from "./MRSCommandHandler.js";
-import { ShellConsoleCommandHandler } from "./ShellConsoleCommandHandler.js";
 import { DBConnectionViewProvider } from "./WebviewProviders/DBConnectionViewProvider.js";
 import { WebviewProvider } from "./WebviewProviders/WebviewProvider.js";
 import { NodeMessageScheduler } from "./communication/NodeMessageScheduler.js";
@@ -74,8 +73,7 @@ export class ExtensionHost {
 
     private connectionsProvider: ConnectionsTreeDataProvider;
 
-    private dbEditorCommandHandler: DBEditorCommandHandler;
-    private shellConsoleCommandHandler = new ShellConsoleCommandHandler();
+    private documentCommandHandler: DocumentCommandHandler;
     private notebookProvider = new NotebookEditorProvider();
     private mrsCommandHandler: MRSCommandHandler;
     private mdsCommandHandler = new MDSCommandHandler();
@@ -102,7 +100,7 @@ export class ExtensionHost {
         void this.#connectionsDataModel.initialize(); // Async init, but don't wait.
 
         this.connectionsProvider = new ConnectionsTreeDataProvider(this.#connectionsDataModel);
-        this.dbEditorCommandHandler = new DBEditorCommandHandler(this.connectionsProvider);
+        this.documentCommandHandler = new DocumentCommandHandler(this.connectionsProvider);
         this.mrsCommandHandler = new MRSCommandHandler(this.connectionsProvider);
         this.msmCommandHandler = new MsmCommandHandler(this.connectionsProvider);
 
@@ -147,10 +145,8 @@ export class ExtensionHost {
             provider.close();
         });
         this.providers = [];
-        this.dbEditorCommandHandler.clear();
+        this.documentCommandHandler.clear();
         this.lastActiveProvider = undefined;
-
-        this.shellConsoleCommandHandler.closeProviders();
     }
 
     public async addNewShellTask(caption: string, shellArgs: string[], dbConnectionId?: number,
@@ -288,12 +284,12 @@ export class ExtensionHost {
      */
     public get newProvider(): DBConnectionViewProvider | undefined {
         if (this.url) {
-            const caption = this.dbEditorCommandHandler.generateNewProviderCaption();
+            const caption = this.documentCommandHandler.generateNewProviderCaption();
             const provider = new DBConnectionViewProvider(this.url, this.providerDisposed, this.providerStateChanged);
             provider.caption = caption;
             this.providers.push(provider);
 
-            this.dbEditorCommandHandler.providerOpened(provider);
+            this.documentCommandHandler.providerOpened(provider);
 
             return provider;
         }
@@ -320,8 +316,7 @@ export class ExtensionHost {
         // Register the extension host as target for broadcasts.
         requisitions.setRemoteTarget(this);
 
-        this.dbEditorCommandHandler.setup(this);
-        this.shellConsoleCommandHandler.setup(this);
+        this.documentCommandHandler.setup(this);
         this.notebookProvider.setup(this);
         this.mrsCommandHandler.setup(this);
         this.mdsCommandHandler.setup(this);
@@ -476,7 +471,7 @@ export class ExtensionHost {
         }*/
 
         // Refresh relevant tree providers.
-        await this.dbEditorCommandHandler.refreshConnectionTree();
+        await this.documentCommandHandler.refreshConnectionTree();
 
         void commands.executeCommand("msg.mds.refreshOciProfiles");
     }
@@ -664,7 +659,7 @@ export class ExtensionHost {
             this.lastActiveProvider = undefined;
         }
 
-        this.dbEditorCommandHandler.providerClosed(provider as DBConnectionViewProvider);
+        this.documentCommandHandler.providerClosed(provider as DBConnectionViewProvider);
     };
 
     private providerStateChanged = (provider: WebviewProvider, active: boolean): void => {
@@ -673,7 +668,7 @@ export class ExtensionHost {
             this.lastActiveProvider.reselectLastDocument();
         }
 
-        this.dbEditorCommandHandler.providerStateChanged(provider as DBConnectionViewProvider, active);
+        this.documentCommandHandler.providerStateChanged(provider as DBConnectionViewProvider, active);
     };
 
     /**

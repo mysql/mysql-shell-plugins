@@ -558,9 +558,8 @@ export interface IRequestTypeMap {
     "showAbout": SimpleCallback;
     "showThemeEditor": SimpleCallback;
     "showPreferences": SimpleCallback;
-    "showModule": (module: string) => Promise<boolean>;
     "showPage": (
-        data: { module: string; page: string; editor?: InitialEditor; suppressAbout?: boolean; }) => Promise<boolean>;
+        data: { page: string; editor?: InitialEditor; suppressAbout?: boolean; }) => Promise<boolean>;
 
     "openDocument": (data: IDocumentOpenData) => Promise<boolean>;
 

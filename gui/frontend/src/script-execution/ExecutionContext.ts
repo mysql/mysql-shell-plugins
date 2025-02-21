@@ -37,7 +37,7 @@ import {
     IResponseDataOptions, IResultSets, LoadingState, type IResultSet,
 } from "./index.js";
 import { EditorLanguage, IExecutionContext, ITextRange } from "../supplement/index.js";
-import { ApplicationDB, type IDbModuleResultData, type StoreType } from "../app-logic/ApplicationDB.js";
+import { ApplicationDB, type IDocumentResultData, type StoreType } from "../app-logic/ApplicationDB.js";
 import { uuidBinary16Base64 } from "../utilities/helpers.js";
 
 /**
@@ -640,8 +640,8 @@ export class ExecutionContext implements IExecutionContext {
         return sets;
     }
 
-    private isDbModuleResultData(data: unknown[]): data is IDbModuleResultData[] {
-        const array = data as IDbModuleResultData[];
+    private isDbModuleResultData(data: unknown[]): data is IDocumentResultData[] {
+        const array = data as IDocumentResultData[];
 
         return array.length > 0 && array[0].tabId !== undefined;
     }

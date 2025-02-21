@@ -119,7 +119,7 @@ export interface ISavedGraphData {
 }
 
 /** The preact context holding shared data for all pages in the DB editor module. */
-export type DBEditorContextType = {
+export type DocumentContextType = {
     connectionsDataModel: ConnectionDataModel;
     documentDataModel: OpenDocumentDataModel;
     ociDataModel: OciDataModel;
@@ -133,7 +133,7 @@ export type DBEditorContextType = {
  *       default value in the `createContext` call.
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export const DBEditorContext = createContext<DBEditorContextType | undefined>(undefined);
+export const DocumentContext = createContext<DocumentContextType | undefined>(undefined);
 
 /** Describes possible results for a sidebar command. */
 export interface ISideBarCommandResult {

@@ -47,8 +47,8 @@ import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType } from "../../supplement/ShellInterface/index.js";
 import type { EditorLanguage } from "../../supplement/index.js";
-import { IOpenDocumentState, type IConnectionPresentationState } from "./DBConnectionTab.js";
-import { DBEditorToolbar } from "./DBEditorToolbar.js";
+import type { IConnectionPresentationState, IOpenDocumentState } from "./ConnectionTab.js";
+import { DocumentToolbar } from "./DocumentToolbar.js";
 import { EmbeddedPresentationInterface } from "./execution/EmbeddedPresentationInterface.js";
 import { IToolbarItems } from "./index.js";
 
@@ -79,7 +79,7 @@ interface INotebookProperties extends IComponentProperties {
 
 export class Notebook extends ComponentBase<INotebookProperties> {
     #editorRef = createRef<CodeEditor>();
-    #toolbarRef = createRef<DBEditorToolbar>();
+    #toolbarRef = createRef<DocumentToolbar>();
 
     #editorLanguageSbEntry!: IStatusBarItem;
     #editorEolSbEntry!: IStatusBarItem;
@@ -214,7 +214,7 @@ export class Notebook extends ComponentBase<INotebookProperties> {
                 mainAlignment={ContentAlignment.Stretch}
                 {...this.unhandledProperties}
             >
-                <DBEditorToolbar
+                <DocumentToolbar
                     ref={this.#toolbarRef}
                     toolbarItems={toolbarItems}
                     language="msg"

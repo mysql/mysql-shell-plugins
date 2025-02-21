@@ -29,27 +29,19 @@ import { ComponentChild, createRef, render } from "preact";
 import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
 
 import type { IDictionary } from "../../app-logic/general-types.js";
-import { Assets } from "../../supplement/Assets.js";
 import { settingCategories, type ISettingCategory } from "../../supplement/Settings/SettingsRegistry.js";
-import { AboutBox } from "../ui/AboutBox/AboutBox.js";
 import { CheckState, Checkbox, type ICheckboxProperties } from "../ui/Checkbox/Checkbox.js";
 import {
-    ComponentBase, SelectionType, type IComponentProperties, type IComponentState,
+    ComponentBase, SelectionType,
+    type IComponentState,
 } from "../ui/Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../ui/Container/Container.js";
 import { Label } from "../ui/Label/Label.js";
 import { Search, type ISearchProperties, type ISearchValues } from "../ui/Search/Search.js";
-import { Tabview, type ITabviewPage } from "../ui/Tabview/Tabview.js";
 import { TreeGrid, type ITreeGridOptions } from "../ui/TreeGrid/TreeGrid.js";
 import { SettingsEditorList } from "./SettingsEditorList.js";
 
-interface ISettingsEditorProperties extends IComponentProperties {
-    page: string;
-}
-
 interface ISettingsEditorState extends IComponentState {
-    selectedTab: string;
-
     settingsTree: ISettingCategory[];
     filteredTree: ISettingCategory[];
     selectedTreeEntry: number;
@@ -60,7 +52,7 @@ interface ISettingsEditorState extends IComponentState {
 }
 
 /** A dialog to edit user and application settings. */
-export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISettingsEditorState> {
+export class SettingsEditor extends ComponentBase<{}, ISettingsEditorState> {
 
     private treeRef = createRef<TreeGrid>();
     private valueListRef = createRef<SettingsEditorList>();
@@ -68,14 +60,13 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
     private scrolling = false;
     private filterTimer: ReturnType<typeof setTimeout> | null = null;
 
-    public constructor(props: ISettingsEditorProperties) {
+    public constructor(props: {}) {
         super(props);
 
         const settingsTree = settingCategories.children!;
         const [, filteredTree] = this.filterSettingsTree(settingsTree, false);
 
         this.state = {
-            selectedTab: props.page,
             settingsTree,
             filteredTree,
             selectedTreeEntry: 1,
@@ -93,42 +84,14 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
         }
     }
 
-    public override componentDidUpdate(prevProps: ISettingsEditorProperties): void {
-        const { page } = this.props;
-
-        if (prevProps.page !== page) {
-            this.setState({ selectedTab: page });
-        }
-    }
-
     public render(): ComponentChild {
-        const { selectedTab } = this.state;
-
         const className = this.getEffectiveClassNames(["settingsEditor"]);
 
-        const pages: ITabviewPage[] = [{
-            icon: Assets.misc.settingsIcon,
-            caption: "Settings",
-            id: "settings",
-            content: this.renderSettingNames(),
-        },
-        {
-            icon: Assets.misc.settingsIcon,
-            caption: "About",
-            id: "about",
-            content: <AboutBox />,
-        }];
-
         return (
-            <Tabview
-                className={className}
-                pages={pages}
-                selectedId={selectedTab}
-                onSelectTab={this.handleSelectTab}
-                stretchTabs={false}
-            />
+            <Container className={className} orientation={Orientation.TopDown}>
+                {this.renderSettingNames()}
+            </Container>
         );
-
     }
 
     private renderSettingNames = (): ComponentChild => {
@@ -202,10 +165,6 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
                 </Container>
             </Container>
         );
-    };
-
-    private handleSelectTab = (id: string): void => {
-        this.setState({ selectedTab: id });
     };
 
     private formatSettingNamesTreeCell = (cell: CellComponent): string | HTMLElement => {

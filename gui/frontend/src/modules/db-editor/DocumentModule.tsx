@@ -23,9 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ComponentChild, createRef, type RefObject } from "preact";
-
-import { IModuleInfo, IModuleProperties, IModuleState, ModuleBase } from "../ModuleBase.js";
+import { Component, ComponentChild, createRef } from "preact";
 
 import { ICodeEditorModel, type IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
 import { CodeEditorMode, Monaco } from "../../components/ui/CodeEditor/index.js";
@@ -41,10 +39,10 @@ import {
 } from "../../supplement/ShellInterface/index.js";
 import { ConnectionBrowser } from "./ConnectionBrowser.js";
 import {
-    DBConnectionTab, IOpenDocumentState, ISelectItemDetails, type IConnectionPresentationState,
-} from "./DBConnectionTab.js";
+    ConnectionTab, IOpenDocumentState, ISelectItemDetails, type IConnectionPresentationState,
+} from "./ConnectionTab.js";
 import {
-    DBEditorContext, ISavedGraphData, IToolbarItems, type ISideBarCommandResult, type QualifiedName,
+    DocumentContext, ISavedGraphData, IToolbarItems, type ISideBarCommandResult, type QualifiedName,
 } from "./index.js";
 
 import { ApplicationDB, StoreType } from "../../app-logic/ApplicationDB.js";
@@ -68,7 +66,6 @@ import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.j
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { webSession } from "../../supplement/WebSession.js";
 import { convertErrorToString, loadFileAsText, selectFile, uuid } from "../../utilities/helpers.js";
-import { DBEditorModuleId } from "../ModuleInfo.js";
 import { MrsHub } from "../mrs/MrsHub.js";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
 
@@ -77,8 +74,8 @@ import { Container, Orientation } from "../../components/ui/Container/Container.
 import { SplitContainer, type ISplitterPane } from "../../components/ui/SplitContainer/SplitContainer.js";
 import scriptingRuntime from "./assets/typings/scripting-runtime.d.ts?raw";
 import {
-    DBEditorSideBar, documentTypeToFileIcon, pageTypeToDocumentIcon, type IDBEditorSideBarSectionState,
-} from "./DBEditorSideBar/DBEditorSideBar.js";
+    DocumentSideBar, documentTypeToFileIcon, pageTypeToDocumentIcon, type IDocumentSideBarSectionState,
+} from "./DocumentSideBar/DocumentSideBar.js";
 
 import { ui } from "../../app-logic/UILayer.js";
 import {
@@ -151,9 +148,7 @@ export interface IShellSessionTab {
     savedState: IShellTabPersistentState;
 }
 
-type IDBEditorModuleProperties = IModuleProperties;
-
-export interface IDBEditorModuleState extends IModuleState {
+export interface IDocumentModuleState {
     /** All currently open connection tabs. */
     connectionTabs: IConnectionTab[];
 
@@ -166,7 +161,7 @@ export interface IDBEditorModuleState extends IModuleState {
     /** All currently open shell session tabs. */
     shellSessionTabs: IShellSessionTab[];
 
-    sidebarState: Map<string, IDBEditorSideBarSectionState>;
+    sidebarState: Map<string, IDocumentSideBarSectionState>;
 
     /** The unique id of the active page. */
     selectedPage: string;
@@ -183,7 +178,7 @@ export interface IDBEditorModuleState extends IModuleState {
     progressMessage: string;
 }
 
-export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEditorModuleState> {
+export class DocumentModule extends Component<{}, IDocumentModuleState> {
     // The current UI presentation state of the connection.
     private connectionPresentation: Map<IOdmConnectionPageEntry, IConnectionPresentationState> = new Map();
 
@@ -200,7 +195,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     private containerRef = createRef<HTMLDivElement>();
     private actionMenuRef = createRef<Menu>();
     private mrsHubRef = createRef<MrsHub>();
-    private currentTabRef = createRef<DBConnectionTab>();
+    private currentTabRef = createRef<ConnectionTab>();
 
     private connectionsDataModel: ConnectionDataModel;
     private documentDataModel: OpenDocumentDataModel;
@@ -209,15 +204,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
     #sidebarCommandHandler: SidebarCommandHandler;
 
-    public static override get info(): IModuleInfo {
-        return {
-            id: DBEditorModuleId,
-            caption: "DB Editor",
-            icon: Assets.modules.moduleSqlIcon,
-        };
-    }
-
-    public constructor(props: IDBEditorModuleProperties) {
+    public constructor(props: {}) {
         super(props);
 
         this.workerPool = new ExecutionWorkerPool();
@@ -247,7 +234,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             connectionTabs: [],
             documentTabs: [],
             shellSessionTabs: [],
-            sidebarState: new Map<string, IDBEditorSideBarSectionState>(),
+            sidebarState: new Map<string, IDocumentSideBarSectionState>(),
             showSidebar: !appParameters.embedded,
             showTabs: !appParameters.embedded,
             loading: true,
@@ -255,8 +242,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         };
     }
 
-    public static override getDerivedStateFromProps(props: IDBEditorModuleProperties,
-        state: IDBEditorModuleState): Partial<IDBEditorModuleState> {
+    public static override getDerivedStateFromProps(props: {},
+        state: IDocumentModuleState): Partial<IDocumentModuleState> {
 
         const { selectedPage, loading } = state;
 
@@ -343,7 +330,6 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     }
 
     public override render(): ComponentChild {
-        const { innerRef } = this.props;
         const {
             selectedPage, connectionTabs, documentTabs, shellSessionTabs, sidebarState, showSidebar, showTabs, loading,
             progressMessage } = this.state;
@@ -539,7 +525,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         connectionTabs.forEach((info: IConnectionTab) => {
             const page = info.dataModelEntry;
             const connectionState = this.connectionPresentation.get(page)!;
-            const content = (<DBConnectionTab
+            const content = (<ConnectionTab
                 id={page.id}
                 ref={page.id === actualSelection ? this.currentTabRef : undefined}
                 caption={page.caption}
@@ -697,7 +683,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         if (!appParameters.embedded) {
             // Don't render the sidebar when embedded.
             splitterPanes.push({
-                content: <DBEditorSideBar
+                content: <DocumentSideBar
                     selectedOpenDocument={selectedDocument}
                     markedSchema={selectedTab?.connection.currentSchema ?? ""}
                     savedSectionState={sidebarState}
@@ -724,7 +710,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         });
 
         return (
-            <DBEditorContext.Provider
+            <DocumentContext.Provider
                 value={{
                     connectionsDataModel: this.connectionsDataModel,
                     documentDataModel: this.documentDataModel,
@@ -732,18 +718,13 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     shellTaskDataModel: this.shellTaskDataModel,
                 }}>
 
-                <div
-                    className="moduleHost"
-                    ref={innerRef as RefObject<HTMLDivElement>}
-                >
-                    <SplitContainer
-                        id="mainSplitHost"
-                        innerRef={this.containerRef}
-                        orientation={Orientation.LeftToRight}
-                        panes={splitterPanes}
-                    />
-                </div>
-            </DBEditorContext.Provider >
+                <SplitContainer
+                    id="mainSplitHost"
+                    innerRef={this.containerRef}
+                    orientation={Orientation.LeftToRight}
+                    panes={splitterPanes}
+                />
+            </DocumentContext.Provider >
         );
     }
 
@@ -801,59 +782,55 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
     };
 
     private showPage = async (
-        data: { module: string; page: string; suppressAbout?: boolean; editor?: InitialEditor; }): Promise<boolean> => {
-        if (data.module === DBEditorModuleId) {
-            const { connectionTabs, selectedPage } = this.state;
+        data: { page: string; suppressAbout?: boolean; editor?: InitialEditor; }): Promise<boolean> => {
+        const { connectionTabs, selectedPage } = this.state;
 
-            let connection: ICdmConnectionEntry | undefined;
+        let connection: ICdmConnectionEntry | undefined;
 
-            // XXX: rework this to use the real id of the documents, not just the connection id (or "connections").
-            if (data.page !== "connections") {
-                const id = parseInt(data.page, 10);
-                connection = this.connectionsDataModel.findConnectionEntryById(id);
-            }
-
-            const doShowPage = (): Promise<boolean> => {
-                if (data.page === "connections") {
-                    this.showOverview();
-
-                    return Promise.resolve(true);
-                } else if (connection) {
-                    return this.activateConnectionTab(connection, false, data.suppressAbout ?? false,
-                        data.editor ?? "default");
-                }
-
-                return Promise.resolve(false);
-            };
-
-            if (this.currentTabRef.current) {
-                // See if we already have this page open. If that's the case we don't need to do anything.
-                let entry: IConnectionTab | undefined;
-
-                if (connection) { // The connection is not assigned when switching to the overview.
-                    entry = connectionTabs.find((entry: IConnectionTab) => {
-                        return (entry.connection.details.id === connection.details.id);
-                    });
-                }
-
-                if (entry && entry.dataModelEntry.id === selectedPage) {
-                    //return Promise.resolve(true);
-                }
-
-                const canClose = await this.currentTabRef.current.canClose();
-                if (canClose) {
-                    return doShowPage();
-                } else {
-                    // Pretend we handled the requisition in case of a rejection, to avoid
-                    // multiple attempts to open the new page while the requisition pipeline tries to resolve it.
-                    return Promise.resolve(true);
-                }
-            } else {
-                return doShowPage();
-            }
+        // XXX: rework this to use the real id of the documents, not just the connection id (or "connections").
+        if (data.page !== "connections") {
+            const id = parseInt(data.page, 10);
+            connection = this.connectionsDataModel.findConnectionEntryById(id);
         }
 
-        return Promise.resolve(false);
+        const doShowPage = (): Promise<boolean> => {
+            if (data.page === "connections") {
+                this.showOverview();
+
+                return Promise.resolve(true);
+            } else if (connection) {
+                return this.activateConnectionTab(connection, false, data.suppressAbout ?? false,
+                    data.editor ?? "default");
+            }
+
+            return Promise.resolve(false);
+        };
+
+        if (this.currentTabRef.current) {
+            // See if we already have this page open. If that's the case we don't need to do anything.
+            let entry: IConnectionTab | undefined;
+
+            if (connection) { // The connection is not assigned when switching to the overview.
+                entry = connectionTabs.find((entry: IConnectionTab) => {
+                    return (entry.connection.details.id === connection.details.id);
+                });
+            }
+
+            if (entry && entry.dataModelEntry.id === selectedPage) {
+                //return Promise.resolve(true);
+            }
+
+            const canClose = await this.currentTabRef.current.canClose();
+            if (canClose) {
+                return doShowPage();
+            } else {
+                // Pretend we handled the requisition in case of a rejection, to avoid
+                // multiple attempts to open the new page while the requisition pipeline tries to resolve it.
+                return Promise.resolve(true);
+            }
+        } else {
+            return doShowPage();
+        }
     };
 
     private handleOpenDocument = async (data: IDocumentOpenData): Promise<boolean> => {
@@ -1426,7 +1403,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
     };
 
-    private updateAppTabsState = (state: Partial<IDBEditorModuleState>, closingIds: string[]): void => {
+    private updateAppTabsState = (state: Partial<IDocumentModuleState>, closingIds: string[]): void => {
         const { selectedPage } = this.state;
 
         const remainingPageIds: string[] = [];
@@ -1458,12 +1435,12 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
         const { connectionTabs, documentTabs, shellSessionTabs } = this.state;
 
-        const closingTabs: Pick<IDBEditorModuleState, "shellSessionTabs" | "connectionTabs" | "documentTabs"> = {
+        const closingTabs: Pick<IDocumentModuleState, "shellSessionTabs" | "connectionTabs" | "documentTabs"> = {
             shellSessionTabs: [],
             connectionTabs: [],
             documentTabs: [],
         };
-        const remainingTabsState: Pick<IDBEditorModuleState, "shellSessionTabs" | "connectionTabs" | "documentTabs"> = {
+        const remainingTabsState: Pick<IDocumentModuleState, "shellSessionTabs" | "connectionTabs" | "documentTabs"> = {
             shellSessionTabs: [],
             connectionTabs: [],
             documentTabs: [],
@@ -1493,7 +1470,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
         await Promise.all(tabIds.map(async (id) => {
             // Remove all result data from the application DB.
-            await ApplicationDB.removeDataByTabId(StoreType.DbEditor, id);
+            await ApplicationDB.removeDataByTabId(StoreType.Document, id);
         }));
 
         await Promise.all(closingTabs.shellSessionTabs.map(async (info) => {
@@ -1786,7 +1763,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
 
             return true;
         } else {
-            return this.showPage({ module: DBEditorModuleId, page: "connections" });
+            return this.showPage({ page: "connections" });
         }
     };
 
@@ -1884,8 +1861,8 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             const connectionState = this.connectionPresentation.get(tab.dataModelEntry);
             if (connectionState) {
                 const connection = tab.connection;
-                const model = this.createEditorModel(connection.backend, "", "msg", connection.details.version!,
-                    connection.details.sqlMode!, connection.currentSchema);
+                const model = this.createEditorModel(connection.backend, "", "msg", connection.details.version ?? 0,
+                    connection.details.sqlMode ?? "", connection.currentSchema);
 
                 const editorId = uuid();
                 const caption = `DB Notebook ${++this.documentCounter}`;
@@ -2144,7 +2121,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         switch (command.command) {
             case "msg.openConnection": {
                 if (connection) {
-                    await this.showPage({ module: DBEditorModuleId, page: String(connectionId) });
+                    await this.showPage({ page: String(connectionId) });
                 }
 
                 break;
@@ -2307,7 +2284,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         const { connectionTabs } = this.state;
 
         // Make sure we have a tab open for the connection.
-        await this.showPage({ module: DBEditorModuleId, page: String(connection.id) });
+        await this.showPage({ page: String(connection.id) });
 
         // At this point we should always find the tab.
         const tab = connectionTabs.find((tab) => {
@@ -2471,7 +2448,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         serverVersion: number, sqlMode: string, currentSchema: string): ICodeEditorModel {
         const model: ICodeEditorModel = Object.assign(Monaco.createModel(text, language), {
             executionContexts: new ExecutionContexts({
-                store: StoreType.DbEditor,
+                store: StoreType.Document,
                 dbVersion: serverVersion,
                 sqlMode,
                 currentSchema,
@@ -2553,7 +2530,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
         }
     };
 
-    private handleSaveExplorerState = (state: Map<string, IDBEditorSideBarSectionState>): void => {
+    private handleSaveExplorerState = (state: Map<string, IDocumentSideBarSectionState>): void => {
         this.setState({ sidebarState: state });
     };
 
@@ -2628,7 +2605,7 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
                     return;
                 }
 
-                await this.showPage({ module: DBEditorModuleId, page: pageId });
+                await this.showPage({ page: pageId });
 
                 const tab = connectionTabs.find((tab) => {
                     return tab.connection.details.id === entry.parent.connection.details.id;
@@ -2755,6 +2732,24 @@ export class DBEditorModule extends ModuleBase<IDBEditorModuleProperties, IDBEdi
             throw reason;
         }
     };
+
+    /**
+     * Promisified version of `setState`. This is the same code as in ComponentBase, but we need it here to avoid
+     * having to derive from that component.
+     *
+     * @param state The new state to set.
+     *
+     * @returns A promise which resolves when the `setState` action finished.
+     */
+    private setStatePromise<K extends keyof IDocumentModuleState>(
+        state: ((prevState: Readonly<IDocumentModuleState>, props: Readonly<{}>)
+            => (Pick<IDocumentModuleState, K> | IDocumentModuleState | null))
+            | (Pick<IDocumentModuleState, K> | IDocumentModuleState | null),
+    ): Promise<void> {
+        return new Promise((resolve) => {
+            super.setState(state, resolve);
+        });
+    }
 
     private handleHelpCommand = (command: string, language: EditorLanguage): string | undefined => {
         switch (language) {

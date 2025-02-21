@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -29,10 +29,6 @@ import { mount, shallow } from "enzyme";
 
 import { ApplicationHost } from "../../../app-logic/ApplicationHost.js";
 import { DialogResponseClosure, DialogType, IDialogResponse } from "../../../app-logic/general-types.js";
-import { DBEditorModuleId, ShellModuleId } from "../../../modules/ModuleInfo.js";
-import { ModuleRegistry } from "../../../modules/ModuleRegistry.js";
-import { DBEditorModule } from "../../../modules/db-editor/DBEditorModule.js";
-import { ShellModule } from "../../../modules/shell/ShellModule.js";
 import { appParameters, requisitions } from "../../../supplement/Requisitions.js";
 import { webSession } from "../../../supplement/WebSession.js";
 
@@ -54,29 +50,6 @@ describe("Application host tests", () => {
         appParameters.launchWithDebugger = false;
     });
 
-    it("Base tests", async (): Promise<void> => {
-        const component = mount<ApplicationHost>(
-            <ApplicationHost
-                toggleOptions={toggleOptions}
-            />,
-        );
-
-        expect(component.props().toggleOptions).toEqual(toggleOptions);
-        expect(component.state()).toStrictEqual({
-            settingsVisible: false,
-            settingsPage: "settings",
-            debuggerVisible: false,
-            debuggerMaximized: true,
-        });
-
-        // No modules loaded/enabled at this point, so we cannot activate one.
-        // There's another test below for the case that modules are available.
-        const result = await requisitions.execute("showModule", DBEditorModuleId);
-        expect(result).toBe(false);
-
-        component.unmount();
-    });
-
     it("Reacts to commands + unmount", async () => {
         const component = mount<ApplicationHost>(
             <ApplicationHost
@@ -86,42 +59,19 @@ describe("Application host tests", () => {
 
         expect(requisitions.registrations("showAbout")).toBe(1);
         expect(requisitions.registrations("showPreferences")).toBe(1);
-        expect(requisitions.registrations("showModule")).toBe(1);
 
         await requisitions.execute("showAbout", undefined);
-        expect(component.instance().state).toMatchObject({ settingsVisible: true, settingsPage: "about" });
+        expect(component.instance().state).toMatchObject({ settingsVisible: false, aboutVisible: true });
 
         await requisitions.execute("showPreferences", undefined);
-        expect(component.state()).toMatchObject({ settingsVisible: true, settingsPage: "settings" });
+        expect(component.state()).toMatchObject({ settingsVisible: true, aboutVisible: false });
 
         component.unmount();
         expect(requisitions.registrations("showAbout")).toBe(0);
         expect(requisitions.registrations("showPreferences")).toBe(0);
-        expect(requisitions.registrations("showModule")).toBe(0);
-    });
-
-    it("Select the first enabled module", () => {
-        ModuleRegistry.registerModule(ShellModule);
-        ModuleRegistry.registerModule(DBEditorModule);
-        ModuleRegistry.enableModule(ShellModuleId);
-
-        const component = mount<ApplicationHost>(
-            <ApplicationHost
-                toggleOptions={toggleOptions}
-            />,
-        );
-
-        expect(component.state().activeModule).toBe(ShellModuleId);
-        component.unmount();
     });
 
     it("Standard Rendering", () => {
-        // Registration is a global thing, but if this test runs standalone it will need this extra registration.
-        ModuleRegistry.registerModule(ShellModule);
-        ModuleRegistry.registerModule(DBEditorModule);
-        ModuleRegistry.enableModule(ShellModuleId);
-        ModuleRegistry.enableModule(DBEditorModuleId);
-
         const component = shallow<ApplicationHost>(
             <ApplicationHost
                 toggleOptions={toggleOptions}
@@ -130,8 +80,7 @@ describe("Application host tests", () => {
 
         expect(component).toMatchSnapshot();
         expect(component.state()).toEqual({
-            activeModule: "gui.shell",
-            settingsPage: "settings",
+            aboutVisible: false,
             settingsVisible: false,
             debuggerVisible: false,
             debuggerMaximized: true,
@@ -141,11 +90,6 @@ describe("Application host tests", () => {
     });
 
     it("Rendering About", async () => {
-        ModuleRegistry.registerModule(ShellModule);
-        ModuleRegistry.registerModule(DBEditorModule);
-        ModuleRegistry.enableModule(ShellModuleId);
-        ModuleRegistry.enableModule(DBEditorModuleId);
-
         const component = mount<ApplicationHost>(
             <ApplicationHost
                 toggleOptions={toggleOptions}
@@ -155,9 +99,8 @@ describe("Application host tests", () => {
         await requisitions.execute("showAbout", undefined);
         expect(component).toMatchSnapshot();
         expect(component.state()).toEqual({
-            activeModule: "gui.shell",
-            settingsPage: "about",
-            settingsVisible: true,
+            aboutVisible: true,
+            settingsVisible: false,
             debuggerVisible: false,
             debuggerMaximized: true,
         });
@@ -166,11 +109,6 @@ describe("Application host tests", () => {
     });
 
     it("Rendering Preferences", async () => {
-        ModuleRegistry.registerModule(ShellModule);
-        ModuleRegistry.registerModule(DBEditorModule);
-        ModuleRegistry.enableModule(ShellModuleId);
-        ModuleRegistry.enableModule(DBEditorModuleId);
-
         const component = mount<ApplicationHost>(
             <ApplicationHost
                 toggleOptions={toggleOptions}
@@ -180,8 +118,7 @@ describe("Application host tests", () => {
         await requisitions.execute("showPreferences", undefined);
         expect(component).toMatchSnapshot();
         expect(component.state()).toEqual({
-            activeModule: "gui.shell",
-            settingsPage: "settings",
+            aboutVisible: false,
             settingsVisible: true,
             debuggerVisible: false,
             debuggerMaximized: true,
@@ -191,11 +128,6 @@ describe("Application host tests", () => {
     });
 
     it("Rendering Debugger Normal", () => {
-        ModuleRegistry.registerModule(ShellModule);
-        ModuleRegistry.registerModule(DBEditorModule);
-        ModuleRegistry.enableModule(ShellModuleId);
-        ModuleRegistry.enableModule(DBEditorModuleId);
-
         const component = mount<ApplicationHost>(
             <ApplicationHost
                 toggleOptions={toggleOptions}
@@ -205,8 +137,7 @@ describe("Application host tests", () => {
         component.setState({ debuggerVisible: true, debuggerMaximized: false });
         expect(component).toMatchSnapshot();
         expect(component.state()).toEqual({
-            activeModule: "gui.shell",
-            settingsPage: "settings",
+            aboutVisible: false,
             settingsVisible: false,
             debuggerVisible: true,
             debuggerMaximized: false,
@@ -216,11 +147,6 @@ describe("Application host tests", () => {
     });
 
     it("Rendering Debugger Maximized", async () => {
-        ModuleRegistry.registerModule(ShellModule);
-        ModuleRegistry.registerModule(DBEditorModule);
-        ModuleRegistry.enableModule(ShellModuleId);
-        ModuleRegistry.enableModule(DBEditorModuleId);
-
         const component = mount<ApplicationHost>(
             <ApplicationHost
                 toggleOptions={toggleOptions}
@@ -230,8 +156,7 @@ describe("Application host tests", () => {
         await stateChange(component, { debuggerVisible: true, debuggerMaximized: true });
         expect(component).toMatchSnapshot();
         expect(component.state()).toEqual({
-            activeModule: "gui.shell",
-            settingsPage: "settings",
+            aboutVisible: false,
             settingsVisible: false,
             debuggerVisible: true,
             debuggerMaximized: true,
@@ -243,11 +168,6 @@ describe("Application host tests", () => {
     it("Debugger State Switches", async () => {
         webSession.localUserMode = true;
         appParameters.embedded = false;
-
-        ModuleRegistry.registerModule(ShellModule);
-        ModuleRegistry.registerModule(DBEditorModule);
-        ModuleRegistry.enableModule(ShellModuleId);
-        ModuleRegistry.enableModule(DBEditorModuleId);
 
         const component = mount<ApplicationHost>(
             <ApplicationHost
@@ -271,11 +191,6 @@ describe("Application host tests", () => {
     });
 
     it("Miscellaneous code", async () => {
-        ModuleRegistry.registerModule(ShellModule);
-        ModuleRegistry.registerModule(DBEditorModule);
-        ModuleRegistry.enableModule(ShellModuleId);
-        ModuleRegistry.enableModule(DBEditorModuleId);
-
         const data: IDialogResponse = {
             type: DialogType.Prompt,
             id: "appHostSpec",
@@ -293,10 +208,6 @@ describe("Application host tests", () => {
 
         result = await requisitions.execute("dialogResponse", data);
         expect(result).toBe(false);
-        await nextRunLoop();
-
-        result = await requisitions.execute("showModule", DBEditorModuleId);
-        expect(result).toBe(true);
         await nextRunLoop();
 
         component.unmount();

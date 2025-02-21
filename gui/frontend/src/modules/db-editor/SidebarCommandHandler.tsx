@@ -47,7 +47,6 @@ import type { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/Sh
 import type { IShellSessionDetails } from "../../supplement/ShellInterface/index.js";
 import { convertErrorToString, sleep, uuid } from "../../utilities/helpers.js";
 import { convertSnakeToCamelCase, quote } from "../../utilities/string-helpers.js";
-import { DBEditorModuleId, ShellModuleId } from "../ModuleInfo.js";
 import type { MrsHub } from "../mrs/MrsHub.js";
 import { getRouterPortForConnection } from "../mrs/mrs-helpers.js";
 import { MrsDbObjectType } from "../mrs/types.js";
@@ -84,7 +83,7 @@ export class SidebarCommandHandler {
             switch (command.command) {
                 case "msg.editConnection": {
                     success = await requisitions.execute("job", [
-                        { requestType: "showPage", parameter: { module: DBEditorModuleId, page: "connections" } },
+                        { requestType: "showPage", parameter: { page: "connections" } },
                         { requestType: "editConnection", parameter: connection.details.id },
                     ]);
 
@@ -93,7 +92,7 @@ export class SidebarCommandHandler {
 
                 case "msg.duplicateConnection": {
                     success = await requisitions.execute("job", [
-                        { requestType: "showPage", parameter: { module: DBEditorModuleId, page: "connections" } },
+                        { requestType: "showPage", parameter: { page: "connections" } },
                         { requestType: "duplicateConnection", parameter: connection.details.id },
                     ]);
 
@@ -102,7 +101,7 @@ export class SidebarCommandHandler {
 
                 case "msg.removeConnection": {
                     success = await requisitions.execute("job", [
-                        { requestType: "showPage", parameter: { module: DBEditorModuleId, page: "connections" } },
+                        { requestType: "showPage", parameter: { page: "connections" } },
                         { requestType: "removeConnection", parameter: connection.details.id },
                     ]);
 
@@ -129,10 +128,8 @@ export class SidebarCommandHandler {
                             dbConnectionId,
                         };
 
-                        success = await requisitions.execute("job", [
-                            { requestType: "showModule", parameter: ShellModuleId },
-                            { requestType: "newSession", parameter: details },
-                        ]);
+                        success = await requisitions.execute("job",
+                            [{ requestType: "openSession", parameter: details }]);
                     }
 
                     break;
@@ -696,7 +693,7 @@ export class SidebarCommandHandler {
                         success = await requisitions.execute("job", [
                             {
                                 requestType: "showPage",
-                                parameter: { module: DBEditorModuleId, page: pageId },
+                                parameter: { page: pageId },
                             },
                             { requestType: "editorRunCode", parameter: options },
                         ]);
@@ -725,7 +722,7 @@ export class SidebarCommandHandler {
                         success = await requisitions.execute("job", [
                             {
                                 requestType: "showPage",
-                                parameter: { module: DBEditorModuleId, page: pageId },
+                                parameter: { page: pageId },
                             },
                             { requestType: "editorInsertText", parameter: entry.caption },
                         ]);
@@ -801,7 +798,7 @@ export class SidebarCommandHandler {
                                     success = await requisitions.execute("job", [
                                         {
                                             requestType: "showPage",
-                                            parameter: { module: DBEditorModuleId, page: pageId },
+                                            parameter: { page: pageId },
                                         },
                                         { requestType: "editorInsertText", parameter: row[index] },
                                     ]);
@@ -859,7 +856,7 @@ export class SidebarCommandHandler {
         switch (command.command) {
             case "msg.addConnection": {
                 success = await requisitions.execute("job", [
-                    { requestType: "showPage", parameter: { module: DBEditorModuleId, page: "connections" } },
+                    { requestType: "showPage", parameter: { page: "connections" } },
                     { requestType: "addNewConnection", parameter: {} },
                 ]);
                 break;

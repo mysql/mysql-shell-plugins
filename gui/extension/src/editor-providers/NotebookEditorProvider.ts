@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -31,7 +31,6 @@ import {
 import { readFile } from "fs/promises";
 
 import { IEmbeddedMessage } from "../../../frontend/src/communication/index.js";
-import { DBEditorModuleId } from "../../../frontend/src/modules/ModuleInfo.js";
 import { RequisitionHub, requisitions } from "../../../frontend/src/supplement/Requisitions.js";
 import { DBType } from "../../../frontend/src/supplement/ShellInterface/index.js";
 import { ExtensionHost } from "../ExtensionHost.js";
@@ -143,13 +142,7 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
      */
     private showNotebookPage(connectionId: number, content: string): Promise<boolean> {
         return Promise.resolve(this.#requisitions?.executeRemote("job", [
-            { requestType: "showModule", parameter: DBEditorModuleId },
-            {
-                requestType: "showPage",
-                parameter: {
-                    module: DBEditorModuleId, page: String(connectionId), suppressAbout: true, noEditor: true,
-                },
-            },
+            { requestType: "showPage", parameter: { page: String(connectionId), suppressAbout: true, noEditor: true } },
             { requestType: "editorLoadNotebook", parameter: { content, standalone: true } },
         ]) ?? true);
     }

@@ -1,0 +1,99 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Document module tests Test DocumentModule instantiation 1`] = `
+<Provider
+  value={
+    {
+      "connectionsDataModel": ConnectionDataModel {
+        "connections": [],
+        "notifySubscribers": [Function],
+        "refreshMrsRoutersTimer": undefined,
+        "routerRefreshTime": 10000,
+        "subscribers": Set {},
+      },
+      "documentDataModel": OpenDocumentDataModel {
+        "updateSessions": [Function],
+      },
+      "ociDataModel": OciDataModel {
+        "notifySubscribers": [Function],
+      },
+      "shellTaskDataModel": ShellTaskDataModel {
+        "entries": [],
+      },
+    }
+  }
+>
+  <SplitContainer
+    id="mainSplitHost"
+    innerRef={
+      {
+        "current": null,
+      }
+    }
+    orientation="row"
+    panes={
+      [
+        {
+          "collapsed": false,
+          "content": <DocumentSideBar
+            markedSchema=""
+            onConnectionTreeCommand={[Function]}
+            onDocumentTreeCommand={[Function]}
+            onOciTreeCommand={[Function]}
+            onSaveState={[Function]}
+            onSelectConnectionItem={[Function]}
+            onSelectDocumentItem={[Function]}
+            savedSectionState={Map {}}
+            selectedOpenDocument="connections"
+          />,
+          "initialSize": 250,
+          "minSize": 0,
+          "resizable": true,
+          "snap": true,
+        },
+        {
+          "content": <g>
+            <Tabview
+              canCloseTab={[Function]}
+              canReorderTabs={true}
+              className="dbModuleTabview"
+              closeTabs={[Function]}
+              hideSingleTab={false}
+              onSelectTab={[Function]}
+              pages={
+                [
+                  {
+                    "caption": "Open Connection",
+                    "content": <g>
+                      <ProgressIndicator
+                        backgroundOpacity={0.95}
+                        id="loadingProgressIndicator"
+                        linear={false}
+                      />
+                      <Label
+                        caption=""
+                        id="progressMessageId"
+                      />
+                    </g>,
+                    "icon": "overviewPage.svg",
+                    "id": "progress",
+                  },
+                ]
+              }
+              selectedId="progress"
+              showTabs={true}
+              stretchTabs={false}
+              tabPosition="top"
+            />
+            <MrsHub />
+          </g>,
+          "minSize": 500,
+          "resizable": true,
+          "stretch": true,
+        },
+      ]
+    }
+    splitterSize={4}
+  />
+</Provider>
+`;

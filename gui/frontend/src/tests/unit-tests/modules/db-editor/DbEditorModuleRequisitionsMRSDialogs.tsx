@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,8 +30,7 @@ import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../comm
 import {
     IMrsAuthAppData, IMrsContentSetData, IMrsDbObjectData, IMrsSchemaData, IMrsServiceData, IMrsUserData,
 } from "../../../../communication/ProtocolMrs.js";
-import { DBEditorModuleId } from "../../../../modules/ModuleInfo.js";
-import { DBEditorModule } from "../../../../modules/db-editor/DBEditorModule.js";
+import { DocumentModule } from "../../../../modules/db-editor/DocumentModule.js";
 import { MrsDbObjectType } from "../../../../modules/mrs/types.js";
 import {
     IMrsAuthAppEditRequest, IMrsContentSetEditRequest, IMrsDbObjectEditRequest,
@@ -47,7 +46,7 @@ export const testReqShowMrsDbObjectDialog = async (
     serviceID: string,
     connID: number,
 ): Promise<void> => {
-    const component = mount<DBEditorModule>(<DBEditorModule />);
+    const component = mount<DocumentModule>(<DocumentModule />);
 
     const dbObject: IMrsDbObjectData = {
         comments: "Test db object",
@@ -72,10 +71,7 @@ export const testReqShowMrsDbObjectDialog = async (
     };
 
     await requisitions.execute("refreshConnection", undefined);
-    await requisitions.execute("showPage", {
-        module: DBEditorModuleId,
-        page: String(connID),
-    });
+    await requisitions.execute("showPage", { page: String(connID) });
 
     await nextProcessTick();
 
@@ -100,7 +96,7 @@ export const testReqShowMrsServiceDialog = async (
     serviceID: string,
     connID: number,
 ): Promise<void> => {
-    const component = mount<DBEditorModule>(<DBEditorModule />);
+    const component = mount<DocumentModule>(<DocumentModule />);
 
     const request: IMrsServiceData = {
         enabled: 1,
@@ -124,10 +120,7 @@ export const testReqShowMrsServiceDialog = async (
     };
 
     await requisitions.execute("refreshConnection", undefined);
-    await requisitions.execute("showPage", {
-        module: DBEditorModuleId,
-        page: String(connID),
-    });
+    await requisitions.execute("showPage", { page: String(connID) });
 
     await nextProcessTick();
 
@@ -152,7 +145,7 @@ export const testReqShowMrsSchemaDialog = async (
     serviceID: string,
     connID: number,
 ): Promise<void> => {
-    const component = mount<DBEditorModule>(<DBEditorModule />);
+    const component = mount<DocumentModule>(<DocumentModule />);
 
     const schemaData: IMrsSchemaData = {
         comments: "This is test schema",
@@ -176,10 +169,7 @@ export const testReqShowMrsSchemaDialog = async (
     };
 
     await requisitions.execute("refreshConnection", undefined);
-    await requisitions.execute("showPage", {
-        module: DBEditorModuleId,
-        page: String(connID),
-    });
+    await requisitions.execute("showPage", { page: String(connID) });
 
     await nextProcessTick();
 
@@ -204,7 +194,7 @@ export const testReqShowMrsContentSetDialog = async (
     serviceID: string,
     connID: number,
 ): Promise<void> => {
-    const component = mount<DBEditorModule>(<DBEditorModule />);
+    const component = mount<DocumentModule>(<DocumentModule />);
 
     const content: IMrsContentSetData = {
         comments: "This is test content set",
@@ -226,10 +216,7 @@ export const testReqShowMrsContentSetDialog = async (
     };
 
     await requisitions.execute("refreshConnection", undefined);
-    await requisitions.execute("showPage", {
-        module: DBEditorModuleId,
-        page: String(connID),
-    });
+    await requisitions.execute("showPage", { page: String(connID) });
 
     await nextProcessTick();
 
@@ -255,7 +242,7 @@ export const testReqShowMrsAuthAppDialog = async (
     serviceID: string,
     connID: number,
 ): Promise<void> => {
-    const component = mount<DBEditorModule>(<DBEditorModule />);
+    const component = mount<DocumentModule>(<DocumentModule />);
 
     const service: IMrsServiceData = {
         enabled: 1,
@@ -284,10 +271,7 @@ export const testReqShowMrsAuthAppDialog = async (
     };
 
     await requisitions.execute("refreshConnection", undefined);
-    await requisitions.execute("showPage", {
-        module: DBEditorModuleId,
-        page: String(connID),
-    });
+    await requisitions.execute("showPage", { page: String(connID) });
 
     await nextProcessTick();
 
@@ -312,7 +296,7 @@ export const testReqShowMrsUserDialog = async (
     authApp: IMrsAuthAppData,
     connID: number,
 ): Promise<void> => {
-    const component = mount<DBEditorModule>(<DBEditorModule />);
+    const component = mount<DocumentModule>(<DocumentModule />);
 
     const user: IMrsUserData = {
         authAppId: authApp.appId,
@@ -327,10 +311,7 @@ export const testReqShowMrsUserDialog = async (
     };
 
     await requisitions.execute("refreshConnection", undefined);
-    await requisitions.execute("showPage", {
-        module: DBEditorModuleId,
-        page: String(connID),
-    });
+    await requisitions.execute("showPage", { page: String(connID) });
 
     await nextProcessTick();
 
@@ -355,7 +336,7 @@ export const testReqShowMrsSdkExportDialog = async (
     serviceID: string,
     connID: number,
 ): Promise<void> => {
-    const component = mount<DBEditorModule>(<DBEditorModule />);
+    const component = mount<DocumentModule>(<DocumentModule />);
 
     const credentials = getDbCredentials();
 
@@ -383,10 +364,7 @@ export const testReqShowMrsSdkExportDialog = async (
     };
 
     await requisitions.execute("refreshConnection", undefined);
-    await requisitions.execute("showPage", {
-        module: DBEditorModuleId,
-        page: String(connID),
-    });
+    await requisitions.execute("showPage", { page: String(connID) });
 
     await nextProcessTick();
 

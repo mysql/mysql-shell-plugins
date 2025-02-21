@@ -26,17 +26,17 @@
 import { mount } from "enzyme";
 
 import { OdmEntityType } from "../../../../data-models/OpenDocumentDataModel.js";
-import type { IOpenDocumentState } from "../../../../modules/db-editor/DBConnectionTab.js";
-import { DBEditorToolbar } from "../../../../modules/db-editor/DBEditorToolbar.js";
+import type { IOpenDocumentState } from "../../../../modules/db-editor/ConnectionTab.js";
+import { DocumentToolbar } from "../../../../modules/db-editor/DocumentToolbar.js";
 import { requisitions } from "../../../../supplement/Requisitions.js";
 import { uuid } from "../../../../utilities/helpers.js";
 
-describe("DBEditorToolbar tests", (): void => {
-    it("Test DBEditorToolbar instantiation", () => {
-        const component = mount<DBEditorToolbar>(
-            <DBEditorToolbar
+describe("DocumentToolbar tests", (): void => {
+    it("Test DocumentToolbar instantiation", () => {
+        const component = mount<DocumentToolbar>(
+            <DocumentToolbar
                 language={"ts"}
-                activeDocument={"DbEditor"}
+                activeDocument={"document1"}
                 heatWaveEnabled={false}
                 documentState={[]}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
@@ -45,16 +45,16 @@ describe("DBEditorToolbar tests", (): void => {
 
         const props = component.props();
         expect(props.language).toEqual("ts");
-        expect(props.activeDocument).toEqual("DbEditor");
+        expect(props.activeDocument).toEqual("document1");
         expect(component).toMatchSnapshot();
         component.unmount();
     });
 
-    it("Test DBEditorToolbar instantiation (HeatWave)", () => {
-        const component = mount<DBEditorToolbar>(
-            <DBEditorToolbar
+    it("Test DocumentToolbar instantiation (HeatWave)", () => {
+        const component = mount<DocumentToolbar>(
+            <DocumentToolbar
                 language={"js"}
-                activeDocument={"DbEditor"}
+                activeDocument={"document1"}
                 heatWaveEnabled={true}
                 documentState={[]}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
@@ -63,16 +63,16 @@ describe("DBEditorToolbar tests", (): void => {
 
         const props = component.props();
         expect(props.language).toEqual("js");
-        expect(props.activeDocument).toEqual("DbEditor");
+        expect(props.activeDocument).toEqual("document1");
         expect(component).toMatchSnapshot();
         component.unmount();
     });
 
-    it("Test DBEditorToolbar instantiation language=msg", () => {
-        const component = mount<DBEditorToolbar>(
-            <DBEditorToolbar
+    it("Test DocumentToolbar instantiation language=msg", () => {
+        const component = mount<DocumentToolbar>(
+            <DocumentToolbar
                 language={"msg"}
-                activeDocument={"DbEditor"}
+                activeDocument={"document1"}
                 heatWaveEnabled={false}
                 documentState={[]}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
@@ -81,16 +81,16 @@ describe("DBEditorToolbar tests", (): void => {
 
         const props = component.props();
         expect(props.language).toEqual("msg");
-        expect(props.activeDocument).toEqual("DbEditor");
+        expect(props.activeDocument).toEqual("document1");
         expect(component).toMatchSnapshot();
         component.unmount();
     });
 
-    it("Test DBEditorToolbar requisitions editorCaretMoved", async () => {
-        const component = mount<DBEditorToolbar>(
-            <DBEditorToolbar
+    it("Test DocumentToolbar requisitions editorCaretMoved", async () => {
+        const component = mount<DocumentToolbar>(
+            <DocumentToolbar
                 language={"msg"}
-                activeDocument={"DbEditor"}
+                activeDocument={"document1"}
                 heatWaveEnabled={false}
                 documentState={[]}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
@@ -106,11 +106,11 @@ describe("DBEditorToolbar tests", (): void => {
         component.unmount();
     });
 
-    it("Test DBEditorToolbar requisitions editorContextStateChanged", async () => {
-        const component = mount<DBEditorToolbar>(
-            <DBEditorToolbar
+    it("Test DocumentToolbar requisitions editorContextStateChanged", async () => {
+        const component = mount<DocumentToolbar>(
+            <DocumentToolbar
                 language={"msg"}
-                activeDocument={"DbEditor"}
+                activeDocument={"document1"}
                 heatWaveEnabled={false}
                 documentState={[]}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
@@ -124,11 +124,11 @@ describe("DBEditorToolbar tests", (): void => {
         component.unmount();
     });
 
-    it("Test DBEditorToolbar requisitions editorToggleStopExecutionOnError", async () => {
-        const component = mount<DBEditorToolbar>(
-            <DBEditorToolbar
+    it("Test DocumentToolbar requisitions editorToggleStopExecutionOnError", async () => {
+        const component = mount<DocumentToolbar>(
+            <DocumentToolbar
                 language={"msg"}
-                activeDocument={"DbEditor"}
+                activeDocument={"document1"}
                 heatWaveEnabled={false}
                 documentState={[]}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
@@ -140,11 +140,11 @@ describe("DBEditorToolbar tests", (): void => {
         component.unmount();
     });
 
-    it("Test DBEditorToolbar requisitions settingsChanged", async () => {
-        const component = mount<DBEditorToolbar>(
-            <DBEditorToolbar
+    it("Test DocumentToolbar requisitions settingsChanged", async () => {
+        const component = mount<DocumentToolbar>(
+            <DocumentToolbar
                 language={"msg"}
-                activeDocument={"DbEditor"}
+                activeDocument={"document1"}
                 heatWaveEnabled={false}
                 documentState={[]}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
@@ -156,7 +156,7 @@ describe("DBEditorToolbar tests", (): void => {
         component.unmount();
     });
 
-    it("Test DBEditorToolbar call componentDidUpdate", () => {
+    it("Test DocumentToolbar call componentDidUpdate", () => {
         const testEditorState: IOpenDocumentState = {
             document: {
                 type: OdmEntityType.Notebook,
@@ -167,15 +167,15 @@ describe("DBEditorToolbar tests", (): void => {
                     expanded: true,
                     expandedOnce: true,
                 },
-                caption: "DbEditor1",
+                caption: "document11",
             },
             currentVersion: 1,
         };
 
-        const component = mount<DBEditorToolbar>(
-            <DBEditorToolbar
+        const component = mount<DocumentToolbar>(
+            <DocumentToolbar
                 language={"msg"}
-                activeDocument={"DbEditor1"}
+                activeDocument={"document11"}
                 heatWaveEnabled={true}
                 documentState={[testEditorState]}
                 toolbarItems={{ navigation: [], execution: [], editor: [], auxiliary: [] }}
@@ -184,7 +184,7 @@ describe("DBEditorToolbar tests", (): void => {
 
         const props = component.props();
         expect(props.language).toEqual("msg");
-        expect(props.activeDocument).toEqual("DbEditor1");
+        expect(props.activeDocument).toEqual("document11");
 
         component.instance().componentDidUpdate(props);
 

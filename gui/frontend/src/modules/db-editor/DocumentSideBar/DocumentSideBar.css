@@ -23,11 +23,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-.msg#dbEditorSideBar {
+.msg#documentSideBar {
     flex: 1 1 auto;
 }
 
-.msg#dbEditorSideBar .sidebarTreeEntry {
+.msg#documentSideBar .sidebarTreeEntry {
     flex: 1 1 auto;
     display: flex;
     flex-direction: row;
@@ -40,57 +40,57 @@
     padding: 0 12px 0 3px;
 }
 
-.msg#dbEditorSideBar .sidebarTreeEntry:first-child {
+.msg#documentSideBar .sidebarTreeEntry:first-child {
     /* Need to set an explicit left margin for sidebar tree entries, if they are not preceded by a tree toggle.  */
     margin-left: 6px;
 }
 
-.msg#dbEditorSideBar .sidebarTreeEntry .image,
-.msg#dbEditorSideBar .sidebarTreeEntry .icon {
+.msg#documentSideBar .sidebarTreeEntry .image,
+.msg#documentSideBar .sidebarTreeEntry .icon {
     flex: 0 0 16px;
     height: 16px;
 }
 
-.msg#dbEditorSideBar .tabulator-row .tabulator-cell {
+.msg#documentSideBar .tabulator-row .tabulator-cell {
     display: flex;
     flex-direction: row;
     padding: 0 0 0 3px;
 }
 
-.msg#dbEditorSideBar {
+.msg#documentSideBar {
     flex: 1 1 auto;
 }
 
-.msg#dbEditorSideBar .marked {
+.msg#documentSideBar .marked {
     font-weight: 900;
     border-left: 3px solid var(--sideBar-markerBackground);
     color: var(--sideBar-markerBackground);
 }
 
-.msg#dbEditorSideBar .tabulator-tableholder {
+.msg#documentSideBar .tabulator-tableholder {
     overflow-x: hidden;
 }
 
-.msg#dbEditorSideBar .tabulator-row.marked .tabulator-cell:first-child {
+.msg#documentSideBar .tabulator-row.marked .tabulator-cell:first-child {
     /* The first cell in a marked row needs a small adjustment to align properly with unmarked rows. */
     margin-left: -3px;
 }
 
-.msg#dbEditorSideBar .input {
+.msg#documentSideBar .input {
     margin-left: 40px;
 }
 
-.msg#dbEditorSideBar .sidebarTreeEntry .label {
+.msg#documentSideBar .sidebarTreeEntry .label {
     display: inline;
     padding: 0 0 0 8px;
     user-select: none;
 }
 
-.msg#dbEditorSideBar .sidebarTreeEntry #subCaption {
+.msg#documentSideBar .sidebarTreeEntry #subCaption {
     color: var(--editorGhostText-foreground);
 }
 
-.msg#dbEditorSideBar .sidebarTreeEntry > .actionBox {
+.msg#documentSideBar .sidebarTreeEntry > .actionBox {
     display: none;
     flex: 1;
     justify-content: flex-end;
@@ -98,12 +98,12 @@
     min-width: fit-content;
 }
 
-.msg#dbEditorSideBar .tabulator-selected .sidebarTreeEntry > .actionBox,
-.msg#dbEditorSideBar .sidebarTreeEntry:hover > .actionBox {
+.msg#documentSideBar .tabulator-selected .sidebarTreeEntry > .actionBox,
+.msg#documentSideBar .sidebarTreeEntry:hover > .actionBox {
     display: flex;
 }
 
-.msg#dbEditorSideBar .sidebarTreeEntry > .actionBox > .actionButton {
+.msg#documentSideBar .sidebarTreeEntry > .actionBox > .actionButton {
     top: 1px;
     right: 0;
     width: 20px;
@@ -115,22 +115,22 @@
     background-color: transparent;
 }
 
-.msg#dbEditorSideBar .sidebarTreeEntry:hover > .actionBox > .actionButton:hover {
+.msg#documentSideBar .sidebarTreeEntry:hover > .actionBox > .actionButton:hover {
     background-color: var(--button-hoverBackground);
 }
 
-.msg#dbEditorSideBar .sidebarTreeEntry > .actionBox > .actionButton:first-of-type {
+.msg#documentSideBar .sidebarTreeEntry > .actionBox > .actionButton:first-of-type {
     margin-left: auto;
 }
 
-.msg#dbEditorSideBar .sidebarTreeEntry:hover > .actionBox > .actionButton .codicon-play {
+.msg#documentSideBar .sidebarTreeEntry:hover > .actionBox > .actionButton .codicon-play {
     padding-left: 2px;
 }
 
-.msg#dbEditorSideBar .sidebarTreeEntry:hover > .actionBox > .actionButton .codicon-refresh {
+.msg#documentSideBar .sidebarTreeEntry:hover > .actionBox > .actionButton .codicon-refresh {
     padding: 1px 0 0 1px;
 }
 
-.msg#dbEditorSideBar .sidebarTreeEntry .withOverlay.dim {
+.msg#documentSideBar .sidebarTreeEntry .withOverlay.dim {
     opacity: 67%
 }

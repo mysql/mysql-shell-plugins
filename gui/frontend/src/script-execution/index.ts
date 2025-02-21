@@ -25,7 +25,7 @@
 
 import { type IPosition, languages } from "monaco-editor";
 
-import type { IDbModuleResultData } from "../app-logic/ApplicationDB.js";
+import type { IDocumentResultData } from "../app-logic/ApplicationDB.js";
 
 import { IColumnInfo, IDictionary, IStatusInfo, MessageType } from "../app-logic/general-types.js";
 import type { ICodeEditorViewState, IExecutionContextState } from "../components/ui/CodeEditor/index.js";
@@ -282,7 +282,7 @@ export const currentNotebookVersion = "1.0";
 
 export interface IExecutionContextDetails {
     state: IExecutionContextState;
-    data?: IDbModuleResultData[];
+    data?: IDocumentResultData[];
 }
 
 /** Describes the format of a notebook file (*.mysql-notebook) */

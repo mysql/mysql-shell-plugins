@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -104,7 +104,7 @@ pre {
 }
 
 .copyright::after {
-    content: '© 2020, 2023, Oracle Corporation and/or its affiliates.';
+    content: '© 2020, 2025, Oracle Corporation and/or its affiliates.';
     display: inline-block;
     margin-top: 80px;
     font-size: 10px;
@@ -158,16 +158,6 @@ html.themeSwitch *:after {
     height: 100vh;
 
     background-color: var(--background);
-}
-
-.msg.applicationHost .moduleHost {
-    display: none;
-    height: 100%;
-    width: 100%;
-}
-
-.msg.applicationHost .moduleHost.active {
-    display: flex;
 }
 
 .msg.applicationHost #appHostSplitter {

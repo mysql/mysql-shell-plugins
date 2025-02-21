@@ -39,10 +39,10 @@ import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { convertErrorToString } from "../../utilities/helpers.js";
-import { IOpenDocumentState } from "./DBConnectionTab.js";
+import type { IOpenDocumentState } from "./ConnectionTab.js";
 import { IToolbarItems } from "./index.js";
 
-interface IDBEditorToolbarProperties extends IComponentProperties {
+interface IDocumentToolbarProperties extends IComponentProperties {
     /**
      * Items defined by the owner(s) of this toolbar.
      * They are combined with those created here to form the actual toolbar.
@@ -59,7 +59,7 @@ interface IDBEditorToolbarProperties extends IComponentProperties {
     backend?: ShellInterfaceSqlEditor;
 }
 
-interface IDBEditorToolbarState extends IComponentState {
+interface IDocumentToolbarState extends IComponentState {
     editorId: string;
     currentEditor?: IOpenDocumentState;
 
@@ -72,11 +72,11 @@ interface IDBEditorToolbarState extends IComponentState {
     contextLanguage: string;
 }
 
-export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, IDBEditorToolbarState> {
+export class DocumentToolbar extends ComponentBase<IDocumentToolbarProperties, IDocumentToolbarState> {
 
     private stateChangeTimer: ReturnType<typeof setTimeout> | null = null;
 
-    public constructor(props: IDBEditorToolbarProperties) {
+    public constructor(props: IDocumentToolbarProperties) {
         super(props);
 
         const currentEditor = props.documentState.find((state) => {
@@ -97,7 +97,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
             "backend");
     }
 
-    public override componentDidUpdate(oldProps: IDBEditorToolbarProperties): void {
+    public override componentDidUpdate(oldProps: IDocumentToolbarProperties): void {
         const { activeDocument, documentState } = this.props;
         if (activeDocument !== oldProps.activeDocument) {
             const currentEditor = documentState.find((state) => {
@@ -396,7 +396,7 @@ export class DBEditorToolbar extends ComponentBase<IDBEditorToolbarProperties, I
 
         return (
             <Toolbar
-                id="dbEditorToolbar"
+                id="documentToolbar"
                 dropShadow={false}
             >
                 {toolbarItems.navigation}

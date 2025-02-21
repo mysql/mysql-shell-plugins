@@ -26,7 +26,7 @@
 /* eslint-disable dot-notation */
 
 import { mount, shallow } from "enzyme";
-import { createRef, type ComponentChild } from "preact";
+import { type ComponentChild } from "preact";
 
 import { registerUiLayer } from "../../../../app-logic/UILayer.js";
 import type { ISqlUpdateResult } from "../../../../app-logic/general-types.js";
@@ -37,12 +37,9 @@ import { Button } from "../../../../components/ui/Button/Button.js";
 import { Divider } from "../../../../components/ui/Divider/Divider.js";
 import { DropdownItem } from "../../../../components/ui/Dropdown/DropdownItem.js";
 import { ConnectionDataModel, type ICdmConnectionEntry } from "../../../../data-models/ConnectionDataModel.js";
-import { IModuleProperties } from "../../../../modules/ModuleBase.js";
-import { DBEditorModuleId } from "../../../../modules/ModuleInfo.js";
-import { DBEditorModule, type IDBEditorModuleState } from "../../../../modules/db-editor/DBEditorModule.js";
-import type { IDBEditorSideBarSectionState } from "../../../../modules/db-editor/DBEditorSideBar/DBEditorSideBar.js";
-import type { DBEditorContextType } from "../../../../modules/db-editor/index.js";
-import { Assets } from "../../../../supplement/Assets.js";
+import { DocumentModule, type IDocumentModuleState } from "../../../../modules/db-editor/DocumentModule.js";
+import type { IDocumentSideBarSectionState } from "../../../../modules/db-editor/DocumentSideBar/DocumentSideBar.js";
+import type { DocumentContextType } from "../../../../modules/db-editor/index.js";
 import { appParameters, requisitions } from "../../../../supplement/Requisitions.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
@@ -58,7 +55,7 @@ import { getDbCredentials, nextProcessTick, nextRunLoop, setupShellForTests } fr
  * It's necessary to do it this way, because triggering these methods using the built-in handling requires way too
  * much setup and teardown.
  */
-class TestDBEditorModule extends DBEditorModule {
+class TestDocumentModule extends DocumentModule {
     public testSendSqlUpdatesFromModel = async (backend: ShellInterfaceSqlEditor,
         updates: string[]): Promise<ISqlUpdateResult> => {
         // @ts-expect-error Testing private method here.
@@ -82,7 +79,7 @@ class TestDBEditorModule extends DBEditorModule {
     };
 
     public dataModel(): ConnectionDataModel {
-        return (this.context as DBEditorContextType).connectionsDataModel;
+        return (this.context as DocumentContextType).connectionsDataModel;
     }
 
     public override render(): ComponentChild {
@@ -92,7 +89,7 @@ class TestDBEditorModule extends DBEditorModule {
     }
 }
 
-describe("DBEditor module tests", (): void => {
+describe("Document module tests", (): void => {
     let launcher: MySQLShellLauncher;
     let backend: ShellInterfaceSqlEditor;
     let connID: number;
@@ -111,8 +108,8 @@ describe("DBEditor module tests", (): void => {
     const testMySQLConnection: IConnectionDetails = {
         id: -1,
         dbType: DBType.MySQL,
-        caption: "DBEditorModule Test Connection 1",
-        description: "DBEditorModule Test MyQSL Connection",
+        caption: "DocumentModule Test Connection 1",
+        description: "DocumentModule Test MyQSL Connection",
         options,
     };
 
@@ -126,7 +123,7 @@ describe("DBEditor module tests", (): void => {
         expect(testMySQLConnection.id).toBeGreaterThan(-1);
         connID = testMySQLConnection.id;
 
-        await backend.startSession("dbEditorModuleTests");
+        await backend.startSession("DocumentModuleTests");
         await backend.openConnection(testMySQLConnection.id);
     });
 
@@ -136,47 +133,22 @@ describe("DBEditor module tests", (): void => {
         await launcher.exitProcess();
     });
 
-    it("Test DBEditorModule instantiation", () => {
-        const innerRef = createRef<HTMLButtonElement>();
-        const component = shallow<DBEditorModule>(
-            <DBEditorModule
-                innerRef={innerRef}
-            />,
+    it("Test DocumentModule instantiation", () => {
+        const component = shallow<DocumentModule>(
+            <DocumentModule />,
         );
 
-        expect(DBEditorModule.info).toStrictEqual({
-            id: DBEditorModuleId,
-            caption: "DB Editor",
-            icon: Assets.modules.moduleSqlIcon,
-        });
         expect(component).toMatchSnapshot();
         component.unmount();
     });
 
-    it("Test DBEditorModule get info", () => {
-        const component = mount<DBEditorModule>(<DBEditorModule />);
-        const info = DBEditorModule.info;
-        expect(info.id).toBe(DBEditorModuleId);
-        expect(info.caption).toBe("DB Editor");
-        expect(info.icon).toBeDefined();
-        component.unmount();
-    });
-
-    it("Test DBEditorModule embedded is true scenario", async () => {
+    it("Test DocumentModule embedded is true scenario", async () => {
         const originalEmbedded = appParameters.embedded;
         appParameters.embedded = true;
-        const component = mount<DBEditorModule>(<DBEditorModule />);
-        expect(DBEditorModule.info).toStrictEqual({
-            id: DBEditorModuleId,
-            caption: "DB Editor",
-            icon: Assets.modules.moduleSqlIcon,
-        });
+        const component = mount<DocumentModule>(<DocumentModule />);
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", {
-            module: DBEditorModuleId,
-            page: String(connID),
-        });
+        await requisitions.execute("showPage", { page: String(connID) });
 
         const dropDownItemList = component.find(DropdownItem);
         expect(dropDownItemList).toHaveLength(0);
@@ -185,10 +157,10 @@ describe("DBEditor module tests", (): void => {
         appParameters.embedded = originalEmbedded;
     });
 
-    it("Test DBEditorModule selectedPage is 'connections' scenario", async () => {
+    it("Test DocumentModule selectedPage is 'connections' scenario", async () => {
         const originalEmbedded = appParameters.embedded;
         appParameters.embedded = true;
-        const component = mount<DBEditorModule>(<DBEditorModule />);
+        const component = mount<DocumentModule>(<DocumentModule />);
 
         component.setState({ selectedPage: "connections" });
         await nextProcessTick();
@@ -204,10 +176,10 @@ describe("DBEditor module tests", (): void => {
     });
 
 
-    it("Test DBEditorModule selectedPage is empty", async () => {
+    it("Test DocumentModule selectedPage is empty", async () => {
         const originalEmbedded = appParameters.embedded;
         appParameters.embedded = true;
-        const component = mount<DBEditorModule>(<DBEditorModule />);
+        const component = mount<DocumentModule>(<DocumentModule />);
         component.setState({ selectedPage: "" });
         await nextProcessTick();
 
@@ -215,28 +187,27 @@ describe("DBEditor module tests", (): void => {
         appParameters.embedded = originalEmbedded;
     });
 
-    it("Test DBEditorModule getDerivedStateFromProps", () => {
-        const props: IModuleProperties = {};
-        const state: IDBEditorModuleState = {
+    it("Test DocumentModule getDerivedStateFromProps", () => {
+        const state: IDocumentModuleState = {
             selectedPage: "",
             connectionTabs: [],
             documentTabs: [],
             shellSessionTabs: [],
-            sidebarState: new Map<string, IDBEditorSideBarSectionState>(),
+            sidebarState: new Map<string, IDocumentSideBarSectionState>(),
             showSidebar: false,
             showTabs: true,
             loading: false,
             progressMessage: "",
         };
 
-        const newState = DBEditorModule.getDerivedStateFromProps(props, state);
+        const newState = DocumentModule.getDerivedStateFromProps({}, state);
         expect(newState).toBeDefined();
         expect(newState).toStrictEqual({ selectedPage: "connections" });
 
     });
 
-    it("Test DBEditorModule adding connection tab", () => {
-        const component = mount<DBEditorModule>(<DBEditorModule />);
+    it("Test DocumentModule adding connection tab", () => {
+        const component = mount<DocumentModule>(<DocumentModule />);
         const entry = dataModel.createConnectionEntry(testMySQLConnection);
         component.instance().handlePushConnection(entry);
 
@@ -248,8 +219,8 @@ describe("DBEditor module tests", (): void => {
         component.unmount();
     });
 
-    it("Test DBEditorModule componentDidMount and componentWillUnmount", () => {
-        const component = mount<DBEditorModule>(<DBEditorModule />);
+    it("Test DocumentModule componentDidMount and componentWillUnmount", () => {
+        const component = mount<DocumentModule>(<DocumentModule />);
 
         component.instance().componentDidMount();
         component.instance().componentWillUnmount();
@@ -257,15 +228,12 @@ describe("DBEditor module tests", (): void => {
         component.unmount();
     });
 
-    it("Test DBEditorModule function requisitions.openConnectionTab for MySQL", async () => {
-        const component = mount<DBEditorModule>(<DBEditorModule />);
+    it("Test DocumentModule function requisitions.openConnectionTab for MySQL", async () => {
+        const component = mount<DocumentModule>(<DocumentModule />);
         const instance = component.instance();
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", {
-            module: DBEditorModuleId,
-            page: String(connID),
-        });
+        await requisitions.execute("showPage", { page: String(connID) });
 
         const initialSelectedPage = instance.state.selectedPage;
 
@@ -281,16 +249,12 @@ describe("DBEditor module tests", (): void => {
         component.unmount();
     });
 
-    it("Test DBEditorModule function requisitions.showPage for `connections` page", async () => {
-        const component = mount<DBEditorModule>(<DBEditorModule />);
+    it("Test DocumentModule function requisitions.showPage for `connections` page", async () => {
+        const component = mount<DocumentModule>(<DocumentModule />);
         const instance = component.instance();
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", {
-            module: DBEditorModuleId,
-            page: "connections",
-            editor: "default",
-        });
+        await requisitions.execute("showPage", { page: "connections", editor: "default" });
 
         const state = instance.state;
         expect(state.selectedPage).toBeDefined();
@@ -299,16 +263,12 @@ describe("DBEditor module tests", (): void => {
         component.unmount();
     });
 
-    it("Test DBEditorModule function requisitions.showPage for `other` page", async () => {
-        const component = mount<DBEditorModule>(<DBEditorModule />);
+    it("Test DocumentModule function requisitions.showPage for `other` page", async () => {
+        const component = mount<DocumentModule>(<DocumentModule />);
         const instance = component.instance();
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", {
-            module: DBEditorModuleId,
-            page: "other",
-            editor: "default",
-        });
+        await requisitions.execute("showPage", { page: "other", editor: "default" });
 
         const state = instance.state;
         expect(state.selectedPage).toBeDefined();
@@ -317,8 +277,8 @@ describe("DBEditor module tests", (): void => {
         component.unmount();
     });
 
-    it("Test DBEditorModule function requisitions.editorRunCommand", async () => {
-        const component = mount<DBEditorModule>(<DBEditorModule />);
+    it("Test DocumentModule function requisitions.editorRunCommand", async () => {
+        const component = mount<DocumentModule>(<DocumentModule />);
         const context: IExecutionContext = {
             id: "test",
             code: "SELECT * FROM test",
@@ -333,23 +293,17 @@ describe("DBEditor module tests", (): void => {
         };
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", {
-            module: DBEditorModuleId,
-            page: String(connID),
-        });
+        await requisitions.execute("showPage", { page: String(connID) });
 
-        const result = await requisitions.execute("editorRunCommand", {
-            command: "sendBlockUpdates",
-            context,
-        });
+        const result = await requisitions.execute("editorRunCommand", { command: "sendBlockUpdates", context });
 
         expect(result).toBe(true);
 
         component.unmount();
     });
 
-    it("Test DBEditorModule function requisitions.createNewEditor", async () => {
-        const component = mount<DBEditorModule>(<DBEditorModule />);
+    it("Test DocumentModule function requisitions.createNewEditor", async () => {
+        const component = mount<DocumentModule>(<DocumentModule />);
         const instance = component.instance();
 
         const newEditorRequest: INewEditorRequest = {
@@ -358,11 +312,7 @@ describe("DBEditor module tests", (): void => {
         };
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", {
-            module: DBEditorModuleId,
-            page: String(connID),
-        });
-
+        await requisitions.execute("showPage", { page: String(connID) });
         await requisitions.execute("createNewEditor", newEditorRequest);
 
         expect(instance.state.connectionTabs).toHaveLength(1);
@@ -373,8 +323,8 @@ describe("DBEditor module tests", (): void => {
         component.unmount();
     });
 
-    it("Test DBEditorModule function requisitions.profileLoaded", async () => {
-        const component = mount<DBEditorModule>(<DBEditorModule />);
+    it("Test DocumentModule function requisitions.profileLoaded", async () => {
+        const component = mount<DocumentModule>(<DocumentModule />);
 
         // Requisition methods (like profileLoaded) cannot really be tested, because they cannot be mocked.
         // And they often only set internal members, to which we have no access. So all we do here is to check
@@ -385,7 +335,7 @@ describe("DBEditor module tests", (): void => {
         component.unmount();
     });
 
-    it("Test DBEditorModule function requisitions.connectionAdded", async () => {
+    it("Test DocumentModule function requisitions.connectionAdded", async () => {
         const credentials = getDbCredentials();
 
         const options: IMySQLConnectionOptions = {
@@ -399,12 +349,12 @@ describe("DBEditor module tests", (): void => {
         const newTestConnection: IConnectionDetails = {
             id: -1,
             dbType: DBType.MySQL,
-            caption: "DBEditorModule Test Connection 2",
-            description: "DBEditorModule Test Connection 2",
+            caption: "DocumentModule Test Connection 2",
+            description: "DocumentModule Test Connection 2",
             options,
         };
 
-        const component = mount<TestDBEditorModule>(<TestDBEditorModule />);
+        const component = mount<TestDocumentModule>(<TestDocumentModule />);
 
         const result = await requisitions.execute("connectionAdded", newTestConnection);
         expect(result).toBe(true);
@@ -412,7 +362,7 @@ describe("DBEditor module tests", (): void => {
         component.unmount();
     });
 
-    it("Test DBEditorModule function requisitions.connectionUpdated", async () => {
+    it("Test DocumentModule function requisitions.connectionUpdated", async () => {
         const newTestConnection: IConnectionDetails = {
             id: connID,
             dbType: DBType.MySQL,
@@ -421,13 +371,10 @@ describe("DBEditor module tests", (): void => {
             options,
         };
 
-        const component = mount<DBEditorModule>(<DBEditorModule />);
+        const component = mount<DocumentModule>(<DocumentModule />);
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", {
-            module: DBEditorModuleId,
-            page: String(connID),
-        });
+        await requisitions.execute("showPage", { page: String(connID) });
 
         const result = requisitions.execute("connectionUpdated", newTestConnection);
         await expect(result).resolves.toBe(true);
@@ -435,7 +382,7 @@ describe("DBEditor module tests", (): void => {
         component.unmount();
     });
 
-    it("Test DBEditorModule function requisitions.connectionRemoved", async () => {
+    it("Test DocumentModule function requisitions.connectionRemoved", async () => {
         const newOptions: IMySQLConnectionOptions = {
             scheme: MySQLConnectionScheme.MySQL,
             user: "user1",
@@ -447,12 +394,12 @@ describe("DBEditor module tests", (): void => {
         const newTestConnection: IConnectionDetails = {
             id: 2,
             dbType: DBType.MySQL,
-            caption: "DBEditorModule Test Connection 2",
-            description: "DBEditorModule Test Connection 2",
+            caption: "DocumentModule Test Connection 2",
+            description: "DocumentModule Test Connection 2",
             options: newOptions,
         };
 
-        const component = mount<DBEditorModule>(<DBEditorModule />);
+        const component = mount<DocumentModule>(<DocumentModule />);
 
         let result = await requisitions.execute("connectionAdded", newTestConnection);
         expect(result).toBe(true);
@@ -462,8 +409,8 @@ describe("DBEditor module tests", (): void => {
         component.unmount();
     });
 
-    it("Test DBEditorModule function requisitions.refreshConnections", async () => {
-        const component = mount<DBEditorModule>(<DBEditorModule />);
+    it("Test DocumentModule function requisitions.refreshConnections", async () => {
+        const component = mount<DocumentModule>(<DocumentModule />);
 
         const result = await requisitions.execute("refreshConnection", undefined);
         expect(result).toBe(true);
@@ -471,14 +418,11 @@ describe("DBEditor module tests", (): void => {
         component.unmount();
     });
 
-    it("Test DBEditorModule function requisitions.webSessionStarted", async () => {
-        const component = mount<DBEditorModule>(<DBEditorModule />);
+    it("Test DocumentModule function requisitions.webSessionStarted", async () => {
+        const component = mount<DocumentModule>(<DocumentModule />);
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", {
-            module: DBEditorModuleId,
-            page: String(connID),
-        });
+        await requisitions.execute("showPage", { page: String(connID) });
 
         const profile: IShellProfile = {
             id: 1,
@@ -502,28 +446,25 @@ describe("DBEditor module tests", (): void => {
         component.unmount();
     });
 
-    it("Test DBEditorModule function requisitions.openConnectionTab for Sqlite", async () => {
-        const component = mount<DBEditorModule>(<DBEditorModule />);
+    it("Test DocumentModule function requisitions.openConnectionTab for Sqlite", async () => {
+        const component = mount<DocumentModule>(<DocumentModule />);
         const instance = component.instance();
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", {
-            module: DBEditorModuleId,
-            page: String(connID),
-        });
+        await requisitions.execute("showPage", { page: String(connID) });
 
         const initialSelectedPage = instance.state.selectedPage;
 
         const sqliteOptions: ISqliteConnectionOptions = {
-            dbFile: "testDBEditorModule.sqlite",
+            dbFile: "testDocumentModule.sqlite",
             dbName: "main",
         };
 
         const testSqliteConnection: IConnectionDetails = {
             id: 2, // There's no connection with id 2.
             dbType: DBType.Sqlite,
-            caption: "DBEditorModule Test Connection 2",
-            description: "DBEditorModule Test Sqlite Connection",
+            caption: "DocumentModule Test Connection 2",
+            description: "DocumentModule Test Sqlite Connection",
             options: sqliteOptions,
         };
 
@@ -539,8 +480,8 @@ describe("DBEditor module tests", (): void => {
         component.unmount();
     });
 
-    it("Test DBEditorModule function requisitions.editorRunCommand wrong command scenario", async () => {
-        const component = mount<DBEditorModule>(<DBEditorModule />);
+    it("Test DocumentModule function requisitions.editorRunCommand wrong command scenario", async () => {
+        const component = mount<DocumentModule>(<DocumentModule />);
         const context: IExecutionContext = {
             id: "test",
             code: "SELECT * FROM test",
@@ -555,10 +496,7 @@ describe("DBEditor module tests", (): void => {
         };
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", {
-            module: DBEditorModuleId,
-            page: String(connID),
-        });
+        await requisitions.execute("showPage", { page: String(connID) });
 
         const result = await requisitions.execute("editorRunCommand", {
             command: "wrongCommand",
@@ -571,14 +509,11 @@ describe("DBEditor module tests", (): void => {
     });
 
     it("Test sendSqlUpdatesFromModel function", async () => {
-        const component = mount<TestDBEditorModule>(<TestDBEditorModule />);
+        const component = mount<TestDocumentModule>(<TestDocumentModule />);
         const instance = component.instance();
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", {
-            module: DBEditorModuleId,
-            page: String(connID),
-        });
+        await requisitions.execute("showPage", { page: String(connID) });
 
         await nextProcessTick();
 
@@ -588,8 +523,8 @@ describe("DBEditor module tests", (): void => {
         component.unmount();
     });
 
-    it("Test DBEditorModule handleHelpCommand handler", () => {
-        const component = mount<TestDBEditorModule>(<TestDBEditorModule />);
+    it("Test DocumentModule handleHelpCommand handler", () => {
+        const component = mount<TestDocumentModule>(<TestDocumentModule />);
         const instance = component.instance();
 
         const expectedHelpJavaScript = `The DB Notebook's interactive prompt is currently running in JavaScript mode.
@@ -636,8 +571,8 @@ EXAMPLES
         component.unmount();
     });
 
-    it("Test DBEditorModule function handleEditorRename", async () => {
-        const component = mount<TestDBEditorModule>(<TestDBEditorModule />);
+    it("Test DocumentModule function handleEditorRename", async () => {
+        const component = mount<TestDocumentModule>(<TestDocumentModule />);
         const instance = component.instance();
 
         const newEditorRequest: INewEditorRequest = {
@@ -646,10 +581,7 @@ EXAMPLES
         };
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", {
-            module: DBEditorModuleId,
-            page: String(connID),
-        });
+        await requisitions.execute("showPage", { page: String(connID) });
 
         await requisitions.execute("createNewEditor", newEditorRequest);
 
@@ -663,15 +595,15 @@ EXAMPLES
         component.unmount();
     });
 
-    it("Test DBEditorModule handleAddConnection handler", async () => {
-        const component = mount<TestDBEditorModule>(<TestDBEditorModule />);
-        const instance: TestDBEditorModule = component.instance();
+    it("Test DocumentModule handleAddConnection handler", async () => {
+        const component = mount<TestDocumentModule>(<TestDocumentModule />);
+        const instance: TestDocumentModule = component.instance();
 
         const testAddMySQLConnection: IConnectionDetails = {
             id: -1,
             dbType: DBType.MySQL,
-            caption: "DBEditorModule Test Connection 99",
-            description: "DBEditorModule Test MyQSL Connection",
+            caption: "DocumentModule Test Connection 99",
+            description: "DocumentModule Test MyQSL Connection",
             options,
         };
         const entry = dataModel.createConnectionEntry(testAddMySQLConnection);
@@ -679,10 +611,7 @@ EXAMPLES
         expect(instance.state.connectionTabs).toHaveLength(0);
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", {
-            module: DBEditorModuleId,
-            page: String(connID),
-        });
+        await requisitions.execute("showPage", { page: String(connID) });
 
         await nextProcessTick();
 
@@ -692,15 +621,15 @@ EXAMPLES
         component.unmount();
     });
 
-    it("Test DBEditorModule handleUpdateConnection handler", async () => {
-        const component = mount<TestDBEditorModule>(<TestDBEditorModule />);
-        const instance: TestDBEditorModule = component.instance();
+    it("Test DocumentModule handleUpdateConnection handler", async () => {
+        const component = mount<TestDocumentModule>(<TestDocumentModule />);
+        const instance: TestDocumentModule = component.instance();
 
         const testAddMySQLConnection: IConnectionDetails = {
             id: -1,
             dbType: DBType.MySQL,
-            caption: "DBEditorModule Test Connection 99",
-            description: "DBEditorModule Test MyQSL Connection",
+            caption: "DocumentModule Test Connection 99",
+            description: "DocumentModule Test MyQSL Connection",
             options,
         };
         const entry = dataModel.createConnectionEntry(testAddMySQLConnection);
@@ -708,10 +637,7 @@ EXAMPLES
         expect(instance.state.connectionTabs).toHaveLength(0);
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", {
-            module: DBEditorModuleId,
-            page: String(connID),
-        });
+        await requisitions.execute("showPage", { page: String(connID) });
 
         await nextProcessTick();
 

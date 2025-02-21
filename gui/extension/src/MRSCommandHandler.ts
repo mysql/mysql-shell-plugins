@@ -43,7 +43,6 @@ import type {
     ICdmRestContentSetEntry, ICdmRestDbObjectEntry, ICdmRestRootEntry, ICdmRestRouterEntry, ICdmRestSchemaEntry,
     ICdmRestServiceAuthAppEntry, ICdmRestServiceEntry, ICdmRestUserEntry, ICdmSchemaEntry,
 } from "../../frontend/src/data-models/ConnectionDataModel.js";
-import { DBEditorModuleId } from "../../frontend/src/modules/ModuleInfo.js";
 import { getRouterPortForConnection } from "../../frontend/src/modules/mrs/mrs-helpers.js";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { findExecutable } from "../../frontend/src/utilities/file-utilities.js";
@@ -177,8 +176,7 @@ export class MRSCommandHandler {
                 const provider = this.#host.currentProvider;
                 if (provider) {
                     void provider.runCommand("job", [
-                        { requestType: "showModule", parameter: DBEditorModuleId },
-                        { requestType: "showPage", parameter: { module: DBEditorModuleId, page: connectionId } },
+                        { requestType: "showPage", parameter: { page: connectionId } },
                         { requestType: "showMrsServiceDialog", parameter: undefined },
                     ], "newConnection");
                 }
@@ -192,8 +190,7 @@ export class MRSCommandHandler {
                     const provider = this.#host.currentProvider;
                     if (provider) {
                         void provider.runCommand("job", [
-                            { requestType: "showModule", parameter: DBEditorModuleId },
-                            { requestType: "showPage", parameter: { module: DBEditorModuleId, page: connectionId } },
+                            { requestType: "showPage", parameter: { page: connectionId } },
                             { requestType: "showMrsServiceDialog", parameter: entry.details },
                         ], "newConnection");
                     }
@@ -638,12 +635,7 @@ export class MRSCommandHandler {
                             const connectionId = entry.connection.details.id;
 
                             void this.#host.currentProvider.runCommand("job", [
-                                { requestType: "showModule", parameter: DBEditorModuleId },
-                                {
-                                    requestType: "showPage", parameter: {
-                                        module: DBEditorModuleId, page: connectionId,
-                                    },
-                                },
+                                { requestType: "showPage", parameter: { page: connectionId } },
                                 {
                                     requestType: "showMrsSdkExportDialog", parameter: {
                                         serviceId: entry.details.id,
@@ -721,8 +713,7 @@ export class MRSCommandHandler {
                     const provider = this.#host.currentProvider;
                     if (provider) {
                         void provider.runCommand("job", [
-                            { requestType: "showModule", parameter: DBEditorModuleId },
-                            { requestType: "showPage", parameter: { module: DBEditorModuleId, page: connectionId } },
+                            { requestType: "showPage", parameter: { page: connectionId } },
                             {
                                 requestType: "showMrsSchemaDialog",
                                 parameter: { schemaName: entry.details.name, schema: entry.details },
@@ -744,16 +735,8 @@ export class MRSCommandHandler {
 
                         if (services.length > 0) {
                             void provider.runCommand("job", [
-                                { requestType: "showModule", parameter: DBEditorModuleId },
-                                {
-                                    requestType: "showPage", parameter: {
-                                        module: DBEditorModuleId, page: connectionId,
-                                    },
-                                },
-                                {
-                                    requestType: "showMrsSchemaDialog",
-                                    parameter: { schemaName: entry.caption },
-                                },
+                                { requestType: "showPage", parameter: { page: connectionId } },
+                                { requestType: "showMrsSchemaDialog", parameter: { schemaName: entry.caption } },
                             ], "newConnection");
                         } else {
                             void ui.showErrorMessage(`Please create a REST Service before adding a DB Schema.`, {});
@@ -838,8 +821,7 @@ export class MRSCommandHandler {
                     const provider = this.#host.currentProvider;
                     if (provider) {
                         void provider.runCommand("job", [
-                            { requestType: "showModule", parameter: DBEditorModuleId },
-                            { requestType: "showPage", parameter: { module: DBEditorModuleId, page: connectionId } },
+                            { requestType: "showPage", parameter: { page: connectionId } },
                             { requestType: "showMrsAuthAppDialog", parameter: { authApp: entry.details } },
                         ], "newConnection");
                     }
@@ -856,11 +838,7 @@ export class MRSCommandHandler {
                             const provider = this.#host.currentProvider;
                             if (provider) {
                                 void provider.runCommand("job", [
-                                    { requestType: "showModule", parameter: DBEditorModuleId },
-                                    {
-                                        requestType: "showPage",
-                                        parameter: { module: DBEditorModuleId, page: connectionId },
-                                    },
+                                    { requestType: "showPage", parameter: { page: connectionId } },
                                     { requestType: "showMrsAuthAppDialog", parameter: { service: entry.details } },
                                 ], "newConnection");
                             }
@@ -881,11 +859,7 @@ export class MRSCommandHandler {
                         const provider = this.#host.currentProvider;
                         if (provider) {
                             void provider.runCommand("job", [
-                                { requestType: "showModule", parameter: DBEditorModuleId },
-                                {
-                                    requestType: "showPage",
-                                    parameter: { module: DBEditorModuleId, page: connectionId },
-                                },
+                                { requestType: "showPage", parameter: { page: connectionId } },
                                 { requestType: "showMrsAuthAppDialog", parameter: {} },
                             ], "newConnection");
                         }
@@ -962,12 +936,7 @@ export class MRSCommandHandler {
                         const provider = this.#host.currentProvider;
                         if (provider) {
                             void provider.runCommand("job", [
-                                { requestType: "showModule", parameter: DBEditorModuleId },
-                                {
-                                    requestType: "showPage", parameter: {
-                                        module: DBEditorModuleId, page: connectionId,
-                                    },
-                                },
+                                { requestType: "showPage", parameter: { page: connectionId } },
                                 { requestType: "showMrsContentSetDialog", parameter: {} },
                             ], "newConnection");
                         }
@@ -986,12 +955,7 @@ export class MRSCommandHandler {
                         const provider = this.#host.currentProvider;
                         if (provider) {
                             void provider.runCommand("job", [
-                                { requestType: "showModule", parameter: DBEditorModuleId },
-                                {
-                                    requestType: "showPage", parameter: {
-                                        module: DBEditorModuleId, page: connectionId,
-                                    },
-                                },
+                                { requestType: "showPage", parameter: { page: connectionId } },
                                 {
                                     requestType: "showMrsContentSetDialog", parameter: {
                                         // eslint-disable-next-line no-template-curly-in-string
@@ -1073,8 +1037,7 @@ export class MRSCommandHandler {
                     const provider = this.#host.currentProvider;
                     if (provider) {
                         void provider.runCommand("job", [
-                            { requestType: "showModule", parameter: DBEditorModuleId },
-                            { requestType: "showPage", parameter: { module: DBEditorModuleId, page: connectionId } },
+                            { requestType: "showPage", parameter: { page: connectionId } },
                             { requestType: "showMrsUserDialog", parameter: { authApp: entry.details } },
                         ], "newConnection");
                     }
@@ -1093,12 +1056,7 @@ export class MRSCommandHandler {
                                 const provider = this.#host.currentProvider;
                                 if (provider) {
                                     void provider.runCommand("job", [
-                                        { requestType: "showModule", parameter: DBEditorModuleId },
-                                        {
-                                            requestType: "showPage", parameter: {
-                                                module: DBEditorModuleId, page: connectionId,
-                                            },
-                                        },
+                                        { requestType: "showPage", parameter: { page: connectionId } },
                                         {
                                             requestType: "showMrsUserDialog", parameter: {
                                                 authApp, user: entry.details,
@@ -1129,12 +1087,7 @@ export class MRSCommandHandler {
                         const provider = this.#host.currentProvider;
                         if (provider) {
                             void provider.runCommand("job", [
-                                { requestType: "showModule", parameter: DBEditorModuleId },
-                                {
-                                    requestType: "showPage", parameter: {
-                                        module: DBEditorModuleId, page: String(connection.details.id),
-                                    },
-                                },
+                                { requestType: "showPage", parameter: { page: String(connection.details.id) } },
                                 {
                                     requestType: "showMrsContentSetDialog", parameter: {
                                         directory: directory.fsPath,
