@@ -114,26 +114,3 @@ def test_get_schema_object_names_by_shell(shell_session):
     assert len(tables) > 0
     assert "user" in tables
     assert "db" in tables
-
-
-@pytest.mark.usefixtures("shell_session")
-def test_get_table_objects_by_shell(shell_session):
-    # Test columns in mysql.user table
-    result = mysqlsh.globals.gui.db.get_table_objects(shell_session, "Column", "mysql", "user")
-    columns = result["objects"]
-    assert len(columns) > 0
-    assert any(col[0] == "Host" for col in columns)
-    assert any(col[0] == "User" for col in columns)
-
-    # Test indexes in mysql.user table
-    result = mysqlsh.globals.gui.db.get_table_objects(shell_session, "Index", "mysql", "user")
-    indexes = result["objects"]
-    assert len(indexes) > 0
-    assert any(idx[0] == "PRIMARY" for idx in indexes)
-
-    # Test primary key in mysql.user table
-    result = mysqlsh.globals.gui.db.get_table_objects(shell_session, "Primary Key", "mysql", "user")
-    pks = result["objects"]
-    assert len(pks) > 0
-    assert any(pk[0] == "Host" for pk in pks)
-    assert any(pk[0] == "User" for pk in pks)

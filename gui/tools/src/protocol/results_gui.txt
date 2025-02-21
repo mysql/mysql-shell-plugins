@@ -310,9 +310,9 @@ export interface IDBSchemaObjectEntry {
 export interface IDBTableObjectEntry {
     name: string;
     type: string;
-    not_null: boolean;
-    is_pk: boolean;
-    auto_increment: boolean;
+    notNull: boolean;
+    isPk: boolean;
+    autoIncrement: boolean;
     default: unknown;
 }
 
@@ -430,7 +430,6 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiInfo]: {};
     [ShellAPIGui.GuiVersion]: {};
     [ShellAPIGui.GuiDbGetRoutinesMetadata]: { result: IDBSchemaObjectEntry[]; };
-    [ShellAPIGui.GuiDbGetTableObjects]: { result: string[] | IDBTableObjectEntry[]; };
 }
 
 /**

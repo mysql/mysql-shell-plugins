@@ -416,9 +416,6 @@ class DbSession(threading.Thread):
     def get_table_object(self, type, schema_name, table_name, name):  # pragma: no cover
         raise NotImplementedError()
 
-    def get_table_objects(self, type, schema_name, table_name):  # pragma: no cover
-        raise NotImplementedError()
-
     def get_columns_metadata(self, names):
         raise NotImplementedError()
 

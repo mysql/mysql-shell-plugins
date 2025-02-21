@@ -122,8 +122,6 @@ export enum ShellAPIGui {
     GuiDbReconnect = "gui.db.reconnect",
     /** Returns the schema objects of the given type in the given schema. */
     GuiDbGetRoutinesMetadata = "gui.db.get_routines_metadata",
-    /** Returns the table objects of the given type in the given table. */
-    GuiDbGetTableObjects = "gui.db.get_table_objects",
     /** Creates a new Module Data record for the given module    and associates it to the active user profile and personal user group. */
     GuiModulesAddData = "gui.modules.add_data",
     /** Get list of data */
@@ -332,7 +330,6 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiDbCloseSession]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbReconnect]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbGetRoutinesMetadata]: { args: { moduleSessionId: string; schemaName: string; }; };
-    [ShellAPIGui.GuiDbGetTableObjects]: { args: { moduleSessionId: string; type: string; schemaName: string; tableName: string; }; };
     [ShellAPIGui.GuiModulesAddData]: { args: { caption: string; content: string; dataCategoryId: number; treeIdentifier: string; folderPath?: string; profileId?: number; }; };
     [ShellAPIGui.GuiModulesListData]: { args: { folderId: number; dataCategoryId?: number; }; };
     [ShellAPIGui.GuiModulesGetDataContent]: { args: { id: number; }; };
@@ -715,9 +712,9 @@ export interface IDBSchemaObjectEntry {
 export interface IDBTableObjectEntry {
     name: string;
     type: string;
-    not_null: boolean;
-    is_pk: boolean;
-    auto_increment: boolean;
+    notNull: boolean;
+    isPk: boolean;
+    autoIncrement: boolean;
     default: unknown;
 }
 
@@ -835,7 +832,6 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiInfo]: {};
     [ShellAPIGui.GuiVersion]: {};
     [ShellAPIGui.GuiDbGetRoutinesMetadata]: { result: IDBSchemaObjectEntry[]; };
-    [ShellAPIGui.GuiDbGetTableObjects]: { result: string[] | IDBTableObjectEntry[]; };
 }
 
 /**
