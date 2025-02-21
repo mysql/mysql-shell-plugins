@@ -783,68 +783,6 @@ class DbMysqlSession(DbSession):
                                     f"The '{schema_name}' does not exist.")
             return {"routines": result}
 
-    @check_supported_type
-    def get_table_objects(self, type, schema_name, table_name):
-        params = (schema_name, table_name)
-        if type == "Trigger":
-            sql = """SELECT TRIGGER_NAME
-                    FROM information_schema.TRIGGERS
-                    WHERE TRIGGER_SCHEMA = ?
-                        AND EVENT_OBJECT_TABLE = ?
-                    ORDER BY TRIGGER_NAME"""
-        elif type == "Foreign Key":
-            sql = """SELECT CONSTRAINT_NAME
-                    FROM information_schema.KEY_COLUMN_USAGE
-                    WHERE CONSTRAINT_SCHEMA = ?
-                        AND TABLE_NAME = ?
-                        AND REFERENCED_TABLE_NAME is not NULL
-                    ORDER BY CONSTRAINT_NAME"""
-        elif type == "Primary Key":
-            sql = """SELECT COLUMN_NAME
-                    FROM information_schema.KEY_COLUMN_USAGE
-                    WHERE CONSTRAINT_SCHEMA = ?
-                        AND TABLE_NAME = ?
-                        AND CONSTRAINT_NAME = 'PRIMARY'
-                    ORDER BY COLUMN_NAME;"""
-        elif type == "Index":
-            sql = """SELECT INDEX_NAME
-                    FROM information_schema.STATISTICS
-                    WHERE TABLE_SCHEMA = ?
-                        AND TABLE_NAME = ?
-                    ORDER BY INDEX_NAME"""
-        elif type == "Column":
-            sql = """SELECT COLUMN_NAME as 'name', COLUMN_TYPE as 'type',
-                        IS_NULLABLE='NO' as 'not_null', COLUMN_DEFAULT as 'default',
-                        COLUMN_KEY='PRI' as 'is_pk',
-                        EXTRA='auto_increment' as 'auto_increment'
-                    FROM information_schema.COLUMNS
-                    WHERE TABLE_SCHEMA = ?
-                        AND TABLE_NAME = ?
-                    ORDER BY COLUMN_NAME"""
-
-        if self.threaded:
-            context = get_context()
-            task_id = context.request_id if context else None
-            if type == "Column":
-                self.add_task(MySQLColumnsListTask(self,
-                                                    task_id=task_id,
-                                                    sql=sql,
-                                                    params=params))
-            else:
-                self.add_task(MySQLOneFieldListTask(self,
-                                                  task_id=task_id,
-                                                  sql=sql,
-                                                  params=params))
-        else:
-            cursor = self.execute(sql, params)
-            if cursor:
-                result = cursor.fetch_all()
-            else:
-                result = []
-            if not result:
-                raise MSGException(Error.DB_OBJECT_DOES_NOT_EXISTS,
-                                   f"The {type.lower()} '{schema_name}' does not exist.")
-            return {"objects": result}
 
     def _column_exists(self, table_name, column_name):
         """Check if a column exists in INFORMATION_SCHEMA table."""

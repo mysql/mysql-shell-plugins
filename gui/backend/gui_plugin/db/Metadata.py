@@ -245,22 +245,3 @@ def get_routines_metadata(session, schema_name):
     session = backend.get_db_session(session)
 
     return session.get_routines_metadata(schema_name=schema_name)
-
-@plugin_function('gui.db.getTableObjects', shell=True, web=True)
-def get_table_objects(session, type, schema_name, table_name):
-    """Returns the table objects of the given type in the given table.
-
-    Args:
-        session (object): The session used to execute the operation
-        type (str): the table object type
-        schema_name (str): schema name
-        table_name (str): table name
-
-    Returns:
-        list: table objects
-    """
-    session = backend.get_db_session(session)
-
-    return session.get_table_objects(type=type,
-                                schema_name=schema_name,
-                                table_name=table_name)
