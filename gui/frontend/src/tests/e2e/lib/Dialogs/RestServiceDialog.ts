@@ -49,6 +49,10 @@ export class RestServiceDialog {
         await DialogHelper.setCheckboxValue("makeDefault", restService.default!);
         await DialogHelper.setCheckboxValue("enabled", restService.enabled!);
 
+        if (restService.name) {
+            await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.name, restService.name);
+        }
+
         // Settings
         if (restService.settings) {
             if (restService.settings.mrsAdminUser) {
@@ -111,12 +115,6 @@ export class RestServiceDialog {
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The MRS Service dialog was not closed");
 
-        if (restService.advanced && restService.advanced.hostNameFilter) {
-            restService.treeName = `${restService.servicePath} (${restService.advanced.hostNameFilter})`;
-        } else {
-            restService.treeName = restService.servicePath;
-        }
-
         return restService;
     };
 
@@ -132,6 +130,7 @@ export class RestServiceDialog {
         // Main settings
         const restService: interfaces.IRestService = {
             servicePath: await DialogHelper.getFieldValue(dialog, locator.mrsServiceDialog.servicePath),
+            name: await DialogHelper.getFieldValue(dialog, locator.mrsServiceDialog.name),
         };
 
         restService.default = await DialogHelper.getCheckBoxValue("makeDefault");
@@ -175,12 +174,6 @@ export class RestServiceDialog {
 
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The MRS Service dialog was not closed");
-
-        if (restService.advanced && restService.advanced.hostNameFilter) {
-            restService.treeName = `${restService.servicePath} (${restService.advanced.hostNameFilter})`;
-        } else {
-            restService.treeName = restService.servicePath;
-        }
 
         return restService;
     };

@@ -93,8 +93,9 @@ describe("OCI", () => {
         try {
             await driver.wait(ociTreeSection.untilTreeItemExists(ociTree[0]), constants.wait5seconds);
             await Misc.dismissNotifications(true);
+
+            await ociTreeSection.openContextMenuAndSelect(ociTree[0], constants.setAsNewDefaultConfigProfile);
             treeE2eProfile = await ociTreeSection.getTreeItem(ociTree[0]);
-            await treeE2eProfile.openContextMenuAndSelect(constants.setAsNewDefaultConfigProfile);
             await driver.wait(treeE2eProfile.untilIsDefault(), constants.wait5seconds);
         } catch (e) {
             testFailed = true;
@@ -106,8 +107,8 @@ describe("OCI", () => {
         try {
             await ociTreeSection.expandTree(ociTree);
             await Misc.dismissNotifications(true);
-            const treeCompartment = await ociTreeSection.getTreeItem(ociTree[2]);
-            await treeCompartment.openContextMenuAndSelect(constants.setAsCurrentCompartment);
+
+            await ociTreeSection.openContextMenuAndSelect(ociTree[2], constants.setAsCurrentCompartment);
 
             const notification = (await new E2EToastNotification().create())!;
             expect(notification.message)
@@ -115,6 +116,7 @@ describe("OCI", () => {
                 .toBe(`${String(ociTree[2]).replaceAll("/", "")} in ${ociConfig?.name} is now the current compartment.`);
             await notification.close();
 
+            const treeCompartment = await ociTreeSection.getTreeItem(ociTree[2]);
             await driver.wait(treeCompartment.untilIsDefault(), constants.wait3seconds);
 
             const slicedOciTree = ociTree;
@@ -139,17 +141,15 @@ describe("OCI", () => {
         try {
             await ociTreeSection.expandTree(ociTree);
             await Misc.dismissNotifications(true);
-            const treeCompartment = await ociTreeSection.getTreeItem(ociTree[ociTree.length - 1]);
-            await driver.wait(treeCompartment.untilHasChildren(), constants.wait20seconds);
+            await driver.wait(ociTreeSection.untilTreeItemHasChildren(ociTree[ociTree.length - 1]),
+                constants.wait20seconds);
 
-            const bastion = await ociTreeSection.getOciItemByType(constants.bastionType);
+            const bastion = await ociTreeSection.getOciTreeItemByType(constants.bastionType);
             const expected1 = `Setting current bastion to ${bastion} ...`;
             const expected2 = `Current bastion set to ${bastion}.`;
 
-            const treeBastion = await ociTreeSection.getTreeItem(bastion);
-
             await driver.wait(async () => {
-                await treeBastion.openContextMenuAndSelect(constants.setAsCurrentBastion);
+                await ociTreeSection.openContextMenuAndSelect(bastion, constants.setAsCurrentBastion);
                 const notifications = await Misc.getToastNotifications(true);
                 for (const notification of notifications) {
                     if (notification?.message !== expected1 && notification?.message !== expected2) {
@@ -160,6 +160,7 @@ describe("OCI", () => {
                 }
             }, constants.wait10seconds, `Could not find any notification`);
 
+            const treeBastion = await ociTreeSection.getTreeItem(bastion);
             await driver.wait(treeBastion.untilIsDefault(),
                 constants.wait10seconds, "Bastion is not the default item");
         } catch (e) {

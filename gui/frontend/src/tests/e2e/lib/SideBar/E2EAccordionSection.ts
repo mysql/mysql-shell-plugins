@@ -30,6 +30,10 @@ import * as interfaces from "../interfaces.js";
 import { DatabaseConnectionDialog } from "../Dialogs/DatabaseConnectionDialog.js";
 import { driver } from "../driver.js";
 import { E2ETreeItem } from "./E2ETreeItem.js";
+import { ConfirmDialog } from "../Dialogs/ConfirmationDialog.js";
+import { PasswordDialog } from "../Dialogs/PasswordDialog.js";
+import { Misc } from "../misc.js";
+import { E2EToastNotification } from "../E2EToastNotification.js";
 
 /**
  * This class represents the Accordion section element and its related functions
@@ -323,17 +327,17 @@ export class E2EAccordionSection {
                                     await el.setLevel();
                                     await el.setCaption();
                                     await el.setSubCaption();
-                                    await el.isDisplayed(); // is it stale ?
+                                    await el.isEnabled(); // is it stale ?
 
                                     return true;
                                 }
                             }
 
-                            if (refCaption.includes(caption)) {
+                            if (refCaption === caption) {
                                 el = new E2ETreeItem(item);
                                 await el.setLevel();
                                 await el.setCaption();
-                                await el.isDisplayed(); // is it stale ?
+                                await el.isEnabled(); // is it stale ?
 
                                 return true;
                             }
@@ -345,7 +349,7 @@ export class E2EAccordionSection {
                                 el = new E2ETreeItem(item);
                                 await el.setLevel();
                                 await el.setCaption();
-                                await el.isDisplayed(); // is it stale ?
+                                await el.isEnabled(); // is it stale ?
 
                                 return true;
                             }
@@ -364,11 +368,142 @@ export class E2EAccordionSection {
     };
 
     /**
+     * Expands an item on the tree
+     * @param data The caption or the database connection
+     */
+    public expandTreeItem = async (data: string | interfaces.IDBConnection): Promise<void> => {
+        const action = async () => {
+            await driver.wait(async () => {
+
+                const refCaption = typeof data === "string" ? data : data.caption;
+
+                if ((await this.isTreeItemExpandable(refCaption!))) {
+                    if (!(await this.isTreeItemExpanded(refCaption!))) {
+                        const treeItem = await this.getTreeItem(refCaption!);
+                        const toggle = await treeItem.findElement(locator.section.tree.element.toggle);
+                        await toggle.click();
+
+                        if (typeof data !== "string") {
+                            await driver.wait(async () => {
+                                if (await PasswordDialog.exists()) {
+                                    await PasswordDialog.setCredentials(data);
+
+                                    return driver.wait(async () => {
+                                        return this.treeItemHasChildren(data.caption!);
+                                    }, constants.wait15seconds, `${data.caption} should have children`);
+                                } else if (await this.treeItemHasChildren(data.caption!)) {
+                                    return true;
+                                }
+                            }, constants.wait10seconds,
+                                `The password dialog was not displayed nor the ${data.caption!} has children`);
+                        }
+                    }
+
+                    return this.isExpanded();
+                } else {
+                    return true;
+                }
+            }, constants.wait5seconds, `Could not expand ${data.toString()}`);
+        };
+
+        await action().catch(async (e: Error) => {
+            if (e instanceof error.StaleElementReferenceError) {
+                await action();
+            } else {
+                throw e;
+            }
+        });
+    };
+
+    /**
+     * Right-clicks on an element to open the context menu
+     * @param caption The tree item caption
+     */
+    public openContextMenu = async (caption: string): Promise<void> => {
+        const contextMenuLocator = locator.section.tree.element.contextMenu;
+
+        const action = async () => {
+            await driver.wait(async () => {
+                await driver.actions().contextClick(await this.getTreeItem(caption)).perform();
+
+                return (await driver.findElements(contextMenuLocator.exists)).length > 0;
+            }, constants.wait3seconds, `Context menu was not displayed on element ${caption}`);
+        };
+
+        await action().catch(async (e: Error) => {
+            if (e instanceof error.StaleElementReferenceError) {
+                await action();
+            } else {
+                throw e;
+            }
+        });
+    };
+
+    /**
+     * Selects the item on the context menu
+     * @param ctxMenuItem The context menu item
+     */
+    public selectFromContextMenu = async (ctxMenuItem: string | string[]): Promise<void> => {
+        const contextMenuLocator = locator.section.tree.element.contextMenu;
+        const items = await driver.findElements(contextMenuLocator.item);
+        const valueToCompare = Array.isArray(ctxMenuItem) ? ctxMenuItem[0] : ctxMenuItem;
+
+        for (const item of items) {
+            const itemText = await item.getText();
+
+            if (itemText === valueToCompare) {
+                await driver.actions().move({ origin: item }).perform();
+
+                if (Array.isArray(ctxMenuItem)) {
+                    const subMenu = await driver.wait(until.elementLocated(contextMenuLocator.subMenu.exists),
+                        constants.wait2seconds);
+                    const subMenuItems = await subMenu.findElements(contextMenuLocator.subMenu.item);
+
+                    for (const subMenuItem of subMenuItems) {
+                        if ((await subMenuItem.getText()) === ctxMenuItem[1]) {
+                            await driver.actions().move({ origin: subMenuItem }).pause(250).click().perform();
+
+                            return;
+                        }
+                    }
+                    break;
+                } else {
+                    await driver.actions().move({ origin: item }).pause(250).click().perform();
+
+                    return;
+                }
+            }
+        }
+
+        throw new Error(`Could not find context menu item '${ctxMenuItem.toString()}'`);
+    };
+
+    /**
+     * Right-clicks on an element and selects the item on the context menu
+     * @param caption Tree item caption
+     * @param ctxMenuItem The context menu item
+     */
+    public openContextMenuAndSelect = async (caption: string, ctxMenuItem: string | string[]): Promise<void> => {
+        const action = async () => {
+            await this.openContextMenu(caption);
+            await this.selectFromContextMenu(ctxMenuItem);
+        };
+
+        await action().catch(async (e: Error) => {
+            if (e instanceof error.StaleElementReferenceError) {
+                await action();
+            } else {
+                throw e;
+            }
+        });
+    };
+
+    /**
      * Gets an element from the tree by its oci type
      * @param type The type (ociDbSystem, ociBastion)
      * @returns A promise resolving with the element
      */
-    public getOciItemByType = async (type: string): Promise<string> => {
+    public getOciTreeItemByType = async (type: string): Promise<string> => {
         let ociLabel = "";
 
         await driver.wait(async () => {
@@ -419,44 +554,43 @@ export class E2EAccordionSection {
             rootItemLocator = locator.section.tree.element.openEditorTreeEntry;
         }
 
-        await driver.wait(async () => {
-            try {
-                const treeItems = await this.getVisibleTreeItems();
+        const action = async () => {
+            const treeItems = await this.getVisibleTreeItems();
 
-                if (treeItems.length > 0) {
+            if (treeItems.length > 0) {
 
-                    for (const item of treeItems) {
-                        const webElement = await item.findElement(rootItemLocator);
+                for (const item of treeItems) {
+                    const webElement = await item.findElement(rootItemLocator);
 
-                        if (this.accordionSectionName === constants.dbTreeSection) {
+                    if (this.accordionSectionName === constants.dbTreeSection) {
 
-                            const refCaption = await (await webElement
-                                .findElement(locator.section.tree.element.mainCaption)).getText();
+                        const refCaption = await (await webElement
+                            .findElement(locator.section.tree.element.mainCaption)).getText();
 
-                            if (refCaption === caption) {
-                                exists = true;
-                                break;
-                            }
-                        } else {
-                            const refCaption = await (await webElement
-                                .findElement(locator.section.tree.element.label)).getText();
+                        if (refCaption === caption) {
+                            exists = true;
+                            break;
+                        }
+                    } else {
+                        const refCaption = await (await webElement
+                            .findElement(locator.section.tree.element.label)).getText();
 
-                            if (refCaption === caption) {
-                                exists = true;
-                                break;
-                            }
+                        if (refCaption === caption) {
+                            exists = true;
+                            break;
                         }
                     }
                 }
-
-                return true;
-            } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
-                    throw e;
-                }
             }
-        }, constants.wait3seconds,
-            `Could not find '${caption}' on section ${this.accordionSectionName}`);
+        };
+
+        await action().catch(async (e: Error) => {
+            if (e instanceof error.StaleElementReferenceError) {
+                await action();
+            } else {
+                throw e;
+            }
+        });
 
         return exists;
     };
@@ -478,7 +612,7 @@ export class E2EAccordionSection {
      * @returns A condition resolving to true if the element does not exist, false otherwise
      */
     public untilTreeItemDoesNotExists = (element: string): Condition<boolean> => {
-        return new Condition(`for ${element} to exist on the tree`, async () => {
+        return new Condition(`for ${element} to not exist on the tree`, async () => {
             return !(await this.existsTreeItem(element));
         });
     };
@@ -491,14 +625,9 @@ export class E2EAccordionSection {
         for (const item of tree) {
             await driver.wait(async () => {
                 try {
-                    const treeItem = await this.getTreeItem(item);
+                    await driver.wait(this.untilTreeItemHasChildren(item), constants.wait5seconds);
 
-                    if (await treeItem.isExpandable()) {
-                        await treeItem.expand();
-                        await driver.wait(treeItem.untilHasChildren(), constants.wait10seconds);
-
-                        return true;
-                    }
+                    return true;
                 } catch (e) {
                     if (!(e instanceof error.StaleElementReferenceError)) {
                         throw e;
@@ -509,27 +638,184 @@ export class E2EAccordionSection {
     };
 
     /**
-     * Right-clicks on an element and selects the item on the context menu
-     * @param treeItemCaption The tree item caption
-     * @param ctxMenuItem The context menu item
+     * Verifies if the tree element has children
+     * @param caption The tree item caption
+     * @returns A promise resolving with true if the element has children, false otherwise
      */
-    public openContextMenuAndSelect = async (
-        treeItemCaption: string,
-        ctxMenuItem: string | string[]): Promise<void> => {
+    public treeItemHasChildren = async (caption: string): Promise<boolean> => {
+        await this.expandTreeItem(caption);
 
-        await driver.wait(async () => {
-            try {
-                const treeItem = await this.getTreeItem(treeItemCaption);
-                await treeItem.openContextMenuAndSelect(ctxMenuItem);
+        return (await this.getTreeItemChildren(caption)).length > 0;
+    };
 
-                return true;
-            } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
-                    throw e;
+    /**
+     * Gets the tree items under the current item. It expands the current item
+     * @param caption The tree item caption
+     * @returns A promise resolving with the child items of the current item
+     */
+    public getTreeItemChildren = async (caption: string): Promise<E2ETreeItem[]> => {
+
+        let items: E2ETreeItem[] = [];
+
+        const getNextSibling = async (el: E2ETreeItem, rootLevel: number): Promise<E2ETreeItem> => {
+            let item: E2ETreeItem | undefined;
+
+            const nextSibling: WebElement = await driver
+                .executeScript("return arguments[0].nextElementSibling;", el);
+
+            if (nextSibling) {
+                item = new E2ETreeItem(nextSibling);
+                await item.setLevel();
+
+                if (item.level === rootLevel + 1) {
+                    await item.setCaption();
+                } else {
+                    item = undefined;
                 }
             }
-        }, constants.wait5seconds, `Could not select '${ctxMenuItem.toString()}' for tree item ${treeItemCaption}`);
 
+            return item!;
+        };
+
+        const action = async () => {
+            await this.expandTreeItem(caption);
+
+            const treeItem = await this.getTreeItem(caption);
+            const rootLevel = treeItem.level!;
+            let nextSibling = await getNextSibling(treeItem, rootLevel);
+
+            while (nextSibling) {
+                items.push(nextSibling);
+                nextSibling = await getNextSibling(nextSibling, rootLevel);
+            }
+        };
+
+        await action().catch(async (e: Error) => {
+            if (e instanceof error.StaleElementReferenceError) {
+                items = [];
+                await action();
+            } else {
+                throw e;
+            }
+        });
+
+
+        return items;
+    };
+
+    /**
+     * Verifies if the tree element can be expanded
+     * @param caption The tree item caption
+     * @returns A promise resolving with true if the element can be expanded, false otherwise
+     */
+    public isTreeItemExpandable = async (caption: string): Promise<boolean> => {
+        let isExpandable = false;
+
+        const action = async () => {
+            const treeItem = await this.getTreeItem(caption);
+            isExpandable = (await treeItem.findElements(locator.section.tree.element.toggle)).length > 0;
+        };
+
+        await action().catch(async (e: Error) => {
+            if (e instanceof error.StaleElementReferenceError) {
+                await action();
+            } else {
+                throw e;
+            }
+        });
+
+        return isExpandable;
+    };
+
+    /**
+     * Verifies if the tree element is expanded
+     * @param caption The tree item caption
+     * @returns A promise resolving with true if the section is expanded, false otherwise
+     */
+    public isTreeItemExpanded = async (caption: string): Promise<boolean> => {
+        let isExpanded = false;
+
+        const action = async () => {
+            const treeItem = await this.getTreeItem(caption);
+            isExpanded = (await treeItem.findElements(locator.section.tree.element.isExpanded)).length > 0;
+        };
+
+        await action().catch(async (e: Error) => {
+            if (e instanceof error.StaleElementReferenceError) {
+                await action();
+            } else {
+                throw e;
+            }
+        });
+
+        return isExpanded;
+
+    };
+
+    /**
+     * Collapses th is item on the tree
+     * @param caption The tree item caption
+     */
+    public collapseTreeItem = async (caption: string): Promise<void> => {
+        const action = async () => {
+            await driver.wait(async () => {
+                if (await this.isTreeItemExpanded(caption)) {
+                    const toggle = await (await this.getTreeItem(caption))
+                        .findElement(locator.section.tree.element.toggle);
+                    await toggle.click();
+                }
+
+                return !(await this.isTreeItemExpanded(caption));
+            }, constants.wait3seconds, `Could not collapse ${caption}`);
+        };
+
+        await action().catch(async (e: Error) => {
+            if (e instanceof error.StaleElementReferenceError) {
+                await action();
+            } else {
+                throw e;
+            }
+        });
+    };
+
+    /**
+     * Verifies if this tree item has children
+     * @param caption The tree item caption
+     * @returns A condition resolving with true if the element has children, false otherwise
+     */
+    public untilTreeItemHasChildren = (caption: string): Condition<boolean> => {
+        return new Condition(`for ${caption} to have children`, async () => {
+            return (await this.getTreeItemChildren(caption)).length > 0;
+        });
+    };
+
+    /**
+     * Configures the Rest Service for this tree item
+     * @param caption The tree item caption
+     * @param dbConnection The database connection
+     * @returns A promise resolving when the rest service is configured
+     */
+    public configureMySQLRestService = async (
+        caption: string,
+        dbConnection: interfaces.IDBConnection): Promise<void> => {
+        await this.openContextMenuAndSelect(caption, constants.configureInstanceForMySQLRestServiceSupport);
+
+        const dialog = await new ConfirmDialog().untilExists();
+        await dialog.accept();
+
+        await driver.wait(async () => {
+            if (await PasswordDialog.exists()) {
+                await PasswordDialog.setCredentials(dbConnection);
+            }
+
+            if ((await Misc.getToastNotifications()).length > 0) {
+                const notification = await new E2EToastNotification().create();
+                expect(notification!.message).toBe("MySQL REST Service configured successfully.");
+                await notification!.close();
+
+                return true;
+            }
+        }, constants.wait10seconds, `Could not configure Rest Service for ${dbConnection.caption}`);
     };
 
 }

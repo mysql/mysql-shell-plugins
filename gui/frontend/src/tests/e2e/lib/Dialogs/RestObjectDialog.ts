@@ -376,8 +376,6 @@ export class RestObjectDialog {
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The MRS Object dialog was not closed");
 
-        restObject.treeName = `${restObject.restObjectPath}`;
-
         return restObject;
     };
 
@@ -511,8 +509,6 @@ export class RestObjectDialog {
 
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The MRS Object dialog was not closed");
-
-        restObject.treeName = `${restObject.restObjectPath}`;
 
         return restObject;
     };
