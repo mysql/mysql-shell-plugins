@@ -58,6 +58,7 @@ from ..mrs_base_classes import (
     IMrsResourceDetails,
     IntField,
     MrsAuthenticate,
+    MrsBaseObject,
     MrsBaseObjectCreate,
     MrsBaseObjectDelete,
     MrsBaseObjectFunctionCall,
@@ -523,6 +524,79 @@ async def validate_url(
 
 
 ####################################################################################
+#                             Test "Get Metadata"
+####################################################################################
+@pytest.mark.parametrize(
+    "rest_obj_name, fictional_payload",
+    [
+        (
+            "service",
+            {
+                "Title": "Service REST Object",
+                "Description": "Verifying get_metadata() works",
+            },
+        ),
+        (
+            "schema",
+            {
+                "Title": "Schema REST Object",
+                "Description": "Verifying get_metadata() works",
+            },
+        ),
+        (
+            "object",
+            {
+                "Title": "`Object of the Database` REST Object",
+                "Description": "Verifying get_metadata() works",
+            },
+        ),
+    ],
+)
+async def test_get_metadata(
+    mock_urlopen: MagicMock,
+    mock_request_class: MagicMock,
+    urlopen_simulator: MagicMock,
+    mock_create_default_context: MagicMock,
+    fictional_payload: dict[str, Any],
+    schema: MrsBaseSchema,
+    rest_obj_name: Literal["service", "schema", "object"],
+):
+    """Check `rest_obj.get_metadata()`."""
+    rest_obj: Optional[MrsBaseService | MrsBaseSchema | MrsBaseObject] = None
+    exp_request_path = ""
+    if rest_obj_name == "service":
+        rest_obj = MrsBaseService(service_url=schema._service._service_url)
+        exp_request_path = rest_obj._service_url
+    elif rest_obj_name == "schema":
+        rest_obj = MrsBaseSchema(
+            service=schema._service,
+            request_path=f"{schema._service._service_url}/my_schema",
+        )
+        exp_request_path = rest_obj._request_path
+    else:
+        rest_obj = MrsBaseObject(
+            schema=schema, request_path=f"{schema._request_path}/my_object"
+        )
+        exp_request_path = rest_obj._request_path
+
+    # mocking
+    mock_urlopen.return_value = urlopen_simulator(urlopen_read=fictional_payload)
+    mock_create_default_context.return_value = ssl.create_default_context()
+
+    _ = await rest_obj.get_metadata()
+
+    # check one request happened
+    assert mock_request_class.call_count == 1
+
+    # check that request is issued as expected
+    mock_request_class.assert_called_with(
+        url=f"{exp_request_path}/_metadata",
+        headers={"Accept": "application/json"},
+        method="GET",
+    )
+
+
+####################################################################################
 #                     Test GTID Tracking And Synchronization
 ####################################################################################
 @pytest.mark.parametrize(
@@ -938,9 +1012,7 @@ async def test_authenticate_submit_mysql_internal(
 @pytest.mark.parametrize(
     "fictional_access_token",
     [
-        (
-            "85888969"
-        ),
+        ("85888969"),
     ],
 )
 async def test_submit_deauthenticate(
@@ -982,10 +1054,7 @@ async def test_submit_deauthenticate(
     await request.submit()
 
     # check the access token is reset
-    assert (
-        schema._service._session["access_token"]
-        == ""
-    )
+    assert schema._service._session["access_token"] == ""
 
     # check another call happened
     assert mock_request_class.call_count == 2
