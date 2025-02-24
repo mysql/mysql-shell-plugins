@@ -1233,7 +1233,7 @@ async def test_function_call_submit(
         url=request_path,
         headers={"Accept": "application/json"},
         data=json.dumps(obj=parameters, cls=MrsJSONDataEncoder).encode(),
-        method="PUT",
+        method="POST",
     )
     mock_urlopen.assert_called_once()
 
@@ -1250,7 +1250,7 @@ async def test_function_call_submit(
         url=request_path,
         headers={"Accept": "application/json", "Authorization": "Bearer foo"},
         data=json.dumps(obj=parameters, cls=MrsJSONDataEncoder).encode(),
-        method="PUT",
+        method="POST",
     )
     assert mock_urlopen.call_count == 2
 
@@ -1345,7 +1345,7 @@ async def test_procedure_call_submit(
         url=request_path,
         headers={"Accept": "application/json"},
         data=json.dumps(obj=parameters, cls=MrsJSONDataEncoder).encode(),
-        method="PUT",
+        method="POST",
     )
     mock_urlopen.assert_called_once()
 

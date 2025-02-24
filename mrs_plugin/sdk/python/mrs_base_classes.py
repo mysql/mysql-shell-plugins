@@ -1085,7 +1085,7 @@ class MrsBaseObjectRoutineCall(
             url=self._request_path,
             headers=headers,
             data=json.dumps(obj=self._params, cls=MrsJSONDataEncoder).encode(),
-            method="PUT",
+            method="POST",
         )
         context = ssl.create_default_context()
         data = await asyncio.to_thread(urlopen, req, context=context)

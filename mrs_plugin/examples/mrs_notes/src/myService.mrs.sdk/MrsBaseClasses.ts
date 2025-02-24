@@ -1403,7 +1403,7 @@ class MrsBaseObjectCall<Input, Output extends IMrsCommonRoutineResponse> {
 
         const response = await this.schema.service.session.doFetch({
             input,
-            method: "PUT",
+            method: "POST",
             body: this.params !== undefined ? this.params : {},
             errorMsg: "Failed to call item.",
         });

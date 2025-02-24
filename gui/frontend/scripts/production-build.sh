@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -47,5 +47,5 @@ fi
 bash $cwd/generate-mrs-sdk-resource-links.sh
 
 # We need lots of RAM when building with source maps. Without them 8GB are enough.
-export NODE_OPTIONS="--max-old-space-size=4096"
+export NODE_OPTIONS="--max-old-space-size=16384"
 SOURCE_MAPS=$1 node_modules/.bin/vite build

@@ -1,13 +1,13 @@
 {
     "type": "mrsSchema",
     "version": {
-        "major": 3,
+        "major": 4,
         "minor": 0,
-        "patch": 4
+        "patch": 0
     },
     "schema": {
         "id": "0x11ee19d0bd9c0e2cb2b3300999e6b4d2",
-        "service_id": "0x11efa687c6a0b460be2823d7cb75e92f",
+        "service_id": "0x11eff29af67f08b282f2b1d20bbc909b",
         "name": "mrs_notes",
         "schema_type": "DATABASE_SCHEMA",
         "request_path": "/mrsNotes",
@@ -52,6 +52,9 @@
                         "position": 0,
                         "row_ownership_field_id": "0x895fe49e73dd4fbcf9a6f3c5f80b3295",
                         "options": {
+                            "duality_view_delete": true,
+                            "duality_view_insert": true,
+                            "duality_view_update": true,
                             "dataMappingViewDelete": true,
                             "dataMappingViewInsert": true,
                             "dataMappingViewUpdate": true
@@ -72,7 +75,14 @@
                                 "options": null,
                                 "object_reference": {
                                     "unnest": false,
-                                    "options": null,
+                                    "options": {
+                                        "duality_view_delete": true,
+                                        "duality_view_insert": true,
+                                        "duality_view_update": true,
+                                        "dataMappingViewDelete": true,
+                                        "dataMappingViewInsert": true,
+                                        "dataMappingViewUpdate": true
+                                    },
                                     "reference_mapping": {
                                         "kind": "1:n",
                                         "to_many": true,
@@ -183,7 +193,14 @@
                                 "options": null,
                                 "object_reference": {
                                     "unnest": false,
-                                    "options": null,
+                                    "options": {
+                                        "duality_view_delete": true,
+                                        "duality_view_insert": true,
+                                        "duality_view_update": true,
+                                        "dataMappingViewDelete": true,
+                                        "dataMappingViewInsert": true,
+                                        "dataMappingViewUpdate": true
+                                    },
                                     "reference_mapping": {
                                         "kind": "n:1",
                                         "to_many": false,
@@ -420,6 +437,9 @@
                         "position": 0,
                         "row_ownership_field_id": "0x74e68c5364b34bc0c84e68121e6df635",
                         "options": {
+                            "duality_view_delete": true,
+                            "duality_view_insert": true,
+                            "duality_view_update": true,
                             "dataMappingViewDelete": true,
                             "dataMappingViewInsert": true,
                             "dataMappingViewUpdate": true
@@ -466,7 +486,14 @@
                                 "options": null,
                                 "object_reference": {
                                     "unnest": false,
-                                    "options": null,
+                                    "options": {
+                                        "duality_view_delete": true,
+                                        "duality_view_insert": true,
+                                        "duality_view_update": true,
+                                        "dataMappingViewDelete": true,
+                                        "dataMappingViewInsert": true,
+                                        "dataMappingViewUpdate": true
+                                    },
                                     "reference_mapping": {
                                         "kind": "1:n",
                                         "to_many": true,
@@ -551,7 +578,14 @@
                                 "options": null,
                                 "object_reference": {
                                     "unnest": false,
-                                    "options": null,
+                                    "options": {
+                                        "duality_view_delete": true,
+                                        "duality_view_insert": true,
+                                        "duality_view_update": true,
+                                        "dataMappingViewDelete": true,
+                                        "dataMappingViewInsert": true,
+                                        "dataMappingViewUpdate": true
+                                    },
                                     "reference_mapping": {
                                         "kind": "1:n",
                                         "to_many": true,
@@ -602,7 +636,11 @@
                         "kind": "RESULT",
                         "position": 0,
                         "row_ownership_field_id": "0x2f4bad79138d42dc8fff94c66343c015",
-                        "options": {},
+                        "options": {
+                            "duality_view_delete": null,
+                            "duality_view_insert": null,
+                            "duality_view_update": null
+                        },
                         "fields": [
                             {
                                 "position": 4,
@@ -723,7 +761,11 @@
                                 "options": null,
                                 "object_reference": {
                                     "unnest": false,
-                                    "options": null,
+                                    "options": {
+                                        "duality_view_delete": null,
+                                        "duality_view_insert": null,
+                                        "duality_view_update": null
+                                    },
                                     "reference_mapping": {
                                         "kind": "n:1",
                                         "to_many": false,
@@ -808,7 +850,11 @@
                                 "options": null,
                                 "object_reference": {
                                     "unnest": false,
-                                    "options": null,
+                                    "options": {
+                                        "duality_view_delete": null,
+                                        "duality_view_insert": null,
+                                        "duality_view_update": null
+                                    },
                                     "reference_mapping": {
                                         "kind": "n:1",
                                         "to_many": false,
@@ -859,7 +905,11 @@
                         "kind": "RESULT",
                         "position": 0,
                         "row_ownership_field_id": "0xd9705faef8844defadd2e2e7983127a4",
-                        "options": {},
+                        "options": {
+                            "duality_view_delete": null,
+                            "duality_view_insert": null,
+                            "duality_view_update": null
+                        },
                         "fields": [
                             {
                                 "position": 4,
@@ -1232,7 +1282,11 @@
                         "kind": "RESULT",
                         "position": 0,
                         "row_ownership_field_id": null,
-                        "options": {},
+                        "options": {
+                            "duality_view_delete": null,
+                            "duality_view_insert": null,
+                            "duality_view_update": null
+                        },
                         "fields": [
                             {
                                 "position": 1,
@@ -1273,7 +1327,7 @@
                 "internal": 0,
                 "object_type": "PROCEDURE",
                 "crud_operations": [
-                    "UPDATE"
+                    "CREATE"
                 ],
                 "format": "FEED",
                 "items_per_page": null,
@@ -1352,7 +1406,7 @@
                 "internal": 0,
                 "object_type": "PROCEDURE",
                 "crud_operations": [
-                    "UPDATE"
+                    "CREATE"
                 ],
                 "format": "FEED",
                 "items_per_page": null,
@@ -1431,7 +1485,7 @@
                 "internal": 0,
                 "object_type": "PROCEDURE",
                 "crud_operations": [
-                    "UPDATE"
+                    "CREATE"
                 ],
                 "format": "FEED",
                 "items_per_page": null,
@@ -1607,7 +1661,7 @@
                 "internal": 0,
                 "object_type": "PROCEDURE",
                 "crud_operations": [
-                    "UPDATE"
+                    "CREATE"
                 ],
                 "format": "FEED",
                 "items_per_page": null,
