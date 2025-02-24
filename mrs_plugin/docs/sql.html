@@ -504,7 +504,7 @@ Reference
                 Client APIs.</li>
                 </ul>
                 <hr />
-                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -1159,7 +1159,7 @@ requestPathIdentifier:
                 id="assigning-a-rest-authentication-app-to-a-rest-service"><span
                 class="header-section-number">2.2.5</span> Assigning a
                 REST Authentication App to a REST Service</h3>
-                <p>To enable authentication for a REST service, an REST
+                <p>To enable authentication for a REST service, a REST
                 authentication app needs to be linked to the REST
                 service. REST authentication apps are created using the
                 <a href="#create-rest-auth-app">CREATE REST AUTH APP</a>
@@ -1178,7 +1178,7 @@ requestPathIdentifier:
                 id="rest-service-authentication-settings"><span
                 class="header-section-number">2.2.6</span> REST Service
                 Authentication Settings</h3>
-                <p>Each REST service requires allows for specific
+                <p>Each REST service can be configured with specific
                 authentication settings.</p>
                 <pre class="antlr"><code>restAuthentication:
     AUTHENTICATION (
@@ -2071,7 +2071,7 @@ graphQlValueJsonSchema:
 <span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
 <span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;privileges&quot;</span><span class="fu">:</span> <span class="st">&quot;SELECT&quot;</span><span class="fu">,</span></span>
 <span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;schema&quot;</span><span class="fu">:</span> <span class="st">&quot;mysql_rest_service_metadata&quot;</span><span class="fu">,</span></span>
-<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;object&quot;</span><span class="fu">:</span> <span class="st">&quot;schema_version&quot;</span></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;object&quot;</span><span class="fu">:</span> <span class="st">&quot;msm_schema_version&quot;</span></span>
 <span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span><span class="ot">,</span></span>
 <span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
 <span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;privileges&quot;</span><span class="fu">:</span> <span class="st">&quot;SELECT&quot;</span><span class="fu">,</span></span>
@@ -2356,7 +2356,7 @@ url:
 <span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>    VENDOR <span class="ot">&quot;OCI OAuth2&quot;</span></span>
 <span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>    URL <span class="ot">&quot;https://idcs-f84866196ff54e3b93a15651865191da.identity.oraclecloud.com:443&quot;</span>;</span>
 <span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>    CLIENT <span class="kw">ID</span> <span class="ot">&quot;f2abc2c0f19a4c40a1abc48edcdfe60b&quot;</span></span>
-<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>    CLIENT SECRET <span class="ot">&quot;53310d82-5f6f-4030-b62b-2e4c5fefd52a&quot;</span></span></code></pre></div>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>    CLIENT SECRET <span class="ot">&quot;**********************&quot;</span></span></code></pre></div>
                 <h3 data-number="2.8.1"
                 id="rest-authentication-app-vendors"><span
                 class="header-section-number">2.8.1</span> REST
@@ -2744,11 +2744,11 @@ restObjectOptions: (
                 section</a>.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>alterRestFunctionStatement:
-    ALTER_SYMBOL REST_SYMBOL FUNCTION_SYMBOL functionRequestPath (
-        ON_SYMBOL serviceSchemaSelector
+    ALTER REST FUNCTION functionRequestPath (
+        ON serviceSchemaSelector
     )? (
-        NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newFunctionRequestPath
-    )? (PARAMETERS_SYMBOL restObjectName? graphQlObj)? restFunctionResult* restObjectOptions?
+        NEW REQUEST PATH newFunctionRequestPath
+    )? (PARAMETERS restObjectName? graphQlObj)? restFunctionResult* restObjectOptions?
 ;
 
 serviceSchemaSelector:
@@ -2785,10 +2785,10 @@ restObjectOptions: (
                 used to alter REST content sets.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>alterRestContentSetStatement:
-    ALTER_SYMBOL REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath (
-        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
+    ALTER REST CONTENT SET contentSetRequestPath (
+        ON SERVICE? serviceRequestPath
     )? (
-        NEW_SYMBOL REQUEST_SYMBOL PATH_SYMBOL newContentSetRequestPath
+        NEW REQUEST PATH newContentSetRequestPath
     )? restContentSetOptions?
 ;</code></pre>
                 <p>alterRestContentSetStatement ::= <img
@@ -2802,15 +2802,15 @@ restObjectOptions: (
                 account.</p>
                 <p><strong><em>SYNTAX</em></strong></p>
                 <pre class="antlr"><code>alterRestUserStatement:
-    ALTER_SYMBOL REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL authAppName (
-        ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
-    )? (IDENTIFIED_SYMBOL BY_SYMBOL userPassword)? userOptions?
+    ALTER REST USER userName AT_SIGN authAppName (
+        IDENTIFIED BY userPassword
+    )? userOptions?
 ;</code></pre>
                 <p>createRestUserStatement ::= <img
                 src="sections/sql/../../images/sql/createRestUserStatement.svg"
                 title="createRestUserStatement"
                 alt="createRestUserStatement" /></p>
-                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -2982,7 +2982,7 @@ restObjectOptions: (
                 src="sections/sql/../../images/sql/dropRestRoleStatement.svg"
                 title="dropRestRoleStatement"
                 alt="dropRestRoleStatement" /></p>
-                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -3083,7 +3083,7 @@ privilegeName:
                 src="sections/sql/../../images/sql/revokeRestRoleStatement.svg"
                 title="revokeRestRoleStatement"
                 alt="revokeRestRoleStatement" /></p>
-                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,

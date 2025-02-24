@@ -2,7 +2,7 @@
 title: MRS Notes Example
 ---
 
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -62,7 +62,7 @@ The MrsNotes project implements a TypeScript demo app that allows to create, man
 3. In the `NPM SCRIPTS` View, run the `package.json/build` command that will create a folder called `dist` that contains all files needed for deployment.
 4. Right click on the `dist` folder in the Folders view and select `Upload Folder to MySQL REST Service` from the popup menu.
 5. In the REST Content Set dialog set the `Request Path` the app should be using, e.g. `/app` and click `OK` to upload the files to the MRS service.
-6. Open a web browser and access the full path specified in the previous step to open the app, e.g. `https://localhost:8444/myService/app/index.html`
+6. Open a web browser and access the full path specified in the previous step to open the app, e.g. `https://localhost:8443/myService/app/index.html`
 
 ### MRS Setup and Configuration for the MRS Notes Examples
 

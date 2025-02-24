@@ -85,7 +85,7 @@ from ..mrs_base_classes import (
 ####################################################################################
 #                               Sample Data
 ####################################################################################
-MRS_SERVICE_PORT = os.environ.get("MRS_SERVICE_PORT", "8444")
+MRS_SERVICE_PORT = os.environ.get("MRS_SERVICE_PORT", "8443")
 MRS_SERVICE_NAME = os.environ.get("MRS_SERVICE_NAME", "myService")
 DATABASE = os.environ.get("MRS_SERVICE_NAME", "sakila")
 
@@ -228,7 +228,7 @@ class Actor(MrsDocument[ActorData]):
     def __init__(self, schema: MrsBaseSchema, data: ActorData) -> None:
         """Actor data class."""
         super().__init__(
-            schema, data, obj_endpoint="https://localhost:8444/myService/sakila/actor"
+            schema, data, obj_endpoint="https://localhost:8443/myService/sakila/actor"
         )
 
     def _load_fields(self, data: ActorData) -> None:
