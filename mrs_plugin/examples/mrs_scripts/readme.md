@@ -50,7 +50,7 @@ The MRS Script Examples are written in TypeScript and need to be built before th
 3. In the `NPM SCRIPTS` View, run the `package.json/build` command that will create a folder called `build` that contains all files needed for deployment.
 4. Right click on the background below the last file in the Folders view and select `Upload Folder to MySQL REST Service` from the popup menu.
 5. In the REST Content Set dialog make sure that the `Enable MRS Scripts` checkbox is checked and click `OK` to upload the files to the MRS service.
-6. Open a web browser and access the full path specified in the previous step to open the app, e.g. `https://localhost:8444/myService/testScripts/preactTestPage.html`
+6. Open a web browser and access the full path specified in the previous step to open the app, e.g. `https://localhost:8443/myService/testScripts/preactTestPage.html`
 
 #### Using MySQL Shell to Deploy the MRS Scripts Examples
 

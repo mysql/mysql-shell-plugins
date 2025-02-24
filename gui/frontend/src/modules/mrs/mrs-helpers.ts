@@ -34,14 +34,16 @@ export enum EnabledState {
  * Retrieve the port of the REST API endpoint assigned to a specific connection.
  *
  * @param connectionId The DB connection id.
- * @param [routerHTTPPort] The MySQL Router HTTP port. By default, 8443.
- * https://dev.mysql.com/doc/mysql-router/8.0/en/mysqlrouter.html#option_mysqlrouter_https-port
  *
  * @returns The port of the REST API endpoint assigned to the given connection.
  */
-export const getRouterPortForConnection = (connectionId: number, routerHTTPPort = 8443): number => {
-    // Each connection is incrementally assigned a new port.
-    return routerHTTPPort + connectionId;
+export const getRouterPortForConnection = (connectionId: number = 0): number => {
+    // Each connection is incrementally assigned a new port starting at 8443 (default).
+    // https://dev.mysql.com/doc/mysql-router/8.0/en/mysqlrouter.html#option_mysqlrouter_https-port
+    const defaultRouterPort = 8443;
+
+    // There should be an interval of 2 slots between each assignment to account for the default debug port.
+    return (defaultRouterPort - 2) + connectionId * 2;
 };
 
 export const getEnabledState = (enabledState: string): EnabledState => {

@@ -301,7 +301,7 @@ describe("MRS SDK API", () => {
                         etag: "XYZ",
                     },
                     links: [{
-                        href: "http://localhost:8444/foo/bar/baz/1",
+                        href: "http://localhost:8443/foo/bar/baz/1",
                         rel: "self",
                     }],
                 }, {
@@ -311,7 +311,7 @@ describe("MRS SDK API", () => {
                         etag: "ZYX",
                     },
                     links: [{
-                        href: "http://localhost:8444/foo/bar/baz/2",
+                        href: "http://localhost:8443/foo/bar/baz/2",
                         rel: "self",
                     }],
                 }],
@@ -552,7 +552,7 @@ describe("MRS SDK API", () => {
                 etag: "XYZ",
             },
             links: [{
-                href: "http://localhost:8444/foo/bar/baz/1",
+                href: "http://localhost:8443/foo/bar/baz/1",
                 rel: "self",
             }],
         };
@@ -671,7 +671,7 @@ describe("MRS SDK API", () => {
                         gtid: "ABC",
                     },
                     links: [{
-                        href: "http://localhost:8444/foo/bar/baz/1",
+                        href: "http://localhost:8443/foo/bar/baz/1",
                         rel: "self",
                     }],
                 };
@@ -778,7 +778,7 @@ describe("MRS SDK API", () => {
                 etag: "XYZ",
             },
             links: [{
-                href: "http://localhost:8444/foo/bar/baz/1",
+                href: "http://localhost:8443/foo/bar/baz/1",
                 rel: "self",
             }],
         };
@@ -886,7 +886,7 @@ describe("MRS SDK API", () => {
                         gtid: "ABC",
                     },
                     links: [{
-                        href: "http://localhost:8444/foo/bar/baz/1",
+                        href: "http://localhost:8443/foo/bar/baz/1",
                         rel: "self",
                     }],
                 };

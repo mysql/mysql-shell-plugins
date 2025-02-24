@@ -358,7 +358,7 @@ def test_generate_function_interface():
     ]
 
     db_object_crud_ops = ["FUNCTIONCALL"]
-    obj_endpoint = "https://localhost:8444/myService/sakila/sumFunc"
+    obj_endpoint = "https://localhost:8443/myService/sakila/sumFunc"
 
     got, _ = generate_interfaces(
         db_obj, obj, fields, class_name, "Python", db_object_crud_ops, obj_endpoint
@@ -427,7 +427,7 @@ export interface IFooCursors {
 
     assert got == want
 
-    obj_endpoint = "https://localhost:8444/myService/dummy/foo"
+    obj_endpoint = "https://localhost:8443/myService/dummy/foo"
     obj_primary_key = None
     join_field_block = "    bar: str | UndefinedDataClassField"
     join_assignment_block = '        self.bar = data.get("bar", UndefinedField)'
@@ -757,7 +757,7 @@ def test_generate_data_class():
     )
 
     # Python
-    obj_endpoint = "https://localhost:8444/myService/dummy/foo"
+    obj_endpoint = "https://localhost:8443/myService/dummy/foo"
     obj_primary_key = None
     join_field_block = (
         "    foo: baz | UndefinedDataClassField\n"

@@ -1563,7 +1563,7 @@ export class MRSCommandHandler {
                     const routerBootstrapPath = routerBinDir !== undefined
                         ? join(routerBinDir, "mysqlrouter_bootstrap") : "mysqlrouter_bootstrap";
                     const basePort = 6446 + (entry?.connection.details.id ?? 0) * 4;
-                    const httpPort = 8443 + (entry?.connection.details.id ?? 0) * 2;
+                    const httpPort = getRouterPortForConnection(entry?.connection.details.id);
                     let bootstrapCommand =
                         `${routerBootstrapPath} ${connString} --mrs --directory "${routerConfigDir}" ` +
                         `"--conf-set-option=http_server.ssl_cert=${path.join(certDir, "server.crt")}" ` +
