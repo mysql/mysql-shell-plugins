@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -1149,14 +1149,14 @@ describe("MRS SDK API", () => {
             createFetchMock();
         });
 
-        it.only("sets the appropriate input parameters", async () => {
+        it("sets the appropriate input parameters", async () => {
             interface IInputParameters { name: string }
             const args: IInputParameters = { name: "foobar" };
             const query = new MrsBaseObjectFunctionCall<IInputParameters, string>(schema, "/baz", args);
             await query.fetch();
 
             expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
-                method: "PUT",
+                method: "POST",
                 body: JSON.stringify(args),
             }));
         });
@@ -1364,7 +1364,7 @@ describe("MRS SDK API", () => {
             await query.fetch();
 
             expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz`, expect.objectContaining({
-                method: "PUT",
+                method: "POST",
                 body: JSON.stringify(args),
             }));
         });

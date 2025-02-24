@@ -858,14 +858,14 @@ export class MyServiceMrsNotes extends MrsBaseSchema {
 }
 
 /* =============================================================================
- * MRS Service https://localhost:8444/myService
+ * MRS Service https://localhost:8445/myService
  */
 
 export class MyService extends MrsBaseService {
     #mrsNotes?: MyServiceMrsNotes;
 
     public constructor() {
-        super("https://localhost:8444/myService", "/authentication");
+        super("https://localhost:8445/myService", "/authentication");
     }
 
     public get mrsNotes(): MyServiceMrsNotes {
