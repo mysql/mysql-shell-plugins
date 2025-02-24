@@ -151,8 +151,7 @@ describe("OPEN EDITORS", () => {
     it("Context menu - New MySQL Script", async () => {
         try {
             await openEditorsTreeSection.focus();
-            const treeOpenEditorsGlobalConn = await openEditorsTreeSection.getTreeItem(globalConn.caption!);
-            await treeOpenEditorsGlobalConn.openContextMenuAndSelect(constants.newMySQLScript);
+            await openEditorsTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.newMySQLScript);
             const currentEditor = await new E2EScript().toolbar.editorSelector.getCurrentEditor();
             const scriptName = "Script 3";
             expect(currentEditor.label).toBe(scriptName);
@@ -167,8 +166,7 @@ describe("OPEN EDITORS", () => {
 
     it("Context menu - New JavaScript Script", async () => {
         try {
-            const treeOpenEditorsGlobalConn = await openEditorsTreeSection.getTreeItem(globalConn.caption!);
-            await treeOpenEditorsGlobalConn.openContextMenuAndSelect(constants.newJS);
+            await openEditorsTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.newJS);
             const currentEditor = await new E2EScript().toolbar.editorSelector.getCurrentEditor();
             const scriptName = "Script 4";
             expect(currentEditor.label).toBe(scriptName);
@@ -183,8 +181,7 @@ describe("OPEN EDITORS", () => {
 
     it("Context menu - New TypeScript Script", async () => {
         try {
-            const treeOpenEditorsGlobalConn = await openEditorsTreeSection.getTreeItem(globalConn.caption!);
-            await treeOpenEditorsGlobalConn.openContextMenuAndSelect(constants.newTS);
+            await openEditorsTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.newTS);
             const currentEditor = await new E2EScript().toolbar.editorSelector.getCurrentEditor();
             const scriptName = "Script 5";
             expect(currentEditor.label).toBe(scriptName);

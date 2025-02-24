@@ -105,6 +105,7 @@ export const dbConnectionDialog = {
 // CONFIRM DIALOG
 export const confirmDialog = {
     exists: By.className("confirmDialog"),
+    ok: By.id("ok"),
     accept: By.id("accept"),
     refuse: By.id("refuse"),
     alternative: By.id("alternative"),
@@ -785,6 +786,15 @@ export const checkBox = {
 
 export const genericDialog = {
     exists: By.className("valueEditDialog"),
+    selectList: {
+        exists: By.id("input"),
+        list: {
+            exists: By.id("inputPopup"),
+            item: (id: string): By => {
+                return By.id(id);
+            },
+        },
+    },
 };
 
 export const toastNotification = {
@@ -1046,6 +1056,7 @@ export const mysqlShellWorkbench = By.className("accordionContent");
 export const mrsServiceDialog = {
     exists: By.id("mrsServiceDialog"),
     servicePath: By.id("servicePath"),
+    name: By.id("name"),
     settings: {
         mrsAdminUser: By.id("mrsAdminUser"),
         mrsAdminUserPassword: By.id("mrsAdminUserPassword"),

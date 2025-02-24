@@ -114,8 +114,6 @@ export class RestSchemaDialog {
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The REST Schema Dialog was not closed");
 
-        restSchema.treeName = `${restSchema.restSchemaPath} (${restSchema.settings!.schemaName})`;
-
         return restSchema;
     };
 
@@ -167,8 +165,6 @@ export class RestSchemaDialog {
 
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The MRS Service dialog was not closed");
-
-        restSchema.treeName = `${restSchema.restSchemaPath} (${restSchema.settings.schemaName})`;
 
         return restSchema;
     };

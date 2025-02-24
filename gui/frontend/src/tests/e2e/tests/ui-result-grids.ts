@@ -92,8 +92,8 @@ describe("RESULT GRIDS", () => {
             await dbTreeSection.createDatabaseConnection(anotherConn);
             await driver.wait(dbTreeSection.untilTreeItemExists(anotherConn.caption!), constants.wait5seconds);
 
+            await dbTreeSection.expandTreeItem(globalConn);
             const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
-            await treeGlobalConn.expand(globalConn);
             await (await treeGlobalConn.getActionButton(constants.openNewConnectionUsingNotebook))!.click();
             notebook = await new E2ENotebook().untilIsOpened(globalConn);
         } catch (e) {
@@ -1478,14 +1478,10 @@ describe("RESULT GRIDS", () => {
 
                 const treeOpenEditorsGlobalConn = await openEditorsSection.getTreeItem(globalConn.caption!);
                 await (await treeOpenEditorsGlobalConn.getActionButton(constants.newMySQLScript))!.click();
-                const treeAnotherNewConnection = await dbTreeSection.getTreeItem(anotherConn.caption!);
-                await treeAnotherNewConnection.openContextMenuAndSelect(constants.openNewDatabaseConnection);
+                await dbTreeSection.openContextMenuAndSelect(anotherConn.caption!, constants.openNewDatabaseConnection);
                 const anotherConnNotebook = await new E2ENotebook().untilIsOpened(anotherConn);
 
-                const treeMySQLAdministration = await dbTreeSection
-                    .getTreeItem(constants.mysqlAdministrationTreeElement);
-
-                await treeMySQLAdministration.expand();
+                await dbTreeSection.expandTreeItem(constants.mysqlAdministrationTreeElement);
                 await anotherConnNotebook.toolbar.editorSelector.selectEditor(new RegExp(constants.dbNotebook),
                     globalConn.caption);
                 await anotherConnNotebook.codeEditor.clean();

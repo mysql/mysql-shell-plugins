@@ -142,8 +142,6 @@ export class AuthenticationAppDialog {
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The Authentication App Dialog was not closed");
 
-        authApp.treeName = authApp.name;
-
         return authApp;
 
     };
@@ -197,8 +195,6 @@ export class AuthenticationAppDialog {
 
             return (await DialogHelper.existsDialog()) === false;
         }, constants.wait10seconds, "The Authentication App Dialog was not closed");
-
-        authenticationApp.treeName = authenticationApp.name;
 
         return authenticationApp;
     };
