@@ -23,10 +23,55 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 # Python Client API Reference
 
+## REST Resources
+
+The MRS Python SDK exposes a type-safe programmable interface for the MySQL REST Service that unifies, under a set of contextual commands, the available HTTP operations to access and use database objects (schemas, tables, views, functions, etc.) exposed as REST resources.
+
+The following `MRS Resources` exist as part of the MRS Python SDK:
+
+- [REST Service](#rest-services)
+    - [REST Schema](#rest-schemas)
+        - [REST View](#rest-views), [Function](#rest-functions) and [Procedure](#rest-procedures)
+            - [REST Document](#rest-documents)
+
+MRS resources, as shown above, are grouped under service namespaces.
+
+The following commands can be executed in the scope of a client-side representation of any MRS resource (except [REST Documents](#rest-documents)).
+
+* [get_metadata](#get_metadata)
+
+### get_metadata
+
+The MRS has a dedicated JSON field where users can store application specific metadata at different levels: service, schema and objects of the schema (such as Views or Functions).
+
+`get_metadata` is a command that enables users to access the underlying MRS metadata information from client REST objects.
+
+#### Options (get_metadata)
+
+`None`.
+
+#### Return Type (get_metadata)
+
+The metadata information is returned as a JSON-like object (`dict`). If there is no metadata specified for a given MRS resource, an empty JSON object (ultimately, a Python `dict`) is returned.
+
+#### Example (get_metadata)
+
+```py
+from sdk.python import MyService
+
+
+my_service = MyService()
+
+
+print(await my_service.get_metadata())  # {"title": "My Service"}
+
+print(await my_service.sakila.get_metadata())  # {"title": "Sakila Sample Database"}
+```
+
 
 ## REST Services
 
-The MRS Python SDK exposes a type-safe programmable interface for the MySQL REST Service that unifies, under a set of contextual commands, the available HTTP operations to access and use database objects (tables, views and functions) exposed as REST resources.
+In the Python SDK, schemas are grouped under service namespaces.
 
 The following resources can be accessed from a service namespace:
 

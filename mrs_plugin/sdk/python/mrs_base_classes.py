@@ -158,9 +158,7 @@ class ServiceNotAuthenticatedError(MrsError):
     from an already deauthenticated service.
     """
 
-    _default_msg = (
-        "No user is currently authenticated"
-    )
+    _default_msg = "No user is currently authenticated"
 
 
 ####################################################################################
@@ -239,6 +237,7 @@ class MultiPoint(TypedDict):
     MULTIPOINT(0 0, 20 20, 60 60)
     ```
     """
+
     type: Literal["MultiPoint"]
     coordinates: list[Position]
 
@@ -251,6 +250,7 @@ class MultiLineString(TypedDict):
     MULTILINESTRING((10 10, 20 20), (15 15, 30 15))
     ```
     """
+
     type: Literal["MultiLineString"]
     coordinates: list[TwoOrMorePositions]
 
@@ -263,6 +263,7 @@ class MultiPolygon(TypedDict):
     MULTIPOLYGON(((0 0,10 0,10 10,0 10,0 0)),((5 5,7 5,7 7,5 7, 5 5)))
     ```
     """
+
     type: Literal["MultiPolygon"]
     coordinates: list[LinearRings]
 
@@ -1003,6 +1004,24 @@ class MrsQueryEncoder(json.JSONEncoder):
 # pylint: disable=protected-access,too-many-lines
 
 
+async def _get_metadata(url: str, access_token: Optional[str] = None) -> JsonObject:
+    headers = {"Accept": "application/json"}
+
+    if access_token:
+        headers["Authorization"] = f"Bearer {access_token}"
+
+    req = Request(
+        url=f"{url}/_metadata",
+        headers=headers,
+        method="GET",
+    )
+    response = await asyncio.to_thread(
+        urlopen, req, context=ssl.create_default_context()
+    )
+
+    return json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys)
+
+
 class MrsBaseService:
     """Base class for MRS-related service instances."""
 
@@ -1018,6 +1037,9 @@ class MrsBaseService:
         self._deauth_path: Optional[str] = deauth_path
         self._session: MrsBaseSession = {"access_token": "", "gtid": None}
 
+    async def get_metadata(self) -> JsonObject:
+        return await _get_metadata(url=self._service_url)
+
 
 class MrsBaseSchema:
     """Base class for MRS-related schema (database) instances."""
@@ -1027,6 +1049,12 @@ class MrsBaseSchema:
         self._service: MrsBaseService = service
         self._request_path: str = request_path
 
+    async def get_metadata(self) -> JsonObject:
+        return await _get_metadata(
+            url=self._request_path,
+            access_token=self._service._session.get("access_token"),
+        )
+
 
 class MrsBaseObject:
     """Base class for MRS-related database object instances."""
@@ -1035,6 +1063,12 @@ class MrsBaseObject:
         self._schema: MrsBaseSchema = schema
         self._request_path: str = request_path
         self._has_more: bool = True
+
+    async def get_metadata(self) -> JsonObject:
+        return await _get_metadata(
+            url=self._request_path,
+            access_token=self._schema._service._session.get("access_token"),
+        )
 
 
 # This class cannot be instantiated as it defines an abstract interface.
