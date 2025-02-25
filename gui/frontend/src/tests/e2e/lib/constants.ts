@@ -249,6 +249,7 @@ export const newMySQLScript = "New MySQL Script";
 export const newJS = "New JavaScript Script";
 export const newTS = "New TypeScript Script";
 export const closeEditor = "Close Editor";
+export const openConnection = "Open Connection";
 
 // SCRIPT TYPES
 export const mysqlType = "Mysql";

@@ -48,7 +48,8 @@ import { webSession } from "../../../../supplement/WebSession.js";
 import { IExecutionContext, INewEditorRequest, type EditorLanguage } from "../../../../supplement/index.js";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
 import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
-import { getDbCredentials, nextProcessTick, nextRunLoop, setupShellForTests } from "../../test-helpers.js";
+import { getDbCredentials, ignoreSnapshotUuids, nextProcessTick, nextRunLoop,
+    setupShellForTests } from "../../test-helpers.js";
 
 /**
  * This test module exists to isolate the different calls to private methods in the super class.
@@ -92,7 +93,7 @@ class TestDocumentModule extends DocumentModule {
 describe("Document module tests", (): void => {
     let launcher: MySQLShellLauncher;
     let backend: ShellInterfaceSqlEditor;
-    let connID: number;
+    let connectionId: number;
 
     const credentials = getDbCredentials();
     const dataModel = new ConnectionDataModel();
@@ -121,7 +122,7 @@ describe("Document module tests", (): void => {
         testMySQLConnection.id = await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
             testMySQLConnection) ?? -1;
         expect(testMySQLConnection.id).toBeGreaterThan(-1);
-        connID = testMySQLConnection.id;
+        connectionId = testMySQLConnection.id;
 
         await backend.startSession("DocumentModuleTests");
         await backend.openConnection(testMySQLConnection.id);
@@ -129,7 +130,7 @@ describe("Document module tests", (): void => {
 
     afterAll(async () => {
         await backend.closeSession();
-        await ShellInterface.dbConnections.removeDbConnection(webSession.currentProfileId, connID);
+        await ShellInterface.dbConnections.removeDbConnection(webSession.currentProfileId, connectionId);
         await launcher.exitProcess();
     });
 
@@ -137,6 +138,8 @@ describe("Document module tests", (): void => {
         const component = shallow<DocumentModule>(
             <DocumentModule />,
         );
+
+        ignoreSnapshotUuids();
 
         expect(component).toMatchSnapshot();
         component.unmount();
@@ -148,7 +151,7 @@ describe("Document module tests", (): void => {
         const component = mount<DocumentModule>(<DocumentModule />);
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", { page: String(connID) });
+        await requisitions.execute("showPage", { connectionId });
 
         const dropDownItemList = component.find(DropdownItem);
         expect(dropDownItemList).toHaveLength(0);
@@ -162,7 +165,6 @@ describe("Document module tests", (): void => {
         appParameters.embedded = true;
         const component = mount<DocumentModule>(<DocumentModule />);
 
-        component.setState({ selectedPage: "connections" });
         await nextProcessTick();
 
         const button = component.find(Button).at(0);
@@ -176,6 +178,7 @@ describe("Document module tests", (): void => {
     });
 
     it("Test DocumentModule getDerivedStateFromProps", () => {
+        const overviewId = "abc-def";
         const state: IDocumentModuleState = {
             selectedPage: "",
             connectionTabs: [],
@@ -186,11 +189,12 @@ describe("Document module tests", (): void => {
             showTabs: true,
             loading: false,
             progressMessage: "",
+            overviewId,
         };
 
         const newState = DocumentModule.getDerivedStateFromProps({}, state);
         expect(newState).toBeDefined();
-        expect(newState).toStrictEqual({ selectedPage: "connections" });
+        expect(newState).toStrictEqual({ selectedPage: overviewId });
 
     });
 
@@ -212,7 +216,7 @@ describe("Document module tests", (): void => {
         const instance = component.instance();
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", { page: String(connID) });
+        await requisitions.execute("showPage", { connectionId });
 
         const initialSelectedPage = instance.state.selectedPage;
 
@@ -224,7 +228,10 @@ describe("Document module tests", (): void => {
         });
 
         const state = instance.state;
-        expect(state.selectedPage).toBe("1");
+
+        // The selectedPage is expected to change, but its ID (actually now UUID) is generated
+        // within DBEditorModule::activateConnectionTab, so we cannot assert its exact value here.
+        expect(state.selectedPage).not.toBe(initialSelectedPage);
         component.unmount();
     });
 
@@ -233,11 +240,11 @@ describe("Document module tests", (): void => {
         const instance = component.instance();
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", { page: "connections", editor: "default" });
+        await requisitions.execute("showPage", { editor: "default" });
 
         const state = instance.state;
         expect(state.selectedPage).toBeDefined();
-        expect(state.selectedPage).toEqual("connections");
+        expect(state.selectedPage).toEqual(state.overviewId);
 
         component.unmount();
     });
@@ -247,11 +254,16 @@ describe("Document module tests", (): void => {
         const instance = component.instance();
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", { page: "connections", editor: "default" });
-        expect(instance.state.selectedPage).toEqual("connections");
+        await requisitions.execute("showPage", { editor: "default" });
+        const state = instance.state;
 
-        await requisitions.execute("showPage", { page: "other", editor: "default" });
-        expect(instance.state.selectedPage).toEqual("connections");
+        await requisitions.execute("showPage", { connectionId: 999, editor: "default" }); // Connection does not exist.
+        expect(state.selectedPage).toBeDefined();
+        expect(instance.state.selectedPage).toEqual(state.overviewId);
+
+        await requisitions.execute("showPage", { pageId: "abc-def", editor: "default" }); // Connection does not exist.
+        expect(state.selectedPage).toBeDefined();
+        expect(instance.state.selectedPage).toEqual(state.overviewId);
 
         component.unmount();
     });
@@ -261,12 +273,12 @@ describe("Document module tests", (): void => {
         const instance = component.instance();
 
         const newEditorRequest: INewEditorRequest = {
-            page: "1",
+            connectionId: 1,
             language: "msg",
         };
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", { page: String(connID) });
+        await requisitions.execute("showPage", { connectionId });
         await requisitions.execute("createNewEditor", newEditorRequest);
 
         expect(instance.state.connectionTabs).toHaveLength(1);
@@ -281,7 +293,7 @@ describe("Document module tests", (): void => {
         const component = mount<DocumentModule>(<DocumentModule />);
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", { page: String(connID) });
+        await requisitions.execute("showPage", { connectionId });
 
         const profile: IShellProfile = {
             id: 1,
@@ -310,7 +322,7 @@ describe("Document module tests", (): void => {
         const instance = component.instance();
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", { page: String(connID) });
+        await requisitions.execute("showPage", { connectionId });
 
         const initialSelectedPage = instance.state.selectedPage;
 
@@ -355,7 +367,7 @@ describe("Document module tests", (): void => {
         };
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", { page: String(connID) });
+        await requisitions.execute("showPage", { connectionId });
 
         const result = await requisitions.execute("editorRunCommand", {
             command: "wrongCommand",
@@ -372,7 +384,7 @@ describe("Document module tests", (): void => {
         const instance = component.instance();
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", { page: String(connID) });
+        await requisitions.execute("showPage", { connectionId });
 
         await nextProcessTick();
 
@@ -435,12 +447,12 @@ EXAMPLES
         const instance = component.instance();
 
         const newEditorRequest: INewEditorRequest = {
-            page: "1",
+            connectionId: 1,
             language: "msg",
         };
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", { page: String(connID) });
+        await requisitions.execute("showPage", { connectionId });
 
         await requisitions.execute("createNewEditor", newEditorRequest);
 
@@ -449,7 +461,7 @@ EXAMPLES
 
         expect(editorTab.dataModelEntry.details.options).toStrictEqual(options);
 
-        instance.testHandleEditorRename(editorTab.dataModelEntry.id, String(connID), "newName");
+        instance.testHandleEditorRename(editorTab.dataModelEntry.id, String(connectionId), "newName");
 
         component.unmount();
     });
@@ -470,7 +482,7 @@ EXAMPLES
         expect(instance.state.connectionTabs).toHaveLength(0);
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", { page: String(connID) });
+        await requisitions.execute("showPage", { connectionId });
 
         await nextProcessTick();
 
@@ -496,7 +508,7 @@ EXAMPLES
         expect(instance.state.connectionTabs).toHaveLength(0);
 
         await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", { page: String(connID) });
+        await requisitions.execute("showPage", { connectionId });
 
         await nextProcessTick();
 

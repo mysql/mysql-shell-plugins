@@ -218,7 +218,7 @@ describe("Tabview component tests", (): void => {
         expect(document.getElementById(CloseMenuItem.CloseAll)).not.toHaveClass("disabled");
     });
 
-    it("Test close others is disabled for the only one closable", () => {// ???
+    it("Test close others is disabled for the only one closable", () => {
         const rendered = render(
             <Tabview
                 pages={[{

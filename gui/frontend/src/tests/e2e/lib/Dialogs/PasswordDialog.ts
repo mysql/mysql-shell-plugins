@@ -22,7 +22,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { until } from "selenium-webdriver";
+import { Condition, until } from "selenium-webdriver";
 import { driver } from "../../lib/driver.js";
 import * as constants from "../constants.js";
 import * as interfaces from "../interfaces.js";
@@ -41,6 +41,18 @@ export class PasswordDialog {
      */
     public static exists = async (): Promise<boolean> => {
         return (await driver.findElements(locator.passwordDialog.exists)).length > 0;
+    };
+
+    /**
+     * Verifies if the Open MySQL Connection dialog is displayed
+     * @returns A condition resolving to the dialog if the dialog is displayed, undefined otherwise
+     */
+    public static untilExists = (): Condition<PasswordDialog | undefined> => {
+        return new Condition("for Password Dialog to be displayed", async () => {
+            if (await this.exists()) {
+                return this;
+            }
+        });
     };
 
     /**

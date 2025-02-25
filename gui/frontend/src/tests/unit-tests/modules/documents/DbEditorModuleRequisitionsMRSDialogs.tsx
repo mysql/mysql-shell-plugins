@@ -44,7 +44,7 @@ import { DialogHelper, getDbCredentials, nextProcessTick, sendKeyPress } from ".
 export const testReqShowMrsDbObjectDialog = async (
     dialogHelper: DialogHelper,
     serviceID: string,
-    connID: number,
+    connectionId: number,
 ): Promise<void> => {
     const component = mount<DocumentModule>(<DocumentModule />);
 
@@ -71,7 +71,7 @@ export const testReqShowMrsDbObjectDialog = async (
     };
 
     await requisitions.execute("refreshConnection", undefined);
-    await requisitions.execute("showPage", { page: String(connID) });
+    await requisitions.execute("showPage", { connectionId });
 
     await nextProcessTick();
 
@@ -94,7 +94,7 @@ export const testReqShowMrsDbObjectDialog = async (
 export const testReqShowMrsServiceDialog = async (
     dialogHelper: DialogHelper,
     serviceID: string,
-    connID: number,
+    connectionId: number,
 ): Promise<void> => {
     const component = mount<DocumentModule>(<DocumentModule />);
 
@@ -120,7 +120,7 @@ export const testReqShowMrsServiceDialog = async (
     };
 
     await requisitions.execute("refreshConnection", undefined);
-    await requisitions.execute("showPage", { page: String(connID) });
+    await requisitions.execute("showPage", { connectionId });
 
     await nextProcessTick();
 
@@ -143,7 +143,7 @@ export const testReqShowMrsServiceDialog = async (
 export const testReqShowMrsSchemaDialog = async (
     dialogHelper: DialogHelper,
     serviceID: string,
-    connID: number,
+    connectionId: number,
 ): Promise<void> => {
     const component = mount<DocumentModule>(<DocumentModule />);
 
@@ -169,7 +169,7 @@ export const testReqShowMrsSchemaDialog = async (
     };
 
     await requisitions.execute("refreshConnection", undefined);
-    await requisitions.execute("showPage", { page: String(connID) });
+    await requisitions.execute("showPage", { connectionId });
 
     await nextProcessTick();
 
@@ -192,7 +192,7 @@ export const testReqShowMrsSchemaDialog = async (
 export const testReqShowMrsContentSetDialog = async (
     dialogHelper: DialogHelper,
     serviceID: string,
-    connID: number,
+    connectionId: number,
 ): Promise<void> => {
     const component = mount<DocumentModule>(<DocumentModule />);
 
@@ -216,7 +216,7 @@ export const testReqShowMrsContentSetDialog = async (
     };
 
     await requisitions.execute("refreshConnection", undefined);
-    await requisitions.execute("showPage", { page: String(connID) });
+    await requisitions.execute("showPage", { connectionId });
 
     await nextProcessTick();
 
@@ -240,7 +240,7 @@ export const testReqShowMrsAuthAppDialog = async (
     dialogHelper: DialogHelper,
     authApp: IMrsAuthAppData,
     serviceID: string,
-    connID: number,
+    connectionId: number,
 ): Promise<void> => {
     const component = mount<DocumentModule>(<DocumentModule />);
 
@@ -271,7 +271,7 @@ export const testReqShowMrsAuthAppDialog = async (
     };
 
     await requisitions.execute("refreshConnection", undefined);
-    await requisitions.execute("showPage", { page: String(connID) });
+    await requisitions.execute("showPage", { connectionId });
 
     await nextProcessTick();
 
@@ -294,7 +294,7 @@ export const testReqShowMrsAuthAppDialog = async (
 export const testReqShowMrsUserDialog = async (
     dialogHelper: DialogHelper,
     authApp: IMrsAuthAppData,
-    connID: number,
+    connectionId: number,
 ): Promise<void> => {
     const component = mount<DocumentModule>(<DocumentModule />);
 
@@ -311,7 +311,7 @@ export const testReqShowMrsUserDialog = async (
     };
 
     await requisitions.execute("refreshConnection", undefined);
-    await requisitions.execute("showPage", { page: String(connID) });
+    await requisitions.execute("showPage", { connectionId });
 
     await nextProcessTick();
 
@@ -334,7 +334,7 @@ export const testReqShowMrsUserDialog = async (
 export const testReqShowMrsSdkExportDialog = async (
     dialogHelper: DialogHelper,
     serviceID: string,
-    connID: number,
+    connectionId: number,
 ): Promise<void> => {
     const component = mount<DocumentModule>(<DocumentModule />);
 
@@ -364,7 +364,7 @@ export const testReqShowMrsSdkExportDialog = async (
     };
 
     await requisitions.execute("refreshConnection", undefined);
-    await requisitions.execute("showPage", { page: String(connID) });
+    await requisitions.execute("showPage", { connectionId });
 
     await nextProcessTick();
 

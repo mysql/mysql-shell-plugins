@@ -61,7 +61,7 @@ export class E2EMySQLAdministration {
             const isOpened = async (): Promise<boolean> => {
                 const tabContainer = new E2ETabContainer();
 
-                return tabContainer.tabExists(connection.caption!);
+                return tabContainer.tabExists(new RegExp(connection.caption!));
             };
 
             if (await PasswordDialog.exists()) {

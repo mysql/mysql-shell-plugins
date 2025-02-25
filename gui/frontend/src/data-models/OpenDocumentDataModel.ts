@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -294,6 +294,10 @@ export class OpenDocumentDataModel {
             ...this.#defaultProvider.connectionPages,
             ...this.#defaultProvider.documentPages,
             this.#defaultProvider.shellSessionRoot];
+    }
+
+    public get overview(): IOdmConnectionOverviewEntry {
+        return this.#defaultProvider.connectionOverview;
     }
 
     /**
@@ -647,14 +651,14 @@ export class OpenDocumentDataModel {
             } else {
                 const editorIndex = page.documents.findIndex((item) => {
                     return item.id === data.id;
-                });
+            });
 
-                // Ignore the editor if it is not found.
-                if (editorIndex !== -1) {
-                    const removed = page.documents.splice(editorIndex, 1);
-                    actions.push({ action: "remove", entry: removed[0] });
-                }
+            // Ignore the editor if it is not found.
+            if (editorIndex !== -1) {
+                const removed = page.documents.splice(editorIndex, 1);
+                actions.push({ action: "remove", entry: removed[0] });
             }
+        }
 
             // Remove the connection if it has no documents left.
             if (page.documents.length === 0) {
@@ -677,29 +681,28 @@ export class OpenDocumentDataModel {
      *
      * @param provider The provider which hosts the app that contains the document.
      * @param connection If the tab page doesn't exist yet, a new one is created, using this connection record.
+     * @param pageId The id of the page.
+     * @param caption The optional caption (title) of the tab.
      *
      * @returns The connection page entry which was found or has been created.
      */
     public addConnectionTab(provider: IWebviewProvider | undefined,
-        connection: IConnectionDetails): IOdmConnectionPageEntry {
+        connection: IConnectionDetails, pageId: string, caption?: string): IOdmConnectionPageEntry {
         const entry = this.openProvider(provider);
         const pageList = entry?.connectionPages ?? this.#defaultProvider.connectionPages;
 
         const page = pageList.find((item) => {
-            return item.details.id === connection.id;
+            return item.id === pageId;
         });
 
         if (!page) {
-            // XXX: convert this to use uuid().
-            const tabId = String(connection.id);
-
             const newPage: Mutable<IOdmConnectionPageEntry> = {
                 type: OdmEntityType.ConnectionPage,
-                id: tabId,
+                id: pageId,
                 state: createDataModelEntryState(),
                 parent: entry,
                 details: connection,
-                caption: connection.caption,
+                caption: caption || connection.caption,
                 documents: [],
                 getChildren: () => { return newPage.documents; },
             };
@@ -842,8 +845,8 @@ export class OpenDocumentDataModel {
     };
 
     public findDocument(webViewProvider: IWebviewProvider | undefined,
-        documentId: string): LeafDocumentEntry | IOdmShellSessionEntry | undefined {
-        const document = this.findConnectionDocument(webViewProvider, -1, documentId);
+        documentId: string, pageId?: string): LeafDocumentEntry | IOdmShellSessionEntry | undefined {
+        const document = this.findConnectionDocument(webViewProvider, documentId, undefined, pageId);
         if (document) {
             return document;
         }
@@ -867,23 +870,25 @@ export class OpenDocumentDataModel {
     }
 
     /**
-     * @returns the document with the given id from the first connection page with the given connection id.
+     * @returns the document with the given id from the connection page with optional filtering by connection/page ids.
      *
      * @param webViewProvider The provider which hosts the app that contains the document. If not given, the document is
      *                searched in all providers.
-     * @param connectionId The id of the connection. If the connection is open in more than one page,
-     *                     the first found entry is returned.
      * @param documentId The id of the document.
+     * @param connectionId The id of the connection, used as a fallback if pageId is missing.
+     *                     If the connection is open in more than one page, and pageId is not present,
+     *                     the first found entry is returned.
+     * @param pageId The id of the page. Used (if provided) when the same connection is open in more than one page.
      */
-    public findConnectionDocument(webViewProvider: IWebviewProvider | undefined, connectionId: number,
-        documentId: string): LeafDocumentEntry | undefined {
+    public findConnectionDocument(webViewProvider: IWebviewProvider | undefined, documentId: string,
+        connectionId?: number, pageId?: string): LeafDocumentEntry | undefined {
         let provider: IOdmAppProviderEntry | undefined = this.#defaultProvider;
         if (webViewProvider) {
             provider = this.#appProviders.get(webViewProvider);
         }
 
         if (provider) {
-            if (connectionId === -1) {
+            if (!connectionId) {
                 // Search in all connections.
                 for (const page of provider.connectionPages) {
                     const result = page.documents.find((item) => {
@@ -896,7 +901,7 @@ export class OpenDocumentDataModel {
                 }
             } else {
                 const page = provider.connectionPages.find((item) => {
-                    return item.details.id === connectionId;
+                    return pageId ? (item.id === pageId) : (item.details.id === connectionId);
                 });
 
                 if (page) {
@@ -931,16 +936,18 @@ export class OpenDocumentDataModel {
     }
 
     /**
-     * @returns all documents of the given type from the first connection page with the given connection id.
+     * @returns all documents of the given type from the connection page with optional filtering by connection/page ids.
      *
      * @param provider The provider which hosts the app that contains the document.
-     * @param connectionId The id of the connection. If the connection is open in more than one page,
-     *                     the first found entry is returned.
      * @param type The type of the document to return. Usually, one would look up admin pages here, but it can be
      *             any leaf document type.
+     * @param connectionId The id of the connection, used as a fallback if pageId is missing.
+     *                     If the connection is open in more than one page, and pageId is not present,
+     *                     the first found entry is returned.
+     * @param pageId The id of the page. Used (if provided) when the same connection is open in more than one page.
      */
-    public findConnectionDocumentsByType(provider: IWebviewProvider | undefined, connectionId: number,
-        type: LeafDocumentType): LeafDocumentEntry[] {
+    public findConnectionDocumentsByType(provider: IWebviewProvider | undefined,
+        type: LeafDocumentType, connectionId?: number, pageId?: string): LeafDocumentEntry[] {
 
         const result: LeafDocumentEntry[] = [];
         let entry;
@@ -951,7 +958,7 @@ export class OpenDocumentDataModel {
         }
 
         if (entry) {
-            if (connectionId === -1) {
+            if (!connectionId) {
                 const documents = this.getAllDocuments(entry);
                 documents.forEach((item) => {
                     if (item.type === type) {
@@ -960,7 +967,7 @@ export class OpenDocumentDataModel {
                 });
             } else {
                 const page = entry.connectionPages.find((item) => {
-                    return item.details.id === connectionId;
+                    return pageId ? (item.id === pageId) : (item.details.id === connectionId);
                 });
 
                 if (page) {

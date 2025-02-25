@@ -241,7 +241,7 @@ export interface IDebuggerData {
 /** The data sent when opening an editor. */
 export interface IDocumentOpenData {
     /** The id of the page which will host the new document. Can be a connection tab or a standalone tab. */
-    readonly pageId: string;
+    readonly pageId?: string;
 
     /** Has to be set to allow creating a data model entry for the document, if needed. */
     readonly connection?: IConnectionDetails;
@@ -264,6 +264,8 @@ export interface IDocumentOpenData {
         readonly caption: string;
         readonly alternativeCaption?: string;
     };
+
+    readonly force?: boolean;
 }
 
 /** The data sent when an editor is being closed by the app. */
@@ -493,7 +495,7 @@ export interface IRequestTypeMap {
     "editorLoadNotebook": (details?: { content: string, standalone: boolean; }) => Promise<boolean>;
 
     /** Sent when a document is to be closed. */
-    "closeDocument": (details: { connectionId?: number; documentId: string; }) => Promise<boolean>;
+    "closeDocument": (details: { connectionId?: number; documentId: string; pageId?: string }) => Promise<boolean>;
 
     /** Triggered when an execution context changes its loading state (pending, loading, waiting, idle). */
     "editorContextStateChanged": (id: string) => Promise<boolean>;
@@ -508,7 +510,7 @@ export interface IRequestTypeMap {
     "updateMrsRoot": (connectionId: string) => Promise<boolean>;
 
     /** Sent when a document is to be selected. */
-    "selectDocument": (details: { connectionId: number, documentId: string; }) => Promise<boolean>;
+    "selectDocument": (details: { connectionId?: number, documentId: string; pageId?: string; }) => Promise<boolean>;
 
     /** Sent to tell the host that the content of an editor has changed. */
     "editorChanged": SimpleCallback;
@@ -558,8 +560,8 @@ export interface IRequestTypeMap {
     "showAbout": SimpleCallback;
     "showThemeEditor": SimpleCallback;
     "showPreferences": SimpleCallback;
-    "showPage": (
-        data: { page: string; editor?: InitialEditor; suppressAbout?: boolean; }) => Promise<boolean>;
+    "showPage": (data: { connectionId?: number; editor?: InitialEditor; suppressAbout?: boolean;
+        pageId?: string; }) => Promise<boolean>;
 
     "openDocument": (data: IDocumentOpenData) => Promise<boolean>;
 
@@ -577,7 +579,7 @@ export interface IRequestTypeMap {
     /** Triggered when the list of connections has been updated and is now available. */
     "connectionsUpdated": SimpleCallback;
 
-    "selectConnectionTab": (details: { connectionId: number; }) => Promise<boolean>;
+    "selectConnectionTab": (details: { connectionId: number; pageId?: string; }) => Promise<boolean>;
 
     /** Update extension code blocks. */
     "codeBlocksUpdate": (data: { linkId: number; code: string; }) => Promise<boolean>;

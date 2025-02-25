@@ -51,13 +51,16 @@ export class DBConnectionViewProvider extends WebviewProvider {
     /**
      * Shows the given module page.
      *
-     * @param page The page to show.
+     * @param connectionId The id of the connection.
      * @param editor The initial editor to show.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public show(page: string, editor?: InitialEditor): Promise<boolean> {
-        return this.runCommand("job", [{ requestType: "showPage", parameter: { page, editor } }], "newConnection");
+    public show(connectionId?: number, editor?: InitialEditor): Promise<boolean> {
+        return this.runCommand("job", [
+            { requestType: "showPage", parameter: { connectionId, editor } }],
+            "newConnection",
+        );
     }
 
     /**
@@ -74,14 +77,14 @@ export class DBConnectionViewProvider extends WebviewProvider {
     /**
      * Executes a piece of code in a webview tab.
      *
-     * @param page The page to open in the webview tab (if not already done).
+     * @param connectionId The id of the connection.
      * @param details Required information about the query that must be executed.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public runCode(page: string, details: IEditorExtendedExecutionOptions): Promise<boolean> {
+    public runCode(connectionId: number, details: IEditorExtendedExecutionOptions): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showPage", parameter: { page, suppressAbout: true } },
+            { requestType: "showPage", parameter: { connectionId, suppressAbout: true } },
             { requestType: "editorRunCode", parameter: details },
         ], details.linkId === -1 ? "newConnection" : "newConnectionWithEmbeddedSql");
     }
@@ -89,14 +92,14 @@ export class DBConnectionViewProvider extends WebviewProvider {
     /**
      * Executes a full script in a webview tab.
      *
-     * @param page The page to open in the webview tab (if not already done).
+     * @param connectionId The id of the connection.
      * @param details The content of the script to run and other related information.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public runScript(page: string, details: IScriptRequest): Promise<boolean> {
+    public runScript(connectionId: number, details: IScriptRequest): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showPage", parameter: { page, suppressAbout: true, noEditor: true } },
+            { requestType: "showPage", parameter: { connectionId, suppressAbout: true, noEditor: true } },
             { requestType: "editorRunScript", parameter: details },
         ], "newConnection");
     }
@@ -104,14 +107,14 @@ export class DBConnectionViewProvider extends WebviewProvider {
     /**
      * Opens a new script editor in the webview tab and loads the given content into it.
      *
-     * @param page The page to open in the webview tab (if not already done).
+     * @param connectionId The id of the connection.
      * @param details The content of the script to run and other related information.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public editScript(page: string, details: IScriptRequest): Promise<boolean> {
+    public editScript(connectionId: number, details: IScriptRequest): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showPage", parameter: { page, suppressAbout: true } },
+            { requestType: "showPage", parameter: { connectionId, suppressAbout: true, pageId: details.pageId } },
             { requestType: "editorEditScript", parameter: details },
         ], "newConnection");
     }
@@ -119,14 +122,14 @@ export class DBConnectionViewProvider extends WebviewProvider {
     /**
      * Loads the content given in the request into the current script editor.
      *
-     * @param page The page to open in the webview tab (if not already done).
+     * @param connectionId The id of the connection.
      * @param details The content of the script and other related information.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public loadScript(page: string, details: IScriptRequest): Promise<boolean> {
+    public loadScript(connectionId: number, details: IScriptRequest): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showPage", parameter: { page, suppressAbout: true } },
+            { requestType: "showPage", parameter: { connectionId, suppressAbout: true } },
             { requestType: "editorLoadScript", parameter: details },
         ], "newConnection");
     }
@@ -140,7 +143,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
      */
     public createNewEditor(details: INewEditorRequest): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showPage", parameter: { page: details.page, suppressAbout: true } },
+            { requestType: "showPage", parameter: { connectionId: details.connectionId, suppressAbout: true } },
             { requestType: "createNewEditor", parameter: details },
         ], "newConnection");
     }
@@ -155,7 +158,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
      */
     public addConnection(mdsData?: IMySQLDbSystem, profileName?: String): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showPage", parameter: { page: "connections" } },
+            { requestType: "showPage", parameter: {} },
             { requestType: "addNewConnection", parameter: { mdsData, profileName } },
         ], "connections");
     }
@@ -182,7 +185,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
      */
     public removeConnection(connectionId: number): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showPage", parameter: { page: "connections" } },
+            { requestType: "showPage", parameter: {} },
             { requestType: "removeConnection", parameter: connectionId },
         ], "connections");
     }
@@ -196,7 +199,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
      */
     public editConnection(connectionId: number): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showPage", parameter: { page: "connections" } },
+            { requestType: "showPage", parameter: {} },
             { requestType: "editConnection", parameter: connectionId },
         ], "connections");
     }
@@ -210,7 +213,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
      */
     public duplicateConnection(connectionId: number): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showPage", parameter: { page: "connections" } },
+            { requestType: "showPage", parameter: {} },
             { requestType: "duplicateConnection", parameter: connectionId },
         ], "connections");
     }
@@ -225,13 +228,14 @@ export class DBConnectionViewProvider extends WebviewProvider {
      *
      * @param connectionId The id of the webview tab.
      * @param documentId The id of the editor to close.
+     * @param pageId The id of the page.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public closeEditor(connectionId: number, documentId: string): Promise<boolean> {
+    public closeEditor(connectionId: number, documentId: string, pageId: string): Promise<boolean> {
         return this.runCommand("job", [
             // No need to send a showModule request here. The module must exist or the editor wouldn't be open.
-            { requestType: "closeDocument", parameter: { connectionId, documentId } },
+            { requestType: "closeDocument", parameter: { connectionId, documentId, pageId } },
         ], "");
     }
 
@@ -241,21 +245,22 @@ export class DBConnectionViewProvider extends WebviewProvider {
     public reselectLastDocument(): void {
         void requisitions.execute("proxyRequest", {
             provider: this,
-            original: { requestType: "selectDocument", parameter: { connectionId: -1, documentId: "" } },
+            original: { requestType: "selectDocument", parameter: { documentId: "" } },
         });
     }
 
     /**
      * Selects the given item in the webview tab.
      *
-     * @param connectionId The id of the webview tab.
      * @param documentId The id of the document to select.
+     * @param connectionId The id of the webview tab.
+     * @param pageId The id of the page.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public selectDocument(connectionId: number, documentId: string): Promise<boolean> {
+    public selectDocument(documentId: string, connectionId?: number, pageId?: string): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "selectDocument", parameter: { connectionId, documentId } },
+            { requestType: "selectDocument", parameter: { connectionId, documentId, pageId } },
         ], "");
     }
 
@@ -278,14 +283,14 @@ export class DBConnectionViewProvider extends WebviewProvider {
     /**
      * Shows the MRS DB object editor dialog.
      *
-     * @param page The page to show.
+     * @param connectionId The id of the connection.
      * @param data Details of the object to edit.
      *
      * @returns A promise which resolves after the command was executed.
      */
-    public editMrsDbObject(page: string, data: IMrsDbObjectEditRequest): Promise<boolean> {
+    public editMrsDbObject(connectionId: number, data: IMrsDbObjectEditRequest): Promise<boolean> {
         return this.runCommand("job", [
-            { requestType: "showPage", parameter: { page } },
+            { requestType: "showPage", parameter: { connectionId } },
             { requestType: "showMrsDbObjectDialog", parameter: data },
         ], "newConnection");
     }

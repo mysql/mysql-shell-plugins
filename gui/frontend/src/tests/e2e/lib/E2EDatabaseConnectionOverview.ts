@@ -22,11 +22,12 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { WebElement, until, Condition, error } from "selenium-webdriver";
+import { WebElement, until, Condition, error, Key } from "selenium-webdriver";
 import { driver } from "./driver.js";
 import * as constants from "./constants.js";
 import * as locator from "./locators.js";
 import { E2EToolbar } from "./E2EToolbar.js";
+import { Os } from "./os.js";
 
 /**
  * This class represents the database connection overview page, and all its related functions
@@ -148,6 +149,22 @@ export class E2EDatabaseConnectionOverview {
         await (await driver.wait(until.elementLocated(locator.dbConnectionOverview.newConsoleButton),
             constants.wait3seconds,
             "Could not find the button to open a new shell console")).click();
+    };
+
+    /**
+     * Opens a new notebook with (CMD|ALT)+click
+     * @param dbConnectionCaption The DB Connection caption
+     */
+    public openNotebookUsingKeyboard = async (dbConnectionCaption: string): Promise<void> => {
+
+        const dbConnection = await this.getConnection(dbConnectionCaption);
+        await driver.actions()
+            .move({ origin: dbConnection })
+            .keyDown(Os.isMacOs() ? Key.COMMAND : Key.ALT)
+            .click()
+            .keyUp(Os.isMacOs() ? Key.COMMAND : Key.ALT)
+            .perform();
+
     };
 
 }
