@@ -96,7 +96,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
 
     public async initialize(callback?: ProgressCallback): Promise<boolean> {
         callback?.("Starting editor session...");
-        await this.backend.startSession(String(this.details.id) + "ConnectionDataModel");
+        await this.backend.startSession(`CDM_${this.id}`);
         callback?.("Session created, opening new connection...");
 
         try {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -44,6 +44,13 @@ import { DocumentTreeItem } from "./DocumentTreeItem.js";
  * The provider for the open editors section in the extension.
  */
 export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumentDataModelEntry> {
+    // Tracks the highest suffix number used for entries with the same connectionId,
+    // ensuring that suffixes remain unchanged even after an entry is closed.
+    private maxConnectionDocumentSuffix: Map<string, number> = new Map();
+
+    // Maintains the previous caption for a connection,
+    // preserving it even if other entry with that connectionId is closed.
+    private connectionDocumentSuffixes: Map<string, string> = new Map();
 
     #lastSelectedItems = new Map<IWebviewProvider, OpenDocumentDataModelEntry>();
     #dataModel: OpenDocumentDataModel;
@@ -128,7 +135,14 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
             }
 
             case OdmEntityType.ConnectionPage: {
-                return new DocumentConnectionPageTreeItem(entry);
+                const item = new DocumentConnectionPageTreeItem(entry);
+
+                if (typeof item.label === "string") {
+                    const suffix = this.resolveConnectionLabelSuffix(entry);
+                    item.label = `${item.label}${suffix}`;
+                }
+
+                return item;
             }
 
             case OdmEntityType.Notebook:
@@ -192,12 +206,13 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
      *
      * @param provider The owning provider.
      * @param connectionId The connection ID to search for.
+     * @param pageId The page ID to search for.
      *
      * @returns The open document entry if found, undefined otherwise.
      */
-    public findAdminDocument(provider: IWebviewProvider, connectionId: number): IOdmAdminEntry[] {
-        return this.#dataModel.findConnectionDocumentsByType(provider, connectionId,
-            OdmEntityType.AdminPage) as IOdmAdminEntry[];
+    public findAdminDocument(provider: IWebviewProvider, connectionId: number, pageId?: string): IOdmAdminEntry[] {
+        return this.#dataModel.findConnectionDocumentsByType(provider, OdmEntityType.AdminPage,
+            connectionId, pageId) as IOdmAdminEntry[];
     }
 
     /**
@@ -215,7 +230,8 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
     }): Promise<boolean> => {
         switch (request.original.requestType) {
             case "documentOpened": {
-                const response = request.original.parameter as IDocumentOpenData;
+                // pageId is always present.
+                const response = request.original.parameter as IDocumentOpenData & { pageId: string };
                 const dmProvider = this.#dataModel.findProvider(request.provider);
 
                 if (!response.connection) {
@@ -240,7 +256,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
 
                 if (OpenDocumentDataModel.isDocumentType(document.type, OdmEntityType.AdminPage,
                     OdmEntityType.Notebook, OdmEntityType.Script)) {
-                    return this.selectItem(request.provider, connectionId, document.id);
+                    return this.selectItem(request.provider, connectionId, document.id, response.pageId);
                 }
 
                 return Promise.resolve(true);
@@ -256,18 +272,20 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
             }
 
             case "selectDocument": {
-                const response = request.original.parameter as { connectionId: number, documentId: string; };
+                const response = request.original.parameter as { connectionId?: number, documentId: string,
+                    pageId?: string; };
                 setTimeout(() => {
-                    void this.selectItem(request.provider, response.connectionId, response.documentId);
+                    void this.selectItem(request.provider, response.connectionId, response.documentId,
+                        response.pageId);
                 }, 100);
 
                 return Promise.resolve(true);
             }
 
             case "selectConnectionTab": {
-                const response = request.original.parameter as { connectionId: number; };
+                const response = request.original.parameter as { connectionId: number, pageId?: string; };
 
-                return this.selectItem(request.provider, response.connectionId);
+                return this.selectItem(request.provider, response.connectionId, undefined, response.pageId);
             }
 
             case "refreshSessions": {
@@ -298,10 +316,11 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
         return Promise.resolve(false);
     };
 
-    private selectItem = (provider: IWebviewProvider, connectionId: number, documentId?: string): Promise<boolean> => {
+    private selectItem = (provider: IWebviewProvider, connectionId?: number, documentId?: string,
+        pageId?: string): Promise<boolean> => {
         // If no connection was given and the document id is empty then select the last active item
         // for the given provider.
-        if (connectionId < 0 && !documentId) {
+        if (!connectionId && !documentId) {
             const lastItem = this.#lastSelectedItems.get(provider);
             if (lastItem) {
                 this.#selectCallback(lastItem);
@@ -324,8 +343,8 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
         }
 
         let document;
-        if (connectionId > -1) {
-            document = this.#dataModel.findConnectionDocument(provider, connectionId, documentId ?? "");
+        if (connectionId) {
+            document = this.#dataModel.findConnectionDocument(provider, documentId ?? "", connectionId, pageId);
         } else {
             // Must be a shell session document.
             document = this.#dataModel.findSessionDocument(provider, documentId!);
@@ -363,7 +382,7 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
         // There's no information about which provider sent the request so we have to search for the
         // scriptId in all providers.
         // TODO: pass the provider reference in the request.
-        const document = this.#dataModel.findConnectionDocument(undefined, -1, details.id);
+        const document = this.#dataModel.findConnectionDocument(undefined, details.id);
         if (document) {
             document.caption = details.newName;
             this.#changeEvent.fire(document);
@@ -372,4 +391,35 @@ export class OpenEditorsTreeDataProvider implements TreeDataProvider<OpenDocumen
         return Promise.resolve(true);
     };
 
+    private resolveConnectionLabelSuffix(entry: OpenDocumentDataModelEntry): string {
+        if (entry?.type !== OdmEntityType.ConnectionPage || !entry.parent) {
+            return "";
+        }
+        if (this.connectionDocumentSuffixes.has(entry.id)) {
+            // Return already calculated version if exists.
+            return this.connectionDocumentSuffixes.get(entry.id)!;
+        }
+
+        const connectionId = entry.details.id;
+        const numberOfConnections = entry.parent.connectionPages.filter((item) => {
+            return item.details.id === connectionId && item.id !== entry.id;
+        }).length;
+
+        const key = `${entry.parent.id}_${connectionId}`;
+        if (numberOfConnections === 0) {
+            // First of its kind has no suffix.
+            this.connectionDocumentSuffixes.set(entry.id, "");
+            this.maxConnectionDocumentSuffix.set(key, 1);
+
+            return "";
+        }
+
+        const incrementedSuffix = this.maxConnectionDocumentSuffix.get(key)! + 1;
+        this.maxConnectionDocumentSuffix.set(key, incrementedSuffix);
+
+        const suffix = ` (${incrementedSuffix})`;
+        this.connectionDocumentSuffixes.set(entry.id, suffix);
+
+        return suffix;
+    }
 }

@@ -131,6 +131,8 @@ export interface IScriptRequest {
      * engine (usually HeatWave).
      */
     forceSecondaryEngine?: boolean;
+
+    pageId?: string;
 }
 
 /**
@@ -138,8 +140,8 @@ export interface IScriptRequest {
  * a notebook.
  */
 export interface INewEditorRequest {
-    /** The id of the page (connection tab) to open the new script in. */
-    page: string;
+    /** The id of the connection to open the new script in page (tab). */
+    connectionId?: number;
 
     /** The language to use for the new script file. */
     language: EditorLanguage;

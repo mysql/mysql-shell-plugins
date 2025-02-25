@@ -79,6 +79,8 @@ export class DocumentCommandHandler {
         [CdmEntityType.StoredProcedure, MrsDbObjectType.Procedure],
     ]);
 
+    private latestPagesByConnection: Map<number, string> = new Map();
+
     #isConnected = false;
     #host: ExtensionHost;
 
@@ -179,7 +181,7 @@ export class DocumentCommandHandler {
                     provider = this.#host.currentProvider;
                 }
 
-                void provider?.show(String(entry.details.id), editor);
+                void provider?.show(entry.details.id, editor);
             }
         };
 
@@ -201,7 +203,7 @@ export class DocumentCommandHandler {
             (entry?: ICdmConnectionEntry) => {
                 if (entry) {
                     const provider = this.#host.newProvider;
-                    void provider?.show(String(entry.details.id));
+                    void provider?.show(entry.details.id);
                 }
             }));
 
@@ -242,7 +244,7 @@ export class DocumentCommandHandler {
                         scripts.set(request.id, uri);
 
                         const details = connection.details;
-                        void provider.editScript(String(details.id), request);
+                        void provider.editScript(details.id, request);
 
 
                     }
@@ -269,7 +271,7 @@ export class DocumentCommandHandler {
                     content: query,
                 };
 
-                void provider?.runScript(String(entry.connection.details.id), request);
+                void provider?.runScript(entry.connection.details.id, request);
             }
         }));
 
@@ -283,7 +285,7 @@ export class DocumentCommandHandler {
                 const from = uppercaseKeywords ? "FROM" : "from";
 
                 const query = `${select} * ${from} \`${entry.schema}\`.\`${entry.caption}\``;
-                void provider?.runCode(String(entry.connection.details.id), {
+                void provider?.runCode(entry.connection.details.id, {
                     code: query,
                     language: "mysql",
                     linkId: -1,
@@ -294,8 +296,11 @@ export class DocumentCommandHandler {
         const showAdminPage = (provider: IWebviewProvider | undefined, _caption: string, page: ICdmAdminPageEntry) => {
             provider ??= this.#host.currentProvider;
             if (provider instanceof DBConnectionViewProvider) {
+                const connectionId = page.connection.details.id;
+
+                const latestPageId = this.latestPagesByConnection.get(connectionId);
                 const documents = this.#openEditorsTreeDataProvider.findAdminDocument(provider,
-                    page.connection.details.id);
+                    connectionId, latestPageId);
 
                 // Check the list of open admin pages for the type we want to open.
                 const existing = documents.find((doc) => {
@@ -304,7 +309,6 @@ export class DocumentCommandHandler {
 
                 const id = existing ? existing.id : uuid();
                 const data: IDocumentOpenData = {
-                    pageId: String(page.connection.details.id),
                     connection: page.connection.details,
                     documentDetails: {
                         id,
@@ -379,11 +383,11 @@ export class DocumentCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.openDBBrowser", (provider?: IWebviewProvider) => {
             provider ??= this.#host.currentProvider;
             if (provider instanceof DBConnectionViewProvider) {
-                void provider.show("connections");
+                void provider.show();
             } else {
                 const provider = this.#host.currentProvider;
                 if (provider) {
-                    void provider.show("connections");
+                    void provider.show();
                 }
             }
         }));
@@ -548,7 +552,7 @@ export class DocumentCommandHandler {
                                     }
                                     scripts.set(details.id, uri);
 
-                                    void provider.editScript(String(connection.details.id), details);
+                                    void provider.editScript(connection.details.id, details);
                                 }
                             });
                         }
@@ -623,7 +627,7 @@ export class DocumentCommandHandler {
                                     }
                                     scripts.set(details.id, uri);
 
-                                    void provider.editScript(String(entry.details.id), details);
+                                    void provider.editScript(entry.details.id, details);
                                 }
                             });
                         }
@@ -637,7 +641,8 @@ export class DocumentCommandHandler {
                 if (item) {
                     const dataModelEntry = item.dataModelEntry;
                     let provider;
-                    let connectionId = -1;
+                    let connectionId: number | undefined;
+                    let pageId: string | undefined;
 
                     switch (dataModelEntry.type) {
                         case OdmEntityType.Script:
@@ -645,6 +650,7 @@ export class DocumentCommandHandler {
                         case OdmEntityType.AdminPage: {
                             provider = dataModelEntry.parent?.parent?.provider as DBConnectionViewProvider;
                             connectionId = dataModelEntry.parent!.details.id;
+                            pageId = dataModelEntry.parent?.id;
 
                             break;
                         }
@@ -652,6 +658,7 @@ export class DocumentCommandHandler {
                         case OdmEntityType.ConnectionPage: {
                             provider = dataModelEntry.parent?.provider as DBConnectionViewProvider;
                             connectionId = dataModelEntry.details.id;
+                            pageId = dataModelEntry.id;
 
                             break;
                         }
@@ -688,7 +695,7 @@ export class DocumentCommandHandler {
 
                     if (provider) {
                         this.#selectionInProgress = true;
-                        void provider.selectDocument(connectionId, dataModelEntry.id);
+                        void provider.selectDocument(dataModelEntry.id, connectionId, pageId);
                     }
                 }
             }));
@@ -729,7 +736,7 @@ export class DocumentCommandHandler {
                                     sql = editor.document.getText();
                                 }
 
-                                return provider.runScript(String(connection.details.id), {
+                                return provider.runScript(connection.details.id, {
                                     id: uuid(),
                                     language: this.languageFromConnection(connection),
                                     caption: "Selected SQL",
@@ -747,7 +754,7 @@ export class DocumentCommandHandler {
                 const provider = entry.parent.parent?.provider;
                 const connection = entry.parent;
                 if (provider instanceof DBConnectionViewProvider) {
-                    void provider.closeEditor(connection.details.id, entry.id);
+                    void provider.closeEditor(connection.details.id, entry.id, entry.parent.id);
                 }
             }
         }));
@@ -788,7 +795,7 @@ export class DocumentCommandHandler {
                     // First, create a new temporary dbObject, then call the DbObject dialog
                     this.createNewDbObject(connection.backend, entry).then((dbObject) => {
                         const provider = this.#host.currentProvider;
-                        void provider?.editMrsDbObject(String(connection.details.id),
+                        void provider?.editMrsDbObject(connection.details.id,
                             { dbObject, createObject: true });
                     }).catch((reason) => {
                         void ui.showErrorMessage(`${String(reason)}`, {});
@@ -804,7 +811,7 @@ export class DocumentCommandHandler {
             if (entry) {
                 const provider = this.#host.currentProvider;
                 const connection = entry.parent.parent.parent.parent;
-                void provider?.editMrsDbObject(String(connection.details.id),
+                void provider?.editMrsDbObject(connection.details.id,
                     { dbObject: entry.details, createObject: false });
             }
         }));
@@ -1073,7 +1080,7 @@ export class DocumentCommandHandler {
     private executeCodeBlock = (details: ICodeBlockExecutionOptions): Promise<boolean> => {
         const provider = this.#host.currentProvider;
         if (provider) {
-            return provider.runCode(String(details.connectionId), {
+            return provider.runCode(details.connectionId, {
                 linkId: details.linkId,
                 code: details.query,
                 language: "mysql",
@@ -1139,7 +1146,7 @@ export class DocumentCommandHandler {
                         details.content = content.toString();
                         const connectionId = this.#openEditorsTreeDataProvider.currentConnectionId(provider) ?? -1;
 
-                        void provider.loadScript(String(connectionId), details);
+                        void provider.loadScript(connectionId, details);
                     }
                 });
 
@@ -1217,13 +1224,14 @@ export class DocumentCommandHandler {
 
     private createNewScriptEditor = (
         dbProvider: DBConnectionViewProvider, name: string, content: string, language: string,
-        connectionId: number, uri?: Uri): void => {
+        connectionId: number, uri?: Uri, pageId?: string): void => {
         // A new script.
         const request: IScriptRequest = {
             id: uuid(),
             caption: name,
             content,
             language: language as EditorLanguage,
+            pageId,
         };
 
         let scripts = this.#openScripts.get(dbProvider);
@@ -1235,7 +1243,7 @@ export class DocumentCommandHandler {
             scripts.set(request.id, uri);
         }
 
-        void dbProvider.editScript(String(connectionId), request);
+        void dbProvider.editScript(connectionId, request);
     };
 
     private createNewEditor = (params: {
@@ -1246,19 +1254,21 @@ export class DocumentCommandHandler {
         connectionId?: number,
     }): Promise<boolean> => {
         return new Promise((resolve) => {
-            let connectionId = params.connectionId ?? -1;
+            let connectionId = params.connectionId;
             let provider: IWebviewProvider | undefined;
+            let pageId: string | undefined;
             if (params.entry?.parent?.provider) {
                 connectionId = params.entry.details.id;
                 provider = params.entry.parent.provider;
-            } else if (connectionId === -1) {
+                pageId = params.entry.id;
+            } else if (!connectionId) {
                 provider = this.#host.currentProvider;
                 if (provider) {
                     connectionId = this.#openEditorsTreeDataProvider.currentConnectionId(provider) ?? -1;
                 }
             }
 
-            if (connectionId === -1) {
+            if (!connectionId) {
                 void ui.showErrorMessage("Please select a connection first.", {});
                 resolve(false);
 
@@ -1273,14 +1283,14 @@ export class DocumentCommandHandler {
                         if (params.language === "msg") {
                             // A new notebook.
                             void dbProvider.createNewEditor({
-                                page: String(connectionId),
+                                connectionId,
                                 language: params.language,
                                 content: params.content,
                             });
                         } else {
                             // A new script
                             this.createNewScriptEditor(dbProvider, name, document.getText(),
-                                params.language as EditorLanguage, connectionId, document.uri);
+                                params.language as EditorLanguage, connectionId, document.uri, pageId);
                         }
                     }
 
@@ -1318,6 +1328,19 @@ export class DocumentCommandHandler {
                 return this.editorLoadScript(response);
             }
 
+            case "documentOpened": {
+                const response = request.original.parameter as IDocumentOpenData;
+
+                return this.updateLatestPagesByConnection(response.connection?.id, response.pageId);
+            }
+
+            case "selectConnectionTab":
+            case "selectDocument": {
+                const response = request.original.parameter as { connectionId?: number, pageId?: string; };
+
+                return this.updateLatestPagesByConnection(response.connectionId, response.pageId);
+            }
+
             case "createNewEditor": {
                 const response = request.original.parameter as INewEditorRequest;
 
@@ -1331,4 +1354,14 @@ export class DocumentCommandHandler {
 
         return Promise.resolve(false);
     };
+
+    private updateLatestPagesByConnection(connectionId?: number, pageId?: string) {
+        if (!pageId || !connectionId || connectionId < 1) {
+            return Promise.resolve(false);
+        }
+
+        this.latestPagesByConnection.set(connectionId, pageId);
+
+        return Promise.resolve(true);
+    }
 }

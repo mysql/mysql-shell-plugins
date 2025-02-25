@@ -43,8 +43,9 @@ exports[`Document module tests Test DocumentModule instantiation 1`] = `
             onSaveState={[Function]}
             onSelectConnectionItem={[Function]}
             onSelectDocumentItem={[Function]}
+            overviewId=""
             savedSectionState={Map {}}
-            selectedOpenDocument="connections"
+            selectedOpenDocument=""
           />,
           "initialSize": 250,
           "minSize": 0,

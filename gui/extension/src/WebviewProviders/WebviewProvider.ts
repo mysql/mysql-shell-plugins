@@ -218,7 +218,8 @@ export class WebviewProvider implements IWebviewProvider {
         }
     }
 
-    private selectConnectionTab = (details: { connectionId: number, page: string; }): Promise<boolean> => {
+    private selectConnectionTab = (details: { connectionId: number, page: string;
+        pageId?: string }): Promise<boolean> => {
         // The app just opened or activated a new tab.
         if (this.panel) {
             return requisitions.execute("proxyRequest", {

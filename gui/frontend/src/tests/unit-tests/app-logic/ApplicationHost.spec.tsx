@@ -35,7 +35,7 @@ import { webSession } from "../../../supplement/WebSession.js";
 import { registerUiLayer } from "../../../app-logic/UILayer.js";
 import { CommunicationDebugger } from "../../../components/CommunicationDebugger/CommunicationDebugger.js";
 import { uiLayerMock } from "../__mocks__/UILayerMock.js";
-import { nextRunLoop, stateChange } from "../test-helpers.js";
+import { ignoreSnapshotUuids, nextRunLoop, stateChange } from "../test-helpers.js";
 
 const toggleOptions = (): void => { };
 
@@ -97,6 +97,9 @@ describe("Application host tests", () => {
         );
 
         await requisitions.execute("showAbout", undefined);
+
+        ignoreSnapshotUuids();
+
         expect(component).toMatchSnapshot();
         expect(component.state()).toEqual({
             aboutVisible: true,
@@ -116,6 +119,7 @@ describe("Application host tests", () => {
         );
 
         await requisitions.execute("showPreferences", undefined);
+
         expect(component).toMatchSnapshot();
         expect(component.state()).toEqual({
             aboutVisible: false,
@@ -135,6 +139,7 @@ describe("Application host tests", () => {
         );
 
         component.setState({ debuggerVisible: true, debuggerMaximized: false });
+
         expect(component).toMatchSnapshot();
         expect(component.state()).toEqual({
             aboutVisible: false,
@@ -154,6 +159,7 @@ describe("Application host tests", () => {
         );
 
         await stateChange(component, { debuggerVisible: true, debuggerMaximized: true });
+
         expect(component).toMatchSnapshot();
         expect(component.state()).toEqual({
             aboutVisible: false,

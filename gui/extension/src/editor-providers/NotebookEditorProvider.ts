@@ -142,7 +142,8 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
      */
     private showNotebookPage(connectionId: number, content: string): Promise<boolean> {
         return Promise.resolve(this.#requisitions?.executeRemote("job", [
-            { requestType: "showPage", parameter: { page: String(connectionId), suppressAbout: true, noEditor: true } },
+            // !TODO: Check the need of pageId
+            { requestType: "showPage", parameter: { connectionId, suppressAbout: true, noEditor: true } },
             { requestType: "editorLoadNotebook", parameter: { content, standalone: true } },
         ]) ?? true);
     }

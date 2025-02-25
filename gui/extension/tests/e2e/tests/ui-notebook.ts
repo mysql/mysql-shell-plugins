@@ -563,6 +563,7 @@ describe("NOTEBOOKS", () => {
                 await (await dbTreeSection.getTreeItemActionButton(globalConn.caption,
                     constants.openNewConnectionUsingNotebook)).click();
                 await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
+
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -621,30 +622,29 @@ describe("NOTEBOOKS", () => {
 
         });
 
-        it("Open the Notebook from file", async () => {
+        it("Open the Notebook from file with connection", async () => {
 
             await driver.wait(Workbench.untilExplorerFolderIsOpened("e2e"), constants.wait15seconds);
-            const file = await (await new SideBarView().getContent().getSection("e2e"))
-                .findItem("a_test.mysql-notebook", 3);
-            await file.click();
+            const e2eTreeSection = new E2EAccordionSection("e2e");
+            await e2eTreeSection.openContextMenuAndSelect("a_test.mysql-notebook", constants.openNotebookWithConn);
             const input = await InputBox.create(constants.wait5seconds * 4);
             await (await input.findQuickPick(globalConn.caption)).select();
-            await Workbench.openEditor("a_test.mysql-notebook");
+            await (await input.findQuickPick(globalConn.caption)).select();
+            await driver.wait(Workbench.untilTabIsOpened("a_test.mysql-notebook"), constants.wait5seconds);
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
             await notebook.exists("SELECT VERSION");
             await Workbench.closeEditor(new RegExp("a_test.mysql-notebook"), true);
 
         });
 
-        it("Open the Notebook from file with connection", async () => {
+        it("Open the Notebook from file", async () => {
 
             await driver.wait(Workbench.untilExplorerFolderIsOpened("e2e"), constants.wait15seconds);
-            const e2eTreeSection = new E2EAccordionSection("e2e");
-            await e2eTreeSection.openContextMenuAndSelect("a_test.mysql-notebook", constants.openNotebookWithConn);
-            const input = await InputBox.create();
-            await (await input.findQuickPick(globalConn.caption)).select();
-            await driver.wait(Workbench.untilTabIsOpened("a_test.mysql-notebook"), constants.wait5seconds);
+            const file = await (await new SideBarView().getContent().getSection("e2e"))
+                .findItem("a_test.mysql-notebook", 3);
+            await file.click();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
+            await Workbench.openEditor("a_test.mysql-notebook");
             await notebook.exists("SELECT VERSION");
 
         });

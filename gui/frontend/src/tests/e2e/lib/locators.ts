@@ -135,7 +135,6 @@ export const confirmDialog = {
 
 // DB CONNECTION OVERVIEW
 export const dbConnectionOverview = {
-    tab: By.id("connections"),
     exists: By.id("connectionOverviewToolbar"),
     title: By.id("title"),
     newConsoleButton: By.id("newConsoleMenuButton"),

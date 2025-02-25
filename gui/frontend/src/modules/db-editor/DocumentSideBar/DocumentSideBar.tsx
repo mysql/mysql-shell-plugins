@@ -177,6 +177,8 @@ interface IDocumentSideBarProperties extends IComponentProperties {
     /** The state of each accordion section. */
     savedSectionState?: Map<string, IDocumentSideBarSectionState>;
 
+    overviewId: string;
+
     onSelectConnectionItem?: (entry: ConnectionDataModelEntry) => Promise<void>;
     onSelectDocumentItem?: (entry: OpenDocumentDataModelEntry) => Promise<void>;
     onChangeItem?: (id: string, newCaption: string) => void;
@@ -339,7 +341,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             const { treeItems } = this.state;
 
             this.documentTableRef.current?.deselectRow();
-            if (selectedOpenDocument && selectedOpenDocument !== "connections") {
+            if (selectedOpenDocument && selectedOpenDocument !== this.props.overviewId) {
                 const rows = this.documentTableRef.current?.searchAllRows("id", selectedOpenDocument);
                 rows?.forEach((row) => {
                     row.select();
@@ -1518,7 +1520,6 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     imageOnly
                     onClick={() => {
                         void requisitions.execute("openDocument", {
-                            pageId: String(connection.details.id),
                             connection: connection.details,
                             documentDetails: {
                                 id: uuid(),
@@ -1526,6 +1527,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                                 caption: connection.caption,
                                 language: "msg",
                             },
+                            force: true,
                         });
                     }}
                 >
@@ -1538,7 +1540,6 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     imageOnly
                     onClick={() => {
                         void requisitions.execute("openDocument", {
-                            pageId: String(connection.details.id),
                             connection: connection.details,
                             documentDetails: {
                                 id: uuid(),
@@ -1546,6 +1547,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                                 caption: "SQL Script",
                                 language: connection.details.dbType === DBType.MySQL ? "mysql" : "sql",
                             },
+                            force: true,
                         });
                     }}
                 >
@@ -1673,7 +1675,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     imageOnly
                     onClick={() => {
                         void requisitions.execute("closeDocument",
-                            { connectionId: pageEntry.parent!.details.id, documentId: data.dataModelEntry.id });
+                            { connectionId: pageEntry.parent!.details.id, documentId: data.dataModelEntry.id,
+                                pageId: pageEntry.id });
                     }}
                 >
                     <Icon src={Codicon.Close} data-tooltip="inherit" />
@@ -1725,10 +1728,16 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     imageOnly
                     onClick={() => {
                         if (pageEntry.parent && pageEntry.parent.type === OdmEntityType.ConnectionPage) {
-                            void requisitions.execute("closeDocument",
-                                { connectionId: pageEntry.parent.details.id, documentId: data.dataModelEntry.id });
+                            void requisitions.execute("closeDocument", {
+                                connectionId: pageEntry.parent.details.id,
+                                documentId: data.dataModelEntry.id,
+                                pageId: pageEntry.parent.id,
+                            });
                         } else {
-                            void requisitions.execute("closeDocument", { documentId: data.dataModelEntry.id });
+                            void requisitions.execute("closeDocument", {
+                                documentId: data.dataModelEntry.id,
+                                pageId: pageEntry.parent?.id,
+                            });
                         }
                     }}
                 >
