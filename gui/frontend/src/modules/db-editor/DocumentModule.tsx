@@ -176,6 +176,8 @@ export interface IDocumentModuleState {
     loading: boolean;
 
     progressMessage: string;
+
+    overviewId: string;
 }
 
 export class DocumentModule extends Component<{}, IDocumentModuleState> {
@@ -183,6 +185,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private connectionPresentation: Map<IOdmConnectionPageEntry, IConnectionPresentationState> = new Map();
 
     private workerPool: ExecutionWorkerPool;
+
+    private latestPagesByConnection: Map<number, string> = new Map();
+    private maxConnectionDocumentSuffix: Map<number, number> = new Map();
 
     // For unique naming of editors.
     private documentCounter = 0;
@@ -239,6 +244,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             showTabs: !appParameters.embedded,
             loading: true,
             progressMessage: "",
+            overviewId: this.documentDataModel.overview.id,
         };
     }
 
@@ -250,7 +256,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         let newSelection = selectedPage;
         if (!newSelection) {
             if (!loading && !appParameters.embedded) {
-                newSelection = "connections";
+                newSelection = state.overviewId;
             }
         }
 
@@ -341,8 +347,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         const toolbarItems: IToolbarItems = { navigation: [], execution: [], editor: [], auxiliary: [] };
         const dropDownItems = [
             <DropdownItem
-                id="connections"
-                key="connections"
+                id={this.documentDataModel.overview.id}
+                key={this.documentDataModel.overview.id}
                 caption="DB Connection Overview"
                 picture={<Icon src={Assets.documents.overviewPageIcon} />}
             />,
@@ -459,7 +465,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             </Dropdown>,
         );
 
-        if (selectedPage === "connections") {
+        if (selectedPage === this.documentDataModel.overview.id) {
             toolbarItems.navigation.push(
                 <Button
                     key="button1"
@@ -516,12 +522,12 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             pages.push({
                 icon: Assets.documents.overviewPageIcon,
                 caption: "Connection Overview",
-                id: "connections",
+                id: this.documentDataModel.overview.id,
                 content: overview,
             });
         }
 
-        let selectedDocument = "connections";
+        let selectedDocument = this.documentDataModel.overview.id;
         connectionTabs.forEach((info: IConnectionTab) => {
             const page = info.dataModelEntry;
             const connectionState = this.connectionPresentation.get(page)!;
@@ -687,6 +693,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                     selectedOpenDocument={selectedDocument}
                     markedSchema={selectedTab?.connection.currentSchema ?? ""}
                     savedSectionState={sidebarState}
+                    overviewId={this.documentDataModel.overview.id}
                     onSaveState={this.handleSaveExplorerState}
                     onSelectDocumentItem={this.handleDocumentSelection}
                     onSelectConnectionItem={this.handleConnectionEntrySelection}
@@ -781,45 +788,38 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         });
     };
 
-    private showPage = async (
-        data: { page: string; suppressAbout?: boolean; editor?: InitialEditor; }): Promise<boolean> => {
+    private showPage = async (data: { connectionId?: number; suppressAbout?: boolean; editor?: InitialEditor;
+        pageId?: string; }): Promise<boolean> => {
         const { connectionTabs, selectedPage } = this.state;
 
         let connection: ICdmConnectionEntry | undefined;
 
-        // XXX: rework this to use the real id of the documents, not just the connection id (or "connections").
-        if (data.page !== "connections") {
-            const id = parseInt(data.page, 10);
-            connection = this.connectionsDataModel.findConnectionEntryById(id);
+        if (data.pageId) {
+            const entry = connectionTabs.find((t) => { return t.dataModelEntry.id === data.pageId; });
+            if (entry) {
+                if (selectedPage !== data.pageId) {
+                    this.setState({ selectedPage: data.pageId });
+
+                    return Promise.resolve(true);
+                }
+                connection = entry.connection;
+            }
+        } else if (data.connectionId) {
+            connection = this.connectionsDataModel.findConnectionEntryById(data.connectionId);
         }
 
         const doShowPage = (): Promise<boolean> => {
-            if (data.page === "connections") {
-                this.showOverview();
-
-                return Promise.resolve(true);
-            } else if (connection) {
+            if (connection) {
                 return this.activateConnectionTab(connection, false, data.suppressAbout ?? false,
                     data.editor ?? "default");
             }
 
-            return Promise.resolve(false);
+            this.showOverview();
+
+            return Promise.resolve(true);
         };
 
         if (this.currentTabRef.current) {
-            // See if we already have this page open. If that's the case we don't need to do anything.
-            let entry: IConnectionTab | undefined;
-
-            if (connection) { // The connection is not assigned when switching to the overview.
-                entry = connectionTabs.find((entry: IConnectionTab) => {
-                    return (entry.connection.details.id === connection.details.id);
-                });
-            }
-
-            if (entry && entry.dataModelEntry.id === selectedPage) {
-                //return Promise.resolve(true);
-            }
-
             const canClose = await this.currentTabRef.current.canClose();
             if (canClose) {
                 return doShowPage();
@@ -850,10 +850,12 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             return true;
         }
 
-        await this.activateConnectionTab(connection, false, false, "none");
+        await this.activateConnectionTab(connection, data.force ?? false, false, "none");
+
+        const pageId = this.resolveLatestPageId(connection);
 
         const tab = connectionTabs.find((tab) => {
-            return tab.connection.details.id === connection.details.id;
+            return pageId ? (tab.dataModelEntry.id === pageId) : (tab.connection.id === connection.id);
         });
 
         if (tab) {
@@ -945,7 +947,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      * Activates the overview page (no tab selected).
      */
     private showOverview(): void {
-        this.setState({ selectedPage: "connections" });
+        this.setState({ selectedPage: this.documentDataModel.overview.id });
         requisitions.executeRemote("selectConnectionTab", { connectionId: -1 });
 
     }
@@ -1179,37 +1181,29 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      */
     private activateConnectionTab = async (entry: ICdmConnectionEntry, force: boolean, suppressAbout: boolean,
         initialEditor?: InitialEditor): Promise<boolean> => {
-        const { connectionTabs } = this.state;
+        let selectedPage = this.resolveLatestPageId(entry);
 
-        // Count how many tabs we already have for this connection and keep the last one.
-        let counter = 1;
-        let foundEntry: IConnectionTab | undefined;
-        connectionTabs.forEach((info: IConnectionTab) => {
-            if (info.connection.details.id === entry.details.id) {
-                ++counter;
-                foundEntry = info;
-            }
-        });
-
-        if (foundEntry && !force) {
-            // We already have a tab for that connection and a new tab wasn't enforced,
-            // so simply activate that existing tab.
-            await this.setStatePromise({ selectedPage: foundEntry.dataModelEntry.id });
+        if (selectedPage && !force) {
+            await this.setStatePromise({ selectedPage });
         } else {
-            const suffix = counter > 1 ? ` (${counter})` : "";
             this.showProgress();
             this.setProgressMessage("Starting editor session...");
 
             // Create a new connection entry for the tab. It's open by default.
             try {
                 const newEntry = await entry.duplicate();
-                await this.addNewTab(newEntry, suffix, suppressAbout, initialEditor);
+                const pageId = uuid();
+                await this.addNewTab(newEntry, suppressAbout, initialEditor, pageId);
+                selectedPage = pageId;
             } catch (error) {
                 const message = convertErrorToString(error);
                 void ui.showErrorMessage(message, {});
             } finally {
                 this.hideProgress(true);
             }
+        }
+        if (selectedPage) {
+            this.latestPagesByConnection.set(entry.details.id, selectedPage);
         }
 
         // Always return true to indicated we handled the request.
@@ -1220,22 +1214,22 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      * Creates a new tab and initializes the saved state for it.
      *
      * @param connection The new connection for which to add the tab.
-     * @param tabSuffix An additional string to add to the caption of the tab we are about to create and open.
      * @param suppressAbout If true then no about text is shown.
      * @param initialEditor Determines what type of editor to open initially.
+     * @param pageId The id of the page.
      *
      * @returns A promise which fulfills once the connection is open.
      */
-    private async addNewTab(connection: ICdmConnectionEntry, tabSuffix: string,
-        suppressAbout: boolean, initialEditor: InitialEditor = "default"): Promise<boolean> {
+    private async addNewTab(connection: ICdmConnectionEntry,
+        suppressAbout: boolean, initialEditor: InitialEditor = "default", pageId: string): Promise<boolean> {
 
         const { connectionTabs } = this.state;
 
         try {
             this.setProgressMessage("Connection opened, creating the editor...");
 
-            // XXX: convert to uuid.
-            const tab = this.documentDataModel.addConnectionTab(undefined, connection.details);
+            const caption = this.resolveTabCaption(connection);
+            const tab = this.documentDataModel.addConnectionTab(undefined, connection.details, pageId, caption);
 
             // Once the connection is open we can create the editor.
             let currentSchema = "";
@@ -1330,7 +1324,6 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
             this.connectionPresentation.set(tab, connectionState);
 
-            tab.caption = connection.details.caption + tabSuffix;
             connectionTabs.push({
                 dataModelEntry: tab,
                 connection,
@@ -1341,7 +1334,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 const parameters = {
                     type,
                     parameters: {
-                        pageId: tab.id,
+                        pageId,
                         id: entryId,
                         caption: editorCaption,
                         connection: connection.details,
@@ -1366,7 +1359,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             void ui.showErrorMessage(`Connection Error: ${message}`, {});
 
             const { lastSelectedPage } = this.state;
-            await this.setStatePromise({ selectedPage: lastSelectedPage ?? "connections" });
+            await this.setStatePromise({ selectedPage: lastSelectedPage ?? this.documentDataModel.overview.id });
             this.hideProgress(true);
         }
 
@@ -1416,11 +1409,36 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         state.documentTabs?.forEach((info) => {
             remainingPageIds.push(info.dataModelEntry.id);
         });
-        const newSelection = Tabview.getSelectedPageId(remainingPageIds, selectedPage, closingIds, "connections");
+        const newSelection = Tabview.getSelectedPageId(remainingPageIds, selectedPage, closingIds,
+            this.documentDataModel.overview.id);
         state.selectedPage = newSelection;
 
         this.setState(state);
     };
+
+    private resetConnectionSuffixes(state: Partial<IDocumentModuleState>): void {
+        if (!state.connectionTabs) {
+            this.maxConnectionDocumentSuffix = new Map();
+
+            return;
+        }
+
+        const activeConnectionIds: Set<number> = new Set();
+        state.connectionTabs.forEach((connectionTab) => {
+            activeConnectionIds.add(connectionTab.dataModelEntry.details.id);
+        });
+
+        const obsoleteConnectionIds: number[] = [];
+        this.maxConnectionDocumentSuffix.forEach((_, connectionId) => {
+            if (!activeConnectionIds.has(connectionId)) {
+                obsoleteConnectionIds.push(connectionId);
+            }
+        });
+
+        obsoleteConnectionIds.forEach((connectionId) => {
+            this.maxConnectionDocumentSuffix.delete(connectionId);
+        });
+    }
 
     /**
      * Completely removes a tab, with all its editors (if the tab is a connection tab).
@@ -1484,6 +1502,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         });
 
         this.updateAppTabsState(remainingTabsState, tabIds);
+        this.resetConnectionSuffixes(remainingTabsState);
 
         return true;
     };
@@ -1501,7 +1520,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         const page = info.dataModelEntry;
         const connectionState = this.connectionPresentation.get(page);
         if (connectionState) {
-            this.notifyRemoteEditorClose(tabId); // details.documentId, tab.connection.details.i
+            this.notifyRemoteEditorClose(tabId);
 
             this.removeDocument(tabId, undefined, page.details.id);
 
@@ -1645,6 +1664,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             return candidate.dataModelEntry.id === selectedPage;
         });
 
+        const connectionId = page?.connection.details.id;
+
         if (page) {
             switch (props.id) {
                 case "addEditor": {
@@ -1655,7 +1676,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
                 case "addSQLScript": {
                     requisitions.executeRemote("createNewEditor", {
-                        page: String(page.connection.details.id),
+                        connectionId,
                         language: page.connection.details.dbType === DBType.MySQL ? "mysql" : "sql",
                     });
 
@@ -1664,7 +1685,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
                 case "addTSScript": {
                     requisitions.executeRemote("createNewEditor", {
-                        page: String(page.connection.details.id),
+                        connectionId,
                         language: "typescript",
                     });
 
@@ -1673,7 +1694,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
                 case "addJSScript": {
                     requisitions.executeRemote("createNewEditor", {
-                        page: String(page.connection.details.id),
+                        connectionId,
                         language: "javascript",
                     });
 
@@ -1692,11 +1713,12 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         return Promise.resolve(false);
     };
 
-    private handleCloseDocument = async (details: { connectionId?: number, documentId: string; }): Promise<boolean> => {
+    private handleCloseDocument = async (
+        details: { connectionId?: number, documentId: string, pageId?: string }): Promise<boolean> => {
         const { connectionTabs } = this.state;
 
         const tab = connectionTabs.find((tab) => {
-            return tab.connection.details.id === details.connectionId;
+            return tab.dataModelEntry.id === details.pageId;
         });
 
         if (!tab) {
@@ -1733,6 +1755,11 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
                 if (connectionState.documentStates.length === 0) {
                     // No editor left over -> close the connection. This will also send a remote notification.
+                    this.maxConnectionDocumentSuffix = new Map();
+                    if (this.latestPagesByConnection.get(tab?.connection.details.id) === tab.dataModelEntry.id) {
+                        this.latestPagesByConnection.delete(tab?.connection.details.id);
+                    }
+
                     return this.removeTabs([tab.dataModelEntry.id]);
                 } else {
                     this.notifyRemoteEditorClose(tab.dataModelEntry.id, documentState.document.id,
@@ -1749,13 +1776,14 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         return Promise.resolve(false);
     };
 
-    private handleSelectDocument = async (details: { connectionId: number, documentId: string; }): Promise<boolean> => {
+    private handleSelectDocument = async (details: { connectionId?: number, documentId: string;
+        pageId?: string; }): Promise<boolean> => {
         let document;
-        if (details.connectionId === -1) {
-            document = this.documentDataModel.findDocument(undefined, details.documentId);
+        if (!details.connectionId) {
+            document = this.documentDataModel.findDocument(undefined, details.documentId, details.pageId);
         } else {
-            document = this.documentDataModel.findConnectionDocument(undefined, details.connectionId,
-                details.documentId);
+            document = this.documentDataModel.findConnectionDocument(undefined, details.documentId,
+                details.connectionId, details.pageId);
         }
 
         if (document) {
@@ -1763,7 +1791,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
             return true;
         } else {
-            return this.showPage({ page: "connections" });
+            return this.showPage({});
         }
     };
 
@@ -1809,7 +1837,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private doSwitchTab(tabId: string): void {
         const { connectionTabs, documentTabs, shellSessionTabs } = this.state;
 
-        if (tabId === "connections") {
+        if (tabId === this.documentDataModel.overview.id) {
             this.showOverview();
 
             return;
@@ -1823,7 +1851,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         if (tab) {
             this.setState({ selectedPage: tabId });
 
-            requisitions.executeRemote("selectConnectionTab", { connectionId: tab.connection.details.id });
+            requisitions.executeRemote("selectConnectionTab", { connectionId: tab.connection.details.id,
+                pageId: tab.dataModelEntry.id });
         } else {
             const docTab = documentTabs.find((entry) => {
                 return entry.dataModelEntry.id === tabId;
@@ -1938,6 +1967,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
         const connectionState = tab ? this.connectionPresentation.get(tab.dataModelEntry) : undefined;
         if (connectionState) {
+            this.latestPagesByConnection.set(tab!.connection.details.id, details.tabId);
             // Check if we have an open document with the new id
             // (administration pages like server status count here too).
             const newEditor = connectionState.documentStates.find((candidate: IOpenDocumentState) => {
@@ -1970,7 +2000,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
             if (tab?.dataModelEntry) {
                 connectionState.activeEntry = documentId;
-                requisitions.executeRemote("selectDocument", { connectionId: tab.connection.details.id, documentId });
+                requisitions.executeRemote("selectDocument", { connectionId: tab.connection.details.id, documentId,
+                    pageId: tab.dataModelEntry.id });
 
                 this.forceUpdate();
             }
@@ -1978,7 +2009,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             // Even if the active page does not change, we have to notify the remote side.
             // Otherwise there's no notification when the user switches between multiple tabs.
             requisitions.executeRemote("selectDocument",
-                { connectionId: tab.connection.details.id, documentId: details.document.id });
+                { connectionId: tab.connection.details.id, documentId: details.document.id,
+                    pageId: tab.dataModelEntry.id });
         }
     };
 
@@ -2059,7 +2091,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         const pageEntry = entry as IOdmConnectionPageEntry;
         switch (command.command) {
             case "msg.loadScriptFromDisk": {
-                await this.loadScriptFromDisk(pageEntry.details);
+                await this.loadScriptFromDisk(pageEntry.details, pageEntry.id);
 
                 break;
             }
@@ -2068,7 +2100,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             case "msg.newScriptMysql":
             case "msg.newScriptSqlite": {
                 await this.createAndSelectScriptDocument(pageEntry.details, `Script ${++this.documentCounter}`,
-                    pageEntry.details.dbType === DBType.MySQL ? "mysql" : "sql", "");
+                    pageEntry.details.dbType === DBType.MySQL ? "mysql" : "sql", "", pageEntry.id);
 
                 break;
             }
@@ -2076,7 +2108,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             case "msg.newScriptJs":
             case "msg.newScriptTs": {
                 await this.createAndSelectScriptDocument(pageEntry.details, `Script ${++this.documentCounter}`,
-                    command.command === "msg.newScriptTs" ? "typescript" : "javascript", "");
+                    command.command === "msg.newScriptTs" ? "typescript" : "javascript", "", pageEntry.id);
 
                 break;
             }
@@ -2117,11 +2149,15 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
         const connection = entry?.connection;
         const connectionId = connection?.details.id;
+        let pageId: string | undefined;
+        if (connection) {
+            pageId = this.resolveLatestPageId(connection);
+        }
 
         switch (command.command) {
             case "msg.openConnection": {
                 if (connection) {
-                    await this.showPage({ page: String(connectionId) });
+                    await this.showPage({ connectionId, pageId });
                 }
 
                 break;
@@ -2129,7 +2165,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
             case "msg.loadScriptFromDisk": {
                 if (connection) {
-                    await this.loadScriptFromDisk(connection.details);
+                    await this.loadScriptFromDisk(connection.details, pageId);
                 }
 
                 break;
@@ -2164,7 +2200,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             }
 
             default: {
-                return this.#sidebarCommandHandler.handleConnectionTreeCommand(command, entry, qualifiedName);
+                return this.#sidebarCommandHandler.handleConnectionTreeCommand(command, entry, qualifiedName, pageId);
             }
         }
 
@@ -2260,14 +2296,14 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         return { success };
     };
 
-    private async loadScriptFromDisk(connection: IConnectionDetails): Promise<void> {
+    private async loadScriptFromDisk(connection: IConnectionDetails, pageId?: string): Promise<void> {
         const files = await selectFile([".sql"], false);
         if (files && files.length > 0) {
             const file = files[0];
             const content = await loadFileAsText(file);
 
             await this.createAndSelectScriptDocument(connection, file.name,
-                connection.dbType === DBType.MySQL ? "mysql" : "sql", content);
+                connection.dbType === DBType.MySQL ? "mysql" : "sql", content, pageId);
         }
     }
 
@@ -2278,17 +2314,18 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      * @param caption The caption in the document tree.
      * @param language The language of the script.
      * @param content The initial content of the script.
+     * @param pageId The id of the page.
      */
     private async createAndSelectScriptDocument(connection: IConnectionDetails, caption: string,
-        language: EditorLanguage, content: string): Promise<void> {
+        language: EditorLanguage, content: string, pageId?: string): Promise<void> {
         const { connectionTabs } = this.state;
 
         // Make sure we have a tab open for the connection.
-        await this.showPage({ page: String(connection.id) });
+        await this.showPage({ connectionId: connection.id, pageId });
 
         // At this point we should always find the tab.
         const tab = connectionTabs.find((tab) => {
-            return tab.connection.details.id === connection.id;
+            return pageId ? (tab.dataModelEntry.id === pageId) : (tab.connection.details.id === connection.id);
         });
 
         if (tab) {
@@ -2329,7 +2366,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
         if (existing) {
             this.setState({ selectedPage: sessionId });
-            requisitions.executeRemote("selectDocument", { connectionId: connectionId ?? -1, documentId: sessionId });
+            // !TODO: Check the need of pageId (existing.dataModelEntry.id?)
+            requisitions.executeRemote("selectDocument", { connectionId, documentId: sessionId });
         } else {
             this.showProgress();
             const backend = new ShellInterfaceShellSession();
@@ -2598,24 +2636,30 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
         switch (entry.type) {
             case CdmEntityType.AdminPage: {
-                const pageId = String(entry.connection.details.id);
+                const connectionId = entry.connection.details.id;
 
                 const canClose = this.currentTabRef.current ? (await this.currentTabRef.current.canClose()) : true;
                 if (!canClose) {
                     return;
                 }
 
-                await this.showPage({ page: pageId });
+                let pageId = this.resolveLatestPageId(entry.connection);
+
+                // At this point pageId may be still undefined if none are opened.
+                await this.showPage({ connectionId, pageId });
+
+                // But now it surely exists.
+                pageId = this.resolveLatestPageId(entry.connection);
 
                 const tab = connectionTabs.find((tab) => {
-                    return tab.connection.details.id === entry.parent.connection.details.id;
+                    return pageId ? (tab.dataModelEntry.id === pageId) : (tab.connection.details.id === connectionId);
                 });
 
                 const document = this.documentDataModel.openDocument(undefined, {
                     type: OdmEntityType.AdminPage,
                     parameters: {
-                        id: entry.id,
-                        pageId,
+                        id: `${entry.id}__${pageId}`,
+                        pageId: pageId!,
                         connection: entry.parent.connection.details,
                         caption: entry.caption,
                         pageType: entry.pageType,
@@ -2794,4 +2838,50 @@ EXAMPLES
             default:
         }
     };
+
+    private getNumberOfOpenedConnectionPages(entry: ICdmConnectionEntry): number {
+        return this.state.connectionTabs.filter(
+            (info) => { return info.connection.details.id === entry.details.id; }).length + 1;
+    }
+
+    private resolveLatestPageId(entry: ICdmConnectionEntry): string | undefined {
+        let pageId = this.latestPagesByConnection.get(entry.details.id);
+        if (pageId && !this.isValidPage(pageId)) {
+            // pageUuid does not exist anymore, invalidating.
+            this.latestPagesByConnection.delete(entry.details.id);
+            pageId = undefined;
+        }
+
+        this.state.connectionTabs.forEach((info: IConnectionTab) => {
+            if (!pageId && info.connection.details.id === entry.details.id) {
+                // Fallback: searching pageUuid by connectionId if it's not yet set after validation.
+                pageId = info.dataModelEntry.id;
+            }
+        });
+
+        return pageId;
+    }
+
+    private isValidPage(id: string): boolean {
+        return this.state.connectionTabs.findIndex((info: IConnectionTab) => {
+            return info.dataModelEntry.id === id;
+        }) !== -1;
+    }
+
+    private resolveTabCaption(connection: ICdmConnectionEntry): string {
+        const connectionId = connection.details.id;
+        const numberOfConnections = this.documentDataModel.roots.filter((item) => {
+            return item.type === OdmEntityType.ConnectionPage && item.details.id === connectionId;
+        }).length;
+
+        let caption = connection.caption;
+        let maxSuffix = this.maxConnectionDocumentSuffix.get(connectionId) || 1;
+        if (numberOfConnections > 0 || maxSuffix > 1) {
+            maxSuffix++;
+            caption = `${caption} (${maxSuffix})`;
+            this.maxConnectionDocumentSuffix.set(connectionId, maxSuffix);
+        }
+
+        return caption;
+    }
 }

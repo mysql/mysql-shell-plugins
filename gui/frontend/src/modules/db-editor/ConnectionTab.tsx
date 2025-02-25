@@ -667,7 +667,8 @@ Execute \\help or \\? for help;`;
     };
 
     private editorEditScript = (details: IScriptRequest): Promise<boolean> => {
-        const { id, onSelectItem, connection } = this.props;
+        const { onSelectItem, connection } = this.props;
+        const id = details.pageId ?? this.props.id;
 
         // Create a new document entry for the script. Its parent will be set by the editor module.
         if (this.documentDataModel) {

@@ -70,11 +70,12 @@ export class SidebarCommandHandler {
      * @param command The command to execute.
      * @param entry The data model entry for which to execute the command.
      * @param qualifiedName Optionally, the qualified name of the entry. Used for DB object related actions.
+     * @param pageId The id of the page.
      *
      * @returns A promise which resolves to true, except when the user cancels the operation.
      */
     public async handleConnectionTreeCommand(command: Command, entry?: ConnectionDataModelEntry,
-        qualifiedName?: QualifiedName): Promise<ISideBarCommandResult> {
+        qualifiedName?: QualifiedName, pageId?: string): Promise<ISideBarCommandResult> {
 
         let success = false;
         const connection = entry?.connection;
@@ -83,7 +84,7 @@ export class SidebarCommandHandler {
             switch (command.command) {
                 case "msg.editConnection": {
                     success = await requisitions.execute("job", [
-                        { requestType: "showPage", parameter: { page: "connections" } },
+                        { requestType: "showPage", parameter: {} },
                         { requestType: "editConnection", parameter: connection.details.id },
                     ]);
 
@@ -92,7 +93,7 @@ export class SidebarCommandHandler {
 
                 case "msg.duplicateConnection": {
                     success = await requisitions.execute("job", [
-                        { requestType: "showPage", parameter: { page: "connections" } },
+                        { requestType: "showPage", parameter: {} },
                         { requestType: "duplicateConnection", parameter: connection.details.id },
                     ]);
 
@@ -101,7 +102,7 @@ export class SidebarCommandHandler {
 
                 case "msg.removeConnection": {
                     success = await requisitions.execute("job", [
-                        { requestType: "showPage", parameter: { page: "connections" } },
+                        { requestType: "showPage", parameter: {} },
                         { requestType: "removeConnection", parameter: connection.details.id },
                     ]);
 
@@ -689,11 +690,11 @@ export class SidebarCommandHandler {
                             language: "mysql",
                         };
 
-                        const pageId = String(connection.details.id);
+                        const connectionId = connection.details.id;
                         success = await requisitions.execute("job", [
                             {
                                 requestType: "showPage",
-                                parameter: { page: pageId },
+                                parameter: { connectionId, pageId },
                             },
                             { requestType: "editorRunCode", parameter: options },
                         ]);
@@ -718,11 +719,11 @@ export class SidebarCommandHandler {
                         void ui.showInformationMessage("The name was copied to the system clipboard", {});
                         success = true;
                     } else {
-                        const pageId = String(connection.details.id);
+                        const connectionId = connection.details.id;
                         success = await requisitions.execute("job", [
                             {
                                 requestType: "showPage",
-                                parameter: { page: pageId },
+                                parameter: { connectionId },
                             },
                             { requestType: "editorInsertText", parameter: entry.caption },
                         ]);
@@ -794,11 +795,11 @@ export class SidebarCommandHandler {
                                         "system clipboard", {});
                                     success = true;
                                 } else {
-                                    const pageId = String(connection.details.id);
+                                    const connectionId = connection.details.id;
                                     success = await requisitions.execute("job", [
                                         {
                                             requestType: "showPage",
-                                            parameter: { page: pageId },
+                                            parameter: { connectionId, pageId },
                                         },
                                         { requestType: "editorInsertText", parameter: row[index] },
                                     ]);
@@ -856,7 +857,7 @@ export class SidebarCommandHandler {
         switch (command.command) {
             case "msg.addConnection": {
                 success = await requisitions.execute("job", [
-                    { requestType: "showPage", parameter: { page: "connections" } },
+                    { requestType: "showPage", parameter: {} },
                     { requestType: "addNewConnection", parameter: {} },
                 ]);
                 break;

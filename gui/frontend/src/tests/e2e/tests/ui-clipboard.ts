@@ -739,6 +739,7 @@ describe("CLIPBOARD", () => {
 
         beforeAll(async () => {
             try {
+                await new E2ETabContainer().closeAllTabs();
                 const treeGlobalConn = await dbTreeSection.getTreeItem(globalConn.caption!);
                 await (await treeGlobalConn.getActionButton(constants.openNewConnectionUsingNotebook))!.click();
                 notebook = await new E2ENotebook().untilIsOpened(globalConn);

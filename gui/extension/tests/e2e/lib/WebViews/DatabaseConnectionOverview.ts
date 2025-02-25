@@ -22,12 +22,13 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { WebElement, until, Condition } from "vscode-extension-tester";
+import { WebElement, until, Condition, Key } from "vscode-extension-tester";
 import { driver, Misc } from "../Misc";
 import * as constants from "../constants";
 import * as locator from "../locators";
 import { E2EToolbar } from "./E2EToolbar";
 import * as errors from "../errors";
+import { Os } from "../Os";
 
 /**
  * This class represents the database connection overview page, and all its related functions
@@ -138,6 +139,22 @@ export class DatabaseConnectionOverview {
         return new Condition(`for ${dbConnection} to exist`, async () => {
             return this.existsConnection(dbConnection);
         });
+    };
+
+    /**
+     * Opens a new notebook with (CMD|ALT)+click
+     * @param dbConnectionCaption The DB Connection caption
+     */
+    public openNotebookUsingKeyboard = async (dbConnectionCaption: string): Promise<void> => {
+
+        const dbConnection = await this.getConnection(dbConnectionCaption);
+        await driver.actions()
+            .move({ origin: dbConnection })
+            .keyDown(Os.isMacOs() ? Key.COMMAND : Key.ALT)
+            .click()
+            .keyUp(Os.isMacOs() ? Key.COMMAND : Key.ALT)
+            .perform();
+
     };
 
 }

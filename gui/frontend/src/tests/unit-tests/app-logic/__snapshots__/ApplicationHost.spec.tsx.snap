@@ -72,7 +72,8 @@ exports[`Application host tests Rendering About 1`] = `
                       <div
                         class="msg container fixedScrollbar accordion"
                         id="documentSideBar"
-                        selectedopendocument="connections"
+                        overviewid=""
+                        selectedopendocument=""
                         style="flex-direction: column; justify-content: flex-start;"
                       >
                         <label
@@ -144,7 +145,7 @@ exports[`Application host tests Rendering About 1`] = `
                                 >
                                   <div
                                     class="msg treeGrid"
-                                    selectedrows="connections"
+                                    selectedrows=""
                                   />
                                 </div>
                               </div>
@@ -395,8 +396,9 @@ exports[`Application host tests Rendering About 1`] = `
                     onSaveState={[Function]}
                     onSelectConnectionItem={[Function]}
                     onSelectDocumentItem={[Function]}
+                    overviewId=""
                     savedSectionState={Map {}}
-                    selectedOpenDocument="connections"
+                    selectedOpenDocument=""
                   />,
                   "initialSize": 250,
                   "minSize": 0,
@@ -504,8 +506,9 @@ exports[`Application host tests Rendering About 1`] = `
                       onSaveState={[Function]}
                       onSelectConnectionItem={[Function]}
                       onSelectDocumentItem={[Function]}
+                      overviewId=""
                       savedSectionState={Map {}}
-                      selectedOpenDocument="connections"
+                      selectedOpenDocument=""
                     >
                       <Accordion
                         caption="MYSQL SHELL WORKBENCH"
@@ -513,6 +516,7 @@ exports[`Application host tests Rendering About 1`] = `
                         onSectionAction={[Function]}
                         onSectionExpand={[Function]}
                         onSectionResize={[Function]}
+                        overviewId=""
                         sections={
                           [
                             {
@@ -554,7 +558,7 @@ exports[`Application host tests Rendering About 1`] = `
                                 }
                                 selectedRows={
                                   [
-                                    "connections",
+                                    "",
                                   ]
                                 }
                               />,
@@ -733,7 +737,8 @@ exports[`Application host tests Rendering About 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                selectedopendocument="connections"
+                                                overviewid=""
+                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <label
@@ -805,7 +810,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                         >
                                                           <div
                                                             class="msg treeGrid"
-                                                            selectedrows="connections"
+                                                            selectedrows=""
                                                           />
                                                         </div>
                                                       </div>
@@ -1151,7 +1156,8 @@ exports[`Application host tests Rendering About 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -1223,7 +1229,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -1474,8 +1480,9 @@ exports[`Application host tests Rendering About 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -1552,7 +1559,8 @@ exports[`Application host tests Rendering About 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              selectedopendocument="connections"
+                                              overviewid=""
+                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <label
@@ -1624,7 +1632,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                       >
                                                         <div
                                                           class="msg treeGrid"
-                                                          selectedrows="connections"
+                                                          selectedrows=""
                                                         />
                                                       </div>
                                                     </div>
@@ -1892,7 +1900,8 @@ exports[`Application host tests Rendering About 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -1964,7 +1973,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -2215,8 +2224,9 @@ exports[`Application host tests Rendering About 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -2457,7 +2467,8 @@ exports[`Application host tests Rendering About 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                selectedopendocument="connections"
+                                                overviewid=""
+                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <label
@@ -2529,7 +2540,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                         >
                                                           <div
                                                             class="msg treeGrid"
-                                                            selectedrows="connections"
+                                                            selectedrows=""
                                                           />
                                                         </div>
                                                       </div>
@@ -2875,7 +2886,8 @@ exports[`Application host tests Rendering About 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -2947,7 +2959,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -3198,8 +3210,9 @@ exports[`Application host tests Rendering About 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -3276,7 +3289,8 @@ exports[`Application host tests Rendering About 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              selectedopendocument="connections"
+                                              overviewid=""
+                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <label
@@ -3348,7 +3362,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                       >
                                                         <div
                                                           class="msg treeGrid"
-                                                          selectedrows="connections"
+                                                          selectedrows=""
                                                         />
                                                       </div>
                                                     </div>
@@ -3616,7 +3630,8 @@ exports[`Application host tests Rendering About 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -3688,7 +3703,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -3939,8 +3954,9 @@ exports[`Application host tests Rendering About 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -4351,7 +4367,8 @@ exports[`Application host tests Rendering About 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                selectedopendocument="connections"
+                                                overviewid=""
+                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <label
@@ -4423,7 +4440,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                         >
                                                           <div
                                                             class="msg treeGrid"
-                                                            selectedrows="connections"
+                                                            selectedrows=""
                                                           />
                                                         </div>
                                                       </div>
@@ -4769,7 +4786,8 @@ exports[`Application host tests Rendering About 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -4841,7 +4859,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -5092,8 +5110,9 @@ exports[`Application host tests Rendering About 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -5170,7 +5189,8 @@ exports[`Application host tests Rendering About 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              selectedopendocument="connections"
+                                              overviewid=""
+                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <label
@@ -5242,7 +5262,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                       >
                                                         <div
                                                           class="msg treeGrid"
-                                                          selectedrows="connections"
+                                                          selectedrows=""
                                                         />
                                                       </div>
                                                     </div>
@@ -5510,7 +5530,8 @@ exports[`Application host tests Rendering About 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -5582,7 +5603,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -5833,8 +5854,9 @@ exports[`Application host tests Rendering About 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -6034,7 +6056,8 @@ exports[`Application host tests Rendering About 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                selectedopendocument="connections"
+                                                overviewid=""
+                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <label
@@ -6106,7 +6129,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                         >
                                                           <div
                                                             class="msg treeGrid"
-                                                            selectedrows="connections"
+                                                            selectedrows=""
                                                           />
                                                         </div>
                                                       </div>
@@ -6452,7 +6475,8 @@ exports[`Application host tests Rendering About 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -6524,7 +6548,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -6775,8 +6799,9 @@ exports[`Application host tests Rendering About 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -6853,7 +6878,8 @@ exports[`Application host tests Rendering About 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              selectedopendocument="connections"
+                                              overviewid=""
+                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <label
@@ -6925,7 +6951,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                       >
                                                         <div
                                                           class="msg treeGrid"
-                                                          selectedrows="connections"
+                                                          selectedrows=""
                                                         />
                                                       </div>
                                                     </div>
@@ -7193,7 +7219,8 @@ exports[`Application host tests Rendering About 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -7265,7 +7292,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -7516,8 +7543,9 @@ exports[`Application host tests Rendering About 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -7764,19 +7792,21 @@ exports[`Application host tests Rendering About 1`] = `
                             },
                           ]
                         }
-                        selectedOpenDocument="connections"
+                        selectedOpenDocument=""
                       >
                         <Container
                           className="msg accordion"
                           id="documentSideBar"
                           mainAlignment="flex-start"
                           orientation="column"
-                          selectedOpenDocument="connections"
+                          overviewId=""
+                          selectedOpenDocument=""
                         >
                           <div
                             className="msg container fixedScrollbar accordion"
                             id="documentSideBar"
-                            selectedOpenDocument="connections"
+                            overviewId=""
+                            selectedOpenDocument=""
                             style={
                               {
                                 "alignItems": undefined,
@@ -7852,7 +7882,7 @@ exports[`Application host tests Rendering About 1`] = `
                                         }
                                         selectedRows={
                                           [
-                                            "connections",
+                                            "",
                                           ]
                                         }
                                       />
@@ -8104,7 +8134,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                 >
                                                   <div
                                                     class="msg treeGrid"
-                                                    selectedrows="connections"
+                                                    selectedrows=""
                                                   />
                                                 </div>
                                               </div>,
@@ -8250,7 +8280,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                   }
                                                   selectedRows={
                                                     [
-                                                      "connections",
+                                                      "",
                                                     ]
                                                   }
                                                 >
@@ -8258,7 +8288,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                     className="msg treeGrid"
                                                     selectedRows={
                                                       [
-                                                        "connections",
+                                                        "",
                                                       ]
                                                     }
                                                   />
@@ -10450,7 +10480,8 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                       <div
                         class="msg container fixedScrollbar accordion"
                         id="documentSideBar"
-                        selectedopendocument="connections"
+                        overviewid=""
+                        selectedopendocument=""
                         style="flex-direction: column; justify-content: flex-start;"
                       >
                         <label
@@ -10522,7 +10553,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                 >
                                   <div
                                     class="msg treeGrid"
-                                    selectedrows="connections"
+                                    selectedrows=""
                                   />
                                 </div>
                               </div>
@@ -10773,8 +10804,9 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                     onSaveState={[Function]}
                     onSelectConnectionItem={[Function]}
                     onSelectDocumentItem={[Function]}
+                    overviewId=""
                     savedSectionState={Map {}}
-                    selectedOpenDocument="connections"
+                    selectedOpenDocument=""
                   />,
                   "initialSize": 250,
                   "minSize": 0,
@@ -10882,8 +10914,9 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                       onSaveState={[Function]}
                       onSelectConnectionItem={[Function]}
                       onSelectDocumentItem={[Function]}
+                      overviewId=""
                       savedSectionState={Map {}}
-                      selectedOpenDocument="connections"
+                      selectedOpenDocument=""
                     >
                       <Accordion
                         caption="MYSQL SHELL WORKBENCH"
@@ -10891,6 +10924,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                         onSectionAction={[Function]}
                         onSectionExpand={[Function]}
                         onSectionResize={[Function]}
+                        overviewId=""
                         sections={
                           [
                             {
@@ -10932,7 +10966,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                 }
                                 selectedRows={
                                   [
-                                    "connections",
+                                    "",
                                   ]
                                 }
                               />,
@@ -11111,7 +11145,8 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                selectedopendocument="connections"
+                                                overviewid=""
+                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <label
@@ -11183,7 +11218,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                         >
                                                           <div
                                                             class="msg treeGrid"
-                                                            selectedrows="connections"
+                                                            selectedrows=""
                                                           />
                                                         </div>
                                                       </div>
@@ -11477,7 +11512,8 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -11549,7 +11585,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -11800,8 +11836,9 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -11878,7 +11915,8 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              selectedopendocument="connections"
+                                              overviewid=""
+                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <label
@@ -11950,7 +11988,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                       >
                                                         <div
                                                           class="msg treeGrid"
-                                                          selectedrows="connections"
+                                                          selectedrows=""
                                                         />
                                                       </div>
                                                     </div>
@@ -12218,7 +12256,8 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -12290,7 +12329,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -12541,8 +12580,9 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -12783,7 +12823,8 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                selectedopendocument="connections"
+                                                overviewid=""
+                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <label
@@ -12855,7 +12896,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                         >
                                                           <div
                                                             class="msg treeGrid"
-                                                            selectedrows="connections"
+                                                            selectedrows=""
                                                           />
                                                         </div>
                                                       </div>
@@ -13149,7 +13190,8 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -13221,7 +13263,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -13472,8 +13514,9 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -13550,7 +13593,8 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              selectedopendocument="connections"
+                                              overviewid=""
+                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <label
@@ -13622,7 +13666,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                       >
                                                         <div
                                                           class="msg treeGrid"
-                                                          selectedrows="connections"
+                                                          selectedrows=""
                                                         />
                                                       </div>
                                                     </div>
@@ -13890,7 +13934,8 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -13962,7 +14007,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -14213,8 +14258,9 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -14625,7 +14671,8 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                selectedopendocument="connections"
+                                                overviewid=""
+                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <label
@@ -14697,7 +14744,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                         >
                                                           <div
                                                             class="msg treeGrid"
-                                                            selectedrows="connections"
+                                                            selectedrows=""
                                                           />
                                                         </div>
                                                       </div>
@@ -14991,7 +15038,8 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -15063,7 +15111,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -15314,8 +15362,9 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -15392,7 +15441,8 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              selectedopendocument="connections"
+                                              overviewid=""
+                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <label
@@ -15464,7 +15514,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                       >
                                                         <div
                                                           class="msg treeGrid"
-                                                          selectedrows="connections"
+                                                          selectedrows=""
                                                         />
                                                       </div>
                                                     </div>
@@ -15732,7 +15782,8 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -15804,7 +15855,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -16055,8 +16106,9 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -16256,7 +16308,8 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                selectedopendocument="connections"
+                                                overviewid=""
+                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <label
@@ -16328,7 +16381,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                         >
                                                           <div
                                                             class="msg treeGrid"
-                                                            selectedrows="connections"
+                                                            selectedrows=""
                                                           />
                                                         </div>
                                                       </div>
@@ -16622,7 +16675,8 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -16694,7 +16748,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -16945,8 +16999,9 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -17023,7 +17078,8 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              selectedopendocument="connections"
+                                              overviewid=""
+                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <label
@@ -17095,7 +17151,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                       >
                                                         <div
                                                           class="msg treeGrid"
-                                                          selectedrows="connections"
+                                                          selectedrows=""
                                                         />
                                                       </div>
                                                     </div>
@@ -17363,7 +17419,8 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -17435,7 +17492,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -17686,8 +17743,9 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -17934,19 +17992,21 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                             },
                           ]
                         }
-                        selectedOpenDocument="connections"
+                        selectedOpenDocument=""
                       >
                         <Container
                           className="msg accordion"
                           id="documentSideBar"
                           mainAlignment="flex-start"
                           orientation="column"
-                          selectedOpenDocument="connections"
+                          overviewId=""
+                          selectedOpenDocument=""
                         >
                           <div
                             className="msg container fixedScrollbar accordion"
                             id="documentSideBar"
-                            selectedOpenDocument="connections"
+                            overviewId=""
+                            selectedOpenDocument=""
                             style={
                               {
                                 "alignItems": undefined,
@@ -18022,7 +18082,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                         }
                                         selectedRows={
                                           [
-                                            "connections",
+                                            "",
                                           ]
                                         }
                                       />
@@ -18274,7 +18334,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                 >
                                                   <div
                                                     class="msg treeGrid"
-                                                    selectedrows="connections"
+                                                    selectedrows=""
                                                   />
                                                 </div>
                                               </div>,
@@ -18420,7 +18480,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                   }
                                                   selectedRows={
                                                     [
-                                                      "connections",
+                                                      "",
                                                     ]
                                                   }
                                                 >
@@ -18428,7 +18488,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     className="msg treeGrid"
                                                     selectedRows={
                                                       [
-                                                        "connections",
+                                                        "",
                                                       ]
                                                     }
                                                   />
@@ -20620,7 +20680,8 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                       <div
                         class="msg container fixedScrollbar accordion"
                         id="documentSideBar"
-                        selectedopendocument="connections"
+                        overviewid=""
+                        selectedopendocument=""
                         style="flex-direction: column; justify-content: flex-start;"
                       >
                         <label
@@ -20692,7 +20753,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                 >
                                   <div
                                     class="msg treeGrid"
-                                    selectedrows="connections"
+                                    selectedrows=""
                                   />
                                 </div>
                               </div>
@@ -20943,8 +21004,9 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                     onSaveState={[Function]}
                     onSelectConnectionItem={[Function]}
                     onSelectDocumentItem={[Function]}
+                    overviewId=""
                     savedSectionState={Map {}}
-                    selectedOpenDocument="connections"
+                    selectedOpenDocument=""
                   />,
                   "initialSize": 250,
                   "minSize": 0,
@@ -21052,8 +21114,9 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                       onSaveState={[Function]}
                       onSelectConnectionItem={[Function]}
                       onSelectDocumentItem={[Function]}
+                      overviewId=""
                       savedSectionState={Map {}}
-                      selectedOpenDocument="connections"
+                      selectedOpenDocument=""
                     >
                       <Accordion
                         caption="MYSQL SHELL WORKBENCH"
@@ -21061,6 +21124,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                         onSectionAction={[Function]}
                         onSectionExpand={[Function]}
                         onSectionResize={[Function]}
+                        overviewId=""
                         sections={
                           [
                             {
@@ -21102,7 +21166,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                 }
                                 selectedRows={
                                   [
-                                    "connections",
+                                    "",
                                   ]
                                 }
                               />,
@@ -21281,7 +21345,8 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                selectedopendocument="connections"
+                                                overviewid=""
+                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <label
@@ -21353,7 +21418,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                         >
                                                           <div
                                                             class="msg treeGrid"
-                                                            selectedrows="connections"
+                                                            selectedrows=""
                                                           />
                                                         </div>
                                                       </div>
@@ -21647,7 +21712,8 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -21719,7 +21785,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -21970,8 +22036,9 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -22048,7 +22115,8 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              selectedopendocument="connections"
+                                              overviewid=""
+                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <label
@@ -22120,7 +22188,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                       >
                                                         <div
                                                           class="msg treeGrid"
-                                                          selectedrows="connections"
+                                                          selectedrows=""
                                                         />
                                                       </div>
                                                     </div>
@@ -22388,7 +22456,8 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -22460,7 +22529,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -22711,8 +22780,9 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -22953,7 +23023,8 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                selectedopendocument="connections"
+                                                overviewid=""
+                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <label
@@ -23025,7 +23096,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                         >
                                                           <div
                                                             class="msg treeGrid"
-                                                            selectedrows="connections"
+                                                            selectedrows=""
                                                           />
                                                         </div>
                                                       </div>
@@ -23319,7 +23390,8 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -23391,7 +23463,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -23642,8 +23714,9 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -23720,7 +23793,8 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              selectedopendocument="connections"
+                                              overviewid=""
+                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <label
@@ -23792,7 +23866,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                       >
                                                         <div
                                                           class="msg treeGrid"
-                                                          selectedrows="connections"
+                                                          selectedrows=""
                                                         />
                                                       </div>
                                                     </div>
@@ -24060,7 +24134,8 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -24132,7 +24207,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -24383,8 +24458,9 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -24795,7 +24871,8 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                selectedopendocument="connections"
+                                                overviewid=""
+                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <label
@@ -24867,7 +24944,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                         >
                                                           <div
                                                             class="msg treeGrid"
-                                                            selectedrows="connections"
+                                                            selectedrows=""
                                                           />
                                                         </div>
                                                       </div>
@@ -25161,7 +25238,8 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -25233,7 +25311,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -25484,8 +25562,9 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -25562,7 +25641,8 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              selectedopendocument="connections"
+                                              overviewid=""
+                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <label
@@ -25634,7 +25714,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                       >
                                                         <div
                                                           class="msg treeGrid"
-                                                          selectedrows="connections"
+                                                          selectedrows=""
                                                         />
                                                       </div>
                                                     </div>
@@ -25902,7 +25982,8 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -25974,7 +26055,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -26225,8 +26306,9 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -26426,7 +26508,8 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                selectedopendocument="connections"
+                                                overviewid=""
+                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <label
@@ -26498,7 +26581,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                         >
                                                           <div
                                                             class="msg treeGrid"
-                                                            selectedrows="connections"
+                                                            selectedrows=""
                                                           />
                                                         </div>
                                                       </div>
@@ -26792,7 +26875,8 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -26864,7 +26948,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -27115,8 +27199,9 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -27193,7 +27278,8 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              selectedopendocument="connections"
+                                              overviewid=""
+                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <label
@@ -27265,7 +27351,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                       >
                                                         <div
                                                           class="msg treeGrid"
-                                                          selectedrows="connections"
+                                                          selectedrows=""
                                                         />
                                                       </div>
                                                     </div>
@@ -27533,7 +27619,8 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -27605,7 +27692,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -27856,8 +27943,9 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -28104,19 +28192,21 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                             },
                           ]
                         }
-                        selectedOpenDocument="connections"
+                        selectedOpenDocument=""
                       >
                         <Container
                           className="msg accordion"
                           id="documentSideBar"
                           mainAlignment="flex-start"
                           orientation="column"
-                          selectedOpenDocument="connections"
+                          overviewId=""
+                          selectedOpenDocument=""
                         >
                           <div
                             className="msg container fixedScrollbar accordion"
                             id="documentSideBar"
-                            selectedOpenDocument="connections"
+                            overviewId=""
+                            selectedOpenDocument=""
                             style={
                               {
                                 "alignItems": undefined,
@@ -28192,7 +28282,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                         }
                                         selectedRows={
                                           [
-                                            "connections",
+                                            "",
                                           ]
                                         }
                                       />
@@ -28444,7 +28534,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                 >
                                                   <div
                                                     class="msg treeGrid"
-                                                    selectedrows="connections"
+                                                    selectedrows=""
                                                   />
                                                 </div>
                                               </div>,
@@ -28590,7 +28680,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                   }
                                                   selectedRows={
                                                     [
-                                                      "connections",
+                                                      "",
                                                     ]
                                                   }
                                                 >
@@ -28598,7 +28688,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     className="msg treeGrid"
                                                     selectedRows={
                                                       [
-                                                        "connections",
+                                                        "",
                                                       ]
                                                     }
                                                   />
@@ -30790,7 +30880,8 @@ exports[`Application host tests Rendering Preferences 1`] = `
                       <div
                         class="msg container fixedScrollbar accordion"
                         id="documentSideBar"
-                        selectedopendocument="connections"
+                        overviewid=""
+                        selectedopendocument=""
                         style="flex-direction: column; justify-content: flex-start;"
                       >
                         <label
@@ -30862,7 +30953,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                 >
                                   <div
                                     class="msg treeGrid"
-                                    selectedrows="connections"
+                                    selectedrows=""
                                   />
                                 </div>
                               </div>
@@ -31113,8 +31204,9 @@ exports[`Application host tests Rendering Preferences 1`] = `
                     onSaveState={[Function]}
                     onSelectConnectionItem={[Function]}
                     onSelectDocumentItem={[Function]}
+                    overviewId=""
                     savedSectionState={Map {}}
-                    selectedOpenDocument="connections"
+                    selectedOpenDocument=""
                   />,
                   "initialSize": 250,
                   "minSize": 0,
@@ -31222,8 +31314,9 @@ exports[`Application host tests Rendering Preferences 1`] = `
                       onSaveState={[Function]}
                       onSelectConnectionItem={[Function]}
                       onSelectDocumentItem={[Function]}
+                      overviewId=""
                       savedSectionState={Map {}}
-                      selectedOpenDocument="connections"
+                      selectedOpenDocument=""
                     >
                       <Accordion
                         caption="MYSQL SHELL WORKBENCH"
@@ -31231,6 +31324,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                         onSectionAction={[Function]}
                         onSectionExpand={[Function]}
                         onSectionResize={[Function]}
+                        overviewId=""
                         sections={
                           [
                             {
@@ -31272,7 +31366,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                 }
                                 selectedRows={
                                   [
-                                    "connections",
+                                    "",
                                   ]
                                 }
                               />,
@@ -31451,7 +31545,8 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                selectedopendocument="connections"
+                                                overviewid=""
+                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <label
@@ -31523,7 +31618,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                         >
                                                           <div
                                                             class="msg treeGrid"
-                                                            selectedrows="connections"
+                                                            selectedrows=""
                                                           />
                                                         </div>
                                                       </div>
@@ -31895,7 +31990,8 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -31967,7 +32063,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -32218,8 +32314,9 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -32296,7 +32393,8 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              selectedopendocument="connections"
+                                              overviewid=""
+                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <label
@@ -32368,7 +32466,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                       >
                                                         <div
                                                           class="msg treeGrid"
-                                                          selectedrows="connections"
+                                                          selectedrows=""
                                                         />
                                                       </div>
                                                     </div>
@@ -32636,7 +32734,8 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -32708,7 +32807,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -32959,8 +33058,9 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -33201,7 +33301,8 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                selectedopendocument="connections"
+                                                overviewid=""
+                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <label
@@ -33273,7 +33374,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                         >
                                                           <div
                                                             class="msg treeGrid"
-                                                            selectedrows="connections"
+                                                            selectedrows=""
                                                           />
                                                         </div>
                                                       </div>
@@ -33645,7 +33746,8 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -33717,7 +33819,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -33968,8 +34070,9 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -34046,7 +34149,8 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              selectedopendocument="connections"
+                                              overviewid=""
+                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <label
@@ -34118,7 +34222,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                       >
                                                         <div
                                                           class="msg treeGrid"
-                                                          selectedrows="connections"
+                                                          selectedrows=""
                                                         />
                                                       </div>
                                                     </div>
@@ -34386,7 +34490,8 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -34458,7 +34563,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -34709,8 +34814,9 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -35121,7 +35227,8 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                selectedopendocument="connections"
+                                                overviewid=""
+                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <label
@@ -35193,7 +35300,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                         >
                                                           <div
                                                             class="msg treeGrid"
-                                                            selectedrows="connections"
+                                                            selectedrows=""
                                                           />
                                                         </div>
                                                       </div>
@@ -35565,7 +35672,8 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -35637,7 +35745,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -35888,8 +35996,9 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -35966,7 +36075,8 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              selectedopendocument="connections"
+                                              overviewid=""
+                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <label
@@ -36038,7 +36148,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                       >
                                                         <div
                                                           class="msg treeGrid"
-                                                          selectedrows="connections"
+                                                          selectedrows=""
                                                         />
                                                       </div>
                                                     </div>
@@ -36306,7 +36416,8 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -36378,7 +36489,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -36629,8 +36740,9 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -36830,7 +36942,8 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                selectedopendocument="connections"
+                                                overviewid=""
+                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <label
@@ -36902,7 +37015,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                         >
                                                           <div
                                                             class="msg treeGrid"
-                                                            selectedrows="connections"
+                                                            selectedrows=""
                                                           />
                                                         </div>
                                                       </div>
@@ -37274,7 +37387,8 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -37346,7 +37460,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -37597,8 +37711,9 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -37675,7 +37790,8 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              selectedopendocument="connections"
+                                              overviewid=""
+                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <label
@@ -37747,7 +37863,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                       >
                                                         <div
                                                           class="msg treeGrid"
-                                                          selectedrows="connections"
+                                                          selectedrows=""
                                                         />
                                                       </div>
                                                     </div>
@@ -38015,7 +38131,8 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      selectedopendocument="connections"
+                                                      overviewid=""
+                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <label
@@ -38087,7 +38204,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                               >
                                                                 <div
                                                                   class="msg treeGrid"
-                                                                  selectedrows="connections"
+                                                                  selectedrows=""
                                                                 />
                                                               </div>
                                                             </div>
@@ -38338,8 +38455,9 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                   onSaveState={[Function]}
                                                   onSelectConnectionItem={[Function]}
                                                   onSelectDocumentItem={[Function]}
+                                                  overviewId=""
                                                   savedSectionState={Map {}}
-                                                  selectedOpenDocument="connections"
+                                                  selectedOpenDocument=""
                                                 />,
                                                 "initialSize": 250,
                                                 "minSize": 0,
@@ -38586,19 +38704,21 @@ exports[`Application host tests Rendering Preferences 1`] = `
                             },
                           ]
                         }
-                        selectedOpenDocument="connections"
+                        selectedOpenDocument=""
                       >
                         <Container
                           className="msg accordion"
                           id="documentSideBar"
                           mainAlignment="flex-start"
                           orientation="column"
-                          selectedOpenDocument="connections"
+                          overviewId=""
+                          selectedOpenDocument=""
                         >
                           <div
                             className="msg container fixedScrollbar accordion"
                             id="documentSideBar"
-                            selectedOpenDocument="connections"
+                            overviewId=""
+                            selectedOpenDocument=""
                             style={
                               {
                                 "alignItems": undefined,
@@ -38674,7 +38794,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                         }
                                         selectedRows={
                                           [
-                                            "connections",
+                                            "",
                                           ]
                                         }
                                       />
@@ -38926,7 +39046,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                 >
                                                   <div
                                                     class="msg treeGrid"
-                                                    selectedrows="connections"
+                                                    selectedrows=""
                                                   />
                                                 </div>
                                               </div>,
@@ -39072,7 +39192,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                   }
                                                   selectedRows={
                                                     [
-                                                      "connections",
+                                                      "",
                                                     ]
                                                   }
                                                 >
@@ -39080,7 +39200,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     className="msg treeGrid"
                                                     selectedRows={
                                                       [
-                                                        "connections",
+                                                        "",
                                                       ]
                                                     }
                                                   />

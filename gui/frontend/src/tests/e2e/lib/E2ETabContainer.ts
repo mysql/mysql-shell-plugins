@@ -78,14 +78,46 @@ export class E2ETabContainer {
      */
     public getTabs = async (): Promise<string[]> => {
 
-        const tabs = await driver.findElements(locator.tab.exists);
+        const getTabsText = async (): Promise<string[]> => {
+            const tabs = await driver.findElements(locator.tab.exists);
 
-        const tabTexts = await Promise.all(tabs.map(async (item: WebElement) => {
-            return (await item.findElement(locator.tab.label)).getAttribute("innerHTML");
-        }));
+            return Promise.all(tabs.map(async (item: WebElement) => {
+                return (await item.findElement(locator.tab.label)).getAttribute("innerHTML");
+            }));
+        };
+
+        let tabTexts: string[];
+
+        try {
+            tabTexts = await getTabsText();
+        } catch (e) {
+            if (!(e instanceof error.StaleElementReferenceError)) {
+                throw e;
+            } else {
+                tabTexts = await getTabsText();
+            }
+        }
 
         return tabTexts.filter((item: string) => {
             return item !== "INPUT CONSOLE";
+        });
+    };
+
+    /**
+     * Selects a tab
+     * @param name The tab name
+     */
+    public selectTab = async (name: string | RegExp): Promise<void> => {
+        const action = async (): Promise<void> => {
+            await (await this.getTab(name)).click();
+        };
+
+        await action().catch(async (e) => {
+            if (e instanceof error.StaleElementReferenceError) {
+                await action();
+            } else {
+                throw e;
+            }
         });
     };
 
@@ -139,11 +171,17 @@ export class E2ETabContainer {
             try {
                 const tabs = await driver.findElements(locator.tab.exists);
 
-                for (const tab of tabs) {
-                    const id = await tab.getAttribute("id");
+                for (let i = 0; i <= tabs.length - 1; i++) {
+                    const html = await tabs[i].getAttribute("outerHTML");
 
-                    if (id.match(/(\d+)/)) {
-                        await (await tab.findElement(locator.tab.close)).click();
+                    if (html.match(new RegExp(constants.connectionOverview)) === null) {
+                        await tabs[i].findElement(locator.tab.close)
+                            .then(async (el) => {
+                                await el.click();
+                            })
+                            .catch(() => {
+                                // continue
+                            });
                     }
                 }
 

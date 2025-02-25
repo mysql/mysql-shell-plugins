@@ -1038,3 +1038,13 @@ export const recreateMrsData = async (): Promise<IRecreateMrsDataResult> => {
         authApp,
     });
 };
+
+export const ignoreSnapshotUuids = (): void => {
+    const uuidRegex = /^[a-f0-9-]{36}$/;
+
+    expect.addSnapshotSerializer({
+        test: (val: unknown): boolean => { return !!(typeof val === "string" && val.match(uuidRegex)); },
+        print: () => { return `""`; },
+    });
+};
+

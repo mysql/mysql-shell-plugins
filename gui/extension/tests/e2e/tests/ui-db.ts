@@ -51,6 +51,7 @@ import { TestQueue } from "../lib/TestQueue";
 import { E2EMySQLAdministration } from "../lib/WebViews/MySQLAdministration/E2EMySQLAdministration";
 import { E2ECommandResultGrid } from "../lib/WebViews/CommandResults/E2ECommandResultGrid";
 import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
+import { PasswordDialog } from "../lib/WebViews/Dialogs/PasswordDialog.js";
 
 describe("DATABASE CONNECTIONS", () => {
 
@@ -733,6 +734,56 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(new E2EShellConsole().untilIsOpened(globalConn),
                 constants.wait15seconds, "Shell Console was not loaded");
 
+        });
+
+        it("Open 3 notebooks for the same database connection", async () => {
+            const dbConnectionOverview = new DatabaseConnectionOverview();
+            const connection = await dbConnectionOverview.getConnection(globalConn.caption);
+            await connection.click();
+            const notebook = new E2ENotebook();
+            await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.dbConnectionsLabel));
+            await dbConnectionOverview.openNotebookUsingKeyboard(globalConn.caption);
+
+            await driver.wait(async () => {
+                if (await PasswordDialog.exists()) {
+                    await PasswordDialog.setCredentials(globalConn);
+
+                    return true;
+                }
+            }, constants.wait5seconds, "Could not find the Password Dialog for second connection");
+
+
+            await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.dbConnectionsLabel));
+            await dbConnectionOverview.openNotebookUsingKeyboard(globalConn.caption);
+            await driver.wait(async () => {
+                if (await PasswordDialog.exists()) {
+                    await PasswordDialog.setCredentials(globalConn);
+
+                    return true;
+                }
+            }, constants.wait5seconds, "Could not find the Password Dialog for third connection");
+
+            await notebook.toolbar.editorSelector.selectEditor(new RegExp(constants.dbConnectionsLabel));
+            await dbConnectionOverview.openNotebookUsingKeyboard(globalConn.caption);
+            await driver.wait(async () => {
+                if (await PasswordDialog.exists()) {
+                    await PasswordDialog.setCredentials(globalConn);
+
+                    return true;
+                }
+            }, constants.wait5seconds, "Could not find the Password Dialog for forth connection");
+
+            const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
+            await openEditorsSection.focus();
+
+            expect(await openEditorsSection.treeItemExists(`${globalConn.caption}`)).to.equals(true);
+            expect(await openEditorsSection.treeItemExists(`${globalConn.caption} (2)`)).to.equals(true);
+            expect(await openEditorsSection.treeItemExists(`${globalConn.caption} (3)`)).to.equals(true);
+
+            await Workbench.closeAllEditors();
+            expect(await openEditorsSection.treeItemExists(`${globalConn.caption}`)).to.equals(false);
+            expect(await openEditorsSection.treeItemExists(`${globalConn.caption} (2)`)).to.equals(false);
+            expect(await openEditorsSection.treeItemExists(`${globalConn.caption} (3)`)).to.equals(false);
         });
 
     });

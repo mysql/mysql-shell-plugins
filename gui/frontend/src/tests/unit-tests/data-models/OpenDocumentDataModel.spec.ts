@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,6 +27,7 @@ import { registerUiLayer } from "../../../app-logic/UILayer.js";
 import {
     OdmEntityType, OpenDocumentDataModel, type OpenDocumentDataModelEntry,
 } from "../../../data-models/OpenDocumentDataModel.js";
+import { uuid } from "../../../utilities/helpers.js";
 import { uiLayerMock } from "../__mocks__/UILayerMock.js";
 import { checkNoUiWarningsOrErrors } from "../test-helpers.js";
 import { connectionDetailsMock1, webviewProviderMock1, webviewProviderMock2 } from "./data-model-test-data.js";
@@ -34,7 +35,7 @@ import { connectionDetailsMock1, webviewProviderMock1, webviewProviderMock2 } fr
 const dataModelChanged = jest.fn();
 
 describe("OpenDocumentDataModel", () => {
-    const dataModel = new OpenDocumentDataModel();
+    let dataModel = new OpenDocumentDataModel();
     dataModel.subscribe(dataModelChanged);
 
     beforeAll(() => {
@@ -129,11 +130,13 @@ describe("OpenDocumentDataModel", () => {
 
     it("Connections", () => {
         expect(dataModel.closeProvider()).toBe(true);
+        expect(dataModel.roots).toHaveLength(1);
 
         const provider1 = dataModel.openProvider(webviewProviderMock1);
         expect(provider1).not.toBeUndefined();
 
-        const page = dataModel.addConnectionTab(webviewProviderMock1, connectionDetailsMock1[0]);
+        let pageId = uuid();
+        const page = dataModel.addConnectionTab(webviewProviderMock1, connectionDetailsMock1[0], pageId);
         const roots = dataModel.roots;
         expect(roots).toHaveLength(1);
         expect(roots[0]).toMatchObject(expect.objectContaining({
@@ -150,6 +153,7 @@ describe("OpenDocumentDataModel", () => {
         expect(children[1]).toMatchObject(expect.objectContaining({
             type: OdmEntityType.ConnectionPage,
             caption: "Test connection",
+            id: pageId,
         }));
         expect(children[2]).toMatchObject(expect.objectContaining({
             type: OdmEntityType.ShellSessionRoot,
@@ -161,7 +165,8 @@ describe("OpenDocumentDataModel", () => {
         expect(children[2].getChildren!()).toHaveLength(0); // No open shell sessions yet.
 
         expect(dataModel.isOpen(connectionDetailsMock1[0])).toBe(true);
-        expect(dataModel.isOpen(connectionDetailsMock1[1])).toBe(false);
+        const connection = connectionDetailsMock1[1];
+        expect(dataModel.isOpen(connection)).toBe(false);
 
         let connections = dataModel.findConnections(undefined, 1);
         expect(connections).toHaveLength(0);
@@ -172,7 +177,8 @@ describe("OpenDocumentDataModel", () => {
         connections = dataModel.findConnections(webviewProviderMock1, 1);
         expect(connections).toHaveLength(1);
 
-        dataModel.addConnectionTab(undefined, connectionDetailsMock1[1]);
+        pageId = uuid();
+        dataModel.addConnectionTab(undefined, connection, pageId);
 
         connections = dataModel.findConnections(webviewProviderMock2, 1);
         expect(connections).toHaveLength(0);
@@ -180,14 +186,18 @@ describe("OpenDocumentDataModel", () => {
         connections = dataModel.findConnections(undefined, 1);
         expect(connections).toHaveLength(0);
 
-        connections = dataModel.findConnections(undefined, 2);
+        connections = dataModel.findConnections(undefined, connection.id);
         expect(connections).toHaveLength(1);
+        expect(connections[0].id).toBe(pageId);
+
+        dataModel = new OpenDocumentDataModel();
 
         checkNoUiWarningsOrErrors();
     });
 
     it("Documents", () => {
         expect(dataModel.closeProvider()).toBe(true);
+        expect(dataModel.roots).toHaveLength(1);
 
         // We add a new document without explicitly opening a provider or connection. This will happen implicitly.
         let document: OpenDocumentDataModelEntry | undefined = dataModel.openDocument(webviewProviderMock1, {
@@ -237,28 +247,29 @@ describe("OpenDocumentDataModel", () => {
         });
         expect(document).toBe(document2);
 
-        let documents = dataModel.findConnectionDocumentsByType(webviewProviderMock1, 1, OdmEntityType.Script);
+        let documents = dataModel.findConnectionDocumentsByType(webviewProviderMock1, OdmEntityType.Script, 1);
         expect(documents).toHaveLength(1);
 
-        documents = dataModel.findConnectionDocumentsByType(webviewProviderMock1, 2, OdmEntityType.Script);
+        documents = dataModel.findConnectionDocumentsByType(webviewProviderMock1, OdmEntityType.Script, 2);
         expect(documents).toHaveLength(0);
 
-        documents = dataModel.findConnectionDocumentsByType(webviewProviderMock1, 1, OdmEntityType.Notebook);
+        documents = dataModel.findConnectionDocumentsByType(webviewProviderMock1, OdmEntityType.Notebook, 1);
         expect(documents).toHaveLength(1);
 
-        document = dataModel.findConnectionDocument(webviewProviderMock1, 1, "42");
+        document = dataModel.findConnectionDocument(webviewProviderMock1, "42", 1);
         expect(document).toBeDefined();
 
-        document = dataModel.findConnectionDocument(webviewProviderMock1, 0, "42");
-        expect(document).toBeUndefined();
-
-        document = dataModel.findConnectionDocument(webviewProviderMock1, -1, "42"); // -1 means any connection.
+        document = dataModel.findConnectionDocument(webviewProviderMock1, "42", undefined);
         expect(document).toBeDefined();
 
-        document = dataModel.findConnectionDocument(webviewProviderMock1, 0, "22");
+        // Non-existing document
+        document = dataModel.findConnectionDocument(webviewProviderMock1, "22", undefined);
         expect(document).toBeUndefined();
 
-        document = dataModel.findConnectionDocument(undefined, 1, "2"); // No provider means: default provider.
+        document = dataModel.findConnectionDocument(webviewProviderMock1, "42", 999); // Non-existing connection.
+        expect(document).toBeUndefined();
+
+        document = dataModel.findConnectionDocument(undefined, "2", 1); // No provider means: default provider.
         expect(document).toBeUndefined();
 
         // Do the same steps again, but without a provider. This will use the built-in default provider.
@@ -293,20 +304,157 @@ describe("OpenDocumentDataModel", () => {
         expect(children).toHaveLength(1);
         expect(children[0]).toBe(document);
 
-        document = dataModel.findConnectionDocument(undefined, 0, "24");
+        document = dataModel.findConnectionDocument(undefined, "24", 999); // Non-existing connection
         expect(document).toBeUndefined();
 
         dataModel.closeDocument(undefined, { pageId: "2", id: "24" });
         expect(children).toHaveLength(0);
 
-        document = dataModel.findConnectionDocument(undefined, 0, "24");
+        document = dataModel.findConnectionDocument(undefined, "24"); // Any connection.
         expect(document).toBeUndefined();
+
+        checkNoUiWarningsOrErrors();
+    });
+
+    it("Test findConnectionDocument with pageId", () => {
+        expect(dataModel.closeProvider()).toBe(true);
+        expect(dataModel.roots).toHaveLength(1);
+
+        const type = OdmEntityType.Notebook;
+        const connection = connectionDetailsMock1[0];
+
+        // Adding the notebook with the same connection on different page
+        expect(dataModel.openDocument(webviewProviderMock1, {
+            type,
+            parameters: {
+                pageId: uuid(),
+                id: uuid(),
+                connection,
+                caption: "Notebook 1",
+            },
+        })).toBeDefined();
+
+        const pageId = uuid();
+        const connectionId = connection.id;
+        const id = uuid();
+        const caption = "Notebook 2";
+
+        expect(dataModel.openDocument(webviewProviderMock1, {
+            type,
+            parameters: {
+                pageId,
+                id,
+                connection,
+                caption,
+            },
+        })).toBeDefined();
+
+        const document = dataModel.findConnectionDocument(webviewProviderMock1, id, connectionId, pageId);
+        expect(document).toBeDefined();
+
+        expect(document).toMatchObject(expect.objectContaining({
+            id,
+            type,
+            caption,
+        }));
+        expect(document!.parent?.id).toBe(pageId);
+
+        checkNoUiWarningsOrErrors();
+    });
+
+    it("Test findConnectionDocumentsByType without connection provided and pageId", () => {
+        expect(dataModel.closeProvider()).toBe(true);
+        expect(dataModel.roots).toHaveLength(1);
+
+        const type = OdmEntityType.Script;
+        const pageId = uuid();
+        const id = uuid();
+        const connection = connectionDetailsMock1[0];
+        const caption = "Script 1";
+        const language = "typescript";
+
+        expect(dataModel.openDocument(webviewProviderMock1, {
+            type,
+            parameters: {
+                pageId,
+                id,
+                connection,
+                caption,
+                language,
+            },
+        })).toBeDefined();
+
+        const documents = dataModel.findConnectionDocumentsByType(webviewProviderMock1, type, undefined, pageId);
+        expect(documents).toHaveLength(1);
+
+        const found = documents[0];
+
+        expect(found).toMatchObject(expect.objectContaining({
+            id,
+            type,
+            caption,
+            language,
+        }));
+        expect(found.parent?.id).toBe(pageId);
+
+        checkNoUiWarningsOrErrors();
+    });
+
+    it("Test findConnectionDocumentsByType without pageId", () => {
+        expect(dataModel.closeProvider()).toBe(true);
+        expect(dataModel.roots).toHaveLength(1);
+
+        const type = OdmEntityType.AdminPage;
+        const caption = "Server Status";
+        const pageType = "serverStatus";
+
+        // Adding the document with the same type but different connection
+        expect(dataModel.openDocument(webviewProviderMock1, {
+            type,
+            parameters: {
+                pageId: uuid(),
+                id: uuid(),
+                connection: connectionDetailsMock1[1],
+                caption,
+                pageType,
+            },
+        })).toBeDefined();
+
+        const pageId = uuid();
+        const connection = connectionDetailsMock1[0];
+        const connectionId = connection.id;
+        const id = uuid();
+
+        expect(dataModel.openDocument(webviewProviderMock1, {
+            type,
+            parameters: {
+                pageId,
+                id,
+                connection,
+                caption,
+                pageType,
+            },
+        })).toBeDefined();
+
+        const documents = dataModel.findConnectionDocumentsByType(webviewProviderMock1, type, connectionId);
+        expect(documents).toHaveLength(1);
+
+        const found = documents[0];
+
+        expect(found).toMatchObject(expect.objectContaining({
+            id,
+            type,
+            caption,
+            pageType,
+        }));
+        expect(found.parent?.id).toBe(pageId);
 
         checkNoUiWarningsOrErrors();
     });
 
     it("Standalone Documents", () => {
         expect(dataModel.closeProvider()).toBe(true);
+        expect(dataModel.roots).toHaveLength(1);
 
         const document1 = dataModel.openDocument(webviewProviderMock1, {
             type: OdmEntityType.StandaloneDocument,
@@ -334,13 +482,13 @@ describe("OpenDocumentDataModel", () => {
 
         expect(document1).toBe(document2);
 
-        let documents = dataModel.findConnectionDocumentsByType(undefined, -1, OdmEntityType.StandaloneDocument);
+        let documents = dataModel.findConnectionDocumentsByType(undefined, OdmEntityType.StandaloneDocument);
         expect(documents).toHaveLength(0);
-        documents = dataModel.findConnectionDocumentsByType(webviewProviderMock1, -1, OdmEntityType.StandaloneDocument);
+        documents = dataModel.findConnectionDocumentsByType(webviewProviderMock1, OdmEntityType.StandaloneDocument);
         expect(documents).toHaveLength(1);
 
         dataModel.closeDocument(webviewProviderMock1, { pageId: "", id: "42" });
-        documents = dataModel.findConnectionDocumentsByType(webviewProviderMock1, -1, OdmEntityType.StandaloneDocument);
+        documents = dataModel.findConnectionDocumentsByType(webviewProviderMock1, OdmEntityType.StandaloneDocument);
         expect(documents).toHaveLength(0);
 
         checkNoUiWarningsOrErrors();
@@ -348,6 +496,7 @@ describe("OpenDocumentDataModel", () => {
 
     it("Shell Sessions", () => {
         expect(dataModel.closeProvider()).toBe(true);
+        expect(dataModel.roots).toHaveLength(1);
 
         // Shell sessions can be opened either using `openDocument` or `addShellSession`.
         // The former uses the latter, but the latter is more explicit.
