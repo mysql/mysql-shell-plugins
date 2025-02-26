@@ -51,4 +51,4 @@ declare class Session {
 
 declare function getSession(readOnly?: boolean): Session;
 declare function getCurrentMrsUserId(): string | undefined;
-declare var contentSetPath: string;
+declare function getContentSetPath(className: string): string;

@@ -180,7 +180,7 @@ class MrsScriptModule {
         }
 
         return '<!DOCTYPE html><html lang="en">\n<head><meta charset="utf-8"><title>Test Page</title>' +
-            `<link rel="stylesheet" href="${contentSetPath}/static/testPage.css"></head>\n` +
+            `<link rel="stylesheet" href="${getContentSetPath('MrsScriptModule')}/static/testPage.css"></head>\n` +
             `<body><div class="appListing">\n${app}</div></body></html>`;
     }
 
@@ -194,7 +194,7 @@ class MrsScriptModule {
         const app = renderTestPage("MRS Script User");
 
         return '<!DOCTYPE html><html lang="en">\n<head><meta charset="utf-8"><title>Test Page</title>' +
-            `<link rel="stylesheet" href="${contentSetPath}/static/testPage.css"></head>\n` +
+            `<link rel="stylesheet" href="${getContentSetPath('MrsScriptModule')}/static/testPage.css"></head>\n` +
             `<body><div id="root">\n${app}</div></body></html>`;
     }
 }
