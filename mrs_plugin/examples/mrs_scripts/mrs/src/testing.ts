@@ -28,8 +28,8 @@ import { getSession } from "./MockSession.js"
 export const describe = async (name: string, tests: () => Promise<void>): Promise<void> => {
     // Initialize global session with a mock session
     globalThis.getSession = getSession;
-    globalThis.contentSetPath = ".";
     globalThis.getCurrentMrsUserId = () => { return ""; };
+    globalThis.getContentSetPath = (className) => { return ""; };
 
     const title = `Starting tests for ${name}`;
     print(`${title}\n${"=".repeat(title.length)}`);
