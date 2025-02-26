@@ -88,7 +88,6 @@ describe("NOTEBOOKS", () => {
 
     after(async function () {
         try {
-            await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
             Misc.removeDatabaseConnections();
         } catch (e) {
             await Misc.processFailure(this);
@@ -207,7 +206,8 @@ describe("NOTEBOOKS", () => {
                     select 1 $$`;
 
 
-            const result = await notebook.executeWithButton(query, constants.execFullBlockSql) as E2ECommandResultGrid;
+            const result = await notebook.executeWithButton(query, constants.execFullBlockSql,
+                true) as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
             expect(result.tabs.length).to.equals(2);
             expect(result.tabs[0].name).to.match(/Result/);
@@ -216,14 +216,14 @@ describe("NOTEBOOKS", () => {
 
         it("Connection toolbar buttons - Execute the block and print the result as text", async () => {
             const result = await notebook.executeWithButton("SELECT * FROM sakila.actor;",
-                constants.execAsText) as E2ECommandResultData;
+                constants.execAsText, true) as E2ECommandResultData;
             expect(result.status).to.match(/OK/);
             expect(result.text).to.match(/\|.*\|/);
         });
 
         it("Connection toolbar buttons - Execute selection or full block and create a new block", async () => {
             const result = await notebook.executeWithButton("SELECT * FROM sakila.actor;",
-                constants.execFullBlockSql);
+                constants.execFullBlockSql, true);
             expect(result.status).to.match(/(\d+) record/);
             await driver.wait(notebook.codeEditor.untilNewPromptExists(), constants.wait5seconds);
         });
@@ -235,10 +235,10 @@ describe("NOTEBOOKS", () => {
 
                 await notebook.codeEditor.clean();
 
-                const result1 = await notebook.codeEditor.execute(query1) as E2ECommandResultGrid;
+                const result1 = await notebook.codeEditor.execute(query1, true) as E2ECommandResultGrid;
                 expect(result1.status).to.match(/OK/);
 
-                const result2 = await notebook.codeEditor.execute(query2) as E2ECommandResultGrid;
+                const result2 = await notebook.codeEditor.execute(query2, true) as E2ECommandResultGrid;
                 expect(result2.status).to.match(/OK/);
 
                 let careResult = await notebook.findAndExecute(query1, result1.id) as E2ECommandResultGrid;
@@ -256,7 +256,7 @@ describe("NOTEBOOKS", () => {
 
         it("Switch between search tabs", async () => {
             const query = "select * from sakila.actor limit 1; select * from sakila.address limit 1;";
-            const result = await notebook.codeEditor.execute(query) as E2ECommandResultGrid;
+            const result = await notebook.codeEditor.execute(query, true) as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
             expect(result.tabs.length).to.equals(2);
             expect(result.tabs[0].name).to.equals("Result #1");
@@ -271,7 +271,7 @@ describe("NOTEBOOKS", () => {
 
         it("Connect to database and verify default schema", async () => {
 
-            const result = await notebook.codeEditor.execute("SELECT SCHEMA();");
+            const result = await notebook.codeEditor.execute("SELECT SCHEMA();", true);
             expect(result.status).to.match(/1 record retrieved/);
             expect(await result.resultContext.getAttribute("innerHTML"))
                 .to.match(new RegExp((globalConn.basic as interfaces.IConnBasicMySQL).schema));
@@ -556,7 +556,6 @@ describe("NOTEBOOKS", () => {
     describe("Persistent Notebooks", () => {
 
         const destFile = `${process.cwd()}/a_test`;
-        const e2eTreeSection = new E2EAccordionSection("e2e");
         const notebook = new E2ENotebook();
 
         before(async function () {
@@ -632,9 +631,7 @@ describe("NOTEBOOKS", () => {
 
         it("Open the Notebook from file", async () => {
 
-            await browser.openResources(process.cwd());
-            await Workbench.dismissNotifications();
-            await driver.wait(e2eTreeSection.untilExists(), constants.wait5seconds);
+            await driver.wait(Workbench.untilExplorerFolderIsOpened("e2e"), constants.wait15seconds);
             const file = await (await new SideBarView().getContent().getSection("e2e"))
                 .findItem("a_test.mysql-notebook", 3);
             await file.click();
@@ -649,9 +646,8 @@ describe("NOTEBOOKS", () => {
 
         it("Open the Notebook from file with connection", async () => {
 
-            await Workbench.closeAllEditors();
-            await browser.openResources(process.cwd());
-            await driver.wait(e2eTreeSection.untilExists(), constants.wait5seconds);
+            await driver.wait(Workbench.untilExplorerFolderIsOpened("e2e"), constants.wait15seconds);
+            const e2eTreeSection = new E2EAccordionSection("e2e");
             await e2eTreeSection.openContextMenuAndSelect("a_test.mysql-notebook", constants.openNotebookWithConn);
             const input = await InputBox.create();
             await (await input.findQuickPick(globalConn.caption)).select();
@@ -663,6 +659,7 @@ describe("NOTEBOOKS", () => {
 
         it("Auto close notebook tab when DB connection is deleted", async () => {
 
+            const e2eTreeSection = new E2EAccordionSection("e2e");
             const file = await e2eTreeSection.getTreeItem("a_test.mysql-notebook");
             await file.click();
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait15seconds);
@@ -686,6 +683,7 @@ describe("NOTEBOOKS", () => {
             const activityBar = new ActivityBar();
             await (await activityBar.getViewControl("Explorer"))?.openView();
 
+            const e2eTreeSection = new E2EAccordionSection("e2e");
             const file = await e2eTreeSection.getTreeItem("a_test.mysql-notebook");
             await file.click();
             await Workbench.openEditor("a_test.mysql-notebook");

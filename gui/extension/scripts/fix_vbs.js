@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
+ * Copyright (c) 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,37 +23,6 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { E2ETests } from "../lib/E2ETests";
-
-// THIS SCRIPT ASSUMES THAT A MYSQL SERVER SANDBOX INSTANCE HAS BEEN DEPLOYED BEFORE
-E2ETests.setTestSuite("DB");
-E2ETests.setShellBinary();
-
-try {
-    E2ETests.runShellCommand([
-        "--",
-        "dba",
-        "kill-sandbox-instance",
-        E2ETests.mysqlPort,
-        `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
-    ]);
-
-    console.log("[OK] Killed MySQL sandbox instance successfully");
-} catch (e) {
-    if (!String(e).includes("Unable to find pid file")) {
-        // eslint-disable-next-line no-unsafe-finally
-        throw e;
-    }
-    console.log("[OK] MySQL PID file not found. Continuing...");
-}
-
-E2ETests.runShellCommand([
-    "--",
-    "dba",
-    "delete-sandbox-instance",
-    E2ETests.mysqlPort,
-    `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
-]);
-console.log("[OK] Deleted MySQL sandbox instance successfully");
-
-E2ETests.generateReport();
+import { execSync } from 'child_process';
+const script = process.platform === 'win32' ? 'fix-vbs-win' : 'fix-vbs';
+execSync(`npm run ${script}`, { stdio: 'inherit' });

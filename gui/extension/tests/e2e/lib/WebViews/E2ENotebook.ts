@@ -155,9 +155,13 @@ export class E2ENotebook {
      *
      * @param cmd The command
      * @param button The button to click, to trigger the execution
+     * @param ignoreKeywords True to ignore if the notebook highlights the keywords
      * @returns A promise resolving when the command is executed
      */
-    public executeWithButton = async (cmd: string, button: string):
+    public executeWithButton = async (
+        cmd: string,
+        button: string,
+        ignoreKeywords = false):
         Promise<E2ECommandResultGrid | E2ECommandResultData | undefined> => {
 
         if (this.codeEditor.isSpecialCmd(cmd)) {
@@ -168,7 +172,7 @@ export class E2ENotebook {
             throw new Error("Please use the function 'this.codeEditor.findCmdAndExecute()'");
         }
 
-        await this.codeEditor.write(cmd);
+        await this.codeEditor.write(cmd, ignoreKeywords);
         await (await this.toolbar.getButton(button)).click();
         const commandResult = await this.codeEditor.buildResult(cmd, this.codeEditor.lastResultId + 1);
         this.codeEditor.lastResultId++;

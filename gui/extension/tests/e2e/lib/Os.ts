@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { existsSync, mkdirSync, readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { spawnSync, execSync } from "child_process";
 import fs from "fs/promises";
 import { platform } from "os";
@@ -130,84 +130,44 @@ export class Os {
     };
 
     /**
-     * Gets the extension output logs folder
-     * @returns A promise resolving with the location of the logs folder
+     * Gets the MySQL Shell for VS Code log file
+     * @returns A promise resolving with the location of the log file
      */
-    public static getExtensionOutputLogsFolder = async (): Promise<string> => {
-        const today = new Date();
-        const month = (`0${(today.getMonth() + 1)}`).slice(-2);
-        const day = (`0${today.getDate()}`).slice(-2);
-        const todaysDate = `${today.getFullYear()}${month}${day}`;
-        const testResources = join(process.env.TEST_RESOURCES_PATH, `test-resources-${process.env.TEST_SUITE}`);
+    public static getExtensionLogFile = async (): Promise<string> => {
 
-        let pathToLog = join(
-            testResources,
+        const logsFolder = join(
+            process.env.TEST_RESOURCES_PATH,
+            `test-resources-${process.env.TEST_SUITE}`,
             "settings",
             "logs",
         );
-        const variableFolder = await fs.readdir(pathToLog);
-        pathToLog = join(
-            testResources,
-            "settings",
-            "logs",
-            variableFolder[0],
-            "window1",
-            "exthost",
-        );
 
-        const folders = await fs.readdir(pathToLog);
-        let outputLogging: string;
-        for (const folder of folders) {
-            if (folder.startsWith(`output_logging_${todaysDate}`)) {
-                outputLogging = folder;
-                break;
+        const searchFile = async (directory: string, fileName: string): Promise<string | undefined> => {
+            const files = await fs.readdir(directory);
+
+            for (const file of files) {
+                const filePath = join(directory, file);
+
+                const fileStat = await fs.stat(filePath);
+
+                if (fileStat.isDirectory()) {
+                    const fileSearch = await searchFile(filePath, fileName);
+
+                    if (fileSearch) {
+                        return fileSearch;
+                    }
+                } else if (file.endsWith(fileName)) {
+                    return filePath;
+                }
             }
-        }
+        };
 
-        // Ensure there is always a pathToLog
-        if (!outputLogging) {
-            outputLogging = `output_logging_${todaysDate}`;
-            pathToLog = join(
-                testResources,
-                "settings",
-                "logs",
-                variableFolder[0],
-                "window1",
-                "exthost",
-                outputLogging,
-            );
-            mkdirSync(pathToLog);
+        const file = await searchFile(logsFolder, constants.feLogFile);
+
+        if (file) {
+            return file;
         } else {
-            pathToLog = join(
-                testResources,
-                "settings",
-                "logs",
-                variableFolder[0],
-                "window1",
-                "exthost",
-                outputLogging,
-            );
-        }
-
-        return pathToLog;
-    };
-
-    /**
-     * Prepares the extension logs to be exported on jenkins, by renaming the log files according with the test suite
-     * @param testSuite The test suite
-     * @returns A promise resolving when the logs are prepared
-     */
-    public static prepareExtensionLogsForExport = async (testSuite: string): Promise<void> => {
-        const logPathFolder = await Os.getExtensionOutputLogsFolder();
-        try {
-            // rename the file
-            await fs.rename(join(logPathFolder, constants.feLogFile),
-                join(logPathFolder, `${testSuite}_output_tab.log`));
-            // copy to workspace
-            await fs.copyFile(join(logPathFolder, `${testSuite}_output_tab.log`),
-                join(process.cwd(), `${testSuite}_output_tab.log`));
-        } catch (e) {
-            // continue
+            throw new Error(`Could not find '${constants.feLogFile}' on ${logsFolder}`);
         }
     };
 
@@ -216,9 +176,8 @@ export class Os {
      * @param value The value to append
      */
     public static appendToExtensionLog = async (value: string): Promise<void> => {
-        value = `-----------------------${value}-----------------------------------\r\n`;
-        const logPathFolder = await Os.getExtensionOutputLogsFolder();
-        await fs.appendFile(join(logPathFolder, constants.feLogFile), value);
+        value = `-------------------------${value}-----------------------------------\r\n`;
+        await fs.appendFile(await Os.getExtensionLogFile(), value);
     };
 
     /**

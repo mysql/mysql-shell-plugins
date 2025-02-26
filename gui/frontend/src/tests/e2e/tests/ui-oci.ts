@@ -35,7 +35,6 @@ import { E2ETabContainer } from "../lib/E2ETabContainer.js";
 import { E2EToastNotification } from "../lib/E2EToastNotification.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
 import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
-import { E2ETreeItem } from "../lib/SideBar/E2ETreeItem.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -43,7 +42,6 @@ let testFailed = false;
 let ociConfig: interfaces.IOciProfileConfig | undefined;
 let ociTree: string[];
 let e2eProfile: string | undefined;
-let treeE2eProfile: E2ETreeItem | undefined;
 const ociTreeSection = new E2EAccordionSection(constants.ociTreeSection);
 const tabContainer = new E2ETabContainer();
 
@@ -95,8 +93,7 @@ describe("OCI", () => {
             await Misc.dismissNotifications(true);
 
             await ociTreeSection.openContextMenuAndSelect(ociTree[0], constants.setAsNewDefaultConfigProfile);
-            treeE2eProfile = await ociTreeSection.getTreeItem(ociTree[0]);
-            await driver.wait(treeE2eProfile.untilIsDefault(), constants.wait5seconds);
+            await driver.wait(ociTreeSection.untilTreeItemIsDefault(ociTree[0]), constants.wait5seconds);
         } catch (e) {
             testFailed = true;
             throw e;
@@ -105,7 +102,7 @@ describe("OCI", () => {
 
     it("Set as Current Compartment", async () => {
         try {
-            await ociTreeSection.expandTree(ociTree);
+            await ociTreeSection.expandTree(ociTree, constants.wait1minute);
             await Misc.dismissNotifications(true);
 
             await ociTreeSection.openContextMenuAndSelect(ociTree[2], constants.setAsCurrentCompartment);
@@ -121,7 +118,7 @@ describe("OCI", () => {
 
             const slicedOciTree = ociTree;
             slicedOciTree.splice(0, 2);
-            await ociTreeSection.expandTree(slicedOciTree);
+            await ociTreeSection.expandTree(slicedOciTree, constants.wait1minute);
             await Misc.dismissNotifications(true);
 
             const shellConsole = new E2EShellConsole();
@@ -139,7 +136,7 @@ describe("OCI", () => {
 
     it("Set as Current Bastion", async () => {
         try {
-            await ociTreeSection.expandTree(ociTree);
+            await ociTreeSection.expandTree(ociTree, constants.wait1minute);
             await Misc.dismissNotifications(true);
             await driver.wait(ociTreeSection.untilTreeItemHasChildren(ociTree[ociTree.length - 1]),
                 constants.wait20seconds);

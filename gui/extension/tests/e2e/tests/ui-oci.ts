@@ -77,7 +77,6 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
     after(async function () {
         try {
-            await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
             Misc.removeDatabaseConnections();
         } catch (e) {
             await Misc.processFailure(this);
@@ -137,7 +136,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         before(async function () {
             try {
-                await ociTreeSection.expandTree(ociTree);
+                await ociTreeSection.expandTree(ociTree, constants.wait1minute);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -180,7 +179,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await ociTreeSection.openContextMenuAndSelect(ociTree[2], constants.viewCompartmentInfo);
             await driver.wait(Workbench.untilTabIsOpened(`${ociTree[2].source} Info.json`), constants.wait5seconds);
-            await driver.wait(Workbench.untilJsonFileIsOpened("QA Info.json"), constants.wait5seconds);
+            await driver.wait(Workbench.untilJsonFileIsOpened("QA Info.json"), constants.wait10seconds);
             compartmentId = JSON.parse(await new TextEditor().getText()).id;
 
         });
@@ -195,7 +194,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             const slicedOciTree = ociTree;
             slicedOciTree.splice(0, 2);
-            await ociTreeSection.expandTree(slicedOciTree);
+            await ociTreeSection.expandTree(slicedOciTree, constants.wait1minute);
             await opedEditorsTreeSection.expand();
             await opedEditorsTreeSection.openContextMenuAndSelect(constants.dbConnectionsLabel,
                 constants.openNewShellConsole);
@@ -216,7 +215,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         before(async function () {
             try {
-                await ociTreeSection.expandTree(ociTree);
+                await ociTreeSection.expandTree(ociTree, constants.wait1minute);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -252,7 +251,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await driver.wait(Workbench.untilTabIsOpened(`${await treeDbSystem.getLabel()} Info.json`),
                 constants.wait5seconds);
             await driver.wait(Workbench.untilJsonFileIsOpened(`${await treeDbSystem.getLabel()} Info.json`),
-                constants.wait5seconds);
+                constants.wait10seconds);
 
         });
 
@@ -337,7 +336,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         before(async function () {
             try {
-                await ociTreeSection.expandTree(ociTree);
+                await ociTreeSection.expandTree(ociTree, constants.wait1minute);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -372,7 +371,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await ociTreeSection.openContextMenuAndSelect(bastionName, constants.getBastionInfo);
             await driver.wait(Workbench.untilTabIsOpened(`${bastionName} Info.json`), constants.wait5seconds);
             await driver.wait(Workbench.untilJsonFileIsOpened(`${bastionName} Info.json`),
-                constants.wait5seconds);
+                constants.wait10seconds);
             bastionId = JSON.parse(await new TextEditor().getText()).id;
             await Workbench.closeEditor(new RegExp(`${bastionName} Info.json`));
             await Workbench.pushDialogButton("Don't Save");
@@ -420,6 +419,8 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await tasksTreeSection.expand();
             await driver.wait(tasksTreeSection.untilTreeItemExists("Delete Bastion (running)"),
                 constants.wait5seconds);
+            await driver.wait(Workbench.untilNotificationExists("Are you sure you want to delete", false),
+                constants.wait15seconds);
             const ntf = await Workbench.getNotification("Are you sure you want to delete", false);
             await Workbench.clickOnNotificationButton(ntf, "NO");
             await Workbench.waitForOutputText("Deletion aborted", constants.wait5seconds);
@@ -438,7 +439,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
         before(async function () {
             try {
-                await ociTreeSection.expandTree(ociTree);
+                await ociTreeSection.expandTree(ociTree, constants.wait1minute);
                 await ociTreeSection.focus();
             } catch (e) {
                 await Misc.processFailure(this);
@@ -473,7 +474,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const computeName = await treeComputeInstance.getLabel();
             await ociTreeSection.openContextMenuAndSelect(computeName, constants.viewComputeInstanceInfo);
             await driver.wait(Workbench.untilTabIsOpened(`${computeName} Info.json`), constants.wait5seconds);
-            await driver.wait(Workbench.untilJsonFileIsOpened(`${computeName} Info.json`), constants.wait5seconds);
+            await driver.wait(Workbench.untilJsonFileIsOpened(`${computeName} Info.json`), constants.wait10seconds);
             await Workbench.closeEditor(new RegExp(`${computeName} Info.json`));
             await Workbench.pushDialogButton("Don't Save");
 

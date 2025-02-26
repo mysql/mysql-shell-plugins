@@ -73,8 +73,7 @@ export class E2EAccordionSection {
             await Misc.switchBackToTopFrame();
         }
 
-        await driver.wait(this.untilIsNotLoading(), constants.wait20seconds,
-            `${constants.ociTreeSection} is still loading`);
+        await driver.wait(this.untilIsNotLoading(), constants.wait20seconds);
 
         let sectionActions: WebElement;
         const thisSection = await new SideBarView().getContent().getSection(this.name);
@@ -757,8 +756,9 @@ export class E2EAccordionSection {
     /**
      * Expands a tree
      * @param tree The elements to expand
+     * @param timeout The timeout to wait for each element to have children
      */
-    public expandTree = async (tree: string[] | RegExp[]): Promise<void> => {
+    public expandTree = async (tree: string[] | RegExp[], timeout = constants.wait10seconds): Promise<void> => {
         for (const item of tree) {
             await driver.wait(async () => {
                 try {
@@ -769,7 +769,7 @@ export class E2EAccordionSection {
                             await treeItem.expand();
                             await driver.wait(async () => {
                                 return treeItem.hasChildren();
-                            }, constants.wait10seconds, `Waiting for ${item} to have children`);
+                            }, timeout, `Waiting for ${item} to have children`);
                         }
                     }
 

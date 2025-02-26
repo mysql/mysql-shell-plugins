@@ -24,7 +24,6 @@
  */
 
 import fs from "fs/promises";
-import { join } from "path";
 import clipboard from "clipboardy";
 import {
     EditorView, error, InputBox, Key, until, NotificationType, OutputView, WebElement,
@@ -35,9 +34,10 @@ import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
 import * as constants from "./constants";
 import * as locator from "./locators";
 import { Os } from "./Os";
-import { Misc, driver } from "./Misc";
+import { Misc, driver, browser } from "./Misc";
 import * as errors from "../lib/errors";
 import { E2EToolbar } from "./WebViews/E2EToolbar";
+import { E2EAccordionSection } from "./SideBar/E2EAccordionSection";
 
 export let credentialHelperOk = true;
 
@@ -356,20 +356,24 @@ export class Workbench {
      */
     public static setInputPath = async (path: string): Promise<void> => {
         await Misc.switchBackToTopFrame();
-        const input = await InputBox.create();
+
         await driver.wait(async () => {
             try {
-                await input.clear();
+                const input = await InputBox.create(constants.wait10seconds);
                 await input.setText(path);
-                if ((await input.getText()) === path) {
+
+                if ((await input.getText()).trim() === path) {
                     await input.confirm();
 
                     return true;
                 }
             } catch (e) {
-                // continue trying
+                if (!String(e).includes("Wait until element is visible")) {
+                    throw e;
+                }
             }
-        }, constants.wait10seconds, `Could not set ${path} on input box`);
+
+        }, constants.wait1minute, `Could not set ${path} on input box`);
     };
 
     /**
@@ -424,7 +428,9 @@ export class Workbench {
     public static closeEditor = async (editorRef: RegExp, maybeDirty = false): Promise<void> => {
         await Misc.switchBackToTopFrame();
         const editors = await Workbench.getOpenEditorTitles();
+
         for (const editor of editors) {
+
             if (editor.match(new RegExp(editorRef)) !== null) {
                 await new EditorView().closeEditor(editor);
                 if (maybeDirty) {
@@ -795,8 +801,7 @@ export class Workbench {
 
                 const text = `Extension was not loaded successfully after ${feLoadTries} tries. Check the logs.`;
                 // one last try to recover
-                const path = join(await Os.getExtensionOutputLogsFolder(), constants.feLogFile);
-                const output = (await fs.readFile(path)).toString();
+                const output = (await fs.readFile(await Os.getExtensionLogFile())).toString();
                 console.log("-----OUTPUT LOGS------");
                 console.log(output);
                 throw new Error(text);
@@ -858,5 +863,27 @@ export class Workbench {
         const setting = await settingsEditor.findSetting("Color Theme", "Workbench");
         await setting.setValue(theme);
         await Workbench.closeEditor(/Settings/);
+    };
+
+    /**
+     * Opens and verifies if the explorer folder is opened
+     * @param folder The folder theme
+     * @returns A condition resolving to true if the folder is opened
+     */
+    public static untilExplorerFolderIsOpened = (folder: string): Condition<boolean> => {
+        return new Condition(`for ${folder} to be opened`, async () => {
+            await browser.openResources(process.cwd());
+            await Workbench.dismissNotifications();
+            const folderTreeSection = new E2EAccordionSection(folder);
+
+            return driver.wait(folderTreeSection.untilExists(), constants.wait5seconds)
+                .then(() => {
+                    return true;
+                })
+                .catch(() => {
+                    return false;
+                });
+        });
+
     };
 }

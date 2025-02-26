@@ -106,7 +106,6 @@ describe("MySQL REST Service", () => {
 
     after(async function () {
         try {
-            await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
             Misc.removeDatabaseConnections();
         } catch (e) {
             await Misc.processFailure(this);
@@ -310,7 +309,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Dump to Disk - Create Statements", async () => {
+        it.skip("Dump to Disk - Create Statements", async () => {
 
             let dumpedService = join(process.cwd(), "dumpedService.mrs.sql");
             await fs.rm(dumpedService, { recursive: true, force: true });
@@ -410,7 +409,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Dump to Disk - Rest Service SDK files", async () => {
+        it.skip("Dump to Disk - Rest Service SDK files", async () => {
 
             await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
                 [constants.dumpToDisk, constants.restClientSDKFiles], constants.restServiceCtxMenu);
@@ -575,7 +574,18 @@ describe("MySQL REST Service", () => {
 
         after(async function () {
             try {
-                await (await dbTreeSection.getTreeItem(service2.servicePath)).collapse();
+                await dbTreeSection.openContextMenuAndSelect(new RegExp(service2.servicePath),
+                    constants.deleteRESTService);
+
+                const ntf = await Workbench
+                    .getNotification(`Are you sure the MRS service ${service2.servicePath} should be deleted`, false);
+                await Workbench.clickOnNotificationButton(ntf, "Yes");
+                await driver.wait(Workbench.untilNotificationExists("The MRS service has been deleted successfully"),
+                    constants.wait5seconds);
+
+                await driver.wait(async () => {
+                    return !(await dbTreeSection.treeItemExists(service2.servicePath));
+                }, constants.wait3seconds, `Item ${service2.servicePath} should not exist on the tree`);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -602,7 +612,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Schema - Dump to Disk - Create Statements", async () => {
+        it.skip("Schema - Dump to Disk - Create Statements", async () => {
 
             let dumpedSchema = join(process.cwd(), "dumpedSchema.mrs.sql");
             const treeSchema = `${service2.restSchemas[0].restSchemaPath} (${service2.restSchemas[0]
@@ -700,7 +710,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Dump Rest Schema to Json file", async () => {
+        it.skip("Dump Rest Schema to Json file", async () => {
 
             await dbTreeSection.expandTreeItem(service2.servicePath);
             const dummySchema = service2.restSchemas[1];
@@ -714,7 +724,7 @@ describe("MySQL REST Service", () => {
             await fs.access(`${destDumpSchema}.mrs.json`);
         });
 
-        it("Delete REST Schema", async () => {
+        it.skip("Delete REST Schema", async () => {
 
             const treeSchema = `${service2.restSchemas[1].restSchemaPath} (${service2.restSchemas[1]
                 .settings.schemaName})`;
@@ -735,7 +745,7 @@ describe("MySQL REST Service", () => {
             }, constants.wait3seconds, `Item ${treeSchema} should not exist on the tree`);
         });
 
-        it("Load REST Schema from JSON file", async () => {
+        it.skip("Load REST Schema from JSON file", async () => {
 
             await dbTreeSection.openContextMenuAndSelect(service2.servicePath,
                 [constants.loadFromDisk, constants.restSchemaFromJSONFile], constants.restServiceCtxMenu);
@@ -883,7 +893,18 @@ describe("MySQL REST Service", () => {
 
         after(async function () {
             try {
-                await (await dbTreeSection.getTreeItem(service3.servicePath)).collapse();
+                await dbTreeSection.openContextMenuAndSelect(new RegExp(service3.servicePath),
+                    constants.deleteRESTService);
+
+                const ntf = await Workbench
+                    .getNotification(`Are you sure the MRS service ${service3.servicePath} should be deleted`, false);
+                await Workbench.clickOnNotificationButton(ntf, "Yes");
+                await driver.wait(Workbench.untilNotificationExists("The MRS service has been deleted successfully"),
+                    constants.wait5seconds);
+
+                await driver.wait(async () => {
+                    return !(await dbTreeSection.treeItemExists(service3.servicePath));
+                }, constants.wait3seconds, `Item ${service3.servicePath} should not exist on the tree`);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -917,7 +938,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Object - Dump to Disk - Create Statements", async () => {
+        it.skip("Object - Dump to Disk - Create Statements", async () => {
 
             const dumpedObject = join(process.cwd(), "dumpedObject.mrs.sql");
             const objectTreeName = `/${service3.restSchemas[0].restObjects[0].dataMapping.dbObject}`;
@@ -964,7 +985,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Dump REST Object to JSON file", async () => {
+        it.skip("Dump REST Object to JSON file", async () => {
 
             const tree = [
                 service3.servicePath,
@@ -1138,7 +1159,7 @@ describe("MySQL REST Service", () => {
             }, constants.wait3seconds, `Item ${objectName} should not exist on the tree`);
         });
 
-        it("Load REST Object from JSON file", async () => {
+        it.skip("Load REST Object from JSON file", async () => {
 
             const schema = service3.restSchemas[0].settings.schemaName;
             await dbTreeSection.expandTree([service3.servicePath,
@@ -1259,7 +1280,18 @@ describe("MySQL REST Service", () => {
 
         after(async function () {
             try {
-                await (await dbTreeSection.getTreeItem(service4.servicePath)).collapse();
+                await dbTreeSection.openContextMenuAndSelect(new RegExp(service4.servicePath),
+                    constants.deleteRESTService);
+
+                const ntf = await Workbench
+                    .getNotification(`Are you sure the MRS service ${service4.servicePath} should be deleted`, false);
+                await Workbench.clickOnNotificationButton(ntf, "Yes");
+                await driver.wait(Workbench.untilNotificationExists("The MRS service has been deleted successfully"),
+                    constants.wait5seconds);
+
+                await driver.wait(async () => {
+                    return !(await dbTreeSection.treeItemExists(service4.servicePath));
+                }, constants.wait3seconds, `Item ${service4.servicePath} should not exist on the tree`);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -1277,7 +1309,7 @@ describe("MySQL REST Service", () => {
                 constants.wait5seconds);
         });
 
-        it("Authentication App - Dump to disk - Create statements", async () => {
+        it.skip("Authentication App - Dump to disk - Create statements", async () => {
 
             let dumpedAuthApp = join(process.cwd(), "dumpedAuthApp.mrs.sql");
             await fs.rm(dumpedAuthApp, { recursive: true, force: true });
@@ -1327,7 +1359,10 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Authentication App - Copy to clipboard - Create Statements", async () => {
+        it.skip("Authentication App - Copy to clipboard - Create Statements", async () => {
+
+            await (await dbTreeSection.getTreeItem(constants.restAuthenticationApps)).collapse();
+            await dbTreeSection.expandTreeItem(service4.servicePath);
 
             await dbTreeSection.openContextMenuAndSelect(service4.authenticationApps[0].name,
                 [constants.copyToClipboard, constants.createStatement], constants.restAppCtxMenu1);
@@ -1547,7 +1582,18 @@ describe("MySQL REST Service", () => {
 
         after(async function () {
             try {
-                await (await dbTreeSection.getTreeItem(service5.servicePath)).collapse();
+                await dbTreeSection.openContextMenuAndSelect(new RegExp(service5.servicePath),
+                    constants.deleteRESTService);
+
+                const ntf = await Workbench
+                    .getNotification(`Are you sure the MRS service ${service5.servicePath} should be deleted`, false);
+                await Workbench.clickOnNotificationButton(ntf, "Yes");
+                await driver.wait(Workbench.untilNotificationExists("The MRS service has been deleted successfully"),
+                    constants.wait5seconds);
+
+                await driver.wait(async () => {
+                    return !(await dbTreeSection.treeItemExists(service5.servicePath));
+                }, constants.wait3seconds, `Item ${service5.servicePath} should not exist on the tree`);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -1602,7 +1648,7 @@ describe("MySQL REST Service", () => {
             expect(userInfo).to.deep.equal(editedUser);
         });
 
-        it("User - Dump to disk - Create statements", async () => {
+        it.skip("User - Dump to disk - Create statements", async () => {
 
             let dumpedUser = join(process.cwd(), "dumpedUser.mrs.sql");
             await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);

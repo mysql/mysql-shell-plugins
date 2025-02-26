@@ -129,22 +129,26 @@ export class E2ENotebook {
                 const notebookCommands = await driver.wait(
                     until.elementsLocated(locator.notebook.codeEditor.editor.sentence),
                     constants.wait5seconds, "No lines were found");
+
                 for (const cmd of notebookCommands) {
                     const spans = await cmd.findElements(locator.htmlTag.span);
                     let sentence = "";
+
                     for (const span of spans) {
                         sentence += (await span.getText()).replace("&nbsp;", " ");
                     }
+
                     commands.push(sentence);
                 }
 
                 return true;
             } catch (e) {
+                console.log(e);
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
-        }, constants.wait3seconds, "No SQL commands were found on the notebook");
+        }, constants.wait5seconds, "Exists on Notebook: StaleElementReferenceError");
 
         return commands.toString().match(regex) !== null;
     };

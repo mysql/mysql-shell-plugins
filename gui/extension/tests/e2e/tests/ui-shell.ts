@@ -79,15 +79,6 @@ describe("MYSQL SHELL CONSOLES", () => {
 
     });
 
-    after(async function () {
-        try {
-            await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
-        } catch (e) {
-            await Misc.processFailure(this);
-            throw e;
-        }
-    });
-
     describe("Database connections", () => {
 
         const shellConn = Object.assign({}, globalConn);

@@ -2066,11 +2066,10 @@
     },
     "scripts": {
         "build-dev-package": "vsce package",
-        "build-dev-package-win": "npm run fix-vbs-win && vsce package",
         "build-packages": "scripts/package_extension.sh",
         "build-packages-win": "npm run scripts/package_extension.ps1",
         "publish-packages": "scripts/publish_packages.sh",
-        "vscode:prepublish": "npm run esbuild -- --minify && npm run fix-vbs",
+        "vscode:prepublish": "npm run esbuild -- --minify && node scripts/fix_vbs.js",
         "fix-vbs-win": "@powershell -NoProfile -ExecutionPolicy Unrestricted -Command ./scripts/copy_vbs.ps1",
         "fix-vbs": "scripts/copy_vbs.sh",
         "esbuild": "esbuild ./src/extension.ts --main-fields=module,main --bundle --outfile=out/main.cjs --external:vscode --format=cjs --platform=node",

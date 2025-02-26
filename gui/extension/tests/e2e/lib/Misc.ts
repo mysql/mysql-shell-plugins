@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -160,12 +160,13 @@ export class Misc {
 
                 return;
             } catch (e) {
-                if (e instanceof Error) {
-                    if (e.message.indexOf("target frame detached") === -1) {
-                        throw new Error(String(e.stack));
-                    }
-                    counter++;
+                if (String(e).match(/(target frame detached|DevToolsActivePort)/) === null) {
+                    throw e;
+                } else {
+                    console.log("Retrying the browser creation...");
                 }
+
+                counter++;
             }
         }
     };

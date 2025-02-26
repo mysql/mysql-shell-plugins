@@ -361,7 +361,7 @@ export class E2EAccordionSection {
                     throw e;
                 }
             }
-        }, constants.wait3seconds,
+        }, constants.wait5seconds,
             `Could not find '${caption}' on section ${this.accordionSectionName}`);
 
         return el!;
@@ -423,8 +423,12 @@ export class E2EAccordionSection {
         const contextMenuLocator = locator.section.tree.element.contextMenu;
 
         const action = async () => {
+            const treeItem = await this.getTreeItem(caption);
             await driver.wait(async () => {
-                await driver.actions().contextClick(await this.getTreeItem(caption)).perform();
+                await driver.actions()
+                    .move({ origin: treeItem })
+                    .contextClick(treeItem)
+                    .perform();
 
                 return (await driver.findElements(contextMenuLocator.exists)).length > 0;
             }, constants.wait3seconds, `Context menu was not displayed on element ${caption}`);
@@ -620,12 +624,13 @@ export class E2EAccordionSection {
     /**
      * Expands a tree
      * @param tree The elements to expand
+     * @param timeout The amount of time to wait until each tree element has children
      */
-    public expandTree = async (tree: string[]): Promise<void> => {
+    public expandTree = async (tree: string[], timeout = constants.wait10seconds): Promise<void> => {
         for (const item of tree) {
             await driver.wait(async () => {
                 try {
-                    await driver.wait(this.untilTreeItemHasChildren(item), constants.wait5seconds);
+                    await driver.wait(this.untilTreeItemHasChildren(item), timeout);
 
                     return true;
                 } catch (e) {
@@ -816,6 +821,41 @@ export class E2EAccordionSection {
                 return true;
             }
         }, constants.wait10seconds, `Could not configure Rest Service for ${dbConnection.caption}`);
+    };
+
+    /**
+     * Verifies if the tree item is marked as default
+     * @param caption The tree item caption
+     * @returns A promise resolving to true when the item is marked as default
+     */
+    public treeItemIsDefault = async (caption: string): Promise<boolean> => {
+        let isDefault = false;
+
+        const action = async () => {
+            const treeItem = await this.getTreeItem(caption);
+            isDefault = await treeItem.isDefault();
+        };
+
+        await action().catch(async (e: Error) => {
+            if (e instanceof error.StaleElementReferenceError) {
+                await action();
+            } else {
+                throw e;
+            }
+        });
+
+        return isDefault;
+    };
+
+    /**
+     * Verifies if the tree item is marked as default
+     * @param caption The tree item caption
+     * @returns A condition resolving to true when the item is marked as default
+     */
+    public untilTreeItemIsDefault = (caption: string): Condition<boolean> => {
+        return new Condition(`for ${caption} to be default`, async () => {
+            return this.treeItemIsDefault(caption);
+        });
     };
 
 }

@@ -26,10 +26,10 @@
 import { spawnSync } from "child_process";
 import { platform } from "os";
 import { join } from "path";
+import fs from "fs/promises";
 import {
     readdirSync, existsSync, mkdirSync, writeFileSync, symlinkSync, readFileSync,
-    truncateSync, rmSync, createWriteStream,
-    cpSync,
+    truncateSync, rmSync, createWriteStream, cpSync, appendFileSync,
 } from "fs";
 import { get } from "https";
 import { ExTester } from "vscode-extension-tester";
@@ -368,7 +368,12 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
 
         // TRUNCATE THE MYSQL SHELL LOG FILE
         const mysqlshLog = join(process.env.TEST_RESOURCES_PATH, `mysqlsh-${testSuite.name}`, "mysqlsh.log");
-        truncateSync(mysqlshLog);
+
+        if (existsSync(mysqlshLog)) {
+            truncateSync(mysqlshLog);
+        } else {
+            appendFileSync(mysqlshLog, "");
+        }
 
         // REMOVE SHELL INSTANCE HOME (for safety)
         const shellInstanceHome = join(process.env.TEST_RESOURCES_PATH, `mysqlsh-${testSuite.name}`, "plugin_data",
@@ -381,15 +386,8 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         rmSync(routerConfigsFolder, { force: true, recursive: true });
 
         // RUN THE TESTS
-        let result = await this.executeTests(testSuite, log);
-
-        if (log) {
-            if (result !== 0) {
-                if (this.extensionNotLoaded(testSuite.name)) {
-                    result = await this.executeTests(testSuite, log);
-                }
-            }
-        }
+        const result = await this.executeTests(testSuite, log);
+        await this.exportExtensionLogsToWorkspace(testSuite);
 
         return result;
     };
@@ -509,6 +507,8 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         for (const error of errorMatches) {
             if (result.toString().match(error) !== null) {
                 console.log(`[WRN] Extension NOT loaded: ${error.toString()}`);
+                console.log(result.toString());
+                console.log("-----");
 
                 return true;
             }
@@ -790,4 +790,62 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
             this.mysqlPort = cliArguments.mysqlPort;
         }
     };
+
+    /**
+     * Gets the MySQL Shell for VS Code log file
+     * @param testSuite The Test suite
+     * @returns A promise resolving with the location of the log file
+     */
+    private static getExtensionLogFile = async (testSuite: IE2ETestSuite): Promise<string> => {
+
+        const logsFolder = join(
+            testSuite.testResources,
+            "settings",
+            "logs",
+        );
+
+        const searchFile = async (directory: string, fileName: string): Promise<string | undefined> => {
+            const files = await fs.readdir(directory);
+
+            for (const file of files) {
+                const filePath = join(directory, file);
+
+                const fileStat = await fs.stat(filePath);
+
+                if (fileStat.isDirectory()) {
+                    const fileSearch = await searchFile(filePath, fileName);
+
+                    if (fileSearch) {
+                        return fileSearch;
+                    }
+                } else if (file.endsWith(fileName)) {
+                    return filePath;
+                }
+            }
+        };
+
+        const file = await searchFile(logsFolder, "1-MySQL Shell for VS Code.log");
+
+        if (file) {
+            return file;
+        } else {
+            throw new Error(`Could not find '1-MySQL Shell for VS Code.log' on ${logsFolder}`);
+        }
+    };
+
+    /**
+     * Prepares the extension logs to be exported on jenkins, by renaming the log files according with the test suite
+     * @param testSuite The test suite
+     * @returns A promise resolving when the logs are prepared
+     */
+    private static exportExtensionLogsToWorkspace = async (testSuite: IE2ETestSuite): Promise<void> => {
+        const logFile = await this.getExtensionLogFile(testSuite);
+
+        // rename the file
+        await fs.rename(logFile, `${testSuite.name}_output_tab.log`);
+
+        // copy to workspace
+        await fs.copyFile(`${testSuite.name}_output_tab.log`, join(process.cwd(), `${testSuite.name}_output_tab.log`));
+    };
+
 }
