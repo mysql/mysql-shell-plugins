@@ -663,7 +663,8 @@ grantRestRoleStatement:
 revokeRestPrivilegeStatement:
     REVOKE_SYMBOL REST_SYMBOL privilegeList (
         (ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath)
-        | ( ON_SYMBOL serviceSchemaSelector (
+        | (
+            ON_SYMBOL serviceSchemaSelector (
                 OBJECT_SYMBOL objectRequestPath
             )?
         )
@@ -952,16 +953,19 @@ graphQlPair:
         AT_IN_SYMBOL
         | AT_OUT_SYMBOL
         | AT_INOUT_SYMBOL
-        | AT_NOCHECK_SYMBOL
+    )? graphQlValueOptions? (
+        AT_DATATYPE_SYMBOL OPEN_PAR_SYMBOL graphQlDatatypeValue CLOSE_PAR_SYMBOL
+    )? graphQlCrudOptions? graphQlValueJsonSchema? graphQlObj?
+;
+
+graphQlValueOptions: (
+        AT_NOCHECK_SYMBOL
         | AT_SORTABLE_SYMBOL
         | AT_NOFILTERING_SYMBOL
         | AT_ROWOWNERSHIP_SYMBOL
         | AT_UNNEST_SYMBOL
         | AT_KEY_SYMBOL
-        | AT_DATATYPE_SYMBOL OPEN_PAR_SYMBOL graphQlDatatypeValue CLOSE_PAR_SYMBOL
-        | graphQlCrudOptions
-        | graphQlValueJsonSchema
-    )? graphQlObj?
+    )+
 ;
 
 graphQlValueJsonSchema:

@@ -82,7 +82,7 @@ def get_default_db_object_init(
                             "datatype": "int",
                             "id_generation": None,
                             "is_generated": False,
-                            "is_primary": False,
+                            "is_primary": True,
                             "is_unique": False,
                             "name": "id",
                             "not_null": True,

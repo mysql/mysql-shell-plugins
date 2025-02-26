@@ -1268,6 +1268,15 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#graphQlValueOptions.
+    def enterGraphQlValueOptions(self, ctx:MRSParser.GraphQlValueOptionsContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#graphQlValueOptions.
+    def exitGraphQlValueOptions(self, ctx:MRSParser.GraphQlValueOptionsContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#graphQlValueJsonSchema.
     def enterGraphQlValueJsonSchema(self, ctx:MRSParser.GraphQlValueJsonSchemaContext):
         pass

@@ -77,6 +77,7 @@ def walk(fields, parent_id=None, level=1, add_data_type=False, current_object=No
             attributes = []
             inout = f'@{"IN" if field["db_column"].get("in") else ""}{"OUT" if field["db_column"].get("out") else ""}'
             inout != "@" and attributes.append(inout)
+            field.get("db_column", {}).get("is_primary", False) and attributes.append("@KEY")
             field.get("no_check") and attributes.append("@NOCHECK")
             field.get("no_update") and attributes.append("@NOUPDATE")
             field.get("allow_sorting") and attributes.append("@SORTABLE")
@@ -2195,8 +2196,12 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
         role_name = mrs_object.get("role")
         privileges = mrs_object.get("privileges")
-        schema_request_path = mrs_object.get("schema_request_path") or ""
-        object_request_path = mrs_object.get("object_request_path") or ""
+        schema_request_path = mrs_object.get("schema_request_path")
+        if schema_request_path is None:
+            schema_request_path = "*"
+        object_request_path = mrs_object.get("object_request_path")
+        if object_request_path is None:
+            object_request_path = "*"
 
         full_service_path = self.get_given_or_current_full_service_path(
             mrs_object

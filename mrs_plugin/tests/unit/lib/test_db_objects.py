@@ -164,7 +164,7 @@ def test_update_db_object(phone_book, table_contents):
                         'datatype': 'int',
                         'id_generation': None,
                         'is_generated': False,
-                        'is_primary': False,
+                        'is_primary': db_object["objects"][0]["fields"][0]["db_column"]["is_primary"],
                         'is_unique': False,
                         'name': 'id',
                         'not_null': True,

@@ -52,7 +52,7 @@ CREATE OR REPLACE REST SCHEMA /AnalogPhoneBook ON SERVICE localhost/test
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE localhost/test SCHEMA /AnalogPhoneBook
     AS AnalogPhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
-        id: id @SORTABLE,
+        id: id @KEY @SORTABLE,
         fName: f_name,
         lName: l_name,
         number: number,
@@ -66,7 +66,7 @@ CREATE OR REPLACE REST SCHEMA /MobilePhoneBook ON SERVICE localhost/test
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE localhost/test SCHEMA /MobilePhoneBook
     AS MobilePhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
-        id: id @SORTABLE,
+        id: id @KEY @SORTABLE,
         fName: f_name,
         lName: l_name,
         number: number,
@@ -80,7 +80,7 @@ CREATE OR REPLACE REST SCHEMA /PhoneBook ON SERVICE localhost/test
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE localhost/test SCHEMA /PhoneBook
     AS PhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
-        id: id @SORTABLE,
+        id: id @KEY @SORTABLE,
         fName: f_name,
         lName: l_name,
         number: number,
@@ -498,7 +498,7 @@ CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE localhost/test2
 CREATE OR REPLACE REST VIEW /addresses
     ON SERVICE localhost/test2 SCHEMA /PhoneBook2
     AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
-        id: id
+        id: id @KEY
     }
     ITEMS PER PAGE 10
     COMMENTS "Object that will be removed"

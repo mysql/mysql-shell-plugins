@@ -77,7 +77,8 @@ class MrsDdlListener(MRSListener):
 
     def enterAppOptions(self, ctx):
         try:
-            self.mrs_object["app_options"] = json.loads(ctx.jsonValue().getText())
+            self.mrs_object["app_options"] = json.loads(
+                ctx.jsonValue().getText())
         except:
             pass
 
@@ -138,7 +139,8 @@ class MrsDdlListener(MRSListener):
                 if "new_developer_list" in self.mrs_object.keys():
                     self.mrs_object.pop("new_developer_list", None)
             else:
-                self.mrs_object["url_host_name"] = get_text_without_quotes(ctx.getText())
+                self.mrs_object["url_host_name"] = get_text_without_quotes(
+                    ctx.getText())
                 if "in_development" in self.mrs_object.keys():
                     self.mrs_object.pop("in_development", None)
 
@@ -166,7 +168,8 @@ class MrsDdlListener(MRSListener):
         if val is not None:
             # Make sure to remove a leading @ that could appear because of a hack
             # to prevent the Lexer matching AT_TEXT_SUFFIX
-            self.mrs_object["url_host_name"] = get_text_without_quotes(val.getText().lstrip("@"))
+            self.mrs_object["url_host_name"] = get_text_without_quotes(
+                val.getText().lstrip("@"))
 
     def enterServiceSchemaSelector(self, ctx):
         self.mrs_object["schema_request_path"] = get_text_without_quotes(
@@ -204,12 +207,14 @@ class MrsDdlListener(MRSListener):
 
     def enterAddAuthApp(self, ctx):
         add_auth_apps = self.mrs_object.get("add_auth_apps", [])
-        add_auth_apps.append(get_text_without_quotes(ctx.authAppName().getText()))
+        add_auth_apps.append(get_text_without_quotes(
+            ctx.authAppName().getText()))
         self.mrs_object["add_auth_apps"] = add_auth_apps
 
     def enterRemoveAuthApp(self, ctx):
         add_auth_apps = self.mrs_object.get("remove_auth_apps", [])
-        add_auth_apps.append(get_text_without_quotes(ctx.authAppName().getText()))
+        add_auth_apps.append(get_text_without_quotes(
+            ctx.authAppName().getText()))
         self.mrs_object["remove_auth_apps"] = add_auth_apps
 
     # ==================================================================================================================
@@ -725,25 +730,27 @@ class MrsDdlListener(MRSListener):
                         field["name"] = field_name
                         field["enabled"] = True
 
-                        # cSpell:ignore NOCHECK NOFILTERING ROWOWNERSHIP
-                        if ctx.AT_NOCHECK_SYMBOL() is not None:
-                            field["no_check"] = True
-                        if ctx.AT_SORTABLE_SYMBOL() is not None:
-                            field["allow_sorting"] = True
-                        if ctx.AT_NOFILTERING_SYMBOL() is not None:
-                            field["allow_filtering"] = False
-                        if (
-                            ctx.graphQlCrudOptions() is not None
+                        options_ctx: MRSParser.GraphQlValueOptionsContext = ctx.graphQlValueOptions()
+                        if options_ctx is not None:
+                            # cSpell:ignore NOCHECK NOFILTERING ROWOWNERSHIP
+                            if (options_ctx.AT_NOCHECK_SYMBOL(0) is not None):
+                                field["no_check"] = True
+                            if options_ctx.AT_SORTABLE_SYMBOL(0) is not None:
+                                field["allow_sorting"] = True
+                            if options_ctx.AT_NOFILTERING_SYMBOL(0) is not None:
+                                field["allow_filtering"] = False
+                            if options_ctx.AT_ROWOWNERSHIP_SYMBOL(0) is not None:
+                                current_object["row_ownership_field_id"] = field.get(
+                                    "id", None
+                                )
+                            if options_ctx.AT_KEY_SYMBOL(0) is not None:
+                                db_column["is_primary"] = True
+
+                        if (ctx.graphQlCrudOptions() is not None
                             and ctx.graphQlCrudOptions().AT_NOUPDATE_SYMBOL()
-                            is not None
-                        ):
+                                is not None):
                             field["no_update"] = True
-                        if ctx.AT_ROWOWNERSHIP_SYMBOL() is not None:
-                            current_object["row_ownership_field_id"] = field.get(
-                                "id", None
-                            )
-                        if ctx.AT_KEY_SYMBOL() is not None:
-                            db_column["is_primary"] = True
+
                         if ctx.AT_DATATYPE_SYMBOL() is not None:
                             db_column["datatype"] = lib.core.unquote(
                                 ctx.graphQlDatatypeValue().getText().lower()
@@ -841,7 +848,7 @@ class MrsDdlListener(MRSListener):
                             "dataMappingViewDelete": "DELETE" in options,
                             "dataMappingViewNoCheck": "NOCHECK" in options,
                         },
-                        "unnest": ctx.AT_UNNEST_SYMBOL() is not None,
+                        "unnest": self.isUnnestSet(ctx.graphQlValueOptions()),
                     }
 
                     field["object_reference"] = obj_reference
@@ -871,6 +878,13 @@ class MrsDdlListener(MRSListener):
                     f'`{self.mrs_object.get("schema_name")}`.`{self.mrs_object.get("name")}`.'
                 )
 
+    def isUnnestSet(self, options_ctx: MRSParser.GraphQlValueOptionsContext):
+        unnest = False
+        if options_ctx is not None:
+            unnest = options_ctx.AT_UNNEST_SYMBOL(0) is not None
+
+        return unnest
+
     def exitGraphQlPair(self, ctx):
         if (
             ctx.graphQlPairValue().qualifiedIdentifier() is not None
@@ -885,7 +899,7 @@ class MrsDdlListener(MRSListener):
 
             if (
                 parent_ref is not None
-                and ctx.AT_UNNEST_SYMBOL() is not None
+                and self.isUnnestSet(ctx.graphQlValueOptions())
                 and parent_ref.get("object_reference") is not None
                 and parent_ref["object_reference"].get("reference_mapping") is not None
                 and parent_ref["object_reference"]["reference_mapping"].get("kind")
@@ -1386,7 +1400,8 @@ class MrsDdlListener(MRSListener):
         # Check if there was a host:port defined as well
         val = ctx.hostAndPortIdentifier()
         if val is not None:
-            self.mrs_object["new_url_host_name"] = get_text_without_quotes(val.getText().lstrip("@"))
+            self.mrs_object["new_url_host_name"] = get_text_without_quotes(
+                val.getText().lstrip("@"))
 
     def exitAlterRestServiceStatement(self, ctx):
         self.mrs_ddl_executor.alterRestService(self.mrs_object)
