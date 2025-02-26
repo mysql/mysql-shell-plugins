@@ -32,7 +32,7 @@ from .helpers import get_db_object_privileges, TableContents, SchemaCT, DbObject
 db_object_create_statement = """CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE localhost/test SCHEMA /PhoneBook
     AS PhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
-        id: id @SORTABLE,
+        id: id @KEY @SORTABLE,
         fName: f_name,
         lName: l_name,
         number: number,
@@ -559,7 +559,7 @@ def test_special_schemas(phone_book, mobile_phone_book, table_contents):
             filtered = information_schema_grants.filter("TABLE_SCHEMA", "performance_schema")
             assert len(filtered) == 3
             filtered.sort(key= lambda a: a["TABLE_NAME"])
- 
+
             row = filtered[0]
             assert row["TABLE_NAME"] == "accounts"
             assert row["GRANTEE"] == "'mysql_rest_service_data_provider'@'%'"
@@ -638,7 +638,7 @@ def test_dump_and_recover(phone_book):
     db_object_create_statement2 = """CREATE OR REPLACE REST VIEW /addresses
     ON SERVICE localhost/test SCHEMA /PhoneBook
     AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
-        id: id
+        id: id @KEY
     }
     ITEMS PER PAGE 10
     COMMENTS "Object that will be removed"

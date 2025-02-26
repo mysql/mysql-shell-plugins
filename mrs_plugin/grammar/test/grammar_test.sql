@@ -119,7 +119,7 @@ SHOW CREATE REST VIEW /city;
 CREATE OR REPLACE REST DATA MAPPING VIEW /city
     AS sakila.city
     CLASS MyServiceSakilaCity {
-        cityId: city_id,
+        cityId: city_id @KEY @SORTABLE @NOCHECK,
         city: city,
         countryId: country_id,
         lastUpdate: last_update,
@@ -131,6 +131,8 @@ CREATE OR REPLACE REST DATA MAPPING VIEW /city
             country: country
         }
     };
+
+SHOW CREATE REST VIEW /city;
 
 CREATE OR REPLACE REST DATA MAPPING VIEW /country
 ON SERVICE localhost/myTestService SCHEMA /sakila
