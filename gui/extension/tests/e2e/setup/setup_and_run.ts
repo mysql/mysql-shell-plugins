@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -54,14 +54,23 @@ const main = async () => {
 
             if (existsSync(join(E2ETests.mysqlSandboxDir, E2ETests.mysqlPort))) {
 
-                E2ETests.runShellCommand([
-                    "--",
-                    "dba",
-                    "kill-sandbox-instance",
-                    E2ETests.mysqlPort,
-                    `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
-                ]);
-                console.log("[OK] Killed MySQL sandbox instance successfully");
+                try {
+                    E2ETests.runShellCommand([
+                        "--",
+                        "dba",
+                        "kill-sandbox-instance",
+                        E2ETests.mysqlPort,
+                        `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
+                    ]);
+
+                    console.log("[OK] Killed MySQL sandbox instance successfully");
+                } catch (e) {
+                    if (!String(e).includes("Unable to find pid file")) {
+                        // eslint-disable-next-line no-unsafe-finally
+                        throw e;
+                    }
+                    console.log("[OK] MySQL PID file not found. Continuing...");
+                }
 
                 E2ETests.runShellCommand([
                     "--",

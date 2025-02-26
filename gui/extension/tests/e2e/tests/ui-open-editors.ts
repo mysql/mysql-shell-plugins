@@ -82,7 +82,6 @@ describe("OPEN EDITORS", () => {
 
     after(async function () {
         try {
-            await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
             Misc.removeDatabaseConnections();
         } catch (e) {
             await Misc.processFailure(this);

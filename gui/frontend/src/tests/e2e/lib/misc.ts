@@ -79,7 +79,7 @@ export class Misc {
                         return true;
                     }).catch(async () => {
                         await driver.navigate().refresh();
-                        await driver.sleep(3000);
+                        await driver.sleep(constants.wait3seconds);
 
                         return false;
                     });
@@ -89,7 +89,7 @@ export class Misc {
                         return true;
                     }).catch(async () => {
                         await driver.navigate().refresh();
-                        await driver.sleep(3000);
+                        await driver.sleep(constants.wait3seconds);
 
                         return false;
                     });

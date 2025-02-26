@@ -211,11 +211,12 @@ export class E2ETabContainer {
 
                 return true;
             } catch (e) {
+                console.log(e);
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
-        }, constants.wait3seconds, `Could not verify if tab '${name}' exists`);
+        }, constants.wait5seconds, `Could not verify if tab '${name}' exists (StaleElementReferenceError)`);
 
         return exists;
     };

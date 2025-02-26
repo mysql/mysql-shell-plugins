@@ -31,6 +31,7 @@ import { E2EToolbar } from "./E2EToolbar";
 import { PasswordDialog } from "./Dialogs/PasswordDialog";
 import { E2ECommandResultData } from "./CommandResults/E2ECommandResultData";
 import { E2ECommandResultGrid } from "./CommandResults/E2ECommandResultGrid";
+import { Workbench } from "../Workbench.js";
 
 /**
  * This class represents the Script page
@@ -67,10 +68,9 @@ export class E2EScript {
                 }, constants.wait15seconds, `Could not connect to '${connection.caption}'`);
             }
 
-            const currentEditor = (await this.toolbar.editorSelector.getCurrentEditor()).label;
-            const regex = /(Script|.sql|.ts|.js|Data)/;
+            const activeTab = await Workbench.getActiveTab();
 
-            return (currentEditor).match(regex) !== null;
+            return (await activeTab.getTitle()).includes(connection.caption);
         });
 
     };

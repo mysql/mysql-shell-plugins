@@ -202,30 +202,6 @@ export class E2EObjectStorageBrowser {
     };
 
     /**
-     * Verifies if the tree element can be expanded
-     * @param caption The item caption
-     * @returns A promise resolving to true if the element can be expanded, false otherwise
-     */
-    public itemIsExpandable = async (caption: string): Promise<boolean> => {
-        let isExpandable = false;
-
-        await driver.wait(async () => {
-            try {
-                const item = await this.getItem(caption);
-                isExpandable = (await item.findElements(objStorageItem.treeToggle)).length > 0;
-
-                return true;
-            } catch (e) {
-                if (!(e instanceof error.StaleElementReferenceError)) {
-                    throw e;
-                }
-            }
-        }, constants.wait5seconds, `Could not verify if item '${caption}' is expanded`);
-
-        return isExpandable;
-    };
-
-    /**
      * Expands the tree item
      * @param caption The item caption
      */
@@ -268,20 +244,20 @@ export class E2EObjectStorageBrowser {
 
             await driver.wait(async () => {
                 try {
-                    if (await this.itemIsExpandable(path[i])) {
-                        await this.expandItem(path[i]);
-                        await driver.wait(this.untilItemHasChildren(path[i]), constants.wait20seconds);
-                        await driver.wait(this.untilItemsAreLoaded(), constants.wait15seconds,
-                            ` ${path[i + 1]} to be loaded`);
+                    await this.expandItem(path[i]);
+                    await driver.wait(this.untilItemHasChildren(path[i]), constants.wait20seconds);
+                    await driver.wait(this.untilItemsAreLoaded(), constants.wait15seconds,
+                        ` ${path[i + 1]} to be loaded`);
 
-                        return true;
-                    }
+                    return true;
                 } catch (e) {
                     if (!(e instanceof error.StaleElementReferenceError)) {
-                        if (String(e).includes("Could not get item")) {
+
+                        if (String(e).match(/Could not get item/) !== null) {
                             if (path[i - 1]) {
                                 if (!(await this.itemIsExpanded(path[i - 1]))) {
-                                    i--;
+                                    console.log(`Repeating previous iteration (${i - 1})`);
+                                    i--; // execute the previous iteration
                                 } else {
                                     (e as Error).message = `${(e as Error).message}. Parent item was not expanded`;
                                     throw e;
@@ -289,7 +265,12 @@ export class E2EObjectStorageBrowser {
                             } else {
                                 throw e;
                             }
-                        } else {
+                        } else if (String(e).match(/to have children/) !== null) {
+                            console.log(`Repeating iteration (${i})`);
+
+                            return false; // repeat the current iteration
+                        }
+                        else {
                             throw e;
                         }
                     }

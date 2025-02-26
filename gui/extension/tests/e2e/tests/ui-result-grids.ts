@@ -96,7 +96,6 @@ describe("RESULT GRIDS", () => {
 
     after(async function () {
         try {
-            await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
             Misc.removeDatabaseConnections();
         } catch (e) {
             await Misc.processFailure(this);
@@ -798,24 +797,38 @@ describe("RESULT GRIDS", () => {
             for (let i = 1; i <= allColumns.length - 1; i++) {
 
                 await driver.wait(async () => {
-                    const copy = await result.copyField(row, String(allColumns[i]));
-                    const clip = clipboard.readSync();
+                    try {
+                        const copy = await result.copyField(row, String(allColumns[i]));
+                        const clip = clipboard.readSync();
 
-                    if (copy.toString().match(new RegExp(clip.toString()))) {
-                        return true;
-                    } else {
-                        console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip.toString()}`);
+                        if (copy.toString().match(new RegExp(clip.toString()))) {
+                            return true;
+                        } else {
+                            console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip.toString()}`);
+                        }
+                    } catch (e) {
+                        // the clipboard can have content with special chars from other tests
+                        if (!(e instanceof SyntaxError)) {
+                            throw e;
+                        }
                     }
                 }, constants.wait10seconds, "Copy field failed");
 
                 await driver.wait(async () => {
-                    const copy = await result.copyFieldUnquoted(row, String(allColumns[i]));
-                    const clip = clipboard.readSync();
+                    try {
+                        const copy = await result.copyFieldUnquoted(row, String(allColumns[i]));
+                        const clip = clipboard.readSync();
 
-                    if (copy.toString() === clip.toString()) {
-                        return true;
-                    } else {
-                        console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip.toString()}`);
+                        if (copy.toString() === clip.toString()) {
+                            return true;
+                        } else {
+                            console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip.toString()}`);
+                        }
+                    } catch (e) {
+                        // the clipboard can have content with special chars from other tests
+                        if (!(e instanceof SyntaxError)) {
+                            throw e;
+                        }
                     }
                 }, constants.wait10seconds, "Copy field unquoted failed");
 

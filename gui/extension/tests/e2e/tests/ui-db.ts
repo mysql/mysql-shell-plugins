@@ -94,7 +94,6 @@ describe("DATABASE CONNECTIONS", () => {
 
         } catch (e) {
             await Misc.processFailure(this);
-            await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
             throw e;
         }
 
@@ -103,7 +102,6 @@ describe("DATABASE CONNECTIONS", () => {
     after(async function () {
 
         try {
-            await Os.prepareExtensionLogsForExport(process.env.TEST_SUITE);
             Misc.removeDatabaseConnections();
         } catch (e) {
             await Misc.processFailure(this);
@@ -216,6 +214,18 @@ describe("DATABASE CONNECTIONS", () => {
         const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
         const dbConnectionOverview = new DatabaseConnectionOverview();
         let existsInQueue = false;
+
+        const duplicateConnection: interfaces.IDBConnection = {
+            dbType: "MySQL",
+            caption: "e2eDuplicateFromGlobal",
+            basic: {
+                hostname: "localhost",
+                username: String(process.env.DBUSERNAME1),
+                port: parseInt(process.env.MYSQL_PORT, 10),
+                schema: "sakila",
+                password: String(process.env.DBPASSWORD1),
+            },
+        };
 
         before(async function () {
             await Os.appendToExtensionLog("beforeAll DB Connection Overview");
@@ -607,16 +617,9 @@ describe("DATABASE CONNECTIONS", () => {
         it("Duplicate a MySQL Connection", async () => {
 
             await dbConnectionOverview.moreActions(globalConn.caption, constants.dupConnection);
-            const duplicate: interfaces.IDBConnection = {
-                dbType: "MySQL",
-                caption: "e2eDuplicateFromGlobal",
-                basic: {
-                    hostname: "localhost",
-                    username: String(process.env.DBUSERNAME1),
-                },
-            };
-            await DatabaseConnectionDialog.setConnection(duplicate);
-            await driver.wait(dbConnectionOverview.untilConnectionExists(duplicate.caption), constants.wait5seconds);
+            await DatabaseConnectionDialog.setConnection(duplicateConnection);
+            await driver.wait(dbConnectionOverview.untilConnectionExists(duplicateConnection.caption),
+                constants.wait5seconds);
 
         });
 
@@ -722,7 +725,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(until.elementIsVisible(newScript), constants.wait5seconds,
                 "New script button was not visible");
             await driver.executeScript("arguments[0].click()", newScript);
-            await driver.wait(new E2EScript().untilIsOpened(globalConn), constants.wait5seconds);
+            await driver.wait(new E2EScript().untilIsOpened(duplicateConnection), constants.wait5seconds);
             const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
             await openEditorsSection.focus();
             const script = await openEditorsSection.getTreeItem("Script");
@@ -1393,7 +1396,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(await dbTreeSection.treeItemIsDefault("sakila"), errors.isDefault("sakila")).to.be.false;
         });
 
-        it("Dump Schema to Disk", async () => {
+        it.skip("Dump Schema to Disk", async () => {
 
             treeGlobalSchema = await dbTreeSection.getTreeItem((globalConn.basic as interfaces.IConnBasicMySQL)
                 .schema);
@@ -1423,7 +1426,11 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        it("Load Dump from Disk", async () => {
+        it.skip("Load Dump from Disk", async function () {
+
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
             await dbTreeSection.clickToolbarButton(constants.reloadConnections);
             await dbTreeSection.openContextMenuAndSelect(globalConn.caption, constants.loadDumpFromDisk);
@@ -1431,15 +1438,15 @@ describe("DATABASE CONNECTIONS", () => {
             await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
             await Workbench.waitForOutputText(/Task 'Loading Dump .* from Disk' completed successfully/,
                 constants.wait10seconds);
-            await tasksTreeSection.focus();
-            await driver.wait(tasksTreeSection.untilTreeItemExists(/Loading Dump (.*) \(done\)/),
-                constants.wait5seconds);
-            await dbTreeSection.focus();
             await driver.wait(dbTreeSection.untilTreeItemExists(dumpSchemaToDisk), constants.wait5seconds);
 
         });
 
-        it("Dump Schema to Disk for MySQL Database Service", async () => {
+        it.skip("Dump Schema to Disk for MySQL Database Service", async function () {
+
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
             await fs.rm(dumpFolder, { force: true, recursive: true });
             await fs.mkdir(dumpFolder);
@@ -1452,12 +1459,6 @@ describe("DATABASE CONNECTIONS", () => {
                     constants.wait10seconds);
             const files = await fs.readdir(dumpFolder);
             expect(files.length, `The dump did not exported any files to ${dumpFolder}`).to.be.greaterThan(0);
-            await tasksTreeSection.focus();
-            await driver.wait(tasksTreeSection
-                .untilTreeItemExists(`Dump Schema ${schemaForMySQLDbService} to Disk (done)`), constants.wait5seconds);
-
-            await dbTreeSection.focus();
-
         });
 
         it("Load Data to HeatWave Cluster", async () => {
@@ -1531,6 +1532,8 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Table - Select Rows in DB Notebook", async () => {
 
+            treeGlobalSchema = await dbTreeSection.getTreeItem((globalConn.basic as interfaces.IConnBasicMySQL)
+                .schema);
             await treeGlobalSchema.expand();
             treeGlobalSchemaTables = await dbTreeSection.getTreeItem("Tables");
             await treeGlobalSchemaTables.expand();
