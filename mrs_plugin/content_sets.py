@@ -159,11 +159,12 @@ def generate_create_statement(**kwargs) -> str:
     lib.core.convert_ids_to_binary(["service_id", "content_set_id"], kwargs)
     service_id = kwargs.get("service_id")
     content_set_id = kwargs.get("content_set_id")
+    allow_load_scripts = kwargs.get("allow_load_scripts", False)
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         content_set = resolve_content_set(session, content_set_id, service_id)
 
-        return lib.content_sets.get_content_set_create_statement(session, content_set)
+        return lib.content_sets.get_content_set_create_statement(session, content_set, allow_load_scripts)
 
 
 @plugin_function('mrs.add.contentSet', shell=True, cli=True, web=True)
@@ -577,6 +578,7 @@ def get_create_statement(**kwargs):
     Keyword Args:
         service_id (str): The ID of the service where the schema belongs.
         content_set_id (str): The ID of the content set to generate.
+        allow_load_scripts (bool): If the LOAD SCRIPTS is to be used when applicable
         session (object): The database session to use.
 
     Returns:
@@ -596,6 +598,7 @@ def store_create_statement(**kwargs):
     Keyword Args:
         service_id (str): The ID of the service where the schema belongs.
         content_set_id (str): The ID of the content set to dump.
+        allow_load_scripts (bool): If the LOAD SCRIPTS is to be used when applicable
         file_path (str): The path where to store the file.
         overwrite (bool): Overwrite the file, if already exists.
         session (object): The database session to use.

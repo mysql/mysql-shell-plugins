@@ -890,20 +890,6 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                             disabled
                         />
                         <MenuItem command={{ title: "-", command: "" }} disabled />
-                        <MenuItem
-                            command={{
-                                title: "Export CREATE REST SERVICE Statement...",
-                                command: "msg.mrs.exportCreateServiceSql",
-                            }}
-                            disabled
-                        />
-                        <MenuItem
-                            command={{
-                                title: "Export CREATE REST SERVICE Statement Including All Objects...",
-                                command: "msg.mrs.exportCreateServiceSqlIncludeAllObjects",
-                            }}
-                            disabled
-                        />
                     </MenuItem>
                     <MenuItem command={{ title: "Copy to Clipboard", command: "" }}>
                         <MenuItem
@@ -914,8 +900,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                         />
                         <MenuItem
                             command={{
-                                title: "Copy CREATE REST SERVICE Statement Including All Objects",
-                                command: "msg.mrs.copyCreateServiceSqlIncludeAllObjects",
+                                title: "Copy CREATE REST SERVICE Statement Including Database Objects",
+                                command: "msg.mrs.copyCreateServiceSqlIncludeDatabaseEndpoints",
                             }}
                         />
                     </MenuItem>
@@ -960,27 +946,23 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     <MenuItem command={{ title: "Dump to Disk", command: "" }}>
                         <MenuItem
                             command={{
-                                title: "Export REST Schema To JSON File...",
+                                title: "Dump REST Schema To JSON File...",
                                 command: "msg.mrs.dumpSchemaToJSONFile",
                             }}
-                            disabled
-                        />
-                        <MenuItem
-                            command={{ title: "Export REST Schema SQL...", command: "msg.mrs.dumpCreateSchemaSql" }}
                             disabled
                         />
                         <MenuItem command={{ title: "-", command: "" }} disabled />
                         <MenuItem
                             command={{
-                                title: "Export CREATE REST SCHEMA Statement...",
-                                command: "msg.mrs.exportCreateSchemaSql",
+                                title: "Dump CREATE REST SCHEMA Statement...",
+                                command: "msg.mrs.dumpCreateSchemaSql",
                             }}
                             disabled
                         />
                         <MenuItem
                             command={{
-                                title: "Export CREATE REST SCHEMA Statement Including All Objects...",
-                                command: "msg.mrs.exportCreateSchemaSqlIncludeAllObjects",
+                                title: "Dump CREATE REST SCHEMA Statement Including Database Objects...",
+                                command: "msg.mrs.dumpCreateSchemaSqlIncludeDatabaseEndpoints",
                             }}
                             disabled
                         />
@@ -994,8 +976,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                         />
                         <MenuItem
                             command={{
-                                title: "Copy CREATE REST SCHEMA Statement Including All Objects",
-                                command: "msg.mrs.copyCreateSchemaSqlIncludeAllObjects",
+                                title: "Copy CREATE REST SCHEMA Statement Including Database Objects",
+                                command: "msg.mrs.copyCreateSchemaSqlIncludeDatabaseEndpoints",
                             }}
                         />
                     </MenuItem>

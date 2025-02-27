@@ -1016,6 +1016,15 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#dumpRestServiceStatement.
+    def enterDumpRestServiceStatement(self, ctx:MRSParser.DumpRestServiceStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#dumpRestServiceStatement.
+    def exitDumpRestServiceStatement(self, ctx:MRSParser.DumpRestServiceStatementContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#serviceRequestPath.
     def enterServiceRequestPath(self, ctx:MRSParser.ServiceRequestPathContext):
         pass

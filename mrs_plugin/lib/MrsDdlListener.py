@@ -1941,10 +1941,15 @@ class MrsDdlListener(MRSListener):
     # SHOW CREATE REST SERVICE
 
     def enterShowCreateRestServiceStatement(self, ctx):
+        include_database_endpoints = False
+
+        if ctx.DATABASE_SYMBOL() is not None:
+            include_database_endpoints = True
+
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "SHOW CREATE REST SERVICE",
-            "include_all_objects": ctx.OBJECTS_SYMBOL() is not None,
+            "include_database_endpoints": include_database_endpoints,
         }
 
     def exitShowCreateRestServiceStatement(self, ctx):
@@ -2026,6 +2031,22 @@ class MrsDdlListener(MRSListener):
     def exitShowCreateRestAuthAppStatement(self, ctx):
         self.mrs_ddl_executor.showCreateRestAuthApp(self.mrs_object)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    # DUMP REST SERVICE
+
+    def enterDumpRestServiceStatement(self, ctx):
+        self.mrs_object = {
+            "line": ctx.start.line,
+            "current_operation": "DUMP REST SERVICE",
+            "destination_path": get_text_without_quotes(ctx.directoryFilePath().getText()),
+            "include_database_endpoints": ctx.DATABASE_SYMBOL() is not None or ctx.ALL_SYMBOL() is not None,
+            "include_static_endpoints": ctx.STATIC_SYMBOL() is not None or ctx.ALL_SYMBOL() is not None,
+            "include_dynamic_endpoints": ctx.DYNAMIC_SYMBOL() is not None or ctx.ALL_SYMBOL() is not None,
+            "zip": ctx.ZIP_SYMBOL() is not None,
+        }
+
+    def exitDumpRestServiceStatement(self, ctx):
+        self.mrs_ddl_executor.dumpRestService(self.mrs_object)
 
 class MrsDdlErrorListener(antlr4.error.ErrorListener.ErrorListener):
     def __init__(self, errors):

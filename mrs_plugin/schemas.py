@@ -197,14 +197,14 @@ def generate_create_statement(**kwargs) -> str:
     lib.core.convert_ids_to_binary(["service_id", "schema_id"], kwargs)
     lib.core.try_convert_ids_to_binary(["service", "schema"], kwargs)
 
-    include_all_objects = kwargs.get("include_all_objects", False)
+    include_database_endpoints = kwargs.get("include_database_endpoints", False)
     service_query = service_query_selection(**kwargs)
     schema_query = schema_query_selection(**kwargs)
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         schema = resolve_schema(session, schema_query=schema_query, service_query=service_query)
 
-        return lib.schemas.get_schema_create_statement(session, schema, include_all_objects=include_all_objects)
+        return lib.schemas.get_schema_create_statement(session, schema, include_database_endpoints=include_database_endpoints)
 
 
 @plugin_function('mrs.add.schema', shell=True, cli=True, web=True)
@@ -653,7 +653,7 @@ def get_schema_create_statement(**kwargs):
         service_id (str): The ID of the service where the schema belongs.
         schema_id (str): The ID of the schema to generate.
         schema (str): The identifier of the schema.
-        include_all_objects (bool): Include all objects that belong to the schema.
+        include_database_endpoints (bool): Include database objects that belong to the schema.
         session (object): The database session to use.
 
     Returns:
@@ -681,7 +681,7 @@ def store_schema_create_statement(**kwargs):
         schema (str): The identifier of the schema.
         file_path (str): The path where to store the file.
         overwrite (bool): Overwrite the file, if already exists.
-        include_all_objects (bool): Include all objects that belong to the schema.
+        include_database_endpoints (bool): Include database objects that belong to the schema.
         session (object): The database session to use.
 
     Returns:

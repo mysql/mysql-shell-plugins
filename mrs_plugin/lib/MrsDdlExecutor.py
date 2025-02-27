@@ -2698,7 +2698,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def showCreateRestService(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
-        include_all_objects = mrs_object.pop("include_all_objects")
+        include_database_endpoints = mrs_object.pop("include_database_endpoints", False)
 
         full_path = self.getFullServicePath(mrs_object=mrs_object)
 
@@ -2709,7 +2709,10 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 session=self.session, service_id=service_id
             )
 
-            result = [{"CREATE REST SERVICE": lib.services.get_service_create_statement(self.session, service, include_all_objects)}]
+            result = [{"CREATE REST SERVICE": lib.services.get_service_create_statement(self.session, service,
+                    include_database_endpoints=include_database_endpoints,
+                    include_static_endpoints=False,
+                    include_dynamic_endpoints=False)}]
 
             self.results.append(
                 {
@@ -2872,7 +2875,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def showCreateRestContentSet(self, mrs_object: dict):
         timer = Timer()
         try:
-            result = [{"CREATE REST CONTENT SET": lib.content_sets.get_content_set_create_statement(self.session, mrs_object)}]
+            result = [{"CREATE REST CONTENT SET": lib.content_sets.get_content_set_create_statement(self.session, mrs_object, False)}]
 
             self.results.append(
                 {
@@ -2946,7 +2949,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     f"The given REST AUTH APP `{name}` could not be found."
                 )
 
-            result = [{"CREATE REST AUTH APP ": lib.auth_apps.get_auth_app_create_statement(self.session, auth_app, True)}]
+            result = [{"CREATE REST AUTH APP ": lib.auth_apps.get_auth_app_create_statement(self.session, auth_app, include_all_objects)}]
 
             self.results.append(
                 {
@@ -3039,6 +3042,45 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "line": mrs_object.get("line"),
                     "type": "error",
                     "message": f"Failed to get the REST ROLE `{caption}`. {e}",
+                    "operation": self.current_operation,
+                }
+            )
+            raise
+
+    def dumpRestService(self, mrs_object: dict):
+        timer = Timer()
+        self.current_operation = mrs_object.pop("current_operation")
+        include_database_endpoints = mrs_object["include_database_endpoints"]
+        include_static_endpoints = mrs_object["include_static_endpoints"]
+        include_dynamic_endpoints = mrs_object["include_dynamic_endpoints"]
+        try:
+            service = lib.services.get_service(self.session, url_context_root=mrs_object["url_context_root"])
+
+            lib.services.store_service_create_statement(self.session, service,
+                                                        mrs_object.get("destination_path"), mrs_object.get("zip", False),
+                                                        include_database_endpoints, include_static_endpoints, include_dynamic_endpoints)
+
+            result = [{"DUMP REST SERVICE ": f"Result stored in '{mrs_object["destination_path"]}'"}]
+
+            self.results.append(
+                {
+                    "statementIndex": len(self.results) + 1,
+                    "line": mrs_object.get("line"),
+                    "type": "success",
+                    "operation": self.current_operation,
+                    "id": lib.core.convert_id_to_string(service.get("id")),
+                    "result": result,
+                    "executionTime": timer.elapsed(),
+                }
+            )
+
+        except Exception as e:
+            self.results.append(
+                {
+                    "statementIndex": len(self.results) + 1,
+                    "line": mrs_object.get("line"),
+                    "type": "error",
+                    "message": f"Failed to execute DUMP REST SERVICE `{service.get("name", "unknown")}`. {e}",
                     "operation": self.current_operation,
                 }
             )

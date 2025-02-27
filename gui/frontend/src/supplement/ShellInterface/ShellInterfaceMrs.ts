@@ -1114,13 +1114,13 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async getServiceCreateStatement(serviceId: string, includeAllObjects: boolean): Promise<string> {
+    public async getServiceCreateStatement(serviceId: string, includeDatabaseEndpoints: boolean): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsGetServiceCreateStatement,
             parameters: {
                 kwargs: {
                     serviceId,
-                    includeAllObjects,
+                    includeDatabaseEndpoints,
                     moduleSessionId: this.moduleSessionId,
                 },
             },
@@ -1129,13 +1129,13 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async getSchemaCreateStatement(schemaId: string, includeAllObjects: boolean): Promise<string> {
+    public async getSchemaCreateStatement(schemaId: string, includeDatabaseEndpoints: boolean): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsGetSchemaCreateStatement,
             parameters: {
                 kwargs: {
                     schemaId,
-                    includeAllObjects,
+                    includeDatabaseEndpoints,
                     moduleSessionId: this.moduleSessionId,
                 },
             },
@@ -1220,16 +1220,17 @@ export class ShellInterfaceMrs {
         return response.result;
     }
 
-    public async dumpServiceCreateStatement(serviceId: string, filePath: string, overwrite: boolean,
-        includeAllObjects: boolean): Promise<boolean> {
+    public async dumpServiceSqlScript(serviceId: string,
+        endpoints: string, filePath: string, overwrite: boolean, zip: boolean): Promise<boolean> {
         const response = await MessageScheduler.get.sendRequest({
-            requestType: ShellAPIMrs.MrsDumpServiceCreateStatement,
+            requestType: ShellAPIMrs.MrsDumpServiceSqlScript,
             parameters: {
                 kwargs: {
-                    serviceId,
-                    includeAllObjects,
+                    service: serviceId,
+                    endpoints,
                     filePath,
                     overwrite,
+                    zip,
                     moduleSessionId: this.moduleSessionId,
                 },
             },
@@ -1239,7 +1240,7 @@ export class ShellInterfaceMrs {
     }
 
     public async dumpSchemaCreateStatement(schemaId: string, filePath: string, overwrite: boolean
-        , includeAllObjects: boolean): Promise<boolean> {
+        , includeDatabaseEndpoints: boolean): Promise<boolean> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsDumpSchemaCreateStatement,
             parameters: {
@@ -1247,7 +1248,7 @@ export class ShellInterfaceMrs {
                     schemaId,
                     filePath,
                     overwrite,
-                    includeAllObjects,
+                    includeDatabaseEndpoints,
                     moduleSessionId: this.moduleSessionId,
                 },
             },
