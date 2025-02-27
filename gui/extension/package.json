@@ -212,19 +212,6 @@
                         "Supported only in DB editors"
                     ]
                 },
-                "msg.dbEditor.defaultEditor": {
-                    "type": "string",
-                    "default": "notebook",
-                    "description": "Select the type of the first editor when opening a DB connection.",
-                    "enum": [
-                        "notebook",
-                        "script"
-                    ],
-                    "enumDescriptions": [
-                        "A multi language editor with embedded results",
-                        "A single language script editor (MySQL)"
-                    ]
-                },
                 "msg.dbEditor.upperCaseKeywords": {
                     "type": "boolean",
                     "default": true,

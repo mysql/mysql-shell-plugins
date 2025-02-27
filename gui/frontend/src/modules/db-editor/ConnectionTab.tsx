@@ -482,6 +482,7 @@ Execute \\help or \\? for help;`;
                                 document = <ClientConnections
                                     backend={connection?.backend}
                                     toolbarItems={toolbarItems}
+                                    refreshInterval={5000}
                                 />;
 
                                 break;
