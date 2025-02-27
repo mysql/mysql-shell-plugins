@@ -408,7 +408,7 @@ def get_current_schema(session):
     return current_schema
 
 
-def get_schema_create_statement(session, schema, include_all_objects: bool = False) -> str:
+def get_schema_create_statement(session, schema, include_database_endpoints: bool = False) -> str:
     output = [
         f'CREATE OR REPLACE REST SCHEMA {schema.get("request_path")} ON SERVICE {schema.get("host_ctx")}',
         f'    FROM `{schema.get("name")}`'
@@ -431,7 +431,7 @@ def get_schema_create_statement(session, schema, include_all_objects: bool = Fal
 
     result = ["\n".join(output) + ";"]
 
-    if include_all_objects:
+    if include_database_endpoints:
         schema_db_objects = db_objects.get_db_objects(session, schema["id"])
 
         for schema_db_object in schema_db_objects:

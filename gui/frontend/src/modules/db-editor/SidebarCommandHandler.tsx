@@ -148,8 +148,9 @@ export class SidebarCommandHandler {
                     break;
                 }
 
-                case "msg.mrs.exportCreateServiceSql": {
+                case "msg.mrs.dumpCreateServiceSqlScript": {
                     // TODO: works with the file system, not possible in a browser.
+
                     break;
                 }
 

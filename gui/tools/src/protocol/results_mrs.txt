@@ -607,7 +607,6 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsGetContentFileCreateStatement]: { result: string; };
     [ShellAPIMrs.MrsGetAuthAppCreateStatement]: { result: string; };
     [ShellAPIMrs.MrsGetUserCreateStatement]: { result: string; };
-    [ShellAPIMrs.MrsDumpServiceCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpSchemaCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpDbObjectCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpContentSetCreateStatement]: { result: boolean; };
@@ -622,4 +621,5 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsListAuthenticationAppServices]: { result: IMrsServiceData[]; };
     [ShellAPIMrs.MrsGetAvailableMetadataVersions]: { result: string[]; };
     [ShellAPIMrs.MrsGetConfigurationOptions]: { result: IMrsConfigData; };
+    [ShellAPIMrs.MrsDumpServiceSqlScript]: { result: boolean; };
 }
