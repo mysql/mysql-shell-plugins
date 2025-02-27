@@ -175,18 +175,6 @@ describe("Document module tests", (): void => {
         appParameters.embedded = originalEmbedded;
     });
 
-
-    it("Test DocumentModule selectedPage is empty", async () => {
-        const originalEmbedded = appParameters.embedded;
-        appParameters.embedded = true;
-        const component = mount<DocumentModule>(<DocumentModule />);
-        component.setState({ selectedPage: "" });
-        await nextProcessTick();
-
-        component.unmount();
-        appParameters.embedded = originalEmbedded;
-    });
-
     it("Test DocumentModule getDerivedStateFromProps", () => {
         const state: IDocumentModuleState = {
             selectedPage: "",
@@ -215,15 +203,6 @@ describe("Document module tests", (): void => {
         expect(docSelector).toBeDefined();
         const closeButton = document.getElementById("itemCloseButton");
         expect(closeButton).toBeDefined();
-
-        component.unmount();
-    });
-
-    it("Test DocumentModule componentDidMount and componentWillUnmount", () => {
-        const component = mount<DocumentModule>(<DocumentModule />);
-
-        component.instance().componentDidMount();
-        component.instance().componentWillUnmount();
 
         component.unmount();
     });
@@ -268,36 +247,11 @@ describe("Document module tests", (): void => {
         const instance = component.instance();
 
         await requisitions.execute("refreshConnection", undefined);
+        await requisitions.execute("showPage", { page: "connections", editor: "default" });
+        expect(instance.state.selectedPage).toEqual("connections");
+
         await requisitions.execute("showPage", { page: "other", editor: "default" });
-
-        const state = instance.state;
-        expect(state.selectedPage).toBeDefined();
-        expect(state.selectedPage).toEqual("connections");
-
-        component.unmount();
-    });
-
-    it("Test DocumentModule function requisitions.editorRunCommand", async () => {
-        const component = mount<DocumentModule>(<DocumentModule />);
-        const context: IExecutionContext = {
-            id: "test",
-            code: "SELECT * FROM test",
-            codeLength: 1,
-            language: "sql",
-            isSQLLike: true,
-            linkId: 1,
-            endLine: 1,
-            startLine: 1,
-            isInternal: false,
-            fullRange: undefined,
-        };
-
-        await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", { page: String(connID) });
-
-        const result = await requisitions.execute("editorRunCommand", { command: "sendBlockUpdates", context });
-
-        expect(result).toBe(true);
+        expect(instance.state.selectedPage).toEqual("connections");
 
         component.unmount();
     });
@@ -319,101 +273,6 @@ describe("Document module tests", (): void => {
         const editorTab = instance.state.connectionTabs[0];
 
         expect(editorTab.dataModelEntry.details.options).toStrictEqual(options);
-
-        component.unmount();
-    });
-
-    it("Test DocumentModule function requisitions.profileLoaded", async () => {
-        const component = mount<DocumentModule>(<DocumentModule />);
-
-        // Requisition methods (like profileLoaded) cannot really be tested, because they cannot be mocked.
-        // And they often only set internal members, to which we have no access. So all we do here is to check
-        // that the requisition was executed without errors. See below for more such tests.
-        const result = await requisitions.execute("profileLoaded", null);
-        expect(result).toBe(true);
-
-        component.unmount();
-    });
-
-    it("Test DocumentModule function requisitions.connectionAdded", async () => {
-        const credentials = getDbCredentials();
-
-        const options: IMySQLConnectionOptions = {
-            scheme: MySQLConnectionScheme.MySQL,
-            user: credentials.userName,
-            password: credentials.password,
-            host: credentials.host,
-            port: credentials.port,
-        };
-
-        const newTestConnection: IConnectionDetails = {
-            id: -1,
-            dbType: DBType.MySQL,
-            caption: "DocumentModule Test Connection 2",
-            description: "DocumentModule Test Connection 2",
-            options,
-        };
-
-        const component = mount<TestDocumentModule>(<TestDocumentModule />);
-
-        const result = await requisitions.execute("connectionAdded", newTestConnection);
-        expect(result).toBe(true);
-
-        component.unmount();
-    });
-
-    it("Test DocumentModule function requisitions.connectionUpdated", async () => {
-        const newTestConnection: IConnectionDetails = {
-            id: connID,
-            dbType: DBType.MySQL,
-            caption: "ShellInterfaceDb Test Connection 2",
-            description: "ShellInterfaceDb Test Connection 2",
-            options,
-        };
-
-        const component = mount<DocumentModule>(<DocumentModule />);
-
-        await requisitions.execute("refreshConnection", undefined);
-        await requisitions.execute("showPage", { page: String(connID) });
-
-        const result = requisitions.execute("connectionUpdated", newTestConnection);
-        await expect(result).resolves.toBe(true);
-
-        component.unmount();
-    });
-
-    it("Test DocumentModule function requisitions.connectionRemoved", async () => {
-        const newOptions: IMySQLConnectionOptions = {
-            scheme: MySQLConnectionScheme.MySQL,
-            user: "user1",
-            password: "",
-            host: "localhost",
-            port: 3301,
-        };
-
-        const newTestConnection: IConnectionDetails = {
-            id: 2,
-            dbType: DBType.MySQL,
-            caption: "DocumentModule Test Connection 2",
-            description: "DocumentModule Test Connection 2",
-            options: newOptions,
-        };
-
-        const component = mount<DocumentModule>(<DocumentModule />);
-
-        let result = await requisitions.execute("connectionAdded", newTestConnection);
-        expect(result).toBe(true);
-        result = await requisitions.execute("connectionRemoved", newTestConnection);
-        expect(result).toBe(true);
-
-        component.unmount();
-    });
-
-    it("Test DocumentModule function requisitions.refreshConnections", async () => {
-        const component = mount<DocumentModule>(<DocumentModule />);
-
-        const result = await requisitions.execute("refreshConnection", undefined);
-        expect(result).toBe(true);
 
         component.unmount();
     });

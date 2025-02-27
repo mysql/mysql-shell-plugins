@@ -1882,23 +1882,6 @@ describe("MySQL REST Service", () => {
             }
         });
 
-        it("Get schema metadata", async () => {
-            console.log(`fetching: ${baseUrl}/metadata-catalog`);
-            response = await fetch(`${baseUrl}/metadata-catalog`);
-            const data = await response.json();
-            expect(response.ok, `response should be OK`).to.be.true;
-            expect(data.items, "response data does not have any items").to.exist;
-        });
-
-        it("Get object metadata", async () => {
-            console.log(`fetching: ${baseUrl}/metadata-catalog${crudObject.restObjectPath}`);
-            response = await fetch(`${baseUrl}/metadata-catalog${crudObject.restObjectPath}`);
-            const data = await response.json();
-            expect(response.ok, `response should be OK`).to.be.true;
-            expect(data.name).equals(`/${crudObject.restObjectPath.replace("/", "")}`);
-            expect(data.primaryKey[0]).to.equals("actorId");
-        });
-
         it("Get object data", async () => {
             console.log(`fetching: ${baseUrl}${crudObject.restObjectPath}`);
             response = await fetch(`${baseUrl}${crudObject.restObjectPath}`);

@@ -372,17 +372,6 @@ export const registerSettings = (): void => {
             ],
         });
     registerSetting(
-        "dbEditor.defaultEditor",
-        "Default Editor",
-        "Select the type of the first editor when opening a DB connection.",
-        "choice", "notebook", false,
-        {
-            choices: [
-                ["DB Notebook", "notebook", "A multi-language editor with embedded results"],
-                ["MySQL Script", "script", "A single-language script editor (MySQL)"],
-            ],
-        });
-    registerSetting(
         "dbEditor.useMinimap",
         "Use the minimap if globally enabled",
         "Determines if notebooks in the DB editor show a minimap. Only has an effect when mini maps are globally " +

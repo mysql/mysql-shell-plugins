@@ -75,6 +75,10 @@ interface IClientConnectionsProperties extends IComponentProperties {
 
     /** Top level toolbar items, to be integrated with page specific ones. */
     toolbarItems: IToolbarItems;
+
+    /** The user selected value for refreshs of this page. */
+    // TODO: This should be stored as part of the user's preferences or the persistent state of the connection tab.
+    refreshInterval?: number;
 }
 
 interface IClientConnectionsState extends IComponentState {
@@ -88,6 +92,8 @@ interface IClientConnectionsState extends IComponentState {
     attributes?: IResultSet;
     grantedLocks?: IResultSet;
     waitingText: string;
+
+    refreshInterval: number; // Default is 5s.
 }
 
 // Mapping from query field names to human readable names.
@@ -109,10 +115,9 @@ const columnNameMap = new Map<string, string>([
 
 export class ClientConnections extends ComponentBase<IClientConnectionsProperties, IClientConnectionsState> {
 
-    private static readonly sampleInterval = 5000;
     private refreshTimer: ReturnType<typeof setInterval> | null = null;
     private gridRef = createRef<TreeGrid>();
-    private interval = ClientConnections.sampleInterval;
+
     private selectedRow?: IDictionary;
     private columns: IColumnInfo[] = [];
     private attrColumns: IColumnInfo[] = [];
@@ -141,6 +146,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
             showDetails: false,
             selectedTab: "propsTab",
             waitingText: "This connection is not waiting for any locks.",
+            refreshInterval: props.refreshInterval ?? 5000,
         };
 
         this.checkIsPsAvailable()
@@ -164,20 +170,17 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         if (backend !== prevProps.backend) {
             void this.updateValues();
         }
+
+        this.updateRefreshTimer(false);
     }
 
     public override componentDidMount(): void {
-        this.refreshTimer = setInterval(() => {
-            void this.updateValues();
-        }, ClientConnections.sampleInterval);
+        this.updateRefreshTimer(false);
         requisitions.register("dialogResponse", this.handleDialogResponse);
     }
 
     public override componentWillUnmount(): void {
-        if (this.refreshTimer) {
-            clearInterval(this.refreshTimer);
-            this.refreshTimer = null;
-        }
+        this.updateRefreshTimer(true);
 
         requisitions.unregister("dialogResponse", this.handleDialogResponse);
     }
@@ -250,7 +253,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
                                     tabPosition={TabPosition.Top}
                                     tabBorderWidth={1}
                                     contentSeparatorWidth={2}
-                                    onSelectTab={void this.handleSelectTab}
+                                    onSelectTab={this.handleSelectTab}
                                     pages={[
                                         {
                                             caption: "Details",
@@ -414,7 +417,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
     };
 
     private toolbarContent = (): ComponentChild[] => {
-        const { showDetails } = this.state;
+        const { showDetails, refreshInterval } = this.state;
 
         const showDetailsIcon = showDetails
             ? Assets.toolbar.showDetailsActiveIcon
@@ -429,7 +432,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
             ? Assets.toolbar.backgroundThreadsActiveIcon
             : Assets.toolbar.backgroundThreadsInactiveIcon;
 
-        const intervals: number[] = [0.5, 1, 2, 3, 4, 5, 10, 15, 30, 0];
+        const intervals: number[] = [1, 2, 3, 4, 5, 10, 15, 30, 0];
         const items: ComponentChild[] = [];
 
         intervals.forEach((value: number) => {
@@ -446,8 +449,8 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
             <Dropdown
                 id="refreshSelector"
                 key="selector"
-                onSelect={void this.handleTimeRangeSelection}
-                selection={`${this.interval / 1000}`}
+                onSelect={this.handleTimeRangeSelection}
+                selection={`${refreshInterval / 1000}`}
             >
                 {items}
             </Dropdown>,
@@ -794,20 +797,13 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         }
     };
 
-    private handleTimeRangeSelection = async (selectedIds: Set<string>): Promise<void> => {
-        if (this.refreshTimer) {
-            clearInterval(this.refreshTimer);
-            this.refreshTimer = null;
-        }
-
-        this.interval = parseInt([...selectedIds][0], 10) * 1000;
+    private handleTimeRangeSelection = async (accept: boolean, selectedIds: Set<string>): Promise<void> => {
+        const refreshInterval = parseInt([...selectedIds][0], 10) * 1000;
+        this.setState({ refreshInterval }, () => {
+            this.updateRefreshTimer(false);
+        });
 
         await this.updateValues();
-        if (this.interval > 0) {
-            this.refreshTimer = setInterval(() => {
-                void this.updateValues();
-            }, this.interval);
-        }
     };
 
     private getSelectedRowValue = (key: string): string => {
@@ -1031,7 +1027,7 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
         return false;
     };
 
-    private handleSelectTab = async (id: string): Promise<void> => {
+    private handleSelectTab = (id: string): void => {
         const { attributes, grantedLocks } = this.state;
         const currentSelectedRow = this.getSelectedRowValue("PROCESSLIST_ID");
         const currentSelectedThread = this.getSelectedRowValue("THREAD_ID");
@@ -1040,16 +1036,37 @@ export class ClientConnections extends ComponentBase<IClientConnectionsPropertie
             const field = attributes?.columns.find((x) => { return x.title === "PROCESSLIST_ID"; });
             if (!attributes || !field ||
                 (field && attributes?.data.rows[0][field.field] as string !== currentSelectedRow)) {
-                await this.updateAttributes(currentSelectedRow);
+                void this.updateAttributes(currentSelectedRow).then(() => {
+                    this.setState({ selectedTab: id });
+                });
             }
         } else if (id === "locksTab") {
             const field = grantedLocks?.columns.find((x) => { return x.title === "THREAD_ID"; });
-            if (!grantedLocks || !field ||
-                (field && grantedLocks?.data.rows[0][field.field] as string !== currentSelectedThread)) {
-                await this.updateLocks(parseInt(currentSelectedThread, 10));
+            if (!grantedLocks
+                || !field
+                || (field && grantedLocks?.data.rows[0][field.field] as string !== currentSelectedThread)) {
+                void this.updateLocks(parseInt(currentSelectedThread, 10)).then(() => {
+                    this.setState({ selectedTab: id });
+                });
             }
+        } else {
+            this.setState({ selectedTab: id });
+        }
+    };
+
+    private updateRefreshTimer = (stop: boolean): void => {
+        if (this.refreshTimer) {
+            clearInterval(this.refreshTimer);
+            this.refreshTimer = null;
         }
 
-        this.setState({ selectedTab: id });
+        if (!stop) {
+            const { refreshInterval } = this.state;
+            if (refreshInterval > 0) {
+                this.refreshTimer = setInterval(() => {
+                    void this.updateValues();
+                }, refreshInterval);
+            }
+        }
     };
 }

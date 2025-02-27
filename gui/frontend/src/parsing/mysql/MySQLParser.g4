@@ -1056,13 +1056,8 @@ loadDataFileTargetList:
 ;
 
 fieldOrVariableList:
-    (columnRef | AT_SIGN_SYMBOL textOrIdentifier | AT_AT_SIGN_SYMBOL) (
-        COMMA_SYMBOL (
-            columnRef
-            | AT_SIGN_SYMBOL textOrIdentifier
-            | AT_TEXT_SUFFIX
-            | AT_AT_SIGN_SYMBOL
-        )
+    (columnRef | userVariable | AT_AT_SIGN_SYMBOL) (
+        COMMA_SYMBOL (columnRef | userVariable | AT_AT_SIGN_SYMBOL)
     )*
 ;
 
@@ -2218,10 +2213,7 @@ roleOrPrivilegesList:
 ;
 
 roleOrPrivilege:
-    (
-        roleIdentifierOrText columnInternalRefList?
-        | roleIdentifierOrText (AT_TEXT_SUFFIX | AT_SIGN_SYMBOL textOrIdentifier)
-    )
+    (roleIdentifierOrText columnInternalRefList? | roleIdentifierOrText userVariable)
     | (SELECT_SYMBOL | INSERT_SYMBOL | UPDATE_SYMBOL | REFERENCES_SYMBOL) columnInternalRefList?
     | (
         DELETE_SYMBOL
@@ -2868,7 +2860,7 @@ explainableStatement:
 ;
 
 explainInto:
-    INTO_SYMBOL AT_SIGN_SYMBOL textOrIdentifier
+    INTO_SYMBOL userVariable
 ;
 
 helpCommand:
@@ -3039,7 +3031,7 @@ samplingMethod:
 
 samplingPercentage:
     ulonglongNumber
-    | AT_SIGN_SYMBOL textOrIdentifier
+    | userVariable
     | PARAM_MARKER
 ;
 
@@ -3068,7 +3060,7 @@ stableInteger:
 paramOrVar:
     PARAM_MARKER
     | identifier
-    | AT_SIGN_SYMBOL textOrIdentifier
+    | userVariable
 ;
 
 nullTreatment:

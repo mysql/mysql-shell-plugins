@@ -1256,7 +1256,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             if (connection.details.settings && connection.details.settings.defaultEditor) {
                 useNotebook = connection.details.settings.defaultEditor === DBConnectionEditorType.DbNotebook;
             } else {
-                useNotebook = Settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
+                useNotebook = true;
             }
 
             // Get the execution history entries for this connection, but only fetch the first 30 chars of the code

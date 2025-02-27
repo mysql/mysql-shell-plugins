@@ -47,13 +47,12 @@ import { Label } from "../../components/ui/Label/Label.js";
 import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator.js";
 import type { ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
 import { requisitions } from "../../supplement/Requisitions.js";
-import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
 import { DBConnectionEditorType, DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
+import { convertErrorToString } from "../../utilities/helpers.js";
 import { basename, filterInt } from "../../utilities/string-helpers.js";
 import { DocumentContext, type DocumentContextType } from "./index.js";
-import { convertErrorToString } from "../../utilities/helpers.js";
 
 const editorHeading = "Database Connection Configuration";
 
@@ -536,9 +535,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 scheme: MySQLConnectionScheme.MySQL,
             },
             settings: {
-                defaultEditor: Settings.get("dbEditor.defaultEditor", "notebook") === "notebook"
-                    ? DBConnectionEditorType.DbNotebook
-                    : DBConnectionEditorType.DbScript,
+                defaultEditor: DBConnectionEditorType.DbNotebook,
             },
         };
 
@@ -683,12 +680,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 },
             },
         };
-
-        /*const detailsHeaderSection: IDialogSection = {
-            caption: "Connection Details",
-            values: {
-            },
-        };*/
 
         const mysqlDetailsSection: IDialogSection = {
             contexts: ["MySQL"],
