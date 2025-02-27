@@ -241,6 +241,16 @@ def get_content_file_create_statement(session, content_file: dict) -> str:
     output.append(f"CREATE OR REPLACE REST CONTENT FILE {core.quote_rpath(content_file.get('request_path'))}")
     output.append(f"    ON SERVICE {core.quote_rpath(content_file.get('host_ctx'))} CONTENT SET {core.quote_rpath(content_file.get('content_set_request_path'))}")
 
+    if core.is_text(content_file["content"]):
+        content_type = "CONTENT"
+        contents = content_file["content"].decode()
+    else:
+        content_type = "BINARY CONTENT"
+        contents = base64.b64encode(
+            content_file["content"]).decode("ascii")
+
+    output.append(f"    {content_type} {core.squote_str(contents)}")
+
     if content_file["enabled"] == 2:
         output.append("    PRIVATE")
     elif content_file["enabled"] is False or content_file["enabled"] == 0:
@@ -253,15 +263,5 @@ def get_content_file_create_statement(session, content_file: dict) -> str:
         else "    AUTHENTICATION NOT REQUIRED"
 
     output.append(auth)
-
-    if core.is_text(content_file["content"]):
-        content_type = "CONTENT"
-        contents = content_file["content"].decode()
-    else:
-        content_type = "BINARY CONTENT"
-        contents = base64.b64encode(
-            content_file["content"]).decode("ascii")
-
-    output.append(f"    {content_type} {core.quote_text(contents)}")
 
     return "\n".join(output) + ";"

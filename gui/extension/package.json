@@ -771,7 +771,7 @@
             },
             {
                 "command": "msg.mrs.dumpCreateSchemaSql",
-                "title": "REST Schema SQL..."
+                "title": "Dump REST Schema SQL..."
             },
             {
                 "command": "msg.mrs.editAuthApp",
@@ -835,107 +835,107 @@
             },
             {
                 "command": "msg.mrs.dumpSchemaToJSONFile",
-                "title": "REST Schema To JSON File..."
+                "title": "Dump REST Schema To JSON File..."
             },
             {
                 "command": "msg.mrs.dumpObjectToJSONFile",
-                "title": "REST Object To JSON File..."
+                "title": "Dump REST Object To JSON File..."
             },
             {
                 "command": "msg.mrs.loadSchemaFromJSONFile",
-                "title": "REST Schema From JSON File..."
+                "title": "Load REST Schema From JSON File..."
             },
             {
                 "command": "msg.mrs.exportServiceSdk",
-                "title": "REST Client SDK Files ..."
+                "title": "Dump REST Client SDK Files ..."
             },
             {
-                "command": "msg.mrs.exportCreateServiceSql",
-                "title": "Export CREATE REST SERVICE Statement..."
+                "command": "msg.mrs.exportServiceSdk",
+                "title": "Dump REST Client SDK Files ..."
             },
             {
-                "command": "msg.mrs.exportCreateServiceSqlIncludeAllObjects",
-                "title": "Export CREATE REST SERVICE Statement Including All Objects..."
+                "command": "msg.mrs.dumpCreateServiceSql",
+                "title": "Dump REST SERVICE SQL Script..."
             },
             {
-                "command": "msg.mrs.exportCreateSchemaSql",
-                "title": "Export CREATE REST SCHEMA Statement..."
+                "command": "msg.mrs.dumpCreateSchemaSql",
+                "title": "Dump CREATE REST SCHEMA Statement..."
             },
             {
-                "command": "msg.mrs.exportCreateSchemaSqlIncludeAllObjects",
-                "title": "Export CREATE REST SCHEMA Statement Including All Objects..."
+                "command": "msg.mrs.dumpCreateSchemaSqlIncludeDatabaseEndpoints",
+                "title": "Dump CREATE REST SCHEMA Statement Including Database Objects..."
             },
             {
                 "command": "msg.mrs.exportCreateDbObjectSql",
-                "title": "Create Statement..."
+                "title": "Dump CREATE REST Object Statement..."
             },
             {
                 "command": "msg.mrs.exportCreateContentSetSql",
-                "title": "Create Statement..."
+                "title": "Dump CREATE REST CONTENT SET Statement..."
             },
             {
                 "command": "msg.mrs.exportCreateContentFileSql",
-                "title": "Create Statement..."
+                "title": "Dump CREATE REST CONTENT FILE Statement..."
             },
             {
                 "command": "msg.mrs.exportCreateAuthAppSql",
-                "title": "Create Statement..."
+                "title": "Dump CREATE REST AUTH APP Statement..."
             },
             {
                 "command": "msg.mrs.exportCreateAuthAppSqlIncludeAllObjects",
-                "title": "Create Statement Including All Objects..."
+                "title": "Dump CREATE REST AUTH APP Statement Including All Objects..."
             },
             {
                 "command": "msg.mrs.exportCreateUserSql",
-                "title": "Create Statement..."
+                "title": "Dump CREATE REST USER Statement..."
             },
             {
                 "command": "msg.mrs.exportCreateUserSqlIncludeAllObjects",
-                "title": "Create Statement Including All Objects..."
+                "title": "Dump CREATE REST USER Statement Including All Objects..."
             },
             {
                 "command": "msg.mrs.copyCreateServiceSql",
                 "title": "Copy CREATE REST SERVICE Statement"
             },
             {
-                "command": "msg.mrs.copyCreateServiceSqlIncludeAllObjects",
-                "title": "Copy CREATE REST SERVICE Statement Including All Objects"
+                "command": "msg.mrs.copyCreateServiceSqlIncludeDatabaseEndpoints",
+                "title": "Copy CREATE REST SERVICE Statement Including Database Objects"
             },
             {
                 "command": "msg.mrs.copyCreateSchemaSql",
                 "title": "Copy CREATE REST SCHEMA Statement"
             },
             {
-                "command": "msg.mrs.copyCreateSchemaSqlIncludeAllObjects",
-                "title": "Copy CREATE REST SCHEMA Statement Including All Objects"
+                "command": "msg.mrs.copyCreateSchemaSqlIncludeDatabaseEndpoints",
+                "title": "Copy CREATE REST SCHEMA Statement Including Database Objects"
             },
             {
                 "command": "msg.mrs.copyCreateDbObjectSql",
-                "title": "Create Statement"
+                "title": "Copy CREATE REST OBJECT Statement"
             },
             {
                 "command": "msg.mrs.copyCreateContentSetSql",
-                "title": "Create Statement"
+                "title": "Copy CREATE REST CONTENT SET Statement"
             },
             {
                 "command": "msg.mrs.copyCreateContentFileSql",
-                "title": "Create Statement"
+                "title": "Copy CREATE REST CONTENT FILE Statement"
             },
             {
                 "command": "msg.mrs.copyCreateAuthAppSql",
-                "title": "Create Statement"
+                "title": "Copy CREATE REST AUTH APP Statement"
             },
             {
                 "command": "msg.mrs.copyCreateAuthAppSqlIncludeAllObjects",
-                "title": "Create Statement Including All Objects"
+                "title": "Copy CREATE REST AUTH APP Statement Including All Objects"
             },
             {
                 "command": "msg.mrs.copyCreateUserSql",
-                "title": "Create Statement"
+                "title": "Copy CREATE REST USER Statement"
             },
             {
                 "command": "msg.mrs.copyCreateUserSqlIncludeAllObjects",
-                "title": "Create Statement Including All Objects"
+                "title": "Copy CREATE REST USER Statement Including All Objects"
             },
             {
                 "command": "msg.mrs.loadObjectFromJSONFile",
@@ -1175,34 +1175,24 @@
                     "group": "2_msg@1"
                 },
                 {
+                    "command": "msg.mrs.dumpCreateServiceSql",
+                    "when": "view == msg.connections && viewItem == mrsService",
+                    "group": "2_msg@2"
+                },
+                {
+                    "command": "msg.mrs.dumpCreateSchemaSqlIncludeDatabaseEndpoints",
+                    "when": "view == msg.connections && viewItem == mrsSchema",
+                    "group": "2_msg@3"
+                },
+                {
                     "command": "msg.mrs.dumpCreateSchemaSql",
                     "when": "view == msg.connections && viewItem == mrsSchema",
                     "group": "2_msg@2"
                 },
                 {
-                    "command": "msg.mrs.exportCreateServiceSql",
-                    "when": "view == msg.connections && viewItem == mrsService",
-                    "group": "3_msg@2"
-                },
-                {
-                    "command": "msg.mrs.exportCreateServiceSqlIncludeAllObjects",
-                    "when": "view == msg.connections && viewItem == mrsService",
-                    "group": "3_msg@3"
-                },
-                {
-                    "command": "msg.mrs.exportCreateSchemaSql",
-                    "when": "view == msg.connections && viewItem == mrsSchema",
-                    "group": "3_msg@2"
-                },
-                {
-                    "command": "msg.mrs.exportCreateSchemaSqlIncludeAllObjects",
-                    "when": "view == msg.connections && viewItem == mrsSchema",
-                    "group": "3_msg@3"
-                },
-                {
                     "command": "msg.mrs.exportCreateDbObjectSql",
                     "when": "view == msg.connections && viewItem == mrsDbObject",
-                    "group": "3_msg@2"
+                    "group": "2_msg@2"
                 },
                 {
                     "command": "msg.mrs.exportCreateContentSetSql",
@@ -1267,7 +1257,7 @@
                     "group": "3_msg@1"
                 },
                 {
-                    "command": "msg.mrs.copyCreateServiceSqlIncludeAllObjects",
+                    "command": "msg.mrs.copyCreateServiceSqlIncludeDatabaseEndpoints",
                     "when": "view == msg.connections && viewItem == mrsService",
                     "group": "3_msg@2"
                 },
@@ -1277,14 +1267,14 @@
                     "group": "3_msg@1"
                 },
                 {
-                    "command": "msg.mrs.copyCreateSchemaSqlIncludeAllObjects",
+                    "command": "msg.mrs.copyCreateSchemaSqlIncludeDatabaseEndpoints",
                     "when": "view == msg.connections && viewItem == mrsSchema",
                     "group": "3_msg@2"
                 },
                 {
                     "command": "msg.mrs.copyCreateDbObjectSql",
                     "when": "view == msg.connections && viewItem == mrsDbObject",
-                    "group": "3_msg@2"
+                    "group": "2_msg@2"
                 },
                 {
                     "command": "msg.mrs.copyCreateAuthAppSql",

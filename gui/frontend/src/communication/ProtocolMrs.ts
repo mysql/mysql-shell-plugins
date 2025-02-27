@@ -87,8 +87,8 @@ export enum ShellAPIMrs {
     MrsGetRuntimeManagementCode = "mrs.get.runtime_management_code",
     /** Returns the corresponding CREATE REST SERVICE SQL statement of the given MRS service object. */
     MrsGetServiceCreateStatement = "mrs.get.service_create_statement",
-    /** Stores the corresponding CREATE REST SERVICE SQL statement of the given MRS service object into a file. */
-    MrsDumpServiceCreateStatement = "mrs.dump.service_create_statement",
+    /** Dump a REST Service into a REST SQL file. The database and the dynamic endpoints will be included. */
+    MrsDumpServiceSqlScript = "mrs.dump.service_sql_script",
     /** Add a schema to the given MRS service */
     MrsAddSchema = "mrs.add.schema",
     /** Gets a specific MRS schema */
@@ -528,27 +528,23 @@ export interface IShellMrsGetServiceCreateStatementKwargs {
     urlContextRoot?: string;
     /** The host name for this service */
     urlHostName?: string;
-    /** Include all objects that belong to the service. */
-    includeAllObjects?: boolean;
+    /** Include database objects that belong to the service. */
+    includeDatabaseEndpoints?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
 
-export interface IShellMrsDumpServiceCreateStatementKwargs {
-    /** The ID of the service to dump. */
-    serviceId?: string;
+export interface IShellMrsDumpServiceSqlScriptKwargs {
     /** The identifier of the service. */
     service?: string;
-    /** The context root for this service */
-    urlContextRoot?: string;
-    /** The host name for this service */
-    urlHostName?: string;
-    /** Include all objects that belong to the service. */
-    includeAllObjects?: boolean;
+    /** The endpoints to be included in the script */
+    endpoints?: string;
     /** The path where to store the file. */
     filePath?: string;
     /** Overwrite the file, if already exists. */
     overwrite?: boolean;
+    /** The final file is to be zipped. */
+    zip?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -741,8 +737,8 @@ export interface IShellMrsGetSchemaCreateStatementKwargs {
     schemaId?: string;
     /** The identifier of the schema. */
     schema?: string;
-    /** Include all objects that belong to the schema. */
-    includeAllObjects?: boolean;
+    /** Include database objects that belong to the schema. */
+    includeDatabaseEndpoints?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -758,8 +754,8 @@ export interface IShellMrsDumpSchemaCreateStatementKwargs {
     filePath?: string;
     /** Overwrite the file, if already exists. */
     overwrite?: boolean;
-    /** Include all objects that belong to the schema. */
-    includeAllObjects?: boolean;
+    /** Include database objects that belong to the schema. */
+    includeDatabaseEndpoints?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -1206,6 +1202,8 @@ export interface IShellMrsGetContentSetCreateStatementKwargs {
     serviceId?: string;
     /** The ID of the content set to generate. */
     contentSetId?: string;
+    /** If the LOAD SCRIPTS is to be used when applicable */
+    allowLoadScripts?: boolean;
     /** The string id for the module session object, holding the database session to be used on the operation. */
     moduleSessionId?: string;
 }
@@ -1215,6 +1213,8 @@ export interface IShellMrsDumpContentSetCreateStatementKwargs {
     serviceId?: string;
     /** The ID of the content set to dump. */
     contentSetId?: string;
+    /** If the LOAD SCRIPTS is to be used when applicable */
+    allowLoadScripts?: boolean;
     /** The path where to store the file. */
     filePath?: string;
     /** Overwrite the file, if already exists. */
@@ -1534,7 +1534,7 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsGetSdkOptions]: { args: { directory: string; }; };
     [ShellAPIMrs.MrsGetRuntimeManagementCode]: { kwargs?: IShellMrsGetRuntimeManagementCodeKwargs; };
     [ShellAPIMrs.MrsGetServiceCreateStatement]: { kwargs?: IShellMrsGetServiceCreateStatementKwargs; };
-    [ShellAPIMrs.MrsDumpServiceCreateStatement]: { kwargs?: IShellMrsDumpServiceCreateStatementKwargs; };
+    [ShellAPIMrs.MrsDumpServiceSqlScript]: { kwargs?: IShellMrsDumpServiceSqlScriptKwargs; };
     [ShellAPIMrs.MrsAddSchema]: { kwargs?: IShellMrsAddSchemaKwargs; };
     [ShellAPIMrs.MrsGetSchema]: { kwargs?: IShellMrsGetSchemaKwargs; };
     [ShellAPIMrs.MrsListSchemas]: { args: { serviceId?: string; }; kwargs?: IShellMrsListSchemasKwargs; };
@@ -2231,7 +2231,6 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsGetContentFileCreateStatement]: { result: string; };
     [ShellAPIMrs.MrsGetAuthAppCreateStatement]: { result: string; };
     [ShellAPIMrs.MrsGetUserCreateStatement]: { result: string; };
-    [ShellAPIMrs.MrsDumpServiceCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpSchemaCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpDbObjectCreateStatement]: { result: boolean; };
     [ShellAPIMrs.MrsDumpContentSetCreateStatement]: { result: boolean; };
@@ -2246,5 +2245,6 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsListAuthenticationAppServices]: { result: IMrsServiceData[]; };
     [ShellAPIMrs.MrsGetAvailableMetadataVersions]: { result: string[]; };
     [ShellAPIMrs.MrsGetConfigurationOptions]: { result: IMrsConfigData; };
+    [ShellAPIMrs.MrsDumpServiceSqlScript]: { result: boolean; };
 }
 

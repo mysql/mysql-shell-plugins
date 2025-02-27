@@ -178,21 +178,21 @@ def test_dump_and_recover(phone_book, table_contents):
 
 CREATE OR REPLACE REST CONTENT FILE `/readme.txt`
     ON SERVICE /test CONTENT SET /tempContentSet
+    CONTENT 'Line \\'1\\'
+Line \\"2\\"
+Line \\\\3\\\\'
     OPTIONS {
         "last_modification": "__README_TXT_LAST_MODIFICATION__"
     }
-    AUTHENTICATION NOT REQUIRED
-    CONTENT 'Line \\'1\\'
-Line \\"2\\"
-Line \\\\3\\\\';
+    AUTHENTICATION NOT REQUIRED;
 
 CREATE OR REPLACE REST CONTENT FILE `/somebinaryfile.bin`
     ON SERVICE /test CONTENT SET /tempContentSet
+    BINARY CONTENT 'AAECAwQFBgc='
     OPTIONS {
         "last_modification": "__SOMEBINARYFILE_BIN_LAST_MODIFICATION__"
     }
-    AUTHENTICATION NOT REQUIRED
-    BINARY CONTENT 'AAECAwQFBgc=';"""
+    AUTHENTICATION NOT REQUIRED;"""
 
     create_function = lambda file_path, content_set_id, overwrite=True: \
         store_create_statement(file_path=file_path,

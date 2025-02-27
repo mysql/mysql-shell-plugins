@@ -165,3 +165,6 @@ class MrsDdlExecutorInterface:
 
     def showRestUser(self, mrs_object: dict):
         raise NotImplementedError()
+
+    def dumpRestService(self, mrs_object: dict):
+        raise NotImplementedError()

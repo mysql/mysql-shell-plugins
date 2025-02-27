@@ -21,10 +21,12 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import core, roles, schemas, content_sets
+from mrs_plugin.lib import core, roles, schemas, content_sets, auth_apps
 
 import re
-
+import os
+from zipfile import ZipFile
+import pathlib
 
 def prompt_for_url_context_root(default=None):
     """Prompts the user for the url_context_root
@@ -547,15 +549,26 @@ def set_current_service_id(session, service_id: bytes):
     config.store()
 
 
-def get_service_create_statement(session, service: dict, include_all_objects: bool=False) -> str:
+def get_service_create_statement(session, service: dict,
+                                 include_database_endpoints: bool,
+                                 include_static_endpoints: bool,
+                                 include_dynamic_endpoints: bool) -> str:
     output = []
+    result = []
+    service_linked_auth_apps = []
 
-    output.append(f'CREATE REST SERVICE {service.get("host_ctx")}')
+    service_linked_auth_apps = auth_apps.get_auth_apps(session, service["id"])
+
+    # create the service
+    output.append(f'CREATE OR REPLACE REST SERVICE {service.get("host_ctx")}')
 
     if service.get("enabled") != 1:
         output.append("    DISABLED")
     if service.get("comments"): # ignore either None or empty
         output.append(f"    COMMENT {core.squote_str(service.get("comments"))}")
+
+    if service.get("published", False):
+        output.append(f"    PUBLISHED")
 
     auth = []
     if service.get("auth_path") != "/authentication":
@@ -575,21 +588,40 @@ def get_service_create_statement(session, service: dict, include_all_objects: bo
     if service.get("metadata"):
         output.append(core.format_json_entry("METADATA", service.get("metadata")))
 
-    result = ["\n".join(output) + ";"]
+    for auth_app in service_linked_auth_apps:
+        output.append(f"    ADD AUTH APP {core.quote_auth_app(auth_app["name"])} IF EXISTS")
 
-    if include_all_objects:
+    result.append("\n".join(output) + ";")
+
+    if include_database_endpoints:
         for role in roles.get_roles(session, service["id"], include_global=False):
             result.append(roles.get_role_create_statement(session, role))
 
-        for schema in schemas.get_schemas(session, service["id"]):
-            if schema["schema_type"] == "SCRIPT_MODULE":
-                continue
-            result.append(schemas.get_schema_create_statement(session, schema, True))
+        result += [schemas.get_schema_create_statement(session, schema, True)
+                   for schema in schemas.get_schemas(session, service["id"])
+                   if schema["schema_type"] != "SCRIPT_MODULE"]
 
-        for content_set in content_sets.get_content_sets(session, service["id"]):
-            if content_set["content_type"] == "SCRIPTS":
-                continue
-            result.append(content_sets.get_content_set_create_statement(session, content_set))
+    if include_static_endpoints or include_dynamic_endpoints:
+        result += [content_sets.get_content_set_create_statement(session, content_set, include_dynamic_endpoints)
+                   for content_set in content_sets.get_content_sets(session, service["id"])]
 
     return "\n\n".join(result)
 
+
+def store_service_create_statement(session, service: dict,
+        file_path: str, zip: bool,
+        include_database_endpoints: bool=False, include_static_endpoints: bool = False, include_dynamic_endpoints: bool=False):
+
+    file_content = get_service_create_statement(session, service,
+        include_database_endpoints, include_static_endpoints, include_dynamic_endpoints)
+
+    if zip and file_path.endswith(".zip"):
+        file_path = file_path[:-len(".zip")]
+
+    with open(file_path, "w") as f:
+        f.write(file_content)
+
+    if zip:
+        with ZipFile(f"{file_path}.zip", "w") as f:
+            f.write(file_path, arcname=pathlib.Path(file_path).name)
+        os.remove(file_path)

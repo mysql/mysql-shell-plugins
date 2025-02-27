@@ -5300,7 +5300,13 @@ identifierKeywordsUnambiguous:
         | OBJECT_SYMBOL
         | HIERARCHY_SYMBOL
         | INCLUDE_SYMBOL
+        | INCLUDING_SYMBOL
+        | ENDPOINTS_SYMBOL
         | OBJECTS_SYMBOL
+        | DUMP_SYMBOL
+        | ZIP_SYMBOL
+        | SCRIPT_SYMBOL
+        | STATIC_SYMBOL
         | AT_INOUT_SYMBOL
         | AT_IN_SYMBOL
         | AT_OUT_SYMBOL
@@ -5809,6 +5815,7 @@ mrsStatement:
     | dropRestAuthAppStatement
     | dropRestUserStatement
     | dropRestRoleStatement
+    | dumpRestServiceStatement
     | grantRestRoleStatement
     | grantRestPrivilegeStatement
     | revokeRestPrivilegeStatement
@@ -6482,7 +6489,7 @@ showRestGrantsStatement:
 
 showCreateRestServiceStatement:
     SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL SERVICE_SYMBOL serviceRequestPath? (
-        INCLUDE_SYMBOL ALL_SYMBOL OBJECTS_SYMBOL
+        INCLUDING_SYMBOL DATABASE_SYMBOL ENDPOINTS_SYMBOL
     )?
 ;
 
@@ -6525,6 +6532,12 @@ showCreateRestContentFileStatement:
 
 showCreateRestAuthAppStatement:
     SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL AUTH_SYMBOL APP_SYMBOL authAppName
+;
+
+dumpRestServiceStatement:
+    DUMP_SYMBOL REST_SYMBOL SERVICE_SYMBOL serviceRequestPath AS_SYMBOL (SQL_SYMBOL)? SCRIPT_SYMBOL
+    INCLUDING_SYMBOL ((DATABASE_SYMBOL (AND_SYMBOL STATIC_SYMBOL (AND_SYMBOL DYNAMIC_SYMBOL)?)?) | ALL_SYMBOL) ENDPOINTS_SYMBOL
+    TO_SYMBOL (ZIP_SYMBOL)? directoryFilePath
 ;
 
 // Named identifiers ========================================================

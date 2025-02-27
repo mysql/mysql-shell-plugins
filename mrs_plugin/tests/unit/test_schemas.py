@@ -265,11 +265,11 @@ def test_change_schema(phone_book, table_contents):
 
 def test_get_create_statement(phone_book, table_contents):
 
-    sql = get_schema_create_statement(schema_id=phone_book["schema_id"], session=phone_book["session"], include_all_objects=True)
+    sql = get_schema_create_statement(schema_id=phone_book["schema_id"], session=phone_book["session"], include_database_endpoints=True)
 
     assert sql == schema_create_statement
 
-    sql = get_schema_create_statement(schema="/test/PhoneBook", session=phone_book["session"], include_all_objects=True)
+    sql = get_schema_create_statement(schema="/test/PhoneBook", session=phone_book["session"], include_database_endpoints=True)
 
     assert sql == schema_create_statement
 
@@ -284,7 +284,7 @@ def test_dump_create_statement(phone_book, table_contents):
         store_schema_create_statement(file_path=file_path,
                                     overwrite=overwrite,
                                     schema_id=phone_book["schema_id"],
-                                    include_all_objects=True,
+                                    include_database_endpoints=True,
                                     session=phone_book["session"])
 
     result = create_function(file_path=home_file, overwrite=True)
@@ -344,7 +344,7 @@ def test_dump_and_recover(phone_book, table_contents):
         store_schema_create_statement(file_path=file_path,
                                 overwrite=overwrite,
                                 schema=schema_id,
-                                include_all_objects=False,
+                                include_database_endpoints=False,
                                 session=session)
     session = phone_book["session"]
     service_id = phone_book["service_id"]
@@ -423,7 +423,7 @@ CREATE OR REPLACE REST VIEW /addresses
         store_schema_create_statement(file_path=file_path,
                                 overwrite=overwrite,
                                 schema=schema_id,
-                                include_all_objects=True,
+                                include_database_endpoints=True,
                                 session=session)
     session = phone_book["session"]
     service_id = phone_book["service_id"]

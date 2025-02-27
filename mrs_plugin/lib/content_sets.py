@@ -1650,7 +1650,7 @@ def add_object_fields_from_interface(
             object_fields.append(object_field)
 
 
-def get_content_set_create_statement(session, content_set) -> str:
+def get_content_set_create_statement(session, content_set: dict, allow_load_scripts: bool) -> str:
     stmt = []
     stmt.append(
         f"CREATE OR REPLACE REST CONTENT SET {content_set.get('request_path')}\n"
@@ -1669,6 +1669,12 @@ def get_content_set_create_statement(session, content_set) -> str:
 
     stmt.append("    AUTHENTICATION REQUIRED" if content_set["requires_auth"] in [True, 1] \
         else "    AUTHENTICATION NOT REQUIRED")
+
+    if allow_load_scripts and content_set["content_type"] == "SCRIPTS":
+        if content_set["options"]["mrs_scripting_language"] == "TypeScript":
+            stmt.append("    LOAD TYPESCRIPT SCRIPTS")
+        else:
+            stmt.append("    LOAD SCRIPTS")
 
     output = ["\n".join(stmt) + ";"]
 

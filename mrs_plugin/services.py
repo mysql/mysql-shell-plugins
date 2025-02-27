@@ -223,7 +223,9 @@ def generate_create_statement(**kwargs):
     lib.core.convert_ids_to_binary(["service_id"], kwargs)
     lib.core.try_convert_ids_to_binary(["service"], kwargs)
 
-    include_all_objects = kwargs.get("include_all_objects", False)
+    include_database_endpoints = kwargs.get("include_database_endpoints", False)
+    include_static_endpoints = kwargs.get("include_static_endpoints", False)
+    include_dynamic_endpoints = kwargs.get("include_dynamic_endpoints", False)
     service_query = service_query_selection(**kwargs)
 
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
@@ -232,7 +234,33 @@ def generate_create_statement(**kwargs):
         if service is None:
             raise ValueError("The specified service was not found.")
 
-        return lib.services.get_service_create_statement(session=session, service=service, include_all_objects=include_all_objects)
+        return lib.services.get_service_create_statement(
+            session, service,
+            include_database_endpoints, include_static_endpoints, include_dynamic_endpoints)
+
+
+def store_create_statement(**kwargs):
+    lib.core.convert_ids_to_binary(["service_id"], kwargs)
+    lib.core.try_convert_ids_to_binary(["service"], kwargs)
+
+    include_database_endpoints = kwargs.get("include_database_endpoints", False)
+    include_static_endpoints = kwargs.get("include_static_endpoints", False)
+    include_dynamic_endpoints = kwargs.get("include_dynamic_endpoints", False)
+    service_query = service_query_selection(**kwargs)
+    file_path = kwargs.get("file_path")
+    zip = kwargs.get("zip", False)
+
+
+
+    with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
+        service = resolve_service(session, service_query=service_query)
+
+        if service is None:
+            raise ValueError("The specified service was not found.")
+
+        lib.services.store_service_create_statement(session, service,
+                                                    file_path, zip,
+                                                    include_database_endpoints, include_static_endpoints, include_dynamic_endpoints)
 
 
 @plugin_function('mrs.add.service', shell=True, cli=True, web=True)
@@ -1088,7 +1116,7 @@ def get_service_create_statement(**kwargs):
         service (str): The identifier of the service.
         url_context_root (str): The context root for this service
         url_host_name (str): The host name for this service
-        include_all_objects (bool): Include all objects that belong to the service.
+        include_database_endpoints (bool): Include database objects that belong to the service.
         session (object): The database session to use.
 
     Returns:
@@ -1097,10 +1125,9 @@ def get_service_create_statement(**kwargs):
     return generate_create_statement(**kwargs)
 
 
-@plugin_function('mrs.dump.serviceCreateStatement', shell=True, cli=True, web=True)
-def store_service_create_statement(**kwargs):
-    """Stores the corresponding CREATE REST SERVICE SQL statement of the given MRS service
-    object into a file.
+@plugin_function('mrs.dump.serviceSqlScript', shell=True, cli=True, web=True)
+def dump_service_create_statement(**kwargs):
+    """Dump a REST Service into a REST SQL file. The database and the dynamic endpoints will be included.
 
     When using the 'service' parameter, you can choose either of these formats:
         - '0x11EF8496143CFDEC969C7413EA499D96' - Hexadecimal string ID
@@ -1116,13 +1143,11 @@ def store_service_create_statement(**kwargs):
         **kwargs: Options to determine what should be generated.
 
     Keyword Args:
-        service_id (str): The ID of the service to dump.
         service (str): The identifier of the service.
-        url_context_root (str): The context root for this service
-        url_host_name (str): The host name for this service
-        include_all_objects (bool): Include all objects that belong to the service.
+        endpoints (str): The endpoints to be included in the script
         file_path (str): The path where to store the file.
         overwrite (bool): Overwrite the file, if already exists.
+        zip (bool): The final file is to be zipped.
         session (object): The database session to use.
 
     Returns:
@@ -1131,13 +1156,23 @@ def store_service_create_statement(**kwargs):
     file_path = kwargs.get("file_path")
     overwrite = kwargs.get("overwrite")
 
+    match kwargs.get("endpoints", ""):
+        case "all" | "dynamic":
+            kwargs["include_database_endpoints"] = True
+            kwargs["include_static_endpoints"] = True
+            kwargs["include_dynamic_endpoints"] = True
+        case "static":
+            kwargs["include_database_endpoints"] = True
+            kwargs["include_static_endpoints"] = True
+        case "database":
+            kwargs["include_database_endpoints"] = True
+
+
     file_path = resolve_file_path(file_path)
     resolve_overwrite_file(file_path, overwrite)
 
-    sql = generate_create_statement(**kwargs)
-
-    with open(file_path, "w") as f:
-        f.write(sql)
+    kwargs["file_path"] = file_path
+    store_create_statement(**kwargs)
 
     if lib.core.get_interactive_result():
         return f"File created in {file_path}."

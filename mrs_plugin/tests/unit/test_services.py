@@ -28,11 +28,13 @@ from ... services import *
 from .helpers import ServiceCT, SchemaCT, AuthAppCT, DbObjectCT, get_default_db_object_init, TableContents, string_replace
 from mrs_plugin import lib
 
-service_create_statement = """CREATE REST SERVICE /test
-    COMMENT 'Test service';"""
+service_create_statement = """CREATE OR REPLACE REST SERVICE /test
+    COMMENT 'Test service'
+    ADD AUTH APP `MRS Auth App` IF EXISTS;"""
 
-service_create_statement_include_all_objects = """CREATE REST SERVICE /test
-    COMMENT 'Test service';
+service_create_statement_include_database_endpoints = """CREATE OR REPLACE REST SERVICE /test
+    COMMENT 'Test service'
+    ADD AUTH APP `MRS Auth App` IF EXISTS;
 
 CREATE REST ROLE `DBA` ON SERVICE /test
     COMMENT 'Database administrator.'
@@ -89,31 +91,7 @@ CREATE OR REPLACE REST VIEW /Contacts
         number: number,
         email: email
     }
-    AUTHENTICATION REQUIRED;
-
-CREATE OR REPLACE REST CONTENT SET /test_content_set
-    ON SERVICE /test
-    COMMENT 'Content Set'
-    OPTIONS {}
-    AUTHENTICATION NOT REQUIRED;
-
-CREATE OR REPLACE REST CONTENT FILE `/readme.txt`
-    ON SERVICE /test CONTENT SET /test_content_set
-    OPTIONS {
-        "last_modification": "__README_TXT_LAST_MODIFICATION__"
-    }
-    AUTHENTICATION NOT REQUIRED
-    CONTENT 'Line \\'1\\'
-Line \\"2\\"
-Line \\\\3\\\\';
-
-CREATE OR REPLACE REST CONTENT FILE `/somebinaryfile.bin`
-    ON SERVICE /test CONTENT SET /test_content_set
-    OPTIONS {
-        "last_modification": "__SOMEBINARYFILE_BIN_LAST_MODIFICATION__"
-    }
-    AUTHENTICATION NOT REQUIRED
-    BINARY CONTENT 'AAECAwQFBgc=';"""
+    AUTHENTICATION REQUIRED;"""
 
 
 def test_validate_service_path(phone_book):
@@ -440,221 +418,32 @@ def test_delete_service(phone_book, table_contents):
 
 def test_get_service_create_statement(phone_book, table_contents):
     content_file_table: TableContents = table_contents("content_file")
+    user_table: TableContents = table_contents("mrs_user")
     session = phone_book["session"]
-    expected_service_create_statement = string_replace(service_create_statement_include_all_objects, {
+
+    expected_service_create_statement = string_replace(service_create_statement, {
+            "__USER1_PASSWORD__": user_table.filter("name", "User 1")[0]["auth_string"],
+        })
+
+    expected_service_create_statement_include_database_endpoints = string_replace(service_create_statement_include_database_endpoints, {
             "__README_TXT_LAST_MODIFICATION__": content_file_table.filter("request_path", "/readme.txt")[0]["options"]["last_modification"],
             "__SOMEBINARYFILE_BIN_LAST_MODIFICATION__": content_file_table.filter("request_path", "/somebinaryfile.bin")[0]["options"]["last_modification"],
+            "__USER1_PASSWORD__": user_table.filter("name", "User 1")[0]["auth_string"],
         })
 
     # Test without including all objects
-    sql = get_service_create_statement(service_id=phone_book["service_id"], include_all_objects=False, session=phone_book["session"])
-
-    assert sql == service_create_statement
-
-    # Test by including all objects
-    sql = get_service_create_statement(service_id=phone_book["service_id"], include_all_objects=True, session=phone_book["session"])
+    sql = get_service_create_statement(service_id=phone_book["service_id"], include_database_endpoints=False, session=phone_book["session"])
 
     assert sql == expected_service_create_statement
 
-
-
-def test_dump_create_statement(phone_book, table_contents):
-    home_file = "~/service.dump.sql"
-    relative_file = "service.dump.sql"
-    full_path_file = os.path.expanduser("~/service.dump.sql")
-
-    # Test home path
-    create_function = lambda file_path, overwrite, include_all_objects: \
-        store_service_create_statement(file_path=file_path,
-                                overwrite=overwrite,
-                                include_all_objects=include_all_objects,
-                                service_id=phone_book["service_id"],
-                                session=phone_book["session"])
-
-    # Test without including all objects
-    result = create_function(file_path=home_file, overwrite=True, include_all_objects=False)
-
-    assert result == True
-
-    with open(os.path.expanduser(home_file), "r+") as f:
-        assert f.read() == service_create_statement
-
     # Test by including all objects
-    result = create_function(file_path=home_file, overwrite=True, include_all_objects=True)
+    sql = get_service_create_statement(service_id=phone_book["service_id"], include_database_endpoints=True, session=phone_book["session"])
 
-    assert result == True
-
-    content_file_table: TableContents = table_contents("content_file")
-    expected_service_create_statement = string_replace(service_create_statement_include_all_objects, {
-            "__README_TXT_LAST_MODIFICATION__": content_file_table.filter("request_path", "/readme.txt")[0]["options"]["last_modification"],
-            "__SOMEBINARYFILE_BIN_LAST_MODIFICATION__": content_file_table.filter("request_path", "/somebinaryfile.bin")[0]["options"]["last_modification"],
-        })
-
-    with open(os.path.expanduser(home_file), "r+") as f:
-        assert f.read() == expected_service_create_statement
-
-    # Test overwrite
-    with open(os.path.expanduser(home_file), "a+") as f:
-        f.write("<=============================>")
-
-    with pytest.raises(Exception, match=f"Cancelling operation. File '{os.path.expanduser(home_file)}' already exists."):
-        create_function(file_path=home_file, overwrite=False, include_all_objects=True)
-
-    with open(os.path.expanduser(home_file), "r") as f:
-        contents = f.read()
-        assert contents.startswith(expected_service_create_statement)
-        assert contents.endswith("<=============================>")
-
-
-    result = create_function(file_path=home_file, overwrite=True, include_all_objects=True)
-
-    with open(os.path.expanduser(home_file), "r") as f:
-        assert f.read() == expected_service_create_statement
-
-    os.remove(os.path.expanduser(home_file))
-
-    # Test relative path
-    if os.path.exists(str(Path.home() / relative_file)):
-        os.remove(Path.home() / relative_file)
-
-    result = create_function(file_path=relative_file, overwrite=False, include_all_objects=True)
-
-    assert result == True
-    with open(Path.home() / relative_file, "r") as f:
-        assert f.read() == expected_service_create_statement
-
-    # Test absolute path
-    if os.path.exists(full_path_file):
-        os.remove(full_path_file)
-
-    result = create_function(file_path=full_path_file, overwrite=False, include_all_objects=True)
-
-    assert result == True
-    with open(full_path_file, "r") as f:
-        assert f.read() == expected_service_create_statement
-
-
-def test_dump_and_recover(phone_book, table_contents):
-    # drop stuff created by fixture
-    session = phone_book["session"]
-    create_statement = """CREATE REST SERVICE /test2
-    OPTIONS {
-        "http": {
-            "allowedOrigin": "auto"
-        },
-        "headers": {
-            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Credentials": "true"
-        },
-        "logging": {
-            "request": {
-                "body": true,
-                "headers": true
-            },
-            "response": {
-                "body": true,
-                "headers": true
-            },
-            "exceptions": true
-        },
-        "returnInternalErrorDetails": true
-    };
-
-CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE /test2
-    FROM `PhoneBook`
-    AUTHENTICATION NOT REQUIRED;
-
-CREATE OR REPLACE REST VIEW /addresses
-    ON SERVICE /test2 SCHEMA /PhoneBook2
-    AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
-        id: id @KEY
-    }
-    AUTHENTICATION NOT REQUIRED
-    ITEMS PER PAGE 10
-    COMMENT 'Object that will be removed'
-    MEDIA TYPE 'application/json'
-    OPTIONS {
-        "aaa": "val aaa",
-        "bbb": "val bbb"
-    };"""
-    dump_service = lambda file_path, service_id, overwrite=True, include_all_objects=True: \
-        store_service_create_statement(file_path=file_path,
-                                    overwrite=overwrite,
-                                    include_all_objects=include_all_objects,
-                                    service_id=service_id,
-                                    session=phone_book["session"])
-
-    script = ""
-
-    full_path_file = os.path.expanduser("~/service_compare_1.dump.sql")
-    full_path_file2 = os.path.expanduser("~/service_compare_2.dump.sql")
-
-    services = lib.services.get_services(session)
-    assert len(services) == 1
-
-    with ServiceCT(session, "/test2") as test2_service_id:
-        with SchemaCT(session, test2_service_id, "PhoneBook", "/PhoneBook2") as schema_id:
-            auth_app_init = {
-                "name": "Test Auth App 3",
-                "service_id": test2_service_id,
-                "auth_vendor_id": lib.core.id_to_binary("0x31000000000000000000000000000000", "auth_vendor_id"),
-                "default_role_id": lib.core.id_to_binary("0x31000000000000000000000000000000", "default_role_id"),
-                "description": "Authentication via MySQL accounts 3",
-                "url": "/test_auth3",
-                "access_token": "test_token",
-                "limit_to_registered_users": False,
-                "registered_users": None,
-                "app_id": "some app id",
-            }
-            with AuthAppCT(session, **auth_app_init) as auth_app_id:
-
-                db_object = get_default_db_object_init(session, schema_id, name="Addresses", request_path="/addresses")
-                with DbObjectCT(session, **db_object) as db_object_id:
-                    result = dump_service(file_path=full_path_file, service_id=test2_service_id, include_all_objects=True)
-
-                    assert result == True
-
-                    services = lib.services.get_services(session)
-                    assert len(services) == 2
-
-    with open(os.path.expanduser(full_path_file), "r+") as f:
-        script = f.read()
-        assert script == create_statement.replace("Test Auth App 2", "Test Auth App 3").replace("Authentication via MySQL accounts 2", "Authentication via MySQL accounts 3")
-
-
-    services = lib.services.get_services(session)
-    assert len(services) == 1
-
-    with open(full_path_file, "r") as f:
-        script = f.read()
-
-    state_data = {}
-    results = lib.script.run_mrs_script(mrs_script=script, state_data=state_data)
-
-    assert len(results) == 3 # for the 3 statements in create_statement
-
-    for result in results:
-        assert result["type"] == "success"
-
-    services = lib.services.get_services(session)
-    assert len(services) == 2
-
-    for service in services:
-        if service["host_ctx"] == "/test2":
-            dump_service(full_path_file2, service["id"], include_all_objects=True)
-            lib.services.delete_service(session, service["id"])
-
-    services = lib.services.get_services(session)
-
-    assert len(services) == 1
-
-    with open(full_path_file2, "r") as f:
-        assert f.read() == script
-
+    assert sql == expected_service_create_statement_include_database_endpoints
 
 def test_service_selection(phone_book, table_contents):
     service_table: TableContents = table_contents("service")
+    user_table: TableContents = table_contents("mrs_user")
     content_file_table: TableContents = table_contents("content_file")
     session = phone_book["session"]
 
@@ -663,7 +452,7 @@ def test_service_selection(phone_book, table_contents):
         assert len(service_table.items) == 2, service_table.items
         service_id = phone_book["service_id"]
 
-        service2_create_statement = """CREATE REST SERVICE /service2
+        service2_create_statement = """CREATE OR REPLACE REST SERVICE /service2
     COMMENT 'Test service2'
     OPTIONS {
         "http": {
@@ -688,7 +477,6 @@ def test_service_selection(phone_book, table_contents):
         "returnInternalErrorDetails": true
     };"""
 
-
         items = [
             { "result": service_create_statement },
             { "service_id": lib.core.convert_id_to_string(service_id), "result": service_create_statement },
@@ -705,5 +493,5 @@ def test_service_selection(phone_book, table_contents):
             sql = get_service_create_statement(service_id=item.get("service_id"),
                                     service=item.get("service"),
                                     url_context_root=item.get("url_context_root"),
-                                    include_all_objects=False, session=phone_book["session"])
+                                    include_database_endpoints=False, session=phone_book["session"])
             assert sql == item["result"]

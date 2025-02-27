@@ -386,7 +386,7 @@ describe("MYSQL REST SERVICE", () => {
                 const notification = await new E2EToastNotification().create();
                 expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
                 expect(await Os.readClipboard())
-                    .toMatch(new RegExp(`(CREATE REST SERVICE|${constants.jsError})`));
+                    .toMatch(new RegExp(`(CREATE OR REPLACE REST SERVICE|${constants.jsError})`));
 
                 await notification!.close();
             } catch (e) {

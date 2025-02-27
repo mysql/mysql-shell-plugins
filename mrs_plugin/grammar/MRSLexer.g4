@@ -92,6 +92,9 @@ ADD_SYMBOL:            A D D;
 REMOVE_SYMBOL:         R E M O V E;
 MERGE_SYMBOL:          M E R G E;
 COMMENT_SYMBOL:        C O M M E N T;
+DYNAMIC_SYMBOL:        D Y N A M I C;
+SQL_SYMBOL:            S Q L;
+AND_SYMBOL:            A N D;
 
 // Used for auto merging this grammar and the standard MySQL grammar.
 /* START OF MERGE PART */
@@ -148,7 +151,13 @@ EXTENDS_SYMBOL:     E X T E N D S;
 OBJECT_SYMBOL:      O B J E C T;
 HIERARCHY_SYMBOL:   H I E R A R C H Y;
 INCLUDE_SYMBOL:     I N C L U D E;
+INCLUDING_SYMBOL:   I N C L U D I N G;
+ENDPOINTS_SYMBOL:   E N D P O I N T S;
 OBJECTS_SYMBOL:     O B J E C T S;
+DUMP_SYMBOL:        D U M P;
+ZIP_SYMBOL:         Z I P;
+SCRIPT_SYMBOL:      S C R I P T;
+STATIC_SYMBOL:      S T A T I C;
 
 //----------------- GraphQL --------------------------------------------------------------------------------------------
 
