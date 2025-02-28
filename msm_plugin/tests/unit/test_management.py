@@ -68,27 +68,40 @@ def test_msm_sections():
     tests_folder = Path(__file__).parent.parent
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        sql_file_path = os.path.join(temp_dir, "my_schema_next.sql")
-        shutil.copyfile(os.path.join(
-            tests_folder, "my_schema.msm.project", "development", "my_schema_next.sql"),
-            sql_file_path)
+        # Create a new MSM project
+        project_path = create_new_project_folder(
+            schema_name=SCHEMA_NAME,
+            target_path=temp_dir,
+            copyright_holder=COPYRIGHT_HOLDER
+        )
 
+        # Update the development file with the first CREATE TABLE
+        dev_file_path = lib.management.get_schema_development_file_path(
+            schema_project_path=project_path)
+
+        set_section_sql_content(
+            file_path=dev_file_path,
+            section_id="140",
+            sql_content=MSM_SECTION_140_SQL_CONTENT_001)
+
+        # Check if the content was written to the file
         sql_content = get_sql_content_from_section(
-            file_path=sql_file_path,
+            file_path=dev_file_path,
             section_id="140"
         )
 
         assert sql_content == MSM_SECTION_140_SQL_CONTENT_001.strip()
 
+        # Add more content and check if the content was updated correctly
         set_section_sql_content(
-            file_path=sql_file_path,
+            file_path=dev_file_path,
             section_id="140",
             sql_content=(
                 MSM_SECTION_140_SQL_CONTENT_001 + "\n"
                 + MSM_SECTION_140_SQL_CONTENT_002))
 
         sql_content = get_sql_content_from_section(
-            file_path=sql_file_path,
+            file_path=dev_file_path,
             section_id="140"
         )
 
