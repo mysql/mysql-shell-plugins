@@ -59,7 +59,7 @@ interface ISettingsEditorState extends IComponentState {
     showAdvancedSettings: boolean;
 }
 
-// A dialog to edit user and application settings.
+/** A dialog to edit user and application settings. */
 export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISettingsEditorState> {
 
     private treeRef = createRef<TreeGrid>();
@@ -110,7 +110,7 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
             icon: Assets.misc.settingsIcon,
             caption: "Settings",
             id: "settings",
-            content: this.renderSettings(),
+            content: this.renderSettingNames(),
         },
         {
             icon: Assets.misc.settingsIcon,
@@ -131,20 +131,21 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
 
     }
 
-    private renderSettings = (): ComponentChild => {
+    private renderSettingNames = (): ComponentChild => {
         const { selectedTreeEntry, searchValues, filteredTree, foundEntries, showAdvancedSettings } = this.state;
 
         const settingsTreeColumns: ColumnDefinition[] = [{
             title: "",
             field: "title",
             resizable: false,
-            formatter: this.formatSettingsTreeCell,
+            formatter: this.formatSettingNamesTreeCell,
         }];
 
         const settingsTreeOptions: ITreeGridOptions = {
             showHeader: false,
             selectionType: SelectionType.Single,
             treeColumn: "title",
+            layout: "fitColumns",
 
             // Show the tree fully expanded, if a filter is active.
             expandedLevels: foundEntries > -1 ? [true, true] : undefined,
@@ -207,7 +208,7 @@ export class SettingsEditor extends ComponentBase<ISettingsEditorProperties, ISe
         this.setState({ selectedTab: id });
     };
 
-    private formatSettingsTreeCell = (cell: CellComponent): string | HTMLElement => {
+    private formatSettingNamesTreeCell = (cell: CellComponent): string | HTMLElement => {
         const data = cell.getData() as ISettingCategory;
         const content = <Label caption={data.title} />;
 

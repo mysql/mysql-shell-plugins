@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -75,7 +75,7 @@
 
 .msg.settingsEditor #settingsTree .settingsTreeCell {
     /* Corresponds to the width of the tree toggle and is used when there are no children and hence no toggle. */
-    padding-left: 16px;
+    padding-left: 28px;
     padding-top: 2px;
 
     display: inline-flex;
@@ -83,6 +83,7 @@
     height: 18px;
 }
 
+.msg.settingsEditor #settingsTree .tabulator-data-tree-branch-empty + .settingsTreeCell,
 .msg.settingsEditor #settingsTree .treeToggle + .settingsTreeCell {
     padding-left: 0;
 }
@@ -91,6 +92,7 @@
     flex: 1 1 auto;
 }
 
+.msg.settingsEditor #settingsTree .tabulator-table,
 .msg.settingsEditor #settingsValueList .tabulator-table {
     width: 100%;
 }
@@ -98,13 +100,18 @@
 .msg.settingsEditor #settingsTreeHost .tabulator .tabulator-row .tabulator-cell,
 .msg.settingsEditor #settingsTreeHost .tabulator .tabulator-row .tabulator-cell:first-child {
     display: inline-flex;
-    height: auto !important;
     border: 1px solid transparent;
+    width: 100%;
 }
 
-.msg.settingsEditor #settingsTreeHost .tabulator .tabulator-row.tabulator-selected .tabulator-cell,
-.msg.settingsEditor #settingsTreeHost .tabulator .tabulator-row.tabulator-selected:hover .tabulator-cell {
-    background-color: var(--settings-focusedRowBackground);
+.msg.settingsEditor #settingsTreeHost .tabulator-row.tabulator-selected .tabulator-cell {
+    background: none;
+    color: var(--settings-headerForeground);
+    font-weight: 800;
+    ;
+}
+
+.msg.settingsEditor #settingsTreeHost .tabulator:focus-within .tabulator-row.tabulator-selected .tabulator-cell {
     color: var(--foreground);
     border: 1px solid var(--settings-focusedRowBorder);
 }
@@ -124,7 +131,7 @@
 }
 
 .msg.settingsEditor #settingsValueList .settingsListCell.nonDefault {
-    border-left: 2px solid var(--list-activeSelectionBackground);
+    border-left: 2px solid var(--settings-modifiedItemIndicator);
 }
 
 .msg.settingsEditor #settingsValueList .settingTitle {

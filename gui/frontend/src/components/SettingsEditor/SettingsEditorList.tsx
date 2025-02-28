@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -24,7 +24,7 @@
  */
 
 import { ComponentChild, createRef, render } from "preact";
-import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables";
+import { CellComponent, ColumnDefinition } from "tabulator-tables";
 
 import { IDictionary } from "../../app-logic/general-types.js";
 import { requisitions } from "../../supplement/Requisitions.js";
@@ -198,19 +198,10 @@ export class SettingsEditorList extends ComponentBase<ISettingsEditorListPropert
         void this.gridRef.current?.table.then((table) => {
             const { onListScroll } = this.props;
 
-            const rows = table?.getRows();
-            let foundRow: RowComponent | undefined;
-            rows?.forEach((row) => {
-                if (!foundRow && row.getElement().offsetTop > top) {
-                    foundRow = row;
-                }
-            });
-
-            if (foundRow) {
-                const direction = top > this.lastScrollPos ? "up" : "down";
-                this.lastScrollPos = top;
-                onListScroll((foundRow.getData() as IDictionary).id as string, direction);
-            }
+            const rows = table!.getRows();
+            const direction = top > this.lastScrollPos ? "up" : "down";
+            this.lastScrollPos = top;
+            onListScroll((rows[top].getData() as IDictionary).id as string, direction);
         });
     };
 
