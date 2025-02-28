@@ -12,7 +12,7 @@
         "build-win": "pwsh scripts/production-build.ps1 && tsc -p tsconfig.json",
         "lint": "eslint \"./src/**/*.ts\" \"./src/**/*.tsx\"",
         "unit-tests": "npm run unit-tests:generic && npm run unit-tests:mrs && npm run coverage:report",
-        "unit-tests:debug": "node --max_old_space_size=81292 node_modules/.bin/jest -c=unit-tests.jest.config.ts --no-coverage",
+        "unit-tests:debug": "node --max_old_space_size=8192 node_modules/.bin/jest -c=unit-tests.jest.config.ts --no-coverage",
         "unit-tests:mrs-debug": "node --max_old_space_size=81292 node_modules/.bin/jest -c=unit-tests-mrs.jest.config.ts",
         "unit-tests:run": "node --no-compilation-cache --expose-gc --max_old_space_size=81292 node_modules/.bin/jest --logHeapUsage",
         "unit-tests:generic": "npm run unit-tests:run -- -c=unit-tests.jest.config.ts --watchAll=false",
