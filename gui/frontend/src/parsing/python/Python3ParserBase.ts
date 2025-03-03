@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,6 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+// Parts of this file are based on the Python3ParseBase class from the ANTLR4 grammar directory.
+
 import { Parser, TokenStream } from "antlr4ng";
 
 export enum PythonVersion {
@@ -31,22 +33,18 @@ export enum PythonVersion {
     Python3 = 3,
 }
 
-export abstract class PythonParserBase extends Parser {
+export abstract class Python3ParserBase extends Parser {
     public version = PythonVersion.Auto;
 
     public constructor(input: TokenStream) {
         super(input);
     }
 
-    protected checkPythonVersion(version: PythonVersion): boolean {
-        return version === PythonVersion.Auto || version === this.version;
+    protected cannotBePlusMinus(): boolean {
+        return true;
     }
 
-    protected setVersion(requiredVersion: number): void {
-        if (requiredVersion === 2) {
-            this.version = PythonVersion.Python2;
-        } else if (requiredVersion === 3) {
-            this.version = PythonVersion.Python3;
-        }
+    protected cannotBeDotLpEq(): boolean {
+        return true;
     }
 }

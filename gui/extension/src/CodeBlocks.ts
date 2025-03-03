@@ -32,7 +32,7 @@ import {
 
 import { CharStream, CommonTokenStream } from "antlr4ng";
 
-import { PythonLexer } from "../../frontend/src/parsing/python/generated/PythonLexer.js";
+import { Python3Lexer } from "../../frontend/src/parsing/python/generated/Python3Lexer.js";
 
 import { ui } from "../../frontend/src/app-logic/UILayer.js";
 import {
@@ -153,8 +153,8 @@ export class CodeBlocks {
         let stringType;
         switch (editor.document.languageId) {
             case "python": {
-                lexer = new PythonLexer(input);
-                stringType = PythonLexer.STRING;
+                lexer = new Python3Lexer(input);
+                stringType = Python3Lexer.STRING;
                 break;
             }
 
