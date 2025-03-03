@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,8 +30,8 @@ import {
     ParseTree, PredictionMode,
 } from "antlr4ng";
 
-import { PythonLexer } from "./generated/PythonLexer.js";
-import { PythonParser } from "./generated/PythonParser.js";
+import { Python3Lexer } from "./generated/Python3Lexer.js";
+import { Python3Parser } from "./generated/Python3Parser.js";
 import { PythonErrorListener } from "./PythonErrorListener.js";
 
 import { IParserErrorInfo } from "../parser-common.js";
@@ -44,9 +44,9 @@ export enum PythonParseUnit {
 export class PythonParsingServices {
     private static services?: PythonParsingServices;
 
-    private lexer = new PythonLexer(CharStream.fromString(""));
+    private lexer = new Python3Lexer(CharStream.fromString(""));
     private tokenStream = new CommonTokenStream(this.lexer);
-    private parser = new PythonParser(this.tokenStream);
+    private parser = new Python3Parser(this.tokenStream);
     private errors: IParserErrorInfo[] = [];
 
     private tree: ParseTree | undefined;
@@ -127,7 +127,7 @@ export class PythonParsingServices {
      */
     public stringFromPosition = (text: string, line: number, offset: number): string | undefined => {
         const input = CharStream.fromString(text);
-        const lexer = new PythonLexer(input);
+        const lexer = new Python3Lexer(input);
         const tokenStream = new CommonTokenStream(lexer);
 
         try {
@@ -145,7 +145,7 @@ export class PythonParsingServices {
                         // See if the previous token starts before or on the caret.
                         token = tokens[index - 1];
                         if (token.line - 1 < line || token.column <= offset) {
-                            if (token.type === PythonLexer.STRING && token.text) {
+                            if (token.type === Python3Lexer.STRING && token.text) {
                                 return unquote(token.text);
                             }
 
@@ -221,7 +221,7 @@ export class PythonParsingServices {
     private parseUnit(unit: PythonParseUnit): ParseTree | undefined {
         switch (unit) {
             default: // Generic.
-                return this.parser.root();
+                return this.parser.single_input();
         }
     }
 

@@ -26,7 +26,7 @@
         "e2e-tests-report": "node src/tests/e2e/postActions.mjs"
     },
     "dependencies": {
-        "anser": "2.1.1",
+        "anser": "2.3.2",
         "antlr4-c3": "3.4.1",
         "antlr4ng": "3.0.3",
         "classnames": "2.5.1",
