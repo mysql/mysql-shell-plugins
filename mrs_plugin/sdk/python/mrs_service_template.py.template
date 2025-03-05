@@ -350,9 +350,9 @@ class ${schema_class_name}(MrsBaseSchema):
 
 class ${service_class_name}(MrsBaseService):
 
-    def __init__(self) -> None:
+    def __init__(self, base_url: str = "${service_url}") -> None:
         super().__init__(
-            service_url="${service_url}",
+            service_url=base_url,
             auth_path="/authentication/login",
             deauth_path="/authentication/logout",
         )

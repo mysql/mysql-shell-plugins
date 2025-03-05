@@ -23,8 +23,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { render } from "preact";
-import { App } from "./app";
-import "./index.css";
-
-render(<App services={mrsAppConfig.services} />, document.body);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const mrsAppConfig = {
+    services: [{
+        name: "myService",
+        url: "https://localhost:8443/myService",
+    }],
+};
