@@ -72,6 +72,26 @@ myService.authenticate({ username: 'foo', password: 'bar', app: 'baz' });
 myService.authenticate({ username: 'foo', password: 'bar', app: 'baz', vendor: "0x30000000000000000000000000000000" });
 ```
 
+## getMetadata
+
+`getMetadata` is used to retrieve application-specific metadata attached to an MRS resource (REST Service, Schema and/or Object).
+
+### Return Type (getMetadata)
+
+A JSON object containing the application-specific metadata attached to the resource.
+
+### Example (getMetadata)
+
+```TypeScript
+import { MyService } from './myService.mrs.sdk/myService';
+
+const myService = new MyService();
+
+await myService.getMetadata();
+await myService.mrsNotes.getMetadata();
+await myService.mrsNotes.note.getMetadata();
+```
+
 ## create
 
 `create` is used to insert a record in a given table. The record is represented as a plain TypeScript/JavaScript object or, alternatively, as an instance of a particular class that encapsulates the data required to create a new record. To insert multiple records, see `createMany`[#createmany].

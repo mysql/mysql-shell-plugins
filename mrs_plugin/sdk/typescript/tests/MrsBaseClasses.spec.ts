@@ -28,7 +28,7 @@ import {
     IFindManyOptions, IFindUniqueOptions, JsonValue, MrsBaseObjectQuery, MrsBaseSchema, MrsBaseService,
     MrsResourceObject, MrsBaseObjectCreate, IFindFirstOptions, IMrsResourceCollectionData, MrsBaseObjectDelete,
     MrsBaseObjectUpdate, IMrsDeleteResult, IMrsFunctionJsonResponse, MrsBaseObjectFunctionCall,
-    IMrsProcedureJsonResponse, MrsBaseObjectProcedureCall, JsonObject, MrsAuthenticate,
+    IMrsProcedureJsonResponse, MrsBaseObjectProcedureCall, JsonObject, MrsAuthenticate, MrsBaseObject,
 } from "../MrsBaseClasses";
 
 // fixtures
@@ -53,21 +53,17 @@ interface ITableMetadata3 {
 }
 
 const service: MrsBaseService = new MrsBaseService("/foo");
-const schema: MrsBaseSchema = { requestPath: "/bar", service };
+const schema: MrsBaseSchema = new MrsBaseSchema(service, "/bar");
 
-const createFetchMock = ({ matchBody, matchUrl, response = "{}" }: {
-    matchBody?: string, matchUrl?: string, response?: string } = { response: "{}" }): void => {
-        vi.stubGlobal("fetch", vi.fn((url, { body }) => {
+const createFetchMock = ({ matchBody, matchUrl, response = "{}", statusCode = 200 }: {
+    matchBody?: string, matchUrl?: string, response?: string, statusCode?: number } = { response: "{}",
+        statusCode: 200 }): void => { vi.stubGlobal("fetch", vi.fn((url, { body }) => {
         if ((matchUrl !== undefined && matchUrl !== url) || (matchBody !== undefined && matchBody !== body)) {
-            return Promise.resolve({ ok: false });
+            // in the end, this just means it is a Bad Request
+            return Promise.resolve(new Response(null, { status: 400 }));
         }
 
-        return Promise.resolve({
-            ok: true,
-            json: (): JsonValue => {
-                return JSON.parse(response) as JsonValue;
-            },
-        });
+        return Promise.resolve(new Response(new Blob([response], { type: "application/json" }), { status: statusCode }));
     }));
 };
 
@@ -1628,6 +1624,155 @@ describe("MRS SDK API", () => {
                             "Authorization": "Bearer ABC",
                         },
                     }));
+                });
+            });
+        });
+    });
+
+    describe("when retrieving custom resource metadata", () => {
+        const metadata = { name: "foobar" };
+
+        describe("for a REST service", () => {
+            beforeEach(() => {
+                createFetchMock({
+                    matchUrl: "/foo/_metadata",
+                    response: JSON.stringify(metadata),
+                });
+            });
+
+            it("returns a plain JavaScript object with the metadata", async () => {
+                expect(await service.getMetadata()).to.deep.equal(metadata);
+            });
+        });
+
+        describe("for a REST schema", () => {
+            describe("that requires authentication", () => {
+                describe("and the client is authenticated", () => {
+                    beforeEach(async () => {
+                        createFetchMock({
+                            matchUrl: "/foo/authentication/login",
+                            response: JSON.stringify({ accessToken: "ABC" }),
+                        });
+
+                        // specify a valid vendor id to avoid the additional round-trip to retrieve auth apps
+                        const request = new MrsAuthenticate(schema.service, "qux", "quux", "biz",
+                            "0x31000000000000000000000000000000");
+                        await request.submit();
+
+                        createFetchMock({
+                            matchUrl: "/foo/bar/_metadata",
+                            response: JSON.stringify(metadata),
+                        });
+                    });
+
+                    it("includes the appropriate access token in the request", async () => {
+                        await schema.getMetadata();
+
+                        expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/_metadata`, expect.objectContaining({
+                            headers: {
+                                // eslint-disable-next-line
+                                "Authorization": "Bearer ABC",
+                            },
+                        }));
+                    });
+
+                    it("returns a plain JavaScript object with the metadata", async () => {
+                        expect(await schema.getMetadata()).to.deep.equal(metadata);
+                    });
+                });
+
+                describe("and the client is not authenticated", () => {
+                    beforeEach(() => {
+                        createFetchMock({
+                            matchUrl: "/foo/bar/_metadata",
+                            statusCode: 401,
+                        });
+                    })
+
+                    it("yields an authentication error", async () => {
+                        await expect(async () => { await schema.getMetadata(); }).rejects.toThrowError(
+                            "Not authenticated. Please authenticate first before accessing the path /foo/bar/_metadata.");
+                    });
+                });
+            });
+
+            describe("that does not require authentication", () => {
+                beforeEach(() => {
+                    createFetchMock({
+                        matchUrl: "/foo/bar/_metadata",
+                        response: JSON.stringify(metadata),
+                    });
+                });
+
+                it("returns a plain JavaScript object with the metadata", async () => {
+                    expect(await schema.getMetadata()).to.deep.equal(metadata);
+                });
+            });
+        });
+
+        describe("for a REST object", () => {
+            const restObject = new MrsBaseObject(schema, "/baz");
+
+            describe("that requires authentication", () => {
+                describe("and the client is authenticated", () => {
+                    beforeEach(async () => {
+                        createFetchMock({
+                            matchUrl: "/foo/authentication/login",
+                            response: JSON.stringify({ accessToken: "ABC" }),
+                        });
+
+                        // specify a valid vendor id to avoid the additional round-trip to retrieve auth apps
+                        const request = new MrsAuthenticate(schema.service, "qux", "quux", "biz",
+                            "0x31000000000000000000000000000000");
+                        await request.submit();
+
+                        createFetchMock({
+                            matchUrl: "/foo/bar/baz/_metadata",
+                            response: JSON.stringify(metadata),
+                        });
+                    });
+
+                    it("includes the appropriate access token in the request", async () => {
+                        await restObject.getMetadata();
+
+                        expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz/_metadata`, expect.objectContaining({
+                            headers: {
+                                // eslint-disable-next-line
+                                "Authorization": "Bearer ABC",
+                            },
+                        }));
+                    });
+
+                    it("returns a plain JavaScript object with the metadata", async () => {
+                        expect(await restObject.getMetadata()).to.deep.equal(metadata);
+                    });
+                });
+
+                describe("and the client is not authenticated", () => {
+                    beforeEach(() => {
+                        createFetchMock({
+                            matchUrl: "/foo/bar/baz/_metadata",
+                            statusCode: 401,
+                        });
+                    });
+
+                    it("yields an authentication error", async () => {
+                        await expect(async () => { await restObject.getMetadata(); }).rejects.toThrowError(
+                            "Not authenticated. Please authenticate first before accessing the path /foo/bar/baz/_metadata.");
+                    });
+                });
+            });
+
+            describe("that does not require authentication", () => {
+                beforeEach(() => {
+                    createFetchMock({
+                        matchUrl: "/foo/bar/baz/_metadata",
+                        response: JSON.stringify(metadata),
+                    });
+                });
+
+                it("returns a plain JavaScript object with the metadata", async () => {
+                    expect(await restObject.getMetadata()).to.deep.equal(metadata);
                 });
             });
         });

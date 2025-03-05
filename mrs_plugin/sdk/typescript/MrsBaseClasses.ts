@@ -423,18 +423,6 @@ export interface IMrsAuthApp {
     vendorId: string;
 }
 
-/**
- * Represents a MRS Schema base class.
- *
- * All MRS Schema classes derive from this class.
- */
-export class MrsBaseSchema {
-    public constructor(
-        public service: MrsBaseService,
-        public requestPath: string) {
-    }
-}
-
 export interface IMrsOperator {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     "=": "$eq",
@@ -1521,5 +1509,40 @@ export class MrsBaseService {
         const response = await request.submit();
 
         return response;
+    }
+
+    public async getMetadata (): Promise<JsonObject> {
+        const response = await this.session.doFetch({ input: `/_metadata` });
+        return await response.json();
+    }
+}
+
+/**
+ * Represents a MRS Schema base class.
+ *
+ * All MRS Schema classes derive from this class.
+ */
+export class MrsBaseSchema {
+    public constructor(
+        public service: MrsBaseService,
+        public requestPath: string) {
+    }
+
+    public async getMetadata (): Promise<JsonObject> {
+        const response = await this.service.session.doFetch({ input: `${this.requestPath}/_metadata` });
+        return await response.json();
+    }
+}
+
+export class MrsBaseObject {
+    public constructor(
+        protected schema: MrsBaseSchema,
+        protected requestPath: string) {
+    }
+
+    public async getMetadata (): Promise<JsonObject> {
+        const requestPath = `${this.schema.requestPath}${this.requestPath}/_metadata`;
+        const response = await this.schema.service.session.doFetch({ input: requestPath });
+        return await response.json();
     }
 }

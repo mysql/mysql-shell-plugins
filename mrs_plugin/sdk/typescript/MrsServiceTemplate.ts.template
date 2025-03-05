@@ -8,6 +8,7 @@
 import {
     MrsBaseService,
     MrsBaseSchema,
+    MrsBaseObject,
     // --- importRequiredDatatypesOnlyStart
     // --- importRequiredDatatypesOnlyEnd
     // --- importAuthenticateOnlyStart
@@ -50,33 +51,17 @@ export type { IMrsAuthUser, IMrsAuthStatus } from "./MrsBaseClasses";
 
 // --- importLoopEnd
 // --- schemaLoopStart
-/* -----------------------------------------------------------------------------
- * MRS Schema ${schema_request_path}
- */
-
-export class ${schema_class_name}ObjectRequest {
-    public constructor(
-        public schema: ${schema_class_name}) {
-    }
-}
-
 // --- objectLoopStart
 /*
  * MRS Object - ${obj_full_request_path} (${obj_type})
  */
-
-export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest {
-
-    static readonly #schemaRequestPath = "${schema_request_path}";
-    static readonly #requestPath = "${obj_request_path}";
-
+class ${obj_class_name}Object extends MrsBaseObject {
     // --- crudReadOnlyStart
     #hasMore = true;
     // --- crudReadOnlyEnd
-
     // --- crudCreateOnlyStart
     public create = async (args: ICreateOptions<INew${obj_class_name}>): Promise<I${obj_class_name}> => {
-        const request = new MrsBaseObjectCreate<INew${obj_class_name}, I${obj_class_name}>(this.schema, ${obj_class_name}Request.#requestPath, args);
+        const request = new MrsBaseObjectCreate<INew${obj_class_name}, I${obj_class_name}>(this.schema, this.requestPath, args);
         const response = await request.fetch();
 
         return response;
@@ -98,7 +83,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     // --- crudReadOnlyStart
     public findAll = async (args?: IFindAllOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<I${obj_class_name}[]> => {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable>(
-            this.schema, ${obj_class_name}Request.#requestPath, { ...args, take: 25 });
+            this.schema, this.requestPath, { ...args, take: 25 });
         const response = await request.fetchAll(args?.progress);
 
         return response.items;
@@ -106,7 +91,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
 
     public findMany = async ({ iterator = true, ...args }: IFindManyOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<I${obj_class_name}[]> => {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>(
-            this.schema, ${obj_class_name}Request.#requestPath, args);
+            this.schema, this.requestPath, args);
 
         if (!this.#hasMore && iterator) {
             this.#hasMore = true;
@@ -125,7 +110,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
 
     public findFirst = async (args?: IFindFirstOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<I${obj_class_name} | undefined> => {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable>(
-            this.schema, ${obj_class_name}Request.#requestPath, { ...args, take: 1 });
+            this.schema, this.requestPath, { ...args, take: 1 });
         const response = await request.fetchOne();
 
         return response;
@@ -135,7 +120,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     // --- crudReadUniqueOnlyStart
     public findUnique = async (args?: IFindUniqueOptions<I${obj_class_name}, I${obj_class_name}UniqueFilterable>): Promise<I${obj_class_name} | undefined> => {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}UniqueFilterable>(
-            this.schema, ${obj_class_name}Request.#requestPath, { ...args, take: 1 });
+            this.schema, this.requestPath, { ...args, take: 1 });
         const response = await request.fetchOne();
 
         return response;
@@ -155,7 +140,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     // --- crudUpdateOnlyStart
     public update = async (args: IUpdateOptions<IUpdate${obj_class_name}>): Promise<I${obj_class_name}> => {
         const request = new MrsBaseObjectUpdate<IUpdate${obj_class_name}, [${obj_quoted_pk_list}], I${obj_class_name}>(
-            this.schema, ${obj_class_name}Request.#requestPath, args, [${obj_quoted_pk_list}]);
+            this.schema, this.requestPath, args, [${obj_quoted_pk_list}]);
         const response = await request.fetch();
 
         return response;
@@ -182,7 +167,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
 
     // --- crudDeleteOnlyStart
     public deleteMany = async (args: IDeleteOptions<I${obj_class_name}Filterable>): Promise<IMrsDeleteResult> => {
-        const request = new MrsBaseObjectDelete<I${obj_class_name}Filterable>(this.schema, ${obj_class_name}Request.#requestPath, args);
+        const request = new MrsBaseObjectDelete<I${obj_class_name}Filterable>(this.schema, this.requestPath, args);
         const response = await request.fetch();
 
         return response;
@@ -192,7 +177,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     // --- crudProcedureCallOnlyStart
     public call = async (${obj_name}Params?: I${obj_param_interface}): Promise<IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>> => {
         const request = new MrsBaseObjectProcedureCall<I${obj_param_interface}, I${obj_param_interface}Out, ${obj_meta_interface}>(
-            this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}Params);
+            this.schema, this.requestPath, ${obj_name}Params);
         const response = await request.fetch();
 
         return response;
@@ -201,7 +186,7 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
     // --- crudFunctionCallOnlyStart
     public call = async (${obj_name}Params?: I${obj_param_interface}): Promise<${obj_function_result_datatype}> => {
         const request = new MrsBaseObjectFunctionCall<I${obj_param_interface}, ${obj_function_result_datatype}>(
-            this.schema, ${obj_class_name}Request.#requestPath, ${obj_name}Params);
+            this.schema, this.requestPath, ${obj_name}Params);
         const response = await request.fetch();
 
         return response.result;
@@ -217,15 +202,15 @@ export class ${obj_class_name}Request extends ${schema_class_name}ObjectRequest 
 
 ${obj_interfaces}
 // --- objectLoopEnd
-export class ${schema_class_name} extends MrsBaseSchema {
+class ${schema_class_name} extends MrsBaseSchema {
     // --- objectLoopStart
-    #${obj_name}?: ${obj_class_name}Request;
+    #${obj_name}?: ${obj_class_name}Object;
     // --- objectLoopEnd
 
     // --- objectLoopStart
-    public get ${obj_name}(): ${obj_class_name}Request {
+    public get ${obj_name}(): ${obj_class_name}Object {
         if (this.#${obj_name} === undefined) {
-            this.#${obj_name} = new ${obj_class_name}Request(this);
+            this.#${obj_name} = new ${obj_class_name}Object(this, "${obj_request_path}");
         }
 
         return this.#${obj_name};
@@ -243,7 +228,6 @@ export class ${schema_class_name} extends MrsBaseSchema {
 /* =============================================================================
  * MRS Service ${service_url}
  */
-
 export class ${service_class_name} extends MrsBaseService {
     // --- schemaLoopStart
     #${schema_name}?: ${schema_class_name};
