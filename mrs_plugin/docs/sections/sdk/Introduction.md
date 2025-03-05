@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -27,7 +27,9 @@ The MySQL REST Service offers a Software Development Kit (SDK) that simplifies t
 
 The SDK features a Client API that is specifically generated for each MRS REST Service and therefore offers the best possible support for each REST project.
 
-Currently, support for TypeScript is available. Support for other languages is planned.
+Currently, support for TypeScript and Python is available. Support for other languages is planned.
+
+Most of the usage examples present in this guide are written in TypeScript. For specific details about the SDK for a different language, please check the corresponding API reference docs.
 
 ## Generation of SDK Files
 
