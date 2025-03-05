@@ -28,7 +28,8 @@
     "src",
     "declaration.d.ts",
     "vite.config.ts",
-    "vitest.setup.ts"
+    "vitest.setup.ts",
+    "public/app.config.js"
   ],
   "exclude": [
     "src/tests"

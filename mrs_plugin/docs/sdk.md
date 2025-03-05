@@ -7,6 +7,7 @@ This document explains how to work with the MRS Software Development Kit and dis
 __Chapter Overview__
 
 - [Introduction to the MRS SDK](#introduction-to-the-mrs-sdk)
+- [Working with a REST Service](#working-with-a-rest-service)
 - [Querying Data Across Tables](#querying-data-across-tables)
 - [Contextual Fields and Parameters](#contextual-fields-and-parameters)
 - [Read Your Writes Consistency](#read-your-writes-consistency)
@@ -27,6 +28,8 @@ Please also see
 ---
 
 !include sections/sdk/Introduction.md
+
+!include sections/sdk/WorkingWithARESTService.md
 
 !include sections/sdk/QueryingDataAcrossTables.md
 

@@ -249,8 +249,8 @@ export class ${service_class_name} extends MrsBaseService {
     #${schema_name}?: ${schema_class_name};
     // --- schemaLoopEnd
 
-    public constructor() {
-        super("${service_url}", "${service_auth_path}");
+    public constructor(baseUrl: string = "${service_url}") {
+        super(baseUrl, "${service_auth_path}");
     }
 
     // --- schemaLoopStart

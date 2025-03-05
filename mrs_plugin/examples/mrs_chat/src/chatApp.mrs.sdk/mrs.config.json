@@ -1,9 +1,9 @@
 {
-    "serviceId": "Ee/yr/uCZ66C8rHSC7yQmw==",
+    "serviceId": "Ee/9qNgjY+qywsbY5fMUhg==",
     "sdkLanguage": "TypeScript",
     "serviceUrl": "https://localhost:8443/chatApp",
     "addAppBaseClass": "MrsBaseAppPreact.ts",
     "dbConnectionUri": "mysqlroot@localhost:3306",
     "header": "// Copyright (c) 2023, 2025, Oracle and/or its affiliates.",
-    "generationDate": "2025-02-28 12:43:57"
+    "generationDate": "2025-03-10 12:19:22"
 }

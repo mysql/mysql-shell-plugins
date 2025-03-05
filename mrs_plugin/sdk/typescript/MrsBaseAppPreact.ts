@@ -34,7 +34,8 @@ export interface IAppState {
     error?: Error;
 }
 
-export abstract class MrsBaseApp<Service extends MrsBaseService, State extends IAppState> extends Component<{}, State> {
+export abstract class MrsBaseApp<Service extends MrsBaseService, Props, State extends IAppState>
+    extends Component<Props, State> {
     public constructor(
         protected mrsService: Service,
         protected appName: string,

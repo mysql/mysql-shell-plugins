@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -43,9 +43,9 @@ interface IMyAppState extends IAppState {
     user?: IMrsAuthUser;
 }
 
-export class App extends MrsBaseApp<ChatApp, IMyAppState> {
-    public constructor() {
-        super(new ChatApp(), "HeatWaveChat");
+export class App extends MrsBaseApp<ChatApp, IMrsAppConfig, IMyAppState> {
+    public constructor({ services = [] }: IMrsAppConfig = { services: [] }) {
+        super(new ChatApp(services[0].url), "HeatWaveChat");
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await

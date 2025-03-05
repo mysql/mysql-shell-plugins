@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -44,9 +44,9 @@ interface IMyAppState extends IAppState {
     user?: IMyServiceMrsNotesUser;
 }
 
-export class App extends MrsBaseApp<MyService, IMyAppState> {
-    public constructor() {
-        super(new MyService(), "MrsNotes");
+export class App extends MrsBaseApp<MyService, IMrsAppConfig, IMyAppState> {
+    public constructor({ services = [] }: IMrsAppConfig = { services: [] }) {
+        super(new MyService(services[0].url), "MrsNotes");
     }
 
     protected afterHandleLogin = async (status: IMrsAuthStatus): Promise<void> => {

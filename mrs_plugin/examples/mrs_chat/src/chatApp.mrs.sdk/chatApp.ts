@@ -132,8 +132,8 @@ export class ChatAppChat extends MrsBaseSchema {
 export class ChatApp extends MrsBaseService {
     #chat?: ChatAppChat;
 
-    public constructor() {
-        super("https://localhost:8443/chatApp", "/authentication");
+    public constructor(baseUrl: string = "https://localhost:8443/chatApp") {
+        super(baseUrl, "/authentication");
     }
 
     public get chat(): ChatAppChat {
