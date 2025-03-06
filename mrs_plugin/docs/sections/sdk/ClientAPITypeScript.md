@@ -72,8 +72,35 @@ import { MyService } from './myService.mrs.sdk/myService';
 
 const myService = new MyService();
 
-myService.authenticate({ username: 'foo', password: 'bar', app: 'baz' });
-myService.authenticate({ username: 'foo', password: 'bar', app: 'baz', vendor: "0x30000000000000000000000000000000" });
+await myService.authenticate({ username: 'foo', password: 'bar', app: 'baz' });
+await myService.authenticate({ username: 'foo', password: 'bar', app: 'baz', vendor: "0x30000000000000000000000000000000" });
+```
+
+## deauthenticate
+
+`deauthenticate` is used for logging out a user from a given service.
+
+## Return Type (deauthenticate)
+
+Nothing (void).
+
+## Reference (deauthenticate)
+
+```TypeScript
+async function deauthenticate (): Promise<void> {
+    // ...
+}
+
+```
+
+## Example (deauthenticate)
+
+```TypeScript
+import { MyService } from './myService.mrs.sdk/myService';
+
+const myService = new MyService();
+
+await myService.deauthenticate();
 ```
 
 ### getMetadata

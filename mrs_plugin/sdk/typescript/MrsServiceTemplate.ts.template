@@ -338,6 +338,10 @@ export class ${service_class_name} extends MrsBaseService {
 
         return super.authenticate({ username, password, app, vendor });
     }
+
+    public async deauthenticate(): Promise<void> {
+        await super.deauthenticate();
+    }
     // --- serviceAuthenticateEnd
 }
 

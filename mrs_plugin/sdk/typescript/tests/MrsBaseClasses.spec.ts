@@ -162,6 +162,42 @@ describe("MRS SDK API", () => {
         });
     });
 
+    describe("when deauthenticating a user", () => {
+        const accessToken = "ABC";
+
+        beforeEach(() => {
+            FetchMock.push();
+        });
+
+        it("fails if there is no user that is currently authenticated", async () => {
+            await expect(async () => { await service.deauthenticate(); }).rejects
+                .toThrowError("No user is currently authenticated.");
+        });
+
+        it("includes the appropriate access token in the request", async () => {
+            service.session.accessToken = accessToken;
+
+            await service.deauthenticate();
+
+            expect(fetch).toHaveBeenCalledTimes(1);
+            expect(fetch).toHaveBeenCalledWith("/foo/authentication/logout", expect.objectContaining({
+                method: "POST",
+                headers: {
+                    // eslint-disable-next-line
+                    "Authorization": `Bearer ${accessToken}`
+                },
+            }));
+        });
+
+        it("resets the existing session state", async () => {
+            service.session.accessToken = accessToken;
+
+            await service.deauthenticate();
+
+            expect(service.session.accessToken).toBeUndefined();
+        });
+    });
+
     describe("when accessing REST objects", () => {
         it("selects fields to include in the result set using the field names", async () => {
             const options: IFindManyOptions<ITableMetadata1, unknown, unknown> = {
