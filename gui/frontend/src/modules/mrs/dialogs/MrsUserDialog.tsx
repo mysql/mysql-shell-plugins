@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -78,8 +78,21 @@ export class MrsUserDialog extends AwaitableValueEditDialog {
                     if (!mainSection.values.name.value && !mainSection.values.email.value) {
                         result.messages.name = "The user name or email are required for this app.";
                     }
-                    if (!mainSection.values.authString.value) {
+                    // Enforce password strength
+                    const pwd = (mainSection.values.authString.value as string);
+                    if (!pwd) {
                         result.messages.authString = "The authentication string is required for this app.";
+                    } else if (pwd.length < 8) {
+                        result.messages.authString = "The minimum authentication string length is 8 characters.";
+                    } else {
+                        const hasUpperCase = /[A-Z]/.test(pwd) ? 1 : 0;
+                        const hasLowerCase = /[a-z]/.test(pwd) ? 1 : 0;
+                        const hasNumbers = /\d/.test(pwd) ? 1 : 0;
+                        const hasNonAlphas = /\W/.test(pwd) ? 1 : 0;
+                        if (hasUpperCase + hasLowerCase + hasNumbers + hasNonAlphas < 4) {
+                            result.messages.authString = "The authentication string needs to contain at least one "
+                                + "uppercase, lowercase, a special and a numeric character.";
+                        }
                     }
                 }
 

@@ -61,11 +61,11 @@ def test_add_users(phone_book, table_contents):
 
     with pytest.raises(Exception) as exp:
         user = add_user(**user_init)
-    assert str(exp.value) == "The authentication string is required for this app"
+    assert str(exp.value) == "The authentication string is required for this app."
     assert user is None
     assert users_table.same_as_snapshot
 
-    user_init["auth_string"] = "my_password"
+    user_init["auth_string"] = "MySQLR0cks!"
 
     user = add_user(**user_init)
     assert user is not None
@@ -376,7 +376,19 @@ def test_user_sql(phone_book):
 
     import json
 
-    session.run_sql("""CREATE REST USER "boss"@"MRS Auth App" IDENTIFIED BY "secret" ACCOUNT LOCK OPTIONS {
+    with pytest.raises(Exception, match='ScriptingError: Invalid REST user "boss"@"MRS Auth App"'):
+        session.run_sql('ALTER REST USER "boss"@"MRS Auth App" IDENTIFIED BY "somepassword";')
+
+    with pytest.raises(Exception, match='ScriptingError: The password must not be empty.'):
+        session.run_sql('ALTER REST USER "boss"@"MRS Auth App" IDENTIFIED BY "";')
+
+    with pytest.raises(Exception, match='ScriptingError: Invalid REST user "boss"@"MRS Auth App"'):
+        session.run_sql('ALTER REST USER "boss"@"MRS Auth App" IDENTIFIED BY "SomePassword";')
+
+    with pytest.raises(Exception, match='ScriptingError: Invalid REST user "boss"@"MRS Auth App"'):
+        session.run_sql('ALTER REST USER "boss"@"MRS Auth App" IDENTIFIED BY "SomePassword!";')
+
+    session.run_sql("""CREATE REST USER "boss"@"MRS Auth App" IDENTIFIED BY "MySQLR0cks!" ACCOUNT LOCK OPTIONS {
                                           "email": "boss@example.com",
                                           "vendor_user_id": "vendor",
                                           "mapped_user_id": "vendorboss123"
@@ -389,7 +401,7 @@ def test_user_sql(phone_book):
     assert user["mapped_user_id"] == "vendorboss123"
     assert json.dumps(user["app_options"]) == '{"myoption": 12345}'
 
-    session.run_sql('ALTER REST USER "boss"@"MRS Auth App" IDENTIFIED BY "5678";')
+    session.run_sql('ALTER REST USER "boss"@"MRS Auth App" IDENTIFIED BY "MySQLR0cks!";')
     user = lib.users.get_user(session=session, user_name="boss", auth_app_name="MRS Auth App", service_id=phone_book["service_id"])
     assert user is not None
     assert user["email"] == "boss@example.com"

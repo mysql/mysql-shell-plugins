@@ -28,6 +28,7 @@ import hashlib
 import hmac
 import base64
 import os
+import re
 
 MRS_VENDOR_ID = bytes.fromhex("30000000000000000000000000000000")
 STORED_PASSWORD_STRING = "[Stored Password]"
@@ -165,6 +166,19 @@ def get_user(
     return result[0]
 
 
+def password_strength_valid(auth_string: str) -> bool:
+    if not any(c.isupper() for c in auth_string):
+        return False
+    if not any(c.islower() for c in auth_string):
+        return False
+    if not any(c.isdigit() for c in auth_string):
+        return False
+    if not any(c in '!#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~' for c in auth_string):
+        return False
+
+    return True
+
+
 def add_user(
     session,
     auth_app_id,
@@ -179,7 +193,13 @@ def add_user(
 
     if password_requires_cypher(session, auth_app_id):
         if not auth_string:
-            raise RuntimeError("The authentication string is required for this app")
+            raise ValueError("The authentication string is required for this app.")
+        if len(auth_string) < 8:
+            raise ValueError("The minimum authentication string length is 8 characters.")
+        if not password_strength_valid(auth_string):
+            raise ValueError(
+                "The authentication string needs to contain at least "
+                "one uppercase, lowercase, a special and a numeric character.")
         auth_string = cypher_auth_string(auth_string)
     else:
         if auth_string is not None:
@@ -248,6 +268,15 @@ def delete_users_by_auth_app(session, auth_app_id):
 def update_user(session, user_id, value: dict):
     if value.get("auth_string"):
         if password_requires_cypher(session, value["auth_app_id"]):
+            auth_string = value.get("auth_string")
+            if len(auth_string) < 8:
+                raise ValueError(
+                    "The minimum authentication string length is 8 characters.")
+            if not password_strength_valid(auth_string):
+                raise ValueError(
+                    "The authentication string needs to contain at least "
+                    "one uppercase, lowercase, a special and a numeric "
+                    "character.")
             value["auth_string"] = cypher_auth_string(value["auth_string"])
         else:
             raise ValueError(

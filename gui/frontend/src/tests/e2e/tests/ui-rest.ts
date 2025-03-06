@@ -306,7 +306,7 @@ describe("MYSQL REST SERVICE", () => {
             default: false,
             settings: {
                 mrsAdminUser: "testUser",
-                mrsAdminPassword: "testPassword",
+                mrsAdminPassword: "MySQLR0cks!",
                 comments: "testing",
             },
             authentication: {
@@ -1342,16 +1342,6 @@ describe("MYSQL REST SERVICE - CLIPBOARD", () => {
         name: "clipboardService",
         enabled: true,
         default: false,
-        settings: {
-            mrsAdminUser: "testUser",
-            mrsAdminPassword: "testPassword",
-            comments: "testing",
-        },
-        authentication: {
-            redirectionUrl: "localhost:8000",
-            redirectionUrlValid: "(.*)",
-            authCompletedChangeCont: "<html>",
-        },
         restSchemas: [
             {
                 restServicePath: `/clipboardService`,
