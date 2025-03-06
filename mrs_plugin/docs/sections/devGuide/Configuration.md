@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -110,8 +110,8 @@ Note: The previous task only works for classic MySQL connections that are not us
 ![Bootstrap and Start MySQL Router](../../images/vsc-mrs-start-mysql-router.png "Bootstrap and Start MySQL Router")
 
 After the MySQL Router has been bootstrapped and started, MRS is available at `https://localhost:8443/<service-name>`.
+You can then proceed and [add a REST service](#adding-rest-services-and-database-objects).
 
-You can then proceed and [add a REST service](#adding-a-rest-service).
 
 ### Bootstrapping MySQL Router From the Command Line
 

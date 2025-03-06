@@ -1022,7 +1022,7 @@ if __name__ == "__main__":
 
 ### Options (function)
 
-The input arguments and respective types accepted and expected by `<func_name>(...)` depend on the MySQL function declaration. See [Example (function)](#examples-function) for an example.
+The input arguments and respective types accepted and expected by `<func_name>(...)` depend on the MySQL function declaration. See [Example (function)](#example-function) for an example.
 
 > The input arguments must be provided as keyword arguments.
 
@@ -1032,7 +1032,7 @@ The Python data type returned by `<func_name>(...)` depends on the data type ret
 
 > For instance, the Python data type `int` must be expected for MySQL functions declared to return `TINYINT`, `SMALLINT`, `MEDIUMINT`, `INT` and `BIGINT`.
 
-See [Example (function)](#examples-function) for an example.
+See [Example (function)](#example-function) for an example.
 
 
 ### Example (function)
@@ -1078,7 +1078,7 @@ mysql> CREATE FUNCTION my_birthday_func ()
 
 ### Options (procedure)
 
-The input arguments and respective types accepted and expected by `<proc_name>(...)` depend on the MySQL procedure declaration (specifically, `IN` and `INOUT` parameters). See [Example (procedure)](#examples-procedure) for an example.
+The input arguments and respective types accepted and expected by `<proc_name>(...)` depend on the MySQL procedure declaration (specifically, `IN` and `INOUT` parameters). See [Example (procedure)](#example-procedure) for an example.
 
 Input parameters aren't mandatory, meaning you are free to not provide them.
 
@@ -1096,7 +1096,7 @@ This data class object includes the following attributes:
 * `result_sets`: List of result set types generated when executing one or more SELECT statements as part of the procedure body. Each result set type can include one or more items.
 
 
-See [Example (procedure)](#examples-procedure) for an example.
+See [Example (procedure)](#example-procedure) for an example.
 
 
 ### Example (procedure)

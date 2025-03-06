@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -125,16 +125,16 @@ Result:
         "links": [
             {
                 "rel": "collection",
-                "href": "http://mrs.zinner.org/mrs/sakila/metadata-catalog",
+                "href": "http://mrs.example.com/mrs/sakila/metadata-catalog",
                 "mediaType": "application/json"
             },
             {
                 "rel": "canonical",
-                "href": "http://mrs.zinner.org/mrs/sakila/metadata-catalog/actor"
+                "href": "http://mrs.example.com/mrs/sakila/metadata-catalog/actor"
             },
             {
                 "rel": "describes",
-                "href": "http://mrs.zinner.org/mrs/sakila/actor"
+                "href": "http://mrs.example.com/mrs/sakila/actor"
             }
         ]
     }
@@ -159,7 +159,7 @@ Result:
                 "links": [
                     {
                         "rel": "self",
-                        "href": "http://mrs.zinner.org/mrs/sakila/actor/1"
+                        "href": "http://mrs.example.com/mrs/sakila/actor/1"
                     }
                 ],
                 "actor_id": 1,
@@ -171,7 +171,7 @@ Result:
                 "links": [
                     {
                         "rel": "self",
-                        "href": "http://mrs.zinner.org/mrs/sakila/actor/2"
+                        "href": "http://mrs.example.com/mrs/sakila/actor/2"
                     }
                 ],
                 "actor_id": 2,
@@ -183,7 +183,7 @@ Result:
                 "links": [
                     {
                         "rel": "self",
-                        "href": "http://mrs.zinner.org/mrs/sakila/actor/3"
+                        "href": "http://mrs.example.com/mrs/sakila/actor/3"
                     }
                 ],
                 "actor_id": 3,
@@ -215,7 +215,7 @@ Result:
                 "links": [
                     {
                         "rel": "self",
-                        "href": "http://mrs.zinner.org/mrs/sakila/actor/11"
+                        "href": "http://mrs.example.com/mrs/sakila/actor/11"
                     }
                 ],
                 "actor_id": 11,
@@ -227,7 +227,7 @@ Result:
                 "links": [
                     {
                         "rel": "self",
-                        "href": "http://mrs.zinner.org/mrs/sakila/actor/12"
+                        "href": "http://mrs.example.com/mrs/sakila/actor/12"
                     }
                 ],
                 "actor_id": 12,
@@ -243,19 +243,19 @@ Result:
         "links": [
             {
                 "rel": "self",
-                "href": "http://mrs.zinner.org/mrs/sakila/actor/"
+                "href": "http://mrs.example.com/mrs/sakila/actor/"
             },
             {
                 "rel": "next",
-                "href": "http://mrs.zinner.org/mrs/sakila/actor/?offset=12&limit=2"
+                "href": "http://mrs.example.com/mrs/sakila/actor/?offset=12&limit=2"
             },
             {
                 "rel": "prev",
-                "href": "http://mrs.zinner.org/mrs/sakila/actor/?offset=8&limit=2"
+                "href": "http://mrs.example.com/mrs/sakila/actor/?offset=8&limit=2"
             },
             {
                 "rel": "first",
-                "href": "http://mrs.zinner.org/mrs/sakila/actor/?limit=2"
+                "href": "http://mrs.example.com/mrs/sakila/actor/?limit=2"
             }
         ]
     }
@@ -280,7 +280,7 @@ Result:
                 "links": [
                     {
                         "rel": "self",
-                        "href": "http://mrs.zinner.org/mrs/sakila/actor/97"
+                        "href": "http://mrs.example.com/mrs/sakila/actor/97"
                     }
                 ],
                 "actor_id": 97,
@@ -296,7 +296,7 @@ Result:
         "links": [
             {
                 "rel": "self",
-                "href": "http://mrs.zinner.org/mrs/sakila/actor/"
+                "href": "http://mrs.example.com/mrs/sakila/actor/"
             }
         ]
     }
@@ -323,7 +323,7 @@ Result:
         "links": [
             {
                 "rel": "self",
-                "href": "http://mrs.zinner.org/mrs/sakila/actor/53"
+                "href": "http://mrs.example.com/mrs/sakila/actor/53"
             }
         ],
         "actor_id": 53,
@@ -379,7 +379,7 @@ Result:
         "links": [
             {
                 "rel": "self",
-                "href": "http://mrs.zinner.org/mrs/sakila/actor/201"
+                "href": "http://mrs.example.com/mrs/sakila/actor/201"
             }
         ],
         "actor_id": 201,

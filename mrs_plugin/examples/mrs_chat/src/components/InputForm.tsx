@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -82,7 +82,7 @@ export default class InputForm extends Component<IInputFormProps> {
                     </div>
                 </div>
                 <div className="footer">
-                    <p>Copyright (c) 2022, 2024, Oracle and/or its affiliates.</p>
+                    <p>Copyright (c) 2022, 2025, Oracle and/or its affiliates.</p>
                 </div>
             </>
         );

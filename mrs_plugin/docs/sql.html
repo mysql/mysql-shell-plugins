@@ -480,11 +480,16 @@ Reference
                 interface to MySQL developers and DBAs.</p>
                 <p><strong>Chapter Overview</strong></p>
                 <ul>
-                <li><a
-                href="#introduction-to-the-mrs-ddl-extension">Introduction
-                to the MRS DDL Extension</a></li>
-                <li><a href="#mrs-ddl-reference">MRS SQL
-                Reference</a></li>
+                <li><a href="#introduction">Introduction to the MRS DDL
+                Extension</a></li>
+                <li><a href="#configure-and-create">MRS SQL Reference:
+                CONFIGURE and CREATE</a></li>
+                <li><a href="#alter">MRS SQL Reference: ALTER</a></li>
+                <li><a href="#drop">MRS SQL Reference: DROP</a></li>
+                <li><a href="#grant-and-revoke">MRS SQL Reference: GRANT
+                and REVOKE</a></li>
+                <li><a href="#use-and-show">MRS SQL Reference: USE and
+                SHOW</a></li>
                 </ul>
                 <hr />
                 <p>Please also see</p>
@@ -798,17 +803,6 @@ restMetadataOptions: (
                 <li>Maximum size of the cache. Default is 1M.</li>
                 </ul></li>
                 </ul></li>
-                <li><code>sqlQuery</code>
-                <ul>
-                <li><code>timeout</code>
-                <ul>
-                <li>Number of milliseconds to allow for DB operations
-                while serving an endpoint. DB requests taking longer
-                than that time will be interrupted and an error 504
-                returned. Default 2000. Can be overridden at a
-                per-endpoint basis.</li>
-                </ul></li>
-                </ul></li>
                 <li><code>defaultStaticContent</code>
                 <ul>
                 <li>Allows the definition of static content for the root
@@ -856,7 +850,7 @@ restMetadataOptions: (
                 It will also direct the MySQL Router to return the
                 contents of <code>/index.html</code> if the root path
                 <code>/</code> is requested,
-                e.g. <code>https://my.domain.com/</code></p>
+                e.g. <code>https://my.example.com/</code></p>
                 <div class="sourceCode" id="cb8"><pre
                 class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;defaultStaticContent&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
@@ -1354,6 +1348,17 @@ authPageContent:
                 <code>directoryIndexDirective</code> for a given REST
                 object, the corresponding option needs to be set for
                 that object.</li>
+                <li><code>sqlQuery</code>
+                <ul>
+                <li><code>timeout</code>
+                <ul>
+                <li>Number of milliseconds to allow for DB operations
+                while serving an endpoint. DB requests taking longer
+                than that time will be interrupted and an error 504
+                returned. Default 2000. Can be overridden at a
+                per-endpoint basis.</li>
+                </ul></li>
+                </ul></li>
                 </ul>
                 <p>All other keys will be ignored and can be used to
                 store custom metadata about the service. It is a good
@@ -1522,6 +1527,9 @@ restSchemaOptions: (
                 serves the same purpose as described in the <a
                 href="#rest-configuration-json-options">REST
                 Configuration Json Options</a>.</li>
+                <li><code>sqlQuery</code> - see <a
+                href="#rest-service-json-options">REST Service JSON
+                Options</a></li>
                 </ul>
                 <p>All other keys will be ignored and can be used to
                 store custom metadata about the schema. It is a good

@@ -8,9 +8,10 @@ __Chapter Overview__
 
 - [MRS Introduction](#introduction-to-the-mysql-rest-service)
 - [MRS Deployment Architecture](#deployment-architecture)
-- [MRS Configuration](#configuration-of-the-mysql-rest-service)
-- [Adding REST Services](#adding-rest-services)
-- [Adding Schemas and Objects to a REST Service](#adding-schemas-and-objects-to-a-rest-service)
+- [MRS Configuration](#configuring-mysql-rest-service)
+- [Adding REST Services and Database Objects](#adding-rest-services-and-database-objects)
+- [GUI Interfaces for REST Service Configuration](#working-interactively-with-rest-services)
+- [Authentication and Authorization](#authentication-and-authorization)
 - [MRS Examples](#mrs-examples)
   - [MRS Notes Example](#mrs-notes-example)
   - [MRS Scripts Example](#mrs-scripts-example)

@@ -2,7 +2,7 @@
 
 exports[`Icon > should match the snapshot 1`] = `
 <Icon
-  copyright="Copyright (c) 2022, 2024, Oracle and/or its affiliates."
+  copyright="Copyright (c) 2022, 2025, Oracle and/or its affiliates."
   name="sakila"
   onClick={[Function]}
   styleClass="MyStyle"

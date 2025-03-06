@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -33,7 +33,7 @@ It is possible to perform an individual setup for each application and it is adv
 
 Before setting up a new REST service, ensure that the following preconditions are met:
 
-- The MySQL REST Service must be configured on the targeting MySQL Solution. Please see the [Configuration](#configuration-of-the-mysql-rest-service) section of this manual.
+- The MySQL REST Service must be configured on the targeting MySQL Solution. Please see the [Configuration](#configuring-mysql-rest-service) section of this manual.
 - The MySQL account used to connect to the targeting MySQL Solution needs to be granted the `mysql_rest_service_admin` MySQL role or a superset of privileges.
 
 To grant the `mysql_rest_service_admin` MySQL role, execute the following SQL statement.
@@ -140,7 +140,7 @@ Note: Adding a database schema as a REST schema is not equivalent to exposing al
 
 Before adding REST schemas and objects, ensure that the following preconditions are met:
 
-- A REST service must be added first (see [Adding a REST Service](#adding-a-rest-service)).
+- A REST service must be added first (see [Adding a REST Service](#adding-rest-services-and-database-objects)).
 - The MySQL account used to connect to the targeting MySQL Solution needs to be granted the `mysql_rest_service_schema_admin` MySQL role or a superset of privileges.
 
 To grant the `mysql_rest_service_schema_admin` MySQL role, execute the following SQL statement.
@@ -266,7 +266,7 @@ AUTHENTICATION REQUIRED;
 
 To add a database schema object to a REST schema:
 
-1. Right-click on the database object in the DATABASE CONNECTIONS view and select `Add Database Object to REST Service`. This will open the [MySQL REST Object dialog](#mysql-rest-object-dialog-reference).
+1. Right-click on the database object in the DATABASE CONNECTIONS view and select `Add Database Object to REST Service`. This will open the [MySQL REST Object dialog](#mrs-dialog-reference).
 
 2. Adjust all REST object settings accordingly.
 
