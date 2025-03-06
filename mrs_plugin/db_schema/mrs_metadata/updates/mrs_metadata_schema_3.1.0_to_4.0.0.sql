@@ -61,8 +61,20 @@ ALTER TABLE `mysql_rest_service_metadata`.`mrs_privilege`
 
 -- Ensure an email cannot be used as user name and a user name cannot be used as email
 ALTER TABLE `mysql_rest_service_metadata`.`mrs_user`
+    ADD INDEX `mrs_user_name` (`name` ASC) VISIBLE,
+    ADD INDEX `mrs_user_email` (`email` ASC) VISIBLE,
     ADD CONSTRAINT `mrs_user_no_at_symbol_in_user_name` CHECK (INSTR(name, '@') = 0),
     ADD CONSTRAINT `mrs_user_at_symbol_in_email` CHECK (INSTR(email, '@') > 0 OR email IS NULL OR email = '');
+
+ALTER TABLE `mysql_rest_service_metadata`.`router_status`
+      CHANGE COLUMN `timespan` `timespan` INT UNSIGNED NOT NULL COMMENT 'The timespan of the measuring interval',
+      CHANGE COLUMN `mysql_connections` `mysql_connections` INT UNSIGNED NOT NULL DEFAULT 0,
+      CHANGE COLUMN `mysql_queries` `mysql_queries` INT UNSIGNED NOT NULL DEFAULT 0,
+      CHANGE COLUMN `http_requests_get` `http_requests_get` INT UNSIGNED NOT NULL DEFAULT 0,
+      CHANGE COLUMN `http_requests_post` `http_requests_post` INT UNSIGNED NOT NULL DEFAULT 0,
+      CHANGE COLUMN `http_requests_put` `http_requests_put` INT UNSIGNED NOT NULL DEFAULT 0,
+      CHANGE COLUMN `http_requests_delete` `http_requests_delete` INT UNSIGNED NOT NULL DEFAULT 0,
+      CHANGE COLUMN `active_mysql_connections` `active_mysql_connections` INT UNSIGNED NOT NULL DEFAULT 0;
 
 -- -----------------------------------------------------
 -- Set the version VIEWs to the correct version

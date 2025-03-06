@@ -585,14 +585,14 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`router_status` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `router_id` INT UNSIGNED NOT NULL,
   `status_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'The time the status was reported',
-  `timespan` SMALLINT NOT NULL COMMENT 'The timespan of the measuring interval',
-  `mysql_connections` MEDIUMINT NOT NULL DEFAULT 0,
-  `mysql_queries` MEDIUMINT NOT NULL DEFAULT 0,
-  `http_requests_get` MEDIUMINT NOT NULL DEFAULT 0,
-  `http_requests_post` MEDIUMINT NOT NULL DEFAULT 0,
-  `http_requests_put` MEDIUMINT NOT NULL DEFAULT 0,
-  `http_requests_delete` MEDIUMINT NOT NULL DEFAULT 0,
-  `active_mysql_connections` MEDIUMINT NOT NULL DEFAULT 0,
+  `timespan` INT UNSIGNED NOT NULL COMMENT 'The timespan of the measuring interval',
+  `mysql_connections` INT UNSIGNED NOT NULL DEFAULT 0,
+  `mysql_queries` INT UNSIGNED NOT NULL DEFAULT 0,
+  `http_requests_get` INT UNSIGNED NOT NULL DEFAULT 0,
+  `http_requests_post` INT UNSIGNED NOT NULL DEFAULT 0,
+  `http_requests_put` INT UNSIGNED NOT NULL DEFAULT 0,
+  `http_requests_delete` INT UNSIGNED NOT NULL DEFAULT 0,
+  `active_mysql_connections` INT UNSIGNED NOT NULL DEFAULT 0,
   `details` JSON NULL COMMENT 'More detailed status information',
   PRIMARY KEY (`id`),
   INDEX `fk_router_status_router1_idx` (`router_id` ASC) VISIBLE,
@@ -871,7 +871,7 @@ BEGIN
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "This developer is already registered for a REST service with the same host/url_context_root path.";
         END IF;
     END IF;
-    
+
     IF NEW.in_development IS NOT NULL THEN
         SET NEW.published = 0;
     END IF;
@@ -907,7 +907,7 @@ BEGIN
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "This developer is already registered for a REST service with the same host/url_context_root path.";
         END IF;
     END IF;
-    
+
     IF OLD.in_development IS NULL AND NEW.in_development IS NOT NULL AND NEW.published = 1 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "A REST service that is in development cannot be published. Please reset the development state first.";
     END IF;
@@ -934,7 +934,7 @@ BEGIN
                 ON se.url_host_id = h.id
 		WHERE se.id = NEW.service_id);
 	SET @validPath := (SELECT `mysql_rest_service_metadata`.`valid_request_path`(CONCAT(@service_path, NEW.request_path)));
-    
+
     IF @validPath = 0 THEN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "The request_path is already used by another entity.";
     END IF;
@@ -950,7 +950,7 @@ BEGIN
 					ON se.url_host_id = h.id
 			WHERE se.id = NEW.service_id);
 		SET @validPath := (SELECT `mysql_rest_service_metadata`.`valid_request_path`(CONCAT(@service_path, NEW.request_path)));
-		
+
 		IF @validPath = 0 THEN
 			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "The request_path is already used by another entity.";
 		END IF;
@@ -974,7 +974,7 @@ BEGIN
                 ON se.url_host_id = h.id
         WHERE sc.id = NEW.db_schema_id);
     SET @validPath := (SELECT `mysql_rest_service_metadata`.`valid_request_path`(CONCAT(@schema_path, NEW.request_path)));
-    
+
     IF @validPath = 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "The request_path is already used by another entity.";
     END IF;
@@ -992,7 +992,7 @@ BEGIN
                     ON se.url_host_id = h.id
             WHERE sc.id = NEW.db_schema_id);
         SET @validPath := (SELECT `mysql_rest_service_metadata`.`valid_request_path`(CONCAT(@schema_path, NEW.request_path)));
-        
+
         IF @validPath = 0 THEN
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "The request_path is already used by another entity.";
         END IF;
@@ -1021,17 +1021,17 @@ END$$
 USE `mysql_rest_service_metadata`$$
 CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`mrs_user_BEFORE_INSERT` BEFORE INSERT ON `mrs_user` FOR EACH ROW
 BEGIN
-	IF NEW.name IS NOT NULL AND (SELECT COUNT(*) FROM `mysql_rest_service_metadata`.`mrs_user` AS u 
+	IF NEW.name IS NOT NULL AND (SELECT COUNT(*) FROM `mysql_rest_service_metadata`.`mrs_user` AS u
 		WHERE UPPER(u.name) = UPPER(NEW.name) AND u.auth_app_id = NEW.auth_app_id AND NEW.id <> u.id) > 0
 	THEN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "This name has already been used.";
 	END IF;
-	IF NEW.email IS NOT NULL AND (SELECT COUNT(*) FROM `mysql_rest_service_metadata`.`mrs_user` AS u 
+	IF NEW.email IS NOT NULL AND (SELECT COUNT(*) FROM `mysql_rest_service_metadata`.`mrs_user` AS u
 		WHERE UPPER(u.email) = UPPER(NEW.email) AND u.auth_app_id = NEW.auth_app_id AND NEW.id <> u.id) > 0
 	THEN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "This email has already been used.";
     END IF;
-    IF (NEW.auth_string IS NULL AND 
+    IF (NEW.auth_string IS NULL AND
         (SELECT a.auth_vendor_id FROM `mysql_rest_service_metadata`.`auth_app` AS a WHERE a.id = NEW.auth_app_id) = 0x30000000000000000000000000000000)
     THEN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "A this account requires a password to be set.";
@@ -1044,17 +1044,17 @@ END$$
 USE `mysql_rest_service_metadata`$$
 CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`mrs_user_BEFORE_UPDATE` BEFORE UPDATE ON `mrs_user` FOR EACH ROW
 BEGIN
-	IF NEW.name IS NOT NULL AND (SELECT COUNT(*) FROM `mysql_rest_service_metadata`.`mrs_user` AS u 
+	IF NEW.name IS NOT NULL AND (SELECT COUNT(*) FROM `mysql_rest_service_metadata`.`mrs_user` AS u
 		WHERE UPPER(u.name) = UPPER(NEW.name) AND u.auth_app_id = NEW.auth_app_id AND NEW.id <> u.id) > 0
 	THEN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "This name has already been used.";
 	END IF;
-	IF NEW.email IS NOT NULL AND (SELECT COUNT(*) FROM `mysql_rest_service_metadata`.`mrs_user` AS u 
+	IF NEW.email IS NOT NULL AND (SELECT COUNT(*) FROM `mysql_rest_service_metadata`.`mrs_user` AS u
 		WHERE UPPER(u.email) = UPPER(NEW.email) AND u.auth_app_id = NEW.auth_app_id AND NEW.id <> u.id) > 0
 	THEN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "This email has already been used.";
     END IF;
-    IF (NEW.auth_string IS NULL AND 
+    IF (NEW.auth_string IS NULL AND
         (SELECT a.auth_vendor_id FROM `mysql_rest_service_metadata`.`auth_app` AS a WHERE a.id = NEW.auth_app_id) = 0x30000000000000000000000000000000)
     THEN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "A this account requires a password to be set.";
@@ -1081,7 +1081,7 @@ BEGIN
                 ON se.url_host_id = h.id
 		WHERE se.id = NEW.service_id);
 	SET @validPath := (SELECT `mysql_rest_service_metadata`.`valid_request_path`(CONCAT(@service_path, NEW.request_path)));
-    
+
     IF @validPath = 0 THEN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "The request_path is already used by another entity.";
     END IF;
@@ -1097,7 +1097,7 @@ BEGIN
 					ON se.url_host_id = h.id
 			WHERE se.id = NEW.service_id);
 		SET @validPath := (SELECT `mysql_rest_service_metadata`.`valid_request_path`(CONCAT(@service_path, NEW.request_path)));
-		
+
 		IF @validPath = 0 THEN
 			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "The request_path is already used by another entity.";
 		END IF;
@@ -1124,7 +1124,7 @@ BEGIN
                 ON se.url_host_id = h.id
         WHERE co.id = NEW.content_set_id);
     SET @validPath := (SELECT `mysql_rest_service_metadata`.`valid_request_path`(CONCAT(@content_set_path, NEW.request_path)));
-    
+
     IF @validPath = 0 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "The request_path is already used by another entity.";
     END IF;
@@ -1142,7 +1142,7 @@ BEGIN
                     ON se.url_host_id = h.id
             WHERE co.id = NEW.content_set_id);
         SET @validPath := (SELECT `mysql_rest_service_metadata`.`valid_request_path`(CONCAT(@content_set_path, NEW.request_path)));
-        
+
         IF @validPath = 0 THEN
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = "The request_path is already used by another entity.";
         END IF;

@@ -1,17 +1,17 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.19.2+9.1.0
+## Changes in 1.19.2+9.2.0
 
 ### Additions
 
--
+- Support for MySQL REST Service metadata schema 4.0.0
+- Add support for strong password verification
 
 ### Fixes
 
 - BUG#37498176 Type checking errors for REST procedure without output parameters
 - BUG#37549793 Unexpected MRS authentication error in the Python SDK
 - BUG#37492003 MySQL Internal auth: not using SCRAM
--
 
 ## Changes in 1.19.1+9.1.0
 
