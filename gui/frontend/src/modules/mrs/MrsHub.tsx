@@ -237,24 +237,36 @@ export class MrsHub extends ComponentBase {
                 }
 
                 if (data.mrsAdminUser && data.mrsAdminUserPassword) {
-                    const authApp = await backend.mrs.addAuthApp({
-                        id: "",
-                        authVendorId: "MAAAAAAAAAAAAAAAAAAAAA==",
-                        authVendorName: "MRS",
-                        serviceId: "",
-                        name: "MRS",
-                        description: "MRS Auth App",
-                        url: "",
-                        urlDirectAuth: "",
-                        accessToken: "",
-                        appId: "",
-                        enabled: true,
-                        limitToRegisteredUsers: true,
-                        defaultRoleId: "MQAAAAAAAAAAAAAAAAAAAA==",
-                    }, [], service.id);
-
-                    await backend.mrs.addUser(authApp.authAppId, data.mrsAdminUser, "", "", true, "", null,
-                        data.mrsAdminUserPassword, []);
+                    let authApp;
+                    let nameCounter = 1;
+                    while (authApp === undefined && nameCounter < 10) {
+                        try {
+                            authApp = await backend.mrs.addAuthApp({
+                                id: "",
+                                authVendorId: "MAAAAAAAAAAAAAAAAAAAAA==",
+                                authVendorName: "MRS",
+                                serviceId: "",
+                                name: `MRS${(nameCounter > 1) ? nameCounter.toString() : ""}`,
+                                description: "MRS Auth App",
+                                url: "",
+                                urlDirectAuth: "",
+                                accessToken: "",
+                                appId: "",
+                                enabled: true,
+                                limitToRegisteredUsers: true,
+                                defaultRoleId: "MQAAAAAAAAAAAAAAAAAAAA==",
+                            }, [], service.id);
+                        } catch {
+                            nameCounter += 1;
+                            if (nameCounter === 10) {
+                                throw new Error("The authentication app could not be created.");
+                            }
+                        }
+                    }
+                    if (authApp !== undefined) {
+                        await backend.mrs.addUser(authApp.authAppId, data.mrsAdminUser, "", "", true, "", null,
+                            data.mrsAdminUserPassword, []);
+                    }
                 }
 
                 void ui.showInformationMessage("The MRS service has been created.", {});

@@ -105,7 +105,7 @@ def get_default_user_init(
     auth_app_id,
     name="Temp User",
     email="tempuser@domain.com",
-    auth_string="SomeAuthString",
+    auth_string="MySQLR0cks!",
 ):
     return {
         "auth_app_id": auth_app_id,
@@ -928,7 +928,7 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
             "login_permitted": True,
             "mapped_user_id": None,
             "app_options": {},
-            "auth_string": "user1password",
+            "auth_string": "MySQLR0cks!",
             "session": session,
         }
 

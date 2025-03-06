@@ -245,7 +245,7 @@ describe("MySQL REST Service", () => {
             default: false,
             settings: {
                 mrsAdminUser: "testUser",
-                mrsAdminPassword: "testPassword",
+                mrsAdminPassword: "MySQLR0cks!",
                 comments: "testing",
             },
             authentication: {

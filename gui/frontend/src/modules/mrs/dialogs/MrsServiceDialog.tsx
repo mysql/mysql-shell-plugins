@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -89,9 +89,25 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
             }
             const settingsSection = values.sections.get("settingsSection");
             if (settingsSection) {
-                if (settingsSection.values.mrsAdminUser?.value
-                    && !settingsSection.values.mrsAdminUserPassword?.value) {
+                if (settingsSection.values.mrsAdminUser?.value && !settingsSection.values.mrsAdminUserPassword?.value) {
                     result.messages.mrsAdminUserPassword = "Please specify a password for the MRS Admin User.";
+                } else if (settingsSection.values.mrsAdminUser?.value
+                    && settingsSection.values.mrsAdminUserPassword?.value) {
+                    // Enforce password strength
+                    const pwd = (settingsSection.values.mrsAdminUserPassword.value as string);
+                    if (pwd.length < 8) {
+                        result.messages.mrsAdminUserPassword = "The minimum authentication string length is "
+                            + "8 characters.";
+                    } else {
+                        const hasUpperCase = /[A-Z]/.test(pwd) ? 1 : 0;
+                        const hasLowerCase = /[a-z]/.test(pwd) ? 1 : 0;
+                        const hasNumbers = /\d/.test(pwd) ? 1 : 0;
+                        const hasNonAlphas = /\W/.test(pwd) ? 1 : 0;
+                        if (hasUpperCase + hasLowerCase + hasNumbers + hasNonAlphas < 4) {
+                            result.messages.mrsAdminUserPassword = "The authentication string needs to contain at "
+                                + "least one uppercase, lowercase, a special and a numeric character.";
+                        }
+                    }
                 }
             }
 

@@ -158,8 +158,8 @@ def test_sql_show(phone_book):
 
     session.run_sql("use rest service /rtest")
 
-    session.run_sql('create rest user "me"@"MRSApp" identified by "pwd"')
-    session.run_sql('create rest user "tuser"@"MRSApp" identified by "pwd"')
+    session.run_sql('create rest user "me"@"MRSApp" identified by "MySQLR0cks!"')
+    session.run_sql('create rest user "tuser"@"MRSApp" identified by "MySQLR0cks!"')
     session.run_sql('create rest user "demo"@"MySQLApp"')
     session.run_sql('create rest user "me"@"MySQLApp"')
     session.run_sql('grant rest role "roleD" to "me"@"MRSApp"')
