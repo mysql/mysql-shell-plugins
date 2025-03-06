@@ -88,11 +88,14 @@ export class MrsBaseSession {
     public gtid?: string;
 
     protected loginState: IMrsLoginState = {};
+    protected deauthPath: string;
 
     public constructor(
         protected serviceUrl: string,
         protected authPath = "/authentication",
         protected defaultTimeout = 8000) {
+        this.authPath = `${authPath}/login`;
+        this.deauthPath = `${authPath}/logout`;
         // --- MySQL Shell for VS Code Extension Only --- Begin
         try {
             // Try to get global mrsLoginResult values when already authenticated in the DB NoteBook
@@ -163,7 +166,7 @@ export class MrsBaseSession {
             const requestPath = typeof input === "string" ? input : (input as unknown as IFetchInput<T>).input;
 
             // Check if the current session has expired
-            if (response.status === 401 && !requestPath.endsWith("/authentication/login")) {
+            if (response.status === 401 && !requestPath.endsWith(this.authPath)) {
                 throw new Error(`Not authenticated. Please authenticate first before accessing the ` +
                     `path ${this.serviceUrl ?? ""}${input}.`);
             }
@@ -205,7 +208,7 @@ export class MrsBaseSession {
         if (authApp !== undefined) {
             try {
                 const response = await this.doFetch({
-                    input: `${this.authPath}/login`,
+                    input: this.authPath,
                     method: "POST",
                     body: {
                         username,
@@ -266,7 +269,7 @@ export class MrsBaseSession {
         const nonce = this.hex(crypto.getRandomValues(new Uint8Array(10)));
 
         const challenge: IAuthChallenge = await (await this.doFetch({
-            input: `${this.authPath}/login`,
+            input: this.authPath,
             method: "POST",
             body: {
                 authApp,
@@ -301,7 +304,7 @@ export class MrsBaseSession {
 
             try {
                 const response = await this.doFetch({
-                    input: `${this.authPath}/login`,
+                    input: this.authPath,
                     method: "POST",
                     body: {
                         clientProof,
@@ -345,6 +348,19 @@ export class MrsBaseSession {
             };
         }
     };
+
+    public async logout(): Promise<void> {
+        if (this.accessToken === undefined) {
+            throw new Error("No user is currently authenticated.");
+        }
+
+        await this.doFetch({
+            input: this.deauthPath,
+            method: "POST",
+        });
+
+        delete this.accessToken;
+    }
 
     private readonly hex = (arrayBuffer: Uint8Array): string => {
         return Array.from(new Uint8Array(arrayBuffer))
@@ -1509,6 +1525,10 @@ export class MrsBaseService {
         const response = await request.submit();
 
         return response;
+    }
+
+    public async deauthenticate (): Promise<void> {
+        return this.session.logout();
     }
 
     public async getMetadata (): Promise<JsonObject> {
