@@ -365,14 +365,17 @@ Developer's Guide
                 Introduction</a></li>
                 <li><a href="#deployment-architecture">MRS Deployment
                 Architecture</a></li>
-                <li><a
-                href="#configuration-of-the-mysql-rest-service">MRS
+                <li><a href="#configuring-mysql-rest-service">MRS
                 Configuration</a></li>
-                <li><a href="#adding-rest-services">Adding REST
-                Services</a></li>
                 <li><a
-                href="#adding-schemas-and-objects-to-a-rest-service">Adding
-                Schemas and Objects to a REST Service</a></li>
+                href="#adding-rest-services-and-database-objects">Adding
+                REST Services and Database Objects</a></li>
+                <li><a
+                href="#working-interactively-with-rest-services">GUI
+                Interfaces for REST Service Configuration</a></li>
+                <li><a
+                href="#authentication-and-authorization">Authentication
+                and Authorization</a></li>
                 <li><a href="#mrs-examples">MRS Examples</a>
                 <ul>
                 <li><a href="#mrs-notes-example">MRS Notes
@@ -428,7 +431,7 @@ Developer's Guide
                 a fast and powerful way to serve data to client
                 applications via a HTTPS REST interface.</p>
                 <p>To start with a hands-on approach, see the <a
-                href="#mrs-notes-examples">MRS Notes Example</a> and
+                href="#mrs-notes-example">MRS Notes Example</a> and
                 follow the instructions for <a
                 href="#build-and-deployment">Build and Deployment</a>
                 there.</p>
@@ -782,8 +785,8 @@ Developer's Guide
                 started, MRS is available at
                 <code>https://localhost:8443/&lt;service-name&gt;</code>.</p>
                 <p>You can then proceed and <a
-                href="#adding-a-rest-service">add a REST
-                service</a>.</p>
+                href="#adding-rest-services-and-database-objects">add a
+                REST service</a>.</p>
                 <h3 data-number="3.2.2"
                 id="bootstrapping-mysql-router-from-the-command-line"><span
                 class="header-section-number">3.2.2</span> Bootstrapping
@@ -995,7 +998,7 @@ router_id=16</code></pre>
                 <ul>
                 <li>The MySQL REST Service must be configured on the
                 targeting MySQL Solution. Please see the <a
-                href="#configuration-of-the-mysql-rest-service">Configuration</a>
+                href="#configuring-mysql-rest-service">Configuration</a>
                 section of this manual.</li>
                 <li>The MySQL account used to connect to the targeting
                 MySQL Solution needs to be granted the
@@ -1179,8 +1182,8 @@ router_id=16</code></pre>
                 the following preconditions are met:</p>
                 <ul>
                 <li>A REST service must be added first (see <a
-                href="#adding-a-rest-service">Adding a REST
-                Service</a>).</li>
+                href="#adding-rest-services-and-database-objects">Adding
+                a REST Service</a>).</li>
                 <li>The MySQL account used to connect to the targeting
                 MySQL Solution needs to be granted the
                 <code>mysql_rest_service_schema_admin</code> MySQL role
@@ -1353,8 +1356,7 @@ router_id=16</code></pre>
                 <li><p>Right-click on the database object in the
                 DATABASE CONNECTIONS view and select
                 <code>Add Database Object to REST Service</code>. This
-                will open the <a
-                href="#mysql-rest-object-dialog-reference">MySQL REST
+                will open the <a href="#mrs-dialog-reference">MySQL REST
                 Object dialog</a>.</p></li>
                 <li><p>Adjust all REST object settings
                 accordingly.</p></li>
@@ -2281,9 +2283,9 @@ router_id=16</code></pre>
                 Router dynamically sets the header
                 <code>Access-Control-Allow-Origin</code> to the domain
                 generating the request. Alternatively, this can be set
-                to a specific domain <code>https://mydomain.com</code>
-                or a list of domains (for example,
-                <code>["https://mydomain.com", "https://myotherdomain.com"]</code>).</li>
+                to a specific domain <code>https://example.com</code> or
+                a list of domains (for example,
+                <code>["https://example.com", "https://example.net"]</code>).</li>
                 </ul></li>
                 <li>logging:
                 <ul>
@@ -2722,7 +2724,7 @@ router_id=16</code></pre>
                 <code>https://&lt;router-address&gt;/&lt;rest-service&gt;/authentication/login?authApp=&lt;authAppName&gt;&amp;sessionType=&lt;bearer | cookie&gt;</code>.
                 <ul>
                 <li>Example:
-                <code>https://rest.mydomain.com/myService/authentication/login?authApp=OCI&amp;sessionType=cookie</code></li>
+                <code>https://rest.example.com/myService/authentication/login?authApp=OCI&amp;sessionType=cookie</code></li>
                 </ul></li>
                 <li>Ensure the <code>Client type</code> is set to
                 <code>Confidential</code>.</li>

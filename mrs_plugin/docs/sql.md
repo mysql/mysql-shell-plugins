@@ -6,8 +6,12 @@ This document discusses the MySQL REST Service (MRS) DDL - SQL Extension. The MR
 
 __Chapter Overview__
 
-- [Introduction to the MRS DDL Extension](#introduction-to-the-mrs-ddl-extension)
-- [MRS SQL Reference](#mrs-ddl-reference)
+- [Introduction to the MRS DDL Extension](#introduction)
+* [MRS SQL Reference: CONFIGURE and CREATE](#configure-and-create)
+* [MRS SQL Reference: ALTER](#alter)
+* [MRS SQL Reference: DROP](#drop)
+* [MRS SQL Reference: GRANT and REVOKE](#grant-and-revoke)
+* [MRS SQL Reference: USE and SHOW](#use-and-show)
 
 ---
 
@@ -31,4 +35,4 @@ Please also see
 
 !include sections/sql/UseAndShow.md
 
-Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+Copyright (c) 2023, 2025, Oracle and/or its affiliates.

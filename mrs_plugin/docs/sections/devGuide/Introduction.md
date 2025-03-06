@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -25,7 +25,7 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 Welcome to the MySQL REST Service (MRS). It provides a fast and powerful way to serve data to client applications via a HTTPS REST interface.
 
-To start with a hands-on approach, see the [MRS Notes Example](#mrs-notes-examples) and follow the instructions for [Build and Deployment](#build-and-deployment) there.
+To start with a hands-on approach, see the [MRS Notes Example](#mrs-notes-example) and follow the instructions for [Build and Deployment](#build-and-deployment) there.
 
 This section provides an overview of the MySQL REST Service and its features.
 

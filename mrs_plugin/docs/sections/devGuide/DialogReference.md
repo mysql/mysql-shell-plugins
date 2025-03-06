@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -46,7 +46,7 @@ The following advanced options can be set in JSON format:
 
 - headers: Accepts a JSON object with one or more HTTP header names as key and its setting as value.
 - http:
-  - allowedOrigin: If set to `auto`, MySQL Router dynamically sets the header `Access-Control-Allow-Origin` to the domain generating the request. Alternatively, this can be set to a specific domain `https://mydomain.com` or a list of domains (for example, `["https://mydomain.com", "https://myotherdomain.com"]`).
+  - allowedOrigin: If set to `auto`, MySQL Router dynamically sets the header `Access-Control-Allow-Origin` to the domain generating the request. Alternatively, this can be set to a specific domain `https://example.com` or a list of domains (for example, `["https://example.com", "https://example.net"]`).
 - logging:
   - exceptions: If set to `true`, exceptions are logged.
   - requests:

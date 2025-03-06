@@ -142,7 +142,7 @@ Click on the `Integrated applications` link on the left hand side, then click th
 4. Choose `Configure this application as a client now`
    * In the `Authorization` section, check the `Client credentials` and `Authorization code` checkboxes.
    * Enter the correct `Redirect URL` using the format `https://<router-address>/<rest-service>/authentication/login?authApp=<authAppName>&sessionType=<bearer | cookie>`.
-     * Example: `https://rest.mydomain.com/myService/authentication/login?authApp=OCI&sessionType=cookie`
+     * Example: `https://rest.example.com/myService/authentication/login?authApp=OCI&sessionType=cookie`
    * Ensure the `Client type` is set to `Confidential`.
    * In the `Allowed operations` sections check the `Introspect` checkbox.
    * Turn the `Bypass consent` on.
