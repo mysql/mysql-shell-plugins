@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -155,7 +155,7 @@ describe("MRS User dialog tests", () => {
         await dialogHelper.clickOk();
         dialogHelper.verifyErrors(["The authentication string is required for this app."]);
 
-        await dialogHelper.setInputText("authString", "SomePassword");
+        await dialogHelper.setInputText("authString", "MySQLR0cks!");
         await dialogHelper.clickOk();
         dialogHelper.verifyErrors();
 
