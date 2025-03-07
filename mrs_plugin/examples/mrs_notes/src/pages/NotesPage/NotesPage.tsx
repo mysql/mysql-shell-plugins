@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -121,12 +121,11 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
 
             const take = 5;
             let iterator = 0;
-            let skip = 0;
             let sliceOfNotes;
 
             const options = {
                 take,
-                skip,
+                skip: 0,
                 select: {
                     content: false,
                 },
@@ -142,7 +141,7 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                 // Set a new state of the newNotes to trigger a re-render
                 this.setState({ notes: newNotes });
                 iterator += 1;
-                skip = iterator * take;
+                options.skip = iterator * take;
             }
 
             if (newNotes.length === 0) {
