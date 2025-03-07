@@ -27,6 +27,7 @@ import { until, Condition, WebElement, error } from "selenium-webdriver";
 import { driver } from "../../lib/driver.js";
 import * as constants from "../constants.js";
 import * as locator from "../locators.js";
+import { E2EObjectStorageBrowserError } from "../errors/E2EObjectStorageBrowserError.js";
 
 const objStorageItem = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
     .objectStorageItem.item;
@@ -173,7 +174,6 @@ export class E2EObjectStorageBrowser {
                 }
             }
         });
-
     };
 
     /**
@@ -234,49 +234,59 @@ export class E2EObjectStorageBrowser {
      */
     public openObjectStorageCompartment = async (path: string[]): Promise<void> => {
         const scrollTable = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.scroll;
+        const errors = /(Could not get item|to have children|items to be loaded)/;
 
-        for (let i = 0; i <= path.length - 1; i++) {
+        const maxRepeat = 3;
+        let currentIt = 1;
 
-            if (i === path.length - 1) {
-                await driver.executeScript("arguments[0].scrollBy(0, 150)",
-                    await driver.findElement(scrollTable));
-            }
+        const openTree = async (): Promise<void> => {
+            for (let i = 0; i <= path.length - 1; i++) {
 
-            await driver.wait(async () => {
-                try {
-                    await this.expandItem(path[i]);
-                    await driver.wait(this.untilItemHasChildren(path[i]), constants.wait20seconds);
-                    await driver.wait(this.untilItemsAreLoaded(), constants.wait15seconds,
-                        ` ${path[i + 1]} to be loaded`);
+                if (i === path.length - 1) {
+                    await driver.executeScript("arguments[0].scrollBy(0, 150)",
+                        await driver.findElement(scrollTable));
+                }
 
-                    return true;
-                } catch (e) {
-                    if (!(e instanceof error.StaleElementReferenceError)) {
+                await driver.wait(async () => {
+                    try {
+                        await this.expandItem(path[i]);
+                        await driver.wait(this.untilItemsAreLoaded(), constants.wait20seconds,
+                            ` ${path[i + 1]} to be loaded`);
+                        await driver.wait(this.untilItemHasChildren(path[i]), constants.wait20seconds);
 
-                        if (String(e).match(/Could not get item/) !== null) {
-                            if (path[i - 1]) {
-                                if (!(await this.itemIsExpanded(path[i - 1]))) {
-                                    console.log(`Repeating previous iteration (${i - 1})`);
-                                    i--; // execute the previous iteration
-                                } else {
-                                    (e as Error).message = `${(e as Error).message}. Parent item was not expanded`;
-                                    throw e;
-                                }
+                        return true;
+                    } catch (e) {
+                        if (!(e instanceof error.StaleElementReferenceError)) {
+                            if (String(e).match(errors) !== null) {
+                                throw new E2EObjectStorageBrowserError();
                             } else {
                                 throw e;
                             }
-                        } else if (String(e).match(/to have children/) !== null) {
-                            console.log(`Repeating iteration (${i})`);
-
-                            return false; // repeat the current iteration
-                        }
-                        else {
-                            throw e;
                         }
                     }
+                }, constants.wait1minute, `Could not open the tree ${path.toString()} on Object Storage Browser`);
+            }
+        };
+
+        let done = false;
+        while (currentIt <= maxRepeat) {
+            try {
+                await openTree();
+                done = true;
+                break;
+            } catch (e) {
+                if (e instanceof E2EObjectStorageBrowserError) {
+                    currentIt++;
+                } else {
+                    throw e;
                 }
-            }, constants.wait20seconds, `Could not open the tree ${path.toString()} on Object Storage Browser`);
+            }
         }
+
+        if (!done) {
+            throw new Error("Tried to open the Object Storage Browser tree 3 times without success");
+        }
+
     };
 
     /**
