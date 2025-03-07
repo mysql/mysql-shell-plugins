@@ -367,7 +367,7 @@ def test_delete_service(phone_book, table_contents):
 
     with pytest.raises(Exception) as exc_info:
         delete_service(service_id="1")
-    assert str(exc_info.value) == "Invalid id format for 'service_id'."
+    assert str(exc_info.value) == "Invalid id format '1' for 'service_id'."
 
     assert delete_service(service_id=result["id"]) == True
 

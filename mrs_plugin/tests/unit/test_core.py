@@ -183,3 +183,16 @@ def test_validate_service_path(phone_book):
         with pytest.raises(ValueError) as exc_info:
             service, schema, content_set = validate_service_path(session, "127.0.0.1/test")
         assert str(exc_info.value) == "The given MRS service was not found."
+
+
+def test_id_to_binary():
+    context = "my_context"
+    ids = ["", "1234", "localhost/myService"]
+
+    for id in ids:
+        with pytest.raises(RuntimeError, match=f"Invalid id format '{id}' for '{context}'."):
+            core.id_to_binary(id, context, False)
+
+    id = "0x1234"
+    with pytest.raises(RuntimeError, match=f"The '{context}' has an invalid size."):
+        core.id_to_binary(id, context, False)

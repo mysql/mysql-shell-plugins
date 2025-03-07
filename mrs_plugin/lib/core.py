@@ -947,14 +947,14 @@ def id_to_binary(id: str, context: str, allowNone=False):
             try:
                 result = bytes.fromhex(id[2:])
             except Exception:
-                raise RuntimeError(f"Invalid hexadecimal string for '{context}'.")
+                raise RuntimeError(f"Invalid hexadecimal string '{id}' for '{context}'.")
         elif id.endswith("=="):
             try:
                 result = base64.b64decode(id, validate=True)
             except Exception:
-                raise RuntimeError(f"Invalid base64 string for '{context}'.")
+                raise RuntimeError(f"Invalid base64 string '{id}' for '{context}'.")
         else:
-            raise RuntimeError(f"Invalid id format for '{context}'.")
+            raise RuntimeError(f"Invalid id format '{id}' for '{context}'.")
 
 
         if len(result) != 16:
@@ -991,7 +991,7 @@ def try_convert_ids_to_binary(id_options, kwargs):
             try:
                 kwargs[id_option] = id_to_binary(id, id_option)
             except RuntimeError as e:
-                if str(e) in [f"Invalid id type for '{id_option}'.", f"Invalid id format for '{id_option}'."]:
+                if str(e) in [f"Invalid id type for '{id_option}'.", f"Invalid id format '{kwargs[id_option]}' for '{id_option}'."]:
                     continue
                 raise
 
