@@ -1082,18 +1082,8 @@ describe("DATABASE CONNECTIONS", () => {
                     await driver.wait(uploadToObjectStorage.objectStorageBrowser.untilItemsAreLoaded(),
                         constants.wait25seconds);
 
-                    try {
-                        await uploadToObjectStorage.objectStorageBrowser
-                            .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
-                    } catch (e) {
-                        if (String(e).includes("Could not get item 'HeatwaveAutoML' on the Object Storage Browser")) {
-                            skipTest = true; // flaky failure without fix yet
-
-                            return;
-                        } else {
-                            throw e;
-                        }
-                    }
+                    await uploadToObjectStorage.objectStorageBrowser
+                        .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
 
                     await uploadToObjectStorage.addFiles(join(process.cwd(), "..", "extension",
                         "tests", "e2e", "lakehouse_nav_files", fileToUpload));

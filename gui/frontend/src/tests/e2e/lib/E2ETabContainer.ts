@@ -211,7 +211,6 @@ export class E2ETabContainer {
 
                 return true;
             } catch (e) {
-                console.log(e);
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }

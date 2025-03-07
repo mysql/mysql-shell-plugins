@@ -28,6 +28,7 @@ import { driver, Misc } from "../../Misc";
 import * as constants from "../../constants";
 import * as locator from "../../locators";
 import * as errors from "../../errors";
+import { E2EObjectStorageBrowserError } from "../../errors/E2EObjectStorageBrowserError";
 
 const objStorageItem = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
     .objectStorageItem.item;
@@ -276,45 +277,59 @@ export class ObjectStorageBrowser {
      */
     public openObjectStorageCompartment = async (path: string[]): Promise<void> => {
         const scrollTable = locator.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser.scroll;
+        const errors = /(Could not get item|to have children|items to be loaded)/;
 
-        for (let i = 0; i <= path.length - 1; i++) {
+        const maxRepeat = 3;
+        let currentIt = 1;
 
-            if (i === path.length - 1) {
-                await driver.executeScript("arguments[0].scrollBy(0, 150)",
-                    await driver.findElement(scrollTable));
-            }
+        const openTree = async (): Promise<void> => {
+            for (let i = 0; i <= path.length - 1; i++) {
 
-            await driver.wait(async () => {
-                try {
-                    if (await this.itemIsExpandable(path[i])) {
+                if (i === path.length - 1) {
+                    await driver.executeScript("arguments[0].scrollBy(0, 150)",
+                        await driver.findElement(scrollTable));
+                }
+
+                await driver.wait(async () => {
+                    try {
                         await this.expandItem(path[i]);
-                        await driver.wait(this.untilItemHasChildren(path[i]), constants.wait20seconds);
-                        await driver.wait(this.untilItemsAreLoaded(), constants.wait15seconds,
+                        await driver.wait(this.untilItemsAreLoaded(), constants.wait20seconds,
                             ` ${path[i + 1]} to be loaded`);
+                        await driver.wait(this.untilItemHasChildren(path[i]), constants.wait20seconds);
 
                         return true;
-                    }
-                } catch (e) {
-                    if (!(e instanceof error.StaleElementReferenceError)) {
-                        if (String(e).includes("Could not get item")) {
-                            if (path[i - 1]) {
-                                if (!(await this.itemIsExpanded(path[i - 1]))) {
-                                    i--;
-                                } else {
-                                    (e as Error).message = `${(e as Error).message}. Parent item was not expanded`;
-                                    throw e;
-                                }
+                    } catch (e) {
+                        if (!(e instanceof error.StaleElementReferenceError)) {
+                            if (String(e).match(errors) !== null) {
+                                throw new E2EObjectStorageBrowserError();
                             } else {
                                 throw e;
                             }
-                        } else {
-                            throw e;
                         }
                     }
-                }
+                }, constants.wait1minute, `Could not open the tree ${path.toString()} on Object Storage Browser`);
+            }
+        };
 
-            }, constants.wait20seconds, `Could not open the tree ${path.toString()} on Object Storage Browser`);
+        let done = false;
+        while (currentIt <= maxRepeat) {
+            try {
+                await openTree();
+                done = true;
+                break;
+            } catch (e) {
+                if (e instanceof E2EObjectStorageBrowserError) {
+                    currentIt++;
+                } else {
+                    throw e;
+                }
+            }
         }
+
+        if (!done) {
+            throw new Error("Tried to open the Object Storage Browser tree 3 times without success");
+        }
+
     };
 
     /**

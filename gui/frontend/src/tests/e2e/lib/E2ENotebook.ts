@@ -143,7 +143,6 @@ export class E2ENotebook {
 
                 return true;
             } catch (e) {
-                console.log(e);
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
