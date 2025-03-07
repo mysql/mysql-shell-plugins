@@ -125,7 +125,7 @@ exports[`MRS AuthApp dialog tests Show MRS Authentication App Dialog (snapshot) 
             Enabled
           </label>
           <label
-            class="msg checkbox unchecked valueEditor"
+            class="msg checkbox checked valueEditor"
             id="limitToRegisteredUsers"
             tabindex="0"
           >

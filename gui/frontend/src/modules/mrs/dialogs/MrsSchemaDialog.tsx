@@ -164,13 +164,6 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                         CommonDialogValueOption.Grouped,
                     ],
                 },
-                requiresAuth: {
-                    type: "boolean",
-                    caption: "Auth. Required",
-                    horizontalSpan: 2,
-                    value: (request.values?.requiresAuth ?? true) as boolean,
-                    options: [CommonDialogValueOption.Grouped],
-                },
             },
         };
 
@@ -256,7 +249,7 @@ export class MrsSchemaDialog extends AwaitableValueEditDialog {
                     return mainSection.values.service.value === service.fullServicePath;
                 })?.id ?? "",
                 requestPath: mainSection.values.requestPath.value as string,
-                requiresAuth: mainSection.values.requiresAuth.value as boolean,
+                requiresAuth: false,
                 enabled: getEnabledState(mainSection.values.enabled.value as string),
                 itemsPerPage: settingsSection.values.itemsPerPage.value as number,
                 comments: settingsSection.values.comments.value as string,

@@ -579,7 +579,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     schema_name=mrs_object.get("schema_name"),
                     service_id=service_id,
                     request_path=schema_request_path,
-                    requires_auth=mrs_object.get("requires_auth"),
+                    requires_auth=mrs_object.get("requires_auth", False),
                     enabled=mrs_object.get("enabled", 1),
                     items_per_page=mrs_object.get("items_per_page"),
                     comments=mrs_object.get("comments"),
@@ -706,7 +706,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     db_object_type=mrs_object.get("db_object_type"),
                     enabled=mrs_object.get("enabled", True),
                     items_per_page=mrs_object.get("items_per_page"),
-                    requires_auth=mrs_object.get("requires_auth", 0),
+                    requires_auth=mrs_object.get("requires_auth", 1),
                     crud_operation_format=mrs_object.get("format", "FEED"),
                     comments=mrs_object.get("comments"),
                     media_type=mrs_object.get("media_type"),
@@ -3023,8 +3023,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             elif db_object["enabled"] is False or db_object["enabled"] == 0:
                 stmt += "    DISABLED\n"
 
-            if db_object["requires_auth"] is True or db_object["requires_auth"] == 1:
-                stmt += "    AUTHENTICATION REQUIRED\n"
+            stmt += "    AUTHENTICATION REQUIRED\n" if db_object["requires_auth"] in [True, 1] \
+                else "    AUTHENTICATION NOT REQUIRED\n"
+
 
             # 25 is the default value
             if (
@@ -3095,8 +3096,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
             stmt += self.formatJsonSetting("OPTIONS", mrs_object.get("options"))
 
-            if mrs_object["requires_auth"] is True or mrs_object["requires_auth"] == 1:
-                stmt += "    AUTHENTICATION REQUIRED\n"
+            stmt += "    AUTHENTICATION REQUIRED\n" if mrs_object["requires_auth"] in [True, 1] \
+                else "    AUTHENTICATION NOT REQUIRED\n"
+
 
             result = [{"CREATE REST CONTENT SET": stmt.rstrip("\n") + ";"}]
 
@@ -3150,8 +3152,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
             stmt += self.formatJsonSetting("OPTIONS", content_file.get("options"))
 
-            if mrs_object["requires_auth"] is True or mrs_object["requires_auth"] == 1:
-                stmt += "    AUTHENTICATION REQUIRED\n"
+            stmt += "    AUTHENTICATION REQUIRED\n" if mrs_object["requires_auth"] in [True, 1] \
+                else "    AUTHENTICATION NOT REQUIRED\n"
+
 
             if lib.core.is_text(content_file["content"]):
                 content_type = "CONTENT"

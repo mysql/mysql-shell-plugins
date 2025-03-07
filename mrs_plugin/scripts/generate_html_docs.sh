@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 if [ $# -eq 0 ]
 then
@@ -8,7 +8,7 @@ else
     ROOTPATH=$1
 fi
 
-version="$(cat $ROOTPATH/../VERSION | grep -o "[^=]\+\$")"
+version="$(cat $ROOTPATH/docs/VERSION | grep -o "[^=]\+\$")"
 
 cd $ROOTPATH/docs
 

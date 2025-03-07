@@ -85,10 +85,6 @@ export class RestSchemaDialog {
                 }
             }
 
-            if (restSchema.requiresAuth !== undefined) {
-                await DialogHelper.setCheckboxValue("requiresAuth", restSchema.requiresAuth);
-            }
-
             // Settings
             if (restSchema.settings) {
                 if (restSchema.settings.schemaName) {
@@ -156,7 +152,7 @@ export class RestSchemaDialog {
             restSchema.accessControl = constants.accessControlPrivate;
         }
 
-        restSchema.requiresAuth = await DialogHelper.getCheckBoxValue("requiresAuth");
+        restSchema.requiresAuth = false;
 
         // Settings
         const restSchemaSettings: interfaces.IRestSchemaSettings = {};

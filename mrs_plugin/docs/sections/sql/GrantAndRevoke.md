@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -32,9 +32,12 @@ Grants REST privileges on endpoint objects to a role.
 ```antlr
 grantRestPrivilegeStatement:
     GRANT REST privilegeList (
-        ON serviceSchemaSelector (
-            OBJECT objectRequestPath
-        )?
+        (ON SERVICE? serviceRequestPath)
+        | (
+            ON serviceSchemaSelector (
+                OBJECT objectRequestPath
+            )?
+        )
     )? TO roleName
 ;
 
@@ -48,6 +51,14 @@ privilegeName:
     | READ
     | UPDATE
     | DELETE
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+;
+
+serviceSchemaSelector:
+    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
 ;
 ```
 
@@ -85,9 +96,12 @@ Revokes privileges on an REST endpoint object from a role.
 ```antlr
 revokeRestPrivilegeStatement:
     REVOKE REST privilegeList (
-        ON serviceSchemaSelector (
-            OBJECT objectRequestPath
-        )?
+        (ON SERVICE? serviceRequestPath)
+        | (
+            ON serviceSchemaSelector (
+                OBJECT objectRequestPath
+            )?
+        )
     )? FROM roleName
 ;
 ```

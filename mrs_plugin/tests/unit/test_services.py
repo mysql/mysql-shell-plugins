@@ -91,13 +91,15 @@ CREATE OR REPLACE REST VIEW /Contacts
 CREATE OR REPLACE REST CONTENT SET /test_content_set
     ON SERVICE localhost/test
     COMMENTS "Content Set"
-    OPTIONS {};
+    OPTIONS {}
+    AUTHENTICATION NOT REQUIRED;
 
 CREATE OR REPLACE REST CONTENT FILE "/readme.txt"
     ON SERVICE localhost/test CONTENT SET /test_content_set
     OPTIONS {
         "last_modification": "__README_TXT_LAST_MODIFICATION__"
     }
+    AUTHENTICATION NOT REQUIRED
     CONTENT 'Line \\'1\\'
 Line "2"
 Line \\\\3\\\\';
@@ -107,6 +109,7 @@ CREATE OR REPLACE REST CONTENT FILE "/somebinaryfile.bin"
     OPTIONS {
         "last_modification": "__SOMEBINARYFILE_BIN_LAST_MODIFICATION__"
     }
+    AUTHENTICATION NOT REQUIRED
     BINARY CONTENT 'AAECAwQFBgc=';"""
 
 def test_add_service(phone_book, table_contents):
@@ -500,6 +503,7 @@ CREATE OR REPLACE REST VIEW /addresses
     AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
         id: id @KEY
     }
+    AUTHENTICATION NOT REQUIRED
     ITEMS PER PAGE 10
     COMMENTS "Object that will be removed"
     MEDIA TYPE "application/json"
