@@ -42,8 +42,10 @@ MDS_PLUGIN_GENERAL_PY_PATH = os.path.join(
 MRS_PLUGIN_GENERAL_PY_PATH = os.path.join(
     ROOT_PATH, 'mrs_plugin', 'lib', 'general.py')
 SCHEMA_PLUGIN_GENERAL_PY_PATH = os.path.join(
-    ROOT_PATH, 'schema_plugin', 'lib', 'general.py')
+    ROOT_PATH, 'msm_plugin', 'lib', 'general.py')
 REPO_VERSION = os.path.join(ROOT_PATH, 'VERSION')
+DOC_VERSION_PATH = os.path.join(
+    ROOT_PATH, 'mrs_plugin', 'docs', 'VERSION')
 
 
 def get_current_version(path, line_index=0):
@@ -178,6 +180,9 @@ print(cl_e_version, cl_s_version)
 
 if cl_e_version != target_e_version or cl_s_version != target_s_version:
     update_changelog_version(target_e_version, target_s_version)
+
+with open(DOC_VERSION_PATH, "w") as file:
+    file.write(f"VERSION={target_e_version}+{target_s_version}\n")
 
 # Final updates the repo VERSION file
 with open(REPO_VERSION, "w") as file:

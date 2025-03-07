@@ -173,13 +173,15 @@ def test_dump_and_recover(phone_book, table_contents):
         "option_1": "value 1",
         "option_2": "value 2",
         "option_3": "value 3"
-    };
+    }
+    AUTHENTICATION NOT REQUIRED;
 
 CREATE OR REPLACE REST CONTENT FILE "/readme.txt"
     ON SERVICE localhost/test CONTENT SET /tempContentSet
     OPTIONS {
         "last_modification": "__README_TXT_LAST_MODIFICATION__"
     }
+    AUTHENTICATION NOT REQUIRED
     CONTENT 'Line \\'1\\'
 Line "2"
 Line \\\\3\\\\';
@@ -189,6 +191,7 @@ CREATE OR REPLACE REST CONTENT FILE "/somebinaryfile.bin"
     OPTIONS {
         "last_modification": "__SOMEBINARYFILE_BIN_LAST_MODIFICATION__"
     }
+    AUTHENTICATION NOT REQUIRED
     BINARY CONTENT 'AAECAwQFBgc=';"""
 
     create_function = lambda file_path, content_set_id, overwrite=True: \

@@ -598,7 +598,6 @@ createRestSchemaStatement:
 
 restSchemaOptions: (
         enabledDisabledPrivate
-        | authenticationRequired
         | itemsPerPage
         | jsonOptions
         | comments
@@ -639,19 +638,6 @@ enabledDisabledPrivate:
 
 enabledDisabledPrivate ::=
 ![enabledDisabledPrivate](../../images/sql/enabledDisabledPrivate.svg "enabledDisabledPrivate")
-
-### Requiring Authentication for REST Schema Access
-
-The `authenticationRequired` option specifies if a REST schema and its objects require authentication before accessing their REST endpoints.
-
-```antlr
-authenticationRequired:
-    AUTHENTICATION NOT? REQUIRED
-;
-```
-
-authenticationRequired ::=
-![authenticationRequired](../../images/sql/authenticationRequired.svg "authenticationRequired")
 
 ### Specifying the Default Page Count
 
@@ -960,20 +946,23 @@ graphQlCrudOptions: (
 ;
 
 graphQlPair:
-    graphKeyValue COLON qualifiedIdentifier (
+    graphQlPairKey COLON graphQlPairValue (
         AT_IN
         | AT_OUT
         | AT_INOUT
-        | AT_NOCHECK
+    )? graphQlValueOptions? (
+        AT_DATATYPE OPEN_PAR graphQlDatatypeValue CLOSE_PAR
+    )? graphQlCrudOptions? graphQlValueJsonSchema? graphQlObj?
+;
+
+graphQlValueOptions: (
+        AT_NOCHECK
         | AT_SORTABLE
         | AT_NOFILTERING
         | AT_ROWOWNERSHIP
         | AT_UNNEST
         | AT_KEY
-        | AT_DATATYPE OPEN_PAR graphQlDatatypeValue CLOSE_PAR
-        | graphQlCrudOptions
-        | graphQlValueJsonSchema
-    )? graphQlObj?
+    )+
 ;
 
 graphQlValue:

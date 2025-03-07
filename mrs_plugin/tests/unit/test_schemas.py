@@ -408,6 +408,7 @@ CREATE OR REPLACE REST VIEW /addresses
     AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
         id: id @KEY
     }
+    AUTHENTICATION NOT REQUIRED
     ITEMS PER PAGE 10
     COMMENTS "Object that will be removed"
     MEDIA TYPE "application/json"

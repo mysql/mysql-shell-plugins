@@ -50,7 +50,6 @@ import { RestUserDialog } from "../lib/WebViews/Dialogs/RestUserDialog";
 const sakilaRestSchema: interfaces.IRestSchema = {
     restSchemaPath: `/sakila`,
     accessControl: constants.accessControlEnabled,
-    requiresAuth: false,
     settings: {
         schemaName: "sakila",
         itemsPerPage: "35",
@@ -499,7 +498,6 @@ describe("MySQL REST Service", () => {
                     restServicePath: `/service2`,
                     restSchemaPath: `/sakila`,
                     accessControl: constants.accessControlEnabled,
-                    requiresAuth: false,
                     settings: {
                         schemaName: "sakila",
                         itemsPerPage: "35",
@@ -510,7 +508,6 @@ describe("MySQL REST Service", () => {
                     restServicePath: `/service2`,
                     restSchemaPath: `/world_x_cst`,
                     accessControl: constants.accessControlEnabled,
-                    requiresAuth: false,
                     settings: {
                         schemaName: "world_x_cst",
                         itemsPerPage: "35",
@@ -767,7 +764,7 @@ describe("MySQL REST Service", () => {
                 restServicePath: worldSchema.restServicePath,
                 restSchemaPath: `/schemaEdited`,
                 accessControl: constants.accessControlDisabled,
-                requiresAuth: true,
+                requiresAuth: false,
                 settings: {
                     schemaName: "schemaEdited",
                     itemsPerPage: "5",

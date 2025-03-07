@@ -5988,7 +5988,6 @@ createRestSchemaStatement:
 
 restSchemaOptions: (
         enabledDisabledPrivate
-        | authenticationRequired
         | itemsPerPage
         | jsonOptions
         | comments

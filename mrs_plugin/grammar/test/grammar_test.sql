@@ -82,7 +82,6 @@ ALTER REST SERVICE localhost/myAlteredTestService
 
 CREATE REST SCHEMA ON SERVICE localhost/myTestService FROM `sakila`
     ENABLED
-    AUTHENTICATION REQUIRED
     ITEMS PER PAGE 25
     COMMENTS "The sakila schema"
     METADATA { "position": 1};
@@ -317,16 +316,16 @@ CREATE OR REPLACE REST AUTH APP "MRS" VENDOR MRS;
 ALTER REST SERVICE localhost/myTestService
 ADD AUTH APP "MRS";
 
-CREATE REST USER "mike"@"MRS" IDENTIFIED BY "1234";
-CREATE REST USER "mike2"@"MRS" IDENTIFIED BY "543243";
-CREATE REST USER "boss"@"MRS" IDENTIFIED BY "secret" ACCOUNT LOCK OPTIONS {
+CREATE REST USER "mike"@"MRS" IDENTIFIED BY "MySQLR0cks!";
+CREATE REST USER "mike2"@"MRS" IDENTIFIED BY "MySQLR0cks!";
+CREATE REST USER "boss"@"MRS" IDENTIFIED BY "MySQLR0cks!" ACCOUNT LOCK OPTIONS {
     "email": "boss@example.com",
     "vendor_user_id": "vendor",
     "mapped_user_id": "vendorboss123",
     "other_option": false
 } APP OPTIONS {"myoption": 12345};
 
-ALTER REST USER "mike"@"MRS" IDENTIFIED BY "5678";
+ALTER REST USER "mike"@"MRS" IDENTIFIED BY "MySQLR0cks!!";
 
 ALTER REST USER "mike"@"MRS" OPTIONS {
     "email": "mike@example.com",
@@ -496,7 +495,6 @@ CREATE REST SCHEMA /sakila
 ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService
 FROM `sakila`
     ENABLED
-    AUTHENTICATION REQUIRED
     ITEMS PER PAGE 25
     COMMENTS "The sakila schema"
     METADATA { "position": 1};

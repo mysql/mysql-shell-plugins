@@ -799,7 +799,7 @@ export class MrsHub extends ComponentBase {
                 url: authApp?.url,
                 urlDirectAuth: authApp?.urlDirectAuth,
                 enabled: authApp?.enabled ?? true,
-                limitToRegisteredUsers: authApp?.limitToRegisteredUsers,
+                limitToRegisteredUsers: authApp?.limitToRegisteredUsers ?? true,
                 defaultRoleId: defaultRole,
                 options: (authApp?.options !== undefined && authApp?.options !== null)
                     ? JSON.stringify(authApp.options, undefined, 4) : undefined,

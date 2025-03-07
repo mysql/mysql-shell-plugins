@@ -135,16 +135,6 @@ exports[`MRS Schema dialog tests Show MRS Schema Dialog (snapshot) and escape 1`
               Access ENABLED
             </label>
           </div>
-          <label
-            class="msg checkbox unchecked valueEditor"
-            id="requiresAuth"
-            tabindex="0"
-          >
-            <span
-              class="checkMark"
-            />
-            Auth. Required
-          </label>
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
