@@ -121,6 +121,10 @@ def test_get_datatype_mapping():
             ("MULTILINESTRING",): "MultiLineString",
             ("POLYGON",): "Polygon",
             ("MULTIPOLYGON",): "MultiPolygon",
+            ("DATETIME", "TIMESTAMP"): "DateTime",
+            ("DATE",): "Date",
+            ("TIME",): "Time",
+            ("YEAR",): "Year",
         },
         "Unknown": {
             ("varchar",): "unknown",
@@ -430,7 +434,6 @@ export interface IFooCursors {
     obj_endpoint = "https://localhost:8443/myService/dummy/foo"
     obj_primary_key = None
     join_field_block = "    bar: str | UndefinedDataClassField"
-    join_assignment_block = '        self.bar = data.get("bar", UndefinedField)'
 
     mixins = []
     if obj_primary_key:
@@ -485,7 +488,13 @@ class I{name}Cursors(TypedDict, total=False):
             name=class_name,
             join_field_block=join_field_block,
             obj_endpoint=obj_endpoint,
-            join_assignment_block=join_assignment_block,
+            field_profile=(
+                "{\n"
+                + f"{" "*16}"
+                + f",\n{" "*16}".join(['"bar": str']).rstrip()
+                + f"\n{" "*12}"
+                + "}"
+            ),
             primary_key_name=(
                 None if obj_primary_key is None else f'"{obj_primary_key}"'
             ),
@@ -763,10 +772,6 @@ def test_generate_data_class():
         "    foo: baz | UndefinedDataClassField\n"
         + "    bar_baz: qux | UndefinedDataClassField"
     )
-    join_assignment_block = (
-        '        self.foo = data.get("foo", UndefinedField)\n'
-        + '        self.bar_baz = data.get("bar_baz", UndefinedField)'
-    )
 
     test_cases_db_object_crud_ops = [
         [],
@@ -805,7 +810,13 @@ def test_generate_data_class():
                 name=name,
                 join_field_block=join_field_block,
                 obj_endpoint=obj_endpoint,
-                join_assignment_block=join_assignment_block,
+                field_profile=(
+                    "{\n"
+                    + f"{" "*16}"
+                    + f",\n{" "*16}".join(['"foo": baz', '"bar_baz": qux']).rstrip()
+                    + f"\n{" "*12}"
+                    + "}"
+                ),
                 primary_key_name=f'"{obj_prk}"' if obj_prk is not None else obj_prk,
                 mixins="".join(mixins),
             )
