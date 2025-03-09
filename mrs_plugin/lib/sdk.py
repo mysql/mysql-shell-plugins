@@ -41,13 +41,12 @@ class I{name}({mixins}MrsDocument[I{name}Data]
     def __init__(  # type: ignore[override]
         self, schema: MrsBaseSchema, data: I{name}Data
     ) -> None:
-        super().__init__(schema, data, obj_endpoint="{obj_endpoint}")
-
-    def _load_fields(self, data: I{name}Data) -> None:
-{join_assignment_block}
-
-        for key in MrsDocumentBase._reserved_keys:
-            self.__dict__.update({{key: data.get(key)}})
+        super().__init__(
+            schema,
+            data,
+            fields_map={field_profile},
+            obj_endpoint="{obj_endpoint}",
+        )
 
     @classmethod
     def get_primary_key_name(cls) -> Optional[str]:
@@ -516,6 +515,15 @@ def substitute_objects_in_template(
 
                             if not datatype_is_primitive(client_datatype, sdk_language):
                                 required_datatypes.add(client_datatype)
+                                if (
+                                    sdk_language == "Python"
+                                    and client_datatype.startswith(
+                                        ("Date", "Time", "Year")
+                                    )
+                                ):
+                                    required_datatypes.add(
+                                        client_datatype.replace("Field", "")
+                                    )
 
                 # Get sdk_language specific options
                 sdk_lang_options = get_mrs_object_sdk_language_options(
@@ -579,6 +587,7 @@ def substitute_objects_in_template(
                                 sdk_language=sdk_language)
 
             # If there are no typed result sets for a Procedure, all the result sets will be generic instances of JsonObject
+            obj_procedure_result_set_datatype = None
             if object_is_routine(db_obj, of_type={"PROCEDURE"}) and len(objects) == 1:
                 required_datatypes.add("JsonObject")
                 if sdk_language != "Python":
@@ -597,7 +606,17 @@ def substitute_objects_in_template(
                     required_datatypes.add("JsonObject")
                     interface_list = [f"ITagged{name}" for name in obj_meta_interfaces]
                 else:
-                    interface_list = [f"MrsProcedureResultSet[I{name}Type, I{name}, ITagged{name}]" for name in obj_meta_interfaces]
+                    interface_list = [
+                        f"MrsProcedureResultSet[I{name}Type, I{name}, ITagged{name}]"
+                        for name in obj_meta_interfaces
+                    ]
+                    obj_procedure_result_set_datatype = (
+                        "{"
+                        + ",".join(
+                            [f'"{name}": I{name}' for name in obj_meta_interfaces]
+                        )
+                        + "}"
+                    )
                 obj_interfaces += generate_union(obj_meta_interface, interface_list, sdk_language)
 
             # Define the mappings
@@ -625,6 +644,7 @@ def substitute_objects_in_template(
                     obj_string_args_where_pk_list
                 ),
                 "obj_function_result_datatype": obj_function_result_datatype,
+                "obj_procedure_result_set_datatype": obj_procedure_result_set_datatype,
             }
 
             # Loop over all CRUD operations and filter the sections that are not applicable for the specific object
@@ -708,6 +728,14 @@ def get_datatype_mapping(db_datatype, sdk_language):
             return "MultiPolygon"
         if db_datatype.startswith("geomcollection"):
             return "GeometryCollection"
+        if db_datatype.startswith(("datetime", "timestamp")):
+            return "DateTime"
+        if db_datatype.startswith("date"):
+            return "Date"
+        if db_datatype.startswith("time"):
+            return "Time"
+        if db_datatype.startswith("year"):
+            return "Year"
         return "str"
 
     return "unknown"
@@ -720,6 +748,10 @@ def get_enhanced_datatype_mapping(db_datatype, sdk_language):
             "int": "IntField",
             "float": "FloatField",
             "str": "StringField",
+            "Date": "DateField",
+            "DateTime": "DateTimeField",
+            "Time": "TimeField",
+            "Year": "YearField"
         }
     }
     if sdk_language == "TypeScript":
@@ -1031,13 +1063,19 @@ def generate_data_class(
             )
             for name, value in fields.items()
         ]
-        assignment_block = [
-            f'{" " * 8}self.{field} = data.get("{field}", UndefinedField)\n'
-            for field in [
-                apply_language_convention(value=field, sdk_language=sdk_language)
-                for field in fields
-            ]
-        ]
+
+        field_profile = []
+        for field_name, type_hint in [
+            (
+                apply_language_convention(value=field, sdk_language=sdk_language),
+                value[0] if isinstance(value, list) else value,
+            )
+            for field, value in fields.items()
+        ]:
+            field_profile.append(f'"{field_name}": {type_hint}')
+        field_profile = (
+            "{\n" + f"{" "*16}" + f",\n{" "*16}".join(field_profile).rstrip() + f"\n{" "*12}" + "}"
+        )
 
         mixins = []
         if obj_primary_key is not None:
@@ -1052,7 +1090,7 @@ def generate_data_class(
             name=name,
             join_field_block="".join(field_type_block).rstrip(),
             obj_endpoint=obj_endpoint,
-            join_assignment_block="".join(assignment_block).rstrip(),
+            field_profile=field_profile,
             primary_key_name=(
                 None if obj_primary_key is None else f'"{obj_primary_key}"'
             ),

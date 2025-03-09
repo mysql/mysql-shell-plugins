@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import datetime
 import hashlib
 import hmac
 import json
@@ -35,7 +36,6 @@ import ssl
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
-from datetime import datetime
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -48,66 +48,37 @@ from typing import (
     Required,
     Sequence,
     TypeAlias,
+    TypeAliasType,
     TypedDict,
     TypeVar,
     Union,
     cast,
 )
+import typing
 from urllib.parse import urlencode, quote
 from urllib.request import HTTPError, Request, urlopen
 
 
 ####################################################################################
-#                              Base Classes
+#                                Utility Classes
 ####################################################################################
-@dataclass
-class MrsDocumentBase(ABC):
-    """Data classes produced by the SDK generator inherit from this base class.
-
-    Relevant dunder methods are customized to achieve the wanted behavior where
-    hypermedia-related information remains hidden and inaccessible publicly.
-
-    This base class is not instantiable.
+class _Singleton:
+    """A single pointer of this class is guaranteed to exits at any given time.
+    In other words, all existing instances point to the same memory address.
     """
 
-    _reserved_keys = ("_reserved_keys", "_metadata", "links")
+    def __new__(cls):
+        """Singleton."""
+        if not hasattr(cls, "instance"):
+            cls.instance = super(_Singleton, cls).__new__(cls)
+        return cls.instance
 
-    if not TYPE_CHECKING:
-
-        def __getattribute__(self, name: str) -> Any:
-            """Hypermedia-related fields cannot be accessed."""
-            if name in MrsDocumentBase._reserved_keys:
-                raise AttributeError(
-                    f"'{type(self).__name__}' object has no attribute '{name}'"
-                )
-            return super().__getattribute__(name)
-
-        def __setattr__(self, name: str, value: Any) -> None:
-            """Hypermedia-related fields cannot be modified."""
-            if name in MrsDocumentBase._reserved_keys:
-                raise AttributeError(
-                    f"Attribute '{name}' of '{type(self).__name__}' object cannot be changed."
-                )
-            super().__setattr__(name, value)
-
-        def __delattr__(self, name: str) -> None:
-            """Hypermedia-related fields cannot be deleted."""
-            if name in MrsDocumentBase._reserved_keys:
-                raise AttributeError(
-                    f"Attribute '{name}' of '{type(self).__name__}' object cannot be deleted."
-                )
-            super().__delattr__(name)
-
-    def __dir__(self) -> Iterable[str]:
-        """Hypermedia-related fields should be hidden."""
-        return [
-            key
-            for key in super().__dir__()
-            if key not in MrsDocumentBase._reserved_keys
-        ]
+    def __repr__(self):
+        """What is seen when printed onto console."""
+        return "<singleton>"
 
 
-class UndefinedDataClassField:
+class UndefinedDataClassField(_Singleton):
     """Class representing a special symbol used for undefined or 'never set'
     data class fields.
 
@@ -115,19 +86,12 @@ class UndefinedDataClassField:
     In other words, all existing instances point to the same memory address.
     """
 
-    def __new__(cls):
-        """Singleton."""
-        if not hasattr(cls, "instance"):
-            cls.instance = super(UndefinedDataClassField, cls).__new__(cls)
-        return cls.instance
-
     def __repr__(self):
-        """What is seen when printed onto console."""
         return "<undef>"  # undefined field
 
 
 ####################################################################################
-#               Custom exceptions utilized by the MRS Python SDK
+#                       MRS Python SDK Exceptions
 ####################################################################################
 class MrsError(Exception):
     """Base class for `MySQL Rest Service` errors."""
@@ -162,7 +126,7 @@ class ServiceNotAuthenticatedError(MrsError):
 
 
 ####################################################################################
-#                                 Custom Types
+#                          Client-side representations
 ####################################################################################
 # pylint: disable=too-few-public-methods
 # JSON data type
@@ -317,6 +281,29 @@ GEOMETRYCOLLECTION(POINT(10 10), POINT(30 30), LINESTRING(15 15, 20 20))
 """
 
 
+# Date and Time data type"
+# These aliases are instances of 'typing.TypeAliasType'
+type Date = datetime.date
+"""Type alias object (instance of `typing.TypeAliasType`) identifying
+the client-side counterpart of MySQL DATE data type."""
+type DateTime = datetime.datetime
+"""Type alias object (instance of `typing.TypeAliasType`) identifying
+the client-side counterpart of MySQL DATETIME and TIMESTAMP data types."""
+type Time = datetime.timedelta
+"""Type alias object (instance of `typing.TypeAliasType`) identifying
+the client-side counterpart of MySQL TIME data type."""
+type Year = int
+"""Type alias object (instance of `typing.TypeAliasType`) identifying
+the client-side counterpart of MySQL YEAR data type."""
+type DateOrTime = Date | DateTime | Time | Year
+"""Type alias object (instance of `typing.TypeAliasType`) identifying
+Client Date and Time data types."""
+type JsonFormattableDateOrTime = Date | DateTime | Time
+"""Type alias object (instance of `typing.TypeAliasType`) identifying
+Client Date and Time data types that should convert to JSON formattable
+values before using them in an HTTP request."""
+
+
 # Misc types
 UndefinedField = UndefinedDataClassField()
 
@@ -330,11 +317,14 @@ Sortable = TypeVar("Sortable", bound=Optional[Mapping])
 Cursors = TypeVar("Cursors", bound=Optional[Mapping])
 
 
-EqOperand = TypeVar("EqOperand", bound=str | int | float | datetime)
-NeqOperand = TypeVar("NeqOperand", bound=str | int | float | datetime)
+EqOperand = TypeVar("EqOperand", bound=str | int | float | DateOrTime)
+NeqOperand = TypeVar("NeqOperand", bound=str | int | float | DateOrTime)
 NotOperator = TypedDict("NotOperator", {"not": None})
 PatternOperand = TypeVar("PatternOperand", bound=str)
-RangeOperand = TypeVar("RangeOperand", bound=int | float | datetime)
+RangeOperand = TypeVar(
+    "RangeOperand",
+    bound=int | float | datetime.datetime | datetime.date | datetime.timedelta,
+)
 
 
 DataField = TypeVar("DataField", bound=Optional[str])
@@ -343,25 +333,75 @@ NestedField = TypeVar("NestedField", bound=Optional[str])
 ProgressCallback: TypeAlias = Callable[[list[Data]], None]
 Order: TypeAlias = Literal["ASC", "DESC"]
 
+VarTypeHintStruct = TypeVar("VarTypeHintStruct", bound=Mapping)
 IMrsRoutineResponse = TypeVar("IMrsRoutineResponse", bound=Any)
 IMrsRoutineInParameters = TypeVar("IMrsRoutineInParameters", bound=Mapping)
 IMrsProcedureOutParameters = TypeVar(
     "IMrsProcedureOutParameters", bound=Optional[Mapping]
 )
-IMrsProcedureResultSet = TypeVar("IMrsProcedureResultSet", bound=object)
+IMrsProcedureResultSet = TypeVar(
+    "IMrsProcedureResultSet", bound="MrsProcedureResultSet"
+)
 ResultSetType = TypeVar("ResultSetType", bound=str)
 ResultSetItem = TypeVar("ResultSetItem", bound=Mapping)
 ResultSetDetails = TypeVar("ResultSetDetails", bound=Mapping)
 IMrsFunctionResult = TypeVar(
-    "IMrsFunctionResult", bound=str | int | float | bool | JsonValue
+    "IMrsFunctionResult", bound=str | int | float | bool | JsonValue | "DateOrTime"
 )
 
 AuthAppName = TypeVar("AuthAppName", bound=Optional[str])
 
 
 ####################################################################################
-#                              Base and Mixin Classes
+#                              REST Documents
 ####################################################################################
+@dataclass
+class MrsDocumentBase(ABC):
+    """Data classes produced by the SDK generator inherit from this base class.
+
+    Relevant dunder methods are customized to achieve the wanted behavior where
+    hypermedia-related information remains hidden and inaccessible publicly.
+
+    This base class is not instantiable.
+    """
+
+    _reserved_keys = ("_reserved_keys", "_metadata", "links")
+
+    if not TYPE_CHECKING:
+
+        def __getattribute__(self, name: str) -> Any:
+            """Hypermedia-related fields cannot be accessed."""
+            if name in MrsDocumentBase._reserved_keys:
+                raise AttributeError(
+                    f"'{type(self).__name__}' object has no attribute '{name}'"
+                )
+            return super().__getattribute__(name)
+
+        def __setattr__(self, name: str, value: Any) -> None:
+            """Hypermedia-related fields cannot be modified."""
+            if name in MrsDocumentBase._reserved_keys:
+                raise AttributeError(
+                    f"Attribute '{name}' of '{type(self).__name__}' object cannot be changed."
+                )
+            super().__setattr__(name, value)
+
+        def __delattr__(self, name: str) -> None:
+            """Hypermedia-related fields cannot be deleted."""
+            if name in MrsDocumentBase._reserved_keys:
+                raise AttributeError(
+                    f"Attribute '{name}' of '{type(self).__name__}' object cannot be deleted."
+                )
+            super().__delattr__(name)
+
+    def __dir__(self) -> Iterable[str]:
+        """Hypermedia-related fields should be hidden."""
+        return [
+            key
+            for key in super().__dir__()
+            if key not in MrsDocumentBase._reserved_keys
+        ]
+
+
 class MrsDocument(Generic[Data], MrsDocumentBase):
     """Data classes (representing table records) produced by the SDK
     generator inherit from base class.
@@ -373,16 +413,39 @@ class MrsDocument(Generic[Data], MrsDocumentBase):
     """
 
     def __init__(
-        self, schema: MrsBaseSchema, data: Data, obj_endpoint: str = ""
+        self,
+        schema: MrsBaseSchema,
+        data: Data,
+        fields_map: dict[str, TypeAlias],
+        obj_endpoint: str = "",
     ) -> None:
-        """Data class."""
+        """MRS REST Document.
+
+        Args:
+            schema: REST schema object from what the REST document is grouped under.
+            data: JSON-like structure storing the field values.
+            fields_map: A map relating each field name to its corresponding
+                field type (client-side).
+            obj_endpoint: URI of resource.
+        """
         self._schema: MrsBaseSchema = schema
         self._request_path: str = obj_endpoint
-        self._load_fields(data)
 
-    @abstractmethod
-    def _load_fields(self, data: Data) -> None:
+        self._load_fields(data, fields_map)
+
+    def _load_fields(self, data: Data, fields_map: dict[str, TypeAlias]) -> None:
         """Refresh data fields based on the input data."""
+        for field_name, field_hint in fields_map.items():
+            setattr(
+                self,
+                field_name,
+                MrsJSONDataDecoder.convert_field_value(
+                    data.get(field_name, UndefinedField), dst_type=field_hint
+                ),
+            )
+
+        for key in MrsDocumentBase._reserved_keys:
+            self.__dict__.update({key: data.get(key)})
 
     @classmethod
     @abstractmethod
@@ -429,7 +492,7 @@ class _MrsDocumentDeleteMixin(Generic[Data, Filterable], MrsDocument[Data]):
 
 
 ####################################################################################
-#                                 Custom Types
+#                                MRS Protocol
 ####################################################################################
 class MrsResourceLink(TypedDict):
     """Available keys for the `links` field."""
@@ -482,11 +545,31 @@ class IMrsFunctionResponse(Generic[IMrsFunctionResult], TypedDict):
     _metadata: NotRequired[MrsTransactionalMetadata]
 
 
+class FunctionResponseTypeHintStruct(TypedDict):
+    """Structure storing key information to convert the value of a function response.
+
+    - result: A type alias.
+    """
+
+    result: TypeAlias
+
+
+class ProcedureResponseTypeHintStruct(TypedDict):
+    """Structure storing key information to convert fields values of a procedure response.
+
+    - out_parameters: A `typing.TypedDict` type alias.
+    - result_sets: A dictionary which key is a `str` and value a `typing.TypedDict` type alias.
+    """
+
+    out_parameters: TypeAlias
+    result_sets: Optional[dict[str, TypeAlias]]
+
+
 class IMrsProcedureResponseDetails(
     Generic[IMrsProcedureOutParameters, IMrsProcedureResultSet], TypedDict
 ):
-    result_sets: list[IMrsProcedureResultSet]
-    out_parameters: IMrsProcedureOutParameters
+    result_sets: list[dict]
+    out_parameters: dict
     _metadata: NotRequired[MrsTransactionalMetadata]
 
 
@@ -503,16 +586,23 @@ class IMrsProcedureResponse(
         data: IMrsProcedureResponseDetails[
             IMrsProcedureOutParameters, IMrsProcedureResultSet
         ],
+        type_hint_struct: ProcedureResponseTypeHintStruct,
     ) -> None:
         """Procedure response dataclass."""
         self.result_sets = [
-            cast(
-                IMrsProcedureResultSet,
-                MrsProcedureResultSet[str, Any, Any](result_set),
+            MrsProcedureResultSet[str, Any, Any](  # type: ignore[misc]
+                result_set,
+                typed_dict=(type_hint_struct["result_sets"] or {}).get(
+                    result_set["type"]
+                ),
             )
             for result_set in data["result_sets"]
         ]
-        self.out_parameters = data["out_parameters"]
+        self.out_parameters = (
+            MrsDataDownstreamConverter.convert_obj_fields_from_typed_dict(
+                data["out_parameters"], typed_dict=type_hint_struct["out_parameters"]
+            )
+        )
 
         for key in MrsDocumentBase._reserved_keys:
             self.__dict__.update({key: data.get(key)})
@@ -526,10 +616,24 @@ class MrsProcedureResultSet(
     type: ResultSetType
     items: list[ResultSetItem]
 
-    def __init__(self, data: ResultSetDetails) -> None:
+    def __init__(
+        self,
+        data: ResultSetDetails,
+        typed_dict: Optional[TypeAlias] = None,
+    ) -> None:
         """Procedure result-set response dataclass."""
         self.type = data["type"]
-        self.items = data["items"]
+        self.items = [
+            (
+                item
+                if typed_dict is None  # If result set is untyped. Let's skip conversion
+                else MrsDataDownstreamConverter.convert_obj_fields_from_typed_dict(
+                    obj=item,
+                    typed_dict=typed_dict,
+                )
+            )
+            for item in data["items"]
+        ]
 
         for key in MrsDocumentBase._reserved_keys:
             self.__dict__.update({key: data.get(key)})
@@ -619,20 +723,51 @@ FloatField: TypeAlias = (
     | LteOperator[float]
     | NotOperator
 )
-DatetimeField: TypeAlias = (
-    datetime
-    | EqOperator[datetime]
-    | NeqOperator[datetime]
-    | GtOperator[datetime]
-    | GteOperator[datetime]
-    | LtOperator[datetime]
-    | LteOperator[datetime]
-    | NotOperator
-)
 StringField: TypeAlias = (
     str | EqOperator[str] | NeqOperator[str] | PatternOperator[str] | NotOperator
 )
 BoolField: TypeAlias = bool | EqOperator[bool] | NeqOperator[bool] | NotOperator
+
+DateTimeField: TypeAlias = (
+    datetime.datetime
+    | EqOperator[datetime.datetime]
+    | NeqOperator[datetime.datetime]
+    | GtOperator[datetime.datetime]
+    | GteOperator[datetime.datetime]
+    | LtOperator[datetime.datetime]
+    | LteOperator[datetime.datetime]
+    | NotOperator
+)
+DateField: TypeAlias = (
+    datetime.date
+    | EqOperator[datetime.date]
+    | NeqOperator[datetime.date]
+    | GtOperator[datetime.date]
+    | GteOperator[datetime.date]
+    | LtOperator[datetime.date]
+    | LteOperator[datetime.date]
+    | NotOperator
+)
+TimeField: TypeAlias = (
+    datetime.timedelta
+    | EqOperator[datetime.timedelta]
+    | NeqOperator[datetime.timedelta]
+    | GtOperator[datetime.timedelta]
+    | GteOperator[datetime.timedelta]
+    | LtOperator[datetime.timedelta]
+    | LteOperator[datetime.timedelta]
+    | NotOperator
+)
+YearField: TypeAlias = (
+    int
+    | EqOperator[int]
+    | NeqOperator[int]
+    | GtOperator[int]
+    | GteOperator[int]
+    | LtOperator[int]
+    | LteOperator[int]
+    | NotOperator
+)
 
 
 class HighOrderOperator(Generic[Filterable], TypedDict, total=False):
@@ -862,7 +997,161 @@ class FindAllOptions(
 
 
 ####################################################################################
-#                               Utilities
+#                                 Conversion
+####################################################################################
+JSON_FORMATTABLE_DATE_OR_TIME = (
+    datetime.date,
+    datetime.datetime,
+    datetime.timedelta,
+)
+
+
+class MrsDataDownstreamConverter:
+    """Namespace encapsulating the conversion logic for downstream commands."""
+
+    @staticmethod
+    def convert_obj_fields_from_typed_dict(obj: object, typed_dict: TypeAlias) -> Any:
+        """Convert object's fields based on the `typing.TypedDict` type hint information.
+
+        Args:
+            obj: It can be any object (supporting `getattr` and `setattr`) or a dictionary.
+            typed_dict: A type alias - It must be an alias of a `typing.TypedDict` type.
+
+        Returns:
+            The original object with fields converted.
+        """
+        for field_name, field_type in typing.get_type_hints(typed_dict).items():
+            if isinstance(obj, dict):
+                obj[field_name] = MrsDataDownstreamConverter.convert(
+                    value=obj[field_name], dst_type=field_type
+                )
+            else:
+                setattr(
+                    obj,
+                    field_name,
+                    MrsDataDownstreamConverter.convert(
+                        value=getattr(obj, field_name), dst_type=field_type
+                    ),
+                )
+        return obj
+
+    @staticmethod
+    def _convert_date_or_time(
+        value: int | str | None,
+        type_alias_name: Literal["Date", "DateTime", "Time", "Year"],
+    ) -> JsonFormattableDateOrTime | int | None:
+        """Convert value to a client type based on the type alias name."""
+        if value is None:
+            return value
+        if type_alias_name == "Year":
+            return value if isinstance(value, int) else int(value)
+
+        value = cast(str, value)
+        if type_alias_name == "DateTime":
+            return datetime.datetime.fromisoformat(value)
+        if type_alias_name == "Date":
+            return datetime.date.fromisoformat(value)
+
+        # target must be `Time`
+        if "." in value:
+            time, fraction = value.split(".")
+            hours, minutes, seconds, microseconds = tuple(
+                int(x) for x in time.split(":")
+            ) + (int(fraction),)
+        else:
+            hours, minutes, seconds, microseconds = tuple(
+                int(x) for x in value.split(":")
+            ) + (0,)
+
+        return datetime.timedelta(
+            hours=hours, minutes=minutes, seconds=seconds, microseconds=microseconds
+        )
+
+    @staticmethod
+    def convert(value: JsonValue, dst_type: TypeAliasType) -> Any:
+        """Convert JSON formattable value to a client value.
+
+        Conversion is skipped if the value does not require conversion
+        (determined by the client based on the type alias).
+
+        The type alias should be an instance of `typing.TypeAliasType`
+        or an instance of such a class wrapped with `typing.Optional`,
+        otherwise conversion is skipped. For example, consider the
+        following type alias:
+
+        ```
+        import datetime
+
+        class Foo:
+            ...
+
+        # i am an instance of `typing.TypeAliasType`
+        type DateOrFoo = datetime.date | Foo
+        ```
+
+        In this case, you may want to pass `Date` or `typing.Optional[Date]`
+        as type alias. See [Type Aliases](https://docs.python.org/3/library/typing.html#type-aliases)
+        to know more.
+
+        Args:
+            value: JSON formattable value to be converted to.
+            dst_type: Client type to convert the value to.
+
+        Returns:
+            output: Converted value if conversion isn't skipped, or the original
+            value otherwise.
+        """
+        type_alias_type_instance: Optional[TypeAliasType] = None
+        if isinstance(dst_type, typing.TypeAliasType):
+            type_alias_type_instance = dst_type
+        elif hasattr(dst_type, "__name__") and dst_type.__name__.startswith("Optional"):
+            for arg in typing.get_args(dst_type):
+                if isinstance(arg, typing.TypeAliasType):
+                    type_alias_type_instance = arg
+                    break
+
+        if type_alias_type_instance in (Date, DateTime, Time, Year):
+            return MrsDataDownstreamConverter._convert_date_or_time(
+                cast(int | str | None, value),
+                cast(
+                    Literal["Date", "DateTime", "Time", "Year"],
+                    type_alias_type_instance.__name__,
+                ),
+            )
+        return value
+
+
+class MrsDataUpstreamConverter:
+    """Namespace encapsulating the conversion logic for upstream commands."""
+
+    @staticmethod
+    def _convert_date_or_time(value: JsonFormattableDateOrTime) -> str:
+        """Convert a `date or time` client value to a JSON formattable value."""
+        if isinstance(value, datetime.datetime):
+            return value.isoformat(sep=" ")
+        elif isinstance(value, datetime.date):
+            return value.isoformat()
+
+        # value must be an instance of datetime.timedelta
+        seconds = value.total_seconds()
+        hours = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        seconds = int(seconds % 60)
+
+        if value.microseconds != 0:
+            return f"{hours:>03}:{minutes:>02}:{seconds:>02}.{value.microseconds:>06}"
+        return f"{hours:>03}:{minutes:>02}:{seconds:>02}"
+
+    @staticmethod
+    def convert(value: Any) -> JsonValue:
+        """Convert client value to a JSON formattable value."""
+        if isinstance(value, JSON_FORMATTABLE_DATE_OR_TIME):
+            return MrsDataUpstreamConverter._convert_date_or_time(value)
+        return value
+
+
+####################################################################################
+#                     HTTP Requests - Payload Encoding/Decoding
 ####################################################################################
 class MrsJSONDataEncoder(json.JSONEncoder):
     """Namespace where utility functions for encoding a `payload` about
@@ -883,16 +1172,25 @@ class MrsJSONDataEncoder(json.JSONEncoder):
         )
 
     @staticmethod
+    def convert_field_value(value: Any) -> JsonValue:
+        """Convert client value to a JSON formattable value."""
+        return MrsDataUpstreamConverter.convert(value)
+
+    @staticmethod
     def parse_value(value: Any) -> Any:
         """Parse value."""
         if isinstance(value, dict):
             return MrsJSONDataEncoder.convert_keys(value)
         if isinstance(value, list):
             return [
-                MrsJSONDataEncoder.convert_keys(x) if isinstance(x, dict) else x
+                (
+                    MrsJSONDataEncoder.convert_keys(x)
+                    if isinstance(x, dict)
+                    else MrsJSONDataEncoder.convert_field_value(x)
+                )
                 for x in value
             ]
-        return value
+        return MrsJSONDataEncoder.convert_field_value(value)
 
     @staticmethod
     def convert_keys(o: dict) -> dict:
@@ -924,6 +1222,13 @@ class MrsJSONDataDecoder:
     def camel_to_snake(key: str) -> str:
         """From camel to snake."""
         return MrsJSONDataDecoder._pattern.sub("_", key).lower()
+
+    @staticmethod
+    def convert_field_value(value: Any, dst_type: TypeAlias) -> Any:
+        """Convert JSON formattable value to a client value."""
+        return MrsDataDownstreamConverter.convert(
+            cast(JsonValue, value), cast(TypeAliasType, dst_type)
+        )
 
     @staticmethod
     def parse_value(value: Any) -> Any:
@@ -975,31 +1280,37 @@ class MrsQueryEncoder(json.JSONEncoder):
         """
         if isinstance(o, dict):
             json_obj: dict[str, Any] = {}
-            for key_item, value_item in o.items():
-                key_in_camel_case = MrsJSONDataEncoder.snake_to_camel(key_item)
+            for item_key, item_value in o.items():
+                key_in_camel_case = MrsJSONDataEncoder.snake_to_camel(item_key)
                 json_key = self._ords_keyword.get(key_in_camel_case, key_in_camel_case)
                 # handle $null vs $notnull
-                if value_item is None and json_key != self._ords_keyword.get("not"):
+                if item_value is None and json_key != self._ords_keyword.get("not"):
                     json_obj.update({json_key: {"$null": None}})
-                elif isinstance(value_item, dict):
-                    json_obj.update({json_key: json.loads(self.encode(value_item))})
-                elif isinstance(value_item, list):
+                elif isinstance(item_value, dict):
+                    json_obj.update({json_key: json.loads(self.encode(item_value))})
+                elif isinstance(item_value, list):
                     json_obj.update(
                         {
                             json_key: [
-                                json.loads(self.encode(x)) if isinstance(x, dict) else x
-                                for x in value_item
+                                (
+                                    json.loads(self.encode(x))
+                                    if isinstance(x, dict)
+                                    else MrsJSONDataEncoder.convert_field_value(x)
+                                )
+                                for x in item_value
                             ]
                         }
                     )
                 else:
-                    json_obj.update({json_key: value_item})
+                    json_obj.update(
+                        {json_key: MrsJSONDataEncoder.convert_field_value(item_value)}
+                    )
             return super().encode(json_obj)
         return super().encode(o)
 
 
 ####################################################################################
-#                               Core Implementation
+#                            REST Services and Schemas
 ####################################################################################
 # pylint: disable=protected-access,too-many-lines
 
@@ -1071,9 +1382,12 @@ class MrsBaseObject:
         )
 
 
+####################################################################################
+#                        REST Procedures and Functions
+####################################################################################
 # This class cannot be instantiated as it defines an abstract interface.
 class MrsBaseObjectRoutineCall(
-    Generic[IMrsRoutineInParameters, IMrsRoutineResponse], ABC
+    Generic[IMrsRoutineInParameters, IMrsRoutineResponse, VarTypeHintStruct], ABC
 ):
     """Implements the core logic utilized by function and procedure objects."""
 
@@ -1082,20 +1396,20 @@ class MrsBaseObjectRoutineCall(
         schema: MrsBaseSchema,
         request_path: str,
         parameters: IMrsRoutineInParameters,
+        result_type_hint_struct: VarTypeHintStruct,
     ) -> None:
-        """Constructor.
-
-        During this stage, query options are saved in the inner
-        state of this instance.
+        """MrsBaseObjectRoutineCall.
 
         Args:
-            schema: instance of the corresponding MRS schema
-            request_path: the base endpoint to the resource (function).
-            parameters: dictionary representing the input parameters of the routine.
+            schema: Instance of the corresponding MRS schema
+            request_path: The base endpoint to the resource (function).
+            parameters: Dictionary representing the input parameters of the routine.
+            result_type_hint: Client type(s) to convert the response/result (object) to.
         """
         self._schema: MrsBaseSchema = schema
         self._request_path: str = request_path
         self._params: IMrsRoutineInParameters = parameters
+        self._result_type_hint_struct: VarTypeHintStruct = result_type_hint_struct
 
     # Unlike Java abstract methods, Python abstract methods may have an implementation.
     # This implementation can be called via the super() mechanism from the class that
@@ -1149,6 +1463,7 @@ class MrsBaseObjectProcedureCall(
         IMrsProcedureResponseDetails[
             IMrsProcedureOutParameters, IMrsProcedureResultSet
         ],
+        ProcedureResponseTypeHintStruct,
     ],
 ):
     """Implements the core logic utilized by procedure objects."""
@@ -1167,13 +1482,15 @@ class MrsBaseObjectProcedureCall(
 
         return IMrsProcedureResponse[
             IMrsProcedureOutParameters, IMrsProcedureResultSet
-        ](response)
+        ](data=response, type_hint_struct=self._result_type_hint_struct)
 
 
 class MrsBaseObjectFunctionCall(
     Generic[IMrsRoutineInParameters, IMrsFunctionResult],
     MrsBaseObjectRoutineCall[
-        IMrsRoutineInParameters, IMrsFunctionResponse[IMrsFunctionResult]
+        IMrsRoutineInParameters,
+        IMrsFunctionResponse[IMrsFunctionResult],
+        FunctionResponseTypeHintStruct,
     ],
 ):
     """Implements the core logic utilized by function objects."""
@@ -1187,10 +1504,14 @@ class MrsBaseObjectFunctionCall(
             function declaration.
         """
         response = await super().submit()
+        return MrsJSONDataDecoder.convert_field_value(
+            response["result"], dst_type=self._result_type_hint_struct["result"]
+        )
 
-        return response["result"]
 
-
+####################################################################################
+#                               REST Views
+####################################################################################
 class MrsBaseObjectQuery(Generic[Data, DataDetails]):
     """Implements the core logic utilized by the `find*` commands."""
 
@@ -1641,6 +1962,9 @@ class MrsBaseObjectDelete(Generic[Filterable]):
         return delete_response
 
 
+####################################################################################
+#                              Authentication
+####################################################################################
 class MrsAuthenticate(Generic[AuthAppName]):
     def __init__(
         self,
