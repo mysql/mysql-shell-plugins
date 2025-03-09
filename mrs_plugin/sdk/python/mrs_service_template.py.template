@@ -59,8 +59,6 @@ from .mrs_base_classes import (
     MrsDocument,
     MrsDocumentNotFoundError,
     UndefinedDataClassField,
-    UndefinedField,
-    MrsJSONDataEncoder,
     # --- importRequiredDatatypesOnlyStart
     # --- importRequiredDatatypesOnlyEnd
 )
@@ -82,7 +80,8 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
         request = MrsBaseObjectFunctionCall[I${obj_param_interface}, ${obj_function_result_datatype}](
             schema=self._schema,
             request_path=self._request_path,
-            parameters=parameters
+            parameters=parameters,
+            result_type_hint_struct={"result": ${obj_function_result_datatype}},
         )
         return await request.submit()
     # --- crudFunctionCallOnlyEnd
@@ -102,7 +101,11 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
         ](
             schema=self._schema,
             request_path=self._request_path,
-            parameters=parameters
+            parameters=parameters,
+            result_type_hint_struct={
+                "out_parameters": I${obj_param_interface}Out,
+                "result_sets": ${obj_procedure_result_set_datatype}
+            }
         )
         return await request.submit()
     # --- crudProcedureCallOnlyEnd

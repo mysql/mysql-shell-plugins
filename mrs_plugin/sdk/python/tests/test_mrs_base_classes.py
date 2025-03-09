@@ -20,7 +20,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
-
+from __future__ import annotations
+import datetime
 import json
 import os
 import ssl
@@ -36,8 +37,8 @@ from typing import (
     Union,
     cast,
 )
+import typing
 from unittest.mock import MagicMock
-from urllib.parse import quote, urlencode
 from urllib.request import HTTPError
 
 import pytest  # type: ignore[import-not-found]
@@ -48,6 +49,9 @@ from ..mrs_base_classes import (
     AuthAppNotFoundError,
     AuthenticateOptions,
     BoolField,
+    Date,
+    DateTime,
+    DateTimeField,
     DeleteOptions,
     Filterable,
     FindAllOptions,
@@ -67,6 +71,8 @@ from ..mrs_base_classes import (
     MrsBaseObjectUpdate,
     MrsBaseSchema,
     MrsBaseService,
+    MrsDataDownstreamConverter,
+    MrsDataUpstreamConverter,
     MrsDeauthenticate,
     MrsDocumentBase,
     MrsJSONDataDecoder,
@@ -76,11 +82,13 @@ from ..mrs_base_classes import (
     MrsDocument,
     MrsDocumentNotFoundError,
     MrsBaseSession,
+    ProcedureResponseTypeHintStruct,
     ServiceNotAuthenticatedError,
     StringField,
+    Time,
     UndefinedDataClassField,
-    UndefinedField,
     JsonObject,
+    Year,
 )
 
 ####################################################################################
@@ -199,19 +207,19 @@ class ActorDetails(IMrsResourceDetails, total=False):
     actor_id: int
     first_name: str
     last_name: str
-    last_update: str
+    last_update: DateTime
 
 
 class ActorData(TypedDict, total=False):
     actor_id: int
     first_name: str
     last_name: str
-    last_update: str
+    last_update: DateTime
 
 
 class ActorFilterable(Generic[Filterable], HighOrderOperator[Filterable], total=False):
     last_name: StringField
-    last_update: StringField
+    last_update: DateTimeField
     first_name: StringField
     actor_id: IntField
 
@@ -224,23 +232,21 @@ class Actor(MrsDocument[ActorData]):
     actor_id: int | UndefinedDataClassField
     first_name: str | UndefinedDataClassField
     last_name: str | UndefinedDataClassField
-    last_update: str | UndefinedDataClassField
+    last_update: DateTime | UndefinedDataClassField
 
     def __init__(self, schema: MrsBaseSchema, data: ActorData) -> None:
         """Actor data class."""
         super().__init__(
-            schema, data, obj_endpoint="https://localhost:8443/myService/sakila/actor"
+            schema,
+            data,
+            fields_map={
+                "actor_id": int,
+                "first_name": str,
+                "last_name": str,
+                "last_update": str,
+            },
+            obj_endpoint="https://localhost:8443/myService/sakila/actor",
         )
-
-    def _load_fields(self, data: ActorData) -> None:
-        """Refresh data fields based on the input data."""
-        self.actor_id = data.get("actor_id", UndefinedField)
-        self.first_name = data.get("first_name", UndefinedField)
-        self.last_name = data.get("last_name", UndefinedField)
-        self.last_update = data.get("last_update", UndefinedField)
-
-        for key in MrsDocumentBase._reserved_keys:
-            self.__dict__.update({key: data.get(key)})
 
     @classmethod
     def get_primary_key_name(cls) -> Optional[str]:
@@ -316,19 +322,95 @@ class Obj3Data(TypedDict, total=False):
     a_str: str
 
 
-class HelloFuncFuncParameters(TypedDict, total=False):
-    name: str
+class FunctionNamespace:
+    class Sample:
+        class HelloFuncFuncParameters(TypedDict, total=False):
+            name: str
+
+        class SumFuncFuncParameters(TypedDict, total=False):
+            a: int
+            b: int
+
+        class MyBirthdayFuncFuncParameters(TypedDict, total=False):
+            pass
+
+    class DateAndTime:
+        class FuncDateAndTimeTsParams(TypedDict, total=False):
+            ts: Optional[DateTime]
+
+        class FuncDateAndTimeDParams(TypedDict, total=False):
+            d: Optional[Date]
+
+        class FuncDateAndTimeTParams(TypedDict, total=False):
+            t: Optional[Time]
+
+        class FuncDateAndTimeYParams(TypedDict, total=False):
+            y: Optional[Year]
 
 
-class SumFuncFuncParameters(TypedDict, total=False):
-    a: int
-    b: int
+# Procedure - Date and Time
+class IMyServiceMrsTestsProcDateAndTimeParams(TypedDict, total=False):
+    ts: Optional[DateTime]
+    dt: Optional[DateTime]
+    d: Optional[Date]
+    t: Optional[Time]
+    y: Optional[Year]
 
 
-class MyBirthdayFuncFuncParameters(TypedDict, total=False):
-    pass
+class IMyServiceMrsTestsProcDateAndTimeParamsOut(TypedDict, total=False):
+    ts: Optional[DateTime]
+    dt: Optional[DateTime]
+    d: Optional[Date]
+    t: Optional[Time]
+    y: Optional[Year]
 
 
+class IIMyServiceMyDbProcDateAndTimeResultSet1(TypedDict, total=False):
+    my_timestamp: Optional[DateTime]
+    my_date: Optional[Date]
+    my_time: Optional[Time]
+
+
+class ITaggedIMyServiceMyDbProcDateAndTimeResultSet1(TypedDict):
+    type: Literal["IMyServiceMyDbProcDateAndTimeResultSet1",]
+    items: list[IIMyServiceMyDbProcDateAndTimeResultSet1]
+
+
+IIMyServiceMyDbProcDateAndTimeResultSet1Type: TypeAlias = Literal[
+    "IMyServiceMyDbProcDateAndTimeResultSet1",
+]
+
+
+class IIMyServiceMyDbProcDateAndTimeResultSet2(TypedDict, total=False):
+    my_datetime: Optional[DateTime]
+    my_year: Optional[Year]
+
+
+class ITaggedIMyServiceMyDbProcDateAndTimeResultSet2(TypedDict):
+    type: Literal["IMyServiceMyDbProcDateAndTimeResultSet2",]
+    items: list[IIMyServiceMyDbProcDateAndTimeResultSet2]
+
+
+IIMyServiceMyDbProcDateAndTimeResultSet2Type: TypeAlias = Literal[
+    "IMyServiceMyDbProcDateAndTimeResultSet2",
+]
+
+
+IMyServiceMrsTestsProcDateAndTimeResultSet: TypeAlias = (
+    MrsProcedureResultSet[
+        IIMyServiceMyDbProcDateAndTimeResultSet1Type,
+        IIMyServiceMyDbProcDateAndTimeResultSet1,
+        ITaggedIMyServiceMyDbProcDateAndTimeResultSet1,
+    ]
+    | MrsProcedureResultSet[
+        IIMyServiceMyDbProcDateAndTimeResultSet2Type,
+        IIMyServiceMyDbProcDateAndTimeResultSet2,
+        ITaggedIMyServiceMyDbProcDateAndTimeResultSet2,
+    ]
+)
+
+
+# Procedure - Sample
 class MirrorProcParams(TypedDict, total=False):
     channel: str
 
@@ -756,10 +838,15 @@ async def test_gtid_track_and_sync(
             )
         elif cls_ == MrsBaseObjectFunctionCall:
             request_path = f"{schema._request_path}/SumFunc"
-            request = MrsBaseObjectFunctionCall[SumFuncFuncParameters, int](
+            request = MrsBaseObjectFunctionCall[
+                FunctionNamespace.Sample.SumFuncFuncParameters, int
+            ](
                 schema=schema,
                 request_path=request_path,
-                parameters=cast(SumFuncFuncParameters, {"a": 2, "b": 3}),
+                parameters=cast(
+                    FunctionNamespace.Sample.SumFuncFuncParameters, {"a": 2, "b": 3}
+                ),
+                result_type_hint_struct={"result": int},
             )
         elif cls_ == MrsBaseObjectProcedureCall:
             request_path = f"{schema._request_path}/TwiceProc"
@@ -769,6 +856,10 @@ async def test_gtid_track_and_sync(
                 schema=schema,
                 request_path=request_path,
                 parameters=cast(TwiceProcParams, {"number": 13}),
+                result_type_hint_struct={
+                    "out_parameters": TwiceProcParamsOut,
+                    "result_sets": None,
+                },
             )
 
         # expand the fictional response of function and procedure mrs-base objects
@@ -1253,22 +1344,63 @@ async def test_update_submit(
             "sumFunc",  # f(i1, i2) -> i3
             {"a": 2, "b": 3},
             {"result": 5},
-            SumFuncFuncParameters,
+            FunctionNamespace.Sample.SumFuncFuncParameters,
             int,
         ),
         (
             "helloFunc",  # f(s) -> s
             {"name": "Rui"},
             {"result": "Hello Rui!"},
-            HelloFuncFuncParameters,
+            FunctionNamespace.Sample.HelloFuncFuncParameters,
             str,
         ),
         (
             "myBirthdayFunc",  # f() -> s
             {},
             {"result": "2024-07-23 00:00:00"},
-            MyBirthdayFuncFuncParameters,
+            FunctionNamespace.Sample.MyBirthdayFuncFuncParameters,
             str,
+        ),
+        (
+            "FuncDateAndTimeTs",  # f(ts) -> ts
+            {
+                "ts": datetime.datetime(
+                    year=1985,
+                    month=1,
+                    day=1,
+                    hour=1,
+                    minute=1,
+                    second=1,
+                )
+            },
+            {"result": "1985-02-01 01:01:01"},
+            FunctionNamespace.DateAndTime.FuncDateAndTimeTsParams,
+            DateTime,
+        ),
+        (
+            "FuncDateAndTimeD",  # f(d) -> d
+            {"d": datetime.date(year=1985, month=1, day=1)},
+            {"result": "1985-02-01"},
+            FunctionNamespace.DateAndTime.FuncDateAndTimeDParams,
+            Date,
+        ),
+        (
+            "FuncDateAndTimeT",  # f(t) -> t
+            {
+                "t": datetime.timedelta(
+                    days=0, hours=1, minutes=0, seconds=0, microseconds=999999
+                )
+            },
+            {"result": "03:00:01.999997"},
+            FunctionNamespace.DateAndTime.FuncDateAndTimeTParams,
+            Optional[Time],
+        ),
+        (
+            "FuncDateAndTimeY",  # f(y) -> y
+            {"y": 1999},
+            {"result": 2000},
+            FunctionNamespace.DateAndTime.FuncDateAndTimeYParams,
+            Year,
         ),
     ],
 )
@@ -1290,13 +1422,16 @@ async def test_function_call_submit(
     request = MrsBaseObjectFunctionCall[func_params_type, func_result_type](
         schema=schema,
         request_path=request_path,
-        parameters=cast(func_params_type, parameters),
+        parameters=cast(func_params_type, parameters),  # type: ignore
+        result_type_hint_struct={"result": func_result_type},
     )
 
     mock_urlopen.return_value = urlopen_simulator(urlopen_read=urlopen_read)
     mock_create_default_context.return_value = ssl.create_default_context()
 
-    assert await request.submit() == urlopen_read["result"]
+    assert await request.submit() == MrsJSONDataDecoder.convert_field_value(
+        value=urlopen_read["result"], dst_type=func_result_type
+    )
 
     mock_request_class.assert_called_once_with(
         url=request_path,
@@ -1310,7 +1445,8 @@ async def test_function_call_submit(
     request = MrsBaseObjectFunctionCall[func_params_type, func_result_type](
         schema=schema_on_service_with_session,
         request_path=request_path,
-        parameters=cast(func_params_type, parameters),
+        parameters=cast(func_params_type, parameters),  # type: ignore
+        result_type_hint_struct={"result": func_result_type},
     )
 
     _ = await request.submit()
@@ -1328,8 +1464,68 @@ async def test_function_call_submit(
 #                      Test "submit" Method (procedure-call's backbone)
 ####################################################################################
 @pytest.mark.parametrize(
-    "proc_name, parameters, urlopen_read, in_interface, out_interface, result_sets_interface",
+    "proc_name, parameters, urlopen_read, in_interface, out_interface, result_sets_interface, result_type_hint_struct",
     [
+        (
+            "ProcDateAndTime",
+            {
+                "ts": datetime.datetime.fromisoformat("2023-08-30 14:59:01"),
+                "dt": datetime.datetime.fromisoformat("2016-10-20 01:02:03"),
+                "d": datetime.date.fromisoformat("1993-09-24"),
+                "t": datetime.timedelta(days=0, hours=1, microseconds=999999),
+                "y": 1976,
+            },
+            {
+                "result_sets": [
+                    {
+                        "type": "IMyServiceMyDbProcDateAndTimeResultSet1",
+                        "items": [
+                            {
+                                "my_timestamp": "2024-09-30 14:59:01",
+                                "my_date": "1993-11-24",
+                                "my_time": "05:00:02.999998",
+                            }
+                        ],
+                        "_metadata": {
+                            "columns": [
+                                {"name": "my_timestamp", "type": "DATETIME"},
+                                {"name": "my_date", "type": "DATE"},
+                                {"name": "my_time", "type": "TIME"},
+                            ]
+                        },
+                    },
+                    {
+                        "type": "IMyServiceMyDbProcDateAndTimeResultSet2",
+                        "items": [
+                            {"my_datetime": "2016-12-20 01:02:03", "my_year": 1978}
+                        ],
+                        "_metadata": {
+                            "columns": [
+                                {"name": "my_datetime", "type": "DATETIME"},
+                                {"name": "my_year", "type": "BIGINT UNSIGNED"},
+                            ]
+                        },
+                    },
+                ],
+                "out_parameters": {
+                    "ts": "2023-09-30 14:59:01",
+                    "dt": "2016-11-20 01:02:03",
+                    "d": "1993-10-24",
+                    "t": "03:00:02",
+                    "y": "1977",
+                },
+            },
+            IMyServiceMrsTestsProcDateAndTimeParams,
+            IMyServiceMrsTestsProcDateAndTimeParamsOut,
+            IMyServiceMrsTestsProcDateAndTimeResultSet,
+            {
+                "out_parameters": IMyServiceMrsTestsProcDateAndTimeParamsOut,
+                "result_sets": {
+                    "IMyServiceMyDbProcDateAndTimeResultSet1": IIMyServiceMyDbProcDateAndTimeResultSet1,
+                    "IMyServiceMyDbProcDateAndTimeResultSet2": IIMyServiceMyDbProcDateAndTimeResultSet2,
+                },
+            },
+        ),
         (
             "TwiceProc",  # p(number) -> 2*number
             {"number": 13},
@@ -1337,6 +1533,7 @@ async def test_function_call_submit(
             TwiceProcParams,
             TwiceProcParamsOut,
             TwiceProcResultSet,
+            {"out_parameters": TwiceProcParamsOut, "result_sets": None},
         ),
         (
             "MirrorProc",  # p(string) -> reversed string
@@ -1345,6 +1542,7 @@ async def test_function_call_submit(
             MirrorProcParams,
             MirrorProcParamsOut,
             MirrorProcResultSet,
+            {"out_parameters": MirrorProcParamsOut, "result_sets": None},
         ),
         (
             "SampleProc",
@@ -1374,6 +1572,13 @@ async def test_function_call_submit(
             SampleProcParams,
             SampleProcParamsOut,
             SampleProcResultSet,
+            {
+                "out_parameters": SampleProcParamsOut,
+                "result_sets": {
+                    "SampleProcResultSet1": SampleProcResultSet1,
+                    "SampleProcResultSet2": SampleProcResultSet2,
+                },
+            },
         ),
     ],
 )
@@ -1389,6 +1594,7 @@ async def test_procedure_call_submit(
     result_sets_interface: TypeAlias,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
+    result_type_hint_struct: ProcedureResponseTypeHintStruct,
 ):
     """Check `MrsBaseObjectProcedureCall.submit()`."""
     request_path = f"{schema._request_path}/{proc_name}"
@@ -1397,18 +1603,50 @@ async def test_procedure_call_submit(
     ](
         schema=schema,
         request_path=request_path,
-        parameters=cast(in_interface, parameters),
+        parameters=cast(in_interface, parameters),  # type: ignore
+        result_type_hint_struct=result_type_hint_struct,
     )
 
     mock_urlopen.return_value = urlopen_simulator(urlopen_read=urlopen_read)
     mock_create_default_context.return_value = ssl.create_default_context()
 
     procedure_result = await request.submit()
-
-    assert procedure_result.out_parameters == urlopen_read["out_parameters"]
-    assert procedure_result.result_sets == [
-        MrsProcedureResultSet(result_set) for result_set in urlopen_read["result_sets"]
+    url_open_read_out_params_converted = (
+        MrsDataDownstreamConverter.convert_obj_fields_from_typed_dict(
+            urlopen_read["out_parameters"],
+            typed_dict=result_type_hint_struct["out_parameters"],
+        )
+    )
+    url_open_read_result_sets_converted = [
+        MrsProcedureResultSet[str, Any, Any](  # type: ignore[misc]
+            result_set,
+            typed_dict=(result_type_hint_struct["result_sets"] or {}).get(
+                result_set["type"]
+            ),
+        )
+        for result_set in urlopen_read["result_sets"]
     ]
+
+    # Verify fields of output interface
+    for field_name, field_value in url_open_read_out_params_converted.items():
+        assert procedure_result.out_parameters[field_name] == field_value
+        assert isinstance(
+            procedure_result.out_parameters[field_name], field_value.__class__
+        )
+
+    # Verify fields of 'result sets' interface
+    if result_type_hint_struct["result_sets"] is None:
+        assert procedure_result.result_sets == url_open_read_result_sets_converted
+    else:
+        for result_set, exp_result_set in zip(
+            procedure_result.result_sets, url_open_read_result_sets_converted
+        ):
+            for item, exp_item in zip(result_set.items, exp_result_set.items):
+                for field_name in typing.get_type_hints(
+                    result_type_hint_struct["result_sets"][result_set.type]
+                ):
+                    assert item[field_name] == exp_item[field_name]
+                    assert isinstance(item[field_name], exp_item[field_name].__class__)
 
     mock_request_class.assert_called_once_with(
         url=request_path,
@@ -1606,6 +1844,24 @@ async def test_where_field_is_equal_with_implicit_filter(
             "q=%7B%22%24or%22%3A%5B%7B%22firstName%22%3A%7B%22%24eq%22%3A%22Hello%20Word"
             "%21%22%7D%7D%2C%7B%22firstName%22%3A%7B%22%24eq%22%3A%22I%20am%20MySQL%22%7D"
             "%7D%2C%7B%22firstName%22%3A%7B%22%24eq%22%3A%22A%20B%20c%20D%20E%20f%20G%22%7D%7D%5D%7D",
+        ),
+        (
+            {
+                "where": {
+                    "AND": [
+                        {
+                            "dt_shorter": {
+                                "lt": datetime.datetime.fromisoformat(
+                                    "2023-07-30 15:59:01"
+                                )
+                            }
+                        },
+                        {"d": {"gte": datetime.date.fromisoformat("1987-12-09")}},
+                    ]
+                }
+            },
+            "q=%7B%22%24and%22%3A%5B%7B%22dtShorter%22%3A%7B%22%24lt%22%3A%222023-07-30"
+            "%2015%3A59%3A01%22%7D%7D%2C%7B%22d%22%3A%7B%22%24gte%22%3A%221987-12-09%22%7D%7D%5D%7D",
         ),
     ],
 )
@@ -2285,6 +2541,55 @@ def test_decode_data(data: dict[str, Any], converted_data: dict[str, Any]):
             {"where": {"last_update": None}},
             '{"lastUpdate":{"$null":null}}',
         ),
+        (
+            {"where": {"d": {"equals": datetime.date(2020, 10, 20)}}},
+            '{"d":{"$eq":"2020-10-20"}}',
+        ),
+        (
+            {
+                "where": {
+                    "my_time": {
+                        "lt": datetime.timedelta(
+                            days=0, hours=10, minutes=8, seconds=34, microseconds=10
+                        )
+                    }
+                }
+            },
+            '{"myTime":{"$lt":"010:08:34.000010"}}',
+        ),
+        (
+            {
+                "where": {
+                    "your_time": {
+                        "equals": datetime.timedelta(
+                            days=4, hours=4, minutes=1, seconds=1
+                        )
+                    }
+                }
+            },
+            '{"yourTime":{"$eq":"100:01:01"}}',
+        ),
+        (
+            {"where": {"y": {"not": None}}},
+            '{"y":{"$notnull":null}}',
+        ),
+        (
+            {
+                "where": {
+                    "AND": [
+                        {
+                            "dt_shorter": {
+                                "lt": datetime.datetime.fromisoformat(
+                                    "2023-07-30 15:59:01"
+                                )
+                            }
+                        },
+                        {"d": {"gte": datetime.date.fromisoformat("1987-12-09")}},
+                    ]
+                }
+            },
+            '{"$and":[{"dtShorter":{"$lt":"2023-07-30 15:59:01"}},{"d":{"$gte":"1987-12-09"}}]}',
+        ),
     ],
 )
 async def test_query_encoder(
@@ -2305,15 +2610,21 @@ async def test_query_encoder(
 
 
 ####################################################################################
-#                    Test "UndefinedDataClassField" Class
+#                         Test Singleton Subclasses
 ####################################################################################
-def test_undefined_is_singleton():
-    """Check a single instance of `UndefinedDataClassField` exist at any given time.
+@pytest.mark.parametrize(
+    "subcls",
+    [
+        UndefinedDataClassField,
+    ],
+)
+def test_singletons(subcls: type[UndefinedDataClassField]):
+    """Check a single instance of a "singleton" subclass exists at any given time.
 
     In other words, all existing instances must point to the same memory address.
     """
-    identity = id(UndefinedDataClassField())
-    for instance in (UndefinedDataClassField() for _ in range(1000)):
+    identity = id(subcls())
+    for instance in (subcls() for _ in range(1000)):
         assert id(instance) == identity
 
 
@@ -2336,3 +2647,138 @@ def test_auth_app_not_found_exception():
         match=AuthAppNotFoundError._default_msg,
     ):
         raise AuthAppNotFoundError
+
+
+####################################################################################
+#                           Test Conversion
+####################################################################################
+@pytest.mark.parametrize(
+    "value, type_hint, exp_output",
+    [
+        # misc (conversion is skipped)
+        (False, Optional[bool], False),
+        (b"foo and bar", bytes, b"foo and bar"),
+        ("1876", Optional[str], "1876"),
+        ("2025-02-27 09:41:25.000678", str, "2025-02-27 09:41:25.000678"),
+        # year
+        ("2003", Optional[Year], 2003),
+        ("0103", Year, 103),
+        (1985, Year, 1985),
+        # datetime
+        (
+            "2025-02-27 09:41:25.000678",
+            Optional[DateTime],
+            datetime.datetime(
+                year=2025,
+                month=2,
+                day=27,
+                hour=9,
+                minute=41,
+                second=25,
+                microsecond=678,
+            ),
+        ),
+        (
+            "2023-07-30 14:59:01",
+            typing.Optional[DateTime],
+            datetime.datetime(
+                year=2023,
+                month=7,
+                day=30,
+                hour=14,
+                minute=59,
+                second=1,
+            ),
+        ),
+        # date
+        ("2010-01-01", Optional[Date], datetime.date(2010, 1, 1)),
+        ("1929-12-30", Date, datetime.date(1929, 12, 30)),
+        # time
+        (
+            "023:23:23.000023",
+            Optional[Time],
+            datetime.timedelta(hours=23, minutes=23, seconds=23, microseconds=23),
+        ),
+        (
+            "119:10:00.100023",
+            Time,
+            datetime.timedelta(days=4, seconds=83400, microseconds=100023),
+        ),
+        (
+            "00:01:09.000001",
+            Time,
+            datetime.timedelta(seconds=69, microseconds=1),
+        ),
+    ],
+)
+def test_downstream_converter(value: int | str, type_hint: TypeAlias, exp_output: Any):
+    value_converted = MrsDataDownstreamConverter.convert(value, dst_type=type_hint)
+    assert value_converted == exp_output
+    assert isinstance(value_converted, exp_output.__class__) == True
+
+
+@pytest.mark.parametrize(
+    "value, exp_output",
+    [
+        # misc (conversion is skipped)
+        ("foo", "foo"),
+        (True, True),
+        (b"foo and bar", b"foo and bar"),
+        ([1, 5], [1, 5]),
+        (
+            {"field1": "name1", "field2": "name2"},
+            {"field1": "name1", "field2": "name2"},
+        ),
+        ([1, 5, 9], [1, 5, 9]),
+        # year
+        (1345, 1345),
+        (0, 0),
+        # datetime
+        (
+            datetime.datetime(
+                year=2023,
+                month=7,
+                day=30,
+                hour=14,
+                minute=59,
+                second=1,
+            ),
+            "2023-07-30 14:59:01",
+        ),
+        (
+            datetime.datetime(
+                year=1985,
+                month=1,
+                day=1,
+                hour=1,
+                minute=1,
+                second=1,
+            ),
+            "1985-01-01 01:01:01",
+        ),
+        # date
+        (datetime.date(2010, 1, 1), "2010-01-01"),
+        (datetime.date(1929, 12, 30), "1929-12-30"),
+        # time
+        (
+            datetime.timedelta(days=4, seconds=83400, microseconds=100023),
+            "119:10:00.100023",
+        ),
+        (
+            datetime.timedelta(hours=23, minutes=23, seconds=23, microseconds=23),
+            "023:23:23.000023",
+        ),
+        (
+            datetime.timedelta(seconds=69, microseconds=1),
+            "000:01:09.000001",
+        ),
+        (
+            datetime.timedelta(seconds=59, microseconds=600),
+            "000:00:59.000600",
+        ),
+    ],
+)
+def test_upstream_converter(value: Any, exp_output: Any):
+    value_converted = MrsDataUpstreamConverter.convert(value)
+    assert value_converted == exp_output
+    assert isinstance(value_converted, exp_output.__class__) == True
