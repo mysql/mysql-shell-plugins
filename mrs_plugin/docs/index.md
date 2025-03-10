@@ -43,4 +43,4 @@ Please also see
 
 !include ../examples/readme.md
 
-Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+Copyright (c) 2022, 2025, Oracle and/or its affiliates.
