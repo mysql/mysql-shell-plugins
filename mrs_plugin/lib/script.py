@@ -47,20 +47,25 @@ def run_mrs_script(mrs_script=None, **kwargs):
         current_schema_id (str): The id of the current schema
         current_schema (str): The full path of the current schema
         session (object): The database session to use.
+        sql_mode (str): SQL_MODE variable for the session.
 
     Returns:
         The schema_id of the created schema when not in interactive mode
     """
     path = kwargs.get("path")
+    session = kwargs.get("session")
     current_service_id = kwargs.get("current_service_id")
     current_service = kwargs.get("current_service")
     current_service_host = kwargs.get("current_service_host")
     current_schema_id = kwargs.get("current_schema_id")
     current_schema = kwargs.get("current_schema")
     state_data = kwargs.get("state_data", {})
+    sql_mode = kwargs.get("sql_mode") or ""
 
     if mrs_script is None and path is None:
         raise Exception("No script give.")
+
+    sql_mode = sql_mode.upper().split(",")
 
     # If a path to a file was specified, read that
     if mrs_script is None and path is not None:
@@ -72,10 +77,11 @@ def run_mrs_script(mrs_script=None, **kwargs):
             raise Exception(f"Error while loading file '{path}'. Error: {e}")
 
     lexer = MRSLexer(antlr4.InputStream(mrs_script))
-
+    lexer.isSqlModeActive = lambda mode: mode.upper() in sql_mode
     tokens = antlr4.CommonTokenStream(lexer)
 
     parser = MRSParser(tokens)
+    parser.isSqlModeActive = lambda mode: mode.upper() in sql_mode
     parser.removeErrorListeners()
     # First try with the faster SLL parsing strategy
     parser._interp.predictionMode = antlr4.PredictionMode.SLL

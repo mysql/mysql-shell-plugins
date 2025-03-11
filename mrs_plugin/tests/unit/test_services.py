@@ -29,21 +29,21 @@ from .helpers import ServiceCT, SchemaCT, AuthAppCT, DbObjectCT, get_default_db_
 from mrs_plugin import lib
 
 service_create_statement = """CREATE REST SERVICE /test
-    COMMENTS "Test service";"""
+    COMMENT 'Test service';"""
 
 service_create_statement_include_all_objects = """CREATE REST SERVICE /test
-    COMMENTS "Test service";
+    COMMENT 'Test service';
 
-CREATE REST ROLE "DBA" ON SERVICE /test
-    COMMENTS "Database administrator."
+CREATE REST ROLE `DBA` ON SERVICE /test
+    COMMENT 'Database administrator.'
     OPTIONS {};
 
-CREATE REST ROLE "Maintenance Admin" EXTENDS "DBA" ON SERVICE /test
-    COMMENTS "Maintenance administrator."
+CREATE REST ROLE `Maintenance Admin` EXTENDS `DBA` ON SERVICE /test
+    COMMENT 'Maintenance administrator.'
     OPTIONS {};
 
-CREATE REST ROLE "Process Admin" EXTENDS "Maintenance Admin" ON SERVICE /test
-    COMMENTS "Process administrator."
+CREATE REST ROLE `Process Admin` EXTENDS `Maintenance Admin` ON SERVICE /test
+    COMMENT 'Process administrator.'
     OPTIONS {};
 
 CREATE OR REPLACE REST SCHEMA /AnalogPhoneBook ON SERVICE /test
@@ -51,7 +51,7 @@ CREATE OR REPLACE REST SCHEMA /AnalogPhoneBook ON SERVICE /test
 
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE /test SCHEMA /AnalogPhoneBook
-    AS AnalogPhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
+    AS AnalogPhoneBook.Contacts CLASS `MyServiceAnalogPhoneBookContacts` {
         id: id @KEY @SORTABLE,
         fName: f_name,
         lName: l_name,
@@ -65,7 +65,7 @@ CREATE OR REPLACE REST SCHEMA /MobilePhoneBook ON SERVICE /test
 
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE /test SCHEMA /MobilePhoneBook
-    AS MobilePhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
+    AS MobilePhoneBook.Contacts CLASS `MyServiceAnalogPhoneBookContacts` {
         id: id @KEY @SORTABLE,
         fName: f_name,
         lName: l_name,
@@ -79,7 +79,7 @@ CREATE OR REPLACE REST SCHEMA /PhoneBook ON SERVICE /test
 
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE /test SCHEMA /PhoneBook
-    AS PhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
+    AS PhoneBook.Contacts CLASS `MyServiceAnalogPhoneBookContacts` {
         id: id @KEY @SORTABLE,
         fName: f_name,
         lName: l_name,
@@ -90,21 +90,21 @@ CREATE OR REPLACE REST VIEW /Contacts
 
 CREATE OR REPLACE REST CONTENT SET /test_content_set
     ON SERVICE /test
-    COMMENTS "Content Set"
+    COMMENT 'Content Set'
     OPTIONS {}
     AUTHENTICATION NOT REQUIRED;
 
-CREATE OR REPLACE REST CONTENT FILE "/readme.txt"
+CREATE OR REPLACE REST CONTENT FILE `/readme.txt`
     ON SERVICE /test CONTENT SET /test_content_set
     OPTIONS {
         "last_modification": "__README_TXT_LAST_MODIFICATION__"
     }
     AUTHENTICATION NOT REQUIRED
     CONTENT 'Line \\'1\\'
-Line "2"
+Line \\"2\\"
 Line \\\\3\\\\';
 
-CREATE OR REPLACE REST CONTENT FILE "/somebinaryfile.bin"
+CREATE OR REPLACE REST CONTENT FILE `/somebinaryfile.bin`
     ON SERVICE /test CONTENT SET /test_content_set
     OPTIONS {
         "last_modification": "__SOMEBINARYFILE_BIN_LAST_MODIFICATION__"
@@ -499,13 +499,13 @@ CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE /test2
 
 CREATE OR REPLACE REST VIEW /addresses
     ON SERVICE /test2 SCHEMA /PhoneBook2
-    AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
+    AS PhoneBook.Addresses CLASS `MyServicePhoneBookContactsWithEmail` @INSERT @UPDATE @DELETE {
         id: id @KEY
     }
     AUTHENTICATION NOT REQUIRED
     ITEMS PER PAGE 10
-    COMMENTS "Object that will be removed"
-    MEDIA TYPE "application/json"
+    COMMENT 'Object that will be removed'
+    MEDIA TYPE 'application/json'
     OPTIONS {
         "aaa": "val aaa",
         "bbb": "val bbb"
@@ -596,7 +596,7 @@ def test_service_selection(phone_book, table_contents):
         service_id = phone_book["service_id"]
 
         service2_create_statement = """CREATE REST SERVICE /service2
-    COMMENTS "Test service2"
+    COMMENT 'Test service2'
     OPTIONS {
         "http": {
             "allowedOrigin": "auto"

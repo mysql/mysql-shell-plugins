@@ -91,6 +91,7 @@ PARAMETERS_SYMBOL:     P A R A M E T E R S;
 ADD_SYMBOL:            A D D;
 REMOVE_SYMBOL:         R E M O V E;
 MERGE_SYMBOL:          M E R G E;
+COMMENT_SYMBOL:        C O M M E N T;
 
 // Used for auto merging this grammar and the standard MySQL grammar.
 /* START OF MERGE PART */
@@ -112,7 +113,6 @@ UNPUBLISHED_SYMBOL: U N P U B L I S H E D;
 PROTOCOL_SYMBOL:    P R O T O C O L;
 HTTP_SYMBOL:        H T T P;
 HTTPS_SYMBOL:       H T T P S;
-COMMENTS_SYMBOL:    C O M M E N T S;
 REQUEST_SYMBOL:     R E Q U E S T;
 REDIRECTION_SYMBOL: R E D I R E C T I O N;
 MANAGEMENT_SYMBOL:  M A N A G E M E N T;
@@ -298,6 +298,9 @@ IDENTIFIER:
 ;
 // INT_NUMBER matches first if there are only digits.
 
+REST_REQUEST_PATH:
+    (DIV_OPERATOR IDENTIFIER)+;
+
 NCHAR_TEXT: [nN] SINGLE_QUOTED_TEXT;
 
 // MySQL supports automatic concatenation of multiple single and double quoted strings if they
@@ -309,11 +312,19 @@ fragment BACK_TICK:    '`';
 fragment SINGLE_QUOTE: '\'';
 fragment DOUBLE_QUOTE: '"';
 
-BACK_TICK_QUOTED_ID: BACK_TICK (('\\')? .)*? BACK_TICK;
+BACK_TICK_QUOTED_REST_PATH:
+    BACK_TICK (DIV_OPERATOR (({!this.isSqlModeActive(SqlMode.NoBackslashEscapes)}? '\\')? .)+?)+? BACK_TICK;
 
-DOUBLE_QUOTED_TEXT: (DOUBLE_QUOTE ( ('\\' .)? .)*? DOUBLE_QUOTE)+;
+BACK_TICK_QUOTED_ID:
+    BACK_TICK (({!this.isSqlModeActive(SqlMode.NoBackslashEscapes)}? '\\')? .)*? BACK_TICK;
 
-SINGLE_QUOTED_TEXT: ( SINGLE_QUOTE ( ('\\')? .)*? SINGLE_QUOTE)+;
+DOUBLE_QUOTED_TEXT: (
+        DOUBLE_QUOTE (({!this.isSqlModeActive(SqlMode.NoBackslashEscapes)}? '\\')? .)*? DOUBLE_QUOTE
+    )+;
+
+SINGLE_QUOTED_TEXT: (
+        SINGLE_QUOTE (({!this.isSqlModeActive(SqlMode.NoBackslashEscapes)}? '\\')? .)*? SINGLE_QUOTE
+    )+;
 
 BLOCK_COMMENT: ('/**/' | '/*' ~[!] .*? '*/') -> channel(HIDDEN);
 

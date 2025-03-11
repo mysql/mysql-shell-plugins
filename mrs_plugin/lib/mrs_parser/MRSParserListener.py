@@ -116,6 +116,15 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#serviceSchemaSelectorWildcard.
+    def enterServiceSchemaSelectorWildcard(self, ctx:MRSParser.ServiceSchemaSelectorWildcardContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#serviceSchemaSelectorWildcard.
+    def exitServiceSchemaSelectorWildcard(self, ctx:MRSParser.ServiceSchemaSelectorWildcardContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#configureRestMetadataStatement.
     def enterConfigureRestMetadataStatement(self, ctx:MRSParser.ConfigureRestMetadataStatementContext):
         pass
@@ -1025,6 +1034,15 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#serviceRequestPathWildcard.
+    def enterServiceRequestPathWildcard(self, ctx:MRSParser.ServiceRequestPathWildcardContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#serviceRequestPathWildcard.
+    def exitServiceRequestPathWildcard(self, ctx:MRSParser.ServiceRequestPathWildcardContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#schemaRequestPath.
     def enterSchemaRequestPath(self, ctx:MRSParser.SchemaRequestPathContext):
         pass
@@ -1040,6 +1058,15 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#newSchemaRequestPath.
     def exitNewSchemaRequestPath(self, ctx:MRSParser.NewSchemaRequestPathContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#schemaRequestPathWildcard.
+    def enterSchemaRequestPathWildcard(self, ctx:MRSParser.SchemaRequestPathWildcardContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#schemaRequestPathWildcard.
+    def exitSchemaRequestPathWildcard(self, ctx:MRSParser.SchemaRequestPathWildcardContext):
         pass
 
 
@@ -1085,6 +1112,15 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#objectRequestPath.
     def exitObjectRequestPath(self, ctx:MRSParser.ObjectRequestPathContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#objectRequestPathWildcard.
+    def enterObjectRequestPathWildcard(self, ctx:MRSParser.ObjectRequestPathWildcardContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#objectRequestPathWildcard.
+    def exitObjectRequestPathWildcard(self, ctx:MRSParser.ObjectRequestPathWildcardContext):
         pass
 
 
@@ -1169,15 +1205,6 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by MRSParser#dottedIdentifier.
-    def enterDottedIdentifier(self, ctx:MRSParser.DottedIdentifierContext):
-        pass
-
-    # Exit a parse tree produced by MRSParser#dottedIdentifier.
-    def exitDottedIdentifier(self, ctx:MRSParser.DottedIdentifierContext):
-        pass
-
-
     # Enter a parse tree produced by MRSParser#requestPathIdentifier.
     def enterRequestPathIdentifier(self, ctx:MRSParser.RequestPathIdentifierContext):
         pass
@@ -1187,12 +1214,12 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by MRSParser#quotedText.
-    def enterQuotedText(self, ctx:MRSParser.QuotedTextContext):
+    # Enter a parse tree produced by MRSParser#requestPathIdentifierWithWildcard.
+    def enterRequestPathIdentifierWithWildcard(self, ctx:MRSParser.RequestPathIdentifierWithWildcardContext):
         pass
 
-    # Exit a parse tree produced by MRSParser#quotedText.
-    def exitQuotedText(self, ctx:MRSParser.QuotedTextContext):
+    # Exit a parse tree produced by MRSParser#requestPathIdentifierWithWildcard.
+    def exitRequestPathIdentifierWithWildcard(self, ctx:MRSParser.RequestPathIdentifierWithWildcardContext):
         pass
 
 
@@ -1418,6 +1445,24 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#dotIdentifier.
     def exitDotIdentifier(self, ctx:MRSParser.DotIdentifierContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#textStringLiteral.
+    def enterTextStringLiteral(self, ctx:MRSParser.TextStringLiteralContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#textStringLiteral.
+    def exitTextStringLiteral(self, ctx:MRSParser.TextStringLiteralContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#textOrIdentifier.
+    def enterTextOrIdentifier(self, ctx:MRSParser.TextOrIdentifierContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#textOrIdentifier.
+    def exitTextOrIdentifier(self, ctx:MRSParser.TextOrIdentifierContext):
         pass
 
 

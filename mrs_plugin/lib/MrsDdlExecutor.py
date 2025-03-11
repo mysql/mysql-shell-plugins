@@ -30,6 +30,33 @@ from datetime import datetime
 import base64
 import os
 
+# TODO can't import core.lib.quote_str directly bc of circular import
+import mysqlsh
+def escape_str(s):
+    return s.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
+
+def squote_str(s):
+    return "'" + escape_str(s) + "'"
+
+def quote_ident(s):
+    return mysqlsh.mysql.quote_identifier(s)
+
+
+path_re = re.compile("^(/[a-zA-Z_0-9]*?)+?$")
+quote_text = squote_str
+quote_user = quote_ident
+quote_auth_app = quote_ident
+quote_role = quote_ident
+# full_service_path
+quote_fsp = lambda s: s # TODO review
+# request_path
+def quote_rpath(s):
+    if not s or "*" in s or "?" in s or s[0] != "/":
+        return squote_str(s)
+    if path_re.match(s):
+        return s
+    return quote_ident(s)
+
 shell = globals.shell
 
 
@@ -2650,8 +2677,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     service_id=service_id,
                 )
                 if not user:
-                    raise Exception(
-                        f"User `{user_name}`@`{auth_app_name}` not found")
+                    raise Exception(f"User {quote_user(user_name)}@{quote_auth_app(auth_app_name)} not found")
                 roles = lib.users.get_user_roles(
                     session=self.session, user_id=user.get("id")
                 )
@@ -2675,19 +2701,15 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
             result = []
             if user_name is not None and auth_app_name is not None:
-                target = (
-                    lib.core.quote_str(user_name)
-                    + "@"
-                    + lib.core.quote_str(auth_app_name)
-                )
+                target = quote_user(user_name) + "@" + quote_auth_app(auth_app_name)
+
                 column_names = [f"REST roles for {target}"]
                 for role in roles:
                     result.append(
                         {
                             column_names[0]: role.get("caption"),
                             "comments": role.get("comments") or "",
-                            "derived_from_role": role.get("derived_from_role_caption")
-                            or "",
+                            "derived_from_role": role.get("derived_from_role_caption") or "",
                             "description": role.get("description") or "",
                             "options": role.get("options"),
                         }
@@ -2833,18 +2855,18 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             stmt = f'CREATE REST SERVICE {service.get("host_ctx")}\n'
             if service.get("enabled") != 1:
                 stmt += "    DISABLED\n"
-            if service.get("comments"):  # ignore either None or empty
-                stmt += f'    COMMENTS "{service.get("comments")}"\n'
+            if service.get("comments"): # ignore either None or empty
+                stmt += f'    COMMENT {quote_text(service.get("comments"))}\n'
 
             auth = ""
             if service.get("auth_path") != "/authentication":
-                auth += f'        PATH "{service.get("auth_path")}"\n'
+                auth += f'        PATH {quote_text(service.get("auth_path"))}\n'
             if service.get("auth_completed_url"):  # ignore either None or empty
-                auth += f'        REDIRECTION "{service.get("auth_completed_url")}"\n'
+                auth += f'        REDIRECTION {quote_text(service.get("auth_completed_url"))}\n'
             if service.get("auth_completed_url_validation"):  # ignore either None or empty
-                auth += f'        VALIDATION "{service.get("auth_completed_url_validation")}"\n'
+                auth += f'        VALIDATION {quote_text(service.get("auth_completed_url_validation"))}\n'
             if service.get("auth_completed_page_content"):  # ignore either None or empty
-                auth += f'        PAGE CONTENT "{service.get("auth_completed_page_content")}"\n'
+                auth += f'        PAGE CONTENT {quote_text(service.get("auth_completed_page_content"))}\n'
             if auth:  # ignore either None or empty
                 stmt += f"    AUTHENTICATION\n{auth}"
 
@@ -2924,8 +2946,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             if schema is None:
                 raise Exception("The REST schema was not found.")
 
-            stmt = f'CREATE OR REPLACE REST SCHEMA {schema.get("request_path")} ON SERVICE {service.get("host_ctx")}\n'
-            stmt += f'    FROM `{schema.get("name")}`\n'
+            # TODO review host_ctx quoting
+            stmt = f'CREATE OR REPLACE REST SCHEMA {quote_rpath(schema.get("request_path"))} ON SERVICE {service.get("host_ctx")}\n'
+            stmt += f'    FROM {quote_ident(schema.get("name"))}\n'
 
             if schema.get("enabled") == 2:
                 stmt += "    PRIVATE\n"
@@ -3026,13 +3049,13 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 )
 
             stmt = (
-                f'CREATE OR REPLACE REST {rest_object_type} {db_object.get("request_path")}\n'
-                + f'    ON SERVICE {db_object.get("host_ctx")} SCHEMA {db_object.get("schema_request_path")}\n'
+                f'CREATE OR REPLACE REST {rest_object_type} {quote_rpath(db_object.get("request_path"))}\n'
+                + f'    ON SERVICE {db_object.get("host_ctx")} SCHEMA {quote_rpath(db_object.get("schema_request_path"))}\n'
                 + f'    AS {db_object.get("qualified_name")}'
             )
 
             if rest_object_type != "PROCEDURE" and rest_object_type != "FUNCTION":
-                stmt += f' CLASS {objects[0]["name"]}'
+                stmt += f' CLASS {quote_ident(objects[0]["name"])}'
 
                 options = objects[0].get("options", {})
                 if options is None:
@@ -3070,7 +3093,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         )
                     )
 
-                    stmt += f'    {object["kind"]} {object["name"]}'
+                    stmt += f'    {object["kind"]} {quote_ident(object["name"])}'
 
                     if children:
                         stmt += f" {{\n{children}\n    }}\n"
@@ -3091,10 +3114,10 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 stmt += f'    ITEMS PER PAGE {db_object["items_per_page"]}\n'
 
             if db_object["comments"]:  # ignore either None or empty
-                stmt += f'    COMMENTS "{db_object["comments"]}"\n'
+                stmt += f'    COMMENT {quote_text(db_object["comments"])}\n'
 
             if db_object["media_type"] is not None:
-                stmt += f'    MEDIA TYPE "{db_object["media_type"]}"\n'
+                stmt += f'    MEDIA TYPE {quote_text(db_object["media_type"])}\n'
 
             if db_object["crud_operation_format"] != "FEED":
                 stmt += f'    FORMAT {db_object["crud_operation_format"]}\n'
@@ -3140,8 +3163,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             service = lib.services.get_service(self.session, service_id)
             # Build CREATE statement
             stmt = (
-                f"CREATE OR REPLACE REST CONTENT SET {mrs_object.get('request_path')}\n"
-                + f"    ON SERVICE {service.get('full_service_path')}\n"
+                f"CREATE OR REPLACE REST CONTENT SET {quote_rpath(mrs_object.get('request_path'))}\n"
+                + f"    ON SERVICE {quote_fsp(service.get('full_service_path'))}\n"
             )
 
             if mrs_object["enabled"] == 2:
@@ -3150,7 +3173,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 stmt += "    DISABLED\n"
 
             if mrs_object["comments"]:  # ignore either None or empty
-                stmt += f'    COMMENTS "{mrs_object["comments"]}"\n'
+                stmt += f'    COMMENT {quote_text(mrs_object["comments"])}\n'
 
             stmt += self.formatJsonSetting("OPTIONS",
                                            mrs_object.get("options"))
@@ -3199,8 +3222,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             service = lib.services.get_service(self.session, service_id)
             # Build CREATE statement
             stmt = (
-                f"CREATE OR REPLACE REST CONTENT FILE \"{content_file.get('request_path')}\"\n"
-                + f"    ON SERVICE {service.get('full_service_path')} CONTENT SET {content_set['request_path']}\n"
+                f"CREATE OR REPLACE REST CONTENT FILE {quote_rpath(content_file.get('request_path'))}\n"
+                + f"    ON SERVICE {quote_fsp(service.get('full_service_path'))} CONTENT SET {quote_rpath(content_set['request_path'])}\n"
             )
 
             if content_file["enabled"] == 2:
@@ -3217,15 +3240,12 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             if lib.core.is_text(content_file["content"]):
                 content_type = "CONTENT"
                 contents = content_file["content"].decode()
-                # Escape special characters
-                contents = contents.replace("\\", "\\\\")
-                contents = contents.replace("'", "\\'")
             else:
                 content_type = "BINARY CONTENT"
                 contents = base64.b64encode(
                     content_file["content"]).decode("ascii")
 
-            stmt += f"    {content_type} '{contents}'"
+            stmt += f"    {content_type} {quote_text(contents)}"
 
             result = [{"CREATE REST CONTENT FILE": stmt + ";"}]
 
@@ -3271,10 +3291,10 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             elif auth_app["auth_vendor"].upper() == "MYSQL INTERNAL":
                 vendor = "MYSQL"
             else:
-                vendor = auth_app["auth_vendor"]
+                vendor = quote_ident(auth_app["auth_vendor"])
 
             stmt = (
-                f'CREATE OR REPLACE REST AUTH APP "{auth_app.get("name")}"\n'
+                f'CREATE OR REPLACE REST AUTH APP {quote_auth_app(auth_app.get("name"))}"\n'
                 + f"    VENDOR {vendor}\n"
             )
 
@@ -3282,7 +3302,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 stmt += "    DISABLED\n"
 
             if auth_app["description"]:  # ignore either None or empty
-                stmt += f'    COMMENTS "{auth_app["description"]}"\n'
+                stmt += f'    COMMENT {quote_text(auth_app["description"])}\n'
 
             if auth_app.get("limit_to_registered_users") == 0:
                 stmt += "    ALLOW NEW USERS TO REGISTER\n"
@@ -3294,7 +3314,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         "default_role_id")
                 )
                 if role is not None:
-                    stmt += f'    DEFAULT ROLE "{role.get("caption")}"\n'
+                    stmt += f'    DEFAULT ROLE {quote_role(role.get("caption"))}\n'
 
             output = [stmt[:-1] + ";"]
 
@@ -3336,7 +3356,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
         user_name = mrs_object.get("user_name")
         auth_app_name = mrs_object.get("auth_app_name")
-        full_user_name = f'"{user_name}"@"{auth_app_name}"'
+        full_user_name = f'{quote_user(user_name)}@{quote_auth_app(auth_app_name)}'
         include_all_objects = mrs_object["include_all_objects"]
 
         try:
@@ -3346,7 +3366,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
             if user is None:
                 raise Exception(
-                    f"The given REST USER `{user_name}` could not be found."
+                    f"The given REST USER {quote_user(user_name)} could not be found."
                 )
 
             stmt = f'CREATE OR REPLACE REST USER {full_user_name}\n'
@@ -3355,7 +3375,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 stmt += "    ACCOUNT LOCK\n"
 
             if user["auth_string"] is not None:
-                stmt += f'    IDENTIFIED BY "{user["auth_string"]}"\n'
+                stmt += f'    IDENTIFIED BY {quote_text(user["auth_string"])}\n'
 
             stmt += self.formatJsonSetting("OPTIONS", user.get("options"))
             stmt += self.formatJsonSetting("APP OPTIONS",
@@ -3364,11 +3384,10 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             # Taking care of the user roles
             if include_all_objects:
                 for role in lib.users.get_user_roles(self.session, user_id=user["id"]):
-                    stmt += f'GRANT REST ROLE "{role["caption"]}" TO "{user_name}"@"{auth_app_name}"\n'
+                    stmt += f'GRANT REST ROLE {quote_role(role["caption"])} TO {quote_user(user_name)}@{quote_auth_app(auth_app_name)}\n'
                     if role["comments"] is not None:
-                        stmt += f'    COMMENTS "{role["comments"]}"\n'
-                    stmt += self.formatJsonSetting("OPTIONS",
-                                                   role.get("user_role_options"))
+                        stmt +=  f'    COMMENT {quote_text(role["comments"])}\n'
+                    stmt += self.formatJsonSetting("OPTIONS", role.get("user_role_options"))
 
             result = [{"CREATE REST USER ": stmt[:-1] + ";"}]
 
@@ -3407,7 +3426,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         options = mrs_object.get("options")
 
         try:
-            stmt = f'CREATE REST ROLE "{caption}"'
+            stmt = f'CREATE REST ROLE {quote_role(caption)}'
 
             if derived_from_role_id is not None:
                 parent_role = lib.roles.get_role(
@@ -3416,7 +3435,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 if parent_role is None:
                     raise Exception("Role derives from an invalid role.")
 
-                stmt += f' EXTENDS "{parent_role["caption"]}"'
+                stmt += f' EXTENDS {quote_role(parent_role["caption"])}'
 
             if specific_to_service_id is not None:
                 service = lib.services.get_service(
@@ -3433,7 +3452,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             stmt += "\n"
 
             if comments is not None:
-                stmt += f'    COMMENTS "{comments}"\n'
+                stmt += f'    COMMENT {quote_text(comments)}\n'
 
             stmt += self.formatJsonSetting("OPTIONS", options)
 

@@ -28,7 +28,20 @@ cd grammar
 
 COPYRIGHT="# Copyright (c) 2023, 2025, Oracle and\/or its affiliates."
 
-antlr4ng -Dlanguage=Python3 ./MRSLexer.g4 ./MRSParser.g4 -lib ../../gui/frontend/src/parsing/mysql/ -o ../lib/mrs_parser
+mkdir -p pytmp
+
+sed -e 's/!this.isSqlModeActive(SqlMode.AnsiQuotes)/not self.isSqlModeActive("ANSI_QUOTES")/'\
+     -e 's/this.isSqlModeActive(SqlMode.AnsiQuotes)/self.isSqlModeActive("ANSI_QUOTES")/'\
+     MRSParser.g4 > pytmp/MRSParser.g4
+
+sed -e 's/!this.isSqlModeActive(SqlMode.NoBackslashEscapes)/not self.isSqlModeActive("NO_BACKSLASH_ESCAPES")/'\
+     -e 's/this.isSqlModeActive(SqlMode.NoBackslashEscapes)/self.isSqlModeActive("NO_BACKSLASH_ESCAPES")/'\
+     MRSLexer.g4 > pytmp/MRSLexer.g4
+
+cd pytmp
+antlr4ng -Dlanguage=Python3 ./MRSLexer.g4 ./MRSParser.g4 -lib ../../../gui/frontend/src/parsing/mysql/ -o ../../lib/mrs_parser
+cd ..
+
 if [ $? -eq 0 ]; then
     if [[ $(uname -s) == "Darwin" ]]; then
         sed -i '' "1s/.*/$COPYRIGHT/" ../lib/mrs_parser/MRSParser.py

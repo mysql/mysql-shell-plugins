@@ -967,7 +967,7 @@ class MrsDbSession:
         self._session = get_current_session(kwargs.get("session"))
         self._exception_handler = kwargs.get("exception_handler")
         check_version = kwargs.get("check_version", True)
-        if mrs_metadata_schema_exists(self._session) and check_version:
+        if check_version and mrs_metadata_schema_exists(self._session):
             current_db_version = get_mrs_schema_version(self._session)
             if current_db_version[0] < 2:
                 raise Exception(
@@ -1180,6 +1180,23 @@ def quote_ident(s):
 def unquote_ident(s):
     return mysqlsh.mysql.unquote_identifier(s)
 
+def squote_str(s):
+    return "'" + escape_str(s) + "'"
+
+path_re = re.compile("^(/[a-zA-Z_0-9]*?)+?$")
+quote_text = squote_str
+quote_user = quote_ident
+quote_auth_app = quote_ident
+quote_role = quote_ident
+# full_service_path
+quote_fsp = lambda s: s # TODO review
+# request_path
+def quote_rpath(s):
+    if not s or "*" in s or "?" in s or s[0] != "/":
+        return quote_ident(s)
+    if path_re.match(s):
+        return s
+    return quote_ident(s)
 
 def escape_wildcards(text: str) -> str:
     "escape * and ? wildcards with \\"

@@ -33,7 +33,7 @@ schema_create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook ON SERVICE
 
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE /test SCHEMA /PhoneBook
-    AS PhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
+    AS PhoneBook.Contacts CLASS `MyServiceAnalogPhoneBookContacts` {
         id: id @KEY @SORTABLE,
         fName: f_name,
         lName: l_name,
@@ -405,13 +405,13 @@ def test_dump_and_recover_include_all_objects(phone_book, table_contents):
 
 CREATE OR REPLACE REST VIEW /addresses
     ON SERVICE /test SCHEMA /PhoneBook2
-    AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
+    AS PhoneBook.Addresses CLASS `MyServicePhoneBookContactsWithEmail` @INSERT @UPDATE @DELETE {
         id: id @KEY
     }
     AUTHENTICATION NOT REQUIRED
     ITEMS PER PAGE 10
-    COMMENTS "Object that will be removed"
-    MEDIA TYPE "application/json"
+    COMMENT 'Object that will be removed'
+    MEDIA TYPE 'application/json'
     OPTIONS {
         "aaa": "val aaa",
         "bbb": "val bbb"

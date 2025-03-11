@@ -146,23 +146,23 @@ def test_sql_show(phone_book):
 
     session.run_sql("use rest service /rtest2")
 
-    session.run_sql('create rest auth app "MRSApp" vendor MRS')
-    session.run_sql('create rest auth app "MySQLApp" vendor MySQL')
+    session.run_sql('create rest auth app `MRSApp` vendor MRS')
+    session.run_sql('create rest auth app `MySQLApp` vendor MySQL')
 
-    session.run_sql('create rest role "roleA" on any service')
-    session.run_sql('create rest role "roleB" on any service')
-    session.run_sql('create rest role "roleC"')  # default to active service (test2)
+    session.run_sql('create rest role `roleA` on any service')
+    session.run_sql('create rest role `roleB` on any service')
+    session.run_sql('create rest role `roleC`')  # default to active service (test2)
 
-    session.run_sql('create rest role "roleD" on service /rtest')
-    session.run_sql('create rest role "roleE" on service /rtest2')
+    session.run_sql('create rest role roleD on service /rtest')
+    session.run_sql('create rest role roleE on service /rtest2')
 
     session.run_sql("use rest service /rtest")
 
-    session.run_sql('create rest user "me"@"MRSApp" identified by "MySQLR0cks!"')
-    session.run_sql('create rest user "tuser"@"MRSApp" identified by "MySQLR0cks!"')
-    session.run_sql('create rest user "demo"@"MySQLApp"')
-    session.run_sql('create rest user "me"@"MySQLApp"')
-    session.run_sql('grant rest role "roleD" to "me"@"MRSApp"')
+    session.run_sql("create rest user `me`@`MRSApp` identified by 'MySQLR0cks!'")
+    session.run_sql('create rest user `tuser`@`MRSApp` identified by "MySQLR0cks!"')
+    session.run_sql('create rest user `demo`@`MySQLApp`')
+    session.run_sql('create rest user `me`@`MySQLApp`')
+    session.run_sql('grant rest role `roleD` to me@`MRSApp`')
 
     session.run_sql("use rest service /rtest2")
 

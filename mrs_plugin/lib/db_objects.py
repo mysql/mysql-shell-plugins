@@ -756,6 +756,8 @@ def calculate_crud_operations(db_object_type, objects=None, options=None):
 
 
 def get_create_statement(session, db_object) -> str:
+    # TODO MrsDdlExecutor shouldn't be used from anywhere but parser
+    # show create code should be moved here and MrsDdlExecutor should call this
     executor = MrsDdlExecutor(session=session)
     db_object_type = "VIEW" if db_object["object_type"] in [
         "TABLE", "VIEW"] else db_object["object_type"]

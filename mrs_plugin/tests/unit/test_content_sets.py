@@ -168,7 +168,7 @@ def test_enable_disable(phone_book, table_contents):
 def test_dump_and_recover(phone_book, table_contents):
     create_statement = """CREATE OR REPLACE REST CONTENT SET /tempContentSet
     ON SERVICE /test
-    COMMENTS "Content set comment"
+    COMMENT 'Content set comment'
     OPTIONS {
         "option_1": "value 1",
         "option_2": "value 2",
@@ -176,17 +176,17 @@ def test_dump_and_recover(phone_book, table_contents):
     }
     AUTHENTICATION NOT REQUIRED;
 
-CREATE OR REPLACE REST CONTENT FILE "/readme.txt"
+CREATE OR REPLACE REST CONTENT FILE `/readme.txt`
     ON SERVICE /test CONTENT SET /tempContentSet
     OPTIONS {
         "last_modification": "__README_TXT_LAST_MODIFICATION__"
     }
     AUTHENTICATION NOT REQUIRED
     CONTENT 'Line \\'1\\'
-Line "2"
+Line \\"2\\"
 Line \\\\3\\\\';
 
-CREATE OR REPLACE REST CONTENT FILE "/somebinaryfile.bin"
+CREATE OR REPLACE REST CONTENT FILE `/somebinaryfile.bin`
     ON SERVICE /test CONTENT SET /tempContentSet
     OPTIONS {
         "last_modification": "__SOMEBINARYFILE_BIN_LAST_MODIFICATION__"
