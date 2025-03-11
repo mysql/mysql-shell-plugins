@@ -112,7 +112,7 @@ arg_parser.add_argument('-M', '--mysqlsh',
                         help='Pass additional options to mysqlsh')
 
 try:
-    args = arg_parser.parse_args()
+    args, other_arguments = arg_parser.parse_known_args()
 except argparse.ArgumentError as e:
     print(str(e))
 
@@ -122,9 +122,7 @@ print(args)
 assert Path(os.path.join(os.getcwd(), 'run_tests.py')).exists(
 ), "Please run this script inside the backend directory."
 
-
 assert args.shell is not None, "Could not find the MySQL Shell binary. Please specify it using the --shell parameter of the MYSQLSH environment variable."
-
 
 class MyPaths:
     def __init__(self, debug_mode, portable_path, shell_path, userhome_path: Path):
@@ -182,7 +180,6 @@ class MyPaths:
         assert self.source.webroot.is_dir()
         assert self.source.pytest_config.is_file()
 
-
 if args.portable is not None and zipfile.is_zipfile(args.portable):
     # Unzip the portable zip
     unzip_path = os.path.dirname(args.portable)
@@ -235,8 +232,8 @@ with pushd(paths.source.plugin):
     if args.debug is not None:
         env['ATTACH_DEBUGGER'] = args.debug
 
-    command = f"{paths.shell} {MYSQLSH_FLAGS} --pym pytest {args.pytest or ''} --cov={paths.source.code} --cov-append -vv -c {paths.source.pytest_config} {LOGS} {paths.source.plugin} {PATTERN}"
-    print(command)
+    command = f"{paths.shell} {MYSQLSH_FLAGS} --pym pytest {args.pytest or ''} --cov={paths.source.code} --cov-append -vv -c {paths.source.pytest_config} {LOGS} {paths.source.plugin} {PATTERN} {" ".join(other_arguments)}"
+    print(f"Test run command: {command}")
     shell = subprocess.run(command, shell=True, env=env)
 
 if not shell.returncode == 0:
