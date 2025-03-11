@@ -22,5 +22,5 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-mysqlsh dba@localhost --sql -f "./grammar/test/grammar_test_setup.sql"
-mysqlsh dba@localhost --sql --interactive=full --log-level=debug3 --verbose=4 -f ./grammar/test/grammar_test.sql
+mysqlsh root@localhost --sql -f "./grammar/test/grammar_test_setup.sql"
+mysqlsh root@localhost --sql --interactive=full --log-level=debug3 --verbose=4 -f ./grammar/test/grammar_test.sql 2>&1 | grep --color=always -e ^ -e 'Syntax.*' -e 'Error:.*' -e '^ERROR.*'

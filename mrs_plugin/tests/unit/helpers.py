@@ -173,7 +173,7 @@ class SchemaCT(object):
 
 
 class ServiceCT(object):
-    def __init__(self, session, url_context_root, url_host_name=None, **kwargs):
+    def __init__(self, session, url_context_root, **kwargs):
         self._session = session
         self._args = kwargs
         self._args["url_context_root"] = url_context_root
@@ -182,7 +182,7 @@ class ServiceCT(object):
         self._args["auth_path"] = "/authentication"
         self._args["comments"] = kwargs.get("comments", "")
 
-        self._service_id = lib.services.add_service(session, url_host_name, self._args)
+        self._service_id = lib.services.add_service(session, None, self._args)
         assert self._service_id is not None
 
     def __enter__(self):

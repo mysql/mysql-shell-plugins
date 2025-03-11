@@ -358,20 +358,20 @@ def format_role_grant_statement(grant: dict) -> str:
         else:
             url_host_name, sep, url_context_root = service.partition("/")
             url_context_root = sep + url_context_root
-        url_context_root = core.quote_str(url_context_root)
+        url_context_root = core.quote_rpath(url_context_root)
         if url_host_name:
             url_host_name = core.quote_str(url_host_name)
             where.append(f"SERVICE {url_host_name} {url_context_root}")
         else:
             where.append(f"SERVICE {url_context_root}")
     if schema is not None:
-        schema = core.quote_str(schema)
+        schema = core.quote_rpath(schema)
         where.append(f"SCHEMA {schema}")
     if object is not None:
-        object = core.quote_str(object)
+        object = core.quote_rpath(object)
         where.append(f"OBJECT {object}")
 
-    return f"""GRANT REST {",".join(grant.get("crud_operations"))} ON {" ".join(where)} TO {core.quote_str(grant.get('role_name'))}"""
+    return f"""GRANT REST {",".join(grant.get("crud_operations"))} ON {" ".join(where)} TO {core.quote_role(grant.get('role_name'))}"""
 
 
 def get_create_statement(session, role) -> str:

@@ -31,7 +31,6 @@ import json
 
 
 def get_text_without_quotes(txt):
-    # TODO review identifier vs string
     if txt is None:
         return None
 
@@ -92,7 +91,7 @@ class MrsDdlListener(MRSListener):
 
     def enterComments(self, ctx):
         self.mrs_object["comments"] = get_text_without_quotes(
-            ctx.quotedText().getText()
+            ctx.textStringLiteral().getText()
         )
 
     def enterEnabledDisabled(self, ctx):
@@ -147,14 +146,24 @@ class MrsDdlListener(MRSListener):
             ctx.requestPathIdentifier().getText()
         )
 
+    def enterServiceRequestPathWildcard(self, ctx):
+        self.mrs_object["url_context_root"] = get_text_without_quotes(
+            ctx.requestPathIdentifierWithWildcard().getText()
+        )
+
     def enterServiceSchemaSelector(self, ctx):
         self.mrs_object["schema_request_path"] = get_text_without_quotes(
             ctx.schemaRequestPath().getText()
         )
 
+    def enterServiceSchemaSelectorWildcard(self, ctx):
+        self.mrs_object["schema_request_path"] = get_text_without_quotes(
+            ctx.schemaRequestPathWildcard().getText()
+        )
+
     def enterFileIgnoreList(self, ctx):
         self.mrs_object["file_ignore_list"] = get_text_without_quotes(
-            ctx.quotedText().getText()
+            ctx.textStringLiteral().getText()
         )
 
     def enterAllowNewUsersToRegister(self, ctx):
@@ -163,22 +172,22 @@ class MrsDdlListener(MRSListener):
 
     def enterDefaultRole(self, ctx):
         self.mrs_object["default_role"] = get_text_without_quotes(
-            ctx.quotedText().getText()
+            ctx.textOrIdentifier().getText()
         )
 
     def enterAppId(self, ctx):
         self.mrs_object["app_id"] = get_text_without_quotes(
-            ctx.quotedText().getText()
+            ctx.textStringLiteral().getText()
         )
 
     def enterAppSecret(self, ctx):
         self.mrs_object["app_secret"] = get_text_without_quotes(
-            ctx.quotedText().getText()
+            ctx.textStringLiteral().getText()
         )
 
     def enterUrl(self, ctx):
         self.mrs_object["url"] = get_text_without_quotes(
-            ctx.quotedText().getText()
+            ctx.textStringLiteral().getText()
         )
 
     def enterAddAuthApp(self, ctx):
@@ -396,7 +405,7 @@ class MrsDdlListener(MRSListener):
                         if isinstance(
                             item, MRSParser.ServiceDeveloperIdentifierContext
                         ):
-                            if item.quotedText() is not None:
+                            if item.textOrIdentifier() is not None:
                                 developer_list.append(
                                     get_text_without_quotes(item.getText())
                                 )
@@ -538,7 +547,7 @@ class MrsDdlListener(MRSListener):
             {
                 "id": object_id,
                 "db_object_id": self.mrs_object.get("id"),
-                "name": (
+                "name": get_text_without_quotes(
                     ctx.restObjectName().getText()
                     if ctx.restObjectName() is not None
                     else None
@@ -563,9 +572,9 @@ class MrsDdlListener(MRSListener):
         ]
 
     def enterRestViewMediaType(self, ctx):
-        if ctx.quotedText() is not None:
+        if ctx.textStringLiteral() is not None:
             self.mrs_object["media_type"] = get_text_without_quotes(
-                ctx.quotedText().getText()
+                ctx.textStringLiteral().getText()
             )
         elif ctx.AUTODETECT_SYMBOL() is not None:
             self.mrs_object["media_type_autodetect"] = True
@@ -969,7 +978,7 @@ class MrsDdlListener(MRSListener):
             {
                 "id": object_id,
                 "db_object_id": self.mrs_object["id"],
-                "name": (
+                "name": get_text_without_quotes(
                     ctx.restObjectName().getText()
                     if ctx.restObjectName() is not None
                     else None
@@ -1056,7 +1065,7 @@ class MrsDdlListener(MRSListener):
             {
                 "id": object_id,
                 "db_object_id": self.mrs_object["id"],
-                "name": (
+                "name": get_text_without_quotes(
                     ctx.restObjectName().getText()
                     if ctx.restObjectName() is not None
                     else None
@@ -1164,7 +1173,7 @@ class MrsDdlListener(MRSListener):
         }
 
     def enterFileIgnoreList(self, ctx):
-        self.mrs_object["ignore_file_list"] = ctx.quotedText().getText()
+        self.mrs_object["ignore_file_list"] = ctx.textStringLiteral().getText()
 
     def enterLoadScripts(self, ctx):
         self.mrs_object["content_type"] = "SCRIPTS"
@@ -1197,8 +1206,8 @@ class MrsDdlListener(MRSListener):
                 else None
             ),
             "content": (
-                get_text_without_quotes(ctx.quotedText().getText())
-                if ctx.quotedText() is not None
+                get_text_without_quotes(ctx.textStringLiteral().getText())
+                if ctx.textStringLiteral() is not None
                 else None
             ),
             "is_binary": ctx.BINARY_SYMBOL() is not None,
@@ -1283,7 +1292,7 @@ class MrsDdlListener(MRSListener):
             "current_operation": "GRANT PRIVILEGE",
             "privileges": set(),
             "role": unquoted_node_text_or_none(ctx.roleName()),
-            "object_request_path": unquoted_node_text_or_none(ctx.objectRequestPath()),
+            "object_request_path": unquoted_node_text_or_none(ctx.objectRequestPathWildcard()),
         }
 
     def exitGrantRestPrivilegeStatement(self, ctx):
@@ -1338,7 +1347,7 @@ class MrsDdlListener(MRSListener):
             "current_operation": "REVOKE PRIVILEGE",
             "privileges": set(),
             "role": unquoted_node_text_or_none(ctx.roleName()),
-            "object_request_path": unquoted_node_text_or_none(ctx.objectRequestPath()),
+            "object_request_path": unquoted_node_text_or_none(ctx.objectRequestPathWildcard()),
         }
 
     def exitRevokeRestPrivilegeStatement(self, ctx):
@@ -1416,7 +1425,7 @@ class MrsDdlListener(MRSListener):
                     else None
                 )
             ),
-            "new_object_name": (
+            "new_object_name": get_text_without_quotes(
                 ctx.restObjectName().getText()
                 if ctx.restObjectName() is not None
                 else None
@@ -1440,7 +1449,7 @@ class MrsDdlListener(MRSListener):
             {
                 "id": object_id,
                 "db_object_id": db_object["id"],
-                "name": (
+                "name": get_text_without_quotes(
                     ctx.restObjectName().getText()
                     if ctx.restObjectName() is not None
                     else None
@@ -1482,7 +1491,7 @@ class MrsDdlListener(MRSListener):
                     else None
                 )
             ),
-            "new_object_name": (
+            "new_object_name": get_text_without_quotes(
                 ctx.restObjectName().getText()
                 if ctx.restObjectName() is not None
                 else None
@@ -1521,7 +1530,7 @@ class MrsDdlListener(MRSListener):
                     else None
                 )
             ),
-            "new_object_name": (
+            "new_object_name": get_text_without_quotes(
                 ctx.restObjectName().getText()
                 if ctx.restObjectName() is not None
                 else None

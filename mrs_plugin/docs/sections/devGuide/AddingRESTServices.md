@@ -164,7 +164,7 @@ The following example adds a REST schema for the `sakila` database schema to the
 ```sql
 CREATE OR REPLACE REST SCHEMA /sakila ON SERVICE /myService
     FROM `sakila`
-    COMMENTS "The sakila schema";
+    COMMENT "The sakila schema";
 ```
 
 ### Adding a Schema using the MySQL Shell for VS Code UI

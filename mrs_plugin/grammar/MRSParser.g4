@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
- *
+ * 
  * This program is free software; you can redistribute it and/or modify it under the terms of the
  * GNU General Public License, version 2.0, as published by the Free Software Foundation.
- *
+ * 
  * This program is designed to work with certain software (including but not limited to OpenSSL)
  * that is licensed under separate terms, as designated in a particular file or component or in
  * included license documentation. The authors of MySQL hereby grant you an additional permission to
@@ -11,7 +11,7 @@
  * included with MySQL. This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License, version 2.0, for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License along with this program; if
  * not, write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA
@@ -19,25 +19,9 @@
 
 /*
  // TODO:
-
- - fix so that grammar is compatible to MySQL grammar
-
- - inconsistent whether quotes are required or optional
-
- - fix what's an identifier and what's a string, fix quoting
-
- - support for NO_BACKSLASH_ESCAPES and ANSI_QUOTES
-
- - in MySQL user and role can be quoted as root@MRS and `root`@`MRS` too
-
- - metadata is case sensitive... very inconvenient for SHOW and GRANT commands. also unlikely that
- allowing usernames and auth_apps by case only is a good idea
-
- - should be COMMENT 'xxx' instead of COMMENTS 'xxx'
-
- - errors should include an error code
-
- - ON|FROM SERVICE vs ON SERVICE inconsistencies
+ 
+ = errors should include an error code
+ = add show create rest user, role
  */
 
 // $antlr-format alignTrailingComments on, columnLimit 100, minEmptyLines 1, maxEmptyLinesToKeep 1, reflowComments off
@@ -127,7 +111,7 @@ enabledDisabledPrivate:
     | PRIVATE_SYMBOL
 ;
 
-quotedTextOrDefault: (quotedText | DEFAULT_SYMBOL)
+quotedTextOrDefault: (textStringLiteral | DEFAULT_SYMBOL)
 ;
 
 jsonOptions:
@@ -139,7 +123,7 @@ metadata:
 ;
 
 comments:
-    COMMENTS_SYMBOL quotedText
+    COMMENT_SYMBOL textStringLiteral
 ;
 
 authenticationRequired:
@@ -156,6 +140,10 @@ itemsPerPageNumber:
 
 serviceSchemaSelector:
     (SERVICE_SYMBOL serviceRequestPath)? DATABASE_SYMBOL schemaRequestPath
+;
+
+serviceSchemaSelectorWildcard:
+    (SERVICE_SYMBOL serviceRequestPathWildcard)? DATABASE_SYMBOL schemaRequestPathWildcard
 ;
 
 // CONFIGURE statements =====================================================
@@ -289,7 +277,10 @@ restObjectOptions: (
 ;
 
 restViewMediaType:
-    MEDIA_SYMBOL TYPE_SYMBOL (quotedText | AUTODETECT_SYMBOL)
+    MEDIA_SYMBOL TYPE_SYMBOL (
+        textStringLiteral
+        | AUTODETECT_SYMBOL
+    )
 ;
 
 restViewFormat:
@@ -338,7 +329,7 @@ createRestContentSetStatement:
 ;
 
 directoryFilePath:
-    quotedText
+    textStringLiteral
 ;
 
 restContentSetOptions: (
@@ -352,7 +343,7 @@ restContentSetOptions: (
 ;
 
 fileIgnoreList:
-    IGNORE_SYMBOL quotedText
+    IGNORE_SYMBOL textStringLiteral
 ;
 
 loadScripts:
@@ -367,7 +358,7 @@ createRestContentFileStatement:
         SERVICE_SYMBOL? serviceRequestPath
     )? CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath (
         (FROM_SYMBOL directoryFilePath)
-        | (BINARY_SYMBOL? CONTENT_SYMBOL quotedText)
+        | (BINARY_SYMBOL? CONTENT_SYMBOL textStringLiteral)
     ) restContentFileOptions?
 ;
 
@@ -392,11 +383,11 @@ createRestAuthAppStatement:
 ;
 
 authAppName:
-    quotedText
+    textOrIdentifier
 ;
 
 vendorName:
-    quotedText
+    textOrIdentifier
 ;
 
 restAuthAppOptions: (
@@ -417,19 +408,19 @@ allowNewUsersToRegister:
 ;
 
 defaultRole:
-    DEFAULT_SYMBOL ROLE_SYMBOL quotedText
+    DEFAULT_SYMBOL ROLE_SYMBOL textOrIdentifier
 ;
 
 appId:
-    (APP_SYMBOL | CLIENT_SYMBOL) ID_SYMBOL quotedText
+    (APP_SYMBOL | CLIENT_SYMBOL) ID_SYMBOL textStringLiteral
 ;
 
 appSecret:
-    (APP_SYMBOL | CLIENT_SYMBOL) SECRET_SYMBOL quotedText
+    (APP_SYMBOL | CLIENT_SYMBOL) SECRET_SYMBOL textStringLiteral
 ;
 
 url:
-    URL_SYMBOL quotedText
+    URL_SYMBOL textStringLiteral
 ;
 
 // - CREATE REST USER -------------------------------------------------------
@@ -440,11 +431,11 @@ createRestUserStatement:
 ;
 
 userName:
-    quotedText
+    textOrIdentifier
 ;
 
 userPassword:
-    quotedText
+    textStringLiteral
 ;
 
 userOptions: (accountLock | appOptions | jsonOptions)+
@@ -474,11 +465,11 @@ restRoleOptions: (jsonOptions | comments)+
 ;
 
 parentRoleName:
-    quotedText
+    textOrIdentifier
 ;
 
 roleName:
-    quotedText
+    textOrIdentifier
 ;
 
 // CLONE statements =========================================================
@@ -562,7 +553,7 @@ alterRestAuthAppStatement:
 ;
 
 newAuthAppName:
-    quotedText
+    textOrIdentifier
 ;
 
 // - ALTER REST USER -------------------------------------------------------
@@ -631,10 +622,10 @@ dropRestRoleStatement:
 
 grantRestPrivilegeStatement:
     GRANT_SYMBOL REST_SYMBOL privilegeList (
-        (ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath)
+        (ON_SYMBOL SERVICE_SYMBOL? serviceRequestPathWildcard)
         | (
-            ON_SYMBOL serviceSchemaSelector (
-                OBJECT_SYMBOL objectRequestPath
+            ON_SYMBOL serviceSchemaSelectorWildcard (
+                OBJECT_SYMBOL objectRequestPathWildcard
             )?
         )
     )? TO_SYMBOL roleName
@@ -661,10 +652,10 @@ grantRestRoleStatement:
 
 revokeRestPrivilegeStatement:
     REVOKE_SYMBOL REST_SYMBOL privilegeList (
-        (ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath)
+        (ON_SYMBOL SERVICE_SYMBOL? serviceRequestPathWildcard)
         | (
-            ON_SYMBOL serviceSchemaSelector (
-                OBJECT_SYMBOL objectRequestPath
+            ON_SYMBOL serviceSchemaSelectorWildcard (
+                OBJECT_SYMBOL objectRequestPathWildcard
             )?
         )
     )? FROM_SYMBOL roleName
@@ -808,12 +799,20 @@ newServiceRequestPath:
     serviceDevelopersIdentifier? requestPathIdentifier
 ;
 
+serviceRequestPathWildcard:
+    serviceDevelopersIdentifier? requestPathIdentifierWithWildcard
+;
+
 schemaRequestPath:
     requestPathIdentifier
 ;
 
 newSchemaRequestPath:
     requestPathIdentifier
+;
+
+schemaRequestPathWildcard:
+    requestPathIdentifierWithWildcard
 ;
 
 viewRequestPath:
@@ -834,6 +833,10 @@ restResultName:
 
 objectRequestPath:
     requestPathIdentifier
+;
+
+objectRequestPathWildcard:
+    requestPathIdentifierWithWildcard
 ;
 
 procedureRequestPath:
@@ -866,7 +869,8 @@ contentFileRequestPath:
 
 //----------------- Common basic rules ---------------------------------------------------------------------------------
 
-serviceDeveloperIdentifier: (identifier | quotedText)
+serviceDeveloperIdentifier:
+    textOrIdentifier
 ;
 
 serviceDevelopersIdentifier:
@@ -875,24 +879,15 @@ serviceDevelopersIdentifier:
     )* AT_SIGN_SYMBOL
 ;
 
-dottedIdentifier:
-    simpleIdentifier
-    | identifier dotIdentifier*
+requestPathIdentifier:
+    REST_REQUEST_PATH
+    | BACK_TICK_QUOTED_REST_PATH
 ;
 
-requestPathIdentifier: (
-        (
-            DIV_OPERATOR dottedIdentifier (
-                DIV_OPERATOR dottedIdentifier
-            )?
-        )
-        | quotedText
-    )
-;
-
-quotedText:
-    DOUBLE_QUOTED_TEXT
-    | SINGLE_QUOTED_TEXT
+requestPathIdentifierWithWildcard:
+    REST_REQUEST_PATH
+    | BACK_TICK_QUOTED_REST_PATH
+    | BACK_TICK_QUOTED_ID
 ;
 
 //----------------- Json -----------------------------------------------------------------------------------------------
@@ -1047,7 +1042,7 @@ graphQlAllowedKeyword:
     | PROTOCOL_SYMBOL
     | HTTP_SYMBOL
     | HTTPS_SYMBOL
-    | COMMENTS_SYMBOL
+    | COMMENT_SYMBOL
     | REQUEST_SYMBOL
     | REDIRECTION_SYMBOL
     | MANAGEMENT_SYMBOL
@@ -1126,7 +1121,8 @@ procedureName:
 
 // Identifiers excluding keywords (except if they are quoted). IDENT_sys in sql_yacc.yy.
 pureIdentifier:
-    (IDENTIFIER | BACK_TICK_QUOTED_ID)
+    (IDENTIFIER | BACK_TICK_QUOTED_ID | BACK_TICK_QUOTED_REST_PATH)
+    | {this.isSqlModeActive(SqlMode.AnsiQuotes)}? DOUBLE_QUOTED_TEXT
 ;
 
 // Identifiers including a certain set of keywords, which are allowed also if not quoted. ident in
@@ -1155,4 +1151,14 @@ simpleIdentifier: // simple_ident + simple_ident_q
 // special treatment in the lexer. See there in the DOT_IDENTIFIER rule.
 dotIdentifier:
     DOT_SYMBOL identifier
+;
+
+textStringLiteral:
+    value = SINGLE_QUOTED_TEXT
+    | {!this.isSqlModeActive(SqlMode.AnsiQuotes)}? value = DOUBLE_QUOTED_TEXT
+;
+
+textOrIdentifier:
+    identifier
+    | textStringLiteral
 ;

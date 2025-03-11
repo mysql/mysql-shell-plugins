@@ -16,7 +16,7 @@ DROP REST SERVICE mike@/myTestService;
 
 CREATE OR REPLACE REST SERVICE /myTestService
     ENABLED
-    COMMENTS "A simple REST service"
+    COMMENT "A simple REST service"
     AUTHENTICATION
         PATH "/authentication"
         REDIRECTION DEFAULT
@@ -56,7 +56,7 @@ SHOW CREATE REST SERVICE /myTestService;
 ALTER REST SERVICE /myTestService
     NEW REQUEST PATH /myAlteredTestService
     DISABLED
-    COMMENTS "A real simple REST service"
+    COMMENT "A real simple REST service"
     AUTHENTICATION
         PATH "/authentication2"
         REDIRECTION "/authReDir"
@@ -79,7 +79,7 @@ ALTER REST SERVICE /myAlteredTestService
 CREATE REST SCHEMA ON SERVICE /myTestService FROM `sakila`
     ENABLED
     ITEMS PER PAGE 25
-    COMMENTS "The sakila schema"
+    COMMENT "The sakila schema"
     METADATA { "position": 1};
 
 USE REST SERVICE /myTestService;
@@ -142,7 +142,7 @@ AS sakila.country CLASS MyServiceSakilaCountry @INSERT @UPDATE @DELETE @NOCHECK 
 ENABLED
 AUTHENTICATION REQUIRED
 ITEMS PER PAGE 25
-COMMENTS "The sakila.country table"
+COMMENT "The sakila.country table"
 MEDIA TYPE "Test"
 FORMAT FEED
 AUTHENTICATION PROCEDURE sakila.auth_proc;
@@ -341,7 +341,7 @@ CREATE OR REPLACE REST ROLE "role2" EXTENDS "role1";
 -- CREATE REST ROLE "role1";
 -- CREATE REST ROLE "role2" EXTENDS "role1";
 
-CREATE REST ROLE "role3" EXTENDS "role1" ON SERVICE /myTestService COMMENTS "A comment here" OPTIONS {"option1":1, "option2": false, "option3": [1, "bla", null]};
+CREATE REST ROLE "role3" EXTENDS "role1" ON SERVICE /myTestService COMMENT "A comment here" OPTIONS {"option1":1, "option2": false, "option3": [1, "bla", null]};
 
 CREATE REST ROLE "myrole" ON SERVICE /myService;
 
@@ -350,7 +350,7 @@ GRANT REST CREATE, READ, UPDATE, DELETE ON SERVICE /myTestService SCHEMA /sakila
 GRANT REST UPDATE ON SERVICE /myTestService SCHEMA /sakila OBJECT /filmInStock TO "role1";
 GRANT REST READ ON SCHEMA /sakila OBJECT /actor TO "role2";
 
-GRANT REST ROLE "role1" TO "mike"@"MRS" COMMENTS "Hello World!?";
+GRANT REST ROLE "role1" TO "mike"@"MRS" COMMENT "Hello World!?";
 
 SHOW REST GRANTS FOR "role1";
 SHOW REST GRANTS FOR "role2";
@@ -483,7 +483,7 @@ ON SERVICE miguel,'alfredo@oracle.com'@/myTestService
 FROM `sakila`
     ENABLED
     ITEMS PER PAGE 25
-    COMMENTS "The sakila schema"
+    COMMENT "The sakila schema"
     METADATA { "position": 1};
 
 CREATE OR REPLACE REST DATA MAPPING VIEW /actor
@@ -512,35 +512,35 @@ OPTIONS {
 CREATE REST CONTENT SET /mySet
 ON SERVICE miguel,'alfredo@oracle.com'@/myTestService;
 
-CREATE REST CONTENT FILE "/textFile"
+CREATE REST CONTENT FILE `/textFile`
 ON SERVICE miguel,'alfredo@oracle.com'@/myTestService CONTENT SET /mySet
 CONTENT "normal string";
 
-CREATE REST CONTENT FILE "/binaryFile1"
+CREATE REST CONTENT FILE `/binaryFile1`
 ON SERVICE miguel,'alfredo@oracle.com'@/myTestService CONTENT SET /mySet
 BINARY CONTENT "aHR0cHM6Ly93d3cuYmFzZTY0ZW5jb2RlLm9yZy8gVGVzdA==";
 
-CREATE REST CONTENT FILE "/binaryFile2"
+CREATE REST CONTENT FILE `/binaryFile2`
 ON SERVICE miguel,'alfredo@oracle.com'@/myTestService CONTENT SET /mySet
 BINARY CONTENT "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=";
 
-CREATE REST CONTENT FILE "/binaryFile3"
+CREATE REST CONTENT FILE `/binaryFile3`
 ON SERVICE miguel,'alfredo@oracle.com'@/myTestService CONTENT SET /mySet
 BINARY CONTENT "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=";
 
-CREATE REST CONTENT FILE "/binaryFile4"
+CREATE REST CONTENT FILE `/binaryFile4`
 ON SERVICE miguel,'alfredo@oracle.com'@/myTestService CONTENT SET /mySet
 FROM "grammar/test/binary_test_file";
 
-CREATE REST CONTENT FILE "/binaryFile5"
+CREATE REST CONTENT FILE `/binaryFile5`
 ON SERVICE miguel,'alfredo@oracle.com'@/myTestService CONTENT SET /mySet
 FROM "grammar/test/text_test_file.sql";
 
 
-DROP REST CONTENT FILE "/textFile"
+DROP REST CONTENT FILE `/textFile`
 FROM SERVICE miguel,'alfredo@oracle.com'@/myTestService CONTENT SET /mySet;
 
-DROP REST CONTENT FILE "/binaryFile1"
+DROP REST CONTENT FILE `/binaryFile1`
 FROM SERVICE miguel,'alfredo@oracle.com'@/myTestService CONTENT SET /mySet;
 
 DROP REST CONTENT SET /mySet
@@ -609,7 +609,7 @@ USE REST SERVICE /testService;
 
 CREATE OR REPLACE REST ROLE "role1";
 
-GRANT REST READ ON SERVICE "*" TO 'Role1';
+GRANT REST READ ON SERVICE `*` TO 'Role1';
 
 GRANT REST READ ON SERVICE /testService TO 'Role1';
 
@@ -618,8 +618,8 @@ GRANT REST READ ON SERVICE /testService SCHEMA /testSchema TO 'Role1';
 GRANT REST READ ON SERVICE /testService SCHEMA /testSchema
     OBJECT /testObject TO 'Role1';
 
-GRANT REST READ ON SERVICE /testService SCHEMA ''
-    OBJECT '' TO 'Role1';
+GRANT REST READ ON SERVICE /testService SCHEMA ``
+    OBJECT `` TO 'Role1';
 
 DROP REST ROLE "role1";
 

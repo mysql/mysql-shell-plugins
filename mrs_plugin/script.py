@@ -1,4 +1,4 @@
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -133,9 +133,11 @@ def mrs_sql_handler(session, sql):
             mrs_sql_handler.state[session.connection_id] = {}
 
         state_data = mrs_sql_handler.state[session.connection_id]
+        # TODO(alfredo) sql_mode should come from the shell session object or the caller
+        sql_mode = session.run_sql("select @@session.sql_mode").fetch_one()[0]
 
         results = lib.script.run_mrs_script(
-            sql, **{"session": session, "state_data": state_data}
+            sql, **{"session": session, "sql_mode": sql_mode, "state_data": state_data}
         )
 
         shell_results = [get_shell_result(result) for result in results]

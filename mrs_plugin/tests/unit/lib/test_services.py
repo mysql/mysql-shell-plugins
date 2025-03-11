@@ -175,7 +175,7 @@ def test_get_services(phone_book, table_contents):
             assert len(service_table.items) == len(services)
             assert len(services) == 2
 
-            with ServiceCT(session, "/service3", "") as service3_id:
+            with ServiceCT(session, "/service3") as service3_id:
                 services = lib.services.get_services(session=session)
                 assert len(service_table.items) == len(services)
                 assert len(services) == 3

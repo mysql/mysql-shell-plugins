@@ -74,7 +74,7 @@ The following example alters a REST service `/myService` by setting a new commen
 
 ```sql
 ALTER REST SERVICE /myService
-    COMMENTS "A simple, improved REST service";
+    COMMENT "A simple, improved REST service";
 ```
 
 ## ALTER REST SCHEMA

@@ -269,7 +269,7 @@ The following example creates a REST service `/myService`. Please note that you 
 
 ```sql
 CREATE OR REPLACE REST SERVICE /myService
-    COMMENTS "A simple REST service";
+    COMMENT "A simple REST service";
 ```
 
 The next example shows how to set the REST service options.
@@ -537,7 +537,7 @@ The comments can hold a description of the REST service. The maximal length is o
 
 ```antlr
 comments:
-    COMMENTS quotedText
+    COMMENT quotedText
 ;
 ```
 
@@ -596,7 +596,7 @@ The following example creates a REST schema `/sakila` on the REST service `/mySe
 ```sql
 CREATE OR REPLACE REST SCHEMA /sakila ON SERVICE /myService
     FROM `sakila`
-    COMMENTS "The sakila schema";
+    COMMENT "The sakila schema";
 ```
 
 ### Enabling or Disabling a REST Schema at Creation Time
@@ -658,7 +658,7 @@ The comments can hold a description of the REST schema. The maximal length is of
 
 ```antlr
 comments:
-    COMMENTS quotedText
+    COMMENT quotedText
 ;
 ```
 
