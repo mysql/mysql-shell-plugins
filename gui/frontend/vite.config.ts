@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -53,20 +53,18 @@ const determineBuildNumber = (): string => {
     } catch (e) {
         return "<unknown>";
     }
-
 };
 
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [
-        // @ts-ignore, because TS does not correctly type this plugin.
         preact({
             babel: {
                 // Avoids repacking of chunks > 500KB.
                 compact: false,
             },
         }),
-        // The export typing is wrong, hence this call must be ignored by TS.
+        // @ts-ignore, because TS does not correctly type this plugin.
         monacoEditorPlugin.default({
             languageWorkers: ["typescript", "json", "editorWorkerService"],
             customDistPath: (root: string, outDir: string, base: string) => {

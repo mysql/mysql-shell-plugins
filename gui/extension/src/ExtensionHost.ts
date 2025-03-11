@@ -558,7 +558,11 @@ export class ExtensionHost {
                                 const setting = Settings.get(value.id);
                                 const currentValue = configuration.get(value.key);
                                 if (setting !== currentValue) {
-                                    await configuration.update(value.key, setting, ConfigurationTarget.Global);
+                                    try {
+                                        await configuration.update(value.key, setting, ConfigurationTarget.Global);
+                                    } catch {
+                                        // Ignore errors for settings that only exist in the frontend.
+                                    }
                                 }
                             }
 
