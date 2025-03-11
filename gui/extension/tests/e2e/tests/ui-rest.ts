@@ -308,7 +308,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it.skip("Dump to Disk - Create Statements", async () => {
+        it("Dump to Disk - Create Statements", async () => {
 
             let dumpedService = join(process.cwd(), "dumpedService.mrs.sql");
             await fs.rm(dumpedService, { recursive: true, force: true });
@@ -350,7 +350,11 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Copy to clipboard - Create Statements", async () => {
+        it("Copy to clipboard - Create Statements", async function () {
+
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
             await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
                 [constants.copyToClipboard, constants.copyCreateServiceStatement], constants.restServiceCtxMenu);
@@ -408,7 +412,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it.skip("Dump to Disk - Rest Service SDK files", async () => {
+        it("Dump to Disk - Rest Service SDK files", async () => {
 
             await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
                 [constants.dumpToDisk, constants.restClientSDKFiles], constants.restServiceCtxMenu);
@@ -609,7 +613,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it.skip("Schema - Dump to Disk - Create Statements", async () => {
+        it("Schema - Dump to Disk - Create Statements", async () => {
 
             let dumpedSchema = join(process.cwd(), "dumpedSchema.mrs.sql");
             const treeSchema = `${service2.restSchemas[0].restSchemaPath} (${service2.restSchemas[0]
@@ -647,7 +651,11 @@ describe("MySQL REST Service", () => {
             await fs.unlink(dumpedSchema);
         });
 
-        it("Schema - Copy to clipboard - Create Statements", async () => {
+        it("Schema - Copy to clipboard - Create Statements", async function () {
+
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
             const treeSchema = `${service2.restSchemas[0].restSchemaPath} (${service2.restSchemas[0]
                 .settings.schemaName})`;
@@ -707,7 +715,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it.skip("Dump Rest Schema to Json file", async () => {
+        it("Dump Rest Schema to Json file", async () => {
 
             await dbTreeSection.expandTreeItem(service2.servicePath);
             const dummySchema = service2.restSchemas[1];
@@ -721,7 +729,7 @@ describe("MySQL REST Service", () => {
             await fs.access(`${destDumpSchema}.mrs.json`);
         });
 
-        it.skip("Delete REST Schema", async () => {
+        it("Delete REST Schema", async () => {
 
             const treeSchema = `${service2.restSchemas[1].restSchemaPath} (${service2.restSchemas[1]
                 .settings.schemaName})`;
@@ -742,7 +750,7 @@ describe("MySQL REST Service", () => {
             }, constants.wait3seconds, `Item ${treeSchema} should not exist on the tree`);
         });
 
-        it.skip("Load REST Schema from JSON file", async () => {
+        it("Load REST Schema from JSON file", async () => {
 
             await dbTreeSection.openContextMenuAndSelect(service2.servicePath,
                 [constants.loadFromDisk, constants.restSchemaFromJSONFile], constants.restServiceCtxMenu);
@@ -935,7 +943,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it.skip("Object - Dump to Disk - Create Statements", async () => {
+        it("Object - Dump to Disk - Create Statements", async () => {
 
             const dumpedObject = join(process.cwd(), "dumpedObject.mrs.sql");
             const objectTreeName = `/${service3.restSchemas[0].restObjects[0].dataMapping.dbObject}`;
@@ -953,7 +961,11 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("Object - Copy to clipboard - Create Statements", async () => {
+        it("Object - Copy to clipboard - Create Statements", async function () {
+
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
             const objectTreeName = `/${service3.restSchemas[0].restObjects[0].dataMapping.dbObject}`;
 
@@ -982,7 +994,7 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it.skip("Dump REST Object to JSON file", async () => {
+        it("Dump REST Object to JSON file", async () => {
 
             const tree = [
                 service3.servicePath,
@@ -1156,7 +1168,7 @@ describe("MySQL REST Service", () => {
             }, constants.wait3seconds, `Item ${objectName} should not exist on the tree`);
         });
 
-        it.skip("Load REST Object from JSON file", async () => {
+        it("Load REST Object from JSON file", async () => {
 
             const schema = service3.restSchemas[0].settings.schemaName;
             await dbTreeSection.expandTree([service3.servicePath,
@@ -1306,7 +1318,7 @@ describe("MySQL REST Service", () => {
                 constants.wait5seconds);
         });
 
-        it.skip("Authentication App - Dump to disk - Create statements", async () => {
+        it("Authentication App - Dump to disk - Create statements", async () => {
 
             let dumpedAuthApp = join(process.cwd(), "dumpedAuthApp.mrs.sql");
             await fs.rm(dumpedAuthApp, { recursive: true, force: true });
@@ -1356,7 +1368,11 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it.skip("Authentication App - Copy to clipboard - Create Statements", async () => {
+        it("Authentication App - Copy to clipboard - Create Statements", async function () {
+
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
             await (await dbTreeSection.getTreeItem(constants.restAuthenticationApps)).collapse();
             await dbTreeSection.expandTreeItem(service4.servicePath);
@@ -1645,7 +1661,7 @@ describe("MySQL REST Service", () => {
             expect(userInfo).to.deep.equal(editedUser);
         });
 
-        it.skip("User - Dump to disk - Create statements", async () => {
+        it("User - Dump to disk - Create statements", async () => {
 
             let dumpedUser = join(process.cwd(), "dumpedUser.mrs.sql");
             await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);
@@ -1684,7 +1700,11 @@ describe("MySQL REST Service", () => {
 
         });
 
-        it("User - Copy to clipboard - Create Statements", async () => {
+        it("User - Copy to clipboard - Create Statements", async function () {
+
+            await TestQueue.push(this.test.title);
+            existsInQueue = true;
+            await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
 
             await dbTreeSection.openContextMenuAndSelect(service5.authenticationApps[0].user[0].username,
                 [constants.copyToClipboard, constants.createStatement], constants.restUserCtxMenu);

@@ -1376,7 +1376,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(await dbTreeSection.treeItemIsDefault("sakila"), errors.isDefault("sakila")).to.be.false;
         });
 
-        it.skip("Dump Schema to Disk", async () => {
+        it("Dump Schema to Disk", async () => {
 
             treeGlobalSchema = await dbTreeSection.getTreeItem((globalConn.basic as interfaces.IConnBasicMySQL)
                 .schema);
@@ -1406,7 +1406,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        it.skip("Load Dump from Disk", async function () {
+        it("Load Dump from Disk", async function () {
 
             await TestQueue.push(this.test.title);
             existsInQueue = true;
@@ -1422,7 +1422,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         });
 
-        it.skip("Dump Schema to Disk for MySQL Database Service", async function () {
+        it("Dump Schema to Disk for MySQL Database Service", async function () {
 
             await TestQueue.push(this.test.title);
             existsInQueue = true;

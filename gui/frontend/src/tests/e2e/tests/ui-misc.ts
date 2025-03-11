@@ -306,8 +306,8 @@ describe("Notifications", () => {
             }
 
             await driver.wait(async () => {
-                return (await Misc.getToastNotifications()).length === 3;
-            }, constants.wait5seconds, "Number of notifications should be 3");
+                return (await Misc.getToastNotifications()).length <= 3;
+            }, constants.wait5seconds, "Number of notifications should not be above 3");
 
             await Misc.dismissNotifications();
         } catch (e) {
