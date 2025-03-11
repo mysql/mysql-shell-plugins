@@ -31,27 +31,18 @@
         "noFallthroughCasesInSwitch": false,
         "paths": {
             "react": [
-                "./node_modules/preact/compat/"
+                "../../node_modules/preact/compat/"
             ],
             "react-dom": [
-                "./node_modules/preact/compat/"
+                "../../node_modules/preact/compat/"
             ]
         }
     },
     "include": [
-        "scripts/**/*.ts",
-        "src/**/*",
-        "src/**/*.json",
-        "src/oci-typings/**/*.ts",
-        "postcss.config.cjs",
-        // Needed here during build setup in vite.config.js.
-        "package.json"
+        "./e2e/**/*",
+        "./unit-tests/**/*",
     ],
-    "exclude": [
-        "build",
-        "node_modules",
-        "src/tests",
-    ],
+    "exclude": [],
     "ts-node": {
         "esm": true
     },

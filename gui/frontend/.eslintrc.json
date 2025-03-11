@@ -21,6 +21,7 @@
     "parserOptions": {
         "project": [
             "tsconfig.json",
+            "tsconfig.eslint.json",
             "src/tests/tsconfig.json"
         ],
         "sourceType": "module",

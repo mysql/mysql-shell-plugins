@@ -2009,19 +2009,23 @@
             "msg-view": [
                 {
                     "id": "msg.openEditors",
-                    "name": "OPEN EDITORS"
+                    "name": "OPEN EDITORS",
+                    "icon": "images/light/docs.svg"
                 },
                 {
                     "id": "msg.connections",
-                    "name": "DATABASE CONNECTIONS"
+                    "name": "DATABASE CONNECTIONS",
+                    "icon": "images/light/clientConnections.svg"
                 },
                 {
                     "id": "msg.oci",
-                    "name": "ORACLE CLOUD INFRASTRUCTURE"
+                    "name": "ORACLE CLOUD INFRASTRUCTURE",
+                    "icon": "images/light/ociProvile.svg"
                 },
                 {
                     "id": "msg.shellTasks",
-                    "name": "MYSQL SHELL TASKS"
+                    "name": "MYSQL SHELL TASKS",
+                    "icon": "images/light/shellTask.svg"
                 }
             ]
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,8 +30,7 @@ import {
     CellComponent, ColumnComponent, ColumnDefinition, DataTreeModule, EditModule, FilterModule, FormatModule,
     FrozenRowsModule, InteractionModule, MenuModule, Options, ReactiveDataModule, ResizeColumnsModule,
     ResizeRowsModule, ResizeTableModule, RowComponent, SelectRowModule, SortModule, Tabulator, TooltipModule,
-    type RowLookup,
-    type RowRangeLookup,
+    type RowLookup, type RowRangeLookup,
 } from "tabulator-tables";
 
 import { ComponentChild, createRef } from "preact";
@@ -193,19 +192,19 @@ interface ITreeGridProperties extends IComponentProperties {
  */
 export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
-    #hostRef = createRef<HTMLDivElement>();
-    #tabulator?: Tabulator;
-    #tableReady = false;
-    #timeoutId: ReturnType<typeof setTimeout> | null = null;
+    /** A counter to manage redraw blocks (public for testing). */
+    public updateLockCount = 0;
+
+    private hostRef = createRef<HTMLDivElement>();
+    private tabulator?: Tabulator;
+    private tableReady = false;
+    private timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     // Used when we need to wait for a double click, to decide whether to expand or collapse a row.
-    #toggleTimeoutId: ReturnType<typeof setTimeout> | null = null;
-
-    // A counter to manage redraw blocks.
-    #updateLockCount = 0;
+    private toggleTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
     // True when the grid is in edit mode.
-    #isEditing = false;
+    private isEditing = false;
 
     public constructor(props: ITreeGridProperties) {
         super(props);
@@ -225,7 +224,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
     public override getSnapshotBeforeUpdate(): IDictionary {
         return {
-            currentTop: this.#tabulator?.rowManager.scrollTop ?? 0,
+            currentTop: this.tabulator?.rowManager.scrollTop ?? 0,
         };
     }
 
@@ -233,80 +232,80 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         const { tableData } = this.props;
 
         // istanbul ignore else
-        if (this.#hostRef.current) {
+        if (this.hostRef.current) {
             // The tabulator options can contain data, passed in as properties.
-            this.#timeoutId = null;
-            this.#tabulator = new Tabulator(this.#hostRef.current, this.tabulatorOptions);
-            this.#tabulator.on("tableBuilt", () => {
+            this.timeoutId = null;
+            this.tabulator = new Tabulator(this.hostRef.current, this.tabulatorOptions);
+            this.tabulator.on("tableBuilt", () => {
                 const { topRowIndex, selectedRows, options } = this.props;
 
                 // The tabulator field must be assigned. We are in one of its events.
-                this.#tabulator!.off("tableBuilt");
+                this.tabulator!.off("tableBuilt");
 
                 if (tableData) {
                     if (selectedRows && selectedRows.length > 0) {
                         if (typeof selectedRows[0] === "number") {
-                            if (this.#tabulator!.getRows().length > 0) { // Can be 0 in tests.
+                            if (this.tabulator!.getRows().length > 0) { // Can be 0 in tests.
                                 const rows = (selectedRows as number[]).map((rowIndex) => {
-                                    return this.#tabulator!.getRowFromPosition(rowIndex);
+                                    return this.tabulator!.getRowFromPosition(rowIndex);
                                 });
-                                this.#tabulator!.selectRow(rows);
+                                this.tabulator!.selectRow(rows);
                                 if (options?.scrollToFirstSelected) {
-                                    void this.#tabulator!.scrollToRow(rows[0], "top", false);
+                                    void this.tabulator!.scrollToRow(rows[0], "top", false);
                                 }
                             }
                         } else {
-                            this.#tabulator!.selectRow(selectedRows);
+                            this.tabulator!.selectRow(selectedRows);
                             if (options?.scrollToFirstSelected) {
-                                void this.#tabulator!.scrollToRow(selectedRows[0], "top", false);
+                                void this.tabulator!.scrollToRow(selectedRows[0], "top", false);
                             }
                         }
                     }
 
                     // Assign the table holder class our fixed scrollbar class too.
-                    if (this.#hostRef.current) {
-                        (this.#hostRef.current?.lastChild as HTMLElement).classList.add("fixedScrollbar");
+                    if (this.hostRef.current) {
+                        (this.hostRef.current?.lastChild as HTMLElement).classList.add("fixedScrollbar");
                     }
 
                     if (topRowIndex != null) {
-                        const topRow = this.#tabulator!.getRowFromPosition(topRowIndex);
-                        void this.#tabulator!.scrollToRow(topRow, "top", false);
+                        const topRow = this.tabulator!.getRowFromPosition(topRowIndex);
+                        void this.tabulator!.scrollToRow(topRow, "top", false);
                     }
                 }
 
-                this.#tableReady = true;
+                this.tableReady = true;
             });
 
-            this.#tabulator.on("dataTreeRowExpanded", this.handleRowExpanded);
-            this.#tabulator.on("dataTreeRowCollapsed", this.handleRowCollapsed);
-            this.#tabulator.on("rowContext", this.handleRowContext);
-            this.#tabulator.on("cellClick", this.handleCellClick);
-            this.#tabulator.on("cellContext", this.handleCellContext);
-            this.#tabulator.on("rowSelected", this.handleRowSelected);
-            this.#tabulator.on("rowClick", this.handleRowClicked);
-            this.#tabulator.on("rowDeselected", this.handleRowDeselected);
-            this.#tabulator.on("columnResized", this.handleColumnResized);
-            this.#tabulator.on("scrollVertical", this.handleVerticalScroll);
-            this.#tabulator.on("scrollHorizontal", this.handleVerticalScroll);
-            this.#tabulator.on("cellEditing", this.handleCellEditing);
-            this.#tabulator.on("cellEdited", this.handleCellEdited);
-            this.#tabulator.on("cellEditCancelled", this.handleCellEditCancelled);
+            this.tabulator.on("dataTreeRowExpanded", this.handleRowExpanded);
+            this.tabulator.on("dataTreeRowCollapsed", this.handleRowCollapsed);
+            this.tabulator.on("rowContext", this.handleRowContext);
+            this.tabulator.on("cellClick", this.handleCellClick);
+            this.tabulator.on("cellContext", this.handleCellContext);
+            this.tabulator.on("rowSelected", this.handleRowSelected);
+            this.tabulator.on("rowClick", this.handleRowClicked);
+            this.tabulator.on("rowDeselected", this.handleRowDeselected);
+            this.tabulator.on("columnResized", this.handleColumnResized);
+            this.tabulator.on("scrollVertical", this.handleVerticalScroll);
+            this.tabulator.on("scrollHorizontal", this.handleVerticalScroll);
+            this.tabulator.on("cellEditing", this.handleCellEditing);
+            this.tabulator.on("cellEdited", this.handleCellEdited);
+            this.tabulator.on("cellEditCancelled", this.handleCellEditCancelled);
         }
     }
 
     public override componentWillUnmount(): void {
-        if (this.#timeoutId) {
-            clearTimeout(this.#timeoutId);
-            this.#timeoutId = null;
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId);
+            this.timeoutId = null;
         }
     }
 
     public override componentDidUpdate(_prevProps: ITreeGridProperties): void {
-        if (this.#tabulator && this.#tableReady) {
+        if (this.tabulator && this.tableReady) {
             const { selectedRows, columns, tableData } = this.props;
 
             // When we are editing, we don't want to update the table.
-            if (this.#isEditing) {
+            if (this.isEditing) {
                 return;
             }
 
@@ -315,45 +314,45 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
             //if (prevProps.tableData !== tableData) {
             if (tableData) {
                 // The call to replaceData does not change the scroll position.
-                void this.#tabulator.replaceData(tableData as Array<{}>).then(() => {
+                void this.tabulator.replaceData(tableData as Array<{}>).then(() => {
                     if (columns) {
                         // The call to setColumns does. Record the current position and restore it after the update.
                         // Also restore the column widths.
-                        const scrollTop = this.#tabulator!.rowManager.element.scrollTop as number;
-                        const scrollLeft = this.#tabulator!.columnManager.scrollLeft as number;
+                        const scrollTop = this.tabulator!.rowManager.element.scrollTop as number;
+                        const scrollLeft = this.tabulator!.columnManager.scrollLeft as number;
 
-                        const previousColumnComponents = this.#tabulator!.getColumns(true);
+                        const previousColumnComponents = this.tabulator!.getColumns(true);
                         const widths = previousColumnComponents.map((component) => { return component.getWidth(); });
-                        this.#tabulator?.setColumns(columns);
+                        this.tabulator?.setColumns(columns);
 
-                        const newColumnComponents = this.#tabulator!.getColumns(true);
+                        const newColumnComponents = this.tabulator!.getColumns(true);
                         if (previousColumnComponents.length === newColumnComponents.length) {
                             newColumnComponents.forEach((component, index) => {
                                 component.setWidth(widths[index]);
                             });
                         }
 
-                        this.#tabulator!.rowManager.element.scrollTop = scrollTop;
+                        this.tabulator!.rowManager.element.scrollTop = scrollTop;
 
                         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                        this.#tabulator!.rowManager.scrollHorizontal(scrollLeft);
+                        this.tabulator!.rowManager.scrollHorizontal(scrollLeft);
                         // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                        this.#tabulator!.columnManager.scrollHorizontal(scrollLeft);
+                        this.tabulator!.columnManager.scrollHorizontal(scrollLeft);
                     }
 
                     // Both columns and rows have been set. Now update the UI.
-                    this.#tabulator?.redraw();
+                    this.tabulator?.redraw();
                     if (selectedRows) {
-                        this.#tabulator?.selectRow(selectedRows);
+                        this.tabulator?.selectRow(selectedRows);
                     }
                 });
             } else if (selectedRows) {
                 if (columns) {
                     // No data here, so no need to restore the scroll position.
-                    this.#tabulator.setColumns(columns);
+                    this.tabulator.setColumns(columns);
                 }
 
-                this.#tabulator.selectRow(selectedRows);
+                this.tabulator.selectRow(selectedRows);
             }
         }
     }
@@ -370,7 +369,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
 
         return (
             <div
-                ref={this.#hostRef}
+                ref={this.hostRef}
                 className={className}
                 {...this.unhandledProperties}
             />
@@ -385,10 +384,10 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     public get table(): Promise<TabulatorProxy | undefined> {
         return new Promise((resolve) => {
             void waitFor(1000, () => {
-                return this.#tableReady;
+                return this.tableReady;
             }).then((success) => {
                 if (success) {
-                    resolve(this.#tabulator);
+                    resolve(this.tabulator);
                 } else {
                     resolve(undefined);
                 }
@@ -396,18 +395,10 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         });
     }
 
-    /**
-     * Only for testing.
-     * @returns the number of current update locks.
-     */
-    public get updateLockCount(): number {
-        return this.#updateLockCount;
-    }
-
     public setColumns(columns: ColumnDefinition[]): Promise<void> {
         return new Promise((resolve, reject) => {
             this.table.then(() => {
-                this.#tabulator?.setColumns(columns);
+                this.tabulator?.setColumns(columns);
                 resolve();
             }).catch((reason) => {
                 reject(reason);
@@ -416,8 +407,8 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     }
 
     public getColumns(): ColumnComponent[] | undefined {
-        if (this.#tableReady && this.#tabulator) {
-            return this.#tabulator.getColumns();
+        if (this.tableReady && this.tabulator) {
+            return this.tabulator.getColumns();
         }
     }
 
@@ -457,8 +448,8 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
      * @returns all rows currently in the table, which match the given lookup value.
      */
     public getRows(rangeLookup?: RowRangeLookup): RowComponent[] {
-        if (this.#tableReady && this.#tabulator) {
-            return this.#tabulator.getRows(rangeLookup);
+        if (this.tableReady && this.tabulator) {
+            return this.tabulator.getRows(rangeLookup);
         }
 
         return [];
@@ -470,26 +461,26 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
      * @param selector A value that identifies the row. It is compared to the index field in the data.
      */
     public getRow(selector: RowLookup): RowComponent | undefined {
-        if (this.#tableReady && this.#tabulator) {
-            return this.#tabulator.getRow(selector);
+        if (this.tableReady && this.tabulator) {
+            return this.tabulator.getRow(selector);
         }
     }
 
     /** @returns the currently selected rows in the table. */
     public getSelectedRows(): RowComponent[] {
-        if (this.#tableReady && this.#tabulator) {
-            return this.#tabulator.getSelectedRows();
+        if (this.tableReady && this.tabulator) {
+            return this.tabulator.getSelectedRows();
         }
 
         return [];
     }
 
     public selectRows(rowIndices: number[]): void {
-        if (this.#tableReady && this.#tabulator) {
+        if (this.tableReady && this.tabulator) {
             const rows = rowIndices.map((rowIndex) => {
-                return this.#tabulator!.getRowFromPosition(rowIndex);
+                return this.tabulator!.getRowFromPosition(rowIndex);
             });
-            this.#tabulator.selectRow(rows);
+            this.tabulator.selectRow(rows);
         }
     }
 
@@ -528,7 +519,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
      * @param index A list of indexes, each addressing a level in the tree.
      */
     public getRowFromIndex(index: number[]): RowComponent | undefined {
-        if (this.#tableReady && this.#tabulator) {
+        if (this.tableReady && this.tabulator) {
 
             const rowFromIndex = (rows: RowComponent[]): RowComponent | undefined => {
                 const current = index.shift();
@@ -547,7 +538,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
                 return rowFromIndex(rows[current].getTreeChildren());
             };
 
-            const rows = this.#tabulator.getRows();
+            const rows = this.tabulator.getRows();
 
             return rowFromIndex(rows);
         }
@@ -556,14 +547,14 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     }
 
     public selectRow(lookup?: RowLookup[] | true | string): void {
-        if (this.#tableReady && this.#tabulator) {
-            this.#tabulator.selectRow(lookup);
+        if (this.tableReady && this.tabulator) {
+            this.tabulator.selectRow(lookup);
         }
     }
 
     public deselectRow(lookup?: RowLookup): void {
-        if (this.#tableReady && this.#tabulator) {
-            this.#tabulator.deselectRow(lookup);
+        if (this.tableReady && this.tabulator) {
+            this.tabulator.deselectRow(lookup);
         }
     }
 
@@ -572,10 +563,10 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
      * Calls to `beginUpdate()` and `endUpdate()` must be balanced to avoid a complete redraw block.
      */
     public beginUpdate(): void {
-        if (this.#tableReady && this.#tabulator) {
-            ++this.#updateLockCount;
-            if (this.#updateLockCount === 1) {
-                this.#tabulator.blockRedraw();
+        if (this.tableReady && this.tabulator) {
+            ++this.updateLockCount;
+            if (this.updateLockCount === 1) {
+                this.tabulator.blockRedraw();
             }
         }
     }
@@ -585,24 +576,24 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
      * Calls to `beginUpdate()` and `endUpdate()` must be balanced to avoid a complete redraw block.
      */
     public endUpdate(): void {
-        if (this.#tableReady && this.#tabulator) {
-            if (this.#updateLockCount > 0) {
-                --this.#updateLockCount;
-                if (this.#updateLockCount === 0) {
-                    this.#tabulator.restoreRedraw();
+        if (this.tableReady && this.tabulator) {
+            if (this.updateLockCount > 0) {
+                --this.updateLockCount;
+                if (this.updateLockCount === 0) {
+                    this.tabulator.restoreRedraw();
                 }
             }
         }
     }
 
     public scrollToRow(item: number | RowLookup): Promise<void> {
-        if (this.#tableReady && this.#tabulator) {
+        if (this.tableReady && this.tabulator) {
             if (typeof item === "number") {
-                const row = this.#tabulator.getRowFromPosition(item);
+                const row = this.tabulator.getRowFromPosition(item);
 
-                return this.#tabulator.scrollToRow(row, "top", true);
+                return this.tabulator.scrollToRow(row, "top", true);
             } else {
-                return this.#tabulator.scrollToRow(item, "center", true);
+                return this.tabulator.scrollToRow(item, "center", true);
             }
         }
 
@@ -610,11 +601,11 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     }
 
     public scrollToBottom(): Promise<void> {
-        if (this.#tableReady && this.#tabulator) {
-            const rows = this.#tabulator.getRows();
+        if (this.tableReady && this.tabulator) {
+            const rows = this.tabulator.getRows();
 
             if (rows.length > 0) {
-                return this.#tabulator.scrollToRow(rows[rows.length - 1], "top", true);
+                return this.tabulator.scrollToRow(rows[rows.length - 1], "top", true);
             }
         }
 
@@ -622,8 +613,8 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     }
 
     public async addRow(row: {}): Promise<void> {
-        if (this.#tableReady && this.#tabulator) {
-            await this.#tabulator.addRow(row);
+        if (this.tableReady && this.tabulator) {
+            await this.tabulator.addRow(row);
         }
 
         return Promise.resolve();
@@ -752,17 +743,17 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         const { options, columns } = this.props;
 
         if (options?.treeColumn) {
-            if (this.#toggleTimeoutId) {
-                clearTimeout(this.#toggleTimeoutId);
-                this.#toggleTimeoutId = null;
+            if (this.toggleTimeoutId) {
+                clearTimeout(this.toggleTimeoutId);
+                this.toggleTimeoutId = null;
 
                 return;
             }
 
             if (columns && columns?.length > 0 && columns[0].cellDblClick !== undefined) {
                 // Toggle the selected row if this is actually a tree (after a delay to see if a double click follows).
-                this.#toggleTimeoutId = setTimeout(() => {
-                    this.#toggleTimeoutId = null;
+                this.toggleTimeoutId = setTimeout(() => {
+                    this.toggleTimeoutId = null;
                     if (!event.defaultPrevented) { // Allow click handlers to prevent the toggle.
                         row.treeToggle();
                     }
@@ -777,9 +768,9 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
         const { options } = this.props;
 
         if (options?.autoScrollOnSelect) {
-            const selected = this.#tabulator?.getSelectedRows() ?? [];
+            const selected = this.tabulator?.getSelectedRows() ?? [];
             if (selected.length > 0) {
-                void this.#tabulator?.scrollToRow(selected[0], "center", false);
+                void this.tabulator?.scrollToRow(selected[0], "center", false);
             }
         }
 
@@ -809,7 +800,7 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     private handleVerticalScroll = (_top: number): void => {
         const { onVerticalScroll } = this.props;
 
-        const rows = this.#tabulator!.getRows("visible");
+        const rows = this.tabulator!.getRows("visible");
         if (rows.length > 0) {
             const topRow = rows[0];
 
@@ -818,14 +809,14 @@ export class TreeGrid extends ComponentBase<ITreeGridProperties> {
     };
 
     private handleCellEditing = () => {
-        this.#isEditing = true;
+        this.isEditing = true;
     };
 
     private handleCellEdited = () => {
-        this.#isEditing = false;
+        this.isEditing = false;
     };
 
     private handleCellEditCancelled = () => {
-        this.#isEditing = false;
+        this.isEditing = false;
     };
 }
