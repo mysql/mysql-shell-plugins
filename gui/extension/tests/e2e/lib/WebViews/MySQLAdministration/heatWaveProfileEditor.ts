@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -107,7 +107,7 @@ export class HeatWaveProfileEditor {
     public selectModel = async (model: string): Promise<void> => {
         const modelLocator = locator.notebook.codeEditor.editor.result.chatOptions.model;
         await driver.findElement(modelLocator.selectList).click();
-        await driver.wait(until.elementLocated(modelLocator.list), constants.wait5seconds,
+        await driver.wait(until.elementLocated(modelLocator.list), constants.wait1second * 5,
             "The model list was not displayed");
 
         switch (model) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,7 +21,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { WebElement, until } from "vscode-extension-tester";
+import { WebElement, until, error } from "vscode-extension-tester";
 import * as locator from "../../locators";
 import { Misc, driver } from "../../Misc";
 import * as constants from "../../constants";
@@ -275,20 +275,35 @@ export class E2EPerformanceDashboard {
     /**
      * Gets the tab
      * @param tabName The tab name
-     * @returns A promise resolving with the tab
      */
-    public getTab = async (tabName: string): Promise<WebElement | undefined> => {
+    public selectTab = async (tabName: string): Promise<void> => {
         await Misc.switchBackToTopFrame();
         await Misc.switchToFrame();
-        if (tabName === constants.perfDashServerTab) {
-            return driver.wait(until.elementLocated(locator.mysqlAdministration.performanceDashboard.serverTab),
-                constants.wait3seconds, "Could not find Server Performance tab");
-        } else if (tabName === constants.perfDashMLETab) {
-            return driver.wait(until.elementLocated(locator.mysqlAdministration.performanceDashboard.mleTab),
-                constants.wait3seconds, "Could not find MLE Performance tab");
-        } else {
-            throw new Error(`Unknown tab ${tabName}`);
-        }
+
+        let refTab: WebElement | undefined;
+
+        await driver.wait(async () => {
+            try {
+                if (tabName === constants.perfDashServerTab) {
+                    refTab = driver.wait(until.elementLocated(locator.mysqlAdministration
+                        .performanceDashboard.serverTab),
+                        constants.wait1second * 5, "Could not find Server Performance tab");
+                } else if (tabName === constants.perfDashMLETab) {
+                    refTab = driver.wait(until.elementLocated(locator.mysqlAdministration.performanceDashboard.mleTab),
+                        constants.wait1second * 5, "Could not find MLE Performance tab");
+                } else {
+                    throw new Error(`Unknown tab ${tabName}`);
+                }
+
+                await refTab.click();
+
+                return (await refTab.getAttribute("class")).includes("selected");
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait1second * 10, `${tabName} was not selected`);
     };
 
 }

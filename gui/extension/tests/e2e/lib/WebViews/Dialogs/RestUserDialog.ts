@@ -45,7 +45,7 @@ export class RestUserDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsUserDialog.exists),
-            constants.wait20seconds, "User dialog was not displayed");
+            constants.wait1second * 20, "User dialog was not displayed");
 
         if (restUser.username) {
             await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.username, restUser.username);
@@ -61,7 +61,7 @@ export class RestUserDialog {
         if (restUser.assignedRoles) {
             await driver.executeScript("arguments[0].click()", await dialog.findElement(locator.mrsUserDialog.roles));
             await driver.wait(until.elementLocated(locator.mrsUserDialog.rolesList),
-                constants.wait5seconds, "Roles drop down list was not displayed");
+                constants.wait1second * 5, "Roles drop down list was not displayed");
 
             const roles = await driver.findElement(By.id(restUser.assignedRoles));
             const rolesLabel = await roles.findElement(locator.htmlTag.label);
@@ -75,10 +75,10 @@ export class RestUserDialog {
                         await driver.actions().keyDown(Key.ESCAPE).keyUp(Key.ESCAPE).perform();
 
                         return (await driver.findElements(locator.mrsUserDialog.rolesList)).length === 0;
-                    }, constants.wait5seconds, "Roles drop down list was not closed");
+                    }, constants.wait1second * 5, "Roles drop down list was not closed");
 
                     return (await driver.findElements(locator.mrsUserDialog.rolesList)).length === 0;
-                }, constants.wait5seconds, "Roles drop down list was not closed");
+                }, constants.wait1second * 5, "Roles drop down list was not closed");
             }
         }
 
@@ -102,7 +102,7 @@ export class RestUserDialog {
             await dialog.findElement(locator.mrsUserDialog.ok).click();
 
             return (await DialogHelper.existsDialog()) === false;
-        }, constants.wait10seconds, "The MRS User dialog was not closed");
+        }, constants.wait1second * 10, "The MRS User dialog was not closed");
 
         return restUser;
     };
@@ -117,7 +117,7 @@ export class RestUserDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsUserDialog.exists),
-            constants.wait20seconds, "User dialog was not displayed");
+            constants.wait1second * 20, "User dialog was not displayed");
 
         const restUser: interfaces.IRestUser = {
             username: await DialogHelper.getFieldValue(dialog, locator.mrsUserDialog.username),
@@ -138,7 +138,7 @@ export class RestUserDialog {
             await dialog.findElement(locator.mrsUserDialog.ok).click();
 
             return (await DialogHelper.existsDialog()) === false;
-        }, constants.wait10seconds, "The MRS User dialog was not closed");
+        }, constants.wait1second * 10, "The MRS User dialog was not closed");
 
         return restUser;
 

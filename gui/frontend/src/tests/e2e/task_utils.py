@@ -582,6 +582,20 @@ class SetMySQLServerTask(ShellTask):
             self.shell_command_execute_cli(["--", "dba", "delete-sandbox-instance", self.port, f"--sandbox-dir={self.dir_name}"])
             Logger.success("Successfully deleted MySQL instance")
 
+class InstallMRSSchema(ShellTask):
+    def __init__(self, environment: typing.Dict[str, str], mysqlPort: str) -> None:
+        super().__init__(environment)
+        self.port = mysqlPort
+
+    def run(self) -> None:
+        conn_string = (
+            f"{self.environment['DBUSERNAME']}:{self.environment['DBPASSWORD']}@localhost:{self.port}"
+        )
+        self.shell_command_execute_cli(
+            [conn_string, "--sql", "-e", "CONFIGURE REST METADATA;"]
+        )
+        Logger.success("[OK] MRS Schema was installed successfully")
+
 class ClearCredentials(ShellTask):
     def __init__(self, environment: typing.Dict[str, str]) -> None:
         super().__init__(environment)

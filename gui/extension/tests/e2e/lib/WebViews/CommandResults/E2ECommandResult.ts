@@ -120,7 +120,7 @@ export abstract class E2ECommandResult {
      */
     public normalize = async (): Promise<void> => {
         await driver.findElement(resultLocator.toolbar.normalize).click();
-        await driver.wait(this.untilIsNormalized(), constants.wait5seconds);
+        await driver.wait(this.untilIsNormalized(), constants.wait1second * 5);
     };
 
     /**
@@ -145,7 +145,7 @@ export abstract class E2ECommandResult {
             if (tabs.length > 0) {
                 return tabs[0];
             }
-        }, constants.wait5seconds, `Could not find the tabs for cmd ${this.command}`);
+        }, constants.wait1second * 5, `Could not find the tabs for cmd ${this.command}`);
 
         const tabsToGrab: interfaces.ICommandResultTab[] = [];
         const existingTabs = await tabContext.findElements(tabLocator.tab);
@@ -177,7 +177,7 @@ export abstract class E2ECommandResult {
 
             await driver.actions().move({ origin: tab[0].element }).contextClick().perform();
             await driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.result.tabs.exists),
-                constants.wait3seconds, `Could not find the context menu for tab '${tabName}'`);
+                constants.wait1second * 3, `Could not find the context menu for tab '${tabName}'`);
 
             if (menuItem === constants.close) {
                 await driver.findElement(locator.notebook.codeEditor.editor.result.tabs.contextMenu.close).click();

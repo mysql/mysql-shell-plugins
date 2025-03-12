@@ -18,7 +18,7 @@
     "mysql2": "3.10.2",
     "sqlite3": "5.1.7",
     "typescript": "5.4.5",
-    "vscode-extension-tester": "8.8.0",
+    "vscode-extension-tester": "8.13.0",
     "ts-node": "10.9.2"
   },
   "overrides": {

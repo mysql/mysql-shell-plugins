@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -21,8 +21,10 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { until } from "vscode-extension-tester";
 import * as locator from "../../locators";
 import { driver } from "../../Misc";
+import * as constants from "../../constants";
 
 /**
  * This class represents the Server Status page and all its related functions
@@ -186,7 +188,8 @@ export class E2EServerStatus {
             publicKey,
         ] = await Promise.all([
             await (await driver.findElement(serverStatusLocator.host)).getText(),
-            await (await driver.findElement(serverStatusLocator.socket)).getText(),
+            await (await driver.wait(until.elementTextMatches(await driver.findElement(serverStatusLocator.socket),
+                /(.sock|MySQL)/), constants.wait1second * 5)).getText(),
             await (await driver.findElement(serverStatusLocator.port)).getText(),
             await (await driver.findElement(serverStatusLocator.version)).getText(),
             await (await driver.findElement(serverStatusLocator.compiledFor)).getText(),
