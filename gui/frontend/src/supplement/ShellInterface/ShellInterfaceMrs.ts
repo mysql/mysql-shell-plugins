@@ -42,8 +42,7 @@ export class ShellInterfaceMrs {
     // The key under which the module session is stored in the WebSession instance.
     public moduleSessionLookupId = "";
 
-    public async configure(enableMrs?: boolean, allowRecreationOnMajorUpgrade?: boolean,
-        updateIfAvailable?: boolean, options?: string): Promise<void> {
+    public async configure(enableMrs?: boolean, updateIfAvailable?: boolean, options?: string): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsConfigure,
             parameters: {
@@ -52,7 +51,6 @@ export class ShellInterfaceMrs {
                     enableMrs,
                     updateIfAvailable,
                     options,
-                    allowRecreationOnMajorUpgrade,
                 },
             },
             caseConversionIgnores: ["options"],

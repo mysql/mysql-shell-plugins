@@ -430,6 +430,7 @@ class SetPluginsTask(BaseTask):
         self.link_plugin('gui_plugin')
         self.link_plugin('mds_plugin')
         self.link_plugin('mrs_plugin')
+        self.link_plugin('msm_plugin')
 
     def set_custom_config_folders(self) -> None:
         """Sets custom config folders for all servers"""
@@ -448,6 +449,8 @@ class SetPluginsTask(BaseTask):
                 path, "plugins", "mds_plugin"))
             create_symlink(self.get_repo_plugin_path('mrs_plugin'), os.path.join(
                 path, "plugins", "mrs_plugin"))
+            create_symlink(self.get_repo_plugin_path('msm_plugin'), os.path.join(
+                path, "plugins", "msm_plugin"))
 
 
 class SetMySQLServerTask(ShellTask):

@@ -24,7 +24,6 @@
 """Sub-Module for core functions"""
 
 # cSpell:ignore mysqlsh, msm
-import base64
 import datetime
 from enum import IntEnum
 import json
@@ -34,6 +33,8 @@ import re
 import threading
 import traceback
 import mysqlsh
+import sys
+from contextlib import contextmanager
 
 SCHEMA_METADATA_LOCK_ERROR = "Failed to acquire schema metadata lock. Please ensure no other metadata update is running, then try again."
 
@@ -48,11 +49,14 @@ def get_msm_plugin_data_path() -> str:
     return msm_plugin_data_path
 
 
+def get_msm_schema_update_log_path() -> str:
+    return os.path.join(
+        get_msm_plugin_data_path(), 'msm_schema_update_log.txt')
+
+
 def write_to_msm_schema_update_log(type, message):
     # Create/Open the log file and append the message
-    log_file_name = os.path.join(
-        get_msm_plugin_data_path(), 'msm_schema_update_log.txt')
-    with open(log_file_name, "a+") as file:
+    with open(get_msm_schema_update_log_path(), "a+") as file:
         file.write(f"{datetime.datetime.now()} - {type} - {message}\n")
 
 

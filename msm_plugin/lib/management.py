@@ -779,12 +779,12 @@ def get_last_released_version(schema_project_path: str) -> list[int, int, int] |
         schema_project_path: The path to the schema project folder.
 
     Returns:
-        The version of the last released version or None if no version was released yet
+        The last released version or None if no version was released yet
     """
     versions = get_released_versions(schema_project_path)
 
     if len(versions) > 0:
-        return versions[len(versions) - 1]
+        return versions[-1]
     else:
         return None
 
@@ -817,6 +817,23 @@ def get_deployment_script_versions(schema_project_path: str) -> list[list[int, i
     versions.sort()
 
     return versions
+
+
+def get_last_deployment_script_version(schema_project_path: str) -> list[int, int, int] | None:
+    """Returns the last deployment version of the database schema
+
+    Args:
+        schema_project_path: The path to the schema project folder.
+
+    Returns:
+        The version of the last deployment or None if no version was released yet
+    """
+    versions = get_deployment_script_versions(schema_project_path)
+
+    if len(versions) > 0:
+        return versions[-1]
+    else:
+        return None
 
 
 def get_project_info(schema_project_path: str) -> dict:
@@ -1449,7 +1466,7 @@ def deploy_schema(
         info_msg = (
             f"Deployment or update of database schema `{schema_name}` using "
             f"version {version} requested but the schema is already on the "
-            "requested version. No changes required."
+            "requested version. No changes performed."
         )
         lib.core.write_to_msm_schema_update_log("INFO", info_msg)
         return info_msg
@@ -1464,7 +1481,7 @@ def deploy_schema(
         if not schema_version in updatable_versions:
             err_msg = (f"Update of database schema `{schema_name}` to version "
                 f"{version} requested but this version cannot be updated.")
-            lib.core.write_to_msm_schema_update_log("INFO", err_msg)
+            lib.core.write_to_msm_schema_update_log("ERROR", err_msg)
             raise Exception(err_msg)
 
     # Log start of the
@@ -1492,8 +1509,19 @@ def deploy_schema(
             backup_directory = os.path.join(
                 lib.core.get_msm_plugin_data_path(),
                 "backups", f"{schema_file_name}_backup_{schema_version}")
+            # If that directory already exists, keep appending counter until
+            # a new directory is found
+            i = 2
+            candidate = backup_directory
+            while os.path.exists(candidate):
+                candidate = f"{backup_directory}_{i}"
+                i += 1
+            backup_directory = candidate
 
         os.makedirs(backup_directory, exist_ok=True)
+
+        # Set the mysqlsh session to the one that was given
+        mysqlsh.globals.shell.set_session(session.session)
 
         mysqlsh.globals.util.dump_schemas(
             [schema_name],
@@ -1505,6 +1533,7 @@ def deploy_schema(
 
         backup_available = True
 
+
     # Run deployment script
     try:
         lib.core.execute_msm_sql_script(
@@ -1515,8 +1544,8 @@ def deploy_schema(
 
         if not schema_exists:
             info_msg = (
-                f"Completed the deployment of `{schema_name}` version "
-                f"{version} successfully.")
+                f"Deployment of `{schema_name}` version "
+                f"{version} completed successfully.")
         else:
             info_msg = (
                 f"Completed the update of `{schema_name}` version "

@@ -185,17 +185,17 @@ def test_sql_show(phone_book):
         rows = res.fetch_all()
         return set([row[0] for row in rows])
 
-    mysqlsh.globals.shell.dump_rows(
-        session.run_sql(
-            """select r.id, r.caption, r.specific_to_service_id, s.url_context_root,
-                (select group_concat(u.name, '@', a.name) from mysql_rest_service_metadata.mrs_user_has_role j
-                        join mysql_rest_service_metadata.mrs_user u on u.id = j.user_id
-                        join mysql_rest_service_metadata.auth_app a on a.id = u.auth_app_id
-                         where j.role_id = r.id) as users
-            from mysql_rest_service_metadata.mrs_role r
-            left join service s on r.specific_to_service_id = s.id"""
-        )
-    )
+    # mysqlsh.globals.shell.dump_rows(
+    #     session.run_sql(
+    #         """select r.id, r.caption, r.specific_to_service_id, s.url_context_root,
+    #             (select group_concat(u.name, '@', a.name) from mysql_rest_service_metadata.mrs_user_has_role j
+    #                     join mysql_rest_service_metadata.mrs_user u on u.id = j.user_id
+    #                     join mysql_rest_service_metadata.auth_app a on a.id = u.auth_app_id
+    #                      where j.role_id = r.id) as users
+    #         from mysql_rest_service_metadata.mrs_role r
+    #         left join service s on r.specific_to_service_id = s.id"""
+    #     )
+    # )
 
     mysqlsh.globals.shell.dump_rows(
         session.run_sql(

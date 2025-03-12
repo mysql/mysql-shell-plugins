@@ -455,6 +455,12 @@ export interface IMrsScriptDefinitions {
     info?: string;
 }
 
+export interface IMrsConfigureStatus {
+    schemaChanged: boolean;
+    infoMsg: string;
+    mrsEnabled: boolean;
+}
+
 export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddService]: { result: IMrsServiceData; };
     [ShellAPIMrs.MrsGetService]: { result: IMrsServiceData; };
@@ -513,7 +519,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsInfo]: {};
     [ShellAPIMrs.MrsVersion]: {};
     [ShellAPIMrs.MrsLs]: {};
-    [ShellAPIMrs.MrsConfigure]: {};
+    [ShellAPIMrs.MrsConfigure]: { result: IMrsConfigureStatus; };
     [ShellAPIMrs.MrsStatus]: { result: IMrsStatusData; };
     [ShellAPIMrs.MrsIgnoreVersionUpgrade]: {};
     [ShellAPIMrs.MrsDumpService]: {};

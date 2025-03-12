@@ -393,8 +393,8 @@ def test_deployment(sandbox_session, project_path):
         schema_project_path=project_path, version=version_str)
 
     assert result_msg == (
-        f"Completed the deployment of `{SCHEMA_NAME}` version "
-        f"{version_str} successfully.")
+        f"Deployment of `{SCHEMA_NAME}` version "
+        f"{version_str} completed successfully.")
 
 
     assert len(released_versions) > 1

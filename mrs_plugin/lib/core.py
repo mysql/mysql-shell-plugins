@@ -114,18 +114,6 @@ def script_path(*suffixes):
     )
 
 
-def write_to_metadata_schema_update_log(type, message):
-    # Get mrs plugin data folder, create if it does not exist yet
-    log_file_dir = mysqlsh.plugin_manager.general.get_shell_user_dir(
-        'plugin_data', 'mrs_plugin')
-    pathlib.Path(log_file_dir).mkdir(parents=True, exist_ok=True)
-
-    # Create/Open the log file and append the message
-    log_file_name = os.path.join(log_file_dir, 'mrs_metadata_schema_update_log.txt')
-    with open(log_file_name, "a+") as file:
-        file.write(f"{datetime.datetime.now()} - {type} - {message}\n")
-
-
 def print_exception(exc_type, exc_value, exc_traceback):
     # Exception handler for the MrsDbSession context manager, which should
     # be used only in interactive mode.
@@ -372,211 +360,24 @@ def mrs_metadata_schema_exists(session):
     return row["schema_exists"]
 
 
-def update_mrs_metadata_schema(session, current_db_version_str):
-    """Creates or updates the MRS metadata schema
-
-    Raises exception on failure
-
-    Args:
-        session (object): The database session to use
-        current_db_version_str (string): Current version of the metadata schema
-        interactive (bool): Indicates whether to execute in interactive mode
-
-    Returns:
-        None
-    """
-    interactive = get_interactive_default()
-    if interactive:
-        print("Updating MRS metadata schema...")
-
-    script_dir_path = script_path("db_schema", "mrs_metadata", "updates")
-
-    version_to_update = current_db_version_str
-    update_to_version = ""
-
-    write_to_metadata_schema_update_log("INFO", f"Updating MRS metadata schema version {current_db_version_str} ...")
-
-    # run updates until ending up at current version
-    upgrade_file_found = True
-
-    mrs_lock = 0
+def get_mrs_enabled(session):
     try:
-        mrs_lock = (
-            MrsDbExec('SELECT GET_LOCK("MRS_METADATA_LOCK", 1) AS mrs_lock')
-            .exec(session)
-            .first["mrs_lock"]
-        )
-        if mrs_lock == 0:
-            raise Exception(MRS_METADATA_LOCK_ERROR)
-
-        try:
-            MrsDbExec("START TRANSACTION").exec(session)
-
-            while general.DB_VERSION_STR != version_to_update and upgrade_file_found:
-                # set upgrade_file_found to False to ensure execution will not be
-                # stuck in this loop forever
-                upgrade_file_found = False
-
-                for f in os.listdir(script_dir_path):
-                    m = re.match(
-                        r"mrs_metadata_schema_(\d+\.\d+\.\d+)_to_" r"(\d+\.\d+\.\d+)\.sql",
-                        f,
-                    )
-                    if m:
-                        g = m.groups()
-
-                        update_from_version = g[0]
-                        update_to_version = g[1]
-
-                        if version_to_update == update_from_version:
-                            upgrade_file_found = True
-
-                            write_to_metadata_schema_update_log(
-                                "INFO", f"Executing update from version {update_from_version} to version "
-                                f"{update_to_version}. Running SQL Script {os.path.join(script_dir_path)} ...")
-
-                            try:
-                                with open(
-                                    os.path.join(script_dir_path, f), "r"
-                                ) as sql_file:
-                                    sql_script = sql_file.read()
-
-                                if interactive:
-                                    print(
-                                        f"Executing update from version {update_from_version} "
-                                        f"to version {update_to_version} ..."
-                                    )
-
-                                for cmd in mysqlsh.mysql.split_script(sql_script):
-                                    current_cmd = cmd.strip()
-                                    if current_cmd:
-                                        MrsDbExec(current_cmd).exec(session)
-                                        # session.run_sql(current_cmd)
-
-                                version_to_update = update_to_version
-                            except (mysqlsh.DBError, Exception) as e:
-                                write_to_metadata_schema_update_log(
-                                    "ERROR", f"Failed to upgrade from version {update_from_version} "
-                                    f"to version {update_to_version}.\n{current_cmd}\n{e}")
-
-                                if interactive:
-                                    print(f"Failed to updated {f}: {e}")
-                                raise Exception(
-                                    "The MRS metadata database schema could not "
-                                    f"be updated.\n{current_cmd}\n{e}"
-                                )
-
-                if general.DB_VERSION_STR != version_to_update and not upgrade_file_found:
-                    raise Exception(
-                        "The file to update the metadata "
-                        f"schema from version {version_to_update} to "
-                        f"version {general.DB_VERSION_STR} was not found."
-                    )
-                else:
-                    if interactive:
-                        print(
-                            f"The MRS metadata schema was successfully update "
-                            f"to version {general.DB_VERSION_STR}."
-                        )
-
-            MrsDbExec("COMMIT").exec(session)
-        except Exception as e:
-            write_to_metadata_schema_update_log(
-                "ERROR", f"The MRS metadata schema version {current_db_version_str} update failed.")
-
-            MrsDbExec("ROLLBACK").exec(session)
-
-            raise
-
-        write_to_metadata_schema_update_log(
-            "INFO", f"The MRS metadata schema version has been successfully updated to version {general.DB_VERSION_STR}.")
-
-    finally:
-        if mrs_lock == 1:
-            MrsDbExec('SELECT RELEASE_LOCK("MRS_METADATA_LOCK")').exec(session)
-
-
-def create_mrs_metadata_schema(session, drop_existing=False):
-    """Creates or updates the MRS metadata schema
-
-    Raises exception on failure
-
-    Args:
-        session (object): The database session to use
-        drop_existing (bool): Whether to drop the MRS metadata schema before creation
-
-    Returns:
-        None
-    """
-    latest_version_val = [0, 0, 0]
-
-    script_dir = sql_file_path = script_path("db_schema", "mrs_metadata", "versions")
-
-    # find the latest version of the database file available
-    for f in os.listdir(script_dir):
-        m = re.match(r"mrs_metadata_schema_(\d+)\.(\d+)\.(\d+)\.sql", f)
-        if m:
-            g = [int(group) for group in m.groups()]
-            if g > latest_version_val or latest_version_val == [0, 0, 0]:
-                latest_version_val = g
-
-    if latest_version_val == [0, 0, 0]:
-        return
-
-    if latest_version_val > general.DB_VERSION:
-        latest_version_val = general.DB_VERSION
-
-    version_str = ".".join(map(str, latest_version_val))
-
-    sql_file_path = script_path(
-        "db_schema", "mrs_metadata", "versions", f'mrs_metadata_schema_{version_str}.sql'
-    )
-
-    write_to_metadata_schema_update_log(
-        "INFO", f"Creating MRS metadata schema version {version_str}. Running SQL Script {sql_file_path} ...")
-
-
-    with open(sql_file_path) as f:
-        sql_script = f.read()
-
-    commands = mysqlsh.mysql.split_script(sql_script)
-
-    mrs_lock = 0
-    try:
-        # Acquire MRS_METADATA_LOCK
-        mrs_lock = (
-            MrsDbExec('SELECT GET_LOCK("MRS_METADATA_LOCK", 1) AS mrs_lock')
-            .exec(session)
-            .first["mrs_lock"]
-        )
-        if mrs_lock == 0:
-            raise Exception(MRS_METADATA_LOCK_ERROR)
-
-        if drop_existing:
-            session.run_sql("DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`")
-
-        # Execute all commands
-        current_cmd = ""
-        try:
-            for cmd in commands:
-                current_cmd = cmd.strip()
-                if current_cmd:
-                    session.run_sql(current_cmd)
-        except mysqlsh.DBError as e:
-            # On exception, drop the schema and re-raise
-            session.run_sql("DROP SCHEMA IF EXISTS `mysql_rest_service_metadata`")
-
-            write_to_metadata_schema_update_log(
-                "ERROR", f"Failed to create the MRS metadata schema version {version_str}.\n{e}")
-            raise Exception(
-                f"Failed to create the MRS metadata schema.\n" f"{current_cmd}\n{e}"
+        row = (
+            select(
+                table="config",
+                cols=[
+                    "service_enabled",
+                ],
             )
-        write_to_metadata_schema_update_log(
-            "INFO", f"MRS metadata schema version {version_str} created successfully.")
-    finally:
-        if mrs_lock == 1:
-            MrsDbExec('SELECT RELEASE_LOCK("MRS_METADATA_LOCK")').exec(session)
+            .exec(session)
+            .first
+        )
+        if not row:
+            return False
 
+        return int(row["service_enabled"]) == 1
+    except:
+        return False
 
 def prompt_for_list_item(
     item_list,

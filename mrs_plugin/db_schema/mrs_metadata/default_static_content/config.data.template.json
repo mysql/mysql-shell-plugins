@@ -1,1 +1,0 @@
-{ "defaultStaticContent": { "index.html": "${indexHtmlB64}", "favicon.ico": "${faviconIcoB64}", "favicon.svg": "${faviconSvgB64}", "sakila.svg": "${sakilaSvgB64}", "standalone-preact.js": "${standalonePreactJsB64}" }, "directoryIndexDirective": [ "index.html" ] }

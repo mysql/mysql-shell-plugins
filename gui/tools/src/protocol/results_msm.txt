@@ -30,8 +30,9 @@ export interface IProtocolMsmResults {
     [ShellAPIMsm.MsmSetDevelopmentVersion]: {};
     [ShellAPIMsm.MsmGetReleasedVersions]: { result: MsmVersion[] };
     [ShellAPIMsm.MsmGetDeploymentScriptVersions]: { result: MsmVersion[] };
-    [ShellAPIMsm.MsmGetLastReleasedVersion]: { result: string; };
-    [ShellAPIMsm.MsmPrepareRelease]: { result: string[] };
+    [ShellAPIMsm.MsmGetLastReleasedVersion]: { result: number[]; };
+    [ShellAPIMsm.MsmGetLastDeploymentVersion]: { result: number[]; };
+    [ShellAPIMsm.MsmPrepareRelease]: { result: string[]; };
     [ShellAPIMsm.MsmGetSqlContentFromSection]: { result: string; };
     [ShellAPIMsm.MsmSetSectionSqlContent]: {};
     [ShellAPIMsm.MsmGenerateDeploymentScript]: { result: string; };
