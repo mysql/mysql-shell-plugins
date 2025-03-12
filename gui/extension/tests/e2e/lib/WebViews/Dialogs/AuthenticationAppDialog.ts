@@ -41,7 +41,7 @@ export class AuthenticationAppDialog {
      */
     public static getTab = async (tabName: string): Promise<WebElement> => {
         const dialog = await driver.wait(until.elementLocated(locator.mrsAuthenticationAppDialog.exists),
-            constants.wait20seconds, "Authentication app dialog was not displayed");
+            constants.wait1second * 20, "Authentication app dialog was not displayed");
 
         const tabs = await dialog.findElements(locator.mrsAuthenticationAppDialog.tab);
 
@@ -66,12 +66,12 @@ export class AuthenticationAppDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsAuthenticationAppDialog.exists),
-            constants.wait20seconds, "Authentication app dialog was not displayed");
+            constants.wait1second * 20, "Authentication app dialog was not displayed");
 
         if (authApp.vendor) {
             await dialog.findElement(locator.mrsAuthenticationAppDialog.authVendorName).click();
             const popup = await driver.wait(until.elementLocated(locator.mrsAuthenticationAppDialog.authVendorNameList),
-                constants.wait5seconds, "Auth vendor drop down list was not displayed");
+                constants.wait1second * 5, "Auth vendor drop down list was not displayed");
 
             await popup.findElement(By.id(authApp.vendor)).click();
         }
@@ -101,7 +101,7 @@ export class AuthenticationAppDialog {
                 await dialog.findElement(locator.mrsAuthenticationAppDialog.defaultRoleName).click();
                 const popup = await driver.wait(until
                     .elementLocated(locator.mrsAuthenticationAppDialog.defaultRoleList),
-                    constants.wait5seconds, "Auth vendor drop down list was not displayed");
+                    constants.wait1second * 5, "Auth vendor drop down list was not displayed");
 
                 await popup.findElement(By.id(authApp.settings.defaultRole)).click();
             }
@@ -142,7 +142,7 @@ export class AuthenticationAppDialog {
             await dialog.findElement(locator.mrsAuthenticationAppDialog.ok).click();
 
             return (await DialogHelper.existsDialog()) === false;
-        }, constants.wait10seconds, "The Authentication App Dialog was not closed");
+        }, constants.wait1second * 10, "The Authentication App Dialog was not closed");
 
         return authApp;
 
@@ -158,7 +158,7 @@ export class AuthenticationAppDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsAuthenticationAppDialog.exists),
-            constants.wait20seconds, "Authentication app dialog was not displayed");
+            constants.wait1second * 20, "Authentication app dialog was not displayed");
 
         await (await this.getTab("Settings")).click();
 
@@ -198,7 +198,7 @@ export class AuthenticationAppDialog {
             await dialog.findElement(locator.mrsAuthenticationAppDialog.ok).click();
 
             return (await DialogHelper.existsDialog()) === false;
-        }, constants.wait10seconds, "The Authentication App Dialog was not closed");
+        }, constants.wait1second * 10, "The Authentication App Dialog was not closed");
 
         return authenticationApp;
     };

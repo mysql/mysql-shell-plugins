@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -67,7 +67,7 @@ export class PasswordDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated((locator.passwordDialog.exists)),
-            constants.wait5seconds, "No password dialog was found");
+            constants.wait1second * 5, "No password dialog was found");
         await dialog.findElement(locator.passwordDialog.password)
             .sendKeys((dbConfig.basic as interfaces.IConnBasicMySQL).password);
         await dialog.findElement(locator.passwordDialog.ok).click();
@@ -80,7 +80,7 @@ export class PasswordDialog {
      * @returns A promise resolving when the password is set
      */
     private static setConfirm = async (value: string,
-        timeoutDialog = constants.wait10seconds): Promise<void> => {
+        timeoutDialog = constants.wait1second * 10): Promise<void> => {
 
         if (!(await Misc.insideIframe())) {
             await Misc.switchToFrame();

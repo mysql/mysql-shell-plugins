@@ -150,11 +150,11 @@ export class E2ECommandResultData extends E2ECommandResult {
             if (this.command.match(/export/) !== null) {
                 await driver.wait(async () => {
                     return (await text()).match(/The dump can be loaded using/) !== null;
-                }, constants.wait5seconds, "Could not find on result 'The dump can be loaded using'");
+                }, constants.wait1second * 5, "Could not find on result 'The dump can be loaded using'");
             } else if (this.command.match(/(\\c|connect).*@.*/) !== null) {
                 await driver.wait(async () => {
                     return (await text()).match(/schema/) !== null;
-                }, constants.wait5seconds, "Could not find 'schema' on result");
+                }, constants.wait1second * 5, "Could not find 'schema' on result");
             }
         }
 
@@ -173,7 +173,7 @@ export class E2ECommandResultData extends E2ECommandResult {
             status = await this.resultContext.findElement(toolbarLocator.status.text);
 
             return (await status.getAttribute("innerHTML")) !== "";
-        }, constants.wait5seconds, `The status is empty for cmd ${this.command}`);
+        }, constants.wait1second * 5, `The status is empty for cmd ${this.command}`);
 
         this.#status = await status.getAttribute("innerHTML");
     };

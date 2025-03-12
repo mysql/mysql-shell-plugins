@@ -93,7 +93,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `Could not set the columns map for command ${this.command}`);
+        }, constants.wait1second * 5, `Could not set the columns map for command ${this.command}`);
     };
 
     /**
@@ -107,7 +107,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             status = await this.resultContext.findElement(toolbarLocator.status.text);
 
             return (await status.getAttribute("innerHTML")) !== "";
-        }, constants.wait5seconds, `The status is empty for cmd ${this.command}`);
+        }, constants.wait1second * 5, `The status is empty for cmd ${this.command}`);
 
         this.#status = await status.getAttribute("innerHTML");
     };
@@ -156,7 +156,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
      * @returns A promise resolving when the new value is set
      */
     public editCells = async (cells: interfaces.IResultGridCell[], method: string): Promise<void> => {
-        await driver.wait(this.untilIsEditable(), constants.wait5seconds,
+        await driver.wait(this.untilIsEditable(), constants.wait1second * 5,
             `The grid is not editable`);
 
         const updateValue = async (cellRef: interfaces.IResultGridCell): Promise<void> => {
@@ -227,14 +227,14 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                 await driver.wait(async () => {
                     return (await this.getCellValue(cellRef.rowNumber,
                         cellRef.columnName)) !== "Invalid Date";
-                }, constants.wait2seconds, `Invalid Date was found after inserting value '${cellRef.value}'`);
+                }, constants.wait1second * 2, `Invalid Date was found after inserting value '${cellRef.value}'`);
             }
 
             await driver.wait(async () => {
                 const cell = await this.getCell(cellRef.rowNumber, cellRef.columnName);
 
                 return (await cell.getAttribute("class")).includes("changed");
-            }, constants.wait2seconds,
+            }, constants.wait1second * 2,
                 `Yellow background does not exist on cell after inserting value '${cellRef.value}'`);
         };
 
@@ -247,7 +247,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             }
 
             await driver.wait(this.untilIsEditing(cells[0].rowNumber, tableColumns[0]),
-                constants.wait5seconds);
+                constants.wait1second * 5);
 
             for (let i = 0; i <= cells.length - 1; i++) {
                 await driver.wait(async () => {
@@ -269,11 +269,13 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     } catch (err) {
                         if (err instanceof error.StaleElementReferenceError) {
                             await driver.actions().sendKeys(Key.ESCAPE).perform();
+                        } else if (String(err).includes("Could not find an input")) {
+                            i--;
                         } else {
                             throw err;
                         }
                     }
-                }, constants.wait10seconds, `The cell on column ${cells[i].columnName} was always stale`);
+                }, constants.wait1second * 10, `The cell on column ${cells[i].columnName} was always stale`);
             }
         } else {
             for (let i = 0; i <= cells.length - 1; i++) {
@@ -290,13 +292,16 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
                         return true;
                     } catch (err) {
-                        if (err instanceof error.StaleElementReferenceError) {
+                        if (err instanceof error.StaleElementReferenceError ||
+                            err instanceof error.ElementNotInteractableError ||
+                            String(err).includes("Could not find an input")
+                        ) {
                             await driver.actions().sendKeys(Key.ESCAPE).perform();
                         } else {
                             throw err;
                         }
                     }
-                }, constants.wait10seconds, `The cell on column ${cells[i].columnName} was always stale`);
+                }, constants.wait1second * 10, `The cell on column ${cells[i].columnName} was always stale`);
             }
         }
     };
@@ -337,7 +342,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `Cell ${gridRowColumn} was always stale`);
+        }, constants.wait1second * 5, `Cell ${gridRowColumn} was always stale`);
 
         return toReturn;
     };
@@ -363,7 +368,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
     public addRow = async (cells: interfaces.IResultGridCell[]): Promise<void> => {
         await driver.sleep(2000); // hack to face the issue of non-NULL default values on some data types
         await this.clickAddNewRowButton();
-        await driver.wait(this.untilNewRowExists(), constants.wait5seconds);
+        await driver.wait(this.untilNewRowExists(), constants.wait1second * 5);
 
         const performAdd = async (cell: interfaces.IResultGridCell): Promise<void> => {
             let isDate = false;
@@ -406,7 +411,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             if (isDate) {
                 await driver.wait(async () => {
                     return (await this.getCellValue(-1, cell.columnName)) !== "Invalid Date";
-                }, constants.wait2seconds, `Invalid Date was found after inserting value '${cell.value}'`);
+                }, constants.wait1second * 2, `Invalid Date was found after inserting value '${cell.value}'`);
             }
         };
 
@@ -423,7 +428,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                         throw err;
                     }
                 }
-            }, constants.wait10seconds, `The cell on column ${cell.columnName} was always stale`);
+            }, constants.wait1second * 10, `The cell on column ${cell.columnName} was always stale`);
         }
     };
 
@@ -447,7 +452,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "Unable to get the cell icon type");
+        }, constants.wait1second * 5, "Unable to get the cell icon type");
 
         return icon;
     };
@@ -464,7 +469,9 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             try {
                 let counter = 0;
                 let cell = await this.getCell(gridRow, gridRowColumn);
-                const cellWidth = await cell.getCssValue("width");
+                const getCellWidth =
+                    "return window.getComputedStyle(arguments[0]).getPropertyValue('width'); ";
+                const cellWidth: string = await driver.executeScript(getCellWidth, cell);
 
                 if (counter > 0) {
                     reduce = "js";
@@ -502,15 +509,15 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                 }
 
                 cell = await this.getCell(gridRow, gridRowColumn);
-                const newWidth = await cell.getCssValue("width");
+                const newCellWidth: string = await driver.executeScript(getCellWidth, cell);
 
-                return newWidth !== cellWidth;
+                return parseInt(newCellWidth.replace("px", ""), 10) < parseInt(cellWidth.replace("px", ""), 10);
             } catch (e) {
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }
             }
-        }, constants.wait3seconds, `The cell width was not reduced on column ${gridRowColumn}`);
+        }, constants.wait1second * 3, `The cell width was not reduced on column ${gridRowColumn}`);
 
     };
 
@@ -537,7 +544,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     if (tooltip.length > 0) {
                         return tooltip[0].getText();
                     }
-                }, constants.wait5seconds,
+                }, constants.wait1second * 5,
                     `Could not find tooltip for cell on row '${gridRow}' and column '${columnName}'`);
 
                 return true;
@@ -546,7 +553,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     throw e;
                 }
             }
-        }, constants.wait10seconds,
+        }, constants.wait1second * 10,
             `Could not get the tooltip for cell on row '${gridRow}' and column '${columnName}'`);
 
         return tooltipText;
@@ -588,7 +595,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                         , cell);
                 const contextMenu = await driver.wait(until
                     .elementLocated(cellContextMenu.exists),
-                    constants.wait5seconds, "Cell context menu was not displayed");
+                    constants.wait1second * 5, "Cell context menu was not displayed");
                 const cellMenuItem = await getCellMenuItem(contextMenu, contextMenuItem);
                 await driver.actions().move({ origin: cellMenuItem }).perform();
 
@@ -597,11 +604,11 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     if (contextMenuItem === constants.resultGridContextMenu.copySingleRow) {
                         subMenu = await driver.wait(until
                             .elementLocated(cellContextMenu.copySingleRowSubMenu),
-                            constants.wait5seconds, "Copy Row sub menu was not displayed");
+                            constants.wait1second * 5, "Copy Row sub menu was not displayed");
                     } else {
                         subMenu = await driver.wait(until
                             .elementLocated(cellContextMenu.copyAllRowsSubMenu),
-                            constants.wait5seconds, "Copy All Rows sub menu was not displayed");
+                            constants.wait1second * 5, "Copy All Rows sub menu was not displayed");
                     }
                     await (await getCellMenuItem(subMenu, subContextMenuItem)).click();
                 } else {
@@ -620,7 +627,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     throw e;
                 }
             }
-        }, constants.wait5seconds,
+        }, constants.wait1second * 5,
             // eslint-disable-next-line max-len
             `Clicking on Item ${contextMenuItem}/${subContextMenuItem ? subContextMenuItem : ""} did not generate any outcome`);
     };
@@ -646,7 +653,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait5seconds, `Copy row - Copied field values don't match the number of table column`);
+        }, constants.wait1second * 5, `Copy row - Copied field values don't match the number of table column`);
 
         return ((await this.getCellValues(row)).map((item, index) => {
             if (item.match(/(.*)\/(.*)\/(.*)/)) {
@@ -681,7 +688,8 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             }
 
             return columns[0].split(",").length === allColumns.length;
-        }, constants.wait5seconds, `Copy row with names - Copied field values don't match the number of table column`);
+        }, constants.wait1second * 5,
+            `Copy row with names - Copied field values don't match the number of table column`);
 
         return [
             `# ${allColumns.join(", ")}`,
@@ -717,7 +725,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait5seconds, `Copy row unquoted - Copied field values don't match the number of table column`);
+        }, constants.wait1second * 5, `Copy row unquoted - Copied field values don't match the number of table column`);
 
         return ((await this.getCellValues(row)).map((item) => {
             if (item.match(/(.*)\/(.*)\/(.*)/)) {
@@ -750,7 +758,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait5seconds,
+        }, constants.wait1second * 5,
             `Copy row with names unquoted - Copied field values don't match the number of table column`);
 
         return [
@@ -787,7 +795,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait5seconds,
+        }, constants.wait1second * 5,
             `Copy row with names, tab separated - Copied field values don't match the number of table column`);
 
         return [
@@ -824,7 +832,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait5seconds,
+        }, constants.wait1second * 5,
             `Copy row, tab separated - Copied field values don't match the number of table column`);
 
         return ((await this.getCellValues(row)).map((item, index) => {
@@ -857,7 +865,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait5seconds,
+        }, constants.wait1second * 5,
             `Copy all rows - Copied field values don't match the number of table column`);
 
         const toReturn: string[] = [];
@@ -896,7 +904,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait5seconds,
+        }, constants.wait1second * 5,
             `Copy all rows with names - Copied field values don't match the number of table column`);
 
         const toReturn: string[] = [`# ${allColumns.join(",")}`];
@@ -935,7 +943,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait5seconds,
+        }, constants.wait1second * 5,
             `Copy all rows unquoted - Copied field values don't match the number of table column`);
 
         const toReturn: string[] = [];
@@ -974,7 +982,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait5seconds,
+        }, constants.wait1second * 5,
             `Copy all rows with names unquoted - Copied field values don't match the number of table column`);
 
         const toReturn: string[] = [`# ${allColumns.join(",")}`];
@@ -1013,7 +1021,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait5seconds,
+        }, constants.wait1second * 5,
             `Copy all rows with names tab separated - Copied field values don't match the number of table column`);
 
         const toReturn: string[] = [`# ${allColumns.join("\t")}`];
@@ -1052,7 +1060,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             } else {
                 return true;
             }
-        }, constants.wait5seconds,
+        }, constants.wait1second * 5,
             `Copy all rows tab separated - Copied field values don't match the number of table column`);
 
         const toReturn: string[] = [];
@@ -1083,7 +1091,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                 constants.resultGridContextMenu.copyField);
 
             return clipboard.readSync().match(/'.*'|(\d+)/) !== null;
-        }, constants.wait5seconds, `The Copy Field did not copied anything to the clipboard for column '${column}'`);
+        }, constants.wait1second * 5, `The Copy Field did not copied anything to the clipboard for column '${column}'`);
 
         const cellValue = await this.getCellValue(row, column);
 
@@ -1112,7 +1120,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                 constants.resultGridContextMenu.copyFieldUnquoted);
 
             return clipboard.readSync().match(/.*/) !== null;
-        }, constants.wait5seconds,
+        }, constants.wait1second * 5,
             `The Copy Field Unquoted did not copied anything to the clipboard for column '${column}'`);
 
         const cellValue = await this.getCellValue(row, column);
@@ -1233,7 +1241,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     values = [];
                 }
             }
-        }, constants.wait5seconds, `Could not get the row values for row number ${rowNumber}`);
+        }, constants.wait1second * 5, `Could not get the row values for row number ${rowNumber}`);
 
         return values;
     };
@@ -1285,7 +1293,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
 
             return (await activeElement.getAttribute("class")).includes("tabulator-cell") &&
                 (await activeElement.getAttribute("tabulator-field")).includes("0");
-        }, constants.wait10seconds, `Could not start the focus on result grid`);
+        }, constants.wait1second * 10, `Could not start the focus on result grid`);
     };
 
     /**
@@ -1294,7 +1302,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
      */
     public maximize = async (): Promise<void> => {
         await this.resultContext.findElement(toolbarLocator.maximize).click();
-        await driver.wait(this.untilIsMaximized(), constants.wait5seconds);
+        await driver.wait(this.untilIsMaximized(), constants.wait1second * 5);
     };
 
     /**
@@ -1305,7 +1313,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
     public selectView = async (name: string): Promise<void> => {
         const view = await this.resultContext.findElement(toolbarLocator.view.exists);
         await view.click();
-        await driver.wait(until.elementLocated(toolbarLocator.view.isVisible), constants.wait5seconds,
+        await driver.wait(until.elementLocated(toolbarLocator.view.isVisible), constants.wait1second * 5,
             "Could not find the result grid view drop down list");
 
         if (name === constants.gridView) {
@@ -1354,7 +1362,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                 await driver.wait(async () => {
                     return (await this.resultContext
                         .findElements(toolbarLocator.showActionMenu.open)).length > 0;
-                }, constants.wait5seconds, "Could not find Show Actions button");
+                }, constants.wait1second * 5, "Could not find Show Actions button");
 
                 const showActions = await this.resultContext
                     .findElement(toolbarLocator.showActionMenu.open);
@@ -1363,7 +1371,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                 await driver.wait(async () => {
                     return (await driver.findElements(toolbarLocator.showActionMenu.exists))
                         .length > 0;
-                }, constants.wait5seconds, "Action menu was not displayed");
+                }, constants.wait1second * 5, "Action menu was not displayed");
 
                 const menu = await driver.findElement(toolbarLocator.showActionMenu.exists);
                 await menu.findElement(toolbarLocator.showActionMenu.closeResultSet).click();
@@ -1374,7 +1382,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     throw e;
                 }
             }
-        }, constants.wait10seconds, "Show actions button was not interactable");
+        }, constants.wait1second * 10, "Show actions button was not interactable");
 
         this.id--;
     };
@@ -1433,7 +1441,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     throw e;
                 }
             }
-        }, constants.wait10seconds, `Could not get cell for row: ${gridRow}; column ${gridColumn}`);
+        }, constants.wait1second * 10, `Could not get cell for row: ${gridRow}; column ${gridColumn}`);
 
         return cellToReturn;
     };
@@ -1461,7 +1469,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             return (await this.resultContext
                 .findElements(resultLocator.toolbar.addNewRowButton))
                 .length > 0;
-        }, constants.wait5seconds, "Add new button was not displayed");
+        }, constants.wait1second * 5, "Add new button was not displayed");
 
         await driver.executeScript("arguments[0].click()",
             await (this.resultContext).findElement(resultLocator.toolbar.addNewRowButton));
@@ -1483,7 +1491,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             return (await driver
                 .findElements(gridLocator.row.cell.selectList.exists))
                 .length > 0;
-        }, constants.wait2seconds, "List was not displayed");
+        }, constants.wait1second * 2, "List was not displayed");
         const list = await driver
             .findElement(gridLocator.row.cell.selectList.list.exists);
         const items = await list
@@ -1535,7 +1543,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                 activeElement = await driver.switchTo().activeElement();
 
                 return (await activeElement.getAttribute("class")).includes("tabulator-cell");
-            }, constants.wait3seconds, `The focused element should be result grid cell`);
+            }, constants.wait1second * 3, `The focused element should be result grid cell`);
 
             const refCell = await this.getCell(rowNumber, columnName);
 
@@ -1544,15 +1552,29 @@ export class E2ECommandResultGrid extends E2ECommandResult {
         };
 
         for (let i = 0; i <= maxTabs - 1; i++) {
-            if (await isFocused()) {
-                return;
-            } else {
-                if (Os.isWindows()) {
-                    await driver.actions().keyDown(Key.TAB).keyUp(Key.TAB).perform();
+            try {
+                if (await isFocused()) {
+                    return;
                 } else {
-                    await keyboard.type(nutKey.Tab);
+                    if (Os.isWindows()) {
+                        await driver.actions().keyDown(Key.TAB).keyUp(Key.TAB).perform();
+                    } else {
+                        await keyboard.type(nutKey.Tab);
+                    }
+                    await driver.sleep(500);
+                }
+            } catch (e) {
+                if (String(e).includes("The focused element should be result grid cell")) {
+                    await driver.executeScript(
+                        "arguments[0].click();",
+                        await driver.findElement(locator.notebook.codeEditor.editor.currentLine));
+                    await this.startFocus();
+                    i = 0;
+                } else {
+                    throw e;
                 }
             }
+
         }
 
         throw new Error(`Could not focus on cell ${columnName} on row ${rowNumber}`);
@@ -1628,7 +1650,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                     throw e;
                 }
             }
-        }, constants.wait10seconds, `Could not start editing cell on column ${columnName}`);
+        }, constants.wait1second * 10, `Could not start editing cell on column ${columnName}`);
     };
 
     /**

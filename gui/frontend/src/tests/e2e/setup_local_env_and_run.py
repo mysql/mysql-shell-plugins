@@ -54,7 +54,7 @@ arg_parser.add_argument(
     "--db_port",
     required=False,
     type=str,
-    default=os.environ["DB_PORT"] if "DB_PORT" in os.environ else "3308",
+    default=os.environ["DB_PORT"] if "DB_PORT" in os.environ else "2208",
     help="Specify db port",
 )
 
@@ -110,7 +110,7 @@ class SetEnvironmentVariablesTask:
         self.environment["DBUSERNAME"] = argv.db_root_user
         self.environment["DBPASSWORD"] = DB_ROOT_PASSWORD
         self.environment["MYSQL_PORT"] = argv.db_port
-        self.environment["MYSQL_REST_PORT"] = "3307"
+        self.environment["MYSQL_REST_PORT"] = "2207"
         self.environment["DBPORTX"] = argv.db_port + "0"
         self.environment["DBUSERNAMESHELL"] = "clientqa"
         self.environment["DBPASSWORDSHELL"] = "dummy"
@@ -285,6 +285,7 @@ def main() -> None:
 
         executor.add_task(SetEnvironmentVariablesTask(
             executor.environment, tmp_dirname, be_servers))
+
         executor.add_task(SetFrontendTask(executor.environment))
         executor.add_task(task_utils.SetPluginsTask(
             pathlib.Path(tmp_dirname, "mysqlsh", "plugins"), be_servers))
@@ -294,7 +295,8 @@ def main() -> None:
         executor.add_task(task_utils.SetMySQLServerTask(
             executor.environment, tmp_dirname, argv.db_port, True))
         executor.add_task(task_utils.SetMySQLServerTask(
-            executor.environment, tmp_dirname, "3307"))
+            executor.environment, tmp_dirname, "2207"))
+        executor.add_task(task_utils.InstallMRSSchema(executor.environment, "2207"))
         executor.add_task(task_utils.ClearCredentials(executor.environment))
         executor.add_task(NPMScript(executor.environment, "e2e-tests-run", [f"--maxWorkers={MAX_WORKERS}"]))
 

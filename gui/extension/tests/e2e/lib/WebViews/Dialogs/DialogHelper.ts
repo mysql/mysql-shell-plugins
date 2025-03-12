@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -150,7 +150,7 @@ export class DialogHelper {
             await el.sendKeys(Key.BACK_SPACE);
 
             return (await el.getAttribute("value")).length === 0;
-        }, constants.wait5seconds, `${await el.getId()} was not cleaned`);
+        }, constants.wait1second * 5, `${await el.getId()} was not cleaned`);
     };
 
     /**
@@ -170,7 +170,7 @@ export class DialogHelper {
                 const confirmDialog = await driver.findElements(locator.confirmDialog.exists);
 
                 return (genericDialog).length > 0 || confirmDialog.length > 0;
-            }, constants.wait5seconds).catch(() => {
+            }, constants.wait1second * 5).catch(() => {
                 return false;
             });
         }
@@ -187,7 +187,7 @@ export class DialogHelper {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
-            constants.wait25seconds, "Connection dialog was not displayed");
+            constants.wait1second * 25, "Connection dialog was not displayed");
         const tabs = await dialog.findElements(locator.dbConnectionDialog.tab);
         for (const tab of tabs) {
             if ((await tab.getText() === name)) {
@@ -209,7 +209,7 @@ export class DialogHelper {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
-            constants.wait25seconds, "Connection dialog was not displayed");
+            constants.wait1second * 25, "Connection dialog was not displayed");
         const tabs = await dialog.findElements(locator.dbConnectionDialog.tab);
         for (const tab of tabs) {
             if ((await tab.getText() === name)) {

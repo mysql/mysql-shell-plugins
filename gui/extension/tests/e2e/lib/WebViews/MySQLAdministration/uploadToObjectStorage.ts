@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -74,7 +74,7 @@ export class UploadToObjectStorage {
      */
     public setFilesForUploadFilePath = async (path: string): Promise<void> => {
         await Misc.switchBackToTopFrame();
-        const inputBox = await InputBox.create(constants.wait3seconds);
+        const inputBox = await InputBox.create(constants.wait1second * 3);
         await inputBox.setText(path);
         await inputBox.confirm();
     };

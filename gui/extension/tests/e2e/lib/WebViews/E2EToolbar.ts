@@ -47,7 +47,7 @@ export class E2EToolbar {
         }
 
         const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
-            constants.wait5seconds, "Toolbar was not found");
+            constants.wait1second * 5, "Toolbar was not found");
         const buttons = await toolbar.findElements(locator.notebook.toolbar.button.exists);
         for (const btn of buttons) {
             if ((await btn.getAttribute("data-tooltip")) === button) {
@@ -69,7 +69,7 @@ export class E2EToolbar {
         }
 
         const toolbar = await driver.wait(until.elementLocated(locator.notebook.toolbar.exists),
-            constants.wait5seconds, "Toolbar was not found");
+            constants.wait1second * 5, "Toolbar was not found");
         const buttons = await toolbar.findElements(locator.notebook.toolbar.button.exists);
         for (const btn of buttons) {
             if ((await btn.getAttribute("data-tooltip")) === button) {
@@ -91,8 +91,8 @@ export class E2EToolbar {
                 await Workbench.toggleSideBar(false);
                 await Misc.switchToFrame();
                 const closeEditor = await driver.wait(until
-                    .elementLocated(locator.notebook.toolbar.closeEditor), constants.wait5seconds);
-                await driver.wait(until.elementIsVisible(closeEditor), constants.wait5seconds);
+                    .elementLocated(locator.notebook.toolbar.closeEditor), constants.wait1second * 5);
+                await driver.wait(until.elementIsVisible(closeEditor), constants.wait1second * 5);
                 await closeEditor.click();
                 await Workbench.toggleSideBar(true);
             } else {

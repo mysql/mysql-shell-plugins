@@ -61,7 +61,7 @@ export class ConfirmDialog {
      * @param timeout The timeout
      * @returns A promise resolving with the dialog if the dialog exists, false otherwise
      */
-    public untilExists = async (timeout = constants.wait3seconds): Promise<ConfirmDialog> => {
+    public untilExists = async (timeout = constants.wait1second * 3): Promise<ConfirmDialog> => {
         await driver.wait(async () => {
             const dialog = await driver.findElements(locator.confirmDialog.exists);
 
@@ -79,7 +79,7 @@ export class ConfirmDialog {
      * Clicks on the accept button of the dialog
      */
     public accept = async (): Promise<void> => {
-        await driver.wait(until.elementLocated(locator.confirmDialog.accept), constants.wait3seconds,
+        await driver.wait(until.elementLocated(locator.confirmDialog.accept), constants.wait1second * 3,
             "Could not find the accept button").click();
     };
 
@@ -87,7 +87,7 @@ export class ConfirmDialog {
      * Clicks on the cancel button of the dialog
      */
     public cancel = async (): Promise<void> => {
-        await driver.wait(until.elementLocated(locator.confirmDialog.cancel), constants.wait3seconds,
+        await driver.wait(until.elementLocated(locator.confirmDialog.cancel), constants.wait1second * 3,
             "Could not find the cancel button").click();
     };
 
@@ -95,7 +95,7 @@ export class ConfirmDialog {
      * Clicks on the refuse button of the dialog
      */
     public refuse = async (): Promise<void> => {
-        await driver.wait(until.elementLocated(locator.confirmDialog.refuse), constants.wait3seconds,
+        await driver.wait(until.elementLocated(locator.confirmDialog.refuse), constants.wait1second * 3,
             "Could not find the refuse button").click();
     };
 
@@ -103,7 +103,7 @@ export class ConfirmDialog {
      * Clicks on the alternative button of the dialog
      */
     public alternative = async (): Promise<void> => {
-        await driver.wait(until.elementLocated(locator.confirmDialog.alternative), constants.wait3seconds,
+        await driver.wait(until.elementLocated(locator.confirmDialog.alternative), constants.wait1second * 3,
             "Could not find the alternative button").click();
     };
 

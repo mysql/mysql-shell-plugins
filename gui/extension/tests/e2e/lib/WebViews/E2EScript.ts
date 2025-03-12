@@ -65,7 +65,7 @@ export class E2EScript {
                     const existsNotebook = (await driver.findElements(locator.notebook.exists)).length > 0;
 
                     return editorSelectorExists || existsNotebook;
-                }, constants.wait15seconds, `Could not connect to '${connection.caption}'`);
+                }, constants.wait1second * 15, `Could not connect to '${connection.caption}'`);
             }
 
             const activeTab = await Workbench.getActiveTab();

@@ -69,8 +69,8 @@ describe("MYSQL SHELL CONSOLES", () => {
             await Workbench.toggleBottomBar(false);
             await Misc.switchToFrame();
             await driver.wait(until.elementLocated(locator.dbConnectionOverview.newConsoleButton),
-                constants.wait10seconds).click();
-            await driver.wait(shellConsole.untilIsOpened(globalConn), constants.wait15seconds,
+                constants.wait1second * 10).click();
+            await driver.wait(shellConsole.untilIsOpened(globalConn), constants.wait1second * 15,
                 "Shell Console was not loaded");
         } catch (e) {
             await Misc.processFailure(this);
@@ -99,7 +99,8 @@ describe("MYSQL SHELL CONSOLES", () => {
 
         it("Connect to host", async () => {
             let connUri = `\\c ${username}:${password}@${hostname}:${port}/${schema}`;
-            shellConsole = await driver.wait(new E2EShellConsole().untilIsOpened(shellConn), constants.wait15seconds);
+            shellConsole = await driver.wait(new E2EShellConsole().untilIsOpened(shellConn),
+                constants.wait1second * 15);
             const result = await shellConsole.codeEditor.execute(connUri) as E2ECommandResultData;
             connUri = `Creating a session to '${username}@${hostname}:${port}/${schema}'`;
             expect(result.text).to.match(new RegExp(connUri));
@@ -111,13 +112,13 @@ describe("MYSQL SHELL CONSOLES", () => {
                     result.text)).to.match(new RegExp(`Default schema set to \`${schema}\``));
 
             const server = await driver.wait(until
-                .elementLocated(locator.shellConsole.connectionTab.server), constants.wait5seconds);
+                .elementLocated(locator.shellConsole.connectionTab.server), constants.wait1second * 5);
             const schemaEl = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schema),
-                constants.wait5seconds);
+                constants.wait1second * 5);
             await driver.wait(until.elementTextContains(server, `${hostname}:${port}`),
-                constants.wait5seconds, `Server tab does not contain '${hostname}:${port}'`);
+                constants.wait1second * 5, `Server tab does not contain '${hostname}:${port}'`);
             await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
-                constants.wait5seconds, `Schema tab does not contain '${schema}'`);
+                constants.wait1second * 5, `Schema tab does not contain '${schema}'`);
 
         });
 
@@ -145,13 +146,13 @@ describe("MYSQL SHELL CONSOLES", () => {
                 result.text)).to.match(new RegExp(`Default schema set to \`${schema}\`.`));
 
             const server = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.server),
-                constants.wait5seconds, "Server tab was not found");
+                constants.wait1second * 5, "Server tab was not found");
             const schemaEl = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schema),
-                constants.wait5seconds, "Schema tab was not found");
+                constants.wait1second * 5, "Schema tab was not found");
             await driver.wait(until.elementTextContains(server, `${hostname}:${port}`),
-                constants.wait5seconds, `Server tab does not contain '${hostname}:${port}'`);
+                constants.wait1second * 5, `Server tab does not contain '${hostname}:${port}'`);
             await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
-                constants.wait5seconds, `Schema tab does not contain '${schema}'`);
+                constants.wait1second * 5, `Schema tab does not contain '${schema}'`);
 
         });
 
@@ -173,13 +174,13 @@ describe("MYSQL SHELL CONSOLES", () => {
                 .to.match(new RegExp(`Default schema \`${schema}\` accessible through db`));
 
             const server = await driver.wait(until
-                .elementLocated(locator.shellConsole.connectionTab.server), constants.wait5seconds);
+                .elementLocated(locator.shellConsole.connectionTab.server), constants.wait1second * 5);
             const schemaEl = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schema),
-                constants.wait5seconds);
+                constants.wait1second * 5);
             await driver.wait(until.elementTextContains(server, `${hostname}:${port}`),
-                constants.wait5seconds, `Server tab does not contain '${hostname}:${port}'`);
+                constants.wait1second * 5, `Server tab does not contain '${hostname}:${port}'`);
             await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
-                constants.wait5seconds, `Schema tab does not contain '${schema}'`);
+                constants.wait1second * 5, `Schema tab does not contain '${schema}'`);
 
         });
 
@@ -207,7 +208,7 @@ describe("MYSQL SHELL CONSOLES", () => {
                 await openEditorsTreeSection.openContextMenuAndSelect(constants.dbConnectionsLabel,
                     constants.openNewShellConsole);
                 shellConsole = new E2EShellConsole();
-                await driver.wait(shellConsole.untilIsOpened(globalConn), constants.wait15seconds,
+                await driver.wait(shellConsole.untilIsOpened(globalConn), constants.wait1second * 15,
                     "Shell Console was not loaded");
 
                 let uri = `\\c ${username}:${password}@${hostname}:${port}0/${schema}`;
@@ -218,14 +219,14 @@ describe("MYSQL SHELL CONSOLES", () => {
                 uri = `Connection to server ${hostname} at port ${port}0,`;
                 uri += ` using the X protocol`;
                 const server = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.server),
-                    constants.wait5seconds);
+                    constants.wait1second * 5);
                 const schemaEl = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schema),
-                    constants.wait5seconds);
+                    constants.wait1second * 5);
                 await driver.wait(until.elementTextContains(server,
                     `${hostname}:${port}0`),
-                    constants.wait5seconds, `Server tab does not contain '${hostname}:${port}'`);
+                    constants.wait1second * 5, `Server tab does not contain '${hostname}:${port}'`);
                 await driver.wait(until.elementTextContains(schemaEl, `${schema}`),
-                    constants.wait5seconds, `Schema tab does not contain '${schema}'`);
+                    constants.wait1second * 5, `Schema tab does not contain '${schema}'`);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -283,7 +284,7 @@ describe("MYSQL SHELL CONSOLES", () => {
         it("Switch session language - javascript python", async () => {
 
             await driver.wait(until.elementLocated(locator.shellConsole.editor),
-                constants.wait10seconds, "Console was not loaded");
+                constants.wait1second * 10, "Console was not loaded");
             let result = await shellConsole.languageSwitch("\\py ");
             expect(result.text).to.match(/Python/);
             result = await shellConsole.languageSwitch("\\js ");

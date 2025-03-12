@@ -46,12 +46,12 @@ export class RestObjectDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.exists),
-            constants.wait10seconds, "Edit REST Object dialog was not displayed");
+            constants.wait1second * 10, "Edit REST Object dialog was not displayed");
 
         const processColumnActivation = async (colOption: interfaces.IRestObjectColumn): Promise<void> => {
             const inColumns = await driver.wait(until
                 .elementsLocated(locator.mrsDbObjectDialog.jsonDuality.dbObjJsonField),
-                constants.wait5seconds);
+                constants.wait1second * 5);
             for (const col of inColumns) {
                 if ((await col.findElement(locator.htmlTag.labelClass).getText()) === colOption.name) {
                     const isNotSelected = (await col.findElements(locator.checkBox.unchecked)).length > 0;
@@ -75,7 +75,7 @@ export class RestObjectDialog {
         const processColumnOption = async (colName: string, colOption: string, wantedValue: boolean): Promise<void> => {
             const inColumns = await driver.wait(until
                 .elementsLocated(locator.mrsDbObjectDialog.jsonDuality.dbObjJsonField),
-                constants.wait5seconds);
+                constants.wait1second * 5);
 
             for (const col of inColumns) {
 
@@ -194,7 +194,7 @@ export class RestObjectDialog {
                 if (!isDisabled) {
                     await inService.click();
                     const popup = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.serviceList),
-                        constants.wait5seconds, "Service list was not found");
+                        constants.wait1second * 5, "Service list was not found");
                     await popup.findElement(By.id(restObject.restServicePath)).click();
                 }
             }
@@ -206,7 +206,7 @@ export class RestObjectDialog {
                 if (!isDisabled) {
                     await inSchema.click();
                     const popup = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.schemaList),
-                        constants.wait5seconds, "Schema drop down list was not found");
+                        constants.wait1second * 5, "Schema drop down list was not found");
                     await popup.findElement(By.id(restObject.restSchemaPath)).click();
                 }
             }
@@ -221,7 +221,7 @@ export class RestObjectDialog {
                 await inAccessControl.click();
                 const popup = await driver.wait(until
                     .elementLocated(locator.mrsDbObjectDialog.accessControl.selectList.exists),
-                    constants.wait5seconds, "Access control drop down list was not found");
+                    constants.wait1second * 5, "Access control drop down list was not found");
                 if (restObject.accessControl === constants.accessControlEnabled) {
                     await popup.findElement(locator.mrsDbObjectDialog.accessControl.selectList.enabled).click();
                 } else if (restObject.accessControl === constants.accessControlDisabled) {
@@ -248,7 +248,7 @@ export class RestObjectDialog {
                         await inSdk.click();
                         const popup = await driver.wait(until
                             .elementLocated(locator.mrsDbObjectDialog.jsonDuality.sdkLanguageList),
-                            constants.wait5seconds, "SDK Language drop down list was not found");
+                            constants.wait1second * 5, "SDK Language drop down list was not found");
                         await popup.findElement(By.id(restObject.dataMapping.sdkLanguage)).click();
                     }
                 }
@@ -308,7 +308,7 @@ export class RestObjectDialog {
 
                     return (await dialog.findElement(locator.mrsDbObjectDialog.settingsTab)
                         .getAttribute("class")).includes("selected");
-                }, constants.wait5seconds, "Settings tab was not selected");
+                }, constants.wait1second * 5, "Settings tab was not selected");
 
                 if (restObject.settings.resultFormat) {
                     const inResultFormat = await dialog
@@ -316,7 +316,7 @@ export class RestObjectDialog {
                     await inResultFormat.click();
                     const popup = await driver.wait(until
                         .elementLocated(locator.mrsDbObjectDialog.settings.resultFormatList),
-                        constants.wait5seconds, "#crudOperationFormatPopup not found");
+                        constants.wait1second * 5, "#crudOperationFormatPopup not found");
                     await popup.findElement(By.id(restObject.settings.resultFormat)).click();
                 }
 
@@ -346,7 +346,7 @@ export class RestObjectDialog {
 
                     return (await dialog.findElement(locator.mrsDbObjectDialog.authorizationTab)
                         .getAttribute("class")).includes("selected");
-                }, constants.wait5seconds, "Authorization tab was not selected");
+                }, constants.wait1second * 5, "Authorization tab was not selected");
 
                 if (restObject.authorization.authStoredProcedure) {
                     const inStoredPrc = await dialog
@@ -362,7 +362,7 @@ export class RestObjectDialog {
 
                     return (await dialog.findElement(locator.mrsDbObjectDialog.optionsTab)
                         .getAttribute("class")).includes("selected");
-                }, constants.wait5seconds, "Options tab was not selected");
+                }, constants.wait1second * 5, "Options tab was not selected");
 
                 await DialogHelper.setFieldText(dialog, locator.mrsDbObjectDialog.options.options,
                     restObject.options);
@@ -376,7 +376,7 @@ export class RestObjectDialog {
             await dialog.findElement(locator.mrsDbObjectDialog.ok).click();
 
             return (await DialogHelper.existsDialog()) === false;
-        }, constants.wait10seconds, "The MRS Object dialog was not closed");
+        }, constants.wait1second * 10, "The MRS Object dialog was not closed");
 
         return restObject;
     };
@@ -392,7 +392,7 @@ export class RestObjectDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsDbObjectDialog.exists),
-            constants.wait20seconds, "Edit REST Object dialog was not displayed");
+            constants.wait1second * 20, "Edit REST Object dialog was not displayed");
 
         const restObject: interfaces.IRestObject = {
             restServicePath: await dialog.findElement(locator.mrsDbObjectDialog.serviceLabel).getText(),
@@ -417,7 +417,7 @@ export class RestObjectDialog {
 
         restObject.requiresAuth = await DialogHelper.getCheckBoxValue("requiresAuth");
         const inColumns = await driver.wait(until.elementsLocated(locator.mrsDbObjectDialog.jsonDuality.dbObjJsonField),
-            constants.wait5seconds);
+            constants.wait1second * 5);
         const restColumns: interfaces.IRestObjectColumn[] = [];
         for (const col of inColumns) {
             const restObjectColumn: interfaces.IRestObjectColumn = {
@@ -459,7 +459,7 @@ export class RestObjectDialog {
             delete: undefined,
         };
         const crudDivs = await driver.wait(until.elementsLocated(locator.mrsDbObjectDialog.jsonDuality.crud),
-            constants.wait5seconds);
+            constants.wait1second * 5);
         const crudKeys = Object.keys(restObjectCrud);
         for (const crudDiv of crudDivs) {
             const isInactive = (await crudDiv.getAttribute("class")).includes("deactivated");
@@ -477,7 +477,7 @@ export class RestObjectDialog {
 
             return (await dialog.findElement(locator.mrsDbObjectDialog.settingsTab)
                 .getAttribute("class")).includes("selected");
-        }, constants.wait5seconds, "Settings tab was not selected");
+        }, constants.wait1second * 5, "Settings tab was not selected");
         restObject.settings = {
             resultFormat: await dialog.findElement(locator.mrsDbObjectDialog.settings.resultFormat).getText(),
             itemsPerPage: await dialog
@@ -493,7 +493,7 @@ export class RestObjectDialog {
 
             return (await dialog.findElement(locator.mrsDbObjectDialog.authorizationTab)
                 .getAttribute("class")).includes("selected");
-        }, constants.wait5seconds, "Authorization tab was not selected");
+        }, constants.wait1second * 5, "Authorization tab was not selected");
 
         restObject.authorization = {
             authStoredProcedure: await DialogHelper.getFieldValue(dialog,
@@ -505,7 +505,7 @@ export class RestObjectDialog {
 
             return (await dialog.findElement(locator.mrsDbObjectDialog.optionsTab)
                 .getAttribute("class")).includes("selected");
-        }, constants.wait5seconds, "Options tab was not selected");
+        }, constants.wait1second * 5, "Options tab was not selected");
         restObject.options = (await dialog.findElement(locator.mrsDbObjectDialog.options.options).getAttribute("value"))
             .replace(/\r?\n|\r|\s+/gm, "").trim();
 
@@ -514,7 +514,7 @@ export class RestObjectDialog {
                 await dialog.findElement(locator.mrsDbObjectDialog.cancel).click();
 
                 return (await DialogHelper.existsDialog()) === false;
-            }, constants.wait10seconds, "The MRS Object dialog was not closed");
+            }, constants.wait1second * 10, "The MRS Object dialog was not closed");
         }
 
         return restObject;

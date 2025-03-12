@@ -49,9 +49,9 @@ export class ObjectStorageBrowser {
             .click();
         const list = await driver.wait(until
             .elementLocated(objStorageBrowser.ociProfileList.exists),
-            constants.wait5seconds, "OCI Profile List was not found");
+            constants.wait1second * 5, "OCI Profile List was not found");
         await (await list.findElement(objStorageBrowser.ociProfileList.item(ociProfileName))).click();
-        await driver.wait(this.untilItemsAreLoaded(), constants.wait15seconds,
+        await driver.wait(this.untilItemsAreLoaded(), constants.wait1second * 15,
             "Object Storage Browser items are still loading");
     };
 
@@ -112,7 +112,7 @@ export class ObjectStorageBrowser {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `Could not get item '${itemName}' on the Object Storage Browser`);
+        }, constants.wait1second * 5, `Could not get item '${itemName}' on the Object Storage Browser`);
 
         return itemToReturn;
     };
@@ -159,7 +159,7 @@ export class ObjectStorageBrowser {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `Could not verify existence of item '${itemName}' on the Object Storage Browser`);
+        }, constants.wait1second * 5, `Could not verify existence of item '${itemName}' on the Object Storage Browser`);
 
         return exists;
     };
@@ -215,7 +215,7 @@ export class ObjectStorageBrowser {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `Could not verify if item '${caption}' is expanded`);
+        }, constants.wait1second * 5, `Could not verify if item '${caption}' is expanded`);
 
         return isExpanded;
     };
@@ -242,7 +242,7 @@ export class ObjectStorageBrowser {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `Could not expand item '${caption}'`);
+        }, constants.wait1second * 5, `Could not expand item '${caption}'`);
 
     };
 
@@ -265,7 +265,7 @@ export class ObjectStorageBrowser {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `Could not verify if item '${caption}' is expanded`);
+        }, constants.wait1second * 5, `Could not verify if item '${caption}' is expanded`);
 
         return isExpandable;
     };
@@ -293,9 +293,9 @@ export class ObjectStorageBrowser {
                 await driver.wait(async () => {
                     try {
                         await this.expandItem(path[i]);
-                        await driver.wait(this.untilItemsAreLoaded(), constants.wait20seconds,
+                        await driver.wait(this.untilItemsAreLoaded(), constants.wait1second * 20,
                             ` ${path[i + 1]} to be loaded`);
-                        await driver.wait(this.untilItemHasChildren(path[i]), constants.wait20seconds);
+                        await driver.wait(this.untilItemHasChildren(path[i]), constants.wait1second * 20);
 
                         return true;
                     } catch (e) {
@@ -348,7 +348,7 @@ export class ObjectStorageBrowser {
                 const item = await this.getItem(itemName);
                 await driver.executeScript("arguments[0].scrollIntoView()", item);
                 const checkbox = await item.findElement(objectStorageItem.item.checkbox);
-                await checkbox.click();
+                await driver.executeScript("arguments[0].click();", checkbox);
 
                 return driver.wait(async () => {
                     const path = await driver
@@ -363,7 +363,7 @@ export class ObjectStorageBrowser {
                     if (loadingTasks.length > 0) {
                         return (await loadingTasks[0].getText()).includes(itemName);
                     }
-                }, constants.wait2seconds, "checkbox was not checked")
+                }, constants.wait1second * 2, "checkbox was not checked")
                     .then(() => {
                         return true;
                     })
@@ -375,7 +375,7 @@ export class ObjectStorageBrowser {
                     throw e;
                 }
             }
-        }, constants.wait10seconds, `Could not check the item '${itemName}'`);
+        }, constants.wait1second * 10, `Could not check the item '${itemName}'`);
     };
 
     /**

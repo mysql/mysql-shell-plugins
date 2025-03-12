@@ -47,16 +47,7 @@ export const ociComputeType = "ociCompute";
 // TIMEOUTS
 export const wait150MilliSeconds = 150;
 export const wait1second = 1000;
-export const wait2seconds = 2000;
-export const wait3seconds = 3000;
-export const wait5seconds = 5000;
-export const wait10seconds = 10000;
-export const wait15seconds = 15000;
-export const wait20seconds = 20000;
-export const wait25seconds = 25000;
-export const wait30seconds = 30000;
 export const wait1minute = 60000;
-export const wait2minutes = 120000;
 export const queuePollTimeout = wait1minute * 5;
 
 // TREE SEARCH LEVELS
@@ -569,6 +560,13 @@ export const miscCtxMenu = new Map([
 export const ociComputeInstanceCtxMenu = new Map([
     [viewComputeInstanceInfo, 1],
     [deleteComputeInstance, 3],
+]);
+
+export const dbTreeSectionMoreActionsCtxMenu = new Map([
+    [restartInternalShell, 1],
+    [connectToExternalShell, 2],
+    [relaunchWelcomeWizard, 3],
+    [resetExtension, 4],
 ]);
 
 export const restServiceMetadataSchema = "mysql_rest_service_metadata";

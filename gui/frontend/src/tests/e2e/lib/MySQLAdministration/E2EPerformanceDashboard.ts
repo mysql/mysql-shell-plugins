@@ -222,12 +222,12 @@ export class E2EPerformanceDashboard {
         const performanceDashboardLocator = locator.mysqlAdministration.performanceDashboard;
 
         const mleStatus = await driver.findElement(performanceDashboardLocator.mleStatus.mleStatus);
-        await driver.wait(until.elementTextMatches(mleStatus, /(Active|Inactive)/), constants.wait3seconds);
 
         this.mlePerformance = {
             heapUsageGraph: await driver
                 .findElement(performanceDashboardLocator.mleStatus.heapUsageGraph),
-            mleStatus: await mleStatus.getText(),
+            mleStatus: await (await driver.wait(until.elementTextMatches(mleStatus, /(Active|Inactive)/),
+                constants.wait3seconds)).getText(),
             mleMaxHeapSize: await (await driver
                 .findElement(performanceDashboardLocator.mleStatus.mleMaxHeapSize)).getText(),
             mleHeapUtilizationGraph: await driver

@@ -82,10 +82,6 @@ describe("MYSQL REST SERVICE", () => {
             await dbTreeSection.expandTreeItem(globalConn);
             await dbTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.showSystemSchemas);
 
-            if (!(await dbTreeSection.existsTreeItem("mysql_rest_service_metadata"))) {
-                await dbTreeSection.configureMySQLRestService(globalConn.caption!, globalConn);
-            }
-
             await dbTreeSection.expandTreeItem(constants.mysqlRestService);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_MysqlRESTService");
@@ -1350,19 +1346,22 @@ describe("MYSQL REST SERVICE", () => {
             try {
                 await driver.wait(async () => {
                     try {
-                        await dbTreeSection.expandTree([service5.authenticationApps![0].name]);
+                        if (!(await dbTreeSection.existsTreeItem(service5.authenticationApps![0].user![0].username))) {
+                            await dbTreeSection.expandTree([service5.authenticationApps![0].name]);
+                        }
                         await dbTreeSection.openContextMenuAndSelect(service5.authenticationApps![0].user![0].username,
                             constants.editRESTUser);
 
                         return true;
                     } catch (e) {
-                        if (!String(e).includes("Could not find context menu item 'Edit User...'")) {
+                        if (!String(e).includes("Could not find")) {
                             throw e;
                         } else {
+
                             await driver.actions().keyDown(Key.ESCAPE).keyUp(Key.ESCAPE).perform();
                         }
                     }
-                }, constants.wait10seconds, "Could not perform the Edit User");
+                }, constants.wait15seconds, "Could not perform the first Edit User");
 
                 const editedUser: interfaces.IRestUser = {
                     username: "testUser",
@@ -1382,9 +1381,24 @@ describe("MYSQL REST SERVICE", () => {
                 expect(notification!.message).toBe(`The MRS User "${editedUser.username}" has been updated.`);
                 await notification!.close();
 
-                await dbTreeSection.expandTreeItem(service5.authenticationApps![0].name);
-                await dbTreeSection.openContextMenuAndSelect(service5.authenticationApps![0].user![0].username,
-                    constants.editRESTUser);
+                await driver.wait(async () => {
+                    try {
+                        if (!(await dbTreeSection.existsTreeItem(service5.authenticationApps![0].user![0].username))) {
+                            await dbTreeSection.expandTree([service5.authenticationApps![0].name]);
+                        }
+                        await dbTreeSection.openContextMenuAndSelect(service5.authenticationApps![0].user![0].username,
+                            constants.editRESTUser);
+
+                        return true;
+                    } catch (e) {
+                        if (!String(e).includes("Could not find")) {
+                            throw e;
+                        } else {
+
+                            await driver.actions().keyDown(Key.ESCAPE).keyUp(Key.ESCAPE).perform();
+                        }
+                    }
+                }, constants.wait15seconds, "Could not perform the second Edit User");
 
                 const user = await RestUserDialog.get();
                 editedUser.assignedRoles = "Full Access";

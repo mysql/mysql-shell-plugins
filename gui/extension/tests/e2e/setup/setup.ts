@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,6 +26,5 @@
 
 import { E2ETests } from "../lib/E2ETests";
 
-const cliArguments = E2ETests.getCliArguments();
 E2ETests.setTestSuite("DB");
-E2ETests.setup(cliArguments);
+E2ETests.setup();

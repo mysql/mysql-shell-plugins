@@ -20,7 +20,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-import { until, WebElement, Workbench as extWorkbench, NotificationType } from "vscode-extension-tester";
+import { until, WebElement, Workbench as extWorkbench, NotificationType, Condition } from "vscode-extension-tester";
 import { driver, Misc } from "../Misc.js";
 import * as constants from "../constants.js";
 import * as locator from "../locators.js";
@@ -48,16 +48,13 @@ export class E2ENotebook {
     /**
      * Verifies if the Notebook is opened and fully loaded
      * @param connection The database connection
-     * @param timeout The timeout
      * @returns A condition resolving to true if the page is opened, false otherwise
      */
-    public untilIsOpened = async (
-        connection: interfaces.IDBConnection,
-        timeout = constants.wait10seconds): Promise<E2ENotebook> => {
-
-        await driver.wait(async () => {
+    public untilIsOpened = (connection: interfaces.IDBConnection): Condition<boolean> => {
+        return new Condition(`for ${connection.caption} to be opened`, async () => {
             await Misc.switchBackToTopFrame();
             await Misc.switchToFrame();
+
             const confirmDialog = new ConfirmDialog();
             const existsFingerPrintDialog = await confirmDialog.exists();
 
@@ -108,9 +105,7 @@ export class E2ENotebook {
             }
 
             return isOpened();
-        }, timeout, `Could not open notebook for ${connection.caption}`);
-
-        return this;
+        });
     };
 
     /**
@@ -129,7 +124,7 @@ export class E2ENotebook {
             try {
                 const notebookCommands = await driver.wait(
                     until.elementsLocated(locator.notebook.codeEditor.editor.sentence),
-                    constants.wait5seconds, "No lines were found");
+                    constants.wait1second * 5, "No lines were found");
                 for (const cmd of notebookCommands) {
                     const spans = await cmd.findElements(locator.htmlTag.span);
                     let sentence = "";
@@ -145,7 +140,7 @@ export class E2ENotebook {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "No SQL commands were found on the notebook");
+        }, constants.wait1second * 5, "No SQL commands were found on the notebook");
 
         return commands.toString().match(regex) !== null;
     };
@@ -175,7 +170,6 @@ export class E2ENotebook {
         await this.codeEditor.write(cmd, ignoreKeywords);
         await (await this.toolbar.getButton(button)).click();
         const commandResult = await this.codeEditor.buildResult(cmd, this.codeEditor.lastResultId + 1);
-        this.codeEditor.lastResultId++;
 
         return commandResult;
     };
@@ -249,7 +243,7 @@ export class E2ENotebook {
 
             return isCtxMenuDisplayed();
 
-        }, constants.wait5seconds, `Expected context menu for "${item}" was not displayed`);
+        }, constants.wait1second * 5, `Expected context menu for "${item}" was not displayed`);
 
         await driver.wait(async () => {
             try {
@@ -263,6 +257,6 @@ export class E2ENotebook {
                     return true;
                 }
             }
-        }, constants.wait5seconds, `Unexpected context menu continues displayed after selecting "${item}"`);
+        }, constants.wait1second * 5, `Unexpected context menu continues displayed after selecting "${item}"`);
     };
 }

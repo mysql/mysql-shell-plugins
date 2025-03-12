@@ -71,7 +71,7 @@ export class Workbench {
                     output = await bottomBar.findElement(locator.bottomBarPanel.output);
 
                     return output.isDisplayed();
-                }, constants.wait5seconds, "");
+                }, constants.wait1second * 5);
                 await output.click();
             }
         }
@@ -85,10 +85,11 @@ export class Workbench {
      */
     public static pushDialogButton = async (buttonName: string): Promise<void> => {
         const dialogBox = await driver.wait(until.elementLocated(locator.dialogBox.exists),
-            constants.wait5seconds, `Could not find the Modal dialog`);
+            constants.wait1second * 5, `Could not find the Modal dialog`);
         const dialogButtons = await dialogBox.findElements(locator.dialogBox.buttons);
+
         for (const button of dialogButtons) {
-            if (await button.getAttribute("title") === buttonName) {
+            if (await button.getText() === buttonName) {
                 await button.click();
 
                 return;
@@ -139,7 +140,7 @@ export class Workbench {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `Could not find '${text}' notification`);
+        }, constants.wait1second * 5, `Could not find '${text}' notification`);
 
         return notification;
     };
@@ -153,7 +154,19 @@ export class Workbench {
     public static clickOnNotificationButton = async (notification: Notification, button: string): Promise<void> => {
         await driver.wait(async () => {
             try {
-                await notification.takeAction(button);
+                await notification.takeAction(button).catch(async (e) => {
+                    if (e instanceof error.NoSuchElementError) {
+                        const buttons = await notification.findElements(locator.notification.button);
+                        for (const btn of buttons) {
+                            if ((await btn.getText()).includes(button)) {
+                                await btn.click();
+                                break;
+                            }
+                        }
+                    } else {
+                        throw e;
+                    }
+                });
 
                 return (await new extWorkbench().getNotifications()).length === 0;
             } catch (e) {
@@ -165,7 +178,7 @@ export class Workbench {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `Could not click on notification button '${button}'`);
+        }, constants.wait1second * 5, `Could not click on notification button '${button}'`);
     };
 
     /**
@@ -191,7 +204,7 @@ export class Workbench {
                             }
 
                             return (await new extWorkbench().getNotifications()).length === 0;
-                        }, constants.wait5seconds, "There are still notifications displayed");
+                        }, constants.wait1second * 5, "There are still notifications displayed");
                     }
                 }
 
@@ -201,7 +214,7 @@ export class Workbench {
                     throw e;
                 }
             }
-        }, constants.wait10seconds, `Could not dismiss notifications`);
+        }, constants.wait1second * 10, `Could not dismiss notifications`);
     };
 
     /**
@@ -211,7 +224,7 @@ export class Workbench {
      * @returns A promise resolving when all notifications are closed
      */
     public static execOnTerminal = async (cmd: string, timeout: number): Promise<void> => {
-        timeout = timeout ?? constants.wait5seconds;
+        timeout = timeout ?? constants.wait1second * 5;
 
         if (Os.isMacOs() || Os.isLinux()) {
             await keyboard.type(cmd);
@@ -273,7 +286,7 @@ export class Workbench {
                     throw e;
                 }
             }
-        }, constants.wait10seconds, "Could not get output text from clipboard");
+        }, constants.wait1second * 10, "Could not get output text from clipboard");
 
         if (Array.isArray(textToSearch)) {
             for (const rex of textToSearch) {
@@ -332,7 +345,7 @@ export class Workbench {
 
                     return true;
                 }
-            }, constants.wait5seconds, "Save password dialog was not displayed");
+            }, constants.wait1second * 5, "Save password dialog was not displayed");
         }
     };
 
@@ -359,13 +372,24 @@ export class Workbench {
 
         await driver.wait(async () => {
             try {
-                const input = await InputBox.create(constants.wait10seconds);
+                const input = await InputBox.create(constants.wait1second * 5);
                 await input.setText(path);
 
                 if ((await input.getText()).trim() === path) {
                     await input.confirm();
 
-                    return true;
+                    let inputBox: InputBox | undefined;
+                    try {
+                        inputBox = await InputBox.create(constants.wait1second);
+
+                        return inputBox.isPassword();
+                    } catch (e) {
+                        if (e instanceof error.TimeoutError) {
+                            return true;
+                        } else {
+                            throw e;
+                        }
+                    }
                 }
             } catch (e) {
                 if (!String(e).includes("Wait until element is visible")) {
@@ -383,7 +407,7 @@ export class Workbench {
     public static getTerminalOutput = async (): Promise<string> => {
         let out: string;
         await driver.wait(until.elementLocated(locator.terminal.textArea),
-            constants.wait5seconds, "Terminal was not opened");
+            constants.wait1second * 5, "Terminal was not opened");
         await driver.wait(async () => {
             try {
                 const workbench = new extWorkbench();
@@ -396,7 +420,7 @@ export class Workbench {
             } catch (e) {
                 // continue. Clipboard may be in use by other tests
             }
-        }, constants.wait10seconds, "Clipboard was in use after 10 secs");
+        }, constants.wait1second * 10, "Clipboard was in use after 10 secs");
 
         return out;
     };
@@ -410,13 +434,13 @@ export class Workbench {
             try {
                 const workbench = new extWorkbench();
                 await workbench.executeCommand("workbench.action.reloadWindow");
-                await driver.sleep(constants.wait2seconds);
+                await driver.sleep(constants.wait1second * 2);
 
                 return true;
             } catch (e) {
                 return false;
             }
-        }, constants.wait5seconds * 3, "Could not reload VSCode");
+        }, constants.wait1second * 5 * 3, "Could not reload VSCode");
     };
 
     /**
@@ -473,7 +497,7 @@ export class Workbench {
             } catch (e) {
                 await Workbench.pushDialogButton("Don't Save");
             }
-        }, constants.wait5seconds, "Could not close all editors");
+        }, constants.wait1second * 5, "Could not close all editors");
     };
 
     /**
@@ -515,7 +539,7 @@ export class Workbench {
      * @param timeout The timeout to wait for notifications to be displayed
      * @returns A promise resolving with true if notifications exist, false otherwise
      */
-    public static existsNotifications = async (timeout = constants.wait5seconds): Promise<boolean> => {
+    public static existsNotifications = async (timeout = constants.wait1second * 5): Promise<boolean> => {
         return driver.wait(async () => {
             return (await new extWorkbench().getNotifications()).length > 0;
         }, timeout).catch(() => {
@@ -677,7 +701,7 @@ export class Workbench {
                                 .catch(() => {
                                     // continue
                                 });
-                        }, constants.wait3seconds, "Could not open the side bar");
+                        }, constants.wait1second * 3, "Could not open the side bar");
                     }
                 } else {
                     if (await isOpened()) {
@@ -689,7 +713,7 @@ export class Workbench {
                                 .catch(() => {
                                     // continue
                                 });
-                        }, constants.wait3seconds, "Could not close the side bar");
+                        }, constants.wait1second * 3, "Could not close the side bar");
                     }
                 }
 
@@ -699,7 +723,7 @@ export class Workbench {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "Could not toggle the side bar");
+        }, constants.wait1second * 5, "Could not toggle the side bar");
     };
 
     /**
@@ -769,19 +793,19 @@ export class Workbench {
             let feWasLoaded = false;
 
             const loadTry = async (): Promise<void> => {
-                console.log("<<<<Try to load FE>>>>>");
-                await driver.wait(Workbench.untilTabIsOpened("Welcome"), constants.wait10seconds,
+                await driver.wait(Workbench.untilTabIsOpened("Welcome"), constants.wait1second * 10,
                     "Welcome tab was not opened");
                 await Workbench.openMySQLShellForVSCode();
-                await driver.wait(Workbench.untilTabIsOpened(constants.dbDefaultEditor), constants.wait25seconds,
+                await driver.wait(Workbench.untilTabIsOpened(constants.dbDefaultEditor), constants.wait1second * 25,
                     `${constants.dbDefaultEditor} tab was not opened`);
                 await Misc.switchToFrame();
-                await driver.wait(this.untilFEisLoaded(), constants.wait15seconds);
+                await driver.wait(this.untilFEisLoaded(), constants.wait1second * 15);
                 console.log("<<<<FE was loaded successfully>>>>>");
             };
 
             while (tryNumber <= feLoadTries) {
                 try {
+                    await Workbench.reloadVSCode();
                     await loadTry();
                     feWasLoaded = true;
                     break;
@@ -876,7 +900,7 @@ export class Workbench {
             await Workbench.dismissNotifications();
             const folderTreeSection = new E2EAccordionSection(folder);
 
-            return driver.wait(folderTreeSection.untilExists(), constants.wait5seconds)
+            return driver.wait(folderTreeSection.untilExists(), constants.wait1second * 5)
                 .then(() => {
                     return true;
                 })

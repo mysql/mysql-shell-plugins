@@ -62,7 +62,7 @@ export class E2ECodeEditor {
         await driver.wait(async () => {
             try {
                 const results = await driver.wait(until
-                    .elementsLocated(locator.notebook.codeEditor.editor.result.exists), constants.wait3seconds,
+                    .elementsLocated(locator.notebook.codeEditor.editor.result.exists), constants.wait1second * 3,
                     "Could not find any command results");
                 this.lastResultId = parseInt((await results[results.length - 1].getAttribute("monaco-view-zone"))
                     .match(/(\d+)/)[1], 10);
@@ -73,7 +73,7 @@ export class E2ECodeEditor {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "Could not get the command results");
+        }, constants.wait1second * 5, "Could not get the command results");
     };
 
     /**
@@ -137,12 +137,12 @@ export class E2ECodeEditor {
         await driver.wait(async () => {
             try {
                 const textArea = await driver.wait(until.elementLocated(locator.notebook.codeEditor.textArea),
-                    constants.wait5seconds, "Could not find the textarea");
+                    constants.wait1second * 5, "Could not find the textarea");
                 await this.scrollDown();
                 await driver.executeScript(
                     "arguments[0].click();",
                     await driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.currentLine),
-                        constants.wait2seconds, "Current line was not found"),
+                        constants.wait1second * 2, "Current line was not found"),
                 );
 
                 const maxRetries = 2;
@@ -153,7 +153,7 @@ export class E2ECodeEditor {
 
                     if (!ignoreKeywords) {
                         try {
-                            await driver.wait(this.untilKeywordExists(lines[i]), constants.wait3seconds);
+                            await driver.wait(this.untilKeywordExists(lines[i]), constants.wait1second * 3);
                         } catch (e) {
                             if (retryNumber <= maxRetries) {
                                 await Os.keyboardDeleteLine(lines[i]);
@@ -183,7 +183,7 @@ export class E2ECodeEditor {
                     await this.clean();
                 }
             }
-        }, constants.wait15seconds, `Could not write text on the code editor (StaleElementReferenceError)`);
+        }, constants.wait1second * 15, `Could not write text on the code editor (StaleElementReferenceError)`);
     };
 
     /**
@@ -212,7 +212,7 @@ export class E2ECodeEditor {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "Editor was not cleaned");
+        }, constants.wait1second * 5, "Editor was not cleaned");
 
         await this.execute("\\about ", true);
     };
@@ -323,7 +323,6 @@ export class E2ECodeEditor {
 
         if (waitForIncomingResult) {
             commandResult = await this.buildResult("", this.lastResultId + 1);
-            this.lastResultId++;
         } else {
             commandResult = await this.buildResult("", this.lastResultId);
         }
@@ -355,8 +354,6 @@ export class E2ECodeEditor {
             commandResult = await this.buildResult(cmd, this.lastResultId + 1);
         }
 
-        this.lastResultId++;
-
         return commandResult;
     };
 
@@ -376,17 +373,15 @@ export class E2ECodeEditor {
                 result = await driver.wait(until
                     .elementLocated(locator.notebook.codeEditor.editor.result
                         .existsById(String(resultId))),
-                    constants.wait2seconds, `Could not find result id ${String(resultId)} for ${cmd}`);
+                    constants.wait1second * 10, `Could not find result id ${String(resultId)} for ${cmd}`);
+                this.lastResultId = resultId;
             } catch (e) {
                 if (e instanceof error.TimeoutError) {
                     const results = await driver.findElements(locator.notebook.codeEditor.editor.result.exists);
 
                     if (results.length > 0) {
                         const lastId = await results[results.length - 1].getAttribute("monaco-view-zone");
-                        // eslint-disable-next-line max-len
-                        console.log(`[DEBUG] Could not find result id ${String(resultId)} for ${cmd}. Last id found: ${lastId}`);
                         this.lastResultId = parseInt(lastId.match(/(\d+)/)[1], 10);
-
                         result = results[results.length - 1];
                     } else {
                         throw new Error("[DEBUG] No results at all were found on the notebook");
@@ -398,14 +393,15 @@ export class E2ECodeEditor {
             }
         } else {
             return driver.wait(until.elementLocated(locator.notebook.codeEditor.editor.result.script),
-                constants.wait5seconds, `Could not find any script result, for cmd ${cmd}. Maybe this is a notebook?`);
+                constants.wait1second * 5,
+                `Could not find any script result, for cmd ${cmd}. Maybe this is a notebook?`);
         }
 
         await this.scrollDown();
 
         await driver.wait(async () => {
             return (await driver.findElements(locator.notebook.codeEditor.editor.result.isWaiting)).length === 0;
-        }, constants.wait30seconds, `Waiting for result id ${resultId} on command '${cmd}'`);
+        }, constants.wait1second * 30, `Waiting for result id ${resultId} on command '${cmd}'`);
 
         return result;
     };
@@ -466,7 +462,7 @@ export class E2ECodeEditor {
             if (type !== "") {
                 return true;
             }
-        }, constants.wait5seconds, `Could not get the result type for ${cmd}`);
+        }, constants.wait1second * 5, `Could not get the result type for ${cmd}`);
 
         return type;
     };
@@ -508,7 +504,7 @@ export class E2ECodeEditor {
         const textArea = await driver.findElement(locator.notebook.codeEditor.textArea);
         await textArea.sendKeys(Key.chord(Key.CONTROL, Key.SPACE));
         await driver.wait(until.elementLocated(locator.suggestWidget.exists),
-            constants.wait2seconds, "The suggestions menu was not displayed");
+            constants.wait1second * 2, "The suggestions menu was not displayed");
     };
 
     /**
@@ -531,7 +527,7 @@ export class E2ECodeEditor {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "The elements were always stale - setMouseCursorAt");
+        }, constants.wait1second * 5, "The elements were always stale - setMouseCursorAt");
     };
 
     /**
@@ -571,7 +567,7 @@ export class E2ECodeEditor {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "Could not set a new line on the editor");
+        }, constants.wait1second * 5, "Could not set a new line on the editor");
     };
 
     /**
@@ -581,7 +577,7 @@ export class E2ECodeEditor {
     public getAutoCompleteMenuItems = async (): Promise<string[]> => {
         const els = [];
         let items = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.editor.autoCompleteListItem),
-            constants.wait5seconds, "Auto complete items were not displayed");
+            constants.wait1second * 5, "Auto complete items were not displayed");
 
         for (const item of items) {
             els.push(await item.getText());
@@ -590,7 +586,7 @@ export class E2ECodeEditor {
         await driver.findElement(locator.notebook.codeEditor.textArea).sendKeys(Key.ARROW_UP);
 
         items = await driver.wait(until.elementsLocated(locator.notebook.codeEditor.editor.autoCompleteListItem),
-            constants.wait5seconds, "Auto complete items were not displayed");
+            constants.wait1second * 5, "Auto complete items were not displayed");
 
         for (const item of items) {
             els.push(await item.getText());
@@ -645,7 +641,7 @@ export class E2ECodeEditor {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `Could not verify if text '${text}' exists`);
+        }, constants.wait1second * 5, `Could not verify if text '${text}' exists`);
 
         return isTextOnEditor;
     };
@@ -691,7 +687,7 @@ export class E2ECodeEditor {
                         throw e;
                     }
                 }
-            }, constants.wait3seconds, "Suggestion widget was not closed");
+            }, constants.wait1second * 3, "Suggestion widget was not closed");
         }
     };
 

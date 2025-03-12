@@ -45,7 +45,7 @@ export class RestServiceDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsServiceDialog.exists),
-            constants.wait20seconds, "MRS Service dialog was not displayed");
+            constants.wait1second * 20, "MRS Service dialog was not displayed");
 
         // Main settings
         await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.servicePath, restService.servicePath);
@@ -113,7 +113,7 @@ export class RestServiceDialog {
             await dialog.findElement(locator.mrsServiceDialog.ok).click();
 
             return (await DialogHelper.existsDialog()) === false;
-        }, constants.wait10seconds, "The MRS Service dialog was not closed");
+        }, constants.wait1second * 10, "The MRS Service dialog was not closed");
 
         return restService;
     };
@@ -128,7 +128,7 @@ export class RestServiceDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsServiceDialog.exists),
-            constants.wait20seconds, "MRS Service dialog was not displayed");
+            constants.wait1second * 20, "MRS Service dialog was not displayed");
 
         // Main settings
         const restService: interfaces.IRestService = {
@@ -176,7 +176,7 @@ export class RestServiceDialog {
             await dialog.findElement(locator.mrsServiceDialog.cancel).click();
 
             return (await DialogHelper.existsDialog()) === false;
-        }, constants.wait10seconds, "The MRS Service dialog was not closed");
+        }, constants.wait1second * 10, "The MRS Service dialog was not closed");
 
         return restService;
     };

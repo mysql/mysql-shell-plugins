@@ -63,7 +63,7 @@ export class DatabaseConnectionOverview {
             }
 
             return undefined;
-        }, constants.wait5seconds, `The connection ${name} was not found on the Connection Browser`);
+        }, constants.wait1second * 5, `The connection ${name} was not found on the Connection Browser`);
 
         return db;
     };
@@ -81,7 +81,7 @@ export class DatabaseConnectionOverview {
         await driver.executeScript("arguments[0].click()", moreActions);
         const menu = await driver
             .wait(until.elementLocated(locator.dbConnectionOverview.dbConnection.moreActionsMenu.exists),
-                constants.wait5seconds, "More actions menu was not displayed");
+                constants.wait1second * 5, "More actions menu was not displayed");
 
         const menuItems = await menu.findElements(locator.dbConnectionOverview.dbConnection.moreActionsMenu.item);
 
@@ -125,7 +125,7 @@ export class DatabaseConnectionOverview {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "The connections were always stale");
+        }, constants.wait1second * 5, "The connections were always stale");
 
         return found;
     };

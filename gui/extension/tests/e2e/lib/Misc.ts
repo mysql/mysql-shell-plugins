@@ -27,13 +27,12 @@ import fs from "fs/promises";
 import { Database } from "sqlite3";
 import addContext from "mochawesome/addContext";
 import { join } from "path";
-import { ITimeouts, until, VSBrowser, WebDriver, WebElement, Condition } from "vscode-extension-tester";
+import { ITimeouts, until, VSBrowser, WebDriver, WebElement } from "vscode-extension-tester";
 import { existsSync } from "fs";
 import { Workbench } from "./Workbench";
 import * as constants from "./constants";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
-import { createConnection } from "mysql2/promise";
 export let driver: WebDriver;
 export let browser: VSBrowser;
 
@@ -85,15 +84,15 @@ export class Misc {
                             return true;
                         }
                     }
-                }, constants.wait5seconds, "Could not find a visible iframe div");
+                }, constants.wait1second * 5, "Could not find a visible iframe div");
                 const parentIframe = await visibleDiv.findElement(locator.iframe.exists);
-                await driver.wait(Workbench.untilWebViewIsReady(parentIframe), constants.wait10seconds);
+                await driver.wait(Workbench.untilWebViewIsReady(parentIframe), constants.wait1second * 10);
                 await driver.wait(until.ableToSwitchToFrame(parentIframe),
-                    constants.wait5seconds, "Could not enter the first iframe");
+                    constants.wait1second * 5, "Could not enter the first iframe");
                 const activeFrame = await driver.wait(until.elementLocated(locator.iframe.exists),
-                    constants.wait5seconds, "Web View content was not loaded");
+                    constants.wait1second * 5, "Web View content was not loaded");
                 await driver.wait(until.ableToSwitchToFrame(activeFrame),
-                    constants.wait5seconds, "Could not enter the active iframe");
+                    constants.wait1second * 5, "Could not enter the active iframe");
                 const iframe = await driver.findElements(locator.iframe.exists);
                 if (iframe.length > 0) {
                     await driver.wait(until.ableToSwitchToFrame(iframe[0]),
@@ -106,7 +105,7 @@ export class Misc {
                     throw e;
                 }
             }
-        }, constants.wait10seconds, "target frame detached");
+        }, constants.wait1second * 10, "target frame detached");
     };
 
     /**
@@ -124,7 +123,7 @@ export class Misc {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "Could not switch back to top frame");
+        }, constants.wait1second * 5, "Could not switch back to top frame");
     };
 
     /**
@@ -289,36 +288,6 @@ export class Misc {
             throw new Error(`Could not find the sqlite file. Expected location: ${sqliteFile}`);
         }
 
-    };
-
-    /**
-     * Verifies if a schema exists on the current database
-     * @param schema The schema name
-     * @returns True if the schema exists, false otherwise
-     */
-    public static untilSchemaExists = (schema: string): Condition<boolean> => {
-        return new Condition(`for schema '${schema}' to exist`, async () => {
-            try {
-                const mysqlConnection = await createConnection({
-                    host: "localhost",
-                    user: process.env.DBUSERNAME1,
-                    password: process.env.DBPASSWORD1,
-                    database: schema,
-                    port: parseInt(process.env.MYSQL_PORT, 10),
-                });
-
-                await mysqlConnection.connect();
-                mysqlConnection.destroy();
-
-                return true;
-            } catch (e) {
-                if (String(e).includes("Unknown database")) {
-                    return false;
-                } else {
-                    throw e;
-                }
-            }
-        });
     };
 
 }

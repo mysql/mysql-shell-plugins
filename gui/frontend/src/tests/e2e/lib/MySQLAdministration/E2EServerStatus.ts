@@ -21,9 +21,11 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { until } from "selenium-webdriver";
 import * as locator from "../locators.js";
 import { driver } from "../../lib/driver.js";
 import { E2EEditorSelector } from "../E2EEditorSelector.js";
+import { wait3seconds } from "../constants.js";
 
 /**
  * This class represents the Server Status page and all its related functions
@@ -189,17 +191,17 @@ export class E2EServerStatus {
             privateKey,
             publicKey,
         ] = await Promise.all([
-            await (await driver.findElement(serverStatusLocator.host)).getText(),
-            await (await driver.findElement(serverStatusLocator.socket)).getText(),
-            await (await driver.findElement(serverStatusLocator.port)).getText(),
-            await (await driver.findElement(serverStatusLocator.version)).getText(),
-            await (await driver.findElement(serverStatusLocator.compiledFor)).getText(),
-            await (await driver.findElement(serverStatusLocator.configFile)).getText(),
-            await (await driver.findElement(serverStatusLocator.runningSince)).getText(),
-            await (await driver.findElement(serverStatusLocator.baseDir)).getText(),
-            await (await driver.findElement(serverStatusLocator.dataDir)).getText(),
-            await (await driver.findElement(serverStatusLocator.pluginsDir)).getText(),
-            await (await driver.findElement(serverStatusLocator.tmpDir)).getText(),
+            await driver.findElement(serverStatusLocator.host),
+            await driver.findElement(serverStatusLocator.socket),
+            await driver.findElement(serverStatusLocator.port),
+            await driver.findElement(serverStatusLocator.version),
+            await driver.findElement(serverStatusLocator.compiledFor),
+            await driver.findElement(serverStatusLocator.configFile),
+            await driver.findElement(serverStatusLocator.runningSince),
+            await driver.findElement(serverStatusLocator.baseDir),
+            await driver.findElement(serverStatusLocator.dataDir),
+            await driver.findElement(serverStatusLocator.pluginsDir),
+            await driver.findElement(serverStatusLocator.tmpDir),
             await (await driver.findElement(serverStatusLocator.errorLog).findElement(locator.htmlTag.label))
                 .getAttribute("class"),
             await (await driver.findElement(serverStatusLocator.generalLog).findElement(locator.htmlTag.label))
@@ -210,38 +212,48 @@ export class E2EServerStatus {
                 .getAttribute("class"),
             await (await driver.findElement(serverStatusLocator.threadPool).findElement(locator.htmlTag.label))
                 .getAttribute("class"),
-            await (await driver.findElement(serverStatusLocator.memCachedPlugin)).getText(),
-            await (await driver.findElement(serverStatusLocator.semiSyncReplicationPlugin)).getText(),
+            await driver.findElement(serverStatusLocator.memCachedPlugin),
+            await driver.findElement(serverStatusLocator.semiSyncReplicationPlugin),
             await (await driver.findElement(serverStatusLocator.pamAuthentication).findElement(locator.htmlTag.label))
                 .getAttribute("class"),
             await (await driver.findElement(serverStatusLocator.passwordValidation).findElement(locator.htmlTag.label))
                 .getAttribute("class"),
             await (await driver.findElement(serverStatusLocator.auditLog).findElement(locator.htmlTag.label))
                 .getAttribute("class"),
-            await (await driver.findElement(serverStatusLocator.firewall)).getText(),
-            await (await driver.findElement(serverStatusLocator.firewallTrace)).getText(),
-            await (await driver.findElement(serverStatusLocator.sslCa)).getText(),
-            await (await driver.findElement(serverStatusLocator.sslCaPath)).getText(),
-            await (await driver.findElement(serverStatusLocator.sslCert)).getText(),
-            await (await driver.findElement(serverStatusLocator.sslCipher)).getText(),
-            await (await driver.findElement(serverStatusLocator.sslCrl)).getText(),
-            await (await driver.findElement(serverStatusLocator.sslCrlPath)).getText(),
-            await (await driver.findElement(serverStatusLocator.sslKey)).getText(),
-            await (await driver.findElement(serverStatusLocator.privateKey)).getText(),
-            await (await driver.findElement(serverStatusLocator.publicKey)).getText(),
+            await driver.findElement(serverStatusLocator.firewall),
+            await driver.findElement(serverStatusLocator.firewallTrace),
+            await driver.findElement(serverStatusLocator.sslCa),
+            await driver.findElement(serverStatusLocator.sslCaPath),
+            await driver.findElement(serverStatusLocator.sslCert),
+            await driver.findElement(serverStatusLocator.sslCipher),
+            await driver.findElement(serverStatusLocator.sslCrl),
+            await driver.findElement(serverStatusLocator.sslCrlPath),
+            await driver.findElement(serverStatusLocator.sslKey),
+            await driver.findElement(serverStatusLocator.privateKey),
+            await driver.findElement(serverStatusLocator.publicKey),
         ]);
 
-        this.host = host;
-        this.socket = socket;
-        this.port = port;
-        this.version = version;
-        this.compiledFor = compiledFor;
-        this.configurationFile = configFile;
-        this.runningSince = runningSince;
-        this.baseDirectory = baseDir;
-        this.dataDirectory = dataDir;
-        this.pluginsDirectory = pluginsDir;
-        this.tempDirectory = tmpDir;
+        const notEmpty = /(.|\s)*\S(.|\s)*/;
+
+        this.host = await (await driver.wait(until.elementTextMatches(host, notEmpty), wait3seconds)).getText();
+        this.socket = await (await driver.wait(until.elementTextMatches(socket, notEmpty), wait3seconds)).getText();
+        this.port = await (await driver.wait(until.elementTextMatches(port, notEmpty), wait3seconds)).getText();
+        this.version = await (await driver.wait(until.elementTextMatches(version, notEmpty), wait3seconds)).getText();
+        this.compiledFor = await (await driver.wait(until.elementTextMatches(compiledFor,
+            notEmpty), wait3seconds)).getText();
+        this.configurationFile = await (await driver.wait(until.elementTextMatches(configFile,
+            notEmpty), wait3seconds)).getText();
+        this.runningSince = await (await driver.wait(until.elementTextMatches(runningSince,
+            notEmpty), wait3seconds)).getText();
+        this.baseDirectory = await (await driver.wait(until.elementTextMatches(baseDir,
+            notEmpty), wait3seconds)).getText();
+        this.dataDirectory = await (await driver.wait(until.elementTextMatches(dataDir,
+            notEmpty), wait3seconds)).getText();
+        this.pluginsDirectory = await (await driver.wait(until.elementTextMatches(pluginsDir,
+            notEmpty), wait3seconds)).getText();
+        this.tempDirectory = await (await driver.wait(until.elementTextMatches(tmpDir,
+            notEmpty), wait3seconds)).getText();
+
         this.errorLog = {
             checked: errorLogClasses.includes("unchecked") ? false : true,
             path: await (await driver.findElement(serverStatusLocator.errorLog)).getText(),
@@ -256,22 +268,30 @@ export class E2EServerStatus {
         };
         this.performanceSchema = performanceSchemaClasses.includes("unchecked") ? false : true;
         this.threadPool = threadPoolClasses.includes("unchecked") ? false : true;
-        this.memCachedPlugin = memCachedPlugin;
-        this.semiSyncRepPlugin = semiSyncReplicationPlugin;
+        this.memCachedPlugin = await (await driver.wait(until.elementTextMatches(memCachedPlugin,
+            notEmpty), wait3seconds)).getText();
+        this.semiSyncRepPlugin = await (await driver.wait(until.elementTextMatches(semiSyncReplicationPlugin,
+            notEmpty), wait3seconds)).getText();
         this.pamAuthentication = pamAuthenticationClasses.includes("unchecked") ? false : true;
         this.passwordValidation = passwordValidationClasses.includes("unchecked") ? false : true;
         this.auditLog = auditLogClasses.includes("unchecked") ? false : true;
-        this.firewall = firewall;
-        this.firewallTrace = firewallTrace;
-        this.sslCa = sslCa;
-        this.sslCaPath = sslCaPath;
-        this.sslCert = sslCert;
-        this.sslCipher = sslCipher;
-        this.sslCrl = sslCrl;
-        this.sslCrlPath = sslCrlPath;
-        this.sslKey = sslKey;
-        this.privateKey = privateKey;
-        this.publicKey = publicKey;
+        this.firewall = await (await driver.wait(until.elementTextMatches(firewall, notEmpty), wait3seconds)).getText();
+        this.firewallTrace = await (await driver.wait(until.elementTextMatches(firewallTrace,
+            notEmpty), wait3seconds)).getText();
+        this.sslCa = await (await driver.wait(until.elementTextMatches(sslCa,
+            notEmpty), wait3seconds)).getText();
+        this.sslCaPath = await sslCaPath.getText();
+        this.sslCert = await (await driver.wait(until.elementTextMatches(sslCert,
+            notEmpty), wait3seconds)).getText();
+        this.sslCipher = await sslCipher.getText();
+        this.sslCrl = await sslCrl.getText();
+        this.sslCrlPath = await sslCrlPath.getText();
+        this.sslKey = await (await driver.wait(until.elementTextMatches(sslKey,
+            notEmpty), wait3seconds)).getText();
+        this.privateKey = await (await driver.wait(until.elementTextMatches(privateKey,
+            notEmpty), wait3seconds)).getText();
+        this.publicKey = await (await driver.wait(until.elementTextMatches(publicKey,
+            notEmpty), wait3seconds)).getText();
     };
 
 }

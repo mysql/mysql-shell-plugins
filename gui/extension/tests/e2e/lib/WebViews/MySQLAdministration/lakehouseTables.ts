@@ -62,7 +62,7 @@ export class LakehouseTables {
     public getDatabaseSchemas = async (): Promise<string[]> => {
         const schemas = await driver.wait(until
             .elementsLocated(locator.lakeHouseNavigator.lakeHouseTables.databaseSchemas.item),
-            constants.wait5seconds, "Could not find any database schemas");
+            constants.wait1second * 5, "Could not find any database schemas");
 
         return Promise.all(
             schemas.map(async (item: WebElement) => {
@@ -115,7 +115,7 @@ export class LakehouseTables {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "Could not get the Lakehouse tables");
+        }, constants.wait1second * 5, "Could not get the Lakehouse tables");
 
         return toReturn;
     };
@@ -148,7 +148,7 @@ export class LakehouseTables {
 
                 return true;
             }
-        }, constants.wait10seconds, `Could not find '${tableLabel}' on Lakehouse tables`);
+        }, constants.wait1second * 10, `Could not find '${tableLabel}' on Lakehouse tables`);
 
         return table;
     };
@@ -201,7 +201,7 @@ export class LakehouseTables {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "Could not get the Lakehouse tasks");
+        }, constants.wait1second * 5, "Could not get the Lakehouse tasks");
 
         return toReturn;
     };
@@ -229,7 +229,7 @@ export class LakehouseTables {
                 if (rows.length > 0) {
                     return rows;
                 }
-            }, constants.wait5seconds, "Could not find any lake house table");
+            }, constants.wait1second * 5, "Could not find any lake house table");
 
             const wantedTable = tableRows.find((item) => { return item.tableName === tableLabel; });
 
@@ -249,7 +249,7 @@ export class LakehouseTables {
                 if (rows.length > 0) {
                     return rows;
                 }
-            }, constants.wait5seconds, "Could not find any lake house table");
+            }, constants.wait1second * 5, "Could not find any lake house table");
 
             const wantedTable = tableRows.find((item) => { return item.tableName === tableLabel; });
 
@@ -269,7 +269,7 @@ export class LakehouseTables {
                 if (rows.length > 0) {
                     return rows;
                 }
-            }, constants.wait5seconds, "Could not find any lakehouse task");
+            }, constants.wait1second * 5, "Could not find any lakehouse task");
 
             const wantedTask = taskRows.find((item) => { return item.id === taskId; });
 
@@ -286,11 +286,11 @@ export class LakehouseTables {
         const wantedTable = await this.getLakehouseTableElement(tableLabel);
         await driver.executeScript("arguments[0].click()", wantedTable);
         await driver.findElement(locator.lakeHouseNavigator.lakeHouseTables.deleteTableBtn).click();
-        const dialog = await driver.wait(until.elementLocated(locator.confirmDialog.exists), constants.wait3seconds,
+        const dialog = await driver.wait(until.elementLocated(locator.confirmDialog.exists), constants.wait1second * 3,
             "Confirm dialog was not displayed");
         await dialog.findElement(locator.confirmDialog.accept).click();
         await this.refreshLakehouseTables();
-        await driver.wait(this.untilLakehouseTableDoesNotExist(tableLabel), constants.wait5seconds,
+        await driver.wait(this.untilLakehouseTableDoesNotExist(tableLabel), constants.wait1second * 5,
             `The lake house table '${tableLabel}' was not deleted`);
     };
 

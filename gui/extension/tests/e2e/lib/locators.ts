@@ -730,6 +730,7 @@ export const iframe = {
 
 export const shellForVscode = {
     loadingIcon: By.className("progress-badge"),
+    message: By.id("status.extensionMessage"),
 };
 
 export const welcomeWizard = {
@@ -899,6 +900,10 @@ export const lakeHouseNavigator = {
             },
         },
     },
+};
+
+export const notification = {
+    button: By.className("monaco-text-button"),
 };
 
 export const sideBarItems = By.css(".composite-bar .actions-container > li");

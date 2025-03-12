@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -59,7 +59,7 @@ export class TestQueue {
     public static push = async (testName: string): Promise<void> => {
         const reason = `Adding test '${testName}' to the queue`;
         const systemLocker = new SystemLocker();
-        await systemLocker.lock(reason, constants.wait30seconds);
+        await systemLocker.lock(reason, constants.wait1second * 30);
         const queue = this.getQueue();
         queue.push(testName);
         writeFileSync(queueFile, queue.join("\n"));
@@ -73,7 +73,7 @@ export class TestQueue {
     public static pop = async (testName: string): Promise<void> => {
         const reason = `Removing test "${testName}" from the queue`;
         const systemLocker = new SystemLocker();
-        await systemLocker.lock(reason, constants.wait30seconds);
+        await systemLocker.lock(reason, constants.wait1second * 30);
         const queue = this.getQueue();
         let newQueue: string[] = [];
 

@@ -45,7 +45,7 @@ export class RestSchemaDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsSchemaDialog.exists),
-            constants.wait5seconds, "MRS Schema dialog was not displayed");
+            constants.wait1second * 5, "MRS Schema dialog was not displayed");
 
         if (restSchema) {
 
@@ -61,7 +61,7 @@ export class RestSchemaDialog {
 
                     return (await driver.findElements(locator.mrsSchemaDialog.serviceList))
                         .length > 0;
-                }, constants.wait5seconds, "Service drop down list was not displayed");
+                }, constants.wait1second * 5, "Service drop down list was not displayed");
                 const popup = await driver.findElement(locator.mrsSchemaDialog.serviceList);
                 await popup.findElement(By.id(restSchema.restServicePath)).click();
             }
@@ -75,7 +75,7 @@ export class RestSchemaDialog {
                 await inAccessControl.click();
                 const popup = await driver.wait(until
                     .elementLocated(locator.mrsSchemaDialog.accessControl.selectList.exists),
-                    constants.wait5seconds, "Access control drop down list was not found");
+                    constants.wait1second * 5, "Access control drop down list was not found");
                 if (restSchema.accessControl === constants.accessControlEnabled) {
                     await popup.findElement(locator.mrsSchemaDialog.accessControl.selectList.enabled).click();
                 } else if (restSchema.accessControl === constants.accessControlDisabled) {
@@ -116,7 +116,7 @@ export class RestSchemaDialog {
             await dialog.findElement(locator.mrsSchemaDialog.ok).click();
 
             return (await DialogHelper.existsDialog()) === false;
-        }, constants.wait10seconds, "The REST Schema Dialog was not closed");
+        }, constants.wait1second * 10, "The REST Schema Dialog was not closed");
 
         return restSchema;
 
@@ -133,7 +133,7 @@ export class RestSchemaDialog {
         }
 
         const dialog = await driver.wait(until.elementLocated(locator.mrsSchemaDialog.exists),
-            constants.wait20seconds, "MRS Schema dialog was not displayed");
+            constants.wait1second * 20, "MRS Schema dialog was not displayed");
 
         // Main settings
         const restSchema: interfaces.IRestSchema = {
@@ -174,7 +174,7 @@ export class RestSchemaDialog {
                 await dialog.findElement(locator.mrsSchemaDialog.cancel).click();
 
                 return (await DialogHelper.existsDialog()) === false;
-            }, constants.wait10seconds, "The MRS Service dialog was not closed");
+            }, constants.wait1second * 10, "The MRS Service dialog was not closed");
         }
 
         return restSchema;

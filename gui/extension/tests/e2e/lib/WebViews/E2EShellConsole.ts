@@ -53,7 +53,7 @@ export class E2EShellConsole {
      */
     public untilIsOpened = async (
         connection?: interfaces.IDBConnection | undefined,
-        timeout = constants.wait10seconds): Promise<E2EShellConsole> => {
+        timeout = constants.wait1second * 10): Promise<E2EShellConsole> => {
 
         await Misc.switchBackToTopFrame();
         await Misc.switchToFrame();
@@ -112,7 +112,7 @@ export class E2EShellConsole {
         const tabSchema = await driver.findElement(locator.shellConsole.connectionTab.schema);
         await tabSchema.click();
         const menu = await driver.wait(until.elementLocated(locator.shellConsole.connectionTab.schemaMenu),
-            constants.wait5seconds, "Schema list was not displayed");
+            constants.wait1second * 5, "Schema list was not displayed");
         const items = await menu.findElements(locator.shellConsole.connectionTab.schemaItem);
 
         for (const item of items) {
@@ -124,7 +124,7 @@ export class E2EShellConsole {
 
         await driver.wait(async () => {
             return (await driver.findElement(locator.shellConsole.connectionTab.schema).getText()).includes(schema);
-        }, constants.wait5seconds, `${schema} was not selected`);
+        }, constants.wait1second * 5, `${schema} was not selected`);
 
         const commandResult = await this.codeEditor.getLastExistingCommandResult(true);
 

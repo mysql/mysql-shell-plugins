@@ -416,10 +416,25 @@ describe("NOTEBOOKS", () => {
                 await notebook.codeEditor.languageSwitch("\\sql ");
                 const result1 = await notebook.codeEditor.execute("select version();") as E2ECommandResultGrid;
                 expect(result1.status).toMatch(/1 record retrieved/);
-                const cell = result1.resultContext!
-                    .findElement(locator.notebook.codeEditor.editor.result.grid.row.cell.exists);
-                const cellText = await cell.getText();
-                const server = cellText.match(/(\d+).(\d+).(\d+)/g)![0];
+
+                let cellText: string | undefined;
+
+                await driver.wait(async () => {
+                    try {
+                        const cell = result1.resultContext!
+                            .findElement(locator.notebook.codeEditor.editor.result.grid.row.cell.exists);
+                        cellText = await cell.getText();
+
+                        return true;
+                    } catch (e) {
+                        if (!(e instanceof error.StaleElementReferenceError)) {
+                            throw e;
+                        }
+                    }
+                }, constants.wait5seconds, `Could not get the cell text`);
+
+
+                const server = cellText!.match(/(\d+).(\d+).(\d+)/g)![0];
                 const digits = server.split(".");
                 let serverVer = digits[0];
                 digits[1].length === 1 ? serverVer += "0" + digits[1] : serverVer += digits[1];

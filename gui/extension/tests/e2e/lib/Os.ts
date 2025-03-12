@@ -287,7 +287,7 @@ export class Os {
             }
 
             return clipboard.readSync() !== "";
-        }, constants.wait5seconds, `The clipboard is empty`);
+        }, constants.wait1second * 5, `The clipboard is empty`);
     };
 
     /**
