@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -71,11 +71,11 @@ class RequestHandler(Thread):
 
     @property
     def request_id(self):
-        return self.get_context().request_id
+        return self._request_id
 
     @property
     def web_handler(self):
-        return self.get_context().web_handler
+        return self._web_handler
 
     def handle_gui_message(self, type, text):
         """

@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -62,13 +62,15 @@ def test_configure(phone_book):
 
     config_output = configure()
     assert config_output == {
-        "mrs_enabled": 1,
+        "info_msg": config_output["info_msg"],
+        "mrs_enabled": True,
         "schema_changed": False
     }
 
     config_output = configure(**config)
     assert config_output == {
-        "mrs_enabled": 1,
+        "info_msg": config_output["info_msg"],
+        "mrs_enabled": True,
         "schema_changed": False
     }
 
@@ -78,14 +80,22 @@ def test_configure(phone_book):
     }
 
     config_output = configure(**config)
-    assert config_output == {"mrs_enabled": False, "schema_changed": False}
+    assert config_output == {
+        "info_msg": config_output["info_msg"],
+        "mrs_enabled": False,
+        "schema_changed": False
+    }
 
     config = {
         "enable_mrs": True,
         "session": phone_book["session"]
     }
     config_output = configure(**config)
-    assert config_output == {"mrs_enabled": True, "schema_changed": False}
+    assert config_output == {
+        "info_msg": config_output["info_msg"],
+        "mrs_enabled": True,
+        "schema_changed": False
+    }
 
     config = {
         "enable_mrs": False,
@@ -93,8 +103,11 @@ def test_configure(phone_book):
     }
     config_output = configure(**config)
     assert config_output is not None
-    assert config_output == {"schema_changed": False,
-                             "mrs_enabled": False}
+    assert config_output == {
+        "info_msg": config_output["info_msg"],
+        "schema_changed": False,
+        "mrs_enabled": False
+    }
 
     config = {
         "enable_mrs": True,
@@ -102,8 +115,11 @@ def test_configure(phone_book):
     }
     config_output = configure(**config)
     assert config_output is not None
-    assert config_output == {"schema_changed": False,
-                             "mrs_enabled": True}
+    assert config_output == {
+        "info_msg": config_output["info_msg"],
+        "schema_changed": False,
+        "mrs_enabled": True
+    }
 
 
 def test_ls(phone_book):
@@ -151,6 +167,7 @@ def test_status(phone_book):
     # disable service
     config_output = configure(phone_book["session"], False)
     assert config_output == {
+        "info_msg": config_output["info_msg"],
         "mrs_enabled": False,
         "schema_changed": False
     }
@@ -174,6 +191,7 @@ def test_status(phone_book):
     # enable service
     config_output = configure(phone_book["session"], True)
     assert config_output == {
+        "info_msg": config_output["info_msg"],
         "mrs_enabled": True,
         "schema_changed": False
     }
@@ -196,6 +214,7 @@ def test_status(phone_book):
 
     config_output = configure(phone_book["session"], enabled)
     assert config_output == {
+        "info_msg": config_output["info_msg"],
         "mrs_enabled": enabled,
         "schema_changed": False
     }

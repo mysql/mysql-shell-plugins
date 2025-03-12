@@ -27,6 +27,7 @@
 
 from mysqlsh.plugin_manager import plugin_function
 import mrs_plugin.lib as lib
+import msm_plugin.lib.management as schema_management
 
 
 @plugin_function('mrs.info', shell=True, cli=True, web=True)
@@ -255,7 +256,8 @@ def cd(path=None, session=None):
 
 @plugin_function('mrs.configure', shell=True, cli=True, web=True)
 def configure(session=None, enable_mrs=None, options=None,
-              update_if_available=False, allow_recreation_on_major_upgrade=False):
+              update_if_available=False,
+              edition=None, version=None):
     """Initializes and configures the MySQL REST Data Service
 
     Args:
@@ -263,7 +265,8 @@ def configure(session=None, enable_mrs=None, options=None,
         enable_mrs (bool): Whether MRS should be enabled or disabled
         options (str): a JSON string containing the MRS options
         update_if_available (bool): Whether the MRS metadata schema should be updated
-        allow_recreation_on_major_upgrade (bool): Whether the MRS metadata schema can be dropped and recreated if needed
+        edition (str): If set to HeatWave or MySQLAi, special handling for those edition is triggered.
+        version (str): The exact version to upgrade the metadata schema to.
 
     Returns:
         True on success, None in interactive mode
@@ -276,50 +279,70 @@ def configure(session=None, enable_mrs=None, options=None,
 
     session = lib.core.get_current_session(session)
 
-    if lib.core.mrs_metadata_schema_exists(session) and interactive:
+    if lib.core.mrs_metadata_schema_exists(session):
         current_db_version = lib.core.get_mrs_schema_version(session)
 
-        # Major upgrade is required from v1 to v2
-        if current_db_version[0] < 2 and not allow_recreation_on_major_upgrade:
-            if lib.core.prompt(
-                "This MRS Shell Plugin version requires a new major version of the MRS metadata "
-                "schema. To you want to drop and recreate the MRS metadata schema "
-                "(Note that all existing MRS settings will be lost)? [y/N]: ",
-                    {'defaultValue': 'n'}).strip().lower() == 'y':
-                allow_recreation_on_major_upgrade = True
-            else:
-                print("Operation cancelled.")
-                return
-        elif current_db_version < lib.general.DB_VERSION and not update_if_available:
+        last_deployment_version = schema_management.get_last_deployment_script_version(
+            schema_project_path=lib.core.script_path(
+                "db_schema", "mysql_rest_service_metadata.msm.project"))
+
+        if current_db_version < last_deployment_version and not update_if_available and interactive:
             # A version upgrade is available
+            from_v = '%d.%d.%d' % tuple(current_db_version)
+            to_v = '%d.%d.%d' % tuple(last_deployment_version)
             if lib.core.prompt(
-                "An upgrade is available for the MRS schema. Do you want to upgrade? [y/N]: ",
+                f"The MRS metadata schema can be updated from version {from_v} "
+                f"to version {to_v}. Do you want to perform the update ? [y/N]: ",
                     {'defaultValue': 'n'}).strip().lower() == 'n':
-                if interactive:
-                    print("Operation cancelled.")
+                print("Operation cancelled.")
+
                 return
+
             update_if_available = True
+
+        if current_db_version < last_deployment_version and not update_if_available:
+            info_msg = (
+                f"A new version {update_if_available} of the MRS metadata "
+                "schema is available. Call "
+                "`mrs.configure(update_if_available=True)` to update.")
+            if interactive:
+                print(info_msg)
+            else:
+                return {
+                    "schema_changed": False,
+                    "info_msg": info_msg,
+                    "mrs_enabled": lib.core.get_mrs_enabled(session=session)
+                }
+
+            return
     elif interactive:
         print("Creating MRS metadata schema...")
 
-    status = lib.general.configure(
-        session=session, enable_mrs=enable_mrs,
-        update_if_available=update_if_available,
-        allow_recreation_on_major_upgrade=allow_recreation_on_major_upgrade)
+    try:
+        status = lib.general.configure(
+            session=session, enable_mrs=enable_mrs,
+            options=options,
+            edition=edition,
+            version=version)
 
-    if interactive:
-        if status.get("schema_changed") == True:
-            print("The MRS metadata has been updated.")
-        else:
-            print("The MRS metadata is up to date.")
-
-        if enable_mrs is not None:
-            if enable_mrs:
-                print(f"The MySQL REST Service has been enabled.")
+        if interactive:
+            if status.get("schema_changed") == True:
+                print(status.get("info_msg"))
             else:
-                print(f"The MySQL REST Service has been disabled.")
-    else:
-        return status
+                print("The MRS metadata is up to date.")
+
+            if enable_mrs is not None:
+                if enable_mrs:
+                    print(f"The MySQL REST Service has been enabled.")
+                else:
+                    print(f"The MySQL REST Service has been disabled.")
+        else:
+            return status
+    except Exception as e:
+        if interactive:
+            print(e)
+        else:
+            raise e
 
 
 @plugin_function('mrs.status', shell=True, cli=True, web=True)
@@ -354,6 +377,7 @@ def status(session=None):
                 print(f"The MySQL REST Data Service is disabled.")
         else:
             return status
+
 
 @plugin_function('mrs.ignoreVersionUpgrade', shell=True, cli=True, web=True)
 def ignore_version_upgrade(session=None):

@@ -154,6 +154,8 @@ class MyPaths:
             os.path.join(self.runtime.plugins.root, 'test_plugin'))
         self.runtime.plugins.mrs_plugin = Path(os.path.join(
             self.runtime.plugins.root, 'mrs_plugin'))
+        self.runtime.plugins.msm_plugin = Path(os.path.join(
+            self.runtime.plugins.root, 'msm_plugin'))
 
         self.runtime.plugin_data.root = Path(
             os.path.join(self.runtime.root, 'plugin_data'))
@@ -164,6 +166,8 @@ class MyPaths:
             os.path.join(Path().cwd(), '..')))
         self.source.plugin = Path(os.path.join(
             self.source.root, 'mrs_plugin'))
+        self.source.msm_plugin = Path(os.path.join(
+            self.source.root, 'msm_plugin'))
 
         self.source.pytest_config = Path(os.path.join(
             self.source.plugin, "pytest-coverage.ini" if debug_mode is None else self.source.plugin / "pytest.ini"))
@@ -207,10 +211,16 @@ if not paths.runtime.plugins.root.is_dir():
 if paths.runtime.plugins.mrs_plugin.exists():
     paths.runtime.plugins.mrs_plugin.unlink()
 
+# remove link to .mysqlsh/plugins/mrs_plugin
+if paths.runtime.plugins.msm_plugin.exists():
+    paths.runtime.plugins.msm_plugin.unlink()
+
 # Create source code symlink into the runtime plugin dir (.mysqlsh/plugins/mrs_plugin)
 create_symlink(paths.source.code,
                paths.runtime.plugins.mrs_plugin, is_dir=True)
 
+create_symlink(paths.source.msm_plugin,
+               paths.runtime.plugins.msm_plugin, is_dir=True)
 LOGS = ""
 PATTERN = ""
 MYSQLSH_FLAGS = args.mysqlsh or ""

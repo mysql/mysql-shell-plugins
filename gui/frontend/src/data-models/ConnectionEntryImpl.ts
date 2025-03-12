@@ -346,7 +346,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                                         "Metadata Schema ...";
                                     statusbarItem.show();
 
-                                    await this.backend.mrs.configure(true, false, true);
+                                    await this.backend.mrs.configure(true, true);
 
                                     void ui.showInformationMessage("The MySQL REST Service Metadata Schema has " +
                                         "been updated.", {});

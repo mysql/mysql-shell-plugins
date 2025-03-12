@@ -188,7 +188,7 @@ def set_development_version(**kwargs) -> None:
 
 @plugin_function('msm.get.releasedVersions', shell=True, cli=True, web=True)
 def get_released_versions(**kwargs) -> list[list[int, int, int]] | None:
-    """Adds a new database schema release
+    """Returns the all released version of the database schema
 
     Args:
         **kwargs: Additional options.
@@ -217,7 +217,7 @@ def get_released_versions(**kwargs) -> list[list[int, int, int]] | None:
 
 @plugin_function('msm.get.lastReleasedVersion', shell=True, cli=True, web=True)
 def get_last_released_version(**kwargs) -> list[int, int, int] | None:
-    """Adds a new database schema release
+    """Returns the last released version of the database schema
 
     Args:
         **kwargs: Additional options.
@@ -232,6 +232,32 @@ def get_last_released_version(**kwargs) -> list[int, int, int] | None:
         'schema_project_path', lib.core.get_working_dir())
 
     last_version = lib.management.get_last_released_version(
+        schema_project_path=schema_project_path)
+
+    if lib.core.get_interactive_default():
+        print('%d.%d.%d' % tuple(last_version)
+              if last_version is not None else "None")
+    else:
+        return last_version
+
+
+@plugin_function('msm.get.lastDeploymentVersion', shell=True, cli=True, web=True)
+def get_last_deployment_version(**kwargs) -> list[int, int, int] | None:
+    """Returns the last deployment version of the database schema
+
+    Args:
+        **kwargs: Additional options.
+
+    Keyword Args:
+        schema_project_path (str): The path to the schema project.
+
+    Returns:
+        The last deployment version
+    """
+    schema_project_path = kwargs.get(
+        'schema_project_path', lib.core.get_working_dir())
+
+    last_version = lib.management.get_last_deployment_script_version(
         schema_project_path=schema_project_path)
 
     if lib.core.get_interactive_default():
@@ -551,7 +577,7 @@ def deploy_schema(**kwargs) -> str:
         session (object): The database session to use.
 
     Returns:
-        None
+        A string containing information about the performed operation
     """
     schema_project_path = kwargs.get(
         'schema_project_path', lib.core.get_working_dir())

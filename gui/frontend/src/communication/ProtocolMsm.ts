@@ -40,10 +40,12 @@ export enum ShellAPIMsm {
     MsmGetProjectInformation = "msm.get.project_information",
     /** Sets the development version inside the development/schema_next.sql file */
     MsmSetDevelopmentVersion = "msm.set.development_version",
-    /** Adds a new database schema release */
+    /** Returns the all released version of the database schema */
     MsmGetReleasedVersions = "msm.get.released_versions",
-    /** Adds a new database schema release */
+    /** Returns the last released version of the database schema */
     MsmGetLastReleasedVersion = "msm.get.last_released_version",
+    /** Returns the last deployment version of the database schema */
+    MsmGetLastDeploymentVersion = "msm.get.last_deployment_version",
     /** Adds a new database schema release */
     MsmPrepareRelease = "msm.prepare_release",
     /** Returns the SQL content of a MSM section */
@@ -100,6 +102,11 @@ export interface IShellMsmGetReleasedVersionsKwargs {
 }
 
 export interface IShellMsmGetLastReleasedVersionKwargs {
+    /** The path to the schema project. */
+    schemaProjectPath?: string;
+}
+
+export interface IShellMsmGetLastDeploymentVersionKwargs {
     /** The path to the schema project. */
     schemaProjectPath?: string;
 }
@@ -172,6 +179,7 @@ export interface IProtocolMsmParameters {
     [ShellAPIMsm.MsmSetDevelopmentVersion]: { kwargs?: IShellMsmSetDevelopmentVersionKwargs; };
     [ShellAPIMsm.MsmGetReleasedVersions]: { kwargs?: IShellMsmGetReleasedVersionsKwargs; };
     [ShellAPIMsm.MsmGetLastReleasedVersion]: { kwargs?: IShellMsmGetLastReleasedVersionKwargs; };
+    [ShellAPIMsm.MsmGetLastDeploymentVersion]: { kwargs?: IShellMsmGetLastDeploymentVersionKwargs; };
     [ShellAPIMsm.MsmPrepareRelease]: { kwargs?: IShellMsmPrepareReleaseKwargs; };
     [ShellAPIMsm.MsmGetSqlContentFromSection]: { args: { filePath: string; sectionId: string; }; };
     [ShellAPIMsm.MsmSetSectionSqlContent]: { args: { filePath: string; sectionId: string; sqlContent: string; }; };
@@ -217,8 +225,9 @@ export interface IProtocolMsmResults {
     [ShellAPIMsm.MsmSetDevelopmentVersion]: {};
     [ShellAPIMsm.MsmGetReleasedVersions]: { result: MsmVersion[] };
     [ShellAPIMsm.MsmGetDeploymentScriptVersions]: { result: MsmVersion[] };
-    [ShellAPIMsm.MsmGetLastReleasedVersion]: { result: string; };
-    [ShellAPIMsm.MsmPrepareRelease]: { result: string[] };
+    [ShellAPIMsm.MsmGetLastReleasedVersion]: { result: number[]; };
+    [ShellAPIMsm.MsmGetLastDeploymentVersion]: { result: number[]; };
+    [ShellAPIMsm.MsmPrepareRelease]: { result: string[]; };
     [ShellAPIMsm.MsmGetSqlContentFromSection]: { result: string; };
     [ShellAPIMsm.MsmSetSectionSqlContent]: {};
     [ShellAPIMsm.MsmGenerateDeploymentScript]: { result: string; };

@@ -1501,7 +1501,7 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsInfo]: {};
     [ShellAPIMrs.MrsVersion]: {};
     [ShellAPIMrs.MrsLs]: { args: { path?: string; moduleSessionId?: string; }; };
-    [ShellAPIMrs.MrsConfigure]: { args: { moduleSessionId?: string; enableMrs?: boolean; options?: string; updateIfAvailable?: boolean; allowRecreationOnMajorUpgrade?: boolean; }; };
+    [ShellAPIMrs.MrsConfigure]: { args: { moduleSessionId?: string; enableMrs?: boolean; options?: string; updateIfAvailable?: boolean; edition?: string; version?: string; }; };
     [ShellAPIMrs.MrsStatus]: { args: { moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsIgnoreVersionUpgrade]: { args: { moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsAddService]: { kwargs?: IShellMrsAddServiceKwargs; };
@@ -2069,6 +2069,12 @@ export interface IMrsScriptDefinitions {
     info?: string;
 }
 
+export interface IMrsConfigureStatus {
+    schemaChanged: boolean;
+    infoMsg: string;
+    mrsEnabled: boolean;
+}
+
 export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddService]: { result: IMrsServiceData; };
     [ShellAPIMrs.MrsGetService]: { result: IMrsServiceData; };
@@ -2127,7 +2133,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsInfo]: {};
     [ShellAPIMrs.MrsVersion]: {};
     [ShellAPIMrs.MrsLs]: {};
-    [ShellAPIMrs.MrsConfigure]: {};
+    [ShellAPIMrs.MrsConfigure]: { result: IMrsConfigureStatus; };
     [ShellAPIMrs.MrsStatus]: { result: IMrsStatusData; };
     [ShellAPIMrs.MrsIgnoreVersionUpgrade]: {};
     [ShellAPIMrs.MrsDumpService]: {};
