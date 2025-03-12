@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -95,7 +95,7 @@ export class LoadIntoLakehouse {
         if (task.targetDatabaseSchema) {
             await driver.findElement(refLocator.targetSchema.exists).click();
             await driver.wait(until.elementLocated(refLocator.targetSchema.list),
-                constants.wait3seconds, "Target schema list was not displayed");
+                constants.wait1second * 3, "Target schema list was not displayed");
             await (await driver.findElement(refLocator.targetSchema.item(task.targetDatabaseSchema)))
                 .click();
         }
@@ -103,7 +103,7 @@ export class LoadIntoLakehouse {
         if (task.formats) {
             await driver.findElement(refLocator.formats.exists).click();
             await driver.wait(until.elementLocated(refLocator.formats.list),
-                constants.wait3seconds, "Formats list was not displayed");
+                constants.wait1second * 3, "Formats list was not displayed");
             if (task.formats.includes("All")) {
                 await (await driver.findElement(refLocator.formats.item.all)).click();
             } else if (task.formats.includes("PDF")) {

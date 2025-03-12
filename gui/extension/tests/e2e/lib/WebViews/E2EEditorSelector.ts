@@ -45,7 +45,7 @@ export class E2EEditorSelector {
         await driver.wait(async () => {
             try {
                 const selector = await driver.wait(until.elementLocated(locator.notebook.toolbar.editorSelector.exists),
-                    constants.wait5seconds, "Unable to get the current editor: not found");
+                    constants.wait1second * 5, "Unable to get the current editor: not found");
                 const label = await selector.findElement(locator.notebook.toolbar.editorSelector.currentValue.label);
                 const image = await selector.findElements(locator.notebook.toolbar.editorSelector.currentValue.image);
                 const icon = await selector.findElements(locator.notebook.toolbar.editorSelector.currentValue.icon);
@@ -67,7 +67,7 @@ export class E2EEditorSelector {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "Could not get the current editor values");
+        }, constants.wait1second * 5, "Could not get the current editor values");
 
         return editor;
     };
@@ -85,16 +85,16 @@ export class E2EEditorSelector {
         await driver.wait(async () => {
             try {
                 const selector = await driver.wait(until
-                    .elementLocated(locator.notebook.toolbar.editorSelector.exists), constants.wait5seconds);
+                    .elementLocated(locator.notebook.toolbar.editorSelector.exists), constants.wait1second * 5);
                 await driver.executeScript("arguments[0].click()", selector);
 
                 const list = await driver.wait(until
                     .elementLocated(locator.notebook.toolbar.editorSelector.list.exists),
-                    constants.wait2seconds, "The editor list was not displayed");
+                    constants.wait1second * 2, "The editor list was not displayed");
 
                 await driver.wait(async () => {
                     return (await list.findElements(locator.notebook.toolbar.editorSelector.list.item)).length >= 1;
-                }, constants.wait2seconds, "No elements located on editors dropdown list");
+                }, constants.wait1second * 2, "No elements located on editors dropdown list");
 
                 let listItems = await driver.findElements(locator.notebook.toolbar.editorSelector.list.item);
 
@@ -169,7 +169,7 @@ export class E2EEditorSelector {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `Could not select ${editorName} from the select list`);
+        }, constants.wait1second * 5, `Could not select ${editorName} from the select list`);
     };
 
 }

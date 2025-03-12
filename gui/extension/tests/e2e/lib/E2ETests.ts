@@ -46,6 +46,9 @@ export class E2ETests {
     /** The MySQL port used by the deployed sandbox. Defaults to 3308 */
     public static mysqlPort = "3308";
 
+    /** The MySQL port used by the deployed sandbox for REST services*/
+    public static mysqlPortRest = "3307";
+
     /** The MySQL deployed sandbox directory */
     public static mysqlSandboxDir = process.cwd();
 
@@ -76,9 +79,6 @@ export class E2ETests {
                 }
                 if (cli.includes("--extension-path")) {
                     cliArguments.extensionPath = cli.split("=")[1];
-                }
-                if (cli.includes("--mysql-port")) {
-                    cliArguments.mysqlPort = cli.split("=")[1];
                 }
                 if (cli.includes("--generate-web-certificate")) {
                     cliArguments.generateWebCertificate = cli.split("=")[1] === "true";
@@ -245,32 +245,34 @@ export class E2ETests {
 
     /**
      * Executes the setup to run the e2e tests
-     * @param cliArguments The CLI arguments.
-     * - --mysql-port = The port of a running mysql. If omitted, a new sandbox will be deployed on port 3308
-     * - --test-suite = The test suite name to run the setup for. If omitted, the setup will run for all test suites
-     * found under tests/*.ts
-     * If extension-path is true,
      */
-    public static setup = (cliArguments: IE2ECli): void => {
+    public static setup = (): void => {
 
         this.checkSetupEnvVars();
         this.checkMySql();
         this.setShellBinary();
 
-        // DEPLOY A MYSQL SANDBOX INSTANCE
-        if (cliArguments && !cliArguments.mysqlPort) {
-            this.runShellCommand([
-                "--",
-                "dba",
-                "deploy-sandbox-instance",
-                this.mysqlPort,
-                `--password=${process.env.DBROOTPASSWORD}`,
-                `--sandbox-dir=${this.mysqlSandboxDir}`,
-            ]);
-            console.log(`[OK] MySQL Sandbox instance deployed successfully on port ${this.mysqlPort}`);
-        } else {
-            console.log(`[OK] Using existing MySQL Server running on port ${cliArguments.mysqlPort}`);
-        }
+        // DEPLOY 2 MYSQL SANDBOX INSTANCES
+        this.runShellCommand([
+            "--",
+            "dba",
+            "deploy-sandbox-instance",
+            this.mysqlPort,
+            `--password=${process.env.DBROOTPASSWORD}`,
+            `--sandbox-dir=${this.mysqlSandboxDir}`,
+        ]);
+        console.log(`[OK] MySQL Sandbox instance deployed successfully on port ${this.mysqlPort}`);
+
+        this.runShellCommand([
+            "--",
+            "dba",
+            "deploy-sandbox-instance",
+            this.mysqlPortRest,
+            `--password=${process.env.DBROOTPASSWORD}`,
+            `--sandbox-dir=${this.mysqlSandboxDir}`,
+        ]);
+
+        console.log(`[OK] MySQL Sandbox REST instance deployed successfully on port ${this.mysqlPortRest}`);
 
         // RUN SQL CONFIGURATIONS
         const feSqlFiles = join("..", "..", "..", "..", "gui", "frontend", "src", "tests", "e2e", "sql");
@@ -283,7 +285,8 @@ export class E2ETests {
         }));
 
         // eslint-disable-next-line max-len
-        const connUri = `root:${process.env.DBROOTPASSWORD}@localhost:${(cliArguments && cliArguments.mysqlPort) ?? this.mysqlPort}`;
+        const connUri = `root:${process.env.DBROOTPASSWORD}@localhost:${this.mysqlPort}`;
+        const connUriRest = `root:${process.env.DBROOTPASSWORD}@localhost:${this.mysqlPortRest}`;
 
         const sakilaSchema = sqlFiles.filter((item) => {
             return item.includes("sakila");
@@ -298,6 +301,24 @@ export class E2ETests {
                 console.log(`[OK] Executed SQL file ${file} successfully`);
             }
         }
+
+        this.runShellCommand([connUriRest, "--file", sakilaSchema[0]]);
+        console.log(`[OK] Installed sakila schema successfully on REST instance`);
+
+        for (const file of sqlFiles) {
+            if (file.includes("users") || file.includes("world")) {
+                this.runShellCommand([connUriRest, "--file", file]);
+                console.log(`[OK] Executed SQL file ${file} successfully on REST instance`);
+            }
+        }
+
+        // INSTALL MLE ON SERVER 3308
+        this.runShellCommand([connUri, "--sql", "-e", `INSTALL COMPONENT "file://component_mle";`]);
+        console.log(`[OK] Installed MLE component`);
+
+        // INSTALL THE REST SCHEMA ON SERVER 3307
+        this.runShellCommand([connUriRest, "--sql", "-e", "CONFIGURE REST METADATA;"]);
+        console.log(`[OK] Installed REST METADATA schema`);
 
         // CREATE THE OCI CONFIG FILE
         const ociConfigFile = `
@@ -341,17 +362,9 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         process.env.MOCHAWESOME_REPORTFILENAME = `test-report-${testSuite.name}.json`;
         process.env.TEST_SUITE = testSuite.name;
         process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR = join(process.env.TEST_RESOURCES_PATH, `mysqlsh-${testSuite.name}`);
-        this.setMySqlPort();
-
-        if (this.mysqlPort === "3308") {
-            process.env.SSL_CERTIFICATES_PATH = join(process.cwd(), this.mysqlPort, "sandboxdata");
-        } else {
-            if (!process.env.SSL_CERTIFICATES_PATH) {
-                throw new Error(`Please define the env:SSL_CERTIFICATES_PATH`);
-            }
-        }
-
+        process.env.SSL_CERTIFICATES_PATH = join(process.cwd(), this.mysqlPort, "sandboxdata");
         process.env.MYSQL_PORT = this.mysqlPort;
+        process.env.MYSQL_REST_PORT = this.mysqlPortRest;
         process.env.DBUSERNAME1 = "clientqa";
         process.env.DBPASSWORD1 = "dummy";
         process.env.DBUSERNAME2 = "shell";
@@ -777,17 +790,6 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
             }
         } else {
             return false;
-        }
-    };
-
-    /**
-     * Sets the mysql port attribute
-     */
-    private static setMySqlPort = (): void => {
-        const cliArguments = this.getCliArguments();
-
-        if (cliArguments.mysqlPort) {
-            this.mysqlPort = cliArguments.mysqlPort;
         }
     };
 

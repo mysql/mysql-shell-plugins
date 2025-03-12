@@ -71,6 +71,7 @@ describe("RESULT GRIDS", () => {
     const notebook = new E2ENotebook();
 
     before(async function () {
+
         await Misc.loadDriver();
         try {
             await driver.wait(Workbench.untilExtensionIsReady(), constants.wait1minute * 2);
@@ -78,10 +79,11 @@ describe("RESULT GRIDS", () => {
             await dbTreeSection.createDatabaseConnection(globalConn);
             await dbTreeSection.createDatabaseConnection(anotherConn);
             await dbTreeSection.focus();
-            await driver.wait(dbTreeSection.untilTreeItemExists(anotherConn.caption), constants.wait5seconds);
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.wait5seconds);
+            await driver.wait(dbTreeSection.untilTreeItemExists(anotherConn.caption), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.wait1second * 5);
             await (await new DatabaseConnectionOverview().getConnection(globalConn.caption)).click();
-            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
+            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait1second * 10);
+            await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
         } catch (e) {
             await Misc.processFailure(this);
             throw e;
@@ -97,7 +99,9 @@ describe("RESULT GRIDS", () => {
         }
     });
 
-    describe("MySQL", () => {
+    describe("MySQL", function () {
+
+        this.retries(1);
 
         let cleanEditor = false;
         let existsInQueue = false;
@@ -314,10 +318,10 @@ describe("RESULT GRIDS", () => {
             await result1.clickSqlPreviewContent();
             const result2 = await notebook.codeEditor
                 .refreshResult(result1.command, result1.id) as E2ECommandResultGrid;
-            await driver.wait(result2.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
+            await driver.wait(result2.untilRowIsHighlighted(rowToEdit), constants.wait1second * 5);
 
             await result2.applyChanges();
-            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait3seconds);
+            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait1second * 3);
             await Workbench.getNotification("Changes committed successfully.");
 
             const result3 = await notebook.codeEditor
@@ -390,9 +394,9 @@ describe("RESULT GRIDS", () => {
             const result2 = await notebook.codeEditor
                 .refreshResult(result1.command, result1.id) as E2ECommandResultGrid;
 
-            await driver.wait(result2.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
+            await driver.wait(result2.untilRowIsHighlighted(rowToEdit), constants.wait1second * 5);
             await result.applyChanges();
-            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait3seconds);
+            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait1second * 3);
             await Workbench.getNotification("Changes committed successfully.");
 
             const result3 = await notebook.codeEditor
@@ -465,9 +469,9 @@ describe("RESULT GRIDS", () => {
             await result1.clickSqlPreviewContent();
             const result2 = await notebook.codeEditor
                 .refreshResult(result1.command, result1.id) as E2ECommandResultGrid;
-            await driver.wait(result.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
+            await driver.wait(result.untilRowIsHighlighted(rowToEdit), constants.wait1second * 5);
             await result.applyChanges();
-            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait3seconds);
+            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait1second * 3);
             await Workbench.getNotification("Changes committed successfully.");
 
             const result3 = await notebook.codeEditor
@@ -544,9 +548,9 @@ describe("RESULT GRIDS", () => {
             await result1.clickSqlPreviewContent();
             const result2 = await notebook.codeEditor
                 .refreshResult(result1.command, result1.id) as E2ECommandResultGrid;
-            await driver.wait(result.untilRowIsHighlighted(rowToEdit), constants.wait5seconds);
+            await driver.wait(result.untilRowIsHighlighted(rowToEdit), constants.wait1second * 5);
             await result.applyChanges();
-            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait3seconds);
+            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait1second * 3);
             await Workbench.getNotification("Changes committed successfully.");
 
             const result3 = await notebook.codeEditor
@@ -583,7 +587,7 @@ describe("RESULT GRIDS", () => {
             const originalCellValue = await result.getCellValue(rowNumber, rowColumn);
             await result.openCellContextMenuAndSelect(0, rowColumn,
                 constants.resultGridContextMenu.capitalizeText);
-            await driver.wait(result.untilCellsWereChanged(1), constants.wait5seconds);
+            await driver.wait(result.untilCellsWereChanged(1), constants.wait1second * 5);
 
             const capitalizedCellValue = await result.getCellValue(rowNumber, rowColumn);
             expect(capitalizedCellValue,
@@ -607,7 +611,7 @@ describe("RESULT GRIDS", () => {
 
             await result.openCellContextMenuAndSelect(0, rowColumn,
                 constants.resultGridContextMenu.toggleForDeletion);
-            await driver.wait(result.untilRowIsMarkedForDeletion(rowNumber), constants.wait5seconds);
+            await driver.wait(result.untilRowIsMarkedForDeletion(rowNumber), constants.wait1second * 5);
             await result.rollbackChanges();
         });
 
@@ -634,7 +638,7 @@ describe("RESULT GRIDS", () => {
                 } else {
                     console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
-            }, constants.wait10seconds, `Copy row failed`);
+            }, constants.wait1second * 10, `Copy row failed`);
 
             // Copy row with names.
             await driver.wait(async () => {
@@ -646,7 +650,7 @@ describe("RESULT GRIDS", () => {
                 } else {
                     console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
-            }, constants.wait10seconds, `Copy row with names failed`);
+            }, constants.wait1second * 10, `Copy row with names failed`);
 
             // Copy row unquoted.
             await driver.wait(async () => {
@@ -658,7 +662,7 @@ describe("RESULT GRIDS", () => {
                 } else {
                     console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
-            }, constants.wait10seconds, `Copy row unquoted failed`);
+            }, constants.wait1second * 10, `Copy row unquoted failed`);
 
             // Copy row with names, unquoted.
             await driver.wait(async () => {
@@ -670,7 +674,7 @@ describe("RESULT GRIDS", () => {
                 } else {
                     console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
-            }, constants.wait10seconds, `Copy row with names, unquoted failed`);
+            }, constants.wait1second * 10, `Copy row with names, unquoted failed`);
 
             // Copy row with names, tab separated.
             await driver.wait(async () => {
@@ -682,7 +686,7 @@ describe("RESULT GRIDS", () => {
                 } else {
                     console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
-            }, constants.wait10seconds, `Copy row with names, tab separated failed`);
+            }, constants.wait1second * 10, `Copy row with names, tab separated failed`);
 
             // Copy row, tab separated.
             await driver.wait(async () => {
@@ -694,7 +698,7 @@ describe("RESULT GRIDS", () => {
                 } else {
                     console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
-            }, constants.wait10seconds, `Copy row, tab separated failed`);
+            }, constants.wait1second * 10, `Copy row, tab separated failed`);
 
         });
 
@@ -722,7 +726,7 @@ describe("RESULT GRIDS", () => {
                 } else {
                     console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
-            }, constants.wait10seconds, `Copy all rows failed`);
+            }, constants.wait1second * 10, `Copy all rows failed`);
 
             // Copy all rows with names.
             await driver.wait(async () => {
@@ -734,7 +738,7 @@ describe("RESULT GRIDS", () => {
                 } else {
                     console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
-            }, constants.wait10seconds, `Copy all rows with names failed`);
+            }, constants.wait1second * 10, `Copy all rows with names failed`);
 
             // Copy all rows unquoted.
             await driver.wait(async () => {
@@ -746,7 +750,7 @@ describe("RESULT GRIDS", () => {
                 } else {
                     console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
-            }, constants.wait10seconds, `Copy all rows unquoted failed`);
+            }, constants.wait1second * 10, `Copy all rows unquoted failed`);
 
             // Copy all rows with names unquoted.
             await driver.wait(async () => {
@@ -758,7 +762,7 @@ describe("RESULT GRIDS", () => {
                 } else {
                     console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
-            }, constants.wait10seconds, `Copy all rows with names unquoted failed`);
+            }, constants.wait1second * 10, `Copy all rows with names unquoted failed`);
 
             // Copy all rows with names tab separated.
             await driver.wait(async () => {
@@ -770,7 +774,7 @@ describe("RESULT GRIDS", () => {
                 } else {
                     console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
-            }, constants.wait10seconds, `Copy all rows with names tab separated failed`);
+            }, constants.wait1second * 10, `Copy all rows with names tab separated failed`);
 
         });
 
@@ -806,7 +810,7 @@ describe("RESULT GRIDS", () => {
                             throw e;
                         }
                     }
-                }, constants.wait10seconds, "Copy field failed");
+                }, constants.wait1second * 10, "Copy field failed");
 
                 await driver.wait(async () => {
                     try {
@@ -824,7 +828,7 @@ describe("RESULT GRIDS", () => {
                             throw e;
                         }
                     }
-                }, constants.wait10seconds, "Copy field unquoted failed");
+                }, constants.wait1second * 10, "Copy field unquoted failed");
 
                 await result.openCellContextMenuAndSelect(row, String(allColumns[i]),
                     constants.resultGridContextMenu.setFieldToNull);
@@ -886,7 +890,7 @@ describe("RESULT GRIDS", () => {
                 .perform();
 
             await driver.wait(Workbench.untilNotificationExists("Changes committed successfully", true),
-                constants.wait2seconds);
+                constants.wait1second * 2);
 
             await Misc.switchToFrame();
             await result.startFocus();
@@ -899,7 +903,7 @@ describe("RESULT GRIDS", () => {
             await textArea.sendKeys(Key.chord(refKey, Key.ALT, Key.ESCAPE));
 
             const confirmDialog = await driver.wait(Workbench.untilConfirmationDialogExists("for rollback"),
-                constants.wait2seconds);
+                constants.wait1second * 2);
             await confirmDialog.findElement(locator.confirmDialog.accept).click();
 
         });
@@ -929,7 +933,7 @@ describe("RESULT GRIDS", () => {
                 .perform();
 
             await driver.wait(Workbench.untilNotificationExists("Changes committed successfully", true),
-                constants.wait2seconds);
+                constants.wait1second * 2);
 
         });
 
@@ -960,7 +964,7 @@ describe("RESULT GRIDS", () => {
                 }
                 const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
                 await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
-                    constants.wait3seconds);
+                    constants.wait1second * 3);
             }
 
         });
@@ -993,7 +997,7 @@ describe("RESULT GRIDS", () => {
 
                 const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
                 await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
-                    constants.wait3seconds);
+                    constants.wait1second * 3);
             }
 
         });
@@ -1022,7 +1026,7 @@ describe("RESULT GRIDS", () => {
 
                 const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
                 await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
-                    constants.wait3seconds);
+                    constants.wait1second * 3);
             }
 
         });
@@ -1055,7 +1059,7 @@ describe("RESULT GRIDS", () => {
 
                 const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
                 await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
-                    constants.wait3seconds);
+                    constants.wait1second * 3);
 
             }
 
@@ -1073,7 +1077,7 @@ describe("RESULT GRIDS", () => {
             const column = "test_bit";
             await result.reduceCellWidth(rowNumber, column);
             const cellText = await result.getCellValue(rowNumber, column);
-            await driver.wait(result.untilCellTooltipIs(rowNumber, column, cellText), constants.wait3seconds);
+            await driver.wait(result.untilCellTooltipIs(rowNumber, column, cellText), constants.wait1second * 3);
 
         });
 
@@ -1150,7 +1154,7 @@ describe("RESULT GRIDS", () => {
             await result.addRow(rowToAdd);
             await result.applyChanges();
 
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait1second * 5);
             const result1 = await notebook.codeEditor
                 // eslint-disable-next-line max-len
                 .execute("select * from sakila.all_data_types_ints where id = (select max(id) from sakila.all_data_types_ints);") as E2ECommandResultGrid;
@@ -1199,7 +1203,7 @@ describe("RESULT GRIDS", () => {
 
             await result.addRow(rowToAdd);
             await result.applyChanges();
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait1second * 5);
 
             const result1 = await notebook.codeEditor
                 // eslint-disable-next-line max-len
@@ -1253,7 +1257,7 @@ describe("RESULT GRIDS", () => {
             await result.addRow(rowToAdd);
             await result.applyChanges();
 
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait1second * 5);
             const result1 = await notebook.codeEditor
                 // eslint-disable-next-line max-len
                 .execute("select * from sakila.all_data_types_chars where id = (select max(id) from sakila.all_data_types_chars);") as E2ECommandResultGrid;
@@ -1311,7 +1315,7 @@ describe("RESULT GRIDS", () => {
             await result.addRow(rowToAdd);
             await result.applyChanges();
 
-            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait5seconds);
+            await driver.wait(result.untilStatusMatches(/(\d+).*updated/), constants.wait1second * 5);
             result = await notebook.codeEditor
                 // eslint-disable-next-line max-len
                 .execute("select * from sakila.all_data_types_geometries where id = (select max(id) from sakila.all_data_types_geometries);") as E2ECommandResultGrid;
@@ -1349,7 +1353,7 @@ describe("RESULT GRIDS", () => {
             await driver.wait(async () => {
                 return (await driver.findElements(locator.notebook.codeEditor.editor.result.existsById(String(id))))
                     .length === 0;
-            }, constants.wait5seconds, `The result set was not closed`);
+            }, constants.wait1second * 5, `The result set was not closed`);
             await notebook.codeEditor.clean();
 
         });
@@ -1371,7 +1375,7 @@ describe("RESULT GRIDS", () => {
 
             await result1.refresh();
             await driver.wait(result1.untilCellValueIs(0, "text_field", "this value was edited"),
-                constants.wait5seconds);
+                constants.wait1second * 5);
         });
 
         it("Refresh result grid after adding a row", async () => {
@@ -1391,13 +1395,13 @@ describe("RESULT GRIDS", () => {
             const prevRows = await result1.getRows();
             await result2.addRow(rowToAdd);
             await result2.applyChanges();
-            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait3seconds);
+            await driver.wait(result2.untilStatusMatches(/(\d+).*updated/), constants.wait1second * 3);
 
             await result1.refresh();
 
             await driver.wait(async () => {
                 return ((await result1.getRows()).length) > prevRows.length;
-            }, constants.wait3seconds, `Number of rows is still ${prevRows.length}`);
+            }, constants.wait1second * 3, `Number of rows is still ${prevRows.length}`);
         });
 
         it("Refresh result grid after row deletion", async () => {
@@ -1419,7 +1423,7 @@ describe("RESULT GRIDS", () => {
             await result1.refresh();
             await driver.wait(async () => {
                 return ((await result1.getRows()).length) < prevRows.length;
-            }, constants.wait3seconds, `Number of rows is still ${prevRows.length}`);
+            }, constants.wait1second * 3, `Number of rows is still ${prevRows.length}`);
         });
 
         it("Unsaved changes dialog on result grid", async () => {
@@ -1434,7 +1438,7 @@ describe("RESULT GRIDS", () => {
 
             await dbTreeSection.openContextMenuAndSelect(anotherConn.caption, constants.openNewConnection);
             const anotherConnNotebook = new E2ENotebook();
-            await driver.wait(anotherConnNotebook.untilIsOpened(anotherConn), constants.wait5seconds);
+            await driver.wait(anotherConnNotebook.untilIsOpened(anotherConn), constants.wait1second * 5);
 
             await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
             await dbTreeSection.expandTreeItem(new RegExp(constants.mysqlAdmin));
@@ -1456,55 +1460,56 @@ describe("RESULT GRIDS", () => {
             await (await dbTreeSection.getTreeItem(constants.serverStatus)).click();
             let dialog = await driver
                 .wait(Workbench.untilConfirmationDialogExists(" after switching to Server Status page")
-                    , constants.wait5seconds);
+                    , constants.wait1second * 5);
             expect(await (await dialog.findElement(locator.confirmDialog.msg))
                 .getText())
                 .to.match(/is currently being edited, do you want to commit or rollback the changes before continuing/);
             await dialog.findElement(locator.confirmDialog.cancel).click();
-            await driver.wait(until.stalenessOf(dialog), constants.wait3seconds, "The dialog was not closed");
+            await driver.wait(until.stalenessOf(dialog), constants.wait1second * 3, "The dialog was not closed");
             await driver.wait(Workbench.untilCurrentEditorIs(new RegExp(constants.openEditorsDBNotebook)),
-                constants.wait5seconds);
+                constants.wait1second * 5);
             await (await dbTreeSection.getTreeItem(constants.clientConns)).click();
             dialog = await driver.wait(Workbench
-                .untilConfirmationDialogExists(" after switching to Client Connections page"), constants.wait5seconds);
+                .untilConfirmationDialogExists(" after switching to Client Connections page"),
+                constants.wait1second * 5);
             expect(await (await dialog.findElement(locator.confirmDialog.msg))
                 .getText())
                 .to.match(/is currently being edited, do you want to commit or rollback the changes before continuing/);
             await dialog.findElement(locator.confirmDialog.cancel).click();
-            await driver.wait(until.stalenessOf(dialog), constants.wait3seconds, "The dialog was not closed");
+            await driver.wait(until.stalenessOf(dialog), constants.wait1second * 3, "The dialog was not closed");
             await driver.wait(Workbench.untilCurrentEditorIs(new RegExp(constants.openEditorsDBNotebook)),
-                constants.wait5seconds);
+                constants.wait1second * 5);
 
             await (await dbTreeSection.getTreeItem(constants.perfDash)).click();
             dialog = await driver.wait(Workbench
                 .untilConfirmationDialogExists(" after switching to Performance Dashboard page"),
-                constants.wait5seconds);
+                constants.wait1second * 5);
             expect(await (await dialog.findElement(locator.confirmDialog.msg))
                 .getText())
                 .to.match(/is currently being edited, do you want to commit or rollback the changes before continuing/);
             await dialog.findElement(locator.confirmDialog.cancel).click();
-            await driver.wait(until.stalenessOf(dialog), constants.wait3seconds, "The dialog was not closed");
+            await driver.wait(until.stalenessOf(dialog), constants.wait1second * 3, "The dialog was not closed");
             await driver.wait(Workbench.untilCurrentEditorIs(new RegExp(constants.openEditorsDBNotebook)),
-                constants.wait5seconds);
+                constants.wait1second * 5);
 
             await notebook.toolbar.editorSelector.selectEditor(/DB Connection Overview/);
             dialog = await driver.wait(Workbench
                 .untilConfirmationDialogExists(" after switching to DB Connections Overview page"),
-                constants.wait5seconds);
+                constants.wait1second * 5);
             expect(await (await dialog.findElement(locator.confirmDialog.msg))
                 .getText())
                 .to.match(/is currently being edited, do you want to commit or rollback the changes before continuing/);
             await dialog.findElement(locator.confirmDialog.cancel).click();
-            await driver.wait(until.stalenessOf(dialog), constants.wait3seconds, "The dialog was not closed");
+            await driver.wait(until.stalenessOf(dialog), constants.wait1second * 3, "The dialog was not closed");
 
             await notebook.toolbar.editorSelector.selectEditor(/Untitled-(\d+)/, globalConn.caption);
             dialog = await driver.wait(Workbench.untilConfirmationDialogExists(" after switching to a script page"),
-                constants.wait5seconds);
+                constants.wait1second * 5);
             expect(await (await dialog.findElement(locator.confirmDialog.msg))
                 .getText())
                 .to.match(/is currently being edited, do you want to commit or rollback the changes before continuing/);
             await dialog.findElement(locator.confirmDialog.refuse).click();
-            await driver.wait(until.stalenessOf(dialog), constants.wait3seconds, "The dialog was not closed");
+            await driver.wait(until.stalenessOf(dialog), constants.wait1second * 3, "The dialog was not closed");
 
         });
     });

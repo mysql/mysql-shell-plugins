@@ -47,6 +47,24 @@ try {
     console.log("[OK] MySQL PID file not found. Continuing...");
 }
 
+try {
+    E2ETests.runShellCommand([
+        "--",
+        "dba",
+        "kill-sandbox-instance",
+        E2ETests.mysqlPortRest,
+        `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
+    ]);
+
+    console.log("[OK] Killed MySQL sandbox instance successfully for REST instance");
+} catch (e) {
+    if (!String(e).includes("Unable to find pid file")) {
+        // eslint-disable-next-line no-unsafe-finally
+        throw e;
+    }
+    console.log("[OK] MySQL PID file not found for REST instance. Continuing...");
+}
+
 E2ETests.runShellCommand([
     "--",
     "dba",
@@ -55,5 +73,14 @@ E2ETests.runShellCommand([
     `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
 ]);
 console.log("[OK] Deleted MySQL sandbox instance successfully");
+
+E2ETests.runShellCommand([
+    "--",
+    "dba",
+    "delete-sandbox-instance",
+    E2ETests.mysqlPortRest,
+    `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
+]);
+console.log("[OK] Deleted MySQL sandbox instance successfully for REST instance");
 
 E2ETests.generateReport();

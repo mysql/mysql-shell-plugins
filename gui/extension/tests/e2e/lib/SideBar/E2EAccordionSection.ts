@@ -73,7 +73,7 @@ export class E2EAccordionSection {
             await Misc.switchBackToTopFrame();
         }
 
-        await driver.wait(this.untilIsNotLoading(), constants.wait20seconds);
+        await driver.wait(this.untilIsNotLoading(), constants.wait1second * 20);
 
         let sectionActions: WebElement;
         const thisSection = await new SideBarView().getContent().getSection(this.name);
@@ -85,12 +85,13 @@ export class E2EAccordionSection {
                         .findElement(locator.section.actions(this.name));
 
                     return sectionActions.isDisplayed();
-                }, constants.wait5seconds, `Toolbar buttons for ${this.name} were not displayed`);
+                }, constants.wait1second * 5, `Toolbar buttons for ${this.name} were not displayed`);
+
 
                 const actionItems = await sectionActions.findElements(locator.htmlTag.li);
 
                 for (const action of actionItems) {
-                    const title = await action.getAttribute("title");
+                    const title = await (await action.findElement(locator.htmlTag.a)).getAttribute("aria-label");
 
                     if (title === button) {
                         await action.findElement(locator.htmlTag.a).click();
@@ -99,11 +100,12 @@ export class E2EAccordionSection {
                     }
                 }
             } catch (e) {
-                if (!(e instanceof error.ElementNotInteractableError)) {
+                if (!(e instanceof error.StaleElementReferenceError) &&
+                    !(e instanceof error.ElementNotInteractableError)) {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `${button} on section '${this.name}' was not interactable`);
+        }, constants.wait1second * 5, `${button} on section '${this.name}' was not interactable`);
 
     };
 
@@ -119,19 +121,14 @@ export class E2EAccordionSection {
         }
 
         const thisSection = await new SideBarView().getContent().getSection(this.name);
-
-        const button = await thisSection.getAction("More Actions...");
-
-        await driver.wait(async () => {
-            await thisSection.click();
-
-            return button?.isDisplayed();
-        }, constants.wait5seconds, `'More Actions...' button was not visible`);
+        await driver.actions().move({ origin: thisSection }).perform();
 
         if (Os.isMacOs()) {
-            const moreActions = await thisSection.findElement(locator.section.moreActions);
-            await moreActions.click();
-            await driver.sleep(500);
+            await thisSection.moreActions().catch((e) => {
+                if (!(e instanceof error.NoSuchElementError)) {
+                    throw e;
+                }
+            });
             const taps = Misc.getValueFromMap(item);
             for (let i = 0; i <= taps - 1; i++) {
                 await keyboard.type(nutKey.Down);
@@ -139,7 +136,7 @@ export class E2EAccordionSection {
             await keyboard.type(nutKey.Enter);
         } else {
             const moreActions = await thisSection.moreActions();
-            const moreActionsItem = await moreActions?.getItem(item);
+            const moreActionsItem = await moreActions.getItem(item);
             await moreActionsItem?.select();
         }
     };
@@ -156,9 +153,9 @@ export class E2EAccordionSection {
 
         await this.clickToolbarButton(constants.createDBConnection);
         const regex = new RegExp(`(${constants.dbDefaultEditor}|${constants.openEditorsDBNotebook})`);
-        await driver.wait(Workbench.untilTabIsOpened(regex), constants.wait5seconds);
+        await driver.wait(Workbench.untilTabIsOpened(regex), constants.wait1second * 5);
         await Misc.switchToFrame();
-        await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists), constants.wait10seconds);
+        await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists), constants.wait1second * 10);
         await DatabaseConnectionDialog.setConnection(dbConfig);
     };
 
@@ -191,7 +188,7 @@ export class E2EAccordionSection {
 
                     return !(await section.isExpanded());
                 }
-            }, constants.wait5seconds, `Could not focus on ${this.name}`);
+            }, constants.wait1second * 5, `Could not focus on ${this.name}`);
 
         }
     };
@@ -219,7 +216,7 @@ export class E2EAccordionSection {
                 await driver.executeScript("arguments[0].click()", await section.findElement(locator.section.toggle));
 
                 return section.isExpanded();
-            }, constants.wait5seconds, `Could not expand '${this.name}' tree explorer`);
+            }, constants.wait1second * 5, `Could not expand '${this.name}' tree explorer`);
         }
     };
 
@@ -246,7 +243,7 @@ export class E2EAccordionSection {
                 await driver.executeScript("arguments[0].click()", await section.findElement(locator.section.toggle));
 
                 return !(await section.isExpanded());
-            }, constants.wait5seconds, `Could not collapse '${this.name}' tree explorer`);
+            }, constants.wait1second * 5, `Could not collapse '${this.name}' tree explorer`);
         }
     };
 
@@ -260,7 +257,7 @@ export class E2EAccordionSection {
         };
 
         const treeDBSection = await new SideBarView().getContent().getSection(this.name);
-        await driver.wait(this.untilIsNotLoading, constants.wait5seconds);
+        await driver.wait(this.untilIsNotLoading, constants.wait1second * 5);
         await treeDBSection.click();
         const moreActions = await treeDBSection.findElement(locator.section.moreActions);
         await moreActions.click();
@@ -285,7 +282,7 @@ export class E2EAccordionSection {
                                 return true;
                             }
                         }
-                    }, constants.wait5seconds, "Could not click on Restart MySQL Shell");
+                    }, constants.wait1second * 5, "Could not click on Restart MySQL Shell");
                     break;
                 }
             }
@@ -294,7 +291,7 @@ export class E2EAccordionSection {
         await Workbench.clickOnNotificationButton(notification, "Restart MySQL Shell");
         await driver.wait(async () => {
             return Os.findOnMySQLShLog(/Info/);
-        }, constants.wait5seconds * 3, "Shell server did not start");
+        }, constants.wait1second * 5 * 3, "Shell server did not start");
     };
 
     /**
@@ -337,13 +334,23 @@ export class E2EAccordionSection {
      */
     public untilIsNotLoading = (): Condition<boolean> => {
         return new Condition(`for ${this.name} to be loaded`, async () => {
-            const sec = await new SideBarView().getContent().getSection(this.name);
-            const loading = await sec.findElements(locator.section.loadingBar);
-            const activityBar = new ActivityBar();
-            const icon = await activityBar.getViewControl(constants.extensionName);
-            const progressBadge = await icon.findElements(locator.shellForVscode.loadingIcon);
+            await Misc.switchBackToTopFrame();
 
-            return (loading.length === 0) && (progressBadge.length === 0);
+            const notLoading = async (): Promise<boolean> => {
+                const sec = await new SideBarView().getContent().getSection(this.name);
+                const loading = await sec.findElements(locator.section.loadingBar);
+                const activityBar = new ActivityBar();
+                const icon = await activityBar.getViewControl(constants.extensionName);
+                const progressBadge = await icon.findElements(locator.shellForVscode.loadingIcon);
+
+                return (loading.length === 0) && (progressBadge.length === 0);
+            };
+
+            if (await notLoading()) {
+                await driver.sleep(1000);
+
+                return notLoading();
+            }
         });
     };
 
@@ -401,7 +408,7 @@ export class E2EAccordionSection {
                     throw e;
                 }
             }
-        }, constants.wait10seconds,
+        }, constants.wait1second * 10,
             `${element ? element.toString() : type} on section ${this.name} was not found`);
 
         return el;
@@ -442,11 +449,11 @@ export class E2EAccordionSection {
 
                 return true;
             } catch (e) {
-                if (!(errors.isStaleError(e as Error))) {
+                if (!(errors.isStaleError(e as Error)) && !(e instanceof error.ElementNotInteractableError)) {
                     throw e;
                 }
             }
-        }, constants.wait10seconds, `Unable to verify if ${element.toString()} on section ${this.name} exists`);
+        }, constants.wait1second * 10, `Unable to verify if ${element.toString()} on section ${this.name} exists`);
 
         return exists;
     };
@@ -483,7 +490,7 @@ export class E2EAccordionSection {
                     throw e;
                 }
             }
-        }, constants.wait3seconds, `Could not find if ${element} is default`);
+        }, constants.wait1second * 3, `Could not find if ${element} is default`);
 
         return isDefault;
     };
@@ -520,7 +527,7 @@ export class E2EAccordionSection {
 
                         return driver.wait(async () => {
                             return treeItem.hasChildren();
-                        }, constants.wait10seconds,
+                        }, constants.wait1second * 10,
                             `${await treeItem.getLabel()} should have children after setting the password`);
                     } else if (await treeItem.hasChildren()) {
                         return true;
@@ -532,7 +539,7 @@ export class E2EAccordionSection {
                         treeItem = await this.getTreeItem(element);
                     }
                 }
-            }, constants.wait20seconds,
+            }, constants.wait1second * 20,
                 `The input password was not displayed nor the ${await treeItem.getLabel()} has children`);
         }
     };
@@ -583,7 +590,7 @@ export class E2EAccordionSection {
                     y: Math.floor(treeItemCoord.y),
                 }).perform();
                 await driver.wait(until.elementIsVisible(btn),
-                    constants.wait5seconds, `'${actionButton}' button was not visible`);
+                    constants.wait1second * 5, `'${actionButton}' button was not visible`);
 
                 return btn;
             } catch (e) {
@@ -591,7 +598,7 @@ export class E2EAccordionSection {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, `Could not get icon for '${element}' (button was always stale)`);
+        }, constants.wait1second * 5, `Could not get icon for '${element}' (button was always stale)`);
     };
 
     /**
@@ -615,7 +622,7 @@ export class E2EAccordionSection {
         if (ctxMenuItem !== constants.openNotebookWithConn) {
             await driver.wait(this.untilIsNotLoading(), constants.wait1minute);
             const ociSection = new E2EAccordionSection(constants.ociTreeSection);
-            await driver.wait(ociSection.untilIsNotLoading(), constants.wait20seconds);
+            await driver.wait(ociSection.untilIsNotLoading(), constants.wait1second * 20);
         }
 
         if (element) {
@@ -657,7 +664,7 @@ export class E2EAccordionSection {
                         console.log(e);
                     }
                 }
-            }, constants.wait5seconds,
+            }, constants.wait1second * 5,
                 `Could not select '${ctxMenuItem.toString()}' for tree item '${await treeItem.getLabel()}'`);
         } else {
             throw new Error(`TreeItem for context menu '${ctxMenuItem.toString()}' is undefined`);
@@ -686,11 +693,11 @@ export class E2EAccordionSection {
             const activeTab = await editorView.getActiveTab();
 
             return await activeTab?.getTitle() === constants.dbDefaultEditor;
-        }, constants.wait3seconds, `${constants.dbDefaultEditor} tab is not selected`);
+        }, constants.wait1second * 3, `${constants.dbDefaultEditor} tab is not selected`);
 
         await Misc.switchToFrame();
         const dialog = await driver.wait(until.elementLocated(locator.confirmDialog.exists),
-            constants.wait10seconds, "confirm dialog was not found");
+            constants.wait1second * 10, "confirm dialog was not found");
 
         await dialog.findElement(locator.confirmDialog.accept).click();
         await Misc.switchBackToTopFrame();
@@ -698,7 +705,7 @@ export class E2EAccordionSection {
         if (verifyDelete === true) {
             await driver.wait(async () => {
                 return !(await this.treeItemExists(name));
-            }, constants.wait5seconds, `Tree item ${name} still exists in the tree`);
+            }, constants.wait1second * 5, `Tree item ${name} still exists in the tree`);
         }
     };
 
@@ -726,7 +733,7 @@ export class E2EAccordionSection {
                                 .password);
                             await driver.wait(Workbench
                                 .untilNotificationExists("MySQL REST Service configured successfully."),
-                                constants.wait10seconds);
+                                constants.wait1minute);
 
                             return true;
                         }
@@ -738,7 +745,7 @@ export class E2EAccordionSection {
                             throw new Error("Something wrong. Check the notification");
                         }
                     }
-                }, constants.wait5seconds, "Password widget was not displayed");
+                }, constants.wait1second * 5, "Password widget was not displayed");
 
                 return true;
             } catch (e) {
@@ -758,7 +765,7 @@ export class E2EAccordionSection {
      * @param tree The elements to expand
      * @param timeout The timeout to wait for each element to have children
      */
-    public expandTree = async (tree: string[] | RegExp[], timeout = constants.wait10seconds): Promise<void> => {
+    public expandTree = async (tree: string[] | RegExp[], timeout = constants.wait1second * 10): Promise<void> => {
         for (const item of tree) {
             await driver.wait(async () => {
                 try {
@@ -779,7 +786,7 @@ export class E2EAccordionSection {
                         throw e;
                     }
                 }
-            }, constants.wait15seconds, `Could not expand tree ${tree.toString()}`);
+            }, constants.wait1second * 15, `Could not expand tree ${tree.toString()}`);
         }
     };
 

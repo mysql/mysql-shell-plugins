@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025 Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -49,9 +49,9 @@ export class E2ECodeEditorWidget {
     public open = async (): Promise<E2ECodeEditorWidget> => {
         const findBtn = await this.notebook.toolbar.getButton("Find");
         await findBtn.click();
-        this.widget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait5seconds,
+        this.widget = await driver.wait(until.elementLocated(locator.findWidget.exists), constants.wait1second * 5,
             "Could not find the widget");
-        await driver.wait(until.elementIsVisible(this.widget), constants.wait3seconds, "Widget is not visible");
+        await driver.wait(until.elementIsVisible(this.widget), constants.wait1second * 3, "Widget is not visible");
 
         return this;
     };
@@ -198,7 +198,7 @@ export class E2ECodeEditorWidget {
             } else {
                 return true;
             }
-        }, constants.wait5seconds, "The finder widget was not closed");
+        }, constants.wait1second * 5, "The finder widget was not closed");
     };
 
 }

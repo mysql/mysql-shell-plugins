@@ -88,17 +88,19 @@ export class E2ETabContainer {
 
         let tabTexts: string[];
 
-        try {
-            tabTexts = await getTabsText();
-        } catch (e) {
-            if (!(e instanceof error.StaleElementReferenceError)) {
-                throw e;
-            } else {
+        await driver.wait(async () => {
+            try {
                 tabTexts = await getTabsText();
-            }
-        }
 
-        return tabTexts.filter((item: string) => {
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, `Could not get the tabs text`);
+
+        return tabTexts!.filter((item: string) => {
             return item !== "INPUT CONSOLE";
         });
     };
