@@ -31,9 +31,6 @@ import { ShellAPIGui } from "../../communication/ProtocolGui.js";
 
 /** Interface for connection management. */
 export class ShellInterfaceDbConnection {
-
-    public readonly id = "dbConnection";
-
     /**
      * Adds a new database connection to a profile.
      *

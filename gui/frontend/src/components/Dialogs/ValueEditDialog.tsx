@@ -268,7 +268,7 @@ export interface ICheckListDialogValue extends IBaseDialogValue {
     checkList: IDialogListEntry[];
 
     /** Called when one of the value was changed. */
-    onChange?: (value: boolean, dialog: ValueEditDialog) => void;
+    onChange?: (entry: ICheckboxProperties) => void;
 }
 
 /**
@@ -1165,7 +1165,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                         result.push(<TreeGrid
                             id={key}
                             key={key}
-                            height="150"
+                            height="100%"
                             className={className}
                             tableData={tableData}
                             columns={columns}
@@ -1366,21 +1366,16 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
             const host = document.createElement("div");
             host.classList.add("checkListEntry");
-            host.style.height = "29px";
+            host.style.height = "25px";
 
             const element = (
-                <Container
-                    id="listContainer"
-                    className="verticalCenterContent"
-                >
-                    <Checkbox
-                        className="stretch"
-                        checkState={checkState ? CheckState.Checked : CheckState.Unchecked}
-                        caption={caption}
-                        id={id}
-                        onChange={this.checkListCheckboxChange.bind(this, sectionId, key)}
-                    />
-                </Container>
+                <Checkbox
+                    className="stretch"
+                    checkState={checkState ? CheckState.Checked : CheckState.Unchecked}
+                    caption={caption}
+                    id={id}
+                    onChange={this.checkListCheckboxChange.bind(this, sectionId, key)}
+                />
             );
 
             render(element, host);
@@ -1523,14 +1518,15 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                 });
 
                 if (found) {
-                    (found.data as ICheckboxProperties).checkState = checkState;
+                    const properties = found.data as ICheckboxProperties;
+                    properties.checkState = checkState;
+
+
+                    const validations = onValidate?.(false, values, data) || { messages: {} };
+                    this.setState({ values, validations });
+
+                    entry.onChange?.(properties);
                 }
-
-
-                const validations = onValidate?.(false, values, data) || { messages: {} };
-                this.setState({ values, validations });
-
-                entry.onChange?.(checkState === CheckState.Checked, this);
             }
         }
     };

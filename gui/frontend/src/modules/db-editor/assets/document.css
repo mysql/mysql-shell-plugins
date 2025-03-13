@@ -762,3 +762,7 @@ body[theme=light] .msg#shellEditorHost .shellPromptItem#schema::after {
     top: calc(50% + 70px);
     position: relative;
 }
+
+.msg#connectionEditor .checkList {
+    max-height: 120px;
+}

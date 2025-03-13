@@ -2405,7 +2405,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     if (done) {
                         // Update the entire services list, as we can have a changed default state.
                         const mrsService = entry.dataModelEntry as ICdmRestServiceEntry;
-                        await this.refreshTreeEntry(tree, entry.dataModelEntry, true);
+                        await this.refreshTreeEntry(tree, mrsService, true);
                         await this.refreshConnectionTreeEntryChildren(mrsService.parent, true);
 
                         // Then update also the router nodes, as we may have changed the
@@ -2414,6 +2414,9 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                         routers.forEach((router) => {
                             void this.refreshConnectionTreeEntryChildren(router, true);
                         });
+
+                        // And the serivice entry itself needs an update.
+                        await this.refreshConnectionTreeEntryChildren(mrsService, false);
                     }
 
                     break;

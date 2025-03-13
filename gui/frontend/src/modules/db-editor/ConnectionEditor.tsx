@@ -854,17 +854,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             caption: "Advanced",
             groupName: "group1",
             values: {
-
-                // ansiQuotes: {
-                //     caption: "Use ANSI Quotes to Quote Identifiers",
-                //     value: optionsMySQL.useAnsiQuotes ?? false,
-                //     options: [DialogValueOption.Grouped],
-                // },
-                // clearTextAuth: {
-                //     caption: "Enable ClearText Authentication",
-                //     value: optionsMySQL.enableClearTextAuthPlugin ?? false,
-                //     options: [DialogValueOption.Grouped],
-                // },
                 sqlMode: {
                     type: "checkList",
                     caption: "SQL Mode",
