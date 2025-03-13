@@ -179,16 +179,14 @@ def delete_services(session, service_ids):
         delete_service(session, service_id)
 
 
-def update_services(session, service_ids, value):
+def update_services(session, service_ids, value, merge_options=False):
     """Makes a given change to a MRS service
 
     Args:
-        **kwargs: Additional options
-
-    Keyword Args:
-        service_ids (int): The list of service ids to change
-        value (dict): The value to be set as a dict for all values that will be changed
-        session (object): The database session to use
+        session: The database session to use
+        service_ids: The list of service ids to change
+        value: The value to be set as a dict for all values that will be changed
+        merge_options: If set to True, specified options will be merged rather than overwritten
 
     Returns:
         The result message as string
@@ -227,12 +225,42 @@ def update_services(session, service_ids, value):
             value.pop("metadata", None)
             value.pop("published", None)
 
-        core.update("service",
-                    sets=value,
-                    where=["id=?"]).exec(session, [service_id])
+        # Reset an empty in_development.developers list to None
+        in_development = value.get("in_development", None)
+        if in_development is not None:
+            developers = in_development.get("developers", None)
+            if developers is not None and len(developers) == 0:
+                value["in_development"] = None
+
+        # Prepare the merge of options, if requested
+        if merge_options:
+            options = value.get("options", None)
+            # Check if there are options set already, if so, merge the options
+            if options is not None:
+                row = core.MrsDbExec("""
+                    SELECT options IS NULL AS options_is_null
+                    FROM `mysql_rest_service_metadata`.`service`
+                    WHERE id = ?""", [service_id]).exec(session).first
+                if row and row["options_is_null"] == 1:
+                    merge_options = False
+                else:
+                    value.pop("options")
+
+        if value:
+            core.update("service",
+                        sets=value,
+                        where=["id=?"]).exec(session, [service_id])
+
+        # Merge options if requested
+        if merge_options and options is not None:
+            core.MrsDbExec("""
+                UPDATE `mysql_rest_service_metadata`.`service`
+                SET options = JSON_MERGE_PATCH(options, ?)
+                WHERE id = ?
+                """, [options, service_id]).exec(session)
 
 
-def query_services(session, service_id: bytes = None, url_context_root=None, url_host_name=None,
+def query_services(session, service_id: bytes = None, url_context_root=None, url_host_name="",
                    get_default=False, developer_list=None, auth_app_id=None):
     """Query MRS services
 
@@ -249,7 +277,6 @@ def query_services(session, service_id: bytes = None, url_context_root=None, url
         session (object): The database session to use.
         service_id: The id of the service
         url_context_root (str): The context root for this service
-        url_host_name (str): The host name for this service
         get_default (bool): Whether to return the default service
 
     Returns:
@@ -258,6 +285,7 @@ def query_services(session, service_id: bytes = None, url_context_root=None, url
     if url_context_root and not url_context_root.startswith('/'):
         raise Exception("The url_context_root has to start with '/'.")
 
+    url_host_name = ""  # no longer supported
 
     current_service_id = get_current_service_id(session)
     if not current_service_id:
@@ -379,14 +407,14 @@ def get_service(session, service_id: bytes = None, url_context_root=None, url_ho
         session (object): The database session to use.
         service_id: The id of the service
         url_context_root (str): The context root for this service
-        url_host_name (str): The host name for this service
         get_default (bool): Whether to return the default service
 
     Returns:
         The service as dict or None on error in interactive mode
     """
+    # url_host_name kept as a param for temporary backwards compat, but is no longer supported
     result = query_services(session, service_id=service_id, url_context_root=url_context_root,
-                            url_host_name=url_host_name, get_default=get_default,
+                            url_host_name="", get_default=get_default,
                             developer_list=developer_list)
     return result[0] if len(result) == 1 else None
 
@@ -461,7 +489,7 @@ def set_current_service_id(session, service_id: bytes):
     config.store()
 
 
-def get_create_statement(session, service, include_all_objects: bool=False) -> str:
+def get_create_statement(session, service, include_all_objects: bool = False) -> str:
     executor = MrsDdlExecutor(
         session=session,
         current_service_id=service["id"])
@@ -469,7 +497,7 @@ def get_create_statement(session, service, include_all_objects: bool=False) -> s
     executor.showCreateRestService({
         "current_operation": "SHOW CREATE REST SERVICE",
         **service,
-        "include_all_objects": include_all_objects ,
+        "include_all_objects": include_all_objects,
     })
 
     if executor.results[0]["type"] == "error":

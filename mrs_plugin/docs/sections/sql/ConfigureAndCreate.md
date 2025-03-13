@@ -113,11 +113,11 @@ CONFIGURE REST METADATA
 
 ### REST Configuration Json Options
 
-The jsonOptions allow to set a number of specific options for the service.
+The jsonOptions allow to set a number of specific options for the MySQL REST Service. Specify the `MERGE` keyword to merge the given options with the existing options. If `MERGE` is omitted, all existing options will be overwritten with the specified options.
 
 ```antlr
 jsonOptions:
-    OPTIONS jsonValue
+    MERGE? OPTIONS jsonValue
 ;
 ```
 
@@ -238,7 +238,7 @@ createRestServiceStatement:
 ;
 
 serviceRequestPath:
-    serviceDevelopersIdentifier? hostAndPortIdentifier? requestPathIdentifier
+    serviceDevelopersIdentifier? requestPathIdentifier
 ;
 
 restServiceOptions: (
@@ -272,18 +272,10 @@ CREATE OR REPLACE REST SERVICE /myService
     COMMENTS "A simple REST service";
 ```
 
-The following example creates a REST service `/myTestService` that can only be accessed on localhost and is published at creation time.
+The next example shows how to set the REST service options.
 
 ```sql
-CREATE OR REPLACE REST SERVICE localhost/myTestService
-    PUBLISHED
-    COMMENTS "A REST service that can only be accessed on localhost";
-```
-
-The next examples shows how to set the REST service options.
-
-```sql
-CREATE OR REPLACE REST SERVICE localhost/myTestService
+CREATE OR REPLACE REST SERVICE /myTestService
     COMMENTS "A simple REST service"
     AUTHENTICATION
         PATH "/authentication"
@@ -322,12 +314,9 @@ When creating or accessing a REST service a `serviceRequestPath` has to be speci
 It consists of three components.
 
 - `serviceDevelopersIdentifier` (optional) - When set, the REST service is only available to the developers listed.
-- `hostAndPortIdentifier` (optional) - When set, the access to the REST service is limited to the given host and port.
 - `requestPathIdentifier` - The URL context root path the REST service will be served from.
 
 In many cases setting the `requestPathIdentifier` will be sufficient.
-
-The `hostAndPortIdentifier` only needs to be set if a REST service should only be made available through access via a specific host, like `localhost` when the MySQL Router is co-located with the client application.
 
 The `serviceDevelopersIdentifier` will be set automatically when a REST service is cloned for development by a given developer. Should such a REST service be made available to more developers, the list of developers can be extended via an [`ALTER REST SERVICE`](#alter-rest-service) command.
 
@@ -338,13 +327,6 @@ serviceDevelopersIdentifier:
     )* AT_SIGN?
 ;
 
-hostAndPortIdentifier: (
-        (dottedIdentifier | AT_TEXT_SUFFIX) (
-            COLON INT_NUMBER
-        )?
-    )
-;
-
 requestPathIdentifier:
     DIV_OPERATOR dottedIdentifier (DIV_OPERATOR dottedIdentifier)?
 ;
@@ -352,9 +334,6 @@ requestPathIdentifier:
 
 serviceDevelopersIdentifier ::=
 ![serviceDevelopersIdentifier](../../images/sql/serviceDevelopersIdentifier.svg "serviceDevelopersIdentifier")
-
-hostAndPortIdentifier ::=
-![hostAndPortIdentifier](../../images/sql/hostAndPortIdentifier.svg "hostAndPortIdentifier")
 
 requestPathIdentifier ::=
 ![requestPathIdentifier](../../images/sql/requestPathIdentifier.svg "requestPathIdentifier")
@@ -399,9 +378,8 @@ There might still be special use cases when configuring the MySQL Router using H
 
 Should there still be a configuration setup that requires the REST service to be accessible by clients via HTTP, the REST service protocol can be switched to HTTP.
 
-This setting is used in two places.
+This setting is used in one place.
 
-- When specifying a `hostAndPortIdentifier` to limit accepted connections to requests to this host and port, the protocol setting is used to build fully qualified URLs in the link section of JSON results.
 - When performing an OAuth2 authentication request, the protocol is used to build the redirect URL parameter in the first authentication request to the OAuth2 server. The protocol used in the redirect URL parameter must match the external protocol the REST service is reachable on. In case of using a reverse proxy, the `X-Forwarded-Proto` request header will overwrite this setting when made available by the proxy.
 
 ```antlr
@@ -490,13 +468,12 @@ authPageContent ::=
 
 ### REST Service Json Options
 
-The jsonOptions allow to set a number of specific options for the service.
+The jsonOptions allow to set a number of specific options for the service. Specify the `MERGE` keyword to merge the given options with the existing options. If `MERGE` is omitted, all existing options will be overwritten with the specified options.
 
 ```antlr
 jsonOptions:
-    OPTIONS jsonValue
+    MERGE? OPTIONS jsonValue
 ;
-```
 
 jsonOptions ::=
 ![jsonOptions](../../images/sql/jsonOptions.svg "jsonOptions")
@@ -656,13 +633,12 @@ The number of items per page can also be specified for each REST object individu
 
 ### REST Schema Json Options
 
-The jsonOptions allow to set a number of specific options for the service.
+The jsonOptions allow to set a number of specific options for the schema. Specify the `MERGE` keyword to merge the given options with the existing options. If `MERGE` is omitted, all existing options will be overwritten with the specified options.
 
 ```antlr
 jsonOptions:
-    OPTIONS jsonValue
+    MERGE? OPTIONS jsonValue
 ;
-```
 
 jsonOptions ::=
 ![jsonOptions](../../images/sql/jsonOptions.svg "jsonOptions")
@@ -1003,11 +979,12 @@ metadata:
 
 ### Json Options for Views
 
+The jsonOptions allow to set a number of specific options for the REST view. Specify the `MERGE` keyword to merge the given options with the existing options. If `MERGE` is omitted, all existing options will be overwritten with the specified options.
+
 ```antlr
 jsonOptions:
-    OPTIONS jsonValue
+    MERGE? OPTIONS jsonValue
 ;
-```
 
 The following additional options can be configured for most database object endpoints in a JSON object through the OPTIONS clause (indentation means JSON object nesting):
 

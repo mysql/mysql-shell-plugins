@@ -1433,8 +1433,8 @@ def deploy_schema(
     elif version not in map(
             lambda v: '%d.%d.%d' % tuple(v), deployment_script_versions):
         err_msg = (f"Deployment or update of database schema `{schema_name}` using "
-            f"version {version} requested but there is no deployment script "
-            "available for this version.")
+                   f"version {version} requested but there is no deployment script "
+                   "available for this version.")
         lib.core.write_to_msm_schema_update_log("ERROR", err_msg)
         raise ValueError(err_msg)
 
@@ -1474,13 +1474,27 @@ def deploy_schema(
     # Check if the current version of the schema is in the list of versions
     # that can be upgraded by the deployment scripts
     if schema_version is not None:
-        updatable_versions = map(
-            lambda v: '%d.%d.%d' % tuple(v),
-            get_updatable_versions(schema_project_path))
+        updatable_versions = get_updatable_versions(schema_project_path)
+        updatable_versions_str = map(
+            lambda v: '%d.%d.%d' % tuple(v), updatable_versions)
 
-        if not schema_version in updatable_versions:
-            err_msg = (f"Update of database schema `{schema_name}` to version "
-                f"{version} requested but this version cannot be updated.")
+        if (len(updatable_versions) > 0 and
+                lib.core.convert_version_str_to_list(schema_version) >
+                updatable_versions[-1]):
+            info_msg = (
+                f"The database schema `{schema_name}` is on a newer version "
+                f"{schema_version} than shipped with this project (version "
+                f"{'%d.%d.%d' % tuple(updatable_versions[-1])}). No changes "
+                "performed."
+            )
+            lib.core.write_to_msm_schema_update_log("INFO", info_msg)
+            return info_msg
+
+        if not schema_version in updatable_versions_str:
+            err_msg = (
+                f"Update of database schema `{schema_name}` to version "
+                f"{version} requested but the version {schema_version} cannot "
+                "be updated.")
             lib.core.write_to_msm_schema_update_log("ERROR", err_msg)
             raise Exception(err_msg)
 
@@ -1495,7 +1509,7 @@ def deploy_schema(
         lib.core.write_to_msm_schema_update_log(
             "INFO",
             f"Starting update of database schema `{schema_name}` version "
-            f"{schema_version} to version {version}")
+            f"{schema_version} to version {version}.")
 
     # Perform dump if the schema exists
     backup_available = False
@@ -1535,7 +1549,6 @@ def deploy_schema(
             })
 
         backup_available = True
-
 
     # Run deployment script
     try:

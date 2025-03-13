@@ -51,16 +51,16 @@ def test_get_current_service(phone_book):
         "auth_completed_url_validation": None,
         "auth_path": "/authentication",
         "url_protocol": ["HTTP"],
-        "url_host_name": "localhost",
         "url_context_root": "/test",
         "url_host_id": phone_book["url_host_id"],
+        "url_host_name": "",
         "options": None,
         "metadata": None,
         "comments": "Test service",
-        "host_ctx": "localhost/test",
+        "host_ctx": "/test",
         "is_current": 1,
         "in_development": None,
-        "full_service_path": "localhost/test",
+        "full_service_path": "/test",
         "published": 0,
         "sorted_developers": None,
         "name": "mrs",
@@ -101,7 +101,7 @@ def test_get_current_schema(phone_book):
         "url_host_id": phone_book["url_host_id"],
         "items_per_page": 20,
         "comments": "test schema",
-        "host_ctx": "localhost/test",
+        "host_ctx": "/test",
         "schema_type": "DATABASE_SCHEMA",
     }
 
@@ -130,7 +130,7 @@ def test_validate_service_path(phone_book):
         assert schema is None
         assert content_set is None
 
-        service, schema, content_set = validate_service_path(session, "localhost/test/PhoneBook")
+        service, schema, content_set = validate_service_path(session, "/test/PhoneBook")
         assert service is not None
         assert service == {
             "id": phone_book["service_id"],
@@ -141,16 +141,16 @@ def test_validate_service_path(phone_book):
             "auth_completed_url_validation": None,
             "auth_path": "/authentication",
             "url_protocol": ["HTTP"],
-            "url_host_name": "localhost",
+            "url_host_name": "",
             "url_context_root": "/test",
             "url_host_id": phone_book["url_host_id"],
             "options": None,
             "metadata": None,
             "comments": "Test service",
-            "host_ctx": "localhost/test",
+            "host_ctx": "/test",
             "is_current": 1,
             "in_development": None,
-            "full_service_path": "localhost/test",
+            "full_service_path": "/test",
             "published": 0,
             "sorted_developers": None,
             "name": "mrs",
@@ -169,7 +169,7 @@ def test_validate_service_path(phone_book):
             "metadata": None,
             "items_per_page": 20,
             "comments": "test schema",
-            "host_ctx": "localhost/test",
+            "host_ctx": "/test",
             "url_host_id": phone_book["url_host_id"],
             "schema_type": "DATABASE_SCHEMA",
         }
@@ -177,7 +177,7 @@ def test_validate_service_path(phone_book):
         assert content_set is None
 
         with pytest.raises(ValueError) as exc_info:
-            service, schema, content_set = validate_service_path(session, "localhost/test/schema")
+            service, schema, content_set = validate_service_path(session, "/test/schema")
         assert str(exc_info.value) == "The given schema or content set was not found."
 
         with pytest.raises(ValueError) as exc_info:
@@ -187,7 +187,7 @@ def test_validate_service_path(phone_book):
 
 def test_id_to_binary():
     context = "my_context"
-    ids = ["", "1234", "localhost/myService"]
+    ids = ["", "1234", "/myService"]
 
     for id in ids:
         with pytest.raises(RuntimeError, match=f"Invalid id format '{id}' for '{context}'."):

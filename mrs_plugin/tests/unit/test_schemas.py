@@ -28,11 +28,11 @@ from ... schemas import *
 import mysqlsh
 from .helpers import SchemaCT, DbObjectCT, get_default_db_object_init
 
-schema_create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook ON SERVICE localhost/test
+schema_create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook ON SERVICE /test
     FROM `PhoneBook`;
 
 CREATE OR REPLACE REST VIEW /Contacts
-    ON SERVICE localhost/test SCHEMA /PhoneBook
+    ON SERVICE /test SCHEMA /PhoneBook
     AS PhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
         id: id @KEY @SORTABLE,
         fName: f_name,
@@ -63,7 +63,7 @@ def test_get_schemas(phone_book):
                 assert schema == {
                     'comments': 'This is a schema comment',
                     'enabled': 1,
-                    'host_ctx': 'localhost/test',
+                    'host_ctx': '/test',
                     'id': schema_id,
                     'items_per_page': 25,
                     'name': 'PhoneBook',
@@ -91,7 +91,7 @@ def test_get_schema(phone_book):
     assert result == {
         'comments': 'test schema',
         'enabled': 1,
-        'host_ctx': 'localhost/test',
+        'host_ctx': '/test',
         'id': phone_book["schema_id"],
         'items_per_page': 20,
         'name': 'PhoneBook',
@@ -268,7 +268,7 @@ def test_get_create_statement(phone_book, table_contents):
 
     assert sql == schema_create_statement
 
-    sql = get_create_statement(schema="localhost/test/PhoneBook", session=phone_book["session"], include_all_objects=True)
+    sql = get_create_statement(schema="/test/PhoneBook", session=phone_book["session"], include_all_objects=True)
 
     assert sql == schema_create_statement
 
@@ -336,7 +336,7 @@ def test_dump_create_statement(phone_book, table_contents):
 
 def test_dump_and_recover(phone_book, table_contents):
     session = phone_book["session"]
-    create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE localhost/test
+    create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE /test
     FROM `PhoneBook`;"""
     create_function = lambda file_path, schema_id, overwrite=True: \
         store_create_statement(file_path=file_path,
@@ -400,11 +400,11 @@ def test_dump_and_recover(phone_book, table_contents):
 
 def test_dump_and_recover_include_all_objects(phone_book, table_contents):
     session = phone_book["session"]
-    create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE localhost/test
+    create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE /test
     FROM `PhoneBook`;
 
 CREATE OR REPLACE REST VIEW /addresses
-    ON SERVICE localhost/test SCHEMA /PhoneBook2
+    ON SERVICE /test SCHEMA /PhoneBook2
     AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
         id: id @KEY
     }

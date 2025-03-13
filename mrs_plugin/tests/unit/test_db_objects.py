@@ -30,7 +30,7 @@ from mrs_plugin import lib
 from .helpers import get_db_object_privileges, TableContents, SchemaCT, DbObjectCT, get_default_db_object_init
 
 db_object_create_statement = """CREATE OR REPLACE REST VIEW /Contacts
-    ON SERVICE localhost/test SCHEMA /PhoneBook
+    ON SERVICE /test SCHEMA /PhoneBook
     AS PhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
         id: id @KEY @SORTABLE,
         fName: f_name,
@@ -636,7 +636,7 @@ def test_dump_create_statement(phone_book, table_contents):
 
 def test_dump_and_recover(phone_book):
     db_object_create_statement2 = """CREATE OR REPLACE REST VIEW /addresses
-    ON SERVICE localhost/test SCHEMA /PhoneBook
+    ON SERVICE /test SCHEMA /PhoneBook
     AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
         id: id @KEY
     }

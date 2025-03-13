@@ -1178,15 +1178,6 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by MRSParser#hostAndPortIdentifier.
-    def enterHostAndPortIdentifier(self, ctx:MRSParser.HostAndPortIdentifierContext):
-        pass
-
-    # Exit a parse tree produced by MRSParser#hostAndPortIdentifier.
-    def exitHostAndPortIdentifier(self, ctx:MRSParser.HostAndPortIdentifierContext):
-        pass
-
-
     # Enter a parse tree produced by MRSParser#requestPathIdentifier.
     def enterRequestPathIdentifier(self, ctx:MRSParser.RequestPathIdentifierContext):
         pass

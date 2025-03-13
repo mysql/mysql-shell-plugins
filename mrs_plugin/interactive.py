@@ -37,8 +37,8 @@ def service_query_selection(**kwargs):
     if service is not None:
         return service
 
-    if url_host_name is not None and url_context_root is not None:
-        return f"{url_host_name}{url_context_root}"
+    if url_context_root is not None:
+        return f"{url_context_root}"
 
     return None
 
@@ -68,7 +68,6 @@ def auth_app_query_selection(**kwargs):
 
 def resolve_service(session, service_query:str | bytes=None, required:bool=True, auto_select_single:bool=False):
     service = None
-
     if service_query:
         if isinstance(service_query, bytes):
             # Check if given service exists by searching its id
@@ -76,9 +75,8 @@ def resolve_service(session, service_query:str | bytes=None, required:bool=True,
                 service_id=service_query, session=session)
         else:
             # Check if the service exists by host and context root
-            url_host_name, url_context_root = service_query.split("/")
+            url_host_name, url_context_root = service_query.split("/", 1)
             url_context_root = f"/{url_context_root}"
-
             service = lib.services.get_service(
                 url_host_name=url_host_name, url_context_root=url_context_root, session=session)
 

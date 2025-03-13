@@ -110,24 +110,32 @@ def get_status(session):
 
 
 def configure(session=None, enable_mrs: bool = None, options: str = None,
-              edition: str = None, version: str = None):
+              update_if_available=False, edition: str = None, version: str = None,
+              merge_options=False):
     """Initializes and configures the MySQL REST Data Service
 
     Args:
         session (object): The database session to use
         enable_mrs (bool): Whether MRS should be enabled or disabled
         options (str): a JSON string containing the MRS options
+        update_if_available (bool): Whether the MRS metadata schema should be updated
         edition (str): If set to HeatWave or MySQLAi, special handling for those edition is triggered.
         version (str): The exact version to upgrade the metadata schema to.
+        merge_options (bool): If set to True, specified options will be merged rather than overwritten
 
     Returns:
         A dict with status information
     """
+    skip_update = False
 
     with lib.core.MrsDbSession(session=session, check_version=False) as session:
         if lib.core.mrs_metadata_schema_exists(session):
             current_db_version = lib.core.get_mrs_schema_version(session)
             current_version_str = '%d.%d.%d' % tuple(current_db_version)
+
+            last_deployment_version = schema_management.get_last_deployment_script_version(
+                schema_project_path=lib.core.script_path(
+                    "db_schema", "mysql_rest_service_metadata.msm.project"))
 
             if current_db_version[0] > lib.general.DB_VERSION[0]:
                 raise Exception(
@@ -136,12 +144,15 @@ def configure(session=None, enable_mrs: bool = None, options: str = None,
                     f"{current_version_str}. Please update "
                     "MySQL Shell to work with this MRS version.")
 
-            if current_db_version[0] < lib.general.SUPPORTED_MAJOR_VERSION:
+            if current_db_version[0] < lib.general.SUPPORTED_MAJOR_VERSION and not update_if_available:
                 raise Exception(
                     f"The MRS metadata version {current_version_str} is "
                     "too old to be managed by this version of MySQL Shell. "
                     "Please update the MRS metadata version, e.g. run "
                     "`mrs.configure(update_if_available=True)` to update.")
+
+            if current_db_version < last_deployment_version and not update_if_available:
+                skip_update = True
 
             # When upgrading from major version 3, make sure to create the
             # msm_schema_version view in order to allow the msm_plugin to update it
@@ -154,21 +165,25 @@ def configure(session=None, enable_mrs: bool = None, options: str = None,
         if edition is None or edition.lower() != "heatwave":
             # For all editions except heatwave, also deploy the mysql_tasks
             # database schema
-            schema_management.deploy_schema(
-                session=session,
-                schema_project_path=lib.core.script_path(
-                    "db_schema", "mysql_tasks.msm.project"))
+            if not skip_update:
+                schema_management.deploy_schema(
+                    session=session,
+                    schema_project_path=lib.core.script_path(
+                        "db_schema", "mysql_tasks.msm.project"))
 
 
         # Start the MRS metadata schema deployment which will either create
         # or update an existing schema to the given version
-        info_msg = schema_management.deploy_schema(
-            session=session,
-            schema_project_path=lib.core.script_path(
-                "db_schema", "mysql_rest_service_metadata.msm.project"),
-            version=version)
+        if not skip_update:
+            info_msg = schema_management.deploy_schema(
+                session=session,
+                schema_project_path=lib.core.script_path(
+                    "db_schema", "mysql_rest_service_metadata.msm.project"),
+                version=version)
 
-        schema_changed = not ("No changes" in info_msg)
+            schema_changed = not ("No changes" in info_msg)
+        else:
+            schema_changed = False
 
         if enable_mrs is not None:
             lib.core.update(
@@ -181,10 +196,16 @@ def configure(session=None, enable_mrs: bool = None, options: str = None,
             enable_mrs = row["service_enabled"] if row else 0
 
         if options is not None:
-            session.run_sql("""
-                UPDATE `mysql_rest_service_metadata`.`config`
-                SET data = JSON_MERGE_PATCH(data, ?)
-                WHERE id = 1""", [options])
+            if merge_options:
+                session.run_sql("""
+                    UPDATE `mysql_rest_service_metadata`.`config`
+                    SET data = JSON_MERGE_PATCH(data, ?)
+                    WHERE id = 1""", [options])
+            else:
+                session.run_sql("""
+                    UPDATE `mysql_rest_service_metadata`.`config`
+                    SET data = ?
+                    WHERE id = 1""", [options])
 
         return {
             "schema_changed": schema_changed,
