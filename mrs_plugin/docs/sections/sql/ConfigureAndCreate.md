@@ -1119,8 +1119,9 @@ The `CREATE REST PROCEDURE` statement is used to add REST endpoints for database
 createRestProcedureStatement:
     CREATE (OR REPLACE)? REST PROCEDURE procedureRequestPath (
         ON serviceSchemaSelector
-    )? AS qualifiedIdentifier (PARAMETERS restObjectName? graphQlObj)?
-        restProcedureResult* restObjectOptions?
+    )? AS qualifiedIdentifier FORCE? (
+        PARAMETERS restObjectName? graphQlObj
+    )? restProcedureResult* restObjectOptions?
 ;
 
 serviceSchemaSelector:
@@ -1157,15 +1158,35 @@ restObjectOptions ::=
 restProcedureResult ::=
 ![restProcedureResult](../../images/sql/restProcedureResult.svg "restProcedureResult")
 
-### JSON Options for Procedures
+**_Examples_**
 
-```antlr
-jsonOptions:
-    OPTIONS jsonValue
-;
+The following example adds a REST procedure for the `sakila.rewards_report` database schema procedure. It is assumed that a REST service `/myService` and a REST schema `/sakila` have already been created.
+
+```sql
+CREATE OR REPLACE REST PROCEDURE /filmInStock
+ON SERVICE /myService SCHEMA /sakila
+AS sakila.rewards_report;
 ```
 
-See [JSON Options](#json-options-for-views)
+The following example adds a REST procedure for the `sakila.filmInStock` database schema procedure, while explicitly specifying the list of parameters and the RESULT returned by the procedure.
+
+```sql
+CREATE OR REPLACE REST PROCEDURE /filmInStock
+ON SERVICE /myService SCHEMA /sakila
+AS sakila.film_in_stock
+PARAMETERS MyServiceSakilaFilmInStockParams {
+    pFilmId: p_film_id @IN,
+    pStoreId: p_store_id @IN,
+    pFilmCount: p_film_count @OUT
+}
+RESULT MyServiceSakilaFilmInStock {
+    inventoryId: inventory_id @DATATYPE("int")
+};
+```
+
+### The FORCE Flag For Procedures
+
+In certain cases, a REST procedure may need to be created even though the actual database schema procedure is not yet available. To make the `CREATE REST PROCEDURE` succeed in this case, the `FORCE` flag must be specified.
 
 ## CREATE REST FUNCTION
 
@@ -1177,8 +1198,9 @@ The `CREATE REST FUNCTION` statement is used to add REST endpoints for database 
 createRestFunctionStatement:
     CREATE (OR REPLACE)? REST FUNCTION functionRequestPath (
         ON serviceSchemaSelector
-    )? AS qualifiedIdentifier (PARAMETERS restObjectName? graphQlObj)?
-        restFunctionResult? restObjectOptions?
+    )? AS qualifiedIdentifier FORCE? (
+        PARAMETERS restObjectName? graphQlObj
+    )? restFunctionResult? restObjectOptions?
 ;
 
 serviceSchemaSelector:
@@ -1215,13 +1237,9 @@ restObjectOptions ::=
 restFunctionResult ::=
 ![restFunctionResult](../../images/sql/restFunctionResult.svg "restFunctionResult")
 
-### JSON Options for Functions
+### The FORCE Flag For Functions
 
-```antlr
-jsonOptions:
-    OPTIONS jsonValue
-;
-```
+In certain cases, a REST function may need to be created even though the actual database schema function is not yet available. To make the `CREATE REST FUNCTION` succeed in this case, the `FORCE` flag must be specified.
 
 See [JSON Options](#json-options-for-views)
 

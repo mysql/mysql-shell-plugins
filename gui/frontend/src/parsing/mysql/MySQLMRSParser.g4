@@ -6026,7 +6026,7 @@ restViewAuthenticationProcedure:
 createRestProcedureStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
         ON_SYMBOL serviceSchemaSelector
-    )? AS_SYMBOL qualifiedIdentifier (
+    )? AS_SYMBOL qualifiedIdentifier FORCE_SYMBOL? (
         PARAMETERS_SYMBOL restObjectName? graphQlObj
     )? restProcedureResult* restObjectOptions?
 ;
@@ -6040,7 +6040,7 @@ restProcedureResult:
 createRestFunctionStatement:
     CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL FUNCTION_SYMBOL functionRequestPath (
         ON_SYMBOL serviceSchemaSelector
-    )? AS_SYMBOL qualifiedIdentifier (
+    )? AS_SYMBOL qualifiedIdentifier FORCE_SYMBOL? (
         PARAMETERS_SYMBOL restObjectName? graphQlObj
     )? restFunctionResult? restObjectOptions?
 ;

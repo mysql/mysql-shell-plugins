@@ -54,6 +54,7 @@ PAGE_SYMBOL:           P A G E;
 HOST_SYMBOL:           H O S T;
 TYPE_SYMBOL:           T Y P E;
 FORMAT_SYMBOL:         F O R M A T;
+FORCE_SYMBOL:          F O R C E;
 UPDATE_SYMBOL:         U P D A T E;
 NULL_SYMBOL:           N U L L;
 TRUE_SYMBOL:           T R U E;
