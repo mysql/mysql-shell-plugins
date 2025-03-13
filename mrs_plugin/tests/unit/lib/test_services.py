@@ -30,7 +30,7 @@ from lib.core import MrsDbSession
 def test_get_service(phone_book, table_contents):
     with MrsDbSession(session=phone_book["session"]) as session:
         service_table = table_contents("service")
-        service1 = lib.services.get_service(session=session, url_context_root="/test", url_host_name="localhost")
+        service1 = lib.services.get_service(session=session, url_context_root="/test")
 
         assert service1 is not None
         assert service1 == {
@@ -38,11 +38,11 @@ def test_get_service(phone_book, table_contents):
             "parent_id": None,
             "enabled": 1,
             "url_protocol": ["HTTP"],
-            "url_host_name": "localhost",
+            "url_host_name": "",
             "url_context_root": "/test",
             "url_host_id": phone_book["url_host_id"],
             "comments": "Test service",
-            "host_ctx": "localhost/test",
+            "host_ctx": "/test",
             "auth_completed_page_content": None,
             "auth_completed_url": None,
             "auth_completed_url_validation": None,
@@ -52,17 +52,17 @@ def test_get_service(phone_book, table_contents):
             "is_current": 1,
             "options": None,
             "in_development": None,
-            "full_service_path": "localhost/test",
+            "full_service_path": "/test",
             "published": 0,
             "sorted_developers": None,
             "name": "mrs",
             "auth_apps": ["MRS Auth App"]
         }
 
-        with ServiceCT(session, "/service2", "localhost") as service_id:
+        with ServiceCT(session, "/service2") as service_id:
             assert service_table.count == service_table.snapshot.count + 1
 
-            service2 = lib.services.get_service(session=session, url_context_root="/service2", url_host_name="localhost")
+            service2 = lib.services.get_service(session=session, url_context_root="/service2")
 
             assert service2 is not None
             assert service2 == {
@@ -70,11 +70,11 @@ def test_get_service(phone_book, table_contents):
                 "parent_id": None,
                 "enabled": 1,
                 "url_protocol": ["HTTP"],
-                "url_host_name": "localhost",
+                "url_host_name": "",
                 "url_context_root": "/service2",
                 "url_host_id": service2["url_host_id"],
                 "comments": "",
-                "host_ctx": "localhost/service2",
+                "host_ctx": "/service2",
                 "auth_completed_page_content": None,
                 "auth_completed_url": None,
                 "auth_completed_url_validation": None,
@@ -96,7 +96,7 @@ def test_get_service(phone_book, table_contents):
                 "metadata": None,
                 "in_development": None,
                 "is_current": 0,
-                "full_service_path": "localhost/service2",
+                "full_service_path": "/service2",
                 "published": 0,
                 "sorted_developers": None,
                 "name": "mrs",
@@ -138,28 +138,28 @@ def test_get_service(phone_book, table_contents):
             }
 
             with pytest.raises(Exception) as exc_info:
-                lib.services.get_service(session=session, url_context_root="service2", url_host_name="localhost")
+                lib.services.get_service(session=session, url_context_root="service2")
             assert str(exc_info.value) == "The url_context_root has to start with '/'."
 
         # Test getting the default service
-        result = lib.services.get_service(session=session, url_context_root="/service2", url_host_name="localhost", get_default=False)
+        result = lib.services.get_service(session=session, url_context_root="/service2", get_default=False)
         assert result is None
 
-        result = lib.services.get_service(session=session, url_context_root="/service2", url_host_name="localhost", get_default=True)
+        result = lib.services.get_service(session=session, url_context_root="/service2", get_default=True)
         assert result is not None
 
-        with ServiceCT(session, "/service2", "localhost") as service_id:
+        with ServiceCT(session, "/service2") as service_id:
             lib.services.set_current_service_id(session, service_id)
 
-        result = lib.services.get_service(session=session, url_context_root="/service2", url_host_name="localhost", get_default=False)
+        result = lib.services.get_service(session=session, url_context_root="/service2", get_default=False)
         assert result is None
 
-        result = lib.services.get_service(session=session, url_context_root="/service2", url_host_name="localhost", get_default=True)
+        result = lib.services.get_service(session=session, url_context_root="/service2", get_default=True)
         assert result is None
 
         lib.services.set_current_service_id(session, phone_book["service_id"])
 
-        result = lib.services.get_service(session=session, url_context_root="/service2", url_host_name="localhost", get_default=True)
+        result = lib.services.get_service(session=session, url_context_root="/service2", get_default=True)
         assert result is not None
 
 def test_get_services(phone_book, table_contents):
@@ -170,7 +170,7 @@ def test_get_services(phone_book, table_contents):
         assert len(service_table.items) == len(services)
         assert len(services) == 1
 
-        with ServiceCT(session, "/service2", "localhost") as service2_id:
+        with ServiceCT(session, "/service2") as service2_id:
             services = lib.services.get_services(session=session)
             assert len(service_table.items) == len(services)
             assert len(services) == 2
@@ -198,7 +198,7 @@ def test_change_service(phone_book, table_contents):
                 lib.services.update_services(session=session, service_ids=[1000], value={"enabled": True})
         assert str(exc_info.value) == "'int' object has no attribute 'hex'"
 
-        with ServiceCT(session, "/service2", "localhost") as service_id:
+        with ServiceCT(session, "/service2") as service_id:
             value = {
                 "comments": "This is the updated comment."
             }

@@ -6,19 +6,15 @@ CONFIGURE REST METADATA
     ENABLED
     UPDATE IF AVAILABLE;
 
-CREATE OR REPLACE REST SERVICE localhost/myTestService;
+CREATE OR REPLACE REST SERVICE /myTestService;
 
 CREATE OR REPLACE REST SERVICE mike@/myTestService;
-
-CREATE OR REPLACE REST SERVICE mike@localhost/myTestService;
 
 SHOW REST SERVICES;
 
 DROP REST SERVICE mike@/myTestService;
 
-DROP REST SERVICE mike@localhost/myTestService;
-
-CREATE OR REPLACE REST SERVICE localhost/myTestService
+CREATE OR REPLACE REST SERVICE /myTestService
     ENABLED
     COMMENTS "A simple REST service"
     AUTHENTICATION
@@ -52,13 +48,13 @@ CREATE OR REPLACE REST SERVICE localhost/myTestService
         "position": 1
     };
 
-CREATE OR REPLACE REST SERVICE localhost/myService;
+CREATE OR REPLACE REST SERVICE /myService;
 
 
-SHOW CREATE REST SERVICE localhost/myTestService;
+SHOW CREATE REST SERVICE /myTestService;
 
-ALTER REST SERVICE localhost/myTestService
-    NEW REQUEST PATH localhost/myAlteredTestService
+ALTER REST SERVICE /myTestService
+    NEW REQUEST PATH /myAlteredTestService
     DISABLED
     COMMENTS "A real simple REST service"
     AUTHENTICATION
@@ -75,18 +71,18 @@ ALTER REST SERVICE localhost/myTestService
         "position": 2
     };
 
-SHOW CREATE REST SERVICE localhost/myAlteredTestService;
+SHOW CREATE REST SERVICE /myAlteredTestService;
 
-ALTER REST SERVICE localhost/myAlteredTestService
-    NEW REQUEST PATH localhost/myTestService;
+ALTER REST SERVICE /myAlteredTestService
+    NEW REQUEST PATH /myTestService;
 
-CREATE REST SCHEMA ON SERVICE localhost/myTestService FROM `sakila`
+CREATE REST SCHEMA ON SERVICE /myTestService FROM `sakila`
     ENABLED
     ITEMS PER PAGE 25
     COMMENTS "The sakila schema"
     METADATA { "position": 1};
 
-USE REST SERVICE localhost/myTestService;
+USE REST SERVICE /myTestService;
 
 CREATE OR REPLACE REST SCHEMA /sakila FROM `sakila`
     DISABLED
@@ -134,7 +130,7 @@ CREATE OR REPLACE REST DATA MAPPING VIEW /city
 SHOW CREATE REST VIEW /city;
 
 CREATE OR REPLACE REST DATA MAPPING VIEW /country
-ON SERVICE localhost/myTestService SCHEMA /sakila
+ON SERVICE /myTestService SCHEMA /sakila
 AS sakila.country CLASS MyServiceSakilaCountry @INSERT @UPDATE @DELETE @NOCHECK {
     countryId: country_id @SORTABLE,
     country: country,
@@ -173,7 +169,7 @@ AS `sakila`.`actor_info` CLASS MyServiceSakilaActorInfo {
 };
 
 ALTER REST DATA MAPPING VIEW /actorInfo
-ON SERVICE localhost/myTestService SCHEMA /sakila
+ON SERVICE /myTestService SCHEMA /sakila
 DISABLED
 OPTIONS {
     "option1": "this is option 1",
@@ -223,7 +219,7 @@ RESULT MyServiceSakilaFilmInStock {
 SHOW CREATE REST PROCEDURE /filmInStock;
 
 ALTER REST PROCEDURE /filmInStock
-ON SERVICE localhost/myTestService SCHEMA /sakila
+ON SERVICE /myTestService SCHEMA /sakila
 PARAMETERS {
     pFilmId: p_film_id @IN,
     pStoreId: p_store_id @IN,
@@ -239,7 +235,7 @@ RESULT {
 SHOW CREATE REST PROCEDURE /filmInStock;
 
 ALTER REST PROCEDURE /filmInStock
-ON SERVICE localhost/myTestService SCHEMA /sakila
+ON SERVICE /myTestService SCHEMA /sakila
 NEW REQUEST PATH /filmInStockUpdated
 PARAMETERS MyServiceSakilaFilmInStockUpdated {
     pFilmId: p_film_id @IN,
@@ -256,7 +252,7 @@ RESULT MyServiceSakilaFilmInStock2 {
 SHOW CREATE REST PROCEDURE /filmInStockUpdated;
 
 ALTER REST PROCEDURE /filmInStockUpdated
-ON SERVICE localhost/myTestService SCHEMA /sakila
+ON SERVICE /myTestService SCHEMA /sakila
 NEW REQUEST PATH /filmInStock
 PARAMETERS MyServiceSakilaFilmInStockParams {
     pFilmId: p_film_id @IN,
@@ -276,7 +272,7 @@ SHOW CREATE REST VIEW /country;
 SHOW CREATE REST PROCEDURE /filmInStock;
 
 CREATE REST CONTENT SET /testContent
-ON SERVICE localhost/myTestService
+ON SERVICE /myTestService
 FROM "./grammar/test"
 IGNORE "*.txt";
 
@@ -289,31 +285,31 @@ SHOW REST SERVICES;
 SHOW REST SCHEMAS;
 
 SHOW REST DATA MAPPING VIEWS
-    FROM SERVICE localhost/myTestService SCHEMA /sakila;
+    FROM SERVICE /myTestService SCHEMA /sakila;
 
 SHOW REST PROCEDURES;
 
-SHOW CREATE REST SERVICE localhost/myTestService;
+SHOW CREATE REST SERVICE /myTestService;
 
 SHOW CREATE REST SCHEMA /sakila;
 
 SHOW CREATE REST DATA MAPPING VIEW /actorInfo;
 
 ALTER REST SCHEMA /sakila
-ON SERVICE localhost/myTestService
+ON SERVICE /myTestService
 NEW REQUEST PATH /sakila123;
 
 SHOW REST SCHEMAS;
 
 ALTER REST SCHEMA /sakila123
-ON SERVICE localhost/myTestService
+ON SERVICE /myTestService
 NEW REQUEST PATH /sakila;
 
 SHOW REST SCHEMAS;
 
 CREATE OR REPLACE REST AUTH APP "MRS" VENDOR MRS;
 
-ALTER REST SERVICE localhost/myTestService
+ALTER REST SERVICE /myTestService
 ADD AUTH APP "MRS";
 
 CREATE REST USER "mike"@"MRS" IDENTIFIED BY "MySQLR0cks!";
@@ -345,13 +341,13 @@ CREATE OR REPLACE REST ROLE "role2" EXTENDS "role1";
 -- CREATE REST ROLE "role1";
 -- CREATE REST ROLE "role2" EXTENDS "role1";
 
-CREATE REST ROLE "role3" EXTENDS "role1" ON SERVICE localhost/myTestService COMMENTS "A comment here" OPTIONS {"option1":1, "option2": false, "option3": [1, "bla", null]};
+CREATE REST ROLE "role3" EXTENDS "role1" ON SERVICE /myTestService COMMENTS "A comment here" OPTIONS {"option1":1, "option2": false, "option3": [1, "bla", null]};
 
-CREATE REST ROLE "myrole" ON SERVICE localhost/myService;
+CREATE REST ROLE "myrole" ON SERVICE /myService;
 
-GRANT REST CREATE, READ, UPDATE, DELETE ON SERVICE localhost/myTestService SCHEMA /sakila TO "role1";
-GRANT REST CREATE, READ, UPDATE, DELETE ON SERVICE localhost/myTestService SCHEMA /sakila OBJECT /country TO "role2";
-GRANT REST UPDATE ON SERVICE localhost/myTestService SCHEMA /sakila OBJECT /filmInStock TO "role1";
+GRANT REST CREATE, READ, UPDATE, DELETE ON SERVICE /myTestService SCHEMA /sakila TO "role1";
+GRANT REST CREATE, READ, UPDATE, DELETE ON SERVICE /myTestService SCHEMA /sakila OBJECT /country TO "role2";
+GRANT REST UPDATE ON SERVICE /myTestService SCHEMA /sakila OBJECT /filmInStock TO "role1";
 GRANT REST READ ON SCHEMA /sakila OBJECT /actor TO "role2";
 
 GRANT REST ROLE "role1" TO "mike"@"MRS" COMMENTS "Hello World!?";
@@ -365,12 +361,12 @@ REVOKE REST ROLE "role1" FROM "mike"@"MRS";
 
 SHOW REST ROLES FOR "mike"@"MRS";
 
-REVOKE REST CREATE ON SERVICE localhost/myTestService SCHEMA /sakila FROM "role1";
+REVOKE REST CREATE ON SERVICE /myTestService SCHEMA /sakila FROM "role1";
 
 SHOW REST GRANTS FOR "role1";
 
 SHOW REST ROLES;
-SHOW REST ROLES ON SERVICE localhost/myTestService;
+SHOW REST ROLES ON SERVICE /myTestService;
 
 DROP REST ROLE "role3";
 DROP REST ROLE "role2";
@@ -382,23 +378,23 @@ CREATE OR REPLACE REST AUTH APP "MySQL" VENDOR MySQL
 ALLOW NEW USERS TO REGISTER
 DEFAULT ROLE "Full Access";
 
-ALTER REST SERVICE localhost/myTestService
+ALTER REST SERVICE /myTestService
 ADD AUTH APP "MySQL";
 
-SHOW REST AUTH APPS FROM SERVICE localhost/myTestService;
+SHOW REST AUTH APPS FROM SERVICE /myTestService;
 
 SHOW CREATE REST AUTH APP "MRS";
 
 SHOW CREATE REST AUTH APP "MySQL";
 
-ALTER REST SERVICE localhost/myTestService DISABLED;
+ALTER REST SERVICE /myTestService DISABLED;
 
 DROP REST AUTH APP "MRS";
 
 DROP REST AUTH APP "MySQL";
 
 DROP REST DATA MAPPING VIEW /country
-FROM SERVICE localhost/myTestService SCHEMA /sakila;
+FROM SERVICE /myTestService SCHEMA /sakila;
 
 DROP REST DATA MAPPING VIEW /actor;
 
@@ -409,7 +405,7 @@ DROP REST PROCEDURE /filmInStock;
 DROP REST CONTENT SET /testContent;
 
 CREATE OR REPLACE REST DATA MAPPING VIEW /moviesByLanguage
-ON SERVICE localhost/myTestService SCHEMA /sakila
+ON SERVICE /myTestService SCHEMA /sakila
 AS `sakila`.`language` {
     id: language_id,
     name: name,
@@ -421,23 +417,23 @@ AS `sakila`.`language` {
 DROP REST DATA MAPPING VIEW /moviesByLanguage;
 
 CREATE REST FUNCTION /actorFunc
-ON SERVICE localhost/myTestService SCHEMA /sakila
+ON SERVICE /myTestService SCHEMA /sakila
 AS `sakila`.`actor`;
 
 SHOW CREATE REST FUNCTION /actorFunc
-ON SERVICE localhost/myTestService SCHEMA /sakila;
+ON SERVICE /myTestService SCHEMA /sakila;
 
 ALTER REST FUNCTION /actorFunc
-ON SERVICE localhost/myTestService SCHEMA /sakila
+ON SERVICE /myTestService SCHEMA /sakila
 NEW REQUEST PATH /actorFuncNew;
 
 SHOW CREATE REST FUNCTION /actorFuncNew
-ON SERVICE localhost/myTestService SCHEMA /sakila;
+ON SERVICE /myTestService SCHEMA /sakila;
 
 DROP REST FUNCTION /actorFuncNew;
 
 CREATE OR REPLACE REST FUNCTION /actorFunc
-    ON SERVICE localhost/myTestService SCHEMA /sakila
+    ON SERVICE /myTestService SCHEMA /sakila
     AS sakila.actor
     PARAMETERS LocalhostMyServiceSakilaActorFuncParams {
         s: s @IN
@@ -448,9 +444,9 @@ CREATE OR REPLACE REST FUNCTION /actorFunc
 
 DROP REST FUNCTION /actorFunc;
 
-DROP REST SCHEMA /sakila FROM localhost/myTestService;
+DROP REST SCHEMA /sakila FROM /myTestService;
 
-DROP REST SERVICE localhost/myTestService;
+DROP REST SERVICE /myTestService;
 
 SHOW REST SERVICES;
 
@@ -460,13 +456,8 @@ CREATE OR REPLACE REST SERVICE mike@/myTestService;
 
 SHOW REST SERVICES;
 
-CREATE OR REPLACE REST SERVICE mike@localhost:80/myTestService;
 
-SHOW REST SERVICES;
-
-
-
-CREATE OR REPLACE REST SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService;
+CREATE OR REPLACE REST SERVICE miguel,'alfredo@oracle.com'@/myTestService;
 
 SHOW REST SERVICES;
 
@@ -487,11 +478,8 @@ DROP REST SERVICE /myClonedService;
 
 DROP REST SERVICE mike@/myTestService;
 
-DROP REST SERVICE mike@localhost:80/myTestService;
-
-
 CREATE REST SCHEMA /sakila
-ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService
+ON SERVICE miguel,'alfredo@oracle.com'@/myTestService
 FROM `sakila`
     ENABLED
     ITEMS PER PAGE 25
@@ -499,7 +487,7 @@ FROM `sakila`
     METADATA { "position": 1};
 
 CREATE OR REPLACE REST DATA MAPPING VIEW /actor
-ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService SCHEMA /sakila
+ON SERVICE miguel,'alfredo@oracle.com'@/myTestService SCHEMA /sakila
 AS `sakila`.`actor` CLASS MyServiceSakilaActor {
     actorId: actor_id @SORTABLE,
     firstName: first_name,
@@ -513,7 +501,7 @@ AS `sakila`.`actor` CLASS MyServiceSakilaActor {
 };
 
 ALTER REST DATA MAPPING VIEW /actor
-ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService SCHEMA /sakila
+ON SERVICE miguel,'alfredo@oracle.com'@/myTestService SCHEMA /sakila
 OPTIONS {
     "option1": "this is option 1",
     "option2": {
@@ -522,46 +510,46 @@ OPTIONS {
 };
 
 CREATE REST CONTENT SET /mySet
-ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService;
+ON SERVICE miguel,'alfredo@oracle.com'@/myTestService;
 
 CREATE REST CONTENT FILE "/textFile"
-ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService CONTENT SET /mySet
+ON SERVICE miguel,'alfredo@oracle.com'@/myTestService CONTENT SET /mySet
 CONTENT "normal string";
 
 CREATE REST CONTENT FILE "/binaryFile1"
-ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService CONTENT SET /mySet
+ON SERVICE miguel,'alfredo@oracle.com'@/myTestService CONTENT SET /mySet
 BINARY CONTENT "aHR0cHM6Ly93d3cuYmFzZTY0ZW5jb2RlLm9yZy8gVGVzdA==";
 
 CREATE REST CONTENT FILE "/binaryFile2"
-ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService CONTENT SET /mySet
+ON SERVICE miguel,'alfredo@oracle.com'@/myTestService CONTENT SET /mySet
 BINARY CONTENT "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=";
 
 CREATE REST CONTENT FILE "/binaryFile3"
-ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService CONTENT SET /mySet
+ON SERVICE miguel,'alfredo@oracle.com'@/myTestService CONTENT SET /mySet
 BINARY CONTENT "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=";
 
 CREATE REST CONTENT FILE "/binaryFile4"
-ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService CONTENT SET /mySet
+ON SERVICE miguel,'alfredo@oracle.com'@/myTestService CONTENT SET /mySet
 FROM "grammar/test/binary_test_file";
 
 CREATE REST CONTENT FILE "/binaryFile5"
-ON SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService CONTENT SET /mySet
+ON SERVICE miguel,'alfredo@oracle.com'@/myTestService CONTENT SET /mySet
 FROM "grammar/test/text_test_file.sql";
 
 
 DROP REST CONTENT FILE "/textFile"
-FROM SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService CONTENT SET /mySet;
+FROM SERVICE miguel,'alfredo@oracle.com'@/myTestService CONTENT SET /mySet;
 
 DROP REST CONTENT FILE "/binaryFile1"
-FROM SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService CONTENT SET /mySet;
+FROM SERVICE miguel,'alfredo@oracle.com'@/myTestService CONTENT SET /mySet;
 
 DROP REST CONTENT SET /mySet
-FROM SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService;
+FROM SERVICE miguel,'alfredo@oracle.com'@/myTestService;
 
-ALTER REST SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService
+ALTER REST SERVICE miguel,'alfredo@oracle.com'@/myTestService
     PUBLISHED;
 
-DROP REST SERVICE miguel,'alfredo@oracle.com'@localhost:80/myTestService;
+DROP REST SERVICE miguel,'alfredo@oracle.com'@/myTestService;
 
 
 
@@ -615,27 +603,27 @@ AS `test`.`t1` {
 
 DROP REST SERVICE /myTest;
 
-CREATE OR REPLACE REST SERVICE localhost/testService;
+CREATE OR REPLACE REST SERVICE /testService;
 
-USE REST SERVICE localhost/testService;
+USE REST SERVICE /testService;
 
 CREATE OR REPLACE REST ROLE "role1";
 
 GRANT REST READ ON SERVICE "*" TO 'Role1';
 
-GRANT REST READ ON SERVICE localhost/testService TO 'Role1';
+GRANT REST READ ON SERVICE /testService TO 'Role1';
 
-GRANT REST READ ON SERVICE localhost/testService SCHEMA /testSchema TO 'Role1';
+GRANT REST READ ON SERVICE /testService SCHEMA /testSchema TO 'Role1';
 
-GRANT REST READ ON SERVICE localhost/testService SCHEMA /testSchema
+GRANT REST READ ON SERVICE /testService SCHEMA /testSchema
     OBJECT /testObject TO 'Role1';
 
-GRANT REST READ ON SERVICE localhost/testService SCHEMA ''
+GRANT REST READ ON SERVICE /testService SCHEMA ''
     OBJECT '' TO 'Role1';
 
 DROP REST ROLE "role1";
 
-DROP REST SERVICE localhost/testService;
+DROP REST SERVICE /testService;
 
 CREATE OR REPLACE REST SERVICE /myTest;
 
@@ -662,5 +650,49 @@ CREATE OR REPLACE REST FUNCTION /actorFunc
     RESULT myServiceSakilaActorFunc {
         result: result @DATATYPE("char")
     };
+
+-- Test REST SERVICE Option Handling
+
+ALTER REST SERVICE /myTest MERGE OPTIONS {"test": 1};
+
+ALTER REST SERVICE /myTest MERGE OPTIONS {"test2": 2};
+
+SHOW CREATE REST SERVICE /myTest;
+
+ALTER REST SERVICE /myTest MERGE OPTIONS {"test": null};
+
+SHOW CREATE REST SERVICE /myTest;
+
+ALTER REST SERVICE /myTest OPTIONS {"test3": 1};
+
+SHOW CREATE REST SERVICE /myTest;
+
+-- Test REST SCHEMA Option Handling
+
+ALTER REST SCHEMA /test ON SERVICE /myTest MERGE OPTIONS {"test": 1};
+
+ALTER REST SCHEMA /test ON SERVICE /myTest MERGE OPTIONS {"test2": 2};
+
+SHOW CREATE REST SCHEMA /test ON SERVICE /myTest;
+
+ALTER REST SCHEMA /test ON SERVICE /myTest MERGE OPTIONS {"test": null};
+
+SHOW CREATE REST SCHEMA /test ON SERVICE /myTest;
+
+-- Test REST DB_OBJECT Option Handling
+
+ALTER REST FUNCTION /actorFunc ON SERVICE /myTest SCHEMA /test
+MERGE OPTIONS {"test": 1};
+
+ALTER REST FUNCTION /actorFunc ON SERVICE /myTest SCHEMA /test
+MERGE OPTIONS {"test2": 2};
+
+SHOW CREATE REST FUNCTION /actorFunc ON SERVICE /myTest SCHEMA /test;
+
+ALTER REST FUNCTION /actorFunc ON SERVICE /myTest SCHEMA /test
+MERGE OPTIONS {"test": null};
+
+SHOW CREATE REST FUNCTION /actorFunc ON SERVICE /myTest SCHEMA /test;
+
 
 DROP REST SERVICE /myTest;

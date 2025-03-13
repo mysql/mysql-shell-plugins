@@ -123,7 +123,7 @@ def test_configure(phone_book):
 
 
 def test_ls(phone_book):
-    list_output = ls("localhost/test")
+    list_output = ls("/test")
     assert list_output is None
 
     list_output = ls()
@@ -132,7 +132,7 @@ def test_ls(phone_book):
     from ...lib.core import set_current_objects
     set_current_objects()
 
-    list_output = ls("localhost/test")
+    list_output = ls("/test")
     assert list_output is None
 
     list_output = ls()
@@ -141,7 +141,7 @@ def test_ls(phone_book):
     set_current_objects(
         service_id=phone_book["service_id"], schema_id=phone_book["schema_id"])
 
-    list_output = ls("localhost/test")
+    list_output = ls("/test")
     assert list_output is None
 
     list_output = ls()
@@ -152,10 +152,10 @@ def test_cd():
     cd_output = cd("")
     assert cd_output is None
 
-    cd_output = cd("localhost/test")
+    cd_output = cd("/test")
     assert cd_output is None
 
-    cd_output = cd("localhost/test/PhoneBook")
+    cd_output = cd("/test/PhoneBook")
     assert cd_output is None
 
 

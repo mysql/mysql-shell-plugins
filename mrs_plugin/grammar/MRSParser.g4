@@ -131,7 +131,7 @@ quotedTextOrDefault: (quotedText | DEFAULT_SYMBOL)
 ;
 
 jsonOptions:
-    OPTIONS_SYMBOL jsonValue
+    MERGE_SYMBOL? OPTIONS_SYMBOL jsonValue
 ;
 
 metadata:
@@ -801,11 +801,11 @@ showCreateRestAuthAppStatement:
 // Named identifiers ========================================================
 
 serviceRequestPath:
-    serviceDevelopersIdentifier? hostAndPortIdentifier? requestPathIdentifier
+    serviceDevelopersIdentifier? requestPathIdentifier
 ;
 
 newServiceRequestPath:
-    serviceDevelopersIdentifier? hostAndPortIdentifier? requestPathIdentifier
+    serviceDevelopersIdentifier? requestPathIdentifier
 ;
 
 schemaRequestPath:
@@ -872,19 +872,12 @@ serviceDeveloperIdentifier: (identifier | quotedText)
 serviceDevelopersIdentifier:
     serviceDeveloperIdentifier (
         COMMA_SYMBOL serviceDeveloperIdentifier
-    )* AT_SIGN_SYMBOL?
+    )* AT_SIGN_SYMBOL
 ;
 
 dottedIdentifier:
     simpleIdentifier
     | identifier dotIdentifier*
-;
-
-hostAndPortIdentifier: (
-        (dottedIdentifier | AT_TEXT_SUFFIX) (
-            COLON_SYMBOL INT_NUMBER
-        )?
-    )
 ;
 
 requestPathIdentifier: (

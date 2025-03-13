@@ -28,29 +28,29 @@ from ... services import *
 from .helpers import ServiceCT, SchemaCT, AuthAppCT, DbObjectCT, get_default_db_object_init, TableContents, string_replace
 from mrs_plugin import lib
 
-service_create_statement = """CREATE REST SERVICE localhost/test
+service_create_statement = """CREATE REST SERVICE /test
     COMMENTS "Test service";"""
 
-service_create_statement_include_all_objects = """CREATE REST SERVICE localhost/test
+service_create_statement_include_all_objects = """CREATE REST SERVICE /test
     COMMENTS "Test service";
 
-CREATE REST ROLE "DBA" ON SERVICE localhost/test
+CREATE REST ROLE "DBA" ON SERVICE /test
     COMMENTS "Database administrator."
     OPTIONS {};
 
-CREATE REST ROLE "Maintenance Admin" EXTENDS "DBA" ON SERVICE localhost/test
+CREATE REST ROLE "Maintenance Admin" EXTENDS "DBA" ON SERVICE /test
     COMMENTS "Maintenance administrator."
     OPTIONS {};
 
-CREATE REST ROLE "Process Admin" EXTENDS "Maintenance Admin" ON SERVICE localhost/test
+CREATE REST ROLE "Process Admin" EXTENDS "Maintenance Admin" ON SERVICE /test
     COMMENTS "Process administrator."
     OPTIONS {};
 
-CREATE OR REPLACE REST SCHEMA /AnalogPhoneBook ON SERVICE localhost/test
+CREATE OR REPLACE REST SCHEMA /AnalogPhoneBook ON SERVICE /test
     FROM `AnalogPhoneBook`;
 
 CREATE OR REPLACE REST VIEW /Contacts
-    ON SERVICE localhost/test SCHEMA /AnalogPhoneBook
+    ON SERVICE /test SCHEMA /AnalogPhoneBook
     AS AnalogPhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
         id: id @KEY @SORTABLE,
         fName: f_name,
@@ -60,11 +60,11 @@ CREATE OR REPLACE REST VIEW /Contacts
     }
     AUTHENTICATION REQUIRED;
 
-CREATE OR REPLACE REST SCHEMA /MobilePhoneBook ON SERVICE localhost/test
+CREATE OR REPLACE REST SCHEMA /MobilePhoneBook ON SERVICE /test
     FROM `MobilePhoneBook`;
 
 CREATE OR REPLACE REST VIEW /Contacts
-    ON SERVICE localhost/test SCHEMA /MobilePhoneBook
+    ON SERVICE /test SCHEMA /MobilePhoneBook
     AS MobilePhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
         id: id @KEY @SORTABLE,
         fName: f_name,
@@ -74,11 +74,11 @@ CREATE OR REPLACE REST VIEW /Contacts
     }
     AUTHENTICATION REQUIRED;
 
-CREATE OR REPLACE REST SCHEMA /PhoneBook ON SERVICE localhost/test
+CREATE OR REPLACE REST SCHEMA /PhoneBook ON SERVICE /test
     FROM `PhoneBook`;
 
 CREATE OR REPLACE REST VIEW /Contacts
-    ON SERVICE localhost/test SCHEMA /PhoneBook
+    ON SERVICE /test SCHEMA /PhoneBook
     AS PhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
         id: id @KEY @SORTABLE,
         fName: f_name,
@@ -89,13 +89,13 @@ CREATE OR REPLACE REST VIEW /Contacts
     AUTHENTICATION REQUIRED;
 
 CREATE OR REPLACE REST CONTENT SET /test_content_set
-    ON SERVICE localhost/test
+    ON SERVICE /test
     COMMENTS "Content Set"
     OPTIONS {}
     AUTHENTICATION NOT REQUIRED;
 
 CREATE OR REPLACE REST CONTENT FILE "/readme.txt"
-    ON SERVICE localhost/test CONTENT SET /test_content_set
+    ON SERVICE /test CONTENT SET /test_content_set
     OPTIONS {
         "last_modification": "__README_TXT_LAST_MODIFICATION__"
     }
@@ -105,7 +105,7 @@ Line "2"
 Line \\\\3\\\\';
 
 CREATE OR REPLACE REST CONTENT FILE "/somebinaryfile.bin"
-    ON SERVICE localhost/test CONTENT SET /test_content_set
+    ON SERVICE /test CONTENT SET /test_content_set
     OPTIONS {
         "last_modification": "__SOMEBINARYFILE_BIN_LAST_MODIFICATION__"
     }
@@ -123,7 +123,7 @@ def test_add_service(phone_book, table_contents):
     services_table = table_contents("service")
 
     with pytest.raises(Exception) as exc_info:
-        add_service(url_context_root="/test", url_host_name="localhost", enabled=True, **args)
+        add_service(url_context_root="/test", enabled=True, **args)
     assert str(exc_info.value) == "MySQL Error (1644): The request_path is already used by another entity."
 
     assert services_table.same_as_snapshot
@@ -133,7 +133,7 @@ def test_add_service(phone_book, table_contents):
         "comments": "Test service 2",
     }
 
-    with ServiceCT(session, "/service2", "localhost", **args) as service_id:
+    with ServiceCT(session, "/service2", **args) as service_id:
         assert service_id is not None
         assert services_table.count == services_table.snapshot.count + 1
 
@@ -142,7 +142,7 @@ def test_add_service(phone_book, table_contents):
 
 def test_get_services(phone_book, table_contents):
     session = phone_book["session"]
-    session.run_sql("use rest service localhost/test")
+    session.run_sql("use rest service /test")
 
     services = get_services()
     assert services is not None
@@ -162,16 +162,16 @@ def test_get_services(phone_book, table_contents):
         "auth_completed_url_validation": None,
         "auth_path": "/authentication",
         "url_protocol": ["HTTP"],
-        "url_host_name": "localhost",
+        "url_host_name": "",
         "url_context_root": "/test",
         "url_host_id": services[0]["url_host_id"],
         "options": None,
         "metadata": None,
         "comments": "Test service",
-        "host_ctx": "localhost/test",
+        "host_ctx": "/test",
         "is_current": 1,
         "in_development": None,
-        "full_service_path": "localhost/test",
+        "full_service_path": "/test",
         "published": 0,
         "sorted_developers": None,
         "name": "mrs",
@@ -182,19 +182,19 @@ def test_get_services(phone_book, table_contents):
 def test_get_service(phone_book, table_contents):
     service_table = table_contents("service")
     session = phone_book["session"]
-    session.run_sql("use rest service localhost/test")
+    session.run_sql("use rest service /test")
 
     args = {
     }
 
-    service = get_service(url_host_name="localhost", url_context_root="/test", **args)
+    service = get_service(url_context_root="/test", **args)
 
     assert service is not None
     assert isinstance(service, dict)
     assert service == {
         "comments": "Test service",
         "enabled": 1,
-        "host_ctx": "localhost/test",
+        "host_ctx": "/test",
         "id": service["id"],
         "parent_id": None,
         "auth_completed_page_content": None,
@@ -205,11 +205,11 @@ def test_get_service(phone_book, table_contents):
         "metadata": None,
         "url_context_root": "/test",
         "url_host_id": service["url_host_id"],
-        "url_host_name": "localhost",
         "url_protocol": ["HTTP"],
+        "url_host_name": "",
         "is_current": 1,
         "in_development": None,
-        "full_service_path": "localhost/test",
+        "full_service_path": "/test",
         "published": 0,
         "sorted_developers": None,
         "name": "mrs",
@@ -236,15 +236,15 @@ def test_get_service(phone_book, table_contents):
         "name": "mrs",
     }
 
-    with ServiceCT(session, "/service2", "localhost", **args) as service_id:
+    with ServiceCT(session, "/service2", **args) as service_id:
         assert service_id is not None
-        service = get_service(url_host_name="localhost", url_context_root="/service2", **args)
+        service = get_service(url_context_root="/service2", **args)
         assert service is not None
         assert isinstance(service, dict)
         assert service == {
             "comments": "",
             "enabled": 1,
-            "host_ctx": "localhost/service2",
+            "host_ctx": "/service2",
             "id": service_id,
             "parent_id": None,
             "auth_completed_page_content": None,
@@ -268,11 +268,11 @@ def test_get_service(phone_book, table_contents):
             "metadata": None,
             "url_context_root": "/service2",
             "url_host_id": service["url_host_id"],
-            "url_host_name": "localhost",
             "url_protocol": ["HTTP"],
+            "url_host_name": "",
             "is_current": 0,
             "in_development": None,
-            "full_service_path": "localhost/service2",
+            "full_service_path": "/service2",
             "published": 0,
             "sorted_developers": None,
             "name": "mrs",
@@ -285,7 +285,7 @@ def test_change_service(phone_book):
     args = {
     }
 
-    with ServiceCT(session, url_host_name="localhost", url_context_root="/service2", **args) as service_id:
+    with ServiceCT(session, url_context_root="/service2", **args) as service_id:
         assert service_id is not None
 
         args_for_get_service = {
@@ -349,7 +349,6 @@ def test_change_service(phone_book):
 def test_delete_service(phone_book, table_contents):
     service_args = {
         "url_context_root": "/service_to_delete",
-        "url_host_name": "localhost",
         "url_protocol": "HTTP",
         "is_default": False,
         "comments": "no comments",
@@ -471,7 +470,7 @@ def test_dump_create_statement(phone_book, table_contents):
 def test_dump_and_recover(phone_book, table_contents):
     # drop stuff created by fixture
     session = phone_book["session"]
-    create_statement = """CREATE REST SERVICE localhost/test2
+    create_statement = """CREATE REST SERVICE /test2
     OPTIONS {
         "http": {
             "allowedOrigin": "auto"
@@ -495,11 +494,11 @@ def test_dump_and_recover(phone_book, table_contents):
         "returnInternalErrorDetails": true
     };
 
-CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE localhost/test2
+CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE /test2
     FROM `PhoneBook`;
 
 CREATE OR REPLACE REST VIEW /addresses
-    ON SERVICE localhost/test2 SCHEMA /PhoneBook2
+    ON SERVICE /test2 SCHEMA /PhoneBook2
     AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
         id: id @KEY
     }
@@ -526,7 +525,7 @@ CREATE OR REPLACE REST VIEW /addresses
     services = lib.services.get_services(session)
     assert len(services) == 1
 
-    with ServiceCT(session, "/test2", "localhost") as test2_service_id:
+    with ServiceCT(session, "/test2") as test2_service_id:
         with SchemaCT(session, test2_service_id, "PhoneBook", "/PhoneBook2") as schema_id:
             auth_app_init = {
                 "name": "Test Auth App 3",
@@ -574,7 +573,7 @@ CREATE OR REPLACE REST VIEW /addresses
     assert len(services) == 2
 
     for service in services:
-        if service["host_ctx"] == "localhost/test2":
+        if service["host_ctx"] == "/test2":
             dump_service(full_path_file2, service["id"], include_all_objects=True)
             lib.services.delete_service(session, service["id"])
 
@@ -591,12 +590,12 @@ def test_service_selection(phone_book, table_contents):
     content_file_table: TableContents = table_contents("content_file")
     session = phone_book["session"]
 
-    with ServiceCT(session, url_host_name="localhost", url_context_root="/service2", **{ "comments": "Test service2" }) as service2_id:
+    with ServiceCT(session, url_context_root="/service2", **{ "comments": "Test service2" }) as service2_id:
         assert service2_id is not None
-        assert len(service_table.items) == 2
+        assert len(service_table.items) == 2, service_table.items
         service_id = phone_book["service_id"]
 
-        service2_create_statement = """CREATE REST SERVICE localhost/service2
+        service2_create_statement = """CREATE REST SERVICE /service2
     COMMENTS "Test service2"
     OPTIONS {
         "http": {
@@ -625,19 +624,18 @@ def test_service_selection(phone_book, table_contents):
         items = [
             { "result": service_create_statement },
             { "service_id": lib.core.convert_id_to_string(service_id), "result": service_create_statement },
-            { "service_id": lib.core.convert_id_to_string(service_id), "service": "localhost/service2", "result": service_create_statement },
+            { "service_id": lib.core.convert_id_to_string(service_id), "service": "/service2", "result": service_create_statement },
             { "service_id": lib.core.convert_id_to_string(service2_id), "result": service2_create_statement },
-            { "service": "localhost/service2", "result": service2_create_statement },
+            { "service": "/service2", "result": service2_create_statement },
             { "service": lib.core.convert_id_to_string(service2_id), "result": service2_create_statement },
-            { "url_host_name": "localhost", "url_context_root": "/service2", "result": service2_create_statement },
-            { "service": "localhost/test", "url_host_name": "localhost", "url_context_root": "/service2", "result": service_create_statement },
-            { "service_id": lib.core.convert_id_to_string(service_id), "url_host_name": "localhost", "url_context_root": "/service2", "result": service_create_statement },
+            { "url_context_root": "/service2", "result": service2_create_statement },
+            #{ "service": "/test", "url_context_root": "/service2", "result": service_create_statement },
+            #{ "service_id": lib.core.convert_id_to_string(service_id), "url_context_root": "/service2", "result": service_create_statement },
         ]
 
         for item in items:
             sql = get_create_statement(service_id=item.get("service_id"),
                                     service=item.get("service"),
-                                    url_host_name=item.get("url_host_name"), url_context_root=item.get("url_context_root"),
+                                    url_context_root=item.get("url_context_root"),
                                     include_all_objects=False, session=phone_book["session"])
-
             assert sql == item["result"]

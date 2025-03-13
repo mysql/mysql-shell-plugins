@@ -435,8 +435,8 @@ def test_user_sql_service(phone_book):
     session = phone_book["session"]
 
     script = [
-        "CREATE REST SERVICE localhost/one",
-        "CREATE REST SERVICE localhost/two",
+        "CREATE REST SERVICE /one",
+        "CREATE REST SERVICE /two",
         'CREATE REST AUTH APP "app1" VENDOR MySQL COMMENTS "svc1"',
         'CREATE REST AUTH APP "app2" VENDOR MySQL COMMENTS "svc2"',
         'CREATE REST USER "usr"@"app1" OPTIONS {"email": "one@site.com"}',
@@ -449,8 +449,8 @@ def test_user_sql_service(phone_book):
             print(sql)
             raise
 
-    id_one = lib.services.get_service(session=session, url_host_name="localhost", url_context_root="/one")["id"]
-    id_two = lib.services.get_service(session=session, url_host_name="localhost",url_context_root="/two")["id"]
+    id_one = lib.services.get_service(session=session, url_context_root="/one")["id"]
+    id_two = lib.services.get_service(session=session, url_context_root="/two")["id"]
 
     user = lib.users.get_user(session=session, user_name="usr", auth_app_name="app1", service_id=id_one)
     assert user["email"] == "one@site.com"
@@ -464,5 +464,5 @@ def test_user_sql_service(phone_book):
     user = lib.users.get_user(session=session, user_name="usr", auth_app_name="app2", service_id=id_two)
     assert user["email"] == "TWO@site.com"
 
-    session.run_sql("DROP REST SERVICE localhost/one")
-    session.run_sql("DROP REST SERVICE localhost/two")
+    session.run_sql("DROP REST SERVICE /one")
+    session.run_sql("DROP REST SERVICE /two")

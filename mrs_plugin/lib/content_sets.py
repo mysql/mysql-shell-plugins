@@ -364,7 +364,8 @@ def add_content_set(session, service_id, request_path, requires_auth=False, comm
     return values["id"], len(file_list) if file_list is not None else 0
 
 
-def update_content_set(session, content_set_id, value, file_ignore_list=None, send_gui_message=None):
+def update_content_set(session, content_set_id, value, file_ignore_list=None,
+                       send_gui_message=None, merge_options=False):
     if value is None:
         raise ValueError(
             "Failed to update REST content set. No values specified.")
@@ -380,11 +381,33 @@ def update_content_set(session, content_set_id, value, file_ignore_list=None, se
     if contains_mrs_scripts is True:
         value["content_type"] = "SCRIPTS"
 
+    # Prepare the merge of options, if requested
+    if merge_options:
+        options = value.get("options", None)
+        # Check if there are options set already, if so, merge the options
+        if options is not None:
+            row = core.MrsDbExec("""
+                SELECT options IS NULL AS options_is_null
+                FROM `mysql_rest_service_metadata`.`content_set`
+                WHERE id = ?""", [content_set_id]).exec(session).first
+            if row and row["options_is_null"] == 1:
+                merge_options = False
+            else:
+                value.pop("options")
+
     core.update(
         table="content_set",
         sets=value,
         where=["id=?"]
     ).exec(session, [content_set_id])
+
+    # Merge options if requested
+    if merge_options and options is not None:
+        core.MrsDbExec("""
+            UPDATE `mysql_rest_service_metadata`.`content_set`
+            SET options = JSON_MERGE_PATCH(options, ?)
+            WHERE id = ?
+            """, [options, content_set_id]).exec(session)
 
     if contains_mrs_scripts:
         # Update db_schemas/db_objects based on script definition

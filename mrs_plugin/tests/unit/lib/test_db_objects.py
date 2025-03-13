@@ -75,7 +75,7 @@ def test_update_db_object(phone_book, table_contents):
                 "crud_operation_format": db_object["crud_operation_format"],
                 "db_schema_id": phone_book["schema_id"],
                 "enabled": int(db_object["enabled"]),
-                "host_ctx": "localhost/test",
+                "host_ctx": "/test",
                 "items_per_page": db_object["items_per_page"],
                 "media_type": db_object["media_type"],
                 "name": db_object["db_object_name"],

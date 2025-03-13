@@ -90,6 +90,7 @@ ALL_SYMBOL:            A L L;
 PARAMETERS_SYMBOL:     P A R A M E T E R S;
 ADD_SYMBOL:            A D D;
 REMOVE_SYMBOL:         R E M O V E;
+MERGE_SYMBOL:          M E R G E;
 
 // Used for auto merging this grammar and the standard MySQL grammar.
 /* START OF MERGE PART */

@@ -71,6 +71,8 @@ class MrsDdlListener(MRSListener):
 
     def enterJsonOptions(self, ctx):
         try:
+            if ctx.MERGE_SYMBOL() is not None:
+                self.mrs_object["merge_options"] = True
             self.mrs_object["options"] = json.loads(ctx.jsonValue().getText())
         except:
             pass
@@ -125,25 +127,6 @@ class MrsDdlListener(MRSListener):
         self.mrs_object["items_per_page"] = int(
             ctx.itemsPerPageNumber().getText())
 
-    def exitServiceDevelopersIdentifier(self, ctx):
-        # Workaround in order to allow a singe @ after the developer list:
-        # If there was no @ symbol after the developers, and there is no hostAndPortIdentifier
-        # this means that the user only specified a hostAndPortIdentifier and it was
-        # matched as a developer. Fix this assignment.
-        if (
-            ctx.AT_SIGN_SYMBOL() is None
-            and ctx.parentCtx.hostAndPortIdentifier() is None
-        ):
-            if "new_developer_list" in self.mrs_object.keys():
-                self.mrs_object["new_url_host_name"] = ctx.getText()
-                if "new_developer_list" in self.mrs_object.keys():
-                    self.mrs_object.pop("new_developer_list", None)
-            else:
-                self.mrs_object["url_host_name"] = get_text_without_quotes(
-                    ctx.getText())
-                if "in_development" in self.mrs_object.keys():
-                    self.mrs_object.pop("in_development", None)
-
     def enterServiceDeveloperIdentifier(self, ctx):
         # If the new_developer_list list has been initialized, all following developers are part of the
         # new developer list to be set by the ALTER REST SERVICE statement
@@ -163,13 +146,6 @@ class MrsDdlListener(MRSListener):
         self.mrs_object["url_context_root"] = get_text_without_quotes(
             ctx.requestPathIdentifier().getText()
         )
-        # Check if there was a host:port defined as well
-        val = ctx.hostAndPortIdentifier()
-        if val is not None:
-            # Make sure to remove a leading @ that could appear because of a hack
-            # to prevent the Lexer matching AT_TEXT_SUFFIX
-            self.mrs_object["url_host_name"] = get_text_without_quotes(
-                val.getText().lstrip("@"))
 
     def enterServiceSchemaSelector(self, ctx):
         self.mrs_object["schema_request_path"] = get_text_without_quotes(
@@ -411,15 +387,6 @@ class MrsDdlListener(MRSListener):
                     .getText()
                 )
 
-                if serviceRequestPath.hostAndPortIdentifier() is not None:
-                    url_host_name = get_text_without_quotes(
-                        ctx.serviceSchemaSelector()
-                        .serviceRequestPath()
-                        .hostAndPortIdentifier()
-                        .getText()
-                        .lstrip("@")
-                    )
-
                 if serviceRequestPath.serviceDevelopersIdentifier() is not None:
                     developer_list = []
                     developersIdentifier = (
@@ -436,21 +403,6 @@ class MrsDdlListener(MRSListener):
                             else:
                                 developer_list.append(item.getText())
                     if len(developer_list) == 0:
-                        developer_list = None
-
-                    # Workaround in order to allow a singe @ after the developer list:
-                    # If there was no @ symbol after the developers, and there is no hostAndPortIdentifier
-                    # this means that the user only specified a hostAndPortIdentifier and it was
-                    # matched as a developer. Fix this assignment.
-                    if (
-                        serviceRequestPath.serviceDevelopersIdentifier().AT_SIGN_SYMBOL()
-                        is None
-                        and serviceRequestPath.hostAndPortIdentifier() is None
-                    ):
-                        self.mrs_object["url_host_name"] = get_text_without_quotes(
-                            serviceRequestPath.serviceDevelopersIdentifier().getText()
-                        )
-                        url_host_name = self.mrs_object["url_host_name"]
                         developer_list = None
         else:
             schema_request_path = self.mrs_object.get("schema_request_path")
@@ -1426,11 +1378,6 @@ class MrsDdlListener(MRSListener):
         self.mrs_object["new_url_context_root"] = get_text_without_quotes(
             ctx.requestPathIdentifier().getText()
         )
-        # Check if there was a host:port defined as well
-        val = ctx.hostAndPortIdentifier()
-        if val is not None:
-            self.mrs_object["new_url_host_name"] = get_text_without_quotes(
-                val.getText().lstrip("@"))
 
     def exitAlterRestServiceStatement(self, ctx):
         self.mrs_ddl_executor.alterRestService(self.mrs_object)

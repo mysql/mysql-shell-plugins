@@ -76,8 +76,8 @@ def test_grant_revoke_sql(phone_book, table_contents: TableContents):
         session.run_sql('create rest role "ROLE2"')
 
         k_services = [
-            ("localhost", "/test"),
-            ("localhost", '"/test*"'),
+            "/test",
+            '"/test*"',
             "/myService",
             "*",
             "",
@@ -107,10 +107,7 @@ def test_grant_revoke_sql(phone_book, table_contents: TableContents):
                     s = ""
                 if o is None:
                     o = ""
-            if isinstance(svc, tuple):
-                s_svc = f"SERVICE {q(svc[0])} {q(svc[1])}" if svc is not None else ""
-            else:
-                s_svc = f"SERVICE {q(svc)}" if svc is not None else ""
+            s_svc = f"SERVICE {q(svc)}" if svc is not None else ""
             s_s = f"SCHEMA {q(s)}" if s is not None else ""
             s_o = f"OBJECT {q(o)}" if o is not None else ""
             if s_svc or s_s or s_o:

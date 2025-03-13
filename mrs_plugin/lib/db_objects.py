@@ -398,7 +398,8 @@ def add_db_object(session, schema_id, db_object_name, request_path, db_object_ty
             objects=objects,
             db_object_type=db_object_type,
             explicit_grants=options.get("grants", None),
-            disable_automatic_grants=options.get("disableAutomaticGrants", False),
+            disable_automatic_grants=options.get(
+                "disableAutomaticGrants", False),
         )
 
 
@@ -426,7 +427,7 @@ def get_available_db_object_row_ownership_fields(session, schema_name, db_object
     return [record["name"] for record in sql.exec(session, [schema_name, db_object_name]).items]
 
 
-def update_db_objects(session, db_object_ids, value):
+def update_db_objects(session, db_object_ids, value, merge_options=False):
     if "crud_operation_format" in value:
         value["format"] = value.pop("crud_operation_format")
 
@@ -443,9 +444,32 @@ def update_db_objects(session, db_object_ids, value):
                 db_object_type=db_object.get("object_type"), objects=objects,
                 options=db_object.get("options", None))
 
-        core.update("db_object",
-                    sets=value,
-                    where=["id=?"]).exec(session, [db_object_id])
+        # Prepare the merge of options, if requested
+        if merge_options:
+            options = value.get("options", None)
+            # Check if there are options set already, if so, merge the options
+            if options is not None:
+                row = core.MrsDbExec("""
+                    SELECT options IS NULL AS options_is_null
+                    FROM `mysql_rest_service_metadata`.`db_object`
+                    WHERE id = ?""", [db_object_id]).exec(session).first
+                if row and row["options_is_null"] == 1:
+                    merge_options = False
+                else:
+                    value.pop("options")
+
+        if value:
+            core.update("db_object",
+                        sets=value,
+                        where=["id=?"]).exec(session, [db_object_id])
+
+        # Merge options if requested
+        if merge_options and options is not None:
+            core.MrsDbExec("""
+                UPDATE `mysql_rest_service_metadata`.`db_object`
+                SET options = JSON_MERGE_PATCH(options, ?)
+                WHERE id = ?
+                """, [options, db_object_id]).exec(session)
 
         grant_privileges = map_crud_operations(
             value.get("crud_operations", []))
@@ -465,7 +489,8 @@ def update_db_objects(session, db_object_ids, value):
 
         # Grant privilege to the 'mysql_rest_service_data_provider' role
         database.grant_db_object(
-            session, schema.get("name"), db_object['name'], grant_privileges, objects, db_object["object_type"],
+            session, schema.get(
+                "name"), db_object['name'], grant_privileges, objects, db_object["object_type"],
             explicit_grants=options.get("grants", None),
             disable_automatic_grants=options.get("disableAutomaticGrants", False))
 
@@ -566,11 +591,15 @@ def set_object_fields_with_references(session, db_object_id, obj):
         options = obj.get("options", None)
         # To be backwards compatible, duplicate the options using the old key names
         if current_version[0] >= 1 and options is not None:
-            options["duality_view_insert"] = options.get("dataMappingViewInsert", None)
-            options["duality_view_update"] = options.get("dataMappingViewUpdate", None)
-            options["duality_view_delete"] = options.get("dataMappingViewDelete", None)
+            options["duality_view_insert"] = options.get(
+                "dataMappingViewInsert", None)
+            options["duality_view_update"] = options.get(
+                "dataMappingViewUpdate", None)
+            options["duality_view_delete"] = options.get(
+                "dataMappingViewDelete", None)
             if options.get("dataMappingViewNoCheck", None) is not None:
-                options["duality_view_no_check"] = options.get("dataMappingViewNoCheck", None)
+                options["duality_view_no_check"] = options.get(
+                    "dataMappingViewNoCheck", None)
         values["options"] = options
         row_ownership_field_id = obj.get("row_ownership_field_id", None)
         if row_ownership_field_id is not None:
@@ -630,11 +659,15 @@ def set_object_fields_with_references(session, db_object_id, obj):
                 options = obj.get("options", None)
                 # To be backwards compatible, duplicate the options using the old key names
                 if current_version[0] >= 1 and options is not None:
-                    options["duality_view_insert"] = options.get("dataMappingViewInsert", None)
-                    options["duality_view_update"] = options.get("dataMappingViewUpdate", None)
-                    options["duality_view_delete"] = options.get("dataMappingViewDelete", None)
+                    options["duality_view_insert"] = options.get(
+                        "dataMappingViewInsert", None)
+                    options["duality_view_update"] = options.get(
+                        "dataMappingViewUpdate", None)
+                    options["duality_view_delete"] = options.get(
+                        "dataMappingViewDelete", None)
                     if options.get("dataMappingViewNoCheck", None) is not None:
-                        options["duality_view_no_check"] = options.get("dataMappingViewNoCheck", None)
+                        options["duality_view_no_check"] = options.get(
+                            "dataMappingViewNoCheck", None)
                 values["options"] = options
                 row_ownership_field_id = obj_ref.get(
                     "row_ownership_field_id", None)
@@ -673,7 +706,8 @@ def set_object_fields_with_references(session, db_object_id, obj):
 
             if current_version[0] >= 3:
                 values["options"] = field.get("options", None)
-                values["json_schema"] = core.convert_dict_to_json_string(field.get("json_schema", None))
+                values["json_schema"] = core.convert_dict_to_json_string(
+                    field.get("json_schema", None))
 
             core.insert(table="object_field", values=values).exec(session)
 

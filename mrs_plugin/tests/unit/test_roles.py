@@ -31,7 +31,7 @@ from .helpers import get_default_role_init, RoleCT, QueryResults, TableContents
 def test_sql(phone_book):
     session = phone_book["session"]
 
-    session.run_sql("use rest service localhost/test")
+    session.run_sql("use rest service /test")
 
     with QueryResults(lambda: session.run_sql("show rest roles")) as qr:
         session.run_sql('create rest role "myrole"')
@@ -43,11 +43,11 @@ def test_sql(phone_book):
                     "derived_from_role": "",
                     "description": "",
                     "options": "{}",
-                    "specific_to_service": "localhost/test",
+                    "specific_to_service": "/test",
                 }
             ]
         )
-        session.run_sql('create rest role "myrole2" on service localhost/test')
+        session.run_sql('create rest role "myrole2" on service /test')
         qr.expect_added(
             [
                 {
@@ -55,14 +55,14 @@ def test_sql(phone_book):
                     "derived_from_role": "",
                     "description": "",
                     "options": "{}",
-                    "specific_to_service": "localhost/test",
+                    "specific_to_service": "/test",
                 },
                 {
                     "REST role": "myrole2",
                     "derived_from_role": "",
                     "description": "",
                     "options": "{}",
-                    "specific_to_service": "localhost/test",
+                    "specific_to_service": "/test",
                 },
             ]
         )
@@ -75,21 +75,21 @@ def test_sql(phone_book):
                     "derived_from_role": "",
                     "description": "",
                     "options": "{}",
-                    "specific_to_service": "localhost/test",
+                    "specific_to_service": "/test",
                 },
                 {
                     "REST role": "myrole2",
                     "derived_from_role": "",
                     "description": "",
                     "options": "{}",
-                    "specific_to_service": "localhost/test",
+                    "specific_to_service": "/test",
                 },
                 {
                     "REST role": "myrole3",
                     "derived_from_role": "myrole",
                     "description": "",
                     "options": "{}",
-                    "specific_to_service": "localhost/test",
+                    "specific_to_service": "/test",
                 },
             ]
         )
@@ -106,21 +106,21 @@ def test_sql(phone_book):
                     "derived_from_role": "myrole",
                     "description": "",
                     "options": "{}",
-                    "specific_to_service": "localhost/test",
+                    "specific_to_service": "/test",
                 },
                 {
                     "REST role": "myrole2",
                     "derived_from_role": "",
                     "description": "",
                     "options": "{}",
-                    "specific_to_service": "localhost/test",
+                    "specific_to_service": "/test",
                 },
                 {
                     "REST role": "myrole",
                     "derived_from_role": "",
                     "description": "",
                     "options": "{}",
-                    "specific_to_service": "localhost/test",
+                    "specific_to_service": "/test",
                 },
             ]
         )
@@ -271,7 +271,7 @@ def test_sql_show(phone_book):
     # assert num_privilege == count_table("mrs_privilege")
     # assert num_service_has_auth_app == count_table("service_has_auth_app")
 
-    session.run_sql("use rest service localhost/test")
+    session.run_sql("use rest service /test")
 
 
 def test_sql_default_role_service(phone_book):

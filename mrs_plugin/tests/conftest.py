@@ -51,9 +51,11 @@ def init_mrs():
             "sandboxDir": deployment_dir.name
         })
 
-
     session: mysqlsh.globals.session = helpers.create_shell_session()
     assert session is not None
+
+    if os.getenv("REUSE_MYSQLD"):
+        session.run_sql("drop schema if exists mysql_rest_service_metadata")
 
     phone_book_dbs = ["PhoneBook", "MobilePhoneBook", "AnalogPhoneBook"]
 

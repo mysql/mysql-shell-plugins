@@ -605,7 +605,7 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
     )
 
     service = lib.services.get_service(
-        session, url_context_root=service_context_root, url_host_name="localhost"
+        session, url_context_root=service_context_root
     )
 
     if not service:
@@ -628,7 +628,7 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
             "auth_completed_page_content": None,
         }
 
-        service_id = lib.services.add_service(session, "localhost", service_data)
+        service_id = lib.services.add_service(session, None, service_data)
         service = lib.services.get_service(session, service_id=service_id)
 
     assert service is not None, f"Unable to add the /test service: {service}"
@@ -640,12 +640,12 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
         "parent_id": None,
         "enabled": 1,
         "url_protocol": ["HTTP"],
-        "url_host_name": "localhost",
+        "url_host_name": "",
         "url_context_root": service_context_root,
         "comments": "Test service",
         "options": None,
         "metadata": None,
-        "host_ctx": f"localhost{service_context_root}",
+        "host_ctx": f"{service_context_root}",
         "url_host_id": service["url_host_id"],
         "auth_path": "/authentication",
         "auth_completed_url": None,
@@ -653,7 +653,7 @@ def create_mrs_phonebook_schema(session, service_context_root, schema_name, temp
         "auth_completed_page_content": None,
         "is_current": 0,
         "in_development": None,
-        "full_service_path": f"localhost{service_context_root}",
+        "full_service_path": f"{service_context_root}",
         "published": 0,
         "sorted_developers": None,
         "name": "mrs",

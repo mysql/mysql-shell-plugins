@@ -116,7 +116,7 @@ def delete_schemas(session, schemas: list):
         delete_schema(session, schema_id)
 
 
-def update_schema(session, schemas: list, value: dict):
+def update_schema(session, schemas: list, value: dict, merge_options=False):
     if not schemas:
         raise ValueError("The specified schema was not found.")
 
@@ -135,9 +135,32 @@ def update_schema(session, schemas: list, value: dict):
         if current_version[0] <= 2:
             value.pop("metadata", None)
 
-        core.update(table="db_schema", sets=value, where=["id=?"]).exec(
-            session, [schema_id]
-        )
+        # Prepare the merge of options, if requested
+        if merge_options:
+            options = value.get("options", None)
+            # Check if there are options set already, if so, merge the options
+            if options is not None:
+                row = core.MrsDbExec("""
+                    SELECT options IS NULL AS options_is_null
+                    FROM `mysql_rest_service_metadata`.`db_schema`
+                    WHERE id = ?""", [schema_id]).exec(session).first
+                if row and row["options_is_null"] == 1:
+                    merge_options = False
+                else:
+                    value.pop("options")
+
+        if value:
+            core.update(table="db_schema", sets=value, where=["id=?"]).exec(
+                session, [schema_id]
+            )
+
+        # Merge options if requested
+        if merge_options and options is not None:
+            core.MrsDbExec("""
+                UPDATE `mysql_rest_service_metadata`.`db_schema`
+                SET options = JSON_MERGE_PATCH(options, ?)
+                WHERE id = ?
+                """, [options, schema_id]).exec(session)
 
 
 def query_schemas(

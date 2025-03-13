@@ -397,16 +397,13 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 developers = self.get_service_sorted_developers(
                     self.current_in_development.get("developers", "")
                 )
-
-            return (
-                developers + self.current_service_host
-                if self.current_service_host is not None
-                else (
-                    "" + self.current_service
-                    if self.current_service is not None
-                    else "" + request_path
-                )
-            )
+            if self.current_service_host:
+                return developers + self.current_service_host + request_path
+            else:
+                if self.current_service is not None:
+                    return "" + self.current_service + request_path
+                else:
+                    return "" + request_path
 
         developers = ""
         if mrs_object.get("in_development") is not None:
@@ -447,6 +444,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 enable_mrs=mrs_object.get("enabled"),
                 options=mrs_object.get("options"),
                 update_if_available=mrs_object.get("update_if_available"),
+                merge_options=mrs_object.get("merge_options", False),
             )
 
             self.results.append(
@@ -485,6 +483,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         add_auth_apps = mrs_object.pop("add_auth_apps", [])
         # No need to remove auth apps during creation
         mrs_object.pop("remove_auth_apps", [])
+
+        mrs_object.pop("merge_options", False)
 
         full_path = self.getFullServicePath(mrs_object=mrs_object)
         with lib.core.MrsDbTransaction(self.session):
@@ -895,7 +895,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 else:
                     data = mrs_object.get("content")
 
-                # TODO Add support for options
                 content_file_id = lib.content_files.add_content_file(
                     session=self.session,
                     content_set_id=content_set.get("id"),
@@ -1230,6 +1229,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             service.pop("is_current", None)
             service.pop("sorted_developers", None)
             service.pop("auth_apps", None)
+            service.pop("merge_options", None)
 
             # Add the service
             service_id = lib.services.add_service(
@@ -1269,15 +1269,13 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
         add_auth_apps = mrs_object.pop("add_auth_apps", [])
         remove_auth_apps = mrs_object.pop("remove_auth_apps", [])
+        merge_options = mrs_object.pop("merge_options", False)
 
         full_path = self.getFullServicePath(mrs_object)
 
         try:
+            line = mrs_object.pop("line", None)
             service_id = self.get_given_or_current_service_id(mrs_object)
-
-            service = lib.services.get_service(
-                session=self.session, service_id=service_id
-            )
 
             # If a new developer_list / url_context_root / url_host_name was given,
             # overwrite the existing values in the mrs_object
@@ -1291,7 +1289,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
             new_url_context_root = mrs_object.pop("new_url_context_root", None)
             new_url_host_name = mrs_object.pop("new_url_host_name", None)
-            line = mrs_object.pop("line", None)
             if new_url_context_root is not None:
                 if new_url_host_name is None:
                     new_url_host_name = ""
@@ -1300,7 +1297,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
             lib.services.update_services(
                 session=self.session, service_ids=[
-                    service_id], value=mrs_object
+                    service_id], value=mrs_object,
+                    merge_options=merge_options,
             )
 
             for auth_app_name in add_auth_apps:
@@ -1353,6 +1351,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         self.current_operation = mrs_object.pop("current_operation")
         full_path = self.getFullSchemaPath(mrs_object=mrs_object)
 
+        merge_options = mrs_object.pop("merge_options", False)
+
         try:
             service_id = self.get_given_or_current_service_id(mrs_object)
 
@@ -1386,6 +1386,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "options": mrs_object.get("options", schema["options"]),
                     "metadata": mrs_object.get("metadata", schema["metadata"]),
                 },
+                merge_options=merge_options,
             )
 
             self.results.append(
@@ -1430,6 +1431,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         mrs_object.pop("in_development", "")
         line = mrs_object.pop("line", None)
 
+        merge_options = mrs_object.pop("merge_options", False)
+
         try:
             db_object = lib.db_objects.get_db_object(
                 session=self.session, db_object_id=db_object_id
@@ -1463,6 +1466,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     session=self.session,
                     db_object_ids={db_object["id"]: ""},
                     value=mrs_object,
+                    merge_options=merge_options,
                 )
 
             if objects:
@@ -1497,6 +1501,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
         request_path = mrs_object.pop("request_path")
+
+        merge_options = mrs_object.pop("merge_options", False)
 
         full_path = self.getFullServicePath(
             mrs_object=mrs_object, request_path=request_path
@@ -1543,6 +1549,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     content_set_id=content_set["id"],
                     value=mrs_object,
                     file_ignore_list=file_ignore_list,
+                    merge_options=merge_options,
                 )
 
                 self.results.append(

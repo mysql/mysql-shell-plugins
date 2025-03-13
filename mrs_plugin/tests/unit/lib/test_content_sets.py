@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -94,7 +94,7 @@ def test_get_content_set(phone_book, table_contents):
             "requires_auth": 0,
             "enabled": 1,
             "comments": "Content Set",
-            "host_ctx": "localhost/test",
+            "host_ctx": "/test",
             "content_type": "STATIC",
             "options": {},
             "service_id": phone_book["service_id"],

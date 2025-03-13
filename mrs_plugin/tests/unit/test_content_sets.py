@@ -89,7 +89,7 @@ def test_get_content_sets(phone_book, table_contents):
         "requires_auth": 0,
         "enabled": 1,
         "comments": "Content Set",
-        "host_ctx": "localhost/test",
+        "host_ctx": "/test",
         "service_id": phone_book["service_id"],
         "content_type": "STATIC",
         "options": {},
@@ -104,7 +104,7 @@ def test_get_content_set(phone_book):
             'requires_auth': 0,
             'enabled': 1,
             'comments': 'Content Set',
-            'host_ctx': 'localhost/test',
+            'host_ctx': '/test',
             "options": None,
             "service_id": phone_book["service_id"],
             "content_type": "STATIC",
@@ -167,7 +167,7 @@ def test_enable_disable(phone_book, table_contents):
 
 def test_dump_and_recover(phone_book, table_contents):
     create_statement = """CREATE OR REPLACE REST CONTENT SET /tempContentSet
-    ON SERVICE localhost/test
+    ON SERVICE /test
     COMMENTS "Content set comment"
     OPTIONS {
         "option_1": "value 1",
@@ -177,7 +177,7 @@ def test_dump_and_recover(phone_book, table_contents):
     AUTHENTICATION NOT REQUIRED;
 
 CREATE OR REPLACE REST CONTENT FILE "/readme.txt"
-    ON SERVICE localhost/test CONTENT SET /tempContentSet
+    ON SERVICE /test CONTENT SET /tempContentSet
     OPTIONS {
         "last_modification": "__README_TXT_LAST_MODIFICATION__"
     }
@@ -187,7 +187,7 @@ Line "2"
 Line \\\\3\\\\';
 
 CREATE OR REPLACE REST CONTENT FILE "/somebinaryfile.bin"
-    ON SERVICE localhost/test CONTENT SET /tempContentSet
+    ON SERVICE /test CONTENT SET /tempContentSet
     OPTIONS {
         "last_modification": "__SOMEBINARYFILE_BIN_LAST_MODIFICATION__"
     }
