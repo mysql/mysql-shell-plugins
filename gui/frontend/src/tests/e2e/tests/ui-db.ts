@@ -332,6 +332,7 @@ describe("DATABASE CONNECTIONS", () => {
                 await dbConnectionOverview.moreActions(editConn.caption!, constants.editConnection);
                 editConn.caption = "e2eEditedCaption";
                 editConn.description = "edited description";
+
                 if (interfaces.isMySQLConnection(editConn.basic)) {
                     editConn.basic.hostname = "hostname edited";
                     editConn.basic.username = "username edited";
@@ -1018,7 +1019,6 @@ describe("DATABASE CONNECTIONS", () => {
 
             const fileToUpload = "qa_cookbook_fe.pdf";
             const tabContainer = new E2ETabContainer();
-            let skipTest = false;
 
             beforeAll(async () => {
                 try {
@@ -1101,9 +1101,6 @@ describe("DATABASE CONNECTIONS", () => {
 
             it("Load into Lakehouse", async () => {
                 try {
-                    if (skipTest) {
-                        return;
-                    }
 
                     const loadIntoLakehouse = mysqlAdministration.lakeHouseNavigator.loadIntoLakehouse;
                     await mysqlAdministration.lakeHouseNavigator.selectTab(constants.loadIntoLakeHouseTab);
@@ -1124,10 +1121,6 @@ describe("DATABASE CONNECTIONS", () => {
 
             it("Lakehouse Tables", async () => {
                 try {
-                    if (skipTest) {
-                        return;
-                    }
-
                     const lakehouseTables = mysqlAdministration.lakeHouseNavigator.lakehouseTables;
                     await driver.wait(lakehouseTables.untilIsOpened(), constants.wait15seconds);
                     expect(await lakehouseTables.getDatabaseSchemas()).toContain(newTask.targetDatabaseSchema);

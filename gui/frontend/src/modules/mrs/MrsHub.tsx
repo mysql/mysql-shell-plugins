@@ -137,6 +137,9 @@ export class MrsHub extends ComponentBase {
         service?: IMrsServiceData): Promise<boolean> => {
 
         const authVendors = await backend.mrs.getAuthVendors();
+        const authApps = await backend.mrs.listAuthApps();
+        const linkedAuthApps: IMrsAuthAppData[] | undefined =
+            service ? await backend.mrs.listAuthApps(service.id) : undefined;
 
         const title = service
             ? "Adjust the REST Service Configuration"
@@ -146,7 +149,7 @@ export class MrsHub extends ComponentBase {
             headers: {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 "Access-Control-Allow-Credentials": "true",
-                // eslint-disable-next-line @typescript-eslint/naming-convention, max-len
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token",
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -183,6 +186,8 @@ export class MrsHub extends ComponentBase {
             parameters: {
                 protocols: ["HTTPS"],
                 authVendors,
+                authApps,
+                linkedAuthApps,
             },
             values: {
                 serviceId: service?.id ?? 0,
@@ -236,37 +241,10 @@ export class MrsHub extends ComponentBase {
                     await backend.mrs.setCurrentService(service.id);
                 }
 
-                if (data.mrsAdminUser && data.mrsAdminUserPassword) {
-                    let authApp;
-                    let nameCounter = 1;
-                    while (authApp === undefined && nameCounter < 10) {
-                        try {
-                            authApp = await backend.mrs.addAuthApp({
-                                id: "",
-                                authVendorId: "MAAAAAAAAAAAAAAAAAAAAA==",
-                                authVendorName: "MRS",
-                                serviceId: "",
-                                name: `MRS${(nameCounter > 1) ? nameCounter.toString() : ""}`,
-                                description: "MRS Auth App",
-                                url: "",
-                                urlDirectAuth: "",
-                                accessToken: "",
-                                appId: "",
-                                enabled: true,
-                                limitToRegisteredUsers: true,
-                                defaultRoleId: "MQAAAAAAAAAAAAAAAAAAAA==",
-                            }, [], service.id);
-                        } catch {
-                            nameCounter += 1;
-                            if (nameCounter === 10) {
-                                throw new Error("The authentication app could not be created.");
-                            }
-                        }
-                    }
-                    if (authApp !== undefined) {
-                        await backend.mrs.addUser(authApp.authAppId, data.mrsAdminUser, "", "", true, "", null,
-                            data.mrsAdminUserPassword, []);
-                    }
+                // Add the auth apps the user selected.
+                const linkedAuthAppIds = data.linkedAuthAppIds ?? [];
+                for (const authAppId of linkedAuthAppIds) {
+                    await backend.mrs.linkAuthAppToService(authAppId, service.id);
                 }
 
                 void ui.showInformationMessage("The MRS service has been created.", {});
@@ -297,6 +275,29 @@ export class MrsHub extends ComponentBase {
                         metadata,
                     },
                 );
+
+                // Add or remove the auth apps as the user selected them.
+                const linkedAuthAppIds = data.linkedAuthAppIds ?? [];
+
+                // All apps that were previously linked but are no longer.
+                const appsToRemove = (linkedAuthApps ?? []).filter((app) => {
+                    return !linkedAuthAppIds.includes(app.id!);
+                });
+
+                for (const authApp of appsToRemove) {
+                    await backend.mrs.unlinkAuthAppFromService(authApp.id!, service.id);
+                }
+
+                // All apps that were not linked, but are now.
+                const appsToAdd = linkedAuthAppIds.filter((id) => {
+                    return !linkedAuthApps?.some((app) => {
+                        return app.id === id;
+                    });
+                });
+
+                for (const authAppId of appsToAdd) {
+                    await backend.mrs.linkAuthAppToService(authAppId, service.id);
+                }
 
                 if (isCurrent) {
                     await backend.mrs.setCurrentService(service.id);
