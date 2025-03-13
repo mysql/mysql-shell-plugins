@@ -2111,8 +2111,9 @@ graphQlValueJsonSchema:
                 <pre class="antlr"><code>createRestProcedureStatement:
     CREATE (OR REPLACE)? REST PROCEDURE procedureRequestPath (
         ON serviceSchemaSelector
-    )? AS qualifiedIdentifier (PARAMETERS restObjectName? graphQlObj)?
-        restProcedureResult* restObjectOptions?
+    )? AS qualifiedIdentifier FORCE? (
+        PARAMETERS restObjectName? graphQlObj
+    )? restProcedureResult* restObjectOptions?
 ;
 
 serviceSchemaSelector:
@@ -2150,15 +2151,41 @@ restProcedureResult:
                 src="sections/sql/../../images/sql/restProcedureResult.svg"
                 title="restProcedureResult"
                 alt="restProcedureResult" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example adds a REST procedure for the
+                <code>sakila.rewards_report</code> database schema
+                procedure. It is assumed that a REST service
+                <code>/myService</code> and a REST schema
+                <code>/sakila</code> have already been created.</p>
+                <div class="sourceCode" id="cb50"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">PROCEDURE</span> <span class="op">/</span>filmInStock</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a><span class="kw">AS</span> sakila.rewards_report;</span></code></pre></div>
+                <p>The following example adds a REST procedure for the
+                <code>sakila.filmInStock</code> database schema
+                procedure, while explicitly specifying the list of
+                parameters and the RESULT returned by the procedure.</p>
+                <div class="sourceCode" id="cb51"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">PROCEDURE</span> <span class="op">/</span>filmInStock</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a><span class="kw">AS</span> sakila.film_in_stock</span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a><span class="kw">PARAMETERS</span> MyServiceSakilaFilmInStockParams {</span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>    pFilmId: p_film_id @IN,</span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>    pStoreId: p_store_id @IN,</span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>    pFilmCount: p_film_count @OUT</span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a>RESULT MyServiceSakilaFilmInStock {</span>
+<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a>    inventoryId: inventory_id @DATATYPE(<span class="ot">&quot;int&quot;</span>)</span>
+<span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a>};</span></code></pre></div>
                 <h3 data-number="2.5.1"
-                id="json-options-for-procedures"><span
-                class="header-section-number">2.5.1</span> JSON Options
-                for Procedures</h3>
-                <pre class="antlr"><code>jsonOptions:
-    OPTIONS jsonValue
-;</code></pre>
-                <p>See <a href="#json-options-for-views">JSON
-                Options</a></p>
+                id="the-force-flag-for-procedures"><span
+                class="header-section-number">2.5.1</span> The FORCE
+                Flag For Procedures</h3>
+                <p>In certain cases, a REST procedure may need to be
+                created even though the actual database schema procedure
+                is not yet available. To make the
+                <code>CREATE REST PROCEDURE</code> succeed in this case,
+                the <code>FORCE</code> flag must be specified.</p>
                 <h2 data-number="2.6" id="create-rest-function"><span
                 class="header-section-number">2.6</span> CREATE REST
                 FUNCTION</h2>
@@ -2175,8 +2202,9 @@ restProcedureResult:
                 <pre class="antlr"><code>createRestFunctionStatement:
     CREATE (OR REPLACE)? REST FUNCTION functionRequestPath (
         ON serviceSchemaSelector
-    )? AS qualifiedIdentifier (PARAMETERS restObjectName? graphQlObj)?
-        restFunctionResult? restObjectOptions?
+    )? AS qualifiedIdentifier FORCE? (
+        PARAMETERS restObjectName? graphQlObj
+    )? restFunctionResult? restObjectOptions?
 ;
 
 serviceSchemaSelector:
@@ -2215,12 +2243,14 @@ restFunctionResult:
                 title="restFunctionResult"
                 alt="restFunctionResult" /></p>
                 <h3 data-number="2.6.1"
-                id="json-options-for-functions"><span
-                class="header-section-number">2.6.1</span> JSON Options
-                for Functions</h3>
-                <pre class="antlr"><code>jsonOptions:
-    OPTIONS jsonValue
-;</code></pre>
+                id="the-force-flag-for-functions"><span
+                class="header-section-number">2.6.1</span> The FORCE
+                Flag For Functions</h3>
+                <p>In certain cases, a REST function may need to be
+                created even though the actual database schema function
+                is not yet available. To make the
+                <code>CREATE REST FUNCTION</code> succeed in this case,
+                the <code>FORCE</code> flag must be specified.</p>
                 <p>See <a href="#json-options-for-views">JSON
                 Options</a></p>
                 <h2 data-number="2.7" id="create-rest-content-set"><span
@@ -2805,7 +2835,7 @@ restObjectOptions: (
                 src="sections/sql/../../images/sql/createRestUserStatement.svg"
                 title="createRestUserStatement"
                 alt="createRestUserStatement" /></p>
-                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -3092,7 +3122,7 @@ serviceSchemaSelector:
                 src="sections/sql/../../images/sql/revokeRestRoleStatement.svg"
                 title="revokeRestRoleStatement"
                 alt="revokeRestRoleStatement" /></p>
-                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,

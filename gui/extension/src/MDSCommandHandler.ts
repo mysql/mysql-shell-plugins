@@ -843,7 +843,7 @@ export class MDSCommandHandler {
                     };
 
                     ShellInterface.dbConnections.addDbConnection(
-                        webSession.currentProfileId, details, "").then((connectionId) => {
+                        webSession.currentProfileId, details).then((connectionId) => {
                             if (connectionId !== undefined) {
                                 void requisitions.broadcastRequest(undefined, "refreshConnection", undefined);
                             }

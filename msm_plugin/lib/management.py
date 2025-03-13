@@ -1521,7 +1521,10 @@ def deploy_schema(
         os.makedirs(backup_directory, exist_ok=True)
 
         # Set the mysqlsh session to the one that was given
-        mysqlsh.globals.shell.set_session(session.session)
+        if "shell.Object" in str(type(session)):
+            mysqlsh.globals.shell.set_session(session)
+        else:
+            mysqlsh.globals.shell.set_session(session.session)
 
         mysqlsh.globals.util.dump_schemas(
             [schema_name],

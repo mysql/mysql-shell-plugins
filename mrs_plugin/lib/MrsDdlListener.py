@@ -697,6 +697,7 @@ class MrsDdlListener(MRSListener):
         )
         fields = current_object["fields"]
         field_name = lib.core.unquote(ctx.graphQlPairKey().getText())
+        force_create = self.mrs_object.get("force_create", False)
 
         # Check if this GraphQlPair is inside a reference, and if so, adjust the ref_fields_offset so that
         # the handling only applies to the referenced fields
@@ -764,11 +765,37 @@ class MrsDdlListener(MRSListener):
                                 pass
                         break
                 else:
-                    raise Exception(
-                        f"The column `{db_column_name}` does not exist on "
-                        f'`{self.mrs_object.get("schema_name")}`.`{
-                            self.mrs_object.get("name")}`.'
-                    )
+                    if not force_create:
+                        raise Exception(
+                            f"The column `{db_column_name}` does not exist on "
+                            f'`{self.mrs_object.get("schema_name")}`.`{
+                                self.mrs_object.get("name")}`.'
+                        )
+                    else:
+                        # Add parameters in case FORCE has been used
+                        fields.append({
+                            "id": self.get_uuid(),
+                            "object_id": self.mrs_object.get("objects")[0].get("id"),
+                            "name": field_name,
+                            "position": len(fields),
+                            "db_column": {
+                                "name": db_column_name,
+                                "datatype": (
+                                    lib.core.unquote(
+                                        ctx.graphQlDatatypeValue().getText().lower()
+                                    )
+                                    if ctx.AT_DATATYPE_SYMBOL()
+                                    else "varchar(255)"
+                                ),
+                                "in": ctx.AT_IN_SYMBOL() is not None or ctx.AT_INOUT_SYMBOL() is not None,
+                                "out": ctx.AT_OUT_SYMBOL() is not None or ctx.AT_INOUT_SYMBOL() is not None,
+                            },
+                            "enabled": True,
+                            "allow_filtering": True,
+                            "allow_sorting": False,
+                            "no_check": False,
+                            "no_update": False,
+                        })
             else:
                 # A REST PROCEDURE RESULT
                 if self.mrs_object.get("db_object_type", "") != "FUNCTION":
@@ -1015,6 +1042,7 @@ class MrsDdlListener(MRSListener):
             ),
             "db_object_type": "PROCEDURE",
             "crud_operations": ["UPDATE"],
+            "force_create": ctx.FORCE_SYMBOL() is not None,
         }
 
         self.set_schema_name_and_name(ctx=ctx)
@@ -1147,6 +1175,7 @@ class MrsDdlListener(MRSListener):
             ),
             "db_object_type": "FUNCTION",
             "crud_operations": ["READ"],
+            "force_create": ctx.FORCE_SYMBOL() is not None,
         }
 
         self.set_schema_name_and_name(ctx=ctx)

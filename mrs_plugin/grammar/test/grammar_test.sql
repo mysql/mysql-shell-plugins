@@ -456,7 +456,6 @@ SHOW REST SERVICES;
 
 
 
-
 CREATE OR REPLACE REST SERVICE mike@/myTestService;
 
 SHOW REST SERVICES;
@@ -637,3 +636,31 @@ GRANT REST READ ON SERVICE localhost/testService SCHEMA ''
 DROP REST ROLE "role1";
 
 DROP REST SERVICE localhost/testService;
+
+CREATE OR REPLACE REST SERVICE /myTest;
+
+CREATE OR REPLACE REST SCHEMA /test ON SERVICE /myTest FROM `test`;
+
+CREATE OR REPLACE REST PROCEDURE /filmInStock2
+ON SERVICE /myTest SCHEMA /test
+AS sakila.film_in_stock2 FORCE
+PARAMETERS MyServiceSakilaFilmInStockParams {
+    pFilmId: p_film_id @IN,
+    pStoreId: p_store_id @IN,
+    pFilmCount: p_film_count @OUT
+}
+RESULT MyServiceSakilaFilmInStock {
+    inventoryId: inventory_id @DATATYPE("int")
+};
+
+CREATE OR REPLACE REST FUNCTION /actorFunc
+    ON SERVICE /myTest SCHEMA /test
+    AS sakila.actor FORCE
+    PARAMETERS myServiceSakilaActorFuncParams {
+        s: s @IN
+    }
+    RESULT myServiceSakilaActorFunc {
+        result: result @DATATYPE("char")
+    };
+
+DROP REST SERVICE /myTest;
