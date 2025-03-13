@@ -91,8 +91,8 @@ CONFIGURE REST METADATA
         "gtid": {
             "cache": {
                 "enable": true,
-                "refresh_rate": 5,
-                "refresh_when_increases_by": 500
+                "refreshRate": 5,
+                "refreshWhenIncreasesBy": 500
             }
         },
         "authentication": {
@@ -148,9 +148,9 @@ These options can include the following JSON keys.
     - Is used to configure the MySQL Router's GTID cache.
     - `enable`
       - If set to `true` GTIDs will be cached by the MySQL Router.
-    - `refresh_rate`
+    - `refreshRate`
       - Defines how often the GTID cache will be refreshed. Set seconds, e.g. 5.
-    - `refresh_when_increases_by`
+    - `refreshWhenIncreasesBy`
       - In addition to the time based refresh, the GTID cache can also be refreshed based on the number of transactions that happened since the last refresh. Set in number of transactions, e.g. 500.
 - `responseCache`
   - Global options for the REST endpoint response cache, which keeps an in-memory cache of responses to GET requests on tables, views, procedures and functions. To enable caching of an endpoint, you must also set the `cacheTimeToLive` option for each object to be cached.

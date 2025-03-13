@@ -677,8 +677,8 @@ restMetadataOptions: (
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;gtid&quot;</span>: {</span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>            <span class="ot">&quot;cache&quot;</span>: {</span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;enable&quot;</span>: <span class="kw">true</span>,</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;refresh_rate&quot;</span>: <span class="dv">5</span>,</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;refresh_when_increases_by&quot;</span>: <span class="dv">500</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;refreshRate&quot;</span>: <span class="dv">5</span>,</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>                <span class="ot">&quot;refreshWhenIncreasesBy&quot;</span>: <span class="dv">500</span></span>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>            }</span>
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        },</span>
 <span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        <span class="ot">&quot;authentication&quot;</span>: {</span>
@@ -766,12 +766,12 @@ restMetadataOptions: (
                 <li>If set to <code>true</code> GTIDs will be cached by
                 the MySQL Router.</li>
                 </ul></li>
-                <li><code>refresh_rate</code>
+                <li><code>refreshRate</code>
                 <ul>
                 <li>Defines how often the GTID cache will be refreshed.
                 Set seconds, e.g. 5.</li>
                 </ul></li>
-                <li><code>refresh_when_increases_by</code>
+                <li><code>refreshWhenIncreasesBy</code>
                 <ul>
                 <li>In addition to the time based refresh, the GTID
                 cache can also be refreshed based on the number of
