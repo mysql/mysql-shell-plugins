@@ -153,11 +153,14 @@
     padding: 4px;
 }
 
+.msg.dialog.valueEditDialog .checkList .tabulator-cell {
+    padding: 0 4px;
+}
+
 .msg.dialog.valueEditDialog .matrixContainer .tabulator-col-title {
     font-weight: 400;
     font-size: 0.9em;
 }
-
 
 .msg.dialog.valueEditDialog .matrixContainer #valueGrid {
     flex: 1;

@@ -25,9 +25,7 @@
 
 import { MessageScheduler } from "../../communication/MessageScheduler.js";
 import {
-    IDBSchemaObjectEntry,
-    IGetColumnsMetadataItem, IShellDbConnection, ITableObjectInfo,
-    ShellAPIGui,
+    IDBSchemaObjectEntry, IGetColumnsMetadataItem, IShellDbConnection, ITableObjectInfo, ShellAPIGui,
 } from "../../communication/ProtocolGui.js";
 import { webSession } from "../WebSession.js";
 

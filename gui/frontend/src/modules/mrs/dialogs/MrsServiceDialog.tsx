@@ -24,10 +24,13 @@
  */
 
 import { DialogResponseClosure, IDialogRequest, IDictionary } from "../../../app-logic/general-types.js";
+import type { IMrsAuthAppData } from "../../../communication/ProtocolMrs.js";
 import { AwaitableValueEditDialog } from "../../../components/Dialogs/AwaitableValueEditDialog.js";
 import {
     CommonDialogValueOption, IDialogSection, IDialogValidations, IDialogValues,
+    type ICheckListDialogValue,
 } from "../../../components/Dialogs/ValueEditDialog.js";
+import { CheckState, type ICheckboxProperties } from "../../../components/ui/Checkbox/Checkbox.js";
 
 export interface IMrsServiceDialogData extends IDictionary {
     servicePath: string;
@@ -46,6 +49,7 @@ export interface IMrsServiceDialogData extends IDictionary {
     metadata: string;
     mrsAdminUser?: string;
     mrsAdminUserPassword?: string;
+    linkedAuthAppIds: string[];
 }
 
 export class MrsServiceDialog extends AwaitableValueEditDialog {
@@ -217,13 +221,36 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
             };
         }
 
+        request.parameters ??= {};
+        const authApps = request.parameters.authApps as IMrsAuthAppData[] ?? [];
+        const linkedAuthApps = request.parameters.linkedAuthApps as IMrsAuthAppData[] ?? [];
+
+        settingsSection.values.linkedAuthApps = {
+            type: "checkList",
+            caption: "Linked Auth Apps",
+            checkList: Object.values(authApps).map((app) => {
+                const linked = linkedAuthApps.find((linkedApp) => {
+                    return linkedApp.id === app.id;
+                }) !== undefined;
+
+                const result: ICheckboxProperties = {
+                    id: app.id,
+                    caption: app.name,
+                    checkState: linked ? CheckState.Checked : CheckState.Unchecked,
+                };
+
+                return { data: result };
+            }),
+            horizontalSpan: 2,
+        };
+
         settingsSection.values.comments = {
             type: "text",
             caption: "Comments",
             value: request.values?.comments as string,
             multiLine: true,
             multiLineCount: 3,
-            horizontalSpan: 8,
+            horizontalSpan: 6,
             description: "Comments to describe this REST Service.",
         };
 
@@ -341,6 +368,12 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
         const authSection = dialogValues.sections.get("authSection");
         const advancedSection = dialogValues.sections.get("advancedSection");
 
+        const checkList = (settingsSection?.values.linkedAuthApps as ICheckListDialogValue).checkList;
+        const authAppList = checkList as Array<{ data: ICheckboxProperties; }>;
+        const linkedAuthAppIds = authAppList.filter((app) => {
+            return app.data.checkState === CheckState.Checked;
+        }).map((app) => { return app.data.id!; });
+
         if (mainSection && settingsSection && optionsSection && authSection && advancedSection) {
             const values: IMrsServiceDialogData = {
                 servicePath: mainSection.values.servicePath.value as string,
@@ -359,6 +392,7 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
                 mrsAdminUserPassword: settingsSection.values.mrsAdminUserPassword?.value as string | undefined,
                 hostName: advancedSection.values.hostName.value as string,
                 protocols: [advancedSection.values.protocols.value as string],
+                linkedAuthAppIds,
             };
 
             return values;

@@ -59,38 +59,48 @@ export class DatabaseConnectionDialog {
             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.description, dbConfig.description);
         }
         if (dbConfig.dbType) {
+
             if (dbConfig.dbType === "MySQL") {
+
                 if (interfaces.isMySQLConnection(dbConfig.basic)) {
                     await DialogHelper.selectTab(constants.basicTab);
+
                     if (dbConfig.basic.hostname) {
                         await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.hostname,
                             dbConfig.basic.hostname);
                     }
+
                     if (dbConfig.basic.username) {
                         await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.username,
                             dbConfig.basic.username);
                     }
+
                     if (dbConfig.basic.schema) {
                         await DialogHelper
                             .setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.defaultSchema,
                                 dbConfig.basic.schema);
                     }
+
                     if (dbConfig.basic.port) {
                         await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.basic.port,
                             String(dbConfig.basic.port));
                     }
+
                     if (dbConfig.basic.protocol) {
                         await dialog.findElement(locator.dbConnectionDialog.mysql.basic.protocol).click();
                         const list = await driver.wait(until.elementLocated(locator.dbConnectionDialog.mysql.basic
                             .protocolList), constants.wait5seconds, "Protocol list was not displayed");
                         await list.findElement(By.id(dbConfig.basic.protocol)).click();
                     }
+
                     if (dbConfig.basic.sshTunnel !== undefined) {
                         await DialogHelper.setCheckboxValue("useSSH", dbConfig.basic.sshTunnel);
                     }
+
                     if (dbConfig.basic.ociBastion !== undefined) {
                         await DialogHelper.setCheckboxValue("useMDS", dbConfig.basic.ociBastion);
                     }
+
                     if (dbConfig.ssl) {
                         await DialogHelper.selectTab(constants.sslTab);
                         if (dbConfig.ssl.mode) {
@@ -116,33 +126,38 @@ export class DatabaseConnectionDialog {
                                 dbConfig.ssl.clientKeyPath);
                         }
                     }
+
                     if (dbConfig.advanced) {
                         await DialogHelper.selectTab(constants.advancedTab);
+
                         if (interfaces.isAdvancedMySQL(dbConfig.advanced)) {
+
                             if (dbConfig.advanced.mode) {
-                                const getModeItem = async (name: string): Promise<WebElement | undefined> => {
-                                    const modeItems = await driver.wait(until
-                                        .elementsLocated(locator.dbConnectionDialog.mysql
-                                            .advanced.sqlModeItem), constants.wait5seconds);
-                                    for (const item of modeItems) {
-                                        if ((await item.getText()).toLowerCase().replace(/_/g, "") ===
-                                            name.toLowerCase().replace(/_/g, "")) {
-                                            return item;
-                                        }
-                                    }
+
+                                const getModeItem = async (item: keyof typeof dbConfig.advanced.mode):
+                                    Promise<WebElement> => {
+
+                                    return driver.wait(until.elementLocated(locator.dbConnectionDialog.mysql
+                                        .advanced.sqlModeItem[item]), constants.wait3seconds);
                                 };
 
                                 const modes = Object.keys(dbConfig.advanced.mode);
+
                                 for (const mode of modes) {
-                                    await DialogHelper.setCheckboxValue(await getModeItem(mode) as WebElement,
+                                    const modeWebElement = await getModeItem(mode as keyof typeof dbConfig
+                                        .advanced.mode);
+                                    await driver.executeScript("arguments[0].scrollIntoView()", modeWebElement);
+                                    await DialogHelper.setCheckboxValue(modeWebElement,
                                         dbConfig.advanced.mode[mode as keyof typeof dbConfig.advanced.mode]);
                                 }
                             }
+
                             if (dbConfig.advanced.timeout) {
                                 await DialogHelper.setFieldText(dialog,
                                     locator.dbConnectionDialog.mysql.advanced.connectionTimeout,
                                     dbConfig.advanced.timeout);
                             }
+
                             if (dbConfig.advanced.compression) {
                                 await dialog.findElement(locator.dbConnectionDialog.mysql.advanced.compression).click();
                                 const list = await driver
@@ -151,11 +166,13 @@ export class DatabaseConnectionDialog {
                                         "Compression list was not displayed");
                                 await list.findElement(By.id(dbConfig.advanced.compression)).click();
                             }
+
                             if (dbConfig.advanced.compressionLevel) {
                                 await DialogHelper.setFieldText(dialog,
                                     locator.dbConnectionDialog.mysql.advanced.compressionLevel,
                                     dbConfig.advanced.compressionLevel);
                             }
+
                             if (dbConfig.advanced.disableHeatWave) {
                                 await DialogHelper.setCheckboxValue("disableHeatwaveCheck",
                                     dbConfig.advanced.disableHeatWave);
@@ -164,6 +181,7 @@ export class DatabaseConnectionDialog {
                             throw new Error("Please define the 'mode' field for the advanced section");
                         }
                     }
+
                     if (dbConfig.basic.sshTunnel === true && dbConfig.ssh) {
                         await DialogHelper.selectTab(constants.sshTab);
                         if (dbConfig.ssh.uri) {
@@ -179,8 +197,10 @@ export class DatabaseConnectionDialog {
                                 dbConfig.ssh.customPath);
                         }
                     }
+
                     if (dbConfig.mds) {
                         await DialogHelper.selectTab(constants.mdsTab);
+
                         if (dbConfig.mds.profile) {
                             const inProfile = await dialog.findElement(locator.dbConnectionDialog.mysql
                                 .mds.profileName);
@@ -191,14 +211,17 @@ export class DatabaseConnectionDialog {
                             await driver.wait(until.elementLocated(By.id(dbConfig.mds.profile)),
                                 constants.wait5seconds).click();
                         }
+
                         if (dbConfig.mds.sshPrivateKey) {
                             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.mds.sshPrivateKey,
                                 dbConfig.mds.sshPrivateKey);
                         }
+
                         if (dbConfig.mds.sshPublicKey) {
                             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.mds.sshPublicKey,
                                 dbConfig.mds.sshPublicKey);
                         }
+
                         if (dbConfig.mds.dbSystemOCID) {
                             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.mds.dbSystemId,
                                 dbConfig.mds.dbSystemOCID);
@@ -208,6 +231,7 @@ export class DatabaseConnectionDialog {
                                 return !(await dbSystemName.getAttribute("value")).includes("Loading");
                             }), constants.wait10seconds, "DB System name is still loading");
                         }
+
                         if (dbConfig.mds.bastionOCID) {
                             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.mysql.mds.bastionId,
                                 dbConfig.mds.bastionOCID);
@@ -269,6 +293,7 @@ export class DatabaseConnectionDialog {
             caption: await DialogHelper.getFieldValue(dialog, locator.dbConnectionDialog.caption),
             description: await DialogHelper.getFieldValue(dialog, locator.dbConnectionDialog.description),
         };
+
         if (dbConnection.dbType === "MySQL") {
             const basic: interfaces.IConnBasicMySQL = {
                 hostname: await DialogHelper.getFieldValue(dialog, locator.dbConnectionDialog.mysql.basic.hostname),
@@ -294,64 +319,46 @@ export class DatabaseConnectionDialog {
             dbConnection.ssl = ssl;
             await DialogHelper.selectTab(constants.advancedTab);
 
-            const getModeItem = async (name: string): Promise<WebElement> => {
-                let itemToReturn: WebElement;
-                await driver.wait(async () => {
-                    try {
-                        const modeItems = await driver.findElements(locator.dbConnectionDialog.mysql
-                            .advanced.sqlModeItem);
-                        if (modeItems.length > 0) {
-                            for (const item of modeItems) {
-                                if ((await item.getText() === name)) {
-                                    await item.getAttribute("class");
-                                    itemToReturn = item;
-
-                                    return true;
-                                }
-                            }
-                        }
-                    } catch (e) {
-                        if (!(e instanceof error.StaleElementReferenceError)) {
-                            throw e;
-                        }
-                    }
-                }, constants.wait5seconds, "The items were always stale");
-
-                return itemToReturn!;
-            };
+            const mode = locator.dbConnectionDialog.mysql.advanced.sqlModeItem;
             let advanced: interfaces.IConnAdvancedMySQL;
             await driver.wait(async () => {
                 try {
                     advanced = {
                         mode: {
-                            ansi: await DialogHelper.getCheckBoxValue(await getModeItem("ANSI")),
-                            traditional: await DialogHelper.getCheckBoxValue(await getModeItem("TRADITIONAL")),
+                            ansi: await DialogHelper.getCheckBoxValue(await driver.wait(until
+                                .elementLocated(mode.ansi), constants.wait3seconds)),
+                            traditional: await DialogHelper.getCheckBoxValue(await driver
+                                .findElement(mode.traditional)),
                             allowInvalidDates: await DialogHelper
-                                .getCheckBoxValue(await getModeItem("ALLOW_INVALID_DATES")),
-                            ansiQuotes: await DialogHelper.getCheckBoxValue(await getModeItem("ANSI_QUOTES")),
+                                .getCheckBoxValue(await driver.findElement(mode.allowInvalidDates)),
+                            ansiQuotes: await DialogHelper.getCheckBoxValue(await driver.findElement(mode.ansiQuotes)),
                             errorForDivisionByZero: await DialogHelper
-                                .getCheckBoxValue(await getModeItem("ERROR_FOR_DIVISION_BY_ZERO")),
+                                .getCheckBoxValue(await driver.findElement(mode.errorForDivisionByZero)),
                             highNotPrecedence: await DialogHelper
-                                .getCheckBoxValue(await getModeItem("HIGH_NOT_PRECEDENCE")),
-                            ignoreSpace: await DialogHelper.getCheckBoxValue(await getModeItem("IGNORE_SPACE")),
+                                .getCheckBoxValue(await driver.findElement(mode.highNotPrecedence)),
+                            ignoreSpace: await DialogHelper.getCheckBoxValue(await driver
+                                .findElement(mode.ignoreSpace)),
                             noAutoValueOnZero: await DialogHelper
-                                .getCheckBoxValue(await getModeItem("NO_AUTO_VALUE_ON_ZERO")),
+                                .getCheckBoxValue(await driver.findElement(mode.noAutoValueOnZero)),
                             noUnsignedSubtraction: await DialogHelper
-                                .getCheckBoxValue(await getModeItem("NO_UNSIGNED_SUBTRACTION")),
-                            noZeroDate: await DialogHelper.getCheckBoxValue(await getModeItem("NO_ZERO_DATE")),
-                            noZeroInDate: await DialogHelper.getCheckBoxValue(await getModeItem("NO_ZERO_IN_DATE")),
+                                .getCheckBoxValue(await driver.findElement(mode.noUnsignedSubtraction)),
+                            noZeroDate: await DialogHelper.getCheckBoxValue(await driver.findElement(mode.noZeroDate)),
+                            noZeroInDate: await DialogHelper.getCheckBoxValue(await driver
+                                .findElement(mode.noZeroInDate)),
                             onlyFullGroupBy: await DialogHelper
-                                .getCheckBoxValue(await getModeItem("ONLY_FULL_GROUP_BY")),
+                                .getCheckBoxValue(await driver.findElement(mode.onlyFullGroupBy)),
                             padCharToFullLength: await DialogHelper
-                                .getCheckBoxValue(await getModeItem("PAD_CHAR_TO_FULL_LENGTH")),
-                            pipesAsConcat: await DialogHelper.getCheckBoxValue(await getModeItem("PIPES_AS_CONCAT")),
-                            realAsFloat: await DialogHelper.getCheckBoxValue(await getModeItem("REAL_AS_FLOAT")),
+                                .getCheckBoxValue(await driver.findElement(mode.padCharToFullLength)),
+                            pipesAsConcat: await DialogHelper.getCheckBoxValue(await driver
+                                .findElement(mode.pipesAsConcat)),
+                            realAsFloat: await DialogHelper.getCheckBoxValue(await driver
+                                .findElement(mode.realAsFloat)),
                             strictAllTables: await DialogHelper
-                                .getCheckBoxValue(await getModeItem("STRICT_ALL_TABLES")),
+                                .getCheckBoxValue(await driver.findElement(mode.strictAllTables)),
                             strictTransTables: await DialogHelper
-                                .getCheckBoxValue(await getModeItem("STRICT_TRANS_TABLES")),
+                                .getCheckBoxValue(await driver.findElement(mode.strictTransTables)),
                             timeTruncateFractional: await DialogHelper
-                                .getCheckBoxValue(await getModeItem("TIME_TRUNCATE_FRACTIONAL")),
+                                .getCheckBoxValue(await driver.findElement(mode.timeTruncateFractional)),
                         },
                         timeout: await DialogHelper.getFieldValue(dialog,
                             locator.dbConnectionDialog.mysql.advanced.connectionTimeout),

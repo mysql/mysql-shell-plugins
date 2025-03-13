@@ -296,7 +296,22 @@ exports[`MRS Service dialog tests Show MRS Service Dialog (snapshot) and escape 
                 </div>
                 <div
                   class="msg container fixedScrollbar gridCell"
-                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+                >
+                  <label
+                    class="msg label valueTitle"
+                    data-tooltip="expand"
+                  >
+                    Linked Auth Apps
+                  </label>
+                  <div
+                    class="msg treeGrid checkList"
+                    id="linkedAuthApps"
+                  />
+                </div>
+                <div
+                  class="msg container fixedScrollbar gridCell"
+                  style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 6;"
                 >
                   <label
                     class="msg label valueTitle"
