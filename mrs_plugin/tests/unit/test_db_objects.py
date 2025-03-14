@@ -557,7 +557,7 @@ def test_special_schemas(phone_book, mobile_phone_book, table_contents):
             assert not information_schema_grants.same_as_snapshot
 
             filtered = information_schema_grants.filter("TABLE_SCHEMA", "performance_schema")
-            assert len(filtered) == 3
+            assert len(filtered) == 4
             filtered.sort(key= lambda a: a["TABLE_NAME"])
 
             row = filtered[0]

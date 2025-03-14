@@ -22,4 +22,11 @@ DO BEGIN
     CALL `mysql_rest_service_metadata`.`dump_audit_log`();
 END%%
 
+-- Periodically down-sample router_status rows to keep its size under control.
+
+DROP EVENT IF EXISTS `mysql_rest_service_metadata`.`router_status_cleanup`%%
+CREATE EVENT `mysql_rest_service_metadata`.`router_status_cleanup` ON SCHEDULE EVERY 1 HOUR
+ON COMPLETION NOT PRESERVE ENABLE COMMENT 'Aggregate and clean up router_status entries' DO
+    CALL mysql_rest_service_metadata.router_status_do_cleanup(NOW())%%
+
 DELIMITER ;

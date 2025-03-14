@@ -322,6 +322,7 @@ def configure(session=None, enable_mrs=None, options=None,
         status = lib.general.configure(
             session=session, enable_mrs=enable_mrs,
             options=options,
+            update_if_available=update_if_available,
             edition=edition,
             version=version)
 

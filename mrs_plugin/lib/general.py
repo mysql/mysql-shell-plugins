@@ -27,7 +27,7 @@ import msm_plugin.lib.management as schema_management
 # Define plugin version
 VERSION = "1.19.3"
 
-DB_VERSION = [4, 0, 0]
+DB_VERSION = [4, 0, 1]
 REQUIRED_ROUTER_VERSION = [8, 1, 0]
 SUPPORTED_MAJOR_VERSION = 3
 
@@ -163,6 +163,9 @@ def configure(session=None, enable_mrs: bool = None, options: str = None,
                     SELECT * FROM mysql_rest_service_metadata.schema_version""")
 
         if edition is None or edition.lower() != "heatwave":
+            # For now, let's remove any previous version of the mysql_tasks schema
+            session.run_sql("DROP SCHEMA IF EXISTS mysql_tasks")
+
             # For all editions except heatwave, also deploy the mysql_tasks
             # database schema
             if not skip_update:
@@ -170,7 +173,6 @@ def configure(session=None, enable_mrs: bool = None, options: str = None,
                     session=session,
                     schema_project_path=lib.core.script_path(
                         "db_schema", "mysql_tasks.msm.project"))
-
 
         # Start the MRS metadata schema deployment which will either create
         # or update an existing schema to the given version
@@ -184,6 +186,8 @@ def configure(session=None, enable_mrs: bool = None, options: str = None,
             schema_changed = not ("No changes" in info_msg)
         else:
             schema_changed = False
+            info_msg = (
+                "MRS metadata version update available, but update skipped.")
 
         if enable_mrs is not None:
             lib.core.update(

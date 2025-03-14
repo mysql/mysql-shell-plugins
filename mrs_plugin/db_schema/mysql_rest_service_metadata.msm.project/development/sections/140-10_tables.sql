@@ -1,5 +1,5 @@
--- Copyright (c) 2025, Oracle and/or its affiliates.
--- Tue Feb 25 12:31:52 2025
+-- Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+-- Fri Mar 14 10:38:50 2025
 -- Model: New Model    Version: 1.0
 -- MySQL Workbench Forward Engineering
 
@@ -565,7 +565,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`router` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'The ID of the router instance that uniquely identifies the router on this MySQL REST Service setup.',
-  `router_name` VARCHAR(255) NOT NULL COMMENT 'A user specified name for an instance of the router. Should default to address:port, where port is the RW port for classic protocol. Set via --name during router bootstrap.',
+  `router_name` VARCHAR(255) NOT NULL COMMENT 'A user specified name for an instance of the router. Should default to address:port, where port is the http server port of the router. Set via --name during router bootstrap.',
   `address` VARCHAR(255) CHARACTER SET 'ascii' COLLATE 'ascii_general_ci' NOT NULL COMMENT 'Network address of the host the Router is running on. Set via --report--host during bootstrap.',
   `product_name` VARCHAR(128) NOT NULL COMMENT 'The product name of the routing component, e.g. \'MySQL Router\'',
   `version` VARCHAR(12) NULL COMMENT 'The version of the router instance. Updated on bootstrap and each startup of the router instance. Format: x.y.z, 3 digits for each component. Managed by Router.',

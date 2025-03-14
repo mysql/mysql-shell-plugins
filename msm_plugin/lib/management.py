@@ -1540,6 +1540,26 @@ def deploy_schema(
         else:
             mysqlsh.globals.shell.set_session(session.session)
 
+        # Ensure that the dump can be read back in case of a failure by setting
+        # local_infile to 1
+        # cSpell:ignore infile
+        row = lib.core.MsmDbExec("SELECT @@local_infile as local_infile").exec(session).first
+        original_local_infile = (row and int(row["local_infile"]) != 1)
+        if not original_local_infile:
+            try:
+                lib.core.write_to_msm_schema_update_log(
+                    "INFO",
+                    "Enabling local_infile option in order to be able to load "
+                    "back the schema dump in case of an update error...")
+                lib.core.MsmDbExec("SET GLOBAL local_infile=1").exec(session)
+            except:
+                err_msg = (
+                    "Failed to enable the local_infile option. Please execute "
+                    "SET PERSIST GLOBAL local_infile=1; on the MySQL Server.")
+                lib.core.write_to_msm_schema_update_log("ERROR", err_msg)
+
+                raise Exception(err_msg)
+
         mysqlsh.globals.util.dump_schemas(
             [schema_name],
             f"file://{backup_directory}",
@@ -1563,11 +1583,21 @@ def deploy_schema(
                 f"Deployment of `{schema_name}` version "
                 f"{version} completed successfully.")
         else:
+            if not original_local_infile:
+                lib.core.MsmDbExec("SET GLOBAL local_infile=0").exec(session)
+                lib.core.write_to_msm_schema_update_log(
+                    "INFO",
+                    "Restored local_infile option.")
+
             info_msg = (
                 f"Completed the update of `{schema_name}` version "
                 f"{schema_version} to {version} successfully.")
 
         lib.core.write_to_msm_schema_update_log("INFO", info_msg)
+
+        # Remove the backup directory as it is no longer needed
+        if backup_available:
+            shutil.rmtree(backup_directory)
 
         return info_msg
     except Exception as e:
@@ -1586,6 +1616,15 @@ def deploy_schema(
                         "showProgress": False,
                         "ignoreVersion": True,
                     })
+
+                if not original_local_infile:
+                    lib.core.MsmDbExec("SET GLOBAL local_infile=0").exec(session)
+                    lib.core.write_to_msm_schema_update_log(
+                        "INFO",
+                        "Restored local_infile option.")
+
+                # Remove the backup directory as it is no longer needed
+                shutil.rmtree(backup_directory)
             except Exception as e_dump_load:
                 err_str = (
                     "An error occurred while updating the database schema "
@@ -1598,8 +1637,8 @@ def deploy_schema(
 
             err_str = (
                 "An error occurred while updating the database schema "
-                f"`{schema_name}` to version {version}. The schema has been"
-                f"restored back to version {schema_version}. {e}"
+                f"`{schema_name}` to version {version}. The schema has been "
+                f"restored back to version {schema_version}."
             )
             lib.core.write_to_msm_schema_update_log("ERROR", err_str)
 

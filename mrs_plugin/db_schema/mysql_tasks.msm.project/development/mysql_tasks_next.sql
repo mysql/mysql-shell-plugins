@@ -84,10 +84,40 @@ CREATE TABLE IF NOT EXISTS `mysql_tasks`.`config` (
   `id` TINYINT NOT NULL DEFAULT 1,
   `data` JSON NULL,
   PRIMARY KEY (`id`),
-  CONSTRAINT Config_OnlyOneRow CHECK (id = 1))
-ENGINE = InnoDB;
+  CONSTRAINT Config_OnlyOneRow CHECK (id = 1),
+  CONSTRAINT Config_CheckJsonSchema CHECK (
+    JSON_SCHEMA_VALID('{
+        "type": "object",
+        "properties": {
+            "limits": {
+                "type": "object",
+                "properties": {
+                    "maximumPreparedStmtAsyncTasks": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "exclusiveMinimum": true,
+                        "maximum": 128
+                    },
+                    "maximumHeatwaveLoadingTasks": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "exclusiveMinimum": true,
+                        "maximum": 10
+                    }
+                },
+                "required": [
+                  "maximumPreparedStmtAsyncTasks",
+                  "maximumHeatwaveLoadingTasks"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "required": ["limits"],
+        "additionalProperties": false
+    }', data)
+  )
+) ENGINE = InnoDB;
 
--- cSpell:ignore Lakehouse
 INSERT IGNORE INTO `mysql_tasks`.`config` (`id`, `data`)
   VALUES (1, '{
     "limits": {
@@ -187,6 +217,73 @@ CREATE TABLE IF NOT EXISTS `mysql_tasks`.`task_log_impl` (
 DELIMITER %%
 
 -- -----------------------------------------------------
+-- Trigger `mysql_tasks`.`config_prevent_deletion`
+-- Prevents deleting the only row in the config table
+-- -----------------------------------------------------
+DROP TRIGGER IF EXISTS `mysql_tasks`.`config_prevent_deletion`%%
+CREATE TRIGGER `mysql_tasks`.`config_prevent_deletion`
+BEFORE DELETE ON `mysql_tasks`.`config`
+FOR EACH ROW
+BEGIN
+  SIGNAL SQLSTATE '45000'
+  SET MESSAGE_TEXT = 'Deletion not allowed, please update the only row.';
+END%%
+
+-- -------------------------------------------------------------------------
+-- Trigger `mysql_tasks`.`config_BEFORE_UPDATE`
+-- Ensures "maximumHeatwaveLoadingTasks" <= "maximumPreparedStmtAsyncTasks"
+-- -------------------------------------------------------------------------
+DROP TRIGGER IF EXISTS `mysql_tasks`.`config_BEFORE_UPDATE`%%
+CREATE TRIGGER  `mysql_tasks`.`config_BEFORE_UPDATE`
+BEFORE UPDATE ON `mysql_tasks`.`config`
+FOR EACH ROW
+BEGIN
+
+  IF NOT JSON_SCHEMA_VALID('{
+    "type": "object",
+    "properties": {
+        "limits": {
+            "type": "object",
+            "properties": {
+                "maximumPreparedStmtAsyncTasks": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": true,
+                    "maximum": 128
+                },
+                "maximumHeatwaveLoadingTasks": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": true,
+                    "maximum": 10
+                }
+            },
+            "required": [
+              "maximumPreparedStmtAsyncTasks",
+              "maximumHeatwaveLoadingTasks"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "required": ["limits"],
+    "additionalProperties": false
+  }', NEW.data) THEN
+      -- Raise an error if validation fails
+      SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = "Incorrect value for column 'data' not conforming to "
+        "the JSON schema";
+  END IF;
+
+  IF JSON_EXTRACT(NEW.data, '$.limits.maximumHeatwaveLoadingTasks') >
+     JSON_EXTRACT(NEW.data, '$.limits.maximumPreparedStmtAsyncTasks') THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'limits.maximumHeatwaveLoadingTasks cannot be larger '
+      'than limits.maximumPreparedStmtAsyncTasks';
+  END IF;
+END%%
+
+
+-- -----------------------------------------------------
 -- Trigger `mysql_tasks`.`task_impl_BEFORE_INSERT`
 -- Populate server_uuid and alias on insert
 -- -----------------------------------------------------
@@ -239,6 +336,28 @@ BEGIN
   DELETE FROM `mysql_tasks`.`task_log_impl`
   WHERE
     `task_id` = OLD.`id`;
+END%%
+
+-- -----------------------------------------------------
+-- Trigger `mysql_tasks`.`task_impl_BEFORE_UPDATE`
+-- -----------------------------------------------------
+DROP TRIGGER IF EXISTS `mysql_tasks`.`task_impl_BEFORE_UPDATE`%%
+CREATE TRIGGER `mysql_tasks`.`task_impl_BEFORE_UPDATE`
+BEFORE UPDATE ON `mysql_tasks`.`task_impl` FOR EACH ROW
+BEGIN
+  SIGNAL SQLSTATE '45000'
+  SET MESSAGE_TEXT = 'Updates disabled on this table.';
+END%%
+
+-- -----------------------------------------------------
+-- Trigger `mysql_tasks`.`task_log_impl_BEFORE_UPDATE`
+-- -----------------------------------------------------
+DROP TRIGGER IF EXISTS `mysql_tasks`.`task_log_impl_BEFORE_UPDATE`%%
+CREATE TRIGGER `mysql_tasks`.`task_log_impl_BEFORE_UPDATE`
+BEFORE UPDATE ON `mysql_tasks`.`task_log_impl` FOR EACH ROW
+BEGIN
+  SIGNAL SQLSTATE '45000'
+  SET MESSAGE_TEXT = 'Updates disabled on this table.';
 END%%
 
 -- -----------------------------------------------------
@@ -323,8 +442,7 @@ WHERE
 -- derived using the time of task start and task progress.
 -- In case the task has been started on a MySQL server with a different
 -- server_uuid, some information is masked.
--- The view runs as DEFINER, regular users should not be granted privileges
--- to use it.
+-- Note: Regular users do not need privileges to use it.
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `mysql_tasks`.`task_status_impl`;
 CREATE SQL SECURITY INVOKER VIEW `mysql_tasks`.`task_status_impl` AS
@@ -950,7 +1068,8 @@ CREATE FUNCTION `mysql_tasks`.`get_task_log_data_json_schema`(
 BEGIN
   IF @mysql_tasks_initiated IS NULL THEN
     SIGNAL SQLSTATE 'HY000' SET
-    MESSAGE_TEXT = 'This function should not be called directly';
+    MESSAGE_TEXT = 'get_task_log_data_json_schema function should not be '
+      'called directly';
   END IF;
 
   RETURN (
@@ -976,7 +1095,8 @@ CREATE FUNCTION `mysql_tasks`.`get_task_connection_id`(
 BEGIN
   IF @mysql_tasks_initiated IS NULL THEN
     SIGNAL SQLSTATE 'HY000' SET
-    MESSAGE_TEXT = 'This function should not be called directly';
+    MESSAGE_TEXT = 'get_task_connection_id function should not be '
+      'called directly';
   END IF;
 
   RETURN (
@@ -1000,74 +1120,22 @@ CREATE FUNCTION `mysql_tasks`.`active_task_count`(task_type VARCHAR(80))
 BEGIN
   IF @mysql_tasks_initiated IS NULL THEN
     SIGNAL SQLSTATE 'HY000' SET
-    MESSAGE_TEXT = 'This function should not be called directly';
+    MESSAGE_TEXT = 'active_task_count function should not be called directly';
   END IF;
 
   RETURN (
-    SELECT COUNT(active_task.task_id) FROM (
-      SELECT
-        DISTINCT(tl.task_id) AS task_id
-      FROM
-        `mysql_tasks`.`task_log_impl` tl
-      JOIN
-        `mysql_tasks`.`task_impl` t
-      ON
-        tl.task_id = t.id
-      WHERE
-        tl.status IN ('RUNNING', 'SCHEDULED')
-      AND
-        (t.task_type = task_type OR task_type IS NULL)
-      AND tl.task_id NOT IN (
-        SELECT DISTINCT(tli.task_id)
-        FROM
-          `mysql_tasks`.`task_log_impl` tli
-        WHERE
-          tli.status IN ('COMPLETED', 'ERROR', 'CANCELLED')
-      )
-    ) active_task
+    SELECT COUNT(*) FROM (
+      SELECT t.id
+      FROM task_impl t
+      JOIN task_log_impl tl ON t.id = tl.task_id
+      WHERE t.server_uuid = UUID_TO_BIN(@@server_uuid, 1)
+      AND (t.task_type = task_type OR task_type IS NULL)
+      GROUP BY t.id
+      HAVING SUM(tl.status IN ('COMPLETED', 'ERROR', 'CANCELLED')) = 0
+        AND SUM(tl.status IN ('RUNNING', 'SCHEDULED')) > 0
+    ) active_tasks
   );
-END%%
 
--- -----------------------------------------------------
--- Function `mysql_tasks`.`active_user_task_count`
---   for internal use
--- -----------------------------------------------------
-DROP FUNCTION IF EXISTS `mysql_tasks`.`active_user_task_count`%%
-CREATE FUNCTION `mysql_tasks`.`active_user_task_count`(task_type VARCHAR(80))
-  RETURNS INT UNSIGNED
-  READS SQL DATA
-  SQL SECURITY DEFINER
-BEGIN
-  IF @mysql_tasks_initiated IS NULL THEN
-    SIGNAL SQLSTATE 'HY000' SET
-    MESSAGE_TEXT = 'This function should not be called directly';
-  END IF;
-
-  RETURN (
-    SELECT COUNT(active_task.task_id) FROM (
-      SELECT
-        DISTINCT(tl.task_id) AS task_id
-      FROM
-        `mysql_tasks`.`task_log_impl` tl
-      JOIN
-        `mysql_tasks`.`task_impl` t
-      ON
-        tl.task_id = t.id
-      WHERE
-        mysql_tasks.extract_username(t.mysql_user) =
-          BINARY mysql_tasks.extract_username(SESSION_USER())
-        AND tl.status IN ('RUNNING', 'SCHEDULED')
-      AND
-        (t.task_type = task_type OR task_type IS NULL)
-      AND tl.task_id NOT IN (
-        SELECT DISTINCT(tli.task_id)
-        FROM
-          `mysql_tasks`.`task_log_impl` tli
-        WHERE
-          tli.status IN ('COMPLETED', 'ERROR', 'CANCELLED')
-      )
-    ) active_task
-  );
 END%%
 
 -- -----------------------------------------------------
@@ -1149,6 +1217,10 @@ BEGIN
     SELECT id_or_alias INTO task_id;
   ELSE
     -- Otherwise, assume alias is provided
+    IF (CHAR_LENGTH(id_or_alias) > 16) THEN
+      SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Invalid id_or_alias parameter';
+    END IF;
 
     -- Replace task_alias with task_id
     SELECT `mysql_tasks`.`get_app_task_ids_from_alias`(
@@ -1247,7 +1319,7 @@ CREATE FUNCTION `mysql_tasks`.`quote_identifier`(in_identifier TEXT)
 BEGIN
   IF @mysql_tasks_initiated IS NULL THEN
     SIGNAL SQLSTATE 'HY000' SET
-    MESSAGE_TEXT = 'This function should not be called directly';
+    MESSAGE_TEXT = 'quote_identifier function should not be called directly';
   END IF;
 
   RETURN CONCAT('`', REPLACE(in_identifier, '`', '``'), '`');
@@ -1397,18 +1469,18 @@ COMMENT '
 BEGIN
   DECLARE log_id BINARY(16) DEFAULT UUID_TO_BIN(UUID(), 1);
   DECLARE log_data_json_schema JSON DEFAULT NULL;
-  DECLARE initiate_uuid VARCHAR(36) DEFAULT UUID();
+  DECLARE initiate_name TEXT DEFAULT 'add_task_log';
 
   DECLARE EXIT HANDLER FOR SQLEXCEPTION
   BEGIN
-    IF @mysql_tasks_initiated <=> initiate_uuid THEN
+    IF @mysql_tasks_initiated <=> initiate_name THEN
       SET @mysql_tasks_initiated = NULL;
     END IF;
     RESIGNAL;
   END;
 
   IF @mysql_tasks_initiated IS NULL THEN
-    SET @mysql_tasks_initiated = initiate_uuid;
+    SET @mysql_tasks_initiated = initiate_name;
   END IF;
 
   SELECT `mysql_tasks`.`get_task_log_data_json_schema`(task_id)
@@ -1428,7 +1500,7 @@ BEGIN
     log_id, UUID_TO_BIN(task_id, 1), NOW(6), message, `data`, progress, `status`
   );
 
-  IF @mysql_tasks_initiated = initiate_uuid THEN
+  IF @mysql_tasks_initiated <=> initiate_name THEN
     SET @mysql_tasks_initiated = NULL;
   END IF;
 END%%
@@ -1455,18 +1527,18 @@ BEGIN
   DECLARE cid BIGINT UNSIGNED DEFAULT NULL;
   DECLARE i INT DEFAULT 0;
   DECLARE event_name TEXT DEFAULT NULL;
-  DECLARE initiate_uuid VARCHAR(36) DEFAULT UUID();
+  DECLARE initiate_name TEXT DEFAULT 'kill_app_task';
 
   DECLARE EXIT HANDLER FOR SQLEXCEPTION
   BEGIN
-    IF @mysql_tasks_initiated <=> initiate_uuid THEN
+    IF @mysql_tasks_initiated <=> initiate_name THEN
       SET @mysql_tasks_initiated = NULL;
     END IF;
     RESIGNAL;
   END;
 
   IF @mysql_tasks_initiated IS NULL THEN
-    SET @mysql_tasks_initiated = initiate_uuid;
+    SET @mysql_tasks_initiated = initiate_name;
   END IF;
 
   SELECT `mysql_tasks`.`get_app_task_id`(app_user_id, id_or_alias) INTO task_id;
@@ -1494,15 +1566,23 @@ BEGIN
     SET MESSAGE_TEXT = 'Task inactive.';
   END IF;
 
-  -- kill process
-  SET @stmt = CONCAT('KILL ', cid);
-  PREPARE stmt FROM @stmt; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+  CALL `mysql_tasks`.`add_task_log`(
+    task_id, 'Cancelled by user.', NULL, 100, 'CANCELLED');
 
   -- kill task monitor
   IF JSON_LENGTH(task_status->'$.task_data.mysqlMetadata.events') > 1 THEN
     CALL `mysql_tasks`.`stop_task_monitor`(
       task_status->'$.task_data.mysqlMetadata.events[last]', task_id);
   END IF;
+
+  -- kill process
+  BEGIN
+    -- continue on ER_NO_SUCH_THREAD
+    DECLARE CONTINUE HANDLER FOR 1094 BEGIN END;
+
+    SET @stmt = CONCAT('KILL ', cid);
+    PREPARE stmt FROM @stmt; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+  END;
 
   -- drop associated events
   IF JSON_CONTAINS_PATH(
@@ -1517,10 +1597,7 @@ BEGIN
     END WHILE;
   END IF;
 
-  CALL `mysql_tasks`.`add_task_log`(
-    task_id, 'Cancelled by user.', NULL, 100, 'CANCELLED');
-
-  IF @mysql_tasks_initiated <=> initiate_uuid THEN
+  IF @mysql_tasks_initiated <=> initiate_name THEN
     SET @mysql_tasks_initiated = NULL;
   END IF;
 
@@ -1564,7 +1641,7 @@ BEGIN
 
   IF @mysql_tasks_initiated IS NULL THEN
     SIGNAL SQLSTATE 'HY000' SET
-    MESSAGE_TEXT = 'This procedure should not be called directly';
+    MESSAGE_TEXT = 'drop_event procedure should not be called directly';
   END IF;
 
   -- get schema version
@@ -1653,7 +1730,7 @@ BEGIN
   DECLARE internal_data JSON DEFAULT NULL;
   DECLARE internal_data_json_schema JSON DEFAULT NULL;
   DECLARE data_json_schema_required JSON DEFAULT NULL;
-  DECLARE initiate_uuid VARCHAR(36) DEFAULT UUID();
+  DECLARE initiate_name TEXT DEFAULT 'execute_prepared_stmt_from_app_async';
 
   DECLARE EXIT HANDLER FOR SQLEXCEPTION
   BEGIN
@@ -1662,7 +1739,7 @@ BEGIN
         @p2 = MYSQL_ERRNO,
         @p3 = MESSAGE_TEXT;
       DO RELEASE_LOCK('execute_prepared_stmt_async');
-      IF @mysql_tasks_initiated <=> initiate_uuid THEN
+      IF @mysql_tasks_initiated <=> initiate_name THEN
         SET @mysql_tasks_initiated = NULL;
       END IF;
       IF @p3 = 'No schema set.' THEN
@@ -1675,8 +1752,23 @@ BEGIN
       END IF;
   END;
 
+  -- user() and current_user() are different when invoked through an event
+  IF (SELECT COUNT(*)>0 FROM `performance_schema`.`events_statements_current`
+      WHERE thread_id=PS_CURRENT_THREAD_ID() AND object_type="EVENT") THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Invoking the procedure from a MySQL EVENT is not '
+        'supported';
+  END IF;
+
+  IF mysql_tasks.extract_username(SESSION_USER()) !=
+     mysql_tasks.extract_username(CURRENT_USER()) THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Procedure not supported when USER() and '
+        'CURRENT_USER() are different';
+  END IF;
+
   IF @mysql_tasks_initiated IS NULL THEN
-    SET @mysql_tasks_initiated = initiate_uuid;
+    SET @mysql_tasks_initiated = initiate_name;
   END IF;
 
   SELECT
@@ -1800,7 +1892,7 @@ BEGIN
   SET task_data = COALESCE(task_data, JSON_OBJECT());
   SET task_data = JSON_MERGE_PATCH(internal_data, task_data);
 
-  IF NOT GET_LOCK('execute_prepared_stmt_async', 2) <=> 1 THEN
+  IF NOT GET_LOCK('execute_prepared_stmt_async', 5) <=> 1 THEN
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot acquire lock.'
       ' Try again later', MYSQL_ERRNO = 1205;
   END IF;
@@ -1824,7 +1916,7 @@ BEGIN
     'ON SCHEDULE AT NOW() ON COMPLETION NOT PRESERVE ENABLE ',
     'COMMENT "mysql_tasks_schema_version=', task_mgmt_version, '" ',
     'DO BEGIN ',
-    'DECLARE initiate_uuid VARCHAR(36) DEFAULT UUID(); ',
+    'DECLARE initiate_name TEXT DEFAULT "task_runner_event"; ',
     'DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN ',
     '  GET DIAGNOSTICS CONDITION 1',
     '     @p1 = RETURNED_SQLSTATE,',
@@ -1834,13 +1926,13 @@ BEGIN
           QUOTE(progress_event_name), ', ', QUOTE(task_id), '); ',
     '  CALL `mysql_tasks`.`add_task_log`("',
           task_id, '", CONCAT("Error: ", @p3), NULL, 100, "ERROR"); ',
-    '  IF @mysql_tasks_initiated <=> initiate_uuid THEN ',
+    '  IF @mysql_tasks_initiated <=> initiate_name THEN ',
     '    SET @mysql_tasks_initiated = NULL; ',
     '  END IF; ',
     'END; ',
     'SET ROLE ALL; ',
     'IF @mysql_tasks_initiated IS NULL THEN ',
-    '  SET @mysql_tasks_initiated = initiate_uuid; ',
+    '  SET @mysql_tasks_initiated = initiate_name; ',
     'END IF; ',
     'SET @task_id ="', task_id, '"; SET @task_result = NULL; ',
 
@@ -1871,7 +1963,7 @@ BEGIN
       '@task_id, "Execution finished.", ',
       'CAST(@task_result AS JSON), 100, "COMPLETED"); ',
     'SET @task_id = NULL; SET @task_result = NULL; ',
-    'IF @mysql_tasks_initiated <=> initiate_uuid THEN ',
+    'IF @mysql_tasks_initiated <=> initiate_name THEN ',
     '  SET @mysql_tasks_initiated = NULL; ',
     'END IF; ',
     'END;');
@@ -1880,6 +1972,11 @@ BEGIN
   EXECUTE dynamic_statement;
   DEALLOCATE PREPARE dynamic_statement;
 
+  -- Wait for the task to be created
+  WHILE (mysql_tasks.task(task_id) IS NULL) DO
+    DO SLEEP(0.1);
+  END WHILE;
+
   -- Release lock after launching the async task
   -- The while loop ensures previously acquired locks by the same session,
   -- which were not released due to an abort, are released as well.
@@ -1887,7 +1984,7 @@ BEGIN
     DO RELEASE_LOCK('execute_prepared_stmt_async');
   END WHILE;
 
-  IF @mysql_tasks_initiated <=> initiate_uuid THEN
+  IF @mysql_tasks_initiated <=> initiate_name THEN
     SET @mysql_tasks_initiated = NULL;
   END IF;
 END%%
@@ -1945,7 +2042,7 @@ BEGIN
 
   IF @mysql_tasks_initiated IS NULL THEN
     SIGNAL SQLSTATE 'HY000' SET
-    MESSAGE_TEXT = 'This procedure should not be called directly';
+    MESSAGE_TEXT = 'start_task_monitor procedure should not be called directly';
   END IF;
 
   IF sql_statements IS NOT NULL AND event_name IS NOT NULL THEN
@@ -1973,26 +2070,28 @@ BEGIN
       'COMMENT "mysql_tasks_schema_version=', task_mgmt_version, '" ',
       'DO BEGIN ',
       'DECLARE do_run BOOLEAN DEFAULT TRUE; ',
-      'DECLARE initiate_uuid VARCHAR(36) DEFAULT UUID(); ',
+      'DECLARE initiate_name TEXT DEFAULT "task_monitor_event"; ',
+      'DECLARE lock_name VARCHAR(64) DEFAULT ', QUOTE(RIGHT(event_name,64)),';',
+
       'DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN ',
       '  GET DIAGNOSTICS CONDITION 1 ',
       '   @p1 = RETURNED_SQLSTATE, @p2 = MYSQL_ERRNO, @p3 = MESSAGE_TEXT; ',
       '  CALL `mysql_tasks`.`add_task_log`(',
           QUOTE(task_id),', CONCAT("Error: ", @p3), NULL, 100, "ERROR"); ',
-      '  IF @mysql_tasks_initiated <=> initiate_uuid THEN ',
+      '  IF @mysql_tasks_initiated <=> initiate_name THEN ',
       '    SET @mysql_tasks_initiated = NULL; ',
       '  END IF; ',
       'END; ',
       'SET ROLE ALL; ',
       'SET @task_id =', QUOTE(task_id), '; ',
       'IF @mysql_tasks_initiated IS NULL THEN ',
-      '  SET @mysql_tasks_initiated = initiate_uuid; ',
+      '  SET @mysql_tasks_initiated = initiate_name; ',
       'END IF; ',
 
       -- synchronization with thread calling end_task_monitor
       -- if the event was dropped (not found in information_schema.events)
       -- terminate it
-      'IF (GET_LOCK(', QUOTE(event_name),', 60) <=> 1 AND ',
+      'IF (GET_LOCK(lock_name, 60) <=> 1 AND ',
       '(SELECT COUNT(*)>0 FROM information_schema.events ise ',
       '   WHERE CONCAT(mysql_tasks.quote_identifier(ise.event_schema), ',
       '   ".", mysql_tasks.quote_identifier(ise.event_name)) = ',
@@ -2001,8 +2100,8 @@ BEGIN
       '     "Progress monitor started.", ',
       '     JSON_OBJECT("connection_id", CONNECTION_ID()), 0, "RUNNING"); ',
       'END IF; ',
-      'WHILE IS_USED_LOCK(', QUOTE(event_name), ') <=> CONNECTION_ID() DO ',
-      '  DO RELEASE_LOCK(', QUOTE(event_name), '); ',
+      'WHILE IS_USED_LOCK(lock_name) <=> CONNECTION_ID() DO ',
+      '  DO RELEASE_LOCK(lock_name); ',
       'END WHILE; ',
 
       -- if at any time event gets killed, terminate its while loop
@@ -2014,7 +2113,7 @@ BEGIN
       '  DO SLEEP(', refresh_period, '); ',
       'END WHILE; ',
       'SET @task_id = NULL; ',
-      'IF @mysql_tasks_initiated <=> initiate_uuid THEN ',
+      'IF @mysql_tasks_initiated <=> initiate_name THEN ',
       '  SET @mysql_tasks_initiated = NULL; ',
       'END IF; ',
       'END'
@@ -2045,18 +2144,20 @@ COMMENT '
   - task_id: ID of the task for which the task monitor has been started'
 BEGIN
   DECLARE log_msg JSON DEFAULT NULL;
+  DECLARE lock_name VARCHAR(64) DEFAULT RIGHT(event_name, 64);
+
   DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN
-    DO RELEASE_LOCK(QUOTE(event_name));
+    DO RELEASE_LOCK(lock_name);
   END;
 
   IF @mysql_tasks_initiated IS NULL THEN
     SIGNAL SQLSTATE 'HY000' SET
-    MESSAGE_TEXT = 'This procedure should not be called directly';
+    MESSAGE_TEXT = 'stop_task_monitor procedure should not be called directly';
   END IF;
 
   IF event_name IS NOT NULL THEN
     -- synchronization with thread running task_monitor
-    DO GET_LOCK(event_name, 60);
+    DO GET_LOCK(lock_name, 60);
 
     SELECT `mysql_tasks`.`find_task_log_msg`(
       task_id, 'Progress monitor started.') INTO log_msg;
@@ -2082,8 +2183,8 @@ BEGIN
     EXECUTE dynamic_statement;
     DEALLOCATE PREPARE dynamic_statement;
 
-    WHILE IS_USED_LOCK(event_name) <=> CONNECTION_ID() DO
-      DO RELEASE_LOCK(event_name);
+    WHILE IS_USED_LOCK(lock_name) <=> CONNECTION_ID() DO
+      DO RELEASE_LOCK(lock_name);
     END WHILE;
 
   END IF;
@@ -2101,10 +2202,10 @@ CREATE EVENT `mysql_tasks`.`task_cleanup` ON SCHEDULE EVERY 1 DAY
 ON COMPLETION NOT PRESERVE ENABLE COMMENT 'Clean up old tasks' DO
 BEGIN
   DECLARE task_ids_to_del JSON DEFAULT NULL;
-  DECLARE initiate_uuid VARCHAR(36) DEFAULT UUID();
+  DECLARE initiate_name TEXT DEFAULT 'task_cleanup';
 
   IF @mysql_tasks_initiated IS NULL THEN
-    SET @mysql_tasks_initiated = initiate_uuid;
+    SET @mysql_tasks_initiated = initiate_name;
   END IF;
 
   -- find all tasks with last tog time
@@ -2124,15 +2225,18 @@ BEGIN
   LEFT OUTER JOIN
     `mysql_tasks`.`task_log_impl`  last_tl
     ON tl.task_id = last_tl.task_id AND tl.last_log_time = last_tl.log_time
+  JOIN `mysql_tasks`.`task_impl` t
+    ON tl.task_id = t.id
   WHERE (last_tl.status <> 'SCHEDULED' AND last_tl.status <> 'RUNNING')
-    AND DATE(last_tl.log_time) <= DATE_SUB(CURDATE(), INTERVAL 6 DAY);
+    AND DATE(last_tl.log_time) <= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+    AND t.server_uuid = UUID_TO_BIN(@@server_uuid, 1);
 
   -- delete all old tasks
   DELETE FROM
     `mysql_tasks`.`task_impl`
   WHERE BIN_TO_UUID(id, 1) MEMBER OF(@task_ids_to_del);
 
-  IF @mysql_tasks_initiated <=> initiate_uuid THEN
+  IF @mysql_tasks_initiated <=> initiate_name THEN
     SET @mysql_tasks_initiated = NULL;
   END IF;
 
@@ -2156,10 +2260,10 @@ BEGIN
   DECLARE curr_user TEXT DEFAULT NULL;
   DECLARE curr_data JSON DEFAULT NULL;
   DECLARE event_name TEXT DEFAULT NULL;
-  DECLARE initiate_uuid VARCHAR(36) DEFAULT UUID();
+  DECLARE initiate_name TEXT DEFAULT 'task_gc';
 
   IF @mysql_tasks_initiated IS NULL THEN
-    SET @mysql_tasks_initiated = initiate_uuid;
+    SET @mysql_tasks_initiated = initiate_name;
   END IF;
 
   -- Find active tasks without alive process
@@ -2259,7 +2363,7 @@ BEGIN
     SELECT i + 1 INTO i;
   END WHILE;
 
-  IF @mysql_tasks_initiated <=> initiate_uuid THEN
+  IF @mysql_tasks_initiated <=> initiate_name THEN
     SET @mysql_tasks_initiated = NULL;
   END IF;
 END%%
@@ -2280,9 +2384,11 @@ DELIMITER ;
 CREATE ROLE IF NOT EXISTS 'mysql_task_admin', 'mysql_task_user';
 
 -- GRANTS for mysql_task_admin
-GRANT SELECT, INSERT, UPDATE, DELETE, EXECUTE ON `mysql_tasks`.* TO 'mysql_task_admin';
+GRANT SELECT, INSERT, DELETE, EXECUTE ON `mysql_tasks`.* TO
+  'mysql_task_admin';
 GRANT SELECT ON `performance_schema`.`events_statements_current` TO
   'mysql_task_admin';
+GRANT SELECT ON `performance_schema`.`global_variables` TO `mysql_task_admin`;
 
 -- GRANTS for mysql_task_user
 GRANT SELECT ON `mysql_tasks`.`config` TO 'mysql_task_user';
@@ -2297,8 +2403,6 @@ GRANT EXECUTE ON FUNCTION `mysql_tasks`.`task_status` TO 'mysql_task_user';
 GRANT EXECUTE ON FUNCTION `mysql_tasks`.`task_status_brief` TO
   'mysql_task_user';
 GRANT EXECUTE ON FUNCTION `mysql_tasks`.`active_task_count` TO
-  'mysql_task_user';
-GRANT EXECUTE ON FUNCTION `mysql_tasks`.`active_user_task_count` TO
   'mysql_task_user';
 GRANT EXECUTE ON FUNCTION `mysql_tasks`.`find_task_log_msg` TO
   'mysql_task_user';
