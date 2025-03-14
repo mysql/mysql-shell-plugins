@@ -1650,30 +1650,36 @@ def add_object_fields_from_interface(
             object_fields.append(object_field)
 
 
-def get_create_statement(session, content_set) -> str:
-    executor = MrsDdlExecutor(
-        session=session,
+def get_content_set_create_statement(session, content_set) -> str:
+    stmt = []
+    stmt.append(
+        f"CREATE OR REPLACE REST CONTENT SET {content_set.get('request_path')}\n"
+        + f"    ON SERVICE {content_set.get('host_ctx')}"
+    )
 
-        current_service_id=content_set["service_id"])
+    if content_set["enabled"] == 2:
+        stmt.append("    PRIVATE")
+    elif content_set["enabled"] is False or content_set["enabled"] == 0:
+        stmt.append("    DISABLED")
 
-    executor.showCreateRestContentSet({
-        "current_operation": "SHOW CREATE REST CONTENT SET",
-        **content_set
-    })
+    if content_set["comments"]:  # ignore either None or empty
+        stmt.append(f"    COMMENT {core.squote_str(content_set["comments"])}")
 
-    if executor.results[0]["type"] == "error":
-        raise Exception(executor.results[0]['message'])
+    stmt.append(core.format_json_entry("OPTIONS", content_set.get("options")))
 
-    result = [executor.results[0]['result'][0]['CREATE REST CONTENT SET']]
+    stmt.append("    AUTHENTICATION REQUIRED" if content_set["requires_auth"] in [True, 1] \
+        else "    AUTHENTICATION NOT REQUIRED")
+
+    output = ["\n".join(stmt) + ";"]
 
     content_set_files = content_files.get_content_files(
         session, content_set["id"], None, False)
 
     for service_content_file in content_set_files:
-        result.append(content_files.get_create_statement(
+        output.append(content_files.get_content_file_create_statement(
             session, service_content_file))
 
-    return "\n\n".join(result)
+    return "\n\n".join(output)
 
 
 def update_file_content_via_regex(file_path, reg_ex, substitute):

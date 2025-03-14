@@ -22,7 +22,6 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 from mrs_plugin.lib import core, schemas, database
-from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
 import json
 
 
@@ -755,23 +754,184 @@ def calculate_crud_operations(db_object_type, objects=None, options=None):
     return crudOps
 
 
-def get_create_statement(session, db_object) -> str:
-    # TODO MrsDdlExecutor shouldn't be used from anywhere but parser
-    # show create code should be moved here and MrsDdlExecutor should call this
-    executor = MrsDdlExecutor(session=session)
-    db_object_type = "VIEW" if db_object["object_type"] in [
-        "TABLE", "VIEW"] else db_object["object_type"]
+def walk(fields, parent_id=None, level=1, add_data_type=False, current_object=None):
+    result = ""
+    filtered_fields = list(
+        filter(
+            lambda f: f.get("reduceToValueOfFieldId", {}).get(
+                "reduce_to_value_of_field_id"
+            ),
+            fields,
+        )
+    )
+    reduce_to_field_ids = [
+        f.get("reduceToValueOfFieldId", {}).get("reduce_to_value_of_field_id", "")
+        for f in filtered_fields
+    ]
 
-    executor.showCreateRestDbObject({
-        "current_operation": "SHOW CREATE REST DB_OBJECT",
-        "type": db_object_type,
-        "host_ctx": db_object["host_ctx"],
-        "url_host_name": db_object["host_ctx"].split("/")[0],
-        "url_context_root": "/" + db_object["host_ctx"].split("/")[1],
-        **db_object
-    })
+    indent = " " * level * 4
 
-    if executor.results[0]["type"] == "error":
-        raise Exception(executor.results[0]['message'])
+    for field in fields:
+        if field.get("parent_reference_id") != parent_id:
+            continue
 
-    return executor.results[0]["result"][0][f"CREATE REST {db_object_type}"]
+        if not field.get("object_reference") and (
+            field["enabled"] or field["id"] in reduce_to_field_ids
+        ):
+            attributes = []
+            inout = f'@{"IN" if field["db_column"].get("in") else ""}{"OUT" if field["db_column"].get("out") else ""}'
+            inout != "@" and attributes.append(inout)
+            field.get("db_column", {}).get("is_primary", False) and attributes.append("@KEY")
+            field.get("no_check") and attributes.append("@NOCHECK")
+            field.get("no_update") and attributes.append("@NOUPDATE")
+            field.get("allow_sorting") and attributes.append("@SORTABLE")
+            not field.get("allow_filtering") and attributes.append("@NOFILTERING")
+            add_data_type and field["db_column"] and field["db_column"][
+                "datatype"
+            ] and attributes.append(f'@DATATYPE("{field["db_column"]["datatype"]}")')
+
+            if field["id"] == current_object.get("row_ownership_field_id", None):
+                attributes.append("@ROWOWNERSHIP")
+
+            result += f"{indent}{field['name']}: {field['db_column']['name']}"
+            if attributes:
+                result = f"{result} {' '.join(attributes)}"
+            result = f"{result},\n"
+        elif (
+            field.get("object_reference")
+            and field["object_reference"].get("unnest")
+            or field["enabled"]
+        ):
+            ref_table = f'{field["object_reference"]["reference_mapping"]["referenced_schema"]}.{field["object_reference"]["reference_mapping"]["referenced_table"]}'
+
+            attributes = []
+            options = field["object_reference"].get("options", {})
+            if options is None:
+                options = {}
+
+            if options.get("dataMappingViewInsert", False):
+                attributes.append("@INSERT")
+            if options.get("dataMappingViewUpdate", False):
+                attributes.append("@UPDATE")
+            if options.get("dataMappingViewDelete", False):
+                attributes.append("@DELETE")
+            if options.get("dataMappingViewNoCheck", False):
+                attributes.append("@NOCHECK")
+
+            if field["object_reference"]["unnest"] or field["object_reference"].get(
+                "reduce_to_value_of_field_id"
+            ):
+                attributes.append("@UNNEST")
+
+            children = core.cut_last_comma(
+                walk(
+                    fields=fields,
+                    parent_id=field["represents_reference_id"],
+                    level=level + 1,
+                    add_data_type=add_data_type,
+                    current_object=field["object_reference"],
+                )
+            )
+
+            result = f'{result}{indent}{field["name"]}: {ref_table}'
+
+            if attributes:
+                result = f'{result} {" ".join(attributes)}'
+
+            if children:
+                result = f"{result} {{\n{children}\n{indent}}},\n"
+
+    return result
+
+def get_db_object_create_statement(session, db_object, objects) -> str:
+    object_type = "VIEW" if db_object.get("object_type") == "TABLE" else db_object.get("object_type")
+
+    output = [
+        f'CREATE OR REPLACE REST {object_type} {db_object.get("request_path")}',
+        f'    ON SERVICE {db_object.get("host_ctx")} SCHEMA {db_object.get("schema_request_path")}',
+        f'    AS {db_object.get("qualified_name")}'
+    ]
+
+    if object_type != "PROCEDURE" and object_type != "FUNCTION":
+        class_header = f"CLASS {objects[0]["name"]}"
+
+        options = objects[0].get("options", {})
+        # can exist and be None
+        if options is not None:
+            if options.get("dataMappingViewInsert", False):
+                class_header += " @INSERT"
+            if options.get("dataMappingViewUpdate", False):
+                class_header += " @UPDATE"
+            if options.get("dataMappingViewDelete", False):
+                class_header += " @DELETE"
+            if options.get("dataMappingViewNoCheck", False):
+                class_header += " @NOCHECK"
+
+        fields = []
+        if len(objects) > 0:
+            fields = get_object_fields_with_references(
+                session=session, object_id=objects[0]["id"]
+            )
+
+        class_header += " {"
+
+        output.append(f"{output.pop()} {class_header}")
+        output.append(core.cut_last_comma(walk(fields=fields, level=2, current_object=objects[0])))
+        output.append("    }")
+    else:
+        #output.append("\n")
+        for object in objects:
+            fields = get_object_fields_with_references(
+                session=session, object_id=object["id"]
+            )
+
+            children = core.cut_last_comma(
+                walk(
+                    fields=fields,
+                    level=2,
+                    add_data_type=object["kind"] == "RESULT",
+                    current_object=object,
+                )
+            )
+
+            output.append(f'    {object["kind"]} {object["name"]}')
+
+            if children:
+                output.append(f" {{\n{children}\n    }}")
+
+    if db_object["enabled"] == 2:
+        output.append("    PRIVATE")
+    elif db_object["enabled"] is False or db_object["enabled"] == 0:
+        output.append("    DISABLED")
+
+    output.append("    AUTHENTICATION REQUIRED" if db_object["requires_auth"] in [True, 1] \
+        else "    AUTHENTICATION NOT REQUIRED")
+
+
+    # 25 is the default value
+    if (
+        db_object["items_per_page"] is not None
+        and db_object["items_per_page"] != 25
+    ):
+        output.append(f'    ITEMS PER PAGE {db_object["items_per_page"]}')
+
+    if db_object["comments"]:  # ignore either None or empty
+        output.append(f"    COMMENT {core.squote_str(db_object["comments"])}")
+
+    if db_object["media_type"] is not None:
+        output.append(f"    MEDIA TYPE {core.squote_str(db_object["media_type"])}")
+
+    if db_object["crud_operation_format"] != "FEED":
+        output.append(f'    FORMAT {db_object["crud_operation_format"]}')
+
+    if db_object["auth_stored_procedure"]:  # ignore either None or empty
+        output.append(f'    AUTHENTICATION PROCEDURE {db_object["auth_stored_procedure"]}')
+
+    if db_object.get("options"):
+        output.append(core.format_json_entry("OPTIONS", db_object.get("options")))
+
+    if db_object.get("metadata"):
+        output.append(core.format_json_entry("METADATA", db_object.get("metadata")))
+
+    # Build CREATE statement
+    return "\n".join(output) + ";"

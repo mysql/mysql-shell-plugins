@@ -21,8 +21,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import core, services
-from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
+from mrs_plugin.lib import core, services, users, roles
 
 MYSQL_AUTHENTICATION = 1
 DEFAULT_ROLE_ID = bytes.fromhex("31000000000000000000000000000000")
@@ -280,12 +279,10 @@ def add_auth_app(session, service_id, auth_vendor_id, app_name, description, url
             ])
 
             if service_id is not None:
-                core.insert(table="service_has_auth_app", values=[
-                    "service_id", "auth_app_id"
-                ]).exec(session, [
-                    service_id,
-                    auth_app_id,
-                ])
+                core.insert(table="service_has_auth_app", values={
+                    "service_id": service_id,
+                    "auth_app_id": auth_app_id,
+                }).dump.exec(session)
 
         return auth_app_id
 
@@ -347,19 +344,44 @@ def update_auth_app(session, app_id, data: dict):
     core.MrsDbExec(sql, params).exec(session)
 
 
-def get_create_statement(session, auth_app, service, include_all_objects) -> str:
-    executor = MrsDdlExecutor(
-        session=session,
-        current_service_id=service["id"]
-    )
+def get_auth_app_create_statement(session, auth_app, include_all_objects) -> str:
+    if auth_app["auth_vendor"].upper() == "MRS":
+        vendor = "MRS"
+    elif auth_app["auth_vendor"].upper() == "MYSQL INTERNAL":
+        vendor = "MYSQL"
+    else:
+        vendor = core.quote_ident(auth_app["auth_vendor"])
 
-    executor.showCreateRestAuthApp({
-        "current_operation": "SHOW CREATE REST AUTH APP",
-        "include_all_objects": include_all_objects,
-        **auth_app
-    })
+    output = []
+    output.append(f'CREATE OR REPLACE REST AUTH APP {core.quote_auth_app(auth_app.get("name"))}')
+    output.append(f"    VENDOR {vendor}")
 
-    if executor.results[0]["type"] == "error":
-        raise Exception(executor.results[0]['message'])
+    if auth_app["enabled"] is False or auth_app["enabled"] == 0:
+        output.append("    DISABLED")
 
-    return executor.results[0]["result"][0]["CREATE REST AUTH APP "]
+    if auth_app["description"]:  # ignore either None or empty
+        output.append(f'    COMMENT {core.quote_text(auth_app["description"])}')
+
+    if auth_app.get("limit_to_registered_users") == 0:
+        output.append("    ALLOW NEW USERS TO REGISTER")
+
+    # Get default role
+    if auth_app.get("default_role_id") is not None:
+        role = roles.get_role(
+            session=session, role_id=auth_app.get(
+                "default_role_id")
+        )
+        if role is not None:
+            output.append(f'    DEFAULT ROLE {core.quote_role(role.get("caption"))}')
+
+    result = ["\n".join(output) + ";"]
+
+    if include_all_objects:
+        included_users = users.get_users(
+            session, auth_app_id=auth_app["id"], mask_password=False)
+
+        for user in included_users:
+            result.append(users.get_user_create_statement(
+                session, user, True))
+
+    return "\n\n".join(result)

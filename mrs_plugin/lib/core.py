@@ -25,7 +25,7 @@
 
 # cSpell:ignore mysqlsh, mrs
 import traceback
-from mrs_plugin.lib import services, content_sets, general, schemas
+from mrs_plugin.lib import general
 import mysqlsh
 import os
 import re
@@ -130,65 +130,6 @@ def print_exception(exc_type, exc_value, exc_traceback):
         print(exc_str)
 
     return True
-
-
-def validate_service_path(session, path):
-    """Ensures the given path is valid in any of the registered services.
-
-    Args:
-        session (object): The database session to use.
-        path (str): The path to validate.
-
-    Returns:
-        service, schema, content_set as dict.
-    """
-    if not path:
-        return None, None, None
-
-    service = None
-    schema = None
-    content_set = None
-
-    # Match path against services and schemas
-    all_services = services.get_services(session)
-    for item in all_services:
-        host_ctx = item.get("host_ctx")
-        if host_ctx == path[: len(host_ctx)]:
-            service = item
-            if len(path) > len(host_ctx):
-                sub_path = path[len(host_ctx) :]
-
-                db_schemas = schemas.get_schemas(
-                    service_id=service.get("id"), session=session
-                )
-
-                if db_schemas:
-                    for item in db_schemas:
-                        request_path = item.get("request_path")
-                        if request_path == sub_path[: len(request_path)]:
-                            schema = item
-                            break
-
-                if not schema:
-                    content_sets_local = content_sets.get_content_sets(
-                        service_id=service.get("id"), session=session
-                    )
-
-                    if content_sets_local:
-                        for item in content_sets_local:
-                            request_path = item.get("request_path")
-                            if request_path == sub_path[: len(request_path)]:
-                                content_set = item
-                            break
-
-                if not schema and not content_set:
-                    raise ValueError(f"The given schema or content set was not found.")
-            break
-
-    if not service:
-        raise ValueError(f"The given MRS service was not found.")
-
-    return service, schema, content_set
 
 
 def set_current_objects(
@@ -737,6 +678,28 @@ def convert_json(value) -> dict:
         value_str = value_str.replace(": b'", ': "')
     return json.loads(value_str)
 
+def cut_last_comma(fields):
+    # Cut the last , away if present
+    if fields.endswith(",\n"):
+        return fields[:-2]
+
+    # Otherwise, just cut the last \n
+    return fields[:-1]
+
+def format_json_entry(key: str, value: dict, advance: int=1):
+    if value is None or value == "":
+        return ""
+
+    result: str = json.dumps(value, indent=4)
+    # Indent the json.dumps with (advance * 4) spaces
+    # js_indented = ""
+    # advance_space = "    " * advance
+    result = ["    " * advance + line for line in result.splitlines()]
+
+    return f"    {key} {"\n".join(result).lstrip()}"
+    # for ln in js.split("\n"):
+        # js_indented += f"{advance_space}{ln}\n"
+    # return f"    {key} {js_indented[4:-1]}"
 
 def id_to_binary(id: str, context: str, allowNone=False):
     if allowNone and id is None:
@@ -1211,6 +1174,13 @@ def contains_wildcards(text: str) -> str:
     stripped = text.replace("\\\\", "").replace("\\?", "").replace("\\*", "")
     return "?" in stripped or "*" in stripped
 
+def get_enabled_status_caption(enabledState):
+    if enabledState == 2:
+        return "PRIVATE"
+    if enabledState == 1 or enabledState is True:
+        return "ENABLED"
+    return "DISABLED"
+
 
 def format_result(result):
     if len(result) > 0:
@@ -1322,3 +1292,4 @@ class _NotSet: # used to differentiate None (NULL) vs argument not set
         return False
 
 NotSet = _NotSet()
+

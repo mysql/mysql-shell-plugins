@@ -163,7 +163,7 @@ def generate_create_statement(**kwargs) -> str:
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         content_set = resolve_content_set(session, content_set_id, service_id)
 
-        return lib.content_sets.get_create_statement(session, content_set)
+        return lib.content_sets.get_content_set_create_statement(session, content_set)
 
 
 @plugin_function('mrs.add.contentSet', shell=True, cli=True, web=True)

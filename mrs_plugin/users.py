@@ -35,7 +35,7 @@ def generate_create_statement(**kwargs) -> str:
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         user = resolve_user(session, user_query=user_query)
 
-        return lib.users.get_create_statement(session, user, include_all_objects)
+        return lib.users.get_user_create_statement(session, user, include_all_objects)
 
 
 @plugin_function("mrs.list.users", shell=True, cli=True, web=True)
