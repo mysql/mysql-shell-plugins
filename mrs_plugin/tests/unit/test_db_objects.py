@@ -23,6 +23,7 @@
 
 import pytest
 from pathlib import Path
+import os
 
 from mrs_plugin.db_objects import *
 from mrs_plugin.lib.services import get_current_service_id, set_current_service_id
@@ -31,7 +32,7 @@ from .helpers import get_db_object_privileges, TableContents, SchemaCT, DbObject
 
 db_object_create_statement = """CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE /test SCHEMA /PhoneBook
-    AS PhoneBook.Contacts CLASS `MyServiceAnalogPhoneBookContacts` {
+    AS PhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
         id: id @KEY @SORTABLE,
         fName: f_name,
         lName: l_name,
@@ -568,9 +569,9 @@ def test_special_schemas(phone_book, mobile_phone_book, table_contents):
     assert information_schema_grants.same_as_snapshot
 
 
-def test_get_create_statement(phone_book, table_contents):
+def test_get_db_object_create_statement(phone_book, table_contents):
 
-    sql = get_create_statement(db_object_id=phone_book["db_object_id"], session=phone_book["session"])
+    sql = get_db_object_create_statement(db_object_id=phone_book["db_object_id"], session=phone_book["session"])
 
     assert sql == db_object_create_statement
 
@@ -582,7 +583,7 @@ def test_dump_create_statement(phone_book, table_contents):
 
     # Test home path
     create_function = lambda file_path, overwrite: \
-        store_create_statement(file_path=file_path,
+        store_db_object_create_statement(file_path=file_path,
                                     overwrite=overwrite,
                                     db_object_id=phone_book["db_object_id"],
                                     session=phone_book["session"])
@@ -637,7 +638,7 @@ def test_dump_create_statement(phone_book, table_contents):
 def test_dump_and_recover(phone_book):
     db_object_create_statement2 = """CREATE OR REPLACE REST VIEW /addresses
     ON SERVICE /test SCHEMA /PhoneBook
-    AS PhoneBook.Addresses CLASS `MyServicePhoneBookContactsWithEmail` @INSERT @UPDATE @DELETE {
+    AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
         id: id @KEY
     }
     AUTHENTICATION NOT REQUIRED
@@ -665,10 +666,10 @@ def test_dump_and_recover(phone_book):
 
         # Test home path
         create_function = lambda file_path, overwrite: \
-            store_create_statement(file_path=file_path,
-                                        overwrite=overwrite,
-                                        db_object_id=db_object_id,
-                                        session=phone_book["session"])
+            store_db_object_create_statement(file_path=file_path,
+                                            overwrite=overwrite,
+                                            db_object_id=db_object_id,
+                                            session=phone_book["session"])
 
         result = create_function(file_path=full_path_file, overwrite=True)
 

@@ -26,6 +26,7 @@ import os
 import re
 import pathlib
 import datetime
+import base64
 
 def sizeof_fmt(num, suffix="B"):
     for unit in ["", "K", "M", "G", "T", "P", "E", "Z"]:
@@ -232,22 +233,35 @@ def delete_content_file(session, content_file_id):
             f"The specified REST content file with id {content_file_id} was not found.")
 
 
-def get_create_statement(session, content_file) -> str:
-    content_set: dict = content_sets.get_content_set(
-        session, content_set_id=content_file["content_set_id"])
+def get_content_file_create_statement(session, content_file: dict) -> str:
+    if "content" not in content_file:
+        content_file = get_content_file(session, content_file_id=content_file["id"], include_file_content=True)
 
-    executor = MrsDdlExecutor(
-        session=session,
-        current_service_id=content_set["service_id"])
+    output = []
+    output.append(f"CREATE OR REPLACE REST CONTENT FILE {core.quote_rpath(content_file.get('request_path'))}")
+    output.append(f"    ON SERVICE {core.quote_rpath(content_file.get('host_ctx'))} CONTENT SET {core.quote_rpath(content_file.get('content_set_request_path'))}")
 
-    executor.showCreateRestContentFile({
-        "current_operation": "SHOW CREATE REST CONTENT FILE",
-        **content_file
-    })
+    if content_file["enabled"] == 2:
+        output.append("    PRIVATE")
+    elif content_file["enabled"] is False or content_file["enabled"] == 0:
+        output.append("    DISABLED")
 
-    if executor.results[0]["type"] == "error":
-        raise Exception(executor.results[0]['message'])
+    output.append(core.format_json_entry("OPTIONS",
+                                    content_file.get("options")))
 
-    result = [executor.results[0]['result'][0]['CREATE REST CONTENT FILE']]
+    auth = "    AUTHENTICATION REQUIRED" if content_file["requires_auth"] in [True, 1] \
+        else "    AUTHENTICATION NOT REQUIRED"
 
-    return "\n".join(result)
+    output.append(auth)
+
+    if core.is_text(content_file["content"]):
+        content_type = "CONTENT"
+        contents = content_file["content"].decode()
+    else:
+        content_type = "BINARY CONTENT"
+        contents = base64.b64encode(
+            content_file["content"]).decode("ascii")
+
+    output.append(f"    {content_type} {core.quote_text(contents)}")
+
+    return "\n".join(output) + ";"

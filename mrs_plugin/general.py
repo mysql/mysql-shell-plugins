@@ -71,7 +71,7 @@ def ls(path=None, session=None):
 
         # If a path was given, try to get the corresponding objects
         if path is not None:
-            service, schema, content_set = lib.core.validate_service_path(
+            service, schema, content_set = lib.services.validate_service_path(
                 path=path, session=session)
         # If no path was given, check if current objects are set
         else:
@@ -165,7 +165,7 @@ def cd(path=None, session=None):
 
         # If a path was given, try to get the corresponding objects
         if path:
-            service, schema, content_set = lib.core.validate_service_path(
+            service, schema, content_set = lib.services.validate_service_path(
                 path=path, session=session)
 
             current_path = ""

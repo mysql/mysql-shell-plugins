@@ -21,8 +21,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import core
-from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
+from mrs_plugin.lib import core, roles, schemas, content_sets
 
 import re
 
@@ -163,6 +162,65 @@ def add_service(session, url_host_name, service):
         raise Exception("Failed to add the new service.")
 
     return service["id"]
+
+
+def validate_service_path(session, path):
+    """Ensures the given path is valid in any of the registered services.
+
+    Args:
+        session (object): The database session to use.
+        path (str): The path to validate.
+
+    Returns:
+        service, schema, content_set as dict.
+    """
+    if not path:
+        return None, None, None
+
+    service = None
+    schema = None
+    content_set = None
+
+    # Match path against services and schemas
+    all_services = get_services(session)
+    for item in all_services:
+        host_ctx = item.get("host_ctx")
+        if host_ctx == path[: len(host_ctx)]:
+            service = item
+            if len(path) > len(host_ctx):
+                sub_path = path[len(host_ctx) :]
+
+                db_schemas = schemas.get_schemas(
+                    service_id=service.get("id"), session=session
+                )
+
+                if db_schemas:
+                    for item in db_schemas:
+                        request_path = item.get("request_path")
+                        if request_path == sub_path[: len(request_path)]:
+                            schema = item
+                            break
+
+                if not schema:
+                    content_sets_local = content_sets.get_content_sets(
+                        service_id=service.get("id"), session=session
+                    )
+
+                    if content_sets_local:
+                        for item in content_sets_local:
+                            request_path = item.get("request_path")
+                            if request_path == sub_path[: len(request_path)]:
+                                content_set = item
+                            break
+
+                if not schema and not content_set:
+                    raise ValueError(f"The given schema or content set was not found.")
+            break
+
+    if not service:
+        raise ValueError(f"The given MRS service was not found.")
+
+    return service, schema, content_set
 
 
 def delete_service(session, service_id):
@@ -489,18 +547,49 @@ def set_current_service_id(session, service_id: bytes):
     config.store()
 
 
-def get_create_statement(session, service, include_all_objects: bool = False) -> str:
-    executor = MrsDdlExecutor(
-        session=session,
-        current_service_id=service["id"])
+def get_service_create_statement(session, service: dict, include_all_objects: bool=False) -> str:
+    output = []
 
-    executor.showCreateRestService({
-        "current_operation": "SHOW CREATE REST SERVICE",
-        **service,
-        "include_all_objects": include_all_objects,
-    })
+    output.append(f'CREATE REST SERVICE {service.get("host_ctx")}')
 
-    if executor.results[0]["type"] == "error":
-        raise Exception(executor.results[0]['message'])
+    if service.get("enabled") != 1:
+        output.append("    DISABLED")
+    if service.get("comments"): # ignore either None or empty
+        output.append(f"    COMMENT {core.squote_str(service.get("comments"))}")
 
-    return executor.results[0]['result'][0]['CREATE REST SERVICE']
+    auth = []
+    if service.get("auth_path") != "/authentication":
+        auth.append(f'        PATH {core.quote_auth_app(service.get("auth_path"))}')
+    if service.get("auth_completed_url"):  # ignore either None or empty
+        auth.append(f'        REDIRECTION {core.quote_str(service.get("auth_completed_url"))}')
+    if service.get("auth_completed_url_validation"):  # ignore either None or empty
+        auth.append(f'        VALIDATION {core.quote_str(service.get("auth_completed_url_validation"))}')
+    if service.get("auth_completed_page_content"):  # ignore either None or empty
+        auth.append(f'        PAGE CONTENT {core.quote_str(service.get("auth_completed_page_content"))}')
+    if auth:  # ignore either None or empty
+        auth.insert(0, f"    AUTHENTICATION")
+        output.append("\n".join(auth))
+
+    if service.get("options"):
+        output.append(core.format_json_entry("OPTIONS", service.get("options")))
+    if service.get("metadata"):
+        output.append(core.format_json_entry("METADATA", service.get("metadata")))
+
+    result = ["\n".join(output) + ";"]
+
+    if include_all_objects:
+        for role in roles.get_roles(session, service["id"], include_global=False):
+            result.append(roles.get_role_create_statement(session, role))
+
+        for schema in schemas.get_schemas(session, service["id"]):
+            if schema["schema_type"] == "SCRIPT_MODULE":
+                continue
+            result.append(schemas.get_schema_create_statement(session, schema, True))
+
+        for content_set in content_sets.get_content_sets(session, service["id"]):
+            if content_set["content_type"] == "SCRIPTS":
+                continue
+            result.append(content_sets.get_content_set_create_statement(session, content_set))
+
+    return "\n\n".join(result)
+

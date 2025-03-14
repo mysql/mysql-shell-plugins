@@ -84,7 +84,16 @@ def generate_create_statement(**kwargs) -> str:
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         db_object = resolve_db_object(session, db_object_id, schema_id, service_id)
 
-        return lib.db_objects.get_create_statement(session, db_object)
+        objects = get_objects(
+            session=session, db_object_id=db_object.get("id")
+        )
+
+        if len(objects) == 0:
+            raise Exception(
+                f"The given REST object `{db_object.get("qualified_name")}` does not have a result definition defined."
+            )
+
+        return lib.db_objects.get_db_object_create_statement(session, db_object, objects)
 
 
 @plugin_function('mrs.add.dbObject', shell=True, cli=True, web=True)
@@ -901,7 +910,7 @@ def get_object_fields_with_references(object_id=None, **kwargs):
 
 
 @plugin_function('mrs.get.dbObjectCreateStatement', shell=True, cli=True, web=True)
-def get_create_statement(**kwargs):
+def get_db_object_create_statement(**kwargs):
     """Returns the corresponding CREATE REST <DB OBJECT> SQL statement of the given MRS service object.
 
     Args:
@@ -919,7 +928,7 @@ def get_create_statement(**kwargs):
     return generate_create_statement(**kwargs)
 
 @plugin_function('mrs.dump.dbObjectCreateStatement', shell=True, cli=True, web=True)
-def store_create_statement(**kwargs):
+def store_db_object_create_statement(**kwargs):
     """Stores the corresponding CREATE REST <DB OBJECT> SQL statement of the given MRS schema
     object into a file.
 

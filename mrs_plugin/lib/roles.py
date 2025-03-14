@@ -21,8 +21,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import core, schemas, db_objects
-from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
+from mrs_plugin.lib import core, services
 
 FULL_ACCESS_ROLE_ID = bytes.fromhex("31000000000000000000000000000000")
 
@@ -374,12 +373,37 @@ def format_role_grant_statement(grant: dict) -> str:
     return f"""GRANT REST {",".join(grant.get("crud_operations"))} ON {" ".join(where)} TO {core.quote_role(grant.get('role_name'))}"""
 
 
-def get_create_statement(session, role) -> str:
-    executor = MrsDdlExecutor(session=session)
+def get_role_create_statement(session, role) -> str:
+    output = []
+    stmt = f'CREATE REST ROLE {core.quote_role(role["caption"])}'
 
-    executor.showCreateRestRole({"current_operation": "SHOW CREATE REST ROLE", **role})
+    if role["derived_from_role_id"] is not None:
+        parent_role = get_role(
+            session, role_id=role["derived_from_role_id"])
 
-    if executor.results[0]["type"] == "error":
-        raise Exception(executor.results[0]["message"])
+        # if parent_role is None:
+        #     raise Exception("Role derives from an invalid role.")
 
-    return executor.results[0]["result"][0]["CREATE REST ROLE "]
+        stmt += f' EXTENDS {core.quote_role(parent_role["caption"])}'
+
+    if role["specific_to_service_id"] is not None:
+        service = services.get_service(
+            session, service_id=role["specific_to_service_id"])
+
+        # if service is None:
+        #     raise Exception(
+        #         "The service, which this role is specific to, does not exist.")
+
+        stmt += f" ON SERVICE {service['full_service_path']}"
+    else:
+        stmt += f" ON ANY SERVICE"
+
+    output.append(stmt)
+
+    if role.get("description") is not None:
+        output.append(f'    COMMENT {core.quote_text(role["description"])}')
+
+    output.append(core.format_json_entry("OPTIONS", role["options"]))
+
+    return "\n".join(output) + ";"
+

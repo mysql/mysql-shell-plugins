@@ -30,146 +30,6 @@ from datetime import datetime
 import base64
 import os
 
-# TODO can't import core.lib.quote_str directly bc of circular import
-import mysqlsh
-def escape_str(s):
-    return s.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
-
-def squote_str(s):
-    return "'" + escape_str(s) + "'"
-
-def quote_ident(s):
-    return mysqlsh.mysql.quote_identifier(s)
-
-
-path_re = re.compile("^(/[a-zA-Z_0-9]*?)+?$")
-quote_text = squote_str
-quote_user = quote_ident
-quote_auth_app = quote_ident
-quote_role = quote_ident
-# full_service_path
-quote_fsp = lambda s: s # TODO review
-# request_path
-def quote_rpath(s):
-    if not s or "*" in s or "?" in s or s[0] != "/":
-        return squote_str(s)
-    if path_re.match(s):
-        return s
-    return quote_ident(s)
-
-shell = globals.shell
-
-
-def cutLastComma(fields):
-    # Cut the last , away if present
-    if fields.endswith(",\n"):
-        return fields[:-2]
-
-    # Otherwise, just cut the last \n
-    return fields[:-1]
-
-
-def getEnabledStatusCaption(enabledState):
-    if enabledState == 2:
-        return "PRIVATE"
-    if enabledState == 1 or enabledState is True:
-        return "ENABLED"
-    return "DISABLED"
-
-
-def walk(fields, parent_id=None, level=1, add_data_type=False, current_object=None):
-    result = ""
-    filtered_fields = list(
-        filter(
-            lambda f: f.get("reduceToValueOfFieldId", {}).get(
-                "reduce_to_value_of_field_id"
-            ),
-            fields,
-        )
-    )
-    reduce_to_field_ids = [
-        f.get("reduceToValueOfFieldId", {}).get(
-            "reduce_to_value_of_field_id", "")
-        for f in filtered_fields
-    ]
-
-    indent = " " * level * 4
-
-    for field in fields:
-        if field.get("parent_reference_id") != parent_id:
-            continue
-
-        if not field.get("object_reference") and (
-            field["enabled"] or field["id"] in reduce_to_field_ids
-        ):
-            attributes = []
-            inout = f'@{"IN" if field["db_column"].get("in") else ""}{"OUT" if field["db_column"].get("out") else ""}'
-            inout != "@" and attributes.append(inout)
-            field.get("db_column", {}).get("is_primary",
-                                           False) and attributes.append("@KEY")
-            field.get("no_check") and attributes.append("@NOCHECK")
-            field.get("no_update") and attributes.append("@NOUPDATE")
-            field.get("allow_sorting") and attributes.append("@SORTABLE")
-            not field.get("allow_filtering") and attributes.append(
-                "@NOFILTERING")
-            add_data_type and field["db_column"] and field["db_column"][
-                "datatype"
-            ] and attributes.append(f'@DATATYPE("{field["db_column"]["datatype"]}")')
-
-            if field["id"] == current_object.get("row_ownership_field_id", None):
-                attributes.append("@ROWOWNERSHIP")
-
-            result += f"{indent}{field['name']}: {field['db_column']['name']}"
-            if attributes:
-                result = f"{result} {' '.join(attributes)}"
-            result = f"{result},\n"
-        elif (
-            field.get("object_reference")
-            and field["object_reference"].get("unnest")
-            or field["enabled"]
-        ):
-            ref_table = f'{field["object_reference"]["reference_mapping"]["referenced_schema"]}.{field["object_reference"]["reference_mapping"]["referenced_table"]}'
-
-            attributes = []
-            options = field["object_reference"].get("options", {})
-            if options is None:
-                options = {}
-
-            if options.get("dataMappingViewInsert", False):
-                attributes.append("@INSERT")
-            if options.get("dataMappingViewUpdate", False):
-                attributes.append("@UPDATE")
-            if options.get("dataMappingViewDelete", False):
-                attributes.append("@DELETE")
-            if options.get("dataMappingViewNoCheck", False):
-                attributes.append("@NOCHECK")
-
-            if field["object_reference"]["unnest"] or field["object_reference"].get(
-                "reduce_to_value_of_field_id"
-            ):
-                attributes.append("@UNNEST")
-
-            children = cutLastComma(
-                walk(
-                    fields=fields,
-                    parent_id=field["represents_reference_id"],
-                    level=level + 1,
-                    add_data_type=add_data_type,
-                    current_object=field["object_reference"],
-                )
-            )
-
-            result = f'{result}{indent}{field["name"]}: {ref_table}'
-
-            if attributes:
-                result = f'{result} {" ".join(attributes)}'
-
-            if children:
-                result = f"{result} {{\n{children}\n{indent}}},\n"
-
-    return result
-
-
 class Timer(object):
     def __init__(self) -> None:
         self.start = datetime.now()
@@ -2160,12 +2020,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
         with lib.core.MrsDbTransaction(self.session):
             try:
-                service_id = self.get_given_or_current_service_id(mrs_object)
-
                 role = lib.roles.get_role(
                     caption=role_name,
                     session=self.session,
-                    specific_to_service_id=service_id,
                 )
                 if not role:
                     raise Exception(f"Role `{role_name}` was not found.")
@@ -2174,7 +2031,6 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     self.session,
                     user_name=user_name,
                     auth_app_name=auth_app_name,
-                    service_id=service_id,
                 )
                 if not user:
                     raise Exception(
@@ -2455,7 +2311,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 result.append(
                     {
                         "REST SERVICE Path": service.get("full_service_path"),
-                        "enabled": getEnabledStatusCaption(service.get("enabled")),
+                        "enabled": lib.core.get_enabled_status_caption(service.get("enabled")),
                         "current": "YES" if (service.get("id") == self.current_service_id) else "NO",
                         "auth_apps": service.get("auth_apps", "")
                     }
@@ -2498,7 +2354,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 result.append(
                     {
                         "REST schema path": schema.get("request_path"),
-                        "enabled": getEnabledStatusCaption(schema.get("enabled")),
+                        "enabled": lib.core.get_enabled_status_caption(schema.get("enabled")),
                     }
                 )
 
@@ -2540,7 +2396,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 result.append(
                     {
                         "REST DB Object": item.get("request_path"),
-                        "enabled": getEnabledStatusCaption(item.get("enabled")),
+                        "enabled": lib.core.get_enabled_status_caption(item.get("enabled")),
                     }
                 )
 
@@ -2581,7 +2437,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 result.append(
                     {
                         "REST CONTENT SET path": content_set.get("request_path"),
-                        "enabled": getEnabledStatusCaption(content_set.get("enabled")),
+                        "enabled": lib.core.get_enabled_status_caption(content_set.get("enabled")),
                     }
                 )
 
@@ -2628,7 +2484,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         "REST AUTH APP name": auth_app.get("name"),
                         "vendor": auth_app.get("auth_vendor"),
                         "comments": auth_app.get("description"),
-                        "enabled": getEnabledStatusCaption(auth_app.get("enabled")),
+                        "enabled": lib.core.get_enabled_status_caption(auth_app.get("enabled")),
                     }
                 )
 
@@ -2678,7 +2534,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     service_id=service_id,
                 )
                 if not user:
-                    raise Exception(f"User {quote_user(user_name)}@{quote_auth_app(auth_app_name)} not found")
+                    raise Exception(f"User {lib.core.quote_user(user_name)}@{lib.core.quote_auth_app(auth_app_name)} not found")
                 roles = lib.users.get_user_roles(
                     session=self.session, user_id=user.get("id")
                 )
@@ -2702,7 +2558,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
             result = []
             if user_name is not None and auth_app_name is not None:
-                target = quote_user(user_name) + "@" + quote_auth_app(auth_app_name)
+                target = lib.core.quote_user(user_name) + "@" + lib.core.quote_auth_app(auth_app_name)
 
                 column_names = [f"REST roles for {target}"]
                 for role in roles:
@@ -2853,46 +2709,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 session=self.session, service_id=service_id
             )
 
-            stmt = f'CREATE REST SERVICE {service.get("host_ctx")}\n'
-            if service.get("enabled") != 1:
-                stmt += "    DISABLED\n"
-            if service.get("comments"): # ignore either None or empty
-                stmt += f'    COMMENT {quote_text(service.get("comments"))}\n'
-
-            auth = ""
-            if service.get("auth_path") != "/authentication":
-                auth += f'        PATH {quote_text(service.get("auth_path"))}\n'
-            if service.get("auth_completed_url"):  # ignore either None or empty
-                auth += f'        REDIRECTION {quote_text(service.get("auth_completed_url"))}\n'
-            if service.get("auth_completed_url_validation"):  # ignore either None or empty
-                auth += f'        VALIDATION {quote_text(service.get("auth_completed_url_validation"))}\n'
-            if service.get("auth_completed_page_content"):  # ignore either None or empty
-                auth += f'        PAGE CONTENT {quote_text(service.get("auth_completed_page_content"))}\n'
-            if auth:  # ignore either None or empty
-                stmt += f"    AUTHENTICATION\n{auth}"
-
-            stmt += self.formatJsonSetting("OPTIONS", service.get("options"))
-            stmt += self.formatJsonSetting("METADATA", service.get("metadata"))
-
-            output = [stmt[:-1] + ";"]
-            if include_all_objects:
-                for role in lib.roles.get_roles(self.session, service_id, include_global=False):
-                    output.append(
-                        lib.roles.get_create_statement(self.session, role))
-
-                for schema in lib.schemas.get_schemas(self.session, service_id):
-                    if schema["schema_type"] == "SCRIPT_MODULE":
-                        continue
-                    output.append(lib.schemas.get_create_statement(
-                        self.session, schema, True))
-
-                for content_set in lib.content_sets.get_content_sets(self.session, service_id):
-                    if content_set["content_type"] == "SCRIPTS":
-                        continue
-                    output.append(lib.content_sets.get_create_statement(
-                        self.session, content_set))
-
-            result = [{"CREATE REST SERVICE": "\n\n".join(output)}]
+            result = [{"CREATE REST SERVICE": lib.services.get_service_create_statement(self.session, service, include_all_objects)}]
 
             self.results.append(
                 {
@@ -2947,29 +2764,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             if schema is None:
                 raise Exception("The REST schema was not found.")
 
-            # TODO review host_ctx quoting
-            stmt = f'CREATE OR REPLACE REST SCHEMA {quote_rpath(schema.get("request_path"))} ON SERVICE {service.get("host_ctx")}\n'
-            stmt += f'    FROM {quote_ident(schema.get("name"))}\n'
-
-            if schema.get("enabled") == 2:
-                stmt += "    PRIVATE\n"
-            elif schema.get("enabled") != 1:
-                stmt += "    DISABLED\n"
-
-            stmt += self.formatJsonSetting("OPTIONS", schema.get("options"))
-            stmt += self.formatJsonSetting("METADATA", schema.get("metadata"))
-
-            output = [stmt[:-1] + ";"]
-
-            if include_all_objects:
-                schema_db_objects = lib.db_objects.get_db_objects(
-                    self.session, schema["id"])
-
-                for schema_db_object in schema_db_objects:
-                    output.append(lib.db_objects.get_create_statement(
-                        self.session, schema_db_object))
-
-            result = [{"CREATE REST SCHEMA ": "\n\n".join(output)}]
+            result = [{"CREATE REST SCHEMA ": lib.schemas.get_schema_create_statement(self.session, schema, include_all_objects)}]
 
             self.results.append(
                 {
@@ -3049,90 +2844,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     f"The given REST object `{full_path}` is not a REST VIEW."
                 )
 
-            stmt = (
-                f'CREATE OR REPLACE REST {rest_object_type} {quote_rpath(db_object.get("request_path"))}\n'
-                + f'    ON SERVICE {db_object.get("host_ctx")} SCHEMA {quote_rpath(db_object.get("schema_request_path"))}\n'
-                + f'    AS {db_object.get("qualified_name")}'
-            )
-
-            if rest_object_type != "PROCEDURE" and rest_object_type != "FUNCTION":
-                stmt += f' CLASS {quote_ident(objects[0]["name"])}'
-
-                options = objects[0].get("options", {})
-                if options is None:
-                    options = {}
-
-                if options.get("dataMappingViewInsert", False):
-                    stmt += " @INSERT"
-                if options.get("dataMappingViewUpdate", False):
-                    stmt += " @UPDATE"
-                if options.get("dataMappingViewDelete", False):
-                    stmt += " @DELETE"
-                if options.get("dataMappingViewNoCheck", False):
-                    stmt += " @NOCHECK"
-
-                fields = []
-                if len(objects) > 0:
-                    fields = lib.db_objects.get_object_fields_with_references(
-                        session=self.session, object_id=objects[0]["id"]
-                    )
-
-                stmt += f" {{\n{cutLastComma(walk(fields=fields, level=2, current_object=objects[0]))}\n    }}\n"
-            else:
-                stmt += "\n"
-                for object in objects:
-                    fields = lib.db_objects.get_object_fields_with_references(
-                        session=self.session, object_id=object["id"]
-                    )
-
-                    children = cutLastComma(
-                        walk(
-                            fields=fields,
-                            level=2,
-                            add_data_type=object["kind"] == "RESULT",
-                            current_object=object,
-                        )
-                    )
-
-                    stmt += f'    {object["kind"]} {quote_ident(object["name"])}'
-
-                    if children:
-                        stmt += f" {{\n{children}\n    }}\n"
-
-            if db_object["enabled"] == 2:
-                stmt += "    PRIVATE\n"
-            elif db_object["enabled"] is False or db_object["enabled"] == 0:
-                stmt += "    DISABLED\n"
-
-            stmt += "    AUTHENTICATION REQUIRED\n" if db_object["requires_auth"] in [True, 1] \
-                else "    AUTHENTICATION NOT REQUIRED\n"
-
-            # 25 is the default value
-            if (
-                db_object["items_per_page"] is not None
-                and db_object["items_per_page"] != 25
-            ):
-                stmt += f'    ITEMS PER PAGE {db_object["items_per_page"]}\n'
-
-            if db_object["comments"]:  # ignore either None or empty
-                stmt += f'    COMMENT {quote_text(db_object["comments"])}\n'
-
-            if db_object["media_type"] is not None:
-                stmt += f'    MEDIA TYPE {quote_text(db_object["media_type"])}\n'
-
-            if db_object["crud_operation_format"] != "FEED":
-                stmt += f'    FORMAT {db_object["crud_operation_format"]}\n'
-
-            if db_object["auth_stored_procedure"]:  # ignore either None or empty
-                stmt += f'    AUTHENTICATION PROCEDURE {db_object["auth_stored_procedure"]}\n'
-
-            stmt += self.formatJsonSetting("OPTIONS", db_object.get("options"))
-            stmt += self.formatJsonSetting("METADATA",
-                                           db_object.get("metadata"))
-
-            # Build CREATE statement
-            result = [
-                {f"CREATE REST {rest_object_type}": stmt[:-1].rstrip() + ";"}]
+            result = [{f"CREATE REST {rest_object_type}": lib.db_objects.get_db_object_create_statement(self.session, db_object, objects)}]
 
             self.results.append(
                 {
@@ -3160,29 +2872,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def showCreateRestContentSet(self, mrs_object: dict):
         timer = Timer()
         try:
-            service_id = self.get_given_or_current_service_id(mrs_object)
-            service = lib.services.get_service(self.session, service_id)
-            # Build CREATE statement
-            stmt = (
-                f"CREATE OR REPLACE REST CONTENT SET {quote_rpath(mrs_object.get('request_path'))}\n"
-                + f"    ON SERVICE {quote_fsp(service.get('full_service_path'))}\n"
-            )
-
-            if mrs_object["enabled"] == 2:
-                stmt += "    PRIVATE\n"
-            elif mrs_object["enabled"] is False or mrs_object["enabled"] == 0:
-                stmt += "    DISABLED\n"
-
-            if mrs_object["comments"]:  # ignore either None or empty
-                stmt += f'    COMMENT {quote_text(mrs_object["comments"])}\n'
-
-            stmt += self.formatJsonSetting("OPTIONS",
-                                           mrs_object.get("options"))
-
-            stmt += "    AUTHENTICATION REQUIRED\n" if mrs_object["requires_auth"] in [True, 1] \
-                else "    AUTHENTICATION NOT REQUIRED\n"
-
-            result = [{"CREATE REST CONTENT SET": stmt.rstrip("\n") + ";"}]
+            result = [{"CREATE REST CONTENT SET": lib.content_sets.get_content_set_create_statement(self.session, mrs_object)}]
 
             self.results.append(
                 {
@@ -3216,39 +2906,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 request_path=mrs_object["request_path"],
                 include_file_content=True,
             )
-            content_set = lib.content_sets.get_content_set(
-                self.session, content_set_id=mrs_object["content_set_id"]
-            )
-            service_id = self.get_given_or_current_service_id(mrs_object)
-            service = lib.services.get_service(self.session, service_id)
-            # Build CREATE statement
-            stmt = (
-                f"CREATE OR REPLACE REST CONTENT FILE {quote_rpath(content_file.get('request_path'))}\n"
-                + f"    ON SERVICE {quote_fsp(service.get('full_service_path'))} CONTENT SET {quote_rpath(content_set['request_path'])}\n"
-            )
 
-            if content_file["enabled"] == 2:
-                stmt += "    PRIVATE\n"
-            elif content_file["enabled"] is False or content_file["enabled"] == 0:
-                stmt += "    DISABLED\n"
-
-            stmt += self.formatJsonSetting("OPTIONS",
-                                           content_file.get("options"))
-
-            stmt += "    AUTHENTICATION REQUIRED\n" if mrs_object["requires_auth"] in [True, 1] \
-                else "    AUTHENTICATION NOT REQUIRED\n"
-
-            if lib.core.is_text(content_file["content"]):
-                content_type = "CONTENT"
-                contents = content_file["content"].decode()
-            else:
-                content_type = "BINARY CONTENT"
-                contents = base64.b64encode(
-                    content_file["content"]).decode("ascii")
-
-            stmt += f"    {content_type} {quote_text(contents)}"
-
-            result = [{"CREATE REST CONTENT FILE": stmt + ";"}]
+            result = [{"CREATE REST CONTENT FILE": lib.content_files.get_content_file_create_statement(self.session, content_file)}]
 
             self.results.append(
                 {
@@ -3287,46 +2946,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     f"The given REST AUTH APP `{name}` could not be found."
                 )
 
-            if auth_app["auth_vendor"].upper() == "MRS":
-                vendor = "MRS"
-            elif auth_app["auth_vendor"].upper() == "MYSQL INTERNAL":
-                vendor = "MYSQL"
-            else:
-                vendor = quote_ident(auth_app["auth_vendor"])
-
-            stmt = (
-                f'CREATE OR REPLACE REST AUTH APP {quote_auth_app(auth_app.get("name"))}"\n'
-                + f"    VENDOR {vendor}\n"
-            )
-
-            if auth_app["enabled"] is False or auth_app["enabled"] == 0:
-                stmt += "    DISABLED\n"
-
-            if auth_app["description"]:  # ignore either None or empty
-                stmt += f'    COMMENT {quote_text(auth_app["description"])}\n'
-
-            if auth_app.get("limit_to_registered_users") == 0:
-                stmt += "    ALLOW NEW USERS TO REGISTER\n"
-
-            # Get default role
-            if auth_app.get("default_role_id") is not None:
-                role = lib.roles.get_role(
-                    session=self.session, role_id=auth_app.get(
-                        "default_role_id")
-                )
-                if role is not None:
-                    stmt += f'    DEFAULT ROLE {quote_role(role.get("caption"))}\n'
-
-            output = [stmt[:-1] + ";"]
-
-            if include_all_objects:
-                users = lib.users.get_users(
-                    self.session, auth_app_id=auth_app["id"])
-                for user in users:
-                    output.append(lib.users.get_create_statement(
-                        self.session, user, include_all_objects))
-
-            result = [{"CREATE REST AUTH APP ": "\n\n".join(output)}]
+            result = [{"CREATE REST AUTH APP ": lib.auth_apps.get_auth_app_create_statement(self.session, auth_app, True)}]
 
             self.results.append(
                 {
@@ -3357,40 +2977,15 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
         user_name = mrs_object.get("user_name")
         auth_app_name = mrs_object.get("auth_app_name")
-        full_user_name = f'{quote_user(user_name)}@{quote_auth_app(auth_app_name)}'
+        full_user_name = f'{lib.core.quote_user(user_name)}@{lib.core.quote_auth_app(auth_app_name)}'
         include_all_objects = mrs_object["include_all_objects"]
 
         try:
 
             user = lib.users.get_user(
-                self.session, user_id=mrs_object["user_id"])
+                self.session, user_id=mrs_object["user_id"], mask_password=False)
 
-            if user is None:
-                raise Exception(
-                    f"The given REST USER {quote_user(user_name)} could not be found."
-                )
-
-            stmt = f'CREATE OR REPLACE REST USER {full_user_name}\n'
-
-            if not user["login_permitted"]:
-                stmt += "    ACCOUNT LOCK\n"
-
-            if user["auth_string"] is not None:
-                stmt += f'    IDENTIFIED BY {quote_text(user["auth_string"])}\n'
-
-            stmt += self.formatJsonSetting("OPTIONS", user.get("options"))
-            stmt += self.formatJsonSetting("APP OPTIONS",
-                                           user.get("app_options"))
-
-            # Taking care of the user roles
-            if include_all_objects:
-                for role in lib.users.get_user_roles(self.session, user_id=user["id"]):
-                    stmt += f'GRANT REST ROLE {quote_role(role["caption"])} TO {quote_user(user_name)}@{quote_auth_app(auth_app_name)}\n'
-                    if role["comments"] is not None:
-                        stmt +=  f'    COMMENT {quote_text(role["comments"])}\n'
-                    stmt += self.formatJsonSetting("OPTIONS", role.get("user_role_options"))
-
-            result = [{"CREATE REST USER ": stmt[:-1] + ";"}]
+            result = [{"CREATE REST USER ": lib.users.get_user_create_statement(self.session, user, include_all_objects)}]
 
             self.results.append(
                 {
@@ -3420,44 +3015,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
 
-        caption = mrs_object.get("caption")
-        derived_from_role_id = mrs_object.get("derived_from_role_id")
-        specific_to_service_id = mrs_object.get("specific_to_service_id")
-        comments = mrs_object.get("description")
-        options = mrs_object.get("options")
-
         try:
-            stmt = f'CREATE REST ROLE {quote_role(caption)}'
-
-            if derived_from_role_id is not None:
-                parent_role = lib.roles.get_role(
-                    self.session, role_id=derived_from_role_id)
-
-                if parent_role is None:
-                    raise Exception("Role derives from an invalid role.")
-
-                stmt += f' EXTENDS {quote_role(parent_role["caption"])}'
-
-            if specific_to_service_id is not None:
-                service = lib.services.get_service(
-                    self.session, service_id=specific_to_service_id)
-
-                if service is None:
-                    raise Exception(
-                        "The service, which this role is specific to, does not exist.")
-
-                stmt += f" ON SERVICE {service['full_service_path']}"
-            else:
-                stmt += f" ON ANY SERVICE"
-
-            stmt += "\n"
-
-            if comments is not None:
-                stmt += f'    COMMENT {quote_text(comments)}\n'
-
-            stmt += self.formatJsonSetting("OPTIONS", options)
-
-            result = [{"CREATE REST ROLE ": stmt[:-1] + ";"}]
+            result = [{"CREATE REST ROLE ": lib.roles.get_role_create_statement(self.session, mrs_object)}]
 
             self.results.append(
                 {

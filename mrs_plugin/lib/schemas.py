@@ -22,7 +22,6 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 from mrs_plugin.lib import core, database, db_objects
-from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
 
 
 def format_schema_listing(schemas, print_header=False):
@@ -409,22 +408,30 @@ def get_current_schema(session):
     return current_schema
 
 
-def get_create_statement(session, schema, include_all_objects: bool = False) -> str:
-    executor = MrsDdlExecutor(
-        session=session,
-        current_service_id=schema["service_id"],
-        current_schema_id=schema["id"],
-    )
+def get_schema_create_statement(session, schema, include_all_objects: bool = False) -> str:
+    output = [
+        f'CREATE OR REPLACE REST SCHEMA {schema.get("request_path")} ON SERVICE {schema.get("host_ctx")}',
+        f'    FROM `{schema.get("name")}`'
+    ]
 
-    executor.showCreateRestSchema(
-        {
-            "current_operation": "SHOW CREATE REST SCHEMA",
-            "include_all_objects": include_all_objects,
-            "schema": schema,
-        }
-    )
+    if schema.get("enabled") == 2:
+        output.append("    PRIVATE")
+    elif schema.get("enabled") != 1:
+        output.append("    DISABLED")
 
-    if executor.results[0]["type"] == "error":
-        raise Exception(executor.results[0]["message"])
+    if schema.get("options"):
+        output.append(core.format_json_entry("OPTIONS", schema.get("options")))
+    if schema.get("metadata"):
+        output.append(core.format_json_entry("METADATA", schema.get("metadata")))
 
-    return executor.results[0]["result"][0]["CREATE REST SCHEMA "]
+    result = ["\n".join(output) + ";"]
+
+    if include_all_objects:
+        schema_db_objects = db_objects.get_db_objects(session, schema["id"])
+
+        for schema_db_object in schema_db_objects:
+            objects = db_objects.get_objects(session, schema_db_object.get("id"))
+            result.append(db_objects.get_db_object_create_statement(session, schema_db_object, objects))
+
+    return "\n\n".join(result)
+

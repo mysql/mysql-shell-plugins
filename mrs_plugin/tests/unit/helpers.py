@@ -106,6 +106,8 @@ def get_default_user_init(
     name="Temp User",
     email="tempuser@domain.com",
     auth_string="MySQLR0cks!",
+    options=None,
+    app_options=None
 ):
     return {
         "auth_app_id": auth_app_id,
@@ -114,8 +116,8 @@ def get_default_user_init(
         "vendor_user_id": None,
         "login_permitted": True,
         "mapped_user_id": None,
-        "options": None,
-        "app_options": {},
+        "options": options,
+        "app_options": app_options,
         "auth_string": auth_string,
     }
 
@@ -151,6 +153,23 @@ def get_default_content_set_init(
             "option_3": "value 3",
         },
         "content_dir": content_dir,
+    }
+
+
+def get_default_auth_app_init(**kwargs):
+    name = kwargs.get("name", kwargs.get("url").split("/")[1])
+
+    return {
+        "service_id": kwargs.get("service_id"),
+        "auth_vendor_id": kwargs.get("auth_vendor_id") or lib.core.id_to_binary("0x31000000000000000000000000000000", "auth:vendor_id"),
+        "name": name,
+        "description": kwargs.get("description"),
+        "url": kwargs.get("url", "/test_auth"),
+        "url_direct_auth": kwargs.get("url_direct_auth"),
+        "access_token": kwargs.get("access_token"),
+        "app_id": kwargs.get("app_id"),
+        "limit_to_reg_users": kwargs.get("limit_to_reg_users"),
+        "default_role_id": kwargs.get("default_role_id"),
     }
 
 
