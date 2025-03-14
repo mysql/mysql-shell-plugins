@@ -457,6 +457,7 @@ export const setupShellForTests = (showOutput: boolean, handleEvents = true,
             fs.symlinkSync(path.resolve("../../../../backend/gui_plugin"), targetDir + "/plugins/gui_plugin");
             fs.symlinkSync(path.resolve("../../../../../mrs_plugin"), targetDir + "/plugins/mrs_plugin");
             fs.symlinkSync(path.resolve("../../../../../mds_plugin"), targetDir + "/plugins/mds_plugin");
+            fs.symlinkSync(path.resolve("../../../../../msm_plugin"), targetDir + "/plugins/msm_plugin");
 
             // And create a web root link in the gui_plugin.
             const symlinkDir = targetDir + "/plugins/gui_plugin/core/webroot";
