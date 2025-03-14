@@ -23,7 +23,9 @@
 
 from ... auth_apps import *
 from ... import lib
-from . helpers import AuthAppCT
+from . helpers import AuthAppCT, UserCT, get_default_auth_app_init, get_default_user_init
+
+import os
 
 InitialAuthAppIds = []
 
@@ -262,3 +264,81 @@ def test_update_auth_apps(phone_book, table_contents):
             "url_direct_auth": value["url_direct_auth"],
             "options": None,
         }
+
+
+def test_dump_and_recover(phone_book):
+    auth_app_create_statement2 = """CREATE OR REPLACE REST AUTH APP `MyAuthApp`
+    VENDOR MYSQL
+    COMMENT 'This is a comment'
+    ALLOW NEW USERS TO REGISTER
+    DEFAULT ROLE `Full Access`;
+
+CREATE OR REPLACE REST USER `user1`@`MyAuthApp`
+    OPTIONS {
+        "key1": "value1"
+    }
+    APP OPTIONS {
+        "key2": "value2"
+    };
+
+GRANT REST ROLE `Full Access` TO `user1`@`MyAuthApp`
+    COMMENT 'Comment for user role';"""
+
+    session = phone_book["session"]
+    schema_id = phone_book["schema_id"]
+    auth_app = get_default_auth_app_init(name="MyAuthApp",
+                                         url="/myAuthApp",
+                                         default_role_id=lib.core.id_to_binary("0x31000000000000000000000000000000", "default_role_id"),
+                                         description="This is a comment")
+    script = ""
+
+    auth_apps = lib.auth_apps.get_auth_apps(session, None)
+    assert len(auth_apps) == 2
+
+    with AuthAppCT(session, **auth_app) as auth_app_id:
+        auth_apps = lib.auth_apps.get_auth_apps(session, None)
+        assert len(auth_apps) == 3
+
+        user_init = get_default_user_init(auth_app_id, name="user1", auth_string=None, options={"key1": "value1"}, app_options={"key2": "value2"})
+
+        with UserCT(session, **user_init) as user_id:
+
+            lib.users.add_user_role(session,
+                                    user_id,
+                                    lib.core.id_to_binary("0x31000000000000000000000000000000", "role_id"),
+                                    comments="Comment for user role")
+
+            full_path_file = os.path.expanduser("~/auth_app2.dump.sql")
+
+            # Test home path
+            create_function = lambda file_path, overwrite: \
+                store_auth_app_create_statement(file_path=file_path,
+                                                overwrite=overwrite,
+                                                auth_app_id=auth_app_id,
+                                                include_all_objects=True,
+                                                session=phone_book["session"])
+
+            result = create_function(file_path=full_path_file, overwrite=True)
+
+            assert result == True
+
+            with open(os.path.expanduser(full_path_file), "r+") as f:
+                script = f.read()
+                assert script == auth_app_create_statement2
+
+
+    auth_apps = lib.auth_apps.get_auth_apps(session, None)
+    assert len(auth_apps) == 2
+
+    lib.script.run_mrs_script(path=full_path_file)
+
+    auth_apps = lib.auth_apps.get_auth_apps(session, None)
+    assert len(auth_apps) == 3
+
+    for auth_app in auth_apps:
+        if auth_app["name"] == "MyAuthApp":
+            lib.auth_apps.delete_auth_app(session, auth_app["id"])
+
+    auth_apps = lib.auth_apps.get_auth_apps(session, None)
+    assert len(auth_apps) == 2
+

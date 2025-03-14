@@ -51,7 +51,7 @@ CREATE OR REPLACE REST SCHEMA /AnalogPhoneBook ON SERVICE /test
 
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE /test SCHEMA /AnalogPhoneBook
-    AS AnalogPhoneBook.Contacts CLASS `MyServiceAnalogPhoneBookContacts` {
+    AS AnalogPhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
         id: id @KEY @SORTABLE,
         fName: f_name,
         lName: l_name,
@@ -65,7 +65,7 @@ CREATE OR REPLACE REST SCHEMA /MobilePhoneBook ON SERVICE /test
 
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE /test SCHEMA /MobilePhoneBook
-    AS MobilePhoneBook.Contacts CLASS `MyServiceAnalogPhoneBookContacts` {
+    AS MobilePhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
         id: id @KEY @SORTABLE,
         fName: f_name,
         lName: l_name,
@@ -79,7 +79,7 @@ CREATE OR REPLACE REST SCHEMA /PhoneBook ON SERVICE /test
 
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE /test SCHEMA /PhoneBook
-    AS PhoneBook.Contacts CLASS `MyServiceAnalogPhoneBookContacts` {
+    AS PhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
         id: id @KEY @SORTABLE,
         fName: f_name,
         lName: l_name,
@@ -111,6 +111,70 @@ CREATE OR REPLACE REST CONTENT FILE `/somebinaryfile.bin`
     }
     AUTHENTICATION NOT REQUIRED
     BINARY CONTENT 'AAECAwQFBgc=';"""
+
+
+def test_validate_service_path(phone_book):
+    session = phone_book["session"]
+
+    service, schema, content_set = lib.services.validate_service_path(session, None)
+    assert service is None
+    assert schema is None
+    assert content_set is None
+
+    service, schema, content_set = lib.services.validate_service_path(session, "/test/PhoneBook")
+    assert service is not None
+    assert service == {
+        "id": phone_book["service_id"],
+        "parent_id": None,
+        "enabled": 1,
+        "auth_completed_page_content": None,
+        "auth_completed_url": None,
+        "auth_completed_url_validation": None,
+        "auth_path": "/authentication",
+        "url_protocol": ["HTTP"],
+        "url_host_name": "",
+        "url_context_root": "/test",
+        "url_host_id": phone_book["url_host_id"],
+        "options": None,
+        "metadata": None,
+        "comments": "Test service",
+        "host_ctx": "/test",
+        "is_current": 1,
+        "in_development": None,
+        "full_service_path": "/test",
+        "published": 0,
+        "sorted_developers": None,
+        "name": "mrs",
+        "auth_apps": ["MRS Auth App"],
+    }
+
+    assert schema is not None
+    assert schema == {
+        "id": phone_book["schema_id"],
+        "name": "PhoneBook",
+        "service_id": phone_book["service_id"],
+        "request_path": "/PhoneBook",
+        "requires_auth": 0,
+        "enabled": 1,
+        "options": None,
+        "metadata": None,
+        "items_per_page": 20,
+        "comments": "test schema",
+        "host_ctx": "/test",
+        "url_host_id": phone_book["url_host_id"],
+        "schema_type": "DATABASE_SCHEMA",
+    }
+
+    assert content_set is None
+
+    with pytest.raises(ValueError) as exc_info:
+        service, schema, content_set = lib.services.validate_service_path(session, "/test/schema")
+    assert str(exc_info.value) == "The given schema or content set was not found."
+
+    with pytest.raises(ValueError) as exc_info:
+        service, schema, content_set = lib.services.validate_service_path(session, "127.0.0.1/test")
+    assert str(exc_info.value) == "The given MRS service was not found."
+
 
 def test_add_service(phone_book, table_contents):
     session = phone_book["session"]
@@ -371,7 +435,7 @@ def test_delete_service(phone_book, table_contents):
     assert delete_service(service_id=result["id"]) == True
 
 
-def test_get_create_statement(phone_book, table_contents):
+def test_get_service_create_statement(phone_book, table_contents):
     content_file_table: TableContents = table_contents("content_file")
     session = phone_book["session"]
     expected_service_create_statement = string_replace(service_create_statement_include_all_objects, {
@@ -380,12 +444,12 @@ def test_get_create_statement(phone_book, table_contents):
         })
 
     # Test without including all objects
-    sql = get_create_statement(service_id=phone_book["service_id"], include_all_objects=False, session=phone_book["session"])
+    sql = get_service_create_statement(service_id=phone_book["service_id"], include_all_objects=False, session=phone_book["session"])
 
     assert sql == service_create_statement
 
     # Test by including all objects
-    sql = get_create_statement(service_id=phone_book["service_id"], include_all_objects=True, session=phone_book["session"])
+    sql = get_service_create_statement(service_id=phone_book["service_id"], include_all_objects=True, session=phone_book["session"])
 
     assert sql == expected_service_create_statement
 
@@ -398,7 +462,7 @@ def test_dump_create_statement(phone_book, table_contents):
 
     # Test home path
     create_function = lambda file_path, overwrite, include_all_objects: \
-        store_create_statement(file_path=file_path,
+        store_service_create_statement(file_path=file_path,
                                 overwrite=overwrite,
                                 include_all_objects=include_all_objects,
                                 service_id=phone_book["service_id"],
@@ -499,7 +563,7 @@ CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE /test2
 
 CREATE OR REPLACE REST VIEW /addresses
     ON SERVICE /test2 SCHEMA /PhoneBook2
-    AS PhoneBook.Addresses CLASS `MyServicePhoneBookContactsWithEmail` @INSERT @UPDATE @DELETE {
+    AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
         id: id @KEY
     }
     AUTHENTICATION NOT REQUIRED
@@ -511,7 +575,7 @@ CREATE OR REPLACE REST VIEW /addresses
         "bbb": "val bbb"
     };"""
     dump_service = lambda file_path, service_id, overwrite=True, include_all_objects=True: \
-        store_create_statement(file_path=file_path,
+        store_service_create_statement(file_path=file_path,
                                     overwrite=overwrite,
                                     include_all_objects=include_all_objects,
                                     service_id=service_id,
@@ -634,7 +698,7 @@ def test_service_selection(phone_book, table_contents):
         ]
 
         for item in items:
-            sql = get_create_statement(service_id=item.get("service_id"),
+            sql = get_service_create_statement(service_id=item.get("service_id"),
                                     service=item.get("service"),
                                     url_context_root=item.get("url_context_root"),
                                     include_all_objects=False, session=phone_book["session"])

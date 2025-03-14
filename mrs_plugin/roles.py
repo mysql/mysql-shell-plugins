@@ -38,7 +38,7 @@ def generate_create_statement(**kwargs) -> str:
         if role is None:
             raise Exception("Role not found.")
 
-        return lib.roles.get_create_statement(session, role)
+        return lib.roles.get_role_create_statement(session, role)
 
 
 @plugin_function("mrs.list.roles", shell=True, cli=True, web=True)

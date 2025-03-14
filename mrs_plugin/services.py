@@ -232,7 +232,7 @@ def generate_create_statement(**kwargs):
         if service is None:
             raise ValueError("The specified service was not found.")
 
-        return lib.services.get_create_statement(session=session, service=service, include_all_objects=include_all_objects)
+        return lib.services.get_service_create_statement(session=session, service=service, include_all_objects=include_all_objects)
 
 
 @plugin_function('mrs.add.service', shell=True, cli=True, web=True)
@@ -1067,7 +1067,7 @@ def get_runtime_management_code(**kwargs):
 
 
 @plugin_function('mrs.get.serviceCreateStatement', shell=True, cli=True, web=True)
-def get_create_statement(**kwargs):
+def get_service_create_statement(**kwargs):
     """Returns the corresponding CREATE REST SERVICE SQL statement of the given MRS service object.
 
     When using the 'service' parameter, you can choose either of these formats:
@@ -1098,7 +1098,7 @@ def get_create_statement(**kwargs):
 
 
 @plugin_function('mrs.dump.serviceCreateStatement', shell=True, cli=True, web=True)
-def store_create_statement(**kwargs):
+def store_service_create_statement(**kwargs):
     """Stores the corresponding CREATE REST SERVICE SQL statement of the given MRS service
     object into a file.
 

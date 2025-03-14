@@ -33,7 +33,7 @@ schema_create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook ON SERVICE
 
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE /test SCHEMA /PhoneBook
-    AS PhoneBook.Contacts CLASS `MyServiceAnalogPhoneBookContacts` {
+    AS PhoneBook.Contacts CLASS MyServiceAnalogPhoneBookContacts {
         id: id @KEY @SORTABLE,
         fName: f_name,
         lName: l_name,
@@ -264,11 +264,11 @@ def test_change_schema(phone_book, table_contents):
 
 def test_get_create_statement(phone_book, table_contents):
 
-    sql = get_create_statement(schema_id=phone_book["schema_id"], session=phone_book["session"], include_all_objects=True)
+    sql = get_schema_create_statement(schema_id=phone_book["schema_id"], session=phone_book["session"], include_all_objects=True)
 
     assert sql == schema_create_statement
 
-    sql = get_create_statement(schema="/test/PhoneBook", session=phone_book["session"], include_all_objects=True)
+    sql = get_schema_create_statement(schema="/test/PhoneBook", session=phone_book["session"], include_all_objects=True)
 
     assert sql == schema_create_statement
 
@@ -280,7 +280,7 @@ def test_dump_create_statement(phone_book, table_contents):
 
     # Test home path
     create_function = lambda file_path, overwrite: \
-        store_create_statement(file_path=file_path,
+        store_schema_create_statement(file_path=file_path,
                                     overwrite=overwrite,
                                     schema_id=phone_book["schema_id"],
                                     include_all_objects=True,
@@ -339,7 +339,7 @@ def test_dump_and_recover(phone_book, table_contents):
     create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE /test
     FROM `PhoneBook`;"""
     create_function = lambda file_path, schema_id, overwrite=True: \
-        store_create_statement(file_path=file_path,
+        store_schema_create_statement(file_path=file_path,
                                 overwrite=overwrite,
                                 schema=schema_id,
                                 include_all_objects=False,
@@ -405,7 +405,7 @@ def test_dump_and_recover_include_all_objects(phone_book, table_contents):
 
 CREATE OR REPLACE REST VIEW /addresses
     ON SERVICE /test SCHEMA /PhoneBook2
-    AS PhoneBook.Addresses CLASS `MyServicePhoneBookContactsWithEmail` @INSERT @UPDATE @DELETE {
+    AS PhoneBook.Addresses CLASS MyServicePhoneBookContactsWithEmail @INSERT @UPDATE @DELETE {
         id: id @KEY
     }
     AUTHENTICATION NOT REQUIRED
@@ -417,7 +417,7 @@ CREATE OR REPLACE REST VIEW /addresses
         "bbb": "val bbb"
     };"""
     create_function = lambda file_path, schema_id, overwrite=True: \
-        store_create_statement(file_path=file_path,
+        store_schema_create_statement(file_path=file_path,
                                 overwrite=overwrite,
                                 schema=schema_id,
                                 include_all_objects=True,

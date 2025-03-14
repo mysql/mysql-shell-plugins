@@ -21,9 +21,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import core, auth_apps
-from mrs_plugin.lib.MrsDdlExecutor import MrsDdlExecutor
-
+from mrs_plugin.lib import core, auth_apps, roles
 import hashlib
 import hmac
 import base64
@@ -348,42 +346,37 @@ def format_grant_statement(user: dict, user_role: dict) -> str:
     return f"""GRANT REST ROLE {core.quote_str(user_role.get("caption"))} TO {core.quote_str(user.get("name"))}@{core.quote_str(user.get("auth_app_name"))}"""
 
 
-def get_create_statement(session, user, include_all_objects) -> str:
-    sql = """SELECT service.id AS service_id,
-                    CONCAT(host.name, service.url_context_root) AS host_ctx,
-                    CONCAT(host.name, service.url_context_root) AS full_service_path,
-                    auth_app.id AS auth_app_id,
-                    auth_app.name AS auth_app_name,
-                    user.id AS user_id,
-                    user.name AS user_name
-             FROM `mysql_rest_service_metadata`.`mrs_user` user
-                LEFT JOIN `mysql_rest_service_metadata`.`auth_app` ON user.auth_app_id = auth_app.id
-                LEFT JOIN `mysql_rest_service_metadata`.`service_has_auth_app` link ON link.auth_app_id = auth_app.id
-                LEFT JOIN `mysql_rest_service_metadata`.`service` ON service.id = link.service_id
-                LEFT JOIN `mysql_rest_service_metadata`.`url_host` host ON host.id = service.url_host_id
-"""
-    wheres = ["user.id = ?"]
-    params = [user["id"]]
-    sql += core._generate_where(wheres)
+def get_user_create_statement(session, user, include_all_objects) -> str:
+    auth_app = auth_apps.get_auth_app(session, user["auth_app_id"])
+    full_user_name = f'{core.quote_user(user["name"])}@{core.quote_auth_app(auth_app["name"])}'
 
-    data = core.MrsDbExec(sql, params).exec(session).first
+    output = []
+    output.append(f'CREATE OR REPLACE REST USER {full_user_name}')
 
-    executor = MrsDdlExecutor(
-        session=session,
-        current_service_id=data["service_id"]
-    )
+    if not user["login_permitted"]:
+        output.append("    ACCOUNT LOCK")
 
-    executor.showCreateRestUser({
-        "current_operation": "SHOW CREATE REST USER",
-        "user_id": data["user_id"],
-        "user_name": data["user_name"],
-        "auth_app_id": data["auth_app_id"],
-        "auth_app_name": data["auth_app_name"],
-        "full_service_path": data["full_service_path"],
-        "include_all_objects": include_all_objects,
-    })
+    if user["auth_string"] is not None and user["auth_app_id"] != core.id_to_binary("0x31000000000000000000000000000000", "MySQL App"):
+        output.append(f'    IDENTIFIED BY {core.quote_text(user["auth_string"])}')
 
-    if executor.results[0]["type"] == "error":
-        raise Exception(executor.results[0]['message'])
+    if user["options"] is not None:
+        output.append(core.format_json_entry("OPTIONS", user.get("options")))
+    if user["app_options"] is not None:
+        output.append(core.format_json_entry("APP OPTIONS",
+                                            user.get("app_options")))
 
-    return executor.results[0]["result"][0]["CREATE REST USER "]
+    result = ["\n".join(output) + ";"]
+    # Taking care of the user roles
+    if include_all_objects:
+        for role in get_user_roles(session, user_id=user["id"]):
+            grant = [f'GRANT REST ROLE {core.quote_role(role["caption"])} TO {full_user_name}']
+
+            if role["comments"] is not None:
+                grant.append(f'    COMMENT {core.quote_text(role["comments"])}')
+            if role["user_role_options"] is not None:
+                grant.append(core.format_json_entry("OPTIONS", role.get("user_role_options")))
+
+            result.append("\n".join(grant) + ";")
+
+    return "\n\n".join(result)
+

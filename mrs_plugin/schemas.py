@@ -204,7 +204,7 @@ def generate_create_statement(**kwargs) -> str:
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         schema = resolve_schema(session, schema_query=schema_query, service_query=service_query)
 
-        return lib.schemas.get_create_statement(session, schema, include_all_objects=include_all_objects)
+        return lib.schemas.get_schema_create_statement(session, schema, include_all_objects=include_all_objects)
 
 
 @plugin_function('mrs.add.schema', shell=True, cli=True, web=True)
@@ -638,7 +638,7 @@ def update_schema(**kwargs):
 
 
 @plugin_function('mrs.get.schemaCreateStatement', shell=True, cli=True, web=True)
-def get_create_statement(**kwargs):
+def get_schema_create_statement(**kwargs):
     """Returns the corresponding CREATE REST SCHEMA SQL statement of the given MRS schema object.
 
     When using the 'schema' parameter, you can choose either of these formats:
@@ -663,7 +663,7 @@ def get_create_statement(**kwargs):
 
 
 @plugin_function('mrs.dump.schemaCreateStatement', shell=True, cli=True, web=True)
-def store_create_statement(**kwargs):
+def store_schema_create_statement(**kwargs):
     """Stores the corresponding CREATE REST schema SQL statement of the given MRS schema
     object into a file.
 

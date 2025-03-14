@@ -39,7 +39,7 @@ def generate_create_statement(**kwargs) -> str:
     with lib.core.MrsDbSession(exception_handler=lib.core.print_exception, **kwargs) as session:
         content_file = resolve_content_file(session, content_file_id, content_set_id, service_id)
 
-        return lib.content_files.get_create_statement(session, content_file)
+        return lib.content_files.get_content_file_create_statement(session, content_file)
 
 
 @plugin_function('mrs.list.contentFiles', shell=True, cli=True, web=True)
