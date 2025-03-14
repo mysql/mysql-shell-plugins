@@ -1,6 +1,6 @@
 -- Copyright (c) 2025, Oracle and/or its affiliates.
 -- -----------------------------------------------------
--- EVENTs
+-- TRIGGERs
 
 DELIMITER %%
 

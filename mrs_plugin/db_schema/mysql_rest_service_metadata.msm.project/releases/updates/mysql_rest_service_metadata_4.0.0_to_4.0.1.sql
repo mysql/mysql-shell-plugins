@@ -1,117 +1,121 @@
--- Copyright (c) 2025, Oracle and/or its affiliates.
--- -----------------------------------------------------
--- PROCEDURES and FUNCTIONs
+/*
+ * Copyright (c) 2025, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+-- #############################################################################
+-- MSM Section 002: Database Schema Update Script
+-- -----------------------------------------------------------------------------
+-- This script updates the database schema `mysql_rest_service_metadata`
+-- from version 4.0.0 to 4.0.1
+-- -----------------------------------------------------------------------------
+
+
+-- #############################################################################
+-- MSM Section 010: Server Variable Settings
+-- -----------------------------------------------------------------------------
+-- Set server variables, remember their state to be able to restore accordingly.
+-- -----------------------------------------------------------------------------
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,'
+    'NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,'
+    'NO_ENGINE_SUBSTITUTION';
+
+
+-- #############################################################################
+-- MSM Section 220: Database Schema Version Update Indication
+-- -----------------------------------------------------------------------------
+-- Replace the `mysql_rest_service_metadata`.`msm_schema_version` VIEW
+-- and initialize it with the version 0, 0, 0 which indicates the ongoing
+-- update processes of the database schema.
+-- -----------------------------------------------------------------------------
+
+CREATE OR REPLACE SQL SECURITY INVOKER
+VIEW `mysql_rest_service_metadata`.`msm_schema_version` (
+    `major`,`minor`,`patch`) AS
+SELECT 0, 0, 0;
+
+
+-- #############################################################################
+-- MSM Section 230: Creation of Update Helpers
+-- -----------------------------------------------------------------------------
+-- Definitions of optional helper PROCEDUREs and FUNCTIONs that are called
+-- during the update of the database schema. It is important to note that these
+-- need to be defined in a way as if a schema object of the same name and type
+-- already exists. Use explicit DROP IF EXISTS statements or CREATE OR REPLACE
+-- statements when creating the helper objects. The names of all helper
+-- routines need to start with `msm_`.
+-- -----------------------------------------------------------------------------
 
 DELIMITER %%
 
-DROP FUNCTION IF EXISTS `mysql_rest_service_metadata`.`get_sequence_id`%%
-CREATE FUNCTION `mysql_rest_service_metadata`.`get_sequence_id`() RETURNS BINARY(16) SQL SECURITY INVOKER NOT DETERMINISTIC NO SQL
-RETURN UUID_TO_BIN(UUID(), 1)%%
+-- Insert optional helper PROCEDUREs and FUNCTIONs here
 
-DROP FUNCTION IF EXISTS `mysql_rest_service_metadata`.`valid_request_path`%%
-CREATE FUNCTION `mysql_rest_service_metadata`.`valid_request_path`(path VARCHAR(255))
-RETURNS TINYINT(1) NOT DETERMINISTIC READS SQL DATA
-BEGIN
-    SET @valid := (SELECT COUNT(*) = 0 AS valid FROM
-        (SELECT CONCAT(COALESCE(se.in_development->>'$.developers', ''), h.name,
-            se.url_context_root) as full_request_path
-        FROM `mysql_rest_service_metadata`.service se
-            LEFT JOIN `mysql_rest_service_metadata`.url_host h
-                ON se.url_host_id = h.id
-        WHERE CONCAT(COALESCE(se.in_development->>'$.developers', ''), h.name, se.url_context_root) = path
-            AND se.enabled = TRUE
-        UNION
-        SELECT CONCAT(COALESCE(se.in_development->>'$.developers', ''), h.name, se.url_context_root,
-            sc.request_path) as full_request_path
-        FROM `mysql_rest_service_metadata`.db_schema sc
-            LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
-                ON se.id = sc.service_id
-            LEFT JOIN `mysql_rest_service_metadata`.url_host h
-                ON se.url_host_id = h.id
-        WHERE CONCAT(COALESCE(se.in_development->>'$.developers', ''), h.name, se.url_context_root,
-                sc.request_path) = path
-            AND se.enabled = TRUE
-        UNION
-        SELECT CONCAT(COALESCE(se.in_development->>'$.developers', ''), h.name, se.url_context_root,
-            sc.request_path, o.request_path) as full_request_path
-        FROM `mysql_rest_service_metadata`.db_object o
-            LEFT OUTER JOIN `mysql_rest_service_metadata`.db_schema sc
-                ON sc.id = o.db_schema_id
-            LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
-                ON se.id = sc.service_id
-            LEFT JOIN `mysql_rest_service_metadata`.url_host h
-                ON se.url_host_id = h.id
-        WHERE CONCAT(COALESCE(se.in_development->>'$.developers', ''), h.name, se.url_context_root,
-                sc.request_path, o.request_path) = path
-            AND se.enabled = TRUE
-        UNION
-        SELECT CONCAT(COALESCE(se.in_development->>'$.developers', ''), h.name, se.url_context_root,
-            co.request_path) as full_request_path
-        FROM `mysql_rest_service_metadata`.content_set co
-            LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
-                ON se.id = co.service_id
-            LEFT JOIN `mysql_rest_service_metadata`.url_host h
-                ON se.url_host_id = h.id
-        WHERE CONCAT(COALESCE(se.in_development->>'$.developers', ''), h.name, se.url_context_root,
-                co.request_path) = path
-            AND se.enabled = TRUE) AS p);
+DELIMITER ;
 
-    RETURN @valid;
-END%%
 
-DROP PROCEDURE IF EXISTS `mysql_rest_service_metadata`.`dump_audit_log`%%
-CREATE PROCEDURE `mysql_rest_service_metadata`.`dump_audit_log`()
-SQL SECURITY DEFINER
-COMMENT 'The dump_audit_log procedure allows the audit_log table to be exported to a file
-    Please note that the secure_file_priv global variable must be set for this to work in the my.ini / my.cnf file
-    [mysqld]
-    secure-file-priv="/usr/local/mysql/outfiles"'
-BEGIN
-    DECLARE dump_from TIMESTAMP;
-    DECLARE dump_until TIMESTAMP;
-    DECLARE event_count INT;
+-- #############################################################################
+-- MSM Section 240: Non-idempotent Schema Object Changes and All DROPs
+-- -----------------------------------------------------------------------------
+-- This section contains changes performed on schema TABLEs. It is important to
+-- note that these changes need to be carefully processed during a schema
+-- upgrade operation. These changes must be executed in the right order as
+-- each operation will result in a state change that often cannot be easily
+-- revered. This might include DROP statements on other schema objects (VIEWs,
+-- PROCEDUREs, FUNCTIONs, TRIGGERs EVENTs, ...) as they could otherwise prevent
+-- change of the TABLE structure. These schema objects may then be re-created
+-- inside the MSM Section 250: Idempotent Schema Object Changes. If there are
+-- no changes required, this section can be skipped.
+-- -----------------------------------------------------------------------------
+-- TABLE changes and all DROP statements
+-- -----------------------------------------------------------------------------
 
-    -- Only perform the dump if the secure_file_priv global is set, otherwise the file cannot be written
-    IF @@secure_file_priv IS NOT NULL THEN
-        SELECT IFNULL(last_dump_at, '2025-01-01 00:00:00') INTO dump_from
-        FROM `mysql_rest_service_metadata`.`audit_log_status`
-        WHERE `id` = 1;
+-- -----------------------------------------------------------------------------
+-- ALTER TABLE `mysql_rest_service_metadata`.`my_table`
+-- -----------------------------------------------------------------------------
 
-        SET dump_until = NOW();
+ALTER TABLE `mysql_rest_service_metadata`.`router`
+    CHANGE COLUMN `router_name` `router_name` VARCHAR(255) NOT NULL
+    COMMENT 'A user specified name for an instance of the router. Should default to address:port, where port is the http server port of the router. Set via --name during router bootstrap.';
 
-        SELECT COUNT(*) INTO event_count
-        FROM `mysql_rest_service_metadata`.`audit_log`
-        WHERE `changed_at` BETWEEN dump_from AND dump_until;
 
-        IF event_count > 0 THEN
-            -- Export all audit_log entries that occurred since the last dump
-            SET @sql = CONCAT(
-                'SELECT changed_at, id, @@server_uuid AS server_uuid, ',
-                '    schema_name, table_name, dml_type, changed_by, '
-                '    JSON_REPLACE(old_row_data, "$.data.defaultStaticContent", "BINARY_DATA") AS old_row_data, ',
-                '    JSON_REPLACE(new_row_data, "$.data.defaultStaticContent", "BINARY_DATA") AS new_row_data ',
-                'INTO OUTFILE "', TRIM(TRAILING '/' FROM @@secure_file_priv), '/mrs/mrs_audit_log_',
-                DATE_FORMAT(dump_until, '%Y-%m-%d_%H-%i-%s'),
-                '.log" FIELDS TERMINATED BY "," OPTIONALLY ENCLOSED BY "\\\"" LINES TERMINATED BY "\\\n" ',
-                'FROM `mysql_rest_service_metadata`.`audit_log` ',
-                'WHERE `changed_at` BETWEEN CAST("', DATE_FORMAT(dump_from, '%Y-%m-%d %H:%i:%s'), '" AS DATETIME) ',
-                '    AND CAST("', DATE_FORMAT(dump_until, '%Y-%m-%d %H:%i:%s'), '" AS DATETIME) ',
-                'ORDER BY `id`');
+-- #############################################################################
+-- MSM Section 250: Idempotent Schema Object Additions And Changes
+-- -----------------------------------------------------------------------------
+-- This section contains the new and update creation of all schema objects,
+-- except TABLEs, ROLEs and GRANTs. Ensure that all existing objects are
+-- overwritten in a clean manner using explicit DROP IF EXISTS statements or
+-- CREATE OR REPLACE when re-creating the objects. All object removals must
+-- be defined in the MSM Section 240. If there are no changes required, this
+-- section can be skipped.
+-- -----------------------------------------------------------------------------
+-- All other schema object definitions (VIEWs, PROCEDUREs, FUNCTIONs, TRIGGERs,
+-- EVENTs, ...) that are new or have changed
+-- -----------------------------------------------------------------------------
 
-            CALL sys.execute_prepared_stmt(@sql);
-        END IF;
-
-        UPDATE `mysql_rest_service_metadata`.`audit_log_status`
-        SET `last_dump_at` = dump_until
-        WHERE `id` = 1;
-    ELSE
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Please configure the secure-file-priv variable in the [mysqld] section of my.cnf.',
-            MYSQL_ERRNO = 5400;
-    END IF;
-END%%
-
--- Procedure to fetch all table columns as well as references to related tables
+DELIMITER %%
 
 DROP PROCEDURE IF EXISTS `mysql_rest_service_metadata`.`table_columns_with_references`%%
 CREATE PROCEDURE `mysql_rest_service_metadata`.`table_columns_with_references`(
@@ -244,14 +248,15 @@ BEGIN
     ORDER BY f.position;
 END%%
 
+-- Periodically down-sample router_status rows to keep its size under control.
 
 -- sub-minute data is kept for 4h, then down-sampled to 1 minute samples
 -- sub-hourly data is kept for 24h, then down-sampled to 1 hour samples
 -- sub-daily data is kept for 7 days, then down-sampled to 1 day samples
 -- daily data is kept indefinitely
 
-DROP PROCEDURE IF EXISTS mysql_rest_service_metadata.router_status_downsample%%
-CREATE PROCEDURE mysql_rest_service_metadata.router_status_downsample(
+DROP PROCEDURE IF EXISTS mysql_rest_service_metadata.router_status_down_sample%%
+CREATE PROCEDURE mysql_rest_service_metadata.router_status_down_sample(
     time TIMESTAMP,
     router_version VARCHAR(12),
     status_variables JSON,
@@ -419,13 +424,63 @@ BEGIN
         IF status_variables IS NULL THEN
             SET status_variables = old_status_variables;
         END IF;
-        CALL mysql_rest_service_metadata.router_status_downsample(time, version, status_variables, 'M');
-        CALL mysql_rest_service_metadata.router_status_downsample(time, version, status_variables, 'H');
-        CALL mysql_rest_service_metadata.router_status_downsample(time, version, status_variables, 'D');
+        CALL mysql_rest_service_metadata.router_status_down_sample(time, version, status_variables, 'M');
+        CALL mysql_rest_service_metadata.router_status_down_sample(time, version, status_variables, 'H');
+        CALL mysql_rest_service_metadata.router_status_down_sample(time, version, status_variables, 'D');
     END LOOP;
 
     CLOSE cur1;
 END%%
 
 
+DROP EVENT IF EXISTS `mysql_rest_service_metadata`.`router_status_cleanup`%%
+CREATE EVENT `mysql_rest_service_metadata`.`router_status_cleanup` ON SCHEDULE EVERY 1 HOUR
+ON COMPLETION NOT PRESERVE ENABLE COMMENT 'Aggregate and clean up router_status entries' DO
+    CALL mysql_rest_service_metadata.router_status_do_cleanup(NOW())%%
+
 DELIMITER ;
+
+
+-- #############################################################################
+-- MSM Section 270: Authorization
+-- -----------------------------------------------------------------------------
+-- This section is used to define changes for ROLEs and GRANTs in respect to
+-- the previous version. If there are no changes required, this section can
+-- be skipped.
+-- -----------------------------------------------------------------------------
+
+-- Change ROLEs and perform the required GRANT/REVOKE statements.
+
+
+-- #############################################################################
+-- MSM Section 290: Removal of Update Helpers
+-- -----------------------------------------------------------------------------
+-- Removal of optional helper PROCEDUREs and FUNCTIONs that are called during
+-- the update of the database schema. Note that DROP IF EXISTS needs to be
+-- used.
+-- -----------------------------------------------------------------------------
+
+-- Drop optional helper PROCEDUREs and FUNCTIONs here.
+
+
+-- #############################################################################
+-- MSM Section 910: Database Schema Version Definition
+-- -----------------------------------------------------------------------------
+-- Setting the correct database schema version.
+-- -----------------------------------------------------------------------------
+
+CREATE OR REPLACE SQL SECURITY INVOKER
+VIEW `mysql_rest_service_metadata`.`msm_schema_version` (
+    `major`,`minor`,`patch`) AS
+SELECT 4, 0, 1;
+
+
+-- #############################################################################
+-- MSM Section 920: Server Variable Restoration
+-- -----------------------------------------------------------------------------
+-- Restore the modified server variables to their original state.
+-- -----------------------------------------------------------------------------
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
