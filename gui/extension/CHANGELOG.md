@@ -4,11 +4,16 @@
 
 ### Additions
 
-- 
+- MRS: Allows usage of custom base URL for a REST service in the TypeScript and
+  Python SDKs.
+- MRS: exposing a getMetadata function for service, schema and objects in the
+  TypeScript SDK to retrieve the defined metadata.
+- Added FORCE option to CREATE REST PROCEDURE.
+- Removed optional definition of host:port from the MRS SQL Syntax.
 
 ### Fixes
 
-- 
+- Bug#37581897 Fixed invalid references and domain names in docs
 
 ## Changes in 1.19.2+9.2.0
 
