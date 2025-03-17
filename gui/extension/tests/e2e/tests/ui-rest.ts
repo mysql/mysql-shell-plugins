@@ -1333,7 +1333,7 @@ describe("MySQL REST Service", () => {
             await fs.access(dumpedAuthApp);
             let fileData = (await fs.readFile(dumpedAuthApp)).toString();
 
-            let regex = new RegExp(`CREATE OR REPLACE REST AUTH APP "${service4.authenticationApps[0].name}"`);
+            let regex = new RegExp(`CREATE OR REPLACE REST AUTH APP \`${service4.authenticationApps[0].name}`);
             expect(fileData).to.match(regex);
 
             await fs.unlink(dumpedAuthApp);
@@ -1361,7 +1361,7 @@ describe("MySQL REST Service", () => {
             fileData = (await fs.readFile(dumpedAuthApp)).toString();
 
             expect(fileData).to.match(regex);
-            regex = new RegExp(`CREATE OR REPLACE REST USER "${service4.authenticationApps[0].user[0].username}"`);
+            regex = new RegExp(`CREATE OR REPLACE REST USER \`${service4.authenticationApps[0].user[0].username}`);
 
             expect(fileData).to.match(regex);
             await fs.unlink(dumpedAuthApp);
@@ -1380,8 +1380,8 @@ describe("MySQL REST Service", () => {
             await dbTreeSection.openContextMenuAndSelect(service4.authenticationApps[0].name,
                 [constants.copyToClipboard, constants.createStatement], constants.restAppCtxMenu1);
 
-            let regex = new RegExp(`CREATE OR REPLACE REST AUTH APP "${service4.authenticationApps[0]
-                .name}"`);
+            let regex = new RegExp(`CREATE OR REPLACE REST AUTH APP \`${service4.authenticationApps[0]
+                .name}`);
 
             await driver.wait(async () => {
                 if (clipboard.readSync()
@@ -1404,8 +1404,7 @@ describe("MySQL REST Service", () => {
             await dbTreeSection.openContextMenuAndSelect(service4.authenticationApps[0].name,
                 [constants.copyToClipboard, constants.createStatementIncludingAllObjects], constants.restAppCtxMenu1);
 
-            regex = new RegExp(`CREATE OR REPLACE REST USER "${service4.authenticationApps[0].user[0]
-                .username}"`);
+            regex = new RegExp(`CREATE OR REPLACE REST USER \`${service4.authenticationApps[0].user[0].username}`);
 
             await driver.wait(async () => {
                 const clipboardContent = clipboard.readSync();
@@ -1675,8 +1674,8 @@ describe("MySQL REST Service", () => {
             await fs.access(dumpedUser);
             let fileData = (await fs.readFile(dumpedUser)).toString();
 
-            let regex = new RegExp(`CREATE OR REPLACE REST USER "${service5.authenticationApps[0].user[0]
-                .username}"`);
+            let regex = new RegExp(`CREATE OR REPLACE REST USER \`${service5.authenticationApps[0].user[0]
+                .username}`);
             expect(fileData).to.match(regex);
 
             await fs.unlink(dumpedUser);
@@ -1691,8 +1690,8 @@ describe("MySQL REST Service", () => {
             fileData = (await fs.readFile(dumpedUser)).toString();
 
             expect(fileData).to.match(regex);
-            regex = new RegExp(`CREATE OR REPLACE REST USER "${service5.authenticationApps[0].user[0]
-                .username}"`);
+            regex = new RegExp(`CREATE OR REPLACE REST USER \`${service5.authenticationApps[0].user[0]
+                .username}`);
 
             expect(fileData).to.match(regex);
             expect(fileData).to.match(/GRANT REST ROLE/);
@@ -1709,8 +1708,8 @@ describe("MySQL REST Service", () => {
             await dbTreeSection.openContextMenuAndSelect(service5.authenticationApps[0].user[0].username,
                 [constants.copyToClipboard, constants.createStatement], constants.restUserCtxMenu);
 
-            let regex = new RegExp(`CREATE OR REPLACE REST USER "${service5.authenticationApps[0]
-                .user[0].username}"`);
+            let regex = new RegExp(`CREATE OR REPLACE REST USER \`${service5.authenticationApps[0]
+                .user[0].username}`);
 
             await driver.wait(async () => {
                 if (clipboard.readSync()
@@ -1733,8 +1732,8 @@ describe("MySQL REST Service", () => {
             await dbTreeSection.openContextMenuAndSelect(service5.authenticationApps[0].user[0].username,
                 [constants.copyToClipboard, constants.createStatementIncludingAllObjects], constants.restUserCtxMenu);
 
-            regex = new RegExp(`CREATE OR REPLACE REST USER "${service5.authenticationApps[0].user[0]
-                .username}"`);
+            regex = new RegExp(`CREATE OR REPLACE REST USER \`${service5.authenticationApps[0].user[0]
+                .username}`);
 
             await driver.wait(async () => {
                 const clipboardContent = clipboard.readSync();
