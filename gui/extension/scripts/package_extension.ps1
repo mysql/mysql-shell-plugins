@@ -111,6 +111,10 @@ Write-host "Adding MDS plugin..." -NoNewLine
 Copy-Item -Path $(Join-Path $shellPluginsFolder "mds_plugin") -Destination $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "mds_plugin") -Recurse
 Write-host "DONE"
 
+Write-host "Adding MSM plugin..." -NoNewLine
+Copy-Item -Path $(Join-Path $shellPluginsFolder "msm_plugin") -Destination $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "msm_plugin") -Recurse
+Write-host "DONE"
+
 Write-host "Adding GUI plugin backend ..." -NoNewLine 
 Copy-Item -Path $guiPluginBackend -Destination $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin") -Recurse
 Write-host "DONE"

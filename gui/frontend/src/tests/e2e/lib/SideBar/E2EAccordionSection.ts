@@ -494,7 +494,9 @@ export class E2EAccordionSection {
         };
 
         await action().catch(async (e: Error) => {
-            if (e instanceof error.StaleElementReferenceError) {
+            if (e instanceof error.StaleElementReferenceError ||
+                (String(e).includes(`Could not find context menu item`))
+            ) {
                 await action();
             } else {
                 throw e;
