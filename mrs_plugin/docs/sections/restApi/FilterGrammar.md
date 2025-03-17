@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -33,7 +33,7 @@ The orderby, asof, and wmembers attributes are optional, and their definitions a
 
 ```txt
 orderby
-"$orderby": {orderByMembers}
+    "$orderby": {orderByMembers}
 
 orderByMembers
     orderByProperty
@@ -43,18 +43,15 @@ orderByProperty
     columnName : sortingValue
 
 sortingValue
-"ASC"
-"DESC"
-"-1"
-"1"
--1
-1
+    "ASC"
+    "DESC"
+    "-1"
+    "1"
+    -1
+    1
 
 asof
-"$asof": date
-"$asof": "datechars"
-"$asof": scn
-"$asof": +int
+    "$asof": gtid
 
 wmembers
     wpair
@@ -68,8 +65,11 @@ columnProperty
     columnName : string
     columnName : number
     columnName : date
+    columnName : geo
+    columnName : vector
+    columnName : boolean
     columnName : simpleOperatorObject
-columnName : complexOperatorObject
+    columnName : complexOperatorObject
     columnName : [complexValues]
 
 columnName
@@ -80,8 +80,8 @@ complexOperatorProperty
     complexKey : simpleOperatorObject
 
 complexKey
-"$and"
-"$or"
+    "$and"
+    "$or"
 
 complexValues
     complexValue , complexValues
@@ -101,19 +101,19 @@ complexOperatorObject
     {complexOperatorProperty}
 
 simpleOperatorProperty
-"$eq" : string | number | date
-"$ne" : string | number | date
-"$lt" :  number | date
-"$lte" : number | date
-"$gt" : number | date
-"$gte" : number | date
-"$instr" : string
-"$ninstr" : string
-"$like" : string
-"$null" : null
-"$notnull" : null
-"$between" : betweenValue
-"$like": string
+    "$eq" : string | number | date | geo | vector | boolean
+    "$ne" : string | number | date | geo | vector | boolean
+    "$lt" :  number | date
+    "$lte" : number | date
+    "$gt" : number | date
+    "$gte" : number | date
+    "$instr" : string
+    "$ninstr" : string
+    "$like" : string
+    "$null" : null
+    "$notnull" : null
+    "$between" : betweenValue
+    "$match": fullTextSearch
 
 betweenValue
     [null , betweenNotNull]
@@ -128,19 +128,48 @@ betweenRegular
     string
     number
     date
+
+fullTextSearch
+    {"$params":[fieldList], "$against":{"$expr":fullTextExpr}}
+    {"$params":[fieldList], "$against":{"$expr":fullTextExpr, "$modifier":fullTextMod}}
 ```
 
 Data type definitions include the following:
 
 ```txt
 string
-      JSONString
+    JSONString
+
 number
-      JSONNumber
+    JSONNumber
+
 date
       {"$date":"datechars"}
-scn
-      {"$scn": +int}
+
+gtid
+    JSONString
+
+geo
+    https://en.wikipedia.org/wiki/GeoJSON
+
+vector
+    [numberList]
+
+numberList
+    number, numberList
+
+fieldList
+    fieldName, fieldList
+
+fieldName: JSONString
+
+fullTextExpr: JSONString
+
+fullTextMod:
+    "IN NATURAL LANGUAGE MODE"
+    "IN NATURAL LANGUAGE MODE WITH QUERY EXPANSION"
+    "IN BOOLEAN MODE"
+    "WITH QUERY EXPANSION"
 ```
 
 Where:
