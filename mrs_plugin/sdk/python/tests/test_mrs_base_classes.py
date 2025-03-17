@@ -1292,13 +1292,20 @@ async def test_update_submit(
 
     response = await request.submit()
 
+    # This is a temporary workaround to avoid update conflicts.
+    # Should be removed once BUG#37716405 is addressed.
+    etag = data.__dict__["_metadata"]["etag"]
+    request_body = asdict(data)
+    if etag:
+        request_body.update({ "_metadata": { "etag": etag } })
+
     mock_request_class.assert_called_once_with(
         url=request_path,
         headers={
             "Accept": "application/json",
-            "If-Match": data.__dict__["_metadata"]["etag"],
+            "If-Match": etag,
         },
-        data=json.dumps(obj=asdict(data), cls=MrsJSONDataEncoder).encode(),
+        data=json.dumps(obj=request_body, cls=MrsJSONDataEncoder).encode(),
         method="PUT",
     )
     mock_urlopen.assert_called_once()
@@ -1321,14 +1328,21 @@ async def test_update_submit(
 
     _ = await request.submit()
 
+    # This is a temporary workaround to avoid update conflicts.
+    # Should be removed once BUG#37716405 is addressed.
+    etag = data.__dict__["_metadata"]["etag"]
+    request_body = asdict(data)
+    if etag:
+        request_body.update({ "_metadata": { "etag": etag } })
+
     mock_request_class.assert_called_with(
         url=request_path,
         headers={
             "Accept": "application/json",
-            "If-Match": data.__dict__["_metadata"]["etag"],
+            "If-Match": etag,
             "Authorization": "Bearer foo",
         },
-        data=json.dumps(obj=asdict(data), cls=MrsJSONDataEncoder).encode(),
+        data=json.dumps(obj=request_body, cls=MrsJSONDataEncoder).encode(),
         method="PUT",
     )
     assert mock_urlopen.call_count == 2
@@ -2297,14 +2311,21 @@ async def test_dataclass_update(
     document.first_name = "Foo"
     await document.update()
 
+    # This is a temporary workaround to avoid update conflicts.
+    # Should be removed once BUG#37716405 is addressed.
+    etag = document.__dict__["_metadata"]["etag"]
+    request_body = asdict(document)
+    if etag:
+        request_body.update({ "_metadata": { "etag": etag } })
+
     # verify
     mock_request_class.assert_called_once_with(
         url=request_path,
         headers={
             "Accept": "application/json",
-            "If-Match": document.__dict__["_metadata"]["etag"],
+            "If-Match": etag,
         },
-        data=json.dumps(obj=asdict(document), cls=MrsJSONDataEncoder).encode(),
+        data=json.dumps(obj=request_body, cls=MrsJSONDataEncoder).encode(),
         method="PUT",
     )
     mock_urlopen.assert_called_once()
@@ -2324,14 +2345,21 @@ async def test_dataclass_update(
     document.first_name = "Foo"
     await document.update()
 
+    # This is a temporary workaround to avoid update conflicts.
+    # Should be removed once BUG#37716405 is addressed.
+    etag = document.__dict__["_metadata"]["etag"]
+    request_body = asdict(document)
+    if etag:
+        request_body.update({ "_metadata": { "etag": etag } })
+
     mock_request_class.assert_called_with(
         url=request_path,
         headers={
             "Accept": "application/json",
-            "If-Match": document.__dict__["_metadata"]["etag"],
+            "If-Match": etag,
             "Authorization": "Bearer foo",
         },
-        data=json.dumps(obj=asdict(document), cls=MrsJSONDataEncoder).encode(),
+        data=json.dumps(obj=request_body, cls=MrsJSONDataEncoder).encode(),
         method="PUT",
     )
     assert mock_urlopen.call_count == 2

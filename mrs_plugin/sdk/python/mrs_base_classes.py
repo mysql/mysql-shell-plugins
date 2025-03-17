@@ -1167,6 +1167,12 @@ class MrsJSONDataEncoder(json.JSONEncoder):
     @staticmethod
     def snake_to_camel(key: str) -> str:
         """From snake to camel."""
+        # This is a temporary workaround to avoid update conflicts.
+        # The MySQL Router expects a "_metadata" field.
+        # Should be removed once BUG#37716405 is addressed.
+        if key == "_metadata":
+            return key
+
         return MrsJSONDataEncoder._pattern.sub(
             lambda x: x.group(1).upper(), key.lower()
         )
@@ -1859,10 +1865,17 @@ class MrsBaseObjectUpdate(Generic[DataClass, DataDetails]):
         if access_token:
             headers["Authorization"] = f"Bearer {access_token}"
 
+        # This is a temporary workaround to avoid update conflicts.
+        # The "If-Match" is ignored and the ETag should be sent in the request body.
+        # Should be removed once BUG#37716405 is addressed.
+        body = asdict(self._data)
+        if etag:
+            body.update({ "_metadata": { "etag": etag } })
+
         req = Request(
             url=self._request_path,
             headers=headers,
-            data=json.dumps(obj=asdict(self._data), cls=MrsJSONDataEncoder).encode(),
+            data=json.dumps(obj=body, cls=MrsJSONDataEncoder).encode(),
             method="PUT",
         )
         context = ssl.create_default_context()
