@@ -175,9 +175,6 @@ AT_KEY_SYMBOL:          AT_SIGN_SYMBOL K E Y;
 REST_REQUEST_PATH:
     (DIV_OPERATOR IDENTIFIER)+;
 
-BACK_TICK_QUOTED_REST_PATH:
-    BACK_TICK (DIV_OPERATOR (({!this.isSqlModeActive(SqlMode.NoBackslashEscapes)}? '\\')? .)+?)+? BACK_TICK;
-
 /* END OF MERGE PART */
 
 //-------------------------------------------------------------------------------------------------

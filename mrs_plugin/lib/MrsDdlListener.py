@@ -55,6 +55,12 @@ def unquoted_node_text_or_none(node):
     return None
 
 
+def validate_rest_request_path(text, allow_wildcards=False):
+    if not text or text[0] == "/" or (allow_wildcards and text[0] in "*?"):
+        return
+    raise Exception("Invalid REST request path or wildcard")
+
+
 class MrsDdlListener(MRSListener):
 
     def __init__(self, mrs_ddl_executor: MrsDdlExecutorInterface, session):
@@ -78,8 +84,7 @@ class MrsDdlListener(MRSListener):
 
     def enterAppOptions(self, ctx):
         try:
-            self.mrs_object["app_options"] = json.loads(
-                ctx.jsonValue().getText())
+            self.mrs_object["app_options"] = json.loads(ctx.jsonValue().getText())
         except:
             pass
 
@@ -123,8 +128,7 @@ class MrsDdlListener(MRSListener):
             self.mrs_object["requires_auth"] = True
 
     def enterItemsPerPage(self, ctx):
-        self.mrs_object["items_per_page"] = int(
-            ctx.itemsPerPageNumber().getText())
+        self.mrs_object["items_per_page"] = int(ctx.itemsPerPageNumber().getText())
 
     def enterServiceDeveloperIdentifier(self, ctx):
         # If the new_developer_list list has been initialized, all following developers are part of the
@@ -140,6 +144,20 @@ class MrsDdlListener(MRSListener):
             self.mrs_object["in_development"]["developers"].append(
                 get_text_without_quotes(ctx.getText())
             )
+
+    def exitRequestPathIdentifier(self, ctx):
+        text = ctx.getText()
+        if text and text[0] in '`"':
+            text = get_text_without_quotes(text)
+            validate_rest_request_path(text, False)
+        return text
+
+    def exitRequestPathIdentifierWithWildcard(self, ctx):
+        text = ctx.getText()
+        if text and text[0] in '`"':
+            text = get_text_without_quotes(text)
+            validate_rest_request_path(text, True)
+        return text
 
     def enterServiceRequestPath(self, ctx):
         self.mrs_object["url_context_root"] = get_text_without_quotes(
@@ -167,8 +185,7 @@ class MrsDdlListener(MRSListener):
         )
 
     def enterAllowNewUsersToRegister(self, ctx):
-        self.mrs_object["limit_to_registered_users"] = not ctx.NOT_SYMBOL(
-        ) is None
+        self.mrs_object["limit_to_registered_users"] = not ctx.NOT_SYMBOL() is None
 
     def enterDefaultRole(self, ctx):
         self.mrs_object["default_role"] = get_text_without_quotes(
@@ -192,14 +209,12 @@ class MrsDdlListener(MRSListener):
 
     def enterAddAuthApp(self, ctx):
         add_auth_apps = self.mrs_object.get("add_auth_apps", [])
-        add_auth_apps.append(get_text_without_quotes(
-            ctx.authAppName().getText()))
+        add_auth_apps.append(get_text_without_quotes(ctx.authAppName().getText()))
         self.mrs_object["add_auth_apps"] = add_auth_apps
 
     def enterRemoveAuthApp(self, ctx):
         add_auth_apps = self.mrs_object.get("remove_auth_apps", [])
-        add_auth_apps.append(get_text_without_quotes(
-            ctx.authAppName().getText()))
+        add_auth_apps.append(get_text_without_quotes(ctx.authAppName().getText()))
         self.mrs_object["remove_auth_apps"] = add_auth_apps
 
     # ==================================================================================================================
@@ -254,8 +269,7 @@ class MrsDdlListener(MRSListener):
     def enterAuthRedirection(self, ctx):
         val = ctx.quotedTextOrDefault().getText()
         if val != "DEFAULT":
-            self.mrs_object["auth_completed_url"] = get_text_without_quotes(
-                val)
+            self.mrs_object["auth_completed_url"] = get_text_without_quotes(val)
 
     def enterAuthValidation(self, ctx):
         val = ctx.quotedTextOrDefault().getText()
@@ -367,8 +381,7 @@ class MrsDdlListener(MRSListener):
             sorted_developers = (
                 ",".join(
                     (
-                        quote(re.sub(r"(['\\])", "\\\\\\1",
-                              dev, 0, re.MULTILINE))
+                        quote(re.sub(r"(['\\])", "\\\\\\1", dev, 0, re.MULTILINE))
                         if not re.match(r"^\w+$", dev)
                         else dev
                     )
@@ -588,8 +601,7 @@ class MrsDdlListener(MRSListener):
             self.mrs_object["format"] = "MEDIA"
 
     def enterRestViewAuthenticationProcedure(self, ctx):
-        self.mrs_object["auth_stored_procedure"] = ctx.qualifiedIdentifier(
-        ).getText()
+        self.mrs_object["auth_stored_procedure"] = ctx.qualifiedIdentifier().getText()
 
     def build_options_list(self, ctx: MRSParser.GraphQlCrudOptionsContext):
         options_list = []
@@ -619,8 +631,7 @@ class MrsDdlListener(MRSListener):
 
     def enterRestProcedureResult(self, ctx):
         # A REST PROCEDURE can have multiple results
-        graph_ql_object_count = self.mrs_object.get(
-            "graph_ql_object_count", 0) + 1
+        graph_ql_object_count = self.mrs_object.get("graph_ql_object_count", 0) + 1
         self.mrs_object["graph_ql_object_count"] = graph_ql_object_count
 
         # Add a new mrs object for each RESULT
@@ -641,8 +652,7 @@ class MrsDdlListener(MRSListener):
 
     def enterRestFunctionResult(self, ctx):
         # A REST FUNCTION can have parameters and one result defined
-        graph_ql_object_count = self.mrs_object.get(
-            "graph_ql_object_count", 0) + 1
+        graph_ql_object_count = self.mrs_object.get("graph_ql_object_count", 0) + 1
         self.mrs_object["graph_ql_object_count"] = graph_ql_object_count
 
         self.mrs_object["objects"][1]["name"] = (
@@ -675,8 +685,7 @@ class MrsDdlListener(MRSListener):
             db_column_name = ctx.graphQlPairValue().getText().strip("`")
 
             # Check if this is a REST PROCEDURE RESULT
-            graph_ql_object_count = self.mrs_object.get(
-                "graph_ql_object_count", 0)
+            graph_ql_object_count = self.mrs_object.get("graph_ql_object_count", 0)
             if graph_ql_object_count == 0:
                 # A REST VIEW RESULT or REST PROCEDURE/FUNCTION PARAMETERS
                 for i, field in enumerate(fields):
@@ -692,10 +701,12 @@ class MrsDdlListener(MRSListener):
                         field["name"] = field_name
                         field["enabled"] = True
 
-                        options_ctx: MRSParser.GraphQlValueOptionsContext = ctx.graphQlValueOptions()
+                        options_ctx: MRSParser.GraphQlValueOptionsContext = (
+                            ctx.graphQlValueOptions()
+                        )
                         if options_ctx is not None:
                             # cSpell:ignore NOCHECK NOFILTERING ROWOWNERSHIP
-                            if (options_ctx.AT_NOCHECK_SYMBOL(0) is not None):
+                            if options_ctx.AT_NOCHECK_SYMBOL(0) is not None:
                                 field["no_check"] = True
                             if options_ctx.AT_SORTABLE_SYMBOL(0) is not None:
                                 field["allow_sorting"] = True
@@ -708,9 +719,11 @@ class MrsDdlListener(MRSListener):
                             if options_ctx.AT_KEY_SYMBOL(0) is not None:
                                 db_column["is_primary"] = True
 
-                        if (ctx.graphQlCrudOptions() is not None
+                        if (
+                            ctx.graphQlCrudOptions() is not None
                             and ctx.graphQlCrudOptions().AT_NOUPDATE_SYMBOL()
-                                is not None):
+                            is not None
+                        ):
                             field["no_update"] = True
 
                         if ctx.AT_DATATYPE_SYMBOL() is not None:
@@ -720,8 +733,8 @@ class MrsDdlListener(MRSListener):
                         if ctx.graphQlValueJsonSchema() is not None:
                             try:
                                 field["json_schema"] = json.loads(
-                                    ctx.graphQlValueJsonSchema(
-                                    ).jsonValue().getText())
+                                    ctx.graphQlValueJsonSchema().jsonValue().getText()
+                                )
                             except:
                                 pass
                         break
@@ -734,29 +747,35 @@ class MrsDdlListener(MRSListener):
                         )
                     else:
                         # Add parameters in case FORCE has been used
-                        fields.append({
-                            "id": self.get_uuid(),
-                            "object_id": self.mrs_object.get("objects")[0].get("id"),
-                            "name": field_name,
-                            "position": len(fields),
-                            "db_column": {
-                                "name": db_column_name,
-                                "datatype": (
-                                    lib.core.unquote(
-                                        ctx.graphQlDatatypeValue().getText().lower()
-                                    )
-                                    if ctx.AT_DATATYPE_SYMBOL()
-                                    else "varchar(255)"
+                        fields.append(
+                            {
+                                "id": self.get_uuid(),
+                                "object_id": self.mrs_object.get("objects")[0].get(
+                                    "id"
                                 ),
-                                "in": ctx.AT_IN_SYMBOL() is not None or ctx.AT_INOUT_SYMBOL() is not None,
-                                "out": ctx.AT_OUT_SYMBOL() is not None or ctx.AT_INOUT_SYMBOL() is not None,
-                            },
-                            "enabled": True,
-                            "allow_filtering": True,
-                            "allow_sorting": False,
-                            "no_check": False,
-                            "no_update": False,
-                        })
+                                "name": field_name,
+                                "position": len(fields),
+                                "db_column": {
+                                    "name": db_column_name,
+                                    "datatype": (
+                                        lib.core.unquote(
+                                            ctx.graphQlDatatypeValue().getText().lower()
+                                        )
+                                        if ctx.AT_DATATYPE_SYMBOL()
+                                        else "varchar(255)"
+                                    ),
+                                    "in": ctx.AT_IN_SYMBOL() is not None
+                                    or ctx.AT_INOUT_SYMBOL() is not None,
+                                    "out": ctx.AT_OUT_SYMBOL() is not None
+                                    or ctx.AT_INOUT_SYMBOL() is not None,
+                                },
+                                "enabled": True,
+                                "allow_filtering": True,
+                                "allow_sorting": False,
+                                "no_check": False,
+                                "no_update": False,
+                            }
+                        )
             else:
                 # A REST PROCEDURE RESULT
                 if self.mrs_object.get("db_object_type", "") != "FUNCTION":
@@ -945,8 +964,7 @@ class MrsDdlListener(MRSListener):
 
         param_fields = []
         for param in params:
-            param_name = lib.core.convert_snake_to_camel_case(
-                param.get("name"))
+            param_name = lib.core.convert_snake_to_camel_case(param.get("name"))
             field = {
                 "id": self.get_uuid(),
                 "object_id": object_id,
@@ -1032,8 +1050,7 @@ class MrsDdlListener(MRSListener):
 
         param_fields = []
         for param in params:
-            param_name = lib.core.convert_snake_to_camel_case(
-                param.get("name"))
+            param_name = lib.core.convert_snake_to_camel_case(param.get("name"))
             field = {
                 "id": self.get_uuid(),
                 "object_id": object_id,
@@ -1292,7 +1309,9 @@ class MrsDdlListener(MRSListener):
             "current_operation": "GRANT PRIVILEGE",
             "privileges": set(),
             "role": unquoted_node_text_or_none(ctx.roleName()),
-            "object_request_path": unquoted_node_text_or_none(ctx.objectRequestPathWildcard()),
+            "object_request_path": unquoted_node_text_or_none(
+                ctx.objectRequestPathWildcard()
+            ),
         }
 
     def exitGrantRestPrivilegeStatement(self, ctx):
@@ -1347,7 +1366,9 @@ class MrsDdlListener(MRSListener):
             "current_operation": "REVOKE PRIVILEGE",
             "privileges": set(),
             "role": unquoted_node_text_or_none(ctx.roleName()),
-            "object_request_path": unquoted_node_text_or_none(ctx.objectRequestPathWildcard()),
+            "object_request_path": unquoted_node_text_or_none(
+                ctx.objectRequestPathWildcard()
+            ),
         }
 
     def exitRevokeRestPrivilegeStatement(self, ctx):
@@ -1586,7 +1607,8 @@ class MrsDdlListener(MRSListener):
 
         if ctx.newAuthAppName() is not None:
             self.mrs_object["new_auth_app_name"] = get_text_without_quotes(
-                ctx.newAuthAppName().getText())
+                ctx.newAuthAppName().getText()
+            )
 
     def exitAlterRestAuthAppStatement(self, ctx):
         self.mrs_ddl_executor.alterRestAuthApp(self.mrs_object)
@@ -1917,7 +1939,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "SHOW CREATE REST SERVICE",
-            "include_all_objects": ctx.OBJECTS_SYMBOL() is not None
+            "include_all_objects": ctx.OBJECTS_SYMBOL() is not None,
         }
 
     def exitShowCreateRestServiceStatement(self, ctx):
@@ -1930,8 +1952,11 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "SHOW CREATE REST SCHEMA",
-            "schema_request_path": get_text_without_quotes(
-                ctx.schemaRequestPath().getText()) if ctx.schemaRequestPath() is not None else None,
+            "schema_request_path": (
+                get_text_without_quotes(ctx.schemaRequestPath().getText())
+                if ctx.schemaRequestPath() is not None
+                else None
+            ),
         }
 
     def exitShowCreateRestSchemaStatement(self, ctx):
