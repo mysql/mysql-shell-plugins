@@ -1114,6 +1114,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     vendor_user_id=vendor_user_id,
                     login_permitted=int(login_permitted),
                     mapped_user_id=mapped_user_id,
+                    options=options,
                     app_options=app_options,
                     auth_string=password,
                 )

@@ -114,6 +114,7 @@ def get_default_user_init(
         "vendor_user_id": None,
         "login_permitted": True,
         "mapped_user_id": None,
+        "options": None,
         "app_options": {},
         "auth_string": auth_string,
     }

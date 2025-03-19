@@ -187,6 +187,7 @@ def add_user(
     vendor_user_id,
     login_permitted,
     mapped_user_id,
+    options,
     app_options,
     auth_string,
 ):
@@ -210,9 +211,9 @@ def add_user(
     sql = """
         INSERT INTO `mysql_rest_service_metadata`.`mrs_user`
             (id, auth_app_id, name, email, vendor_user_id,
-            login_permitted, mapped_user_id, app_options,
+            login_permitted, mapped_user_id, options, app_options,
             auth_string)
-        VALUES(?,?,?,?,?,?,?,?,?)
+        VALUES(?,?,?,?,?,?,?,?,?,?)
     """
 
     id = core.get_sequence_id(session)
@@ -224,6 +225,7 @@ def add_user(
         vendor_user_id,
         login_permitted,
         mapped_user_id,
+        options,
         app_options,
         auth_string,
     ]

@@ -1359,6 +1359,8 @@ export interface IShellMrsAddUserKwargs {
     loginPermitted?: boolean;
     /** The id for the mapped user */
     mappedUserId?: string;
+    /** The options for this user */
+    options: IShellDictionary | null;
     /** The authentication app options for this user */
     appOptions: IShellDictionary | null;
     /** The authentication string for the user. */
@@ -1382,6 +1384,8 @@ export interface IShellMrsUpdateUserKwargsValue {
     loginPermitted?: boolean;
     /** The id for the mapped user */
     mappedUserId: string | null;
+    /** The options for this user */
+    options: IShellDictionary | null;
     /** The authentication app options for this user */
     appOptions: IShellDictionary | null;
     /** The authentication string for the user. */

@@ -107,6 +107,7 @@ def add_user(**kwargs):
         vendor_user_id (str): The id of the vendor.
         login_permitted (bool): If permission is permitted by this user
         mapped_user_id (str): The id for the mapped user
+        options (dict): The options for this user
         app_options (dict): The authentication app options for this user
         auth_string (str): The authentication string for the user.
         user_roles (list): The list of user roles for this user. This needs to be in the following format
@@ -127,6 +128,7 @@ def add_user(**kwargs):
     vendor_user_id = kwargs.get("vendor_user_id")
     login_permitted = kwargs.get("login_permitted", False)
     mapped_user_id = kwargs.get("mapped_user_id")
+    options = lib.core.convert_json(kwargs.get("options"))
     app_options = lib.core.convert_json(kwargs.get("app_options"))
     auth_string = kwargs.get("auth_string")
 
@@ -144,6 +146,7 @@ def add_user(**kwargs):
                 vendor_user_id=vendor_user_id,
                 login_permitted=login_permitted,
                 mapped_user_id=mapped_user_id,
+                options=options,
                 app_options=app_options,
                 auth_string=auth_string,
             )
@@ -233,6 +236,7 @@ def update_user(**kwargs):
         vendor_user_id (str): The id of the vendor.
         login_permitted (bool): If permission is permitted by this user
         mapped_user_id (str): The id for the mapped user
+        options (dict): The options for this user
         app_options (dict): The authentication app options for this user
         auth_string (str): The authentication string for the user.
 

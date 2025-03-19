@@ -387,7 +387,8 @@ export class ShellInterfaceMrs {
     }
 
     public async addUser(authAppId: string, name: string, email: string, vendorUserId: string,
-        loginPermitted: boolean, mappedUserId: string, appOptions: IShellDictionary | null,
+        loginPermitted: boolean, mappedUserId: string, options: IShellDictionary | null,
+        appOptions: IShellDictionary | null,
         authString: string, userRoles: IMrsUserRoleData[]): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddUser,
@@ -399,6 +400,7 @@ export class ShellInterfaceMrs {
                     vendorUserId,
                     loginPermitted,
                     mappedUserId,
+                    options,
                     appOptions,
                     authString,
                     userRoles,

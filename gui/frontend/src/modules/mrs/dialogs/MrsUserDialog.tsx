@@ -39,6 +39,7 @@ export interface IMrsUserDialogData extends IDictionary {
     vendorUserId?: string;
     loginPermitted: boolean;
     mappedUserId?: string;
+    options?: string;
     appOptions?: string;
     authString?: string;
     userRoles: string[];
@@ -178,14 +179,22 @@ export class MrsUserDialog extends AwaitableValueEditDialog {
                         CommonDialogValueOption.Grouped,
                     ],
                 },
+            },
+        };
+
+        const authAppSection: IDialogSection = {
+            caption: "Auth App Settings",
+            groupName: "group1",
+            values: {
                 appOptions: {
                     type: "text",
-                    caption: "User Options",
-                    value: data.appOptions ? JSON.stringify(data.appOptions) : "",
+                    caption: "Application Options",
+                    value: data.appOptions ? JSON.stringify(data.appOptions, undefined, 4) : "",
                     horizontalSpan: 6,
                     verticalSpan: 2,
                     description: "Additional options in JSON format",
                     multiLine: true,
+                    multiLineCount: 8,
                 },
                 vendorUserId: {
                     type: "text",
@@ -204,26 +213,47 @@ export class MrsUserDialog extends AwaitableValueEditDialog {
             },
         };
 
+        const optionsSection: IDialogSection = {
+            caption: "Options",
+            groupName: "group1",
+            values: {
+                options: {
+                    type: "text",
+                    caption: "User Options",
+                    value: data.options ? JSON.stringify(data.options, undefined, 4) : "",
+                    horizontalSpan: 8,
+                    description: "Additional options in JSON format",
+                    multiLine: true,
+                    multiLineCount: 8,
+                },
+            },
+        };
+
         return {
             id: "mainSection",
             sections: new Map<string, IDialogSection>([
                 ["mainSection", mainSection],
+                ["optionsSection", optionsSection],
+                ["authAppSection", authAppSection],
             ]),
         };
     }
 
     private processResults = (dialogValues: IDialogValues): IDictionary => {
         const mainSection = dialogValues.sections.get("mainSection");
+        const optionsSection = dialogValues.sections.get("optionsSection");
+        const authAppSection = dialogValues.sections.get("authAppSection");
 
-        if (mainSection) {
+        if (mainSection && optionsSection && authAppSection) {
             const values: IMrsUserDialogData = {
                 authAppName: mainSection.values.authApp.value as string,
                 name: mainSection.values.name.value as string,
                 email: mainSection.values.email.value as string,
-                vendorUserId: mainSection.values.vendorUserId.value as string,
+                vendorUserId: authAppSection.values.vendorUserId.value as string,
                 loginPermitted: mainSection.values.loginPermitted.value as boolean,
-                mappedUserId: mainSection.values.mappedUserId.value as string,
-                appOptions: mainSection.values.appOptions.value as string,
+                mappedUserId: authAppSection.values.mappedUserId.value as string,
+                options: optionsSection.values.options.value as string,
+                appOptions: authAppSection.values.appOptions.value as string,
                 authString: mainSection.values.authString.value as string,
                 userRoles: mainSection.values.roles.value as string[],
             };
