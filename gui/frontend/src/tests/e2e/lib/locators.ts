@@ -1158,6 +1158,8 @@ export const mrsAuthenticationAppDialog = {
 
 export const mrsUserDialog = {
     exists: By.id("mrsUserDialog"),
+    optionsTab: By.id("page0"),
+    authAppSettingsTab: By.id("page1"),
     username: By.id("name"),
     password: By.id("authString"),
     authApp: By.id("authApp"),
