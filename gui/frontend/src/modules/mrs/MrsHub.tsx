@@ -933,6 +933,7 @@ export class MrsHub extends ComponentBase {
                 vendorUserId: user?.vendorUserId,
                 loginPermitted: user?.loginPermitted ?? true,
                 mappedUserId: user?.mappedUserId,
+                options: user?.options,
                 appOptions: user?.appOptions,
                 authString: user?.authString,
             },
@@ -965,6 +966,7 @@ export class MrsHub extends ComponentBase {
                         vendorUserId: data.vendorUserId ?? null,
                         loginPermitted: data.loginPermitted,
                         mappedUserId: data.mappedUserId ?? null,
+                        options: data.options  ? JSON.parse(data.options) as IShellDictionary : null,
                         appOptions: data.appOptions ? JSON.parse(data.appOptions) as IShellDictionary : null,
                         authString: data.authString ?? null,
                     }, rolesToUpdate);
@@ -975,6 +977,7 @@ export class MrsHub extends ComponentBase {
                     user.vendorUserId = data.vendorUserId;
                     user.loginPermitted = data.loginPermitted;
                     user.mappedUserId = data.mappedUserId;
+                    user.options = data.options ? JSON.parse(data.options) as IShellDictionary : undefined;
                     user.appOptions = data.appOptions ? JSON.parse(data.appOptions) as IShellDictionary : undefined;
                     user.authString = data.authString;
 
@@ -991,6 +994,7 @@ export class MrsHub extends ComponentBase {
                 if (authApp && authApp.id) {
                     await backend.mrs.addUser(authApp.id, data.name!, data.email!, data.vendorUserId!,
                         data.loginPermitted, data.mappedUserId!,
+                        data.options  ? JSON.parse(data.options) as IShellDictionary : null,
                         data.appOptions ? JSON.parse(data.appOptions) as IShellDictionary : null,
                         data.authString!, rolesToUpdate);
                 }

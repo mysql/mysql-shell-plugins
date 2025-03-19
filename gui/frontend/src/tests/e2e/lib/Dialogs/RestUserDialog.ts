@@ -79,12 +79,15 @@ export class RestUserDialog {
             await DialogHelper.setCheckboxValue("loginPermitted", restUser.permitLogin);
         }
         if (restUser.userOptions) {
+            await dialog.findElement(locator.mrsUserDialog.authAppSettingsTab).click();
             await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.appOptions, restUser.userOptions);
         }
         if (restUser.vendorUserId) {
+            await dialog.findElement(locator.mrsUserDialog.authAppSettingsTab).click();
             await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.vendorUserId, restUser.vendorUserId);
         }
         if (restUser.mappedUserId) {
+            await dialog.findElement(locator.mrsUserDialog.authAppSettingsTab).click();
             await DialogHelper.setFieldText(dialog, locator.mrsUserDialog.mappedUserId, restUser.mappedUserId);
         }
 
@@ -112,12 +115,13 @@ export class RestUserDialog {
             authenticationApp: await (await dialog.findElement(locator.mrsUserDialog.authApp)).getAttribute("value"),
             email: await DialogHelper.getFieldValue(dialog, locator.mrsUserDialog.email),
             assignedRoles: await dialog.findElement(locator.mrsUserDialog.rolesLabel).getText(),
-            userOptions: (await dialog.findElement(locator.mrsUserDialog.appOptions)
-                .getAttribute("value")).replace(/\r?\n|\r|\s+/gm, "").trim(),
-            vendorUserId: await DialogHelper.getFieldValue(dialog, locator.mrsUserDialog.vendorUserId),
-            mappedUserId: await DialogHelper.getFieldValue(dialog, locator.mrsUserDialog.mappedUserId),
         };
 
+        await dialog.findElement(locator.mrsUserDialog.authAppSettingsTab).click();
+        restUser.userOptions = (await dialog.findElement(locator.mrsUserDialog.appOptions)
+            .getAttribute("value")).replace(/\r?\n|\r|\s+/gm, "").trim();
+        restUser.vendorUserId = await DialogHelper.getFieldValue(dialog, locator.mrsUserDialog.vendorUserId);
+        restUser.mappedUserId = await DialogHelper.getFieldValue(dialog, locator.mrsUserDialog.mappedUserId);
         restUser.permitLogin = await DialogHelper.getCheckBoxValue("loginPermitted");
 
         await driver.wait(async () => {

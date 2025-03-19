@@ -121,7 +121,8 @@ describe("MRS User dialog tests", () => {
         expect(portals).toHaveLength(0);
 
         backend.mrs.addUser = (authAppId: string, name: string, email: string, vendorUserId: string,
-            loginPermitted: boolean, mappedUserId: string, appOptions: IShellDictionary | null,
+            loginPermitted: boolean, mappedUserId: string,
+            options: IShellDictionary | null, appOptions: IShellDictionary | null,
             authString: string, userRoles: IMrsUserRoleData[]): Promise<void> => {
             expect(name).toBe("MyUser");
             expect(authString).toBe("AAAAAA");
@@ -131,6 +132,7 @@ describe("MRS User dialog tests", () => {
             expect(vendorUserId).toBeDefined();
             expect(loginPermitted).toBeDefined();
             expect(mappedUserId).toBeDefined();
+            expect(options).toBeDefined();
             expect(appOptions).toBeDefined();
             expect(userRoles).toBeDefined();
 
