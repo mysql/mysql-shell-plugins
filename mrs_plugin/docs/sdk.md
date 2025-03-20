@@ -8,6 +8,7 @@ __Chapter Overview__
 
 - [Introduction to the MRS SDK](#introduction-to-the-mrs-sdk)
 - [Working with a REST Service](#working-with-a-rest-service)
+- [Document API](#document-api)
 - [Querying Data Across Tables](#querying-data-across-tables)
 - [Functions And Procedures](#functions-and-procedures)
 - [Contextual Fields and Parameters](#contextual-fields-and-parameters)
@@ -33,6 +34,8 @@ Please also see
 !include sections/sdk/Introduction.md
 
 !include sections/sdk/WorkingWithARESTService.md
+
+!include sections/sdk/DocumentAPI.md
 
 !include sections/sdk/QueryingDataAcrossTables.md
 
