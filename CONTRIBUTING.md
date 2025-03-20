@@ -1,3 +1,5 @@
+# Contributing to this repository
+
 We welcome your code contributions. Before submitting code via a GitHub pull
 request, or by filing a bug in https://bugs.mysql.com you will need to have
 signed the Oracle Contributor Agreement, see https://oca.opensource.oracle.com
@@ -5,8 +7,7 @@ signed the Oracle Contributor Agreement, see https://oca.opensource.oracle.com
 Only pull requests from committers that can be verified as having signed the OCA
 can be accepted.
 
-Submitting a contribution
--------------------------
+## Contributing code
 
 1. Make sure you have a user account at https://bugs.mysql.com. You'll need to reference
     this user account when you submit your OCA (Oracle Contributor Agreement).
