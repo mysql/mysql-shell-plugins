@@ -388,7 +388,7 @@ def test_generate_interfaces():
         "not_null": True,
         "id_generation": "auto_inc",
     }
-    fields = [{"lev": 1, "enabled": True, "db_column": db_column, "name": "bar"}]
+    fields = [{"lev": 1, "enabled": True, "db_column": db_column, "name": "bar", "allow_sorting": True}]
 
     want = """export interface IFoo {
     bar?: string,
@@ -906,6 +906,17 @@ def test_field_is_required():
     field["db_column"]["column_default"] = None
     is_required = field_is_required(field, obj)
     assert is_required == False
+
+
+def test_field_is_sortable():
+    field = {}
+    assert field_is_sortable(field) is False
+
+    field["allow_sorting"] = True
+    assert field_is_sortable(field) is True
+
+    field["allow_sorting"] = False
+    assert field_is_sortable(field) is False
 
 
 def test_object_is_routine():

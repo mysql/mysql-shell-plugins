@@ -927,6 +927,10 @@ def field_can_be_cursor(field):
     return False
 
 
+def field_is_sortable(field):
+    return field.get("allow_sorting", False)
+
+
 def get_field_by_id(fields, identifier):
     for field in fields:
         if field.get("id") == identifier:
@@ -1073,7 +1077,7 @@ def generate_data_class(
             for field, value in fields.items()
         ]:
             field_profile.append(f'"{field_name}": {type_hint}')
-        field_profile = (
+        join_field_profile = (
             "{\n" + f"{" "*16}" + f",\n{" "*16}".join(field_profile).rstrip() + f"\n{" "*12}" + "}"
         )
 
@@ -1090,7 +1094,7 @@ def generate_data_class(
             name=name,
             join_field_block="".join(field_type_block).rstrip(),
             obj_endpoint=obj_endpoint,
-            field_profile=field_profile,
+            field_profile=join_field_profile,
             primary_key_name=(
                 None if obj_primary_key is None else f'"{obj_primary_key}"'
             ),
@@ -1191,6 +1195,7 @@ def generate_interfaces(
     out_params_interface_fields = {}
     obj_unique_fields = {}
     obj_cursor_fields = {}
+    obj_sortable_fields: set[str] = set()
     has_nested_fields = False
     obj_primary_key = get_primary_key(fields)
     required_datatypes: set[str] = set()
@@ -1294,6 +1299,10 @@ def generate_interfaces(
                 if field_can_be_cursor(field):
                     obj_cursor_fields.update({field.get("name"): enhanced_datatype})
 
+                # Build list of sortable fields
+                if field_is_sortable(field):
+                    obj_sortable_fields.add(field.get("name"))
+
     if not object_is_routine(db_obj):
         # The object is a TABLE or a VIEW
         if sdk_language != "TypeScript":
@@ -1392,7 +1401,7 @@ def generate_interfaces(
             generate_selectable(class_name, interface_fields, sdk_language)
         )
         obj_interfaces.append(
-            generate_sortable(class_name, interface_fields, sdk_language)
+            generate_sortable(class_name, obj_sortable_fields, sdk_language)
         )
 
         construct_parents = (
