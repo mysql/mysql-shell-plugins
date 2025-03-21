@@ -227,7 +227,7 @@ describe("MRS Db Object dialog tests", () => {
             //  cell 2
             expect(gridCells[1].children[0].textContent).toBe("Metadata");
             element = gridCells[1].children[1].firstElementChild as HTMLInputElement;
-            expect(element?.value).toBe("null");
+            expect(element?.value).toBe("");
             expect(gridCells[1].children[2].textContent).toBe("Metadata settings in JSON format");
         }
 

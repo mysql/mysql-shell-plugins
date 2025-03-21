@@ -895,8 +895,8 @@ export const recreateMrsData = async (): Promise<IRecreateMrsDataResult> => {
 
     let newDbObjectId = uuidBinary16Base64();
     const dbObjectResult = await backend.mrs.addDbObject("actor", MrsDbObjectType.Table, false, "/actor", 1,
-        "FEED", false, false, null, null, schemaId,
-        undefined, "<this is a comment>", undefined, undefined, null,
+        "FEED", false, false, null, null, null, schemaId,
+        undefined, "<this is a comment>", undefined, undefined,
         [
             {
                 id: newDbObjectId,
@@ -976,8 +976,8 @@ export const recreateMrsData = async (): Promise<IRecreateMrsDataResult> => {
     newDbObjectId = uuidBinary16Base64();
     await backend.mrs.addDbObject("actor_count",
         MrsDbObjectType.Procedure, false, "/actor_count", 1,
-        "FEED", false, false, null, null, schemaId,
-        undefined, "<this is a comment>", undefined, undefined, null,
+        "FEED", false, false, null, null, null, schemaId,
+        undefined, "<this is a comment>", undefined, undefined,
         [
             {
                 id: newDbObjectId,
