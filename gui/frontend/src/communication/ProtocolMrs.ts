@@ -922,7 +922,7 @@ export interface IShellMrsAddDbObjectKwargs {
     /** The options of this db object */
     options: IShellDictionary | null;
     /** The metadata of this db object */
-    metadata?: IShellDictionary;
+    metadata: IShellDictionary | null;
     /** The result/parameters objects definition in JSON format */
     objects?: unknown[];
     /** The string id for the module session object, holding the database session to be used on the operation. */
@@ -1021,7 +1021,7 @@ export interface IShellMrsUpdateDbObjectKwargsValue {
     /** The options of this db object */
     options: IShellDictionary | null;
     /** The metadata settings of the db object */
-    metadata?: IShellDictionary;
+    metadata: IShellDictionary | null;
     /** The result/parameters objects definition in JSON format */
     objects?: unknown[];
 }

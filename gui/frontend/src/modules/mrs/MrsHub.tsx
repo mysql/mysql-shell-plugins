@@ -75,8 +75,8 @@ interface IMrsEditObjectData extends IDictionary {
     crudOperationFormat: string,
     autoDetectMediaType: boolean,
     mediaType: string,
-    options: string,
-    metadata?: IShellDictionary;
+    options: IShellDictionary | null,
+    metadata: IShellDictionary | null;
     authStoredProcedure: string,
     objects: IMrsObject[];
 
@@ -475,7 +475,7 @@ export class MrsHub extends ComponentBase {
                 crudOperationFormat: dbObject.crudOperationFormat,
                 autoDetectMediaType: dbObject.autoDetectMediaType === 1,
                 mediaType: dbObject.mediaType,
-                options: dbObject?.options ? JSON.stringify(dbObject?.options, undefined, 4) : "",
+                options: dbObject?.options,
                 authStoredProcedure: dbObject.authStoredProcedure,
                 metadata: dbObject?.metadata,
 
@@ -507,9 +507,9 @@ export class MrsHub extends ComponentBase {
         const mediaType = data.mediaType;
         const autoDetectMediaType = data.autoDetectMediaType;
         const authStoredProcedure = data.authStoredProcedure;
-        const options = data.options === "" ? null : JSON.parse(data.options) as IShellDictionary;
+        const options = data.options;
         const objects = data.objects;
-        const metadata = data.metadata as IShellDictionary;
+        const metadata = data.metadata;
 
         const newService = services.find((service) => {
             return service.urlContextRoot === servicePath;
@@ -531,10 +531,11 @@ export class MrsHub extends ComponentBase {
                     false, requestPath, enabled,
                     crudOperationFormat, requiresAuth,
                     autoDetectMediaType,
-                    options, itemsPerPage,
+                    options,
+                    metadata,
+                    itemsPerPage,
                     newSchema?.id, undefined, comments,
                     mediaType, "",
-                    metadata,
                     objects);
 
                 requisitions.executeRemote("refreshConnection", undefined);
@@ -565,7 +566,7 @@ export class MrsHub extends ComponentBase {
                         crudOperationFormat,
                         options,
                         objects,
-                        metadata: metadata === null ? undefined : metadata,
+                        metadata,
                     });
 
                 requisitions.executeRemote("refreshConnection", undefined);

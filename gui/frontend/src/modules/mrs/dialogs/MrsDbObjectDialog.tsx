@@ -318,7 +318,7 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                 options: {
                     type: "text",
                     caption: "Options",
-                    value: request.values?.options as string,
+                    value: request.values?.options ? JSON.stringify(request.values.options, undefined, 4) : "",
                     horizontalSpan: 8,
                     multiLine: true,
                     multiLineCount: 8,
@@ -327,8 +327,7 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
                 metadata: {
                     type: "text",
                     caption: "Metadata",
-                    value: request.values?.metadata !== undefined
-                        ? JSON.stringify(request.values.metadata, undefined, 4) : "",
+                    value: request.values?.metadata ? JSON.stringify(request.values.metadata, undefined, 4) : "",
                     horizontalSpan: 8,
                     multiLine: true,
                     multiLineCount: 8,
@@ -393,9 +392,10 @@ export class MrsDbObjectDialog extends AwaitableValueEditDialog {
             values.authStoredProcedure = authorizationSection.values.authStoredProcedure.value as string;
 
             // optionsSection
-            values.options = optionsSection.values.options.value as string;
+            values.options = optionsSection.values.options.value as string === ""
+                ? null : JSON.parse(optionsSection.values.options.value as string);
             values.metadata = optionsSection.values.metadata.value as string === ""
-                ? undefined : JSON.parse(optionsSection.values.metadata.value as string);
+                ? null : JSON.parse(optionsSection.values.metadata.value as string);
 
             // mrsObject
             const mrsObjectValue = mrsObjectSection.values.tree.value;

@@ -139,11 +139,11 @@ nullable_bindings = {
         'IShellMrsAddAuthenticationAppKwargs': ['defaultRoleId'],
         'IShellMrsUpdateAuthenticationAppKwargsValue': ['defaultRoleId'],
         'IShellMrsUpdateAuthenticationAppKwargs': ['value'],
-        'IShellMrsAddDbObjectKwargs': ['options'],
+        'IShellMrsAddDbObjectKwargs': ['options', 'metadata'],
         'IShellMrsEnableDbObjectKwargs': ['dbObjectId'],
         'IShellMrsDisableDbObjectKwargs': ['dbObjectId'],
         'IShellMrsDeleteDbObjectKwargs': ['dbObjectId'],
-        'IShellMrsUpdateDbObjectKwargsValue': ['options', 'itemsPerPage'],
+        'IShellMrsUpdateDbObjectKwargsValue': ['options', 'itemsPerPage', 'metadata'],
         'IShellMrsAddContentSetKwargs': ['requestPath', 'requiresAuth', 'options'],
         'IShellMrsAddUserKwargs': ['options', 'appOptions'],
         'IShellMrsUpdateUserKwargsValue': ['name', 'email', 'vendorUserId', 'mappedUserId', 'options', 'appOptions', 'authString']
