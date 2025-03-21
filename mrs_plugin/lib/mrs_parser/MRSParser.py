@@ -175,10 +175,10 @@ def serializedATN():
         280,282,284,286,288,290,292,294,296,298,300,302,304,306,308,310,
         312,314,316,318,320,322,0,18,2,0,81,81,83,83,2,0,81,81,83,84,2,0,
         82,82,85,85,1,0,87,88,2,0,97,97,99,100,2,0,21,21,103,103,2,0,62,
-        62,105,105,1,0,56,57,3,0,1,1,35,35,51,52,1,0,8,9,2,0,192,192,194,
-        194,2,0,192,192,194,195,1,0,152,153,2,0,128,130,138,142,1,0,125,
-        127,3,0,129,129,131,134,143,143,4,0,1,33,35,65,67,67,71,122,2,0,
-        191,191,194,195,1855,0,336,1,0,0,0,2,397,1,0,0,0,4,399,1,0,0,0,6,
+        62,105,105,1,0,56,57,3,0,1,1,35,35,51,52,1,0,8,9,1,0,144,145,2,0,
+        144,145,195,195,1,0,154,155,2,0,128,130,138,142,1,0,125,127,3,0,
+        129,129,131,134,143,143,4,0,1,33,35,65,67,67,71,122,3,0,145,145,
+        193,193,195,195,1855,0,336,1,0,0,0,2,397,1,0,0,0,4,399,1,0,0,0,6,
         401,1,0,0,0,8,405,1,0,0,0,10,408,1,0,0,0,12,413,1,0,0,0,14,416,1,
         0,0,0,16,419,1,0,0,0,18,425,1,0,0,0,20,430,1,0,0,0,22,434,1,0,0,
         0,24,441,1,0,0,0,26,446,1,0,0,0,28,455,1,0,0,0,30,459,1,0,0,0,32,
@@ -218,11 +218,11 @@ def serializedATN():
         1,0,0,0,302,1666,1,0,0,0,304,1668,1,0,0,0,306,1673,1,0,0,0,308,1675,
         1,0,0,0,310,1677,1,0,0,0,312,1685,1,0,0,0,314,1689,1,0,0,0,316,1693,
         1,0,0,0,318,1700,1,0,0,0,320,1706,1,0,0,0,322,1710,1,0,0,0,324,333,
-        3,2,1,0,325,327,5,168,0,0,326,325,1,0,0,0,327,328,1,0,0,0,328,326,
+        3,2,1,0,325,327,5,170,0,0,326,325,1,0,0,0,327,328,1,0,0,0,328,326,
         1,0,0,0,328,329,1,0,0,0,329,330,1,0,0,0,330,332,3,2,1,0,331,326,
         1,0,0,0,332,335,1,0,0,0,333,331,1,0,0,0,333,334,1,0,0,0,334,337,
         1,0,0,0,335,333,1,0,0,0,336,324,1,0,0,0,336,337,1,0,0,0,337,339,
-        1,0,0,0,338,340,5,168,0,0,339,338,1,0,0,0,339,340,1,0,0,0,340,341,
+        1,0,0,0,338,340,5,170,0,0,339,338,1,0,0,0,339,340,1,0,0,0,340,341,
         1,0,0,0,341,342,5,0,0,1,342,1,1,0,0,0,343,398,3,26,13,0,344,398,
         3,32,16,0,345,398,3,56,28,0,346,398,3,60,30,0,347,398,3,70,35,0,
         348,398,3,74,37,0,349,398,3,78,39,0,350,398,3,88,44,0,351,398,3,
@@ -261,7 +261,7 @@ def serializedATN():
         5,71,0,0,417,418,3,320,160,0,418,15,1,0,0,0,419,421,5,21,0,0,420,
         422,5,28,0,0,421,420,1,0,0,0,421,422,1,0,0,0,422,423,1,0,0,0,423,
         424,5,93,0,0,424,17,1,0,0,0,425,426,5,94,0,0,426,427,5,95,0,0,427,
-        428,5,30,0,0,428,429,3,20,10,0,429,19,1,0,0,0,430,431,5,186,0,0,
+        428,5,30,0,0,428,429,3,20,10,0,429,19,1,0,0,0,430,431,5,188,0,0,
         431,21,1,0,0,0,432,433,5,76,0,0,433,435,3,224,112,0,434,432,1,0,
         0,0,434,435,1,0,0,0,435,436,1,0,0,0,436,437,5,12,0,0,437,438,3,230,
         115,0,438,23,1,0,0,0,439,440,5,76,0,0,440,442,3,228,114,0,441,439,
@@ -394,7 +394,7 @@ def serializedATN():
         0,834,835,3,320,160,0,835,107,1,0,0,0,836,837,5,63,0,0,837,838,3,
         320,160,0,838,109,1,0,0,0,839,842,5,1,0,0,840,841,5,2,0,0,841,843,
         5,3,0,0,842,840,1,0,0,0,842,843,1,0,0,0,843,844,1,0,0,0,844,845,
-        5,73,0,0,845,846,5,25,0,0,846,847,3,112,56,0,847,848,5,179,0,0,848,
+        5,73,0,0,845,846,5,25,0,0,846,847,3,112,56,0,847,848,5,181,0,0,848,
         852,3,94,47,0,849,850,5,40,0,0,850,851,5,41,0,0,851,853,3,114,57,
         0,852,849,1,0,0,0,852,853,1,0,0,0,853,855,1,0,0,0,854,856,3,116,
         58,0,855,854,1,0,0,0,855,856,1,0,0,0,856,111,1,0,0,0,857,858,3,322,
@@ -473,7 +473,7 @@ def serializedATN():
         0,0,0,1082,1084,1,0,0,0,1083,1085,3,98,49,0,1084,1083,1,0,0,0,1084,
         1085,1,0,0,0,1085,145,1,0,0,0,1086,1087,3,322,161,0,1087,147,1,0,
         0,0,1088,1089,5,4,0,0,1089,1090,5,73,0,0,1090,1091,5,25,0,0,1091,
-        1092,3,112,56,0,1092,1093,5,179,0,0,1093,1097,3,94,47,0,1094,1095,
+        1092,3,112,56,0,1092,1093,5,181,0,0,1093,1097,3,94,47,0,1094,1095,
         5,40,0,0,1095,1096,5,41,0,0,1096,1098,3,114,57,0,1097,1094,1,0,0,
         0,1097,1098,1,0,0,0,1098,1100,1,0,0,0,1099,1101,3,116,58,0,1100,
         1099,1,0,0,0,1100,1101,1,0,0,0,1101,149,1,0,0,0,1102,1103,5,17,0,
@@ -504,7 +504,7 @@ def serializedATN():
         163,1,0,0,0,1176,1177,5,17,0,0,1177,1178,5,73,0,0,1178,1179,7,5,
         0,0,1179,1180,5,105,0,0,1180,1181,3,94,47,0,1181,165,1,0,0,0,1182,
         1183,5,17,0,0,1183,1184,5,73,0,0,1184,1185,5,25,0,0,1185,1186,3,
-        112,56,0,1186,1187,5,179,0,0,1187,1188,3,94,47,0,1188,167,1,0,0,
+        112,56,0,1186,1187,5,181,0,0,1187,1188,3,94,47,0,1188,167,1,0,0,
         0,1189,1190,5,17,0,0,1190,1191,5,73,0,0,1191,1192,5,42,0,0,1192,
         1193,3,128,64,0,1193,169,1,0,0,0,1194,1195,5,50,0,0,1195,1196,5,
         73,0,0,1196,1208,3,172,86,0,1197,1199,5,8,0,0,1198,1200,5,76,0,0,
@@ -514,11 +514,11 @@ def serializedATN():
         1209,1,0,0,0,1208,1197,1,0,0,0,1208,1202,1,0,0,0,1208,1209,1,0,0,
         0,1209,1210,1,0,0,0,1210,1211,5,43,0,0,1211,1212,3,128,64,0,1212,
         171,1,0,0,0,1213,1219,3,174,87,0,1214,1215,3,174,87,0,1215,1216,
-        5,167,0,0,1216,1217,3,172,86,0,1217,1219,1,0,0,0,1218,1213,1,0,0,
+        5,169,0,0,1216,1217,3,172,86,0,1217,1219,1,0,0,0,1218,1213,1,0,0,
         0,1218,1214,1,0,0,0,1219,173,1,0,0,0,1220,1221,7,8,0,0,1221,175,
         1,0,0,0,1222,1223,5,50,0,0,1223,1224,5,73,0,0,1224,1225,5,42,0,0,
         1225,1226,3,128,64,0,1226,1227,5,43,0,0,1227,1228,3,112,56,0,1228,
-        1229,5,179,0,0,1229,1231,3,94,47,0,1230,1232,3,14,7,0,1231,1230,
+        1229,5,181,0,0,1229,1231,3,94,47,0,1230,1232,3,14,7,0,1231,1230,
         1,0,0,0,1231,1232,1,0,0,0,1232,177,1,0,0,0,1233,1234,5,54,0,0,1234,
         1235,5,73,0,0,1235,1247,3,172,86,0,1236,1238,5,8,0,0,1237,1239,5,
         76,0,0,1238,1237,1,0,0,0,1238,1239,1,0,0,0,1239,1240,1,0,0,0,1240,
@@ -528,7 +528,7 @@ def serializedATN():
         1,0,0,0,1248,1249,1,0,0,0,1249,1250,5,9,0,0,1250,1251,3,128,64,0,
         1251,179,1,0,0,0,1252,1253,5,54,0,0,1253,1254,5,73,0,0,1254,1255,
         5,42,0,0,1255,1256,3,128,64,0,1256,1257,5,9,0,0,1257,1258,3,112,
-        56,0,1258,1259,5,179,0,0,1259,1260,3,94,47,0,1260,181,1,0,0,0,1261,
+        56,0,1258,1259,5,181,0,0,1259,1260,3,94,47,0,1260,181,1,0,0,0,1261,
         1262,5,18,0,0,1262,1263,5,73,0,0,1263,1264,3,184,92,0,1264,183,1,
         0,0,0,1265,1266,5,76,0,0,1266,1269,3,224,112,0,1267,1269,3,22,11,
         0,1268,1265,1,0,0,0,1268,1267,1,0,0,0,1269,185,1,0,0,0,1270,1271,
@@ -566,7 +566,7 @@ def serializedATN():
         3,224,112,0,1365,1359,1,0,0,0,1365,1362,1,0,0,0,1366,1368,1,0,0,
         0,1367,1358,1,0,0,0,1367,1368,1,0,0,0,1368,1375,1,0,0,0,1369,1371,
         5,59,0,0,1370,1372,3,112,56,0,1371,1370,1,0,0,0,1371,1372,1,0,0,
-        0,1372,1373,1,0,0,0,1373,1374,5,179,0,0,1374,1376,3,94,47,0,1375,
+        0,1372,1373,1,0,0,0,1373,1374,5,181,0,0,1374,1376,3,94,47,0,1375,
         1369,1,0,0,0,1375,1376,1,0,0,0,1376,205,1,0,0,0,1377,1378,5,5,0,
         0,1378,1379,5,73,0,0,1379,1380,5,58,0,0,1380,1381,5,59,0,0,1381,
         1382,3,128,64,0,1382,207,1,0,0,0,1383,1384,5,5,0,0,1384,1385,5,1,
@@ -616,39 +616,39 @@ def serializedATN():
         3,266,133,0,1517,253,1,0,0,0,1518,1519,3,266,133,0,1519,255,1,0,
         0,0,1520,1521,3,266,133,0,1521,257,1,0,0,0,1522,1523,3,266,133,0,
         1523,259,1,0,0,0,1524,1525,3,266,133,0,1525,261,1,0,0,0,1526,1527,
-        3,322,161,0,1527,263,1,0,0,0,1528,1533,3,262,131,0,1529,1530,5,167,
+        3,322,161,0,1527,263,1,0,0,0,1528,1533,3,262,131,0,1529,1530,5,169,
         0,0,1530,1532,3,262,131,0,1531,1529,1,0,0,0,1532,1535,1,0,0,0,1533,
         1531,1,0,0,0,1533,1534,1,0,0,0,1534,1536,1,0,0,0,1535,1533,1,0,0,
-        0,1536,1537,5,179,0,0,1537,265,1,0,0,0,1538,1539,7,10,0,0,1539,267,
-        1,0,0,0,1540,1541,7,11,0,0,1541,269,1,0,0,0,1542,1543,5,172,0,0,
-        1543,1548,3,272,136,0,1544,1545,5,167,0,0,1545,1547,3,272,136,0,
+        0,1536,1537,5,181,0,0,1537,265,1,0,0,0,1538,1539,7,10,0,0,1539,267,
+        1,0,0,0,1540,1541,7,11,0,0,1541,269,1,0,0,0,1542,1543,5,174,0,0,
+        1543,1548,3,272,136,0,1544,1545,5,169,0,0,1545,1547,3,272,136,0,
         1546,1544,1,0,0,0,1547,1550,1,0,0,0,1548,1546,1,0,0,0,1548,1549,
-        1,0,0,0,1549,1551,1,0,0,0,1550,1548,1,0,0,0,1551,1552,5,173,0,0,
-        1552,1556,1,0,0,0,1553,1554,5,172,0,0,1554,1556,5,173,0,0,1555,1542,
+        1,0,0,0,1549,1551,1,0,0,0,1550,1548,1,0,0,0,1551,1552,5,175,0,0,
+        1552,1556,1,0,0,0,1553,1554,5,174,0,0,1554,1556,5,175,0,0,1555,1542,
         1,0,0,0,1555,1553,1,0,0,0,1556,271,1,0,0,0,1557,1558,5,196,0,0,1558,
-        1559,5,169,0,0,1559,1560,3,276,138,0,1560,273,1,0,0,0,1561,1570,
-        5,175,0,0,1562,1567,3,276,138,0,1563,1564,5,167,0,0,1564,1566,3,
+        1559,5,171,0,0,1559,1560,3,276,138,0,1560,273,1,0,0,0,1561,1570,
+        5,177,0,0,1562,1567,3,276,138,0,1563,1564,5,169,0,0,1564,1566,3,
         276,138,0,1565,1563,1,0,0,0,1566,1569,1,0,0,0,1567,1565,1,0,0,0,
         1567,1568,1,0,0,0,1568,1571,1,0,0,0,1569,1567,1,0,0,0,1570,1562,
-        1,0,0,0,1570,1571,1,0,0,0,1571,1572,1,0,0,0,1572,1573,5,176,0,0,
+        1,0,0,0,1570,1571,1,0,0,0,1571,1572,1,0,0,0,1572,1573,5,178,0,0,
         1573,275,1,0,0,0,1574,1586,5,196,0,0,1575,1577,7,12,0,0,1576,1575,
-        1,0,0,0,1576,1577,1,0,0,0,1577,1578,1,0,0,0,1578,1586,5,188,0,0,
-        1579,1586,5,186,0,0,1580,1586,3,270,135,0,1581,1586,3,274,137,0,
+        1,0,0,0,1576,1577,1,0,0,0,1577,1578,1,0,0,0,1578,1586,5,190,0,0,
+        1579,1586,5,188,0,0,1580,1586,3,270,135,0,1581,1586,3,274,137,0,
         1582,1586,5,37,0,0,1583,1586,5,38,0,0,1584,1586,5,36,0,0,1585,1574,
         1,0,0,0,1585,1576,1,0,0,0,1585,1579,1,0,0,0,1585,1580,1,0,0,0,1585,
         1581,1,0,0,0,1585,1582,1,0,0,0,1585,1583,1,0,0,0,1585,1584,1,0,0,
-        0,1586,277,1,0,0,0,1587,1588,5,172,0,0,1588,1593,3,282,141,0,1589,
-        1590,5,167,0,0,1590,1592,3,282,141,0,1591,1589,1,0,0,0,1592,1595,
+        0,1586,277,1,0,0,0,1587,1588,5,174,0,0,1588,1593,3,282,141,0,1589,
+        1590,5,169,0,0,1590,1592,3,282,141,0,1591,1589,1,0,0,0,1592,1595,
         1,0,0,0,1593,1591,1,0,0,0,1593,1594,1,0,0,0,1594,1596,1,0,0,0,1595,
-        1593,1,0,0,0,1596,1597,5,173,0,0,1597,1601,1,0,0,0,1598,1599,5,172,
-        0,0,1599,1601,5,173,0,0,1600,1587,1,0,0,0,1600,1598,1,0,0,0,1601,
+        1593,1,0,0,0,1596,1597,5,175,0,0,1597,1601,1,0,0,0,1598,1599,5,174,
+        0,0,1599,1601,5,175,0,0,1600,1587,1,0,0,0,1600,1598,1,0,0,0,1601,
         279,1,0,0,0,1602,1604,7,13,0,0,1603,1602,1,0,0,0,1604,1605,1,0,0,
         0,1605,1603,1,0,0,0,1605,1606,1,0,0,0,1606,281,1,0,0,0,1607,1608,
-        3,290,145,0,1608,1609,5,169,0,0,1609,1611,3,292,146,0,1610,1612,
+        3,290,145,0,1608,1609,5,171,0,0,1609,1611,3,292,146,0,1610,1612,
         7,14,0,0,1611,1610,1,0,0,0,1611,1612,1,0,0,0,1612,1614,1,0,0,0,1613,
         1615,3,284,142,0,1614,1613,1,0,0,0,1614,1615,1,0,0,0,1615,1621,1,
-        0,0,0,1616,1617,5,135,0,0,1617,1618,5,170,0,0,1618,1619,3,296,148,
-        0,1619,1620,5,171,0,0,1620,1622,1,0,0,0,1621,1616,1,0,0,0,1621,1622,
+        0,0,0,1616,1617,5,135,0,0,1617,1618,5,172,0,0,1618,1619,3,296,148,
+        0,1619,1620,5,173,0,0,1620,1622,1,0,0,0,1621,1616,1,0,0,0,1621,1622,
         1,0,0,0,1622,1624,1,0,0,0,1623,1625,3,280,140,0,1624,1623,1,0,0,
         0,1624,1625,1,0,0,0,1625,1627,1,0,0,0,1626,1628,3,286,143,0,1627,
         1626,1,0,0,0,1627,1628,1,0,0,0,1628,1630,1,0,0,0,1629,1631,3,278,
@@ -668,15 +668,15 @@ def serializedATN():
         3,308,154,0,1667,303,1,0,0,0,1668,1669,3,308,154,0,1669,305,1,0,
         0,0,1670,1674,7,17,0,0,1671,1672,4,153,0,0,1672,1674,5,196,0,0,1673,
         1670,1,0,0,0,1673,1671,1,0,0,0,1674,307,1,0,0,0,1675,1676,3,306,
-        153,0,1676,309,1,0,0,0,1677,1682,3,308,154,0,1678,1679,5,167,0,0,
+        153,0,1676,309,1,0,0,0,1677,1682,3,308,154,0,1678,1679,5,169,0,0,
         1679,1681,3,308,154,0,1680,1678,1,0,0,0,1681,1684,1,0,0,0,1682,1680,
         1,0,0,0,1682,1683,1,0,0,0,1683,311,1,0,0,0,1684,1682,1,0,0,0,1685,
-        1686,5,170,0,0,1686,1687,3,310,155,0,1687,1688,5,171,0,0,1688,313,
+        1686,5,172,0,0,1686,1687,3,310,155,0,1687,1688,5,173,0,0,1688,313,
         1,0,0,0,1689,1691,3,308,154,0,1690,1692,3,318,159,0,1691,1690,1,
         0,0,0,1691,1692,1,0,0,0,1692,315,1,0,0,0,1693,1698,3,308,154,0,1694,
         1696,3,318,159,0,1695,1697,3,318,159,0,1696,1695,1,0,0,0,1696,1697,
         1,0,0,0,1697,1699,1,0,0,0,1698,1694,1,0,0,0,1698,1699,1,0,0,0,1699,
-        317,1,0,0,0,1700,1701,5,166,0,0,1701,1702,3,308,154,0,1702,319,1,
+        317,1,0,0,0,1700,1701,5,168,0,0,1701,1702,3,308,154,0,1702,319,1,
         0,0,0,1703,1707,5,197,0,0,1704,1705,4,160,1,0,1705,1707,5,196,0,
         0,1706,1703,1,0,0,0,1706,1704,1,0,0,0,1707,321,1,0,0,0,1708,1711,
         3,308,154,0,1709,1711,3,320,160,0,1710,1708,1,0,0,0,1710,1709,1,
@@ -744,16 +744,17 @@ class MRSParser ( Parser ):
                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "'='", "':='", "'<=>'", "'>='", "'>'", "'<='", "'<'", 
-                     "'!='", "'+'", "'-'", "'*'", "'/'", "'%'", "'!'", "'~'", 
-                     "'<<'", "'>>'", "'&&'", "'&'", "'^'", "'||'", "'|'", 
-                     "'.'", "','", "';'", "':'", "'('", "')'", "'{'", "'}'", 
-                     "'_'", "'['", "']'", "'->'", "'->>'", "'@'", "<INVALID>", 
-                     "'@@'", "'\\N'", "'?'", "<INVALID>", "<INVALID>", "<INVALID>", 
+                     "<INVALID>", "<INVALID>", "'='", "':='", "'<=>'", "'>='", 
+                     "'>'", "'<='", "'<'", "'!='", "'+'", "'-'", "'*'", 
+                     "'/'", "'%'", "'!'", "'~'", "'<<'", "'>>'", "'&&'", 
+                     "'&'", "'^'", "'||'", "'|'", "'.'", "','", "';'", "':'", 
+                     "'('", "')'", "'{'", "'}'", "'_'", "'['", "']'", "'->'", 
+                     "'->>'", "'@'", "<INVALID>", "'@@'", "'\\N'", "'?'", 
                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "<INVALID>", "<INVALID>", "'<>'" ]
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
+                     "'<>'" ]
 
     symbolicNames = [ "<INVALID>", "CREATE_SYMBOL", "OR_SYMBOL", "REPLACE_SYMBOL", 
                       "ALTER_SYMBOL", "SHOW_SYMBOL", "STATUS_SYMBOL", "NEW_SYMBOL", 
@@ -796,24 +797,23 @@ class MRSParser ( Parser ):
                       "AT_UNNEST_SYMBOL", "AT_DATATYPE_SYMBOL", "AT_SELECT_SYMBOL", 
                       "AT_NOSELECT_SYMBOL", "AT_INSERT_SYMBOL", "AT_NOINSERT_SYMBOL", 
                       "AT_UPDATE_SYMBOL", "AT_DELETE_SYMBOL", "AT_NODELETE_SYMBOL", 
-                      "AT_KEY_SYMBOL", "EQUAL_OPERATOR", "ASSIGN_OPERATOR", 
-                      "NULL_SAFE_EQUAL_OPERATOR", "GREATER_OR_EQUAL_OPERATOR", 
-                      "GREATER_THAN_OPERATOR", "LESS_OR_EQUAL_OPERATOR", 
-                      "LESS_THAN_OPERATOR", "NOT_EQUAL_OPERATOR", "PLUS_OPERATOR", 
-                      "MINUS_OPERATOR", "MULT_OPERATOR", "DIV_OPERATOR", 
-                      "MOD_OPERATOR", "LOGICAL_NOT_OPERATOR", "BITWISE_NOT_OPERATOR", 
-                      "SHIFT_LEFT_OPERATOR", "SHIFT_RIGHT_OPERATOR", "LOGICAL_AND_OPERATOR", 
-                      "BITWISE_AND_OPERATOR", "BITWISE_XOR_OPERATOR", "LOGICAL_OR_OPERATOR", 
-                      "BITWISE_OR_OPERATOR", "DOT_SYMBOL", "COMMA_SYMBOL", 
-                      "SEMICOLON_SYMBOL", "COLON_SYMBOL", "OPEN_PAR_SYMBOL", 
-                      "CLOSE_PAR_SYMBOL", "OPEN_CURLY_SYMBOL", "CLOSE_CURLY_SYMBOL", 
-                      "UNDERLINE_SYMBOL", "OPEN_SQUARE_SYMBOL", "CLOSE_SQUARE_SYMBOL", 
-                      "JSON_SEPARATOR_SYMBOL", "JSON_UNQUOTED_SEPARATOR_SYMBOL", 
+                      "AT_KEY_SYMBOL", "REST_REQUEST_PATH", "BACK_TICK_QUOTED_REST_PATH", 
+                      "EQUAL_OPERATOR", "ASSIGN_OPERATOR", "NULL_SAFE_EQUAL_OPERATOR", 
+                      "GREATER_OR_EQUAL_OPERATOR", "GREATER_THAN_OPERATOR", 
+                      "LESS_OR_EQUAL_OPERATOR", "LESS_THAN_OPERATOR", "NOT_EQUAL_OPERATOR", 
+                      "PLUS_OPERATOR", "MINUS_OPERATOR", "MULT_OPERATOR", 
+                      "DIV_OPERATOR", "MOD_OPERATOR", "LOGICAL_NOT_OPERATOR", 
+                      "BITWISE_NOT_OPERATOR", "SHIFT_LEFT_OPERATOR", "SHIFT_RIGHT_OPERATOR", 
+                      "LOGICAL_AND_OPERATOR", "BITWISE_AND_OPERATOR", "BITWISE_XOR_OPERATOR", 
+                      "LOGICAL_OR_OPERATOR", "BITWISE_OR_OPERATOR", "DOT_SYMBOL", 
+                      "COMMA_SYMBOL", "SEMICOLON_SYMBOL", "COLON_SYMBOL", 
+                      "OPEN_PAR_SYMBOL", "CLOSE_PAR_SYMBOL", "OPEN_CURLY_SYMBOL", 
+                      "CLOSE_CURLY_SYMBOL", "UNDERLINE_SYMBOL", "OPEN_SQUARE_SYMBOL", 
+                      "CLOSE_SQUARE_SYMBOL", "JSON_SEPARATOR_SYMBOL", "JSON_UNQUOTED_SEPARATOR_SYMBOL", 
                       "AT_SIGN_SYMBOL", "AT_TEXT_SUFFIX", "AT_AT_SIGN_SYMBOL", 
                       "NULL2_SYMBOL", "PARAM_MARKER", "HEX_NUMBER", "BIN_NUMBER", 
                       "INT_NUMBER", "DECIMAL_NUMBER", "FLOAT_NUMBER", "WHITESPACE", 
-                      "INVALID_INPUT", "IDENTIFIER", "REST_REQUEST_PATH", 
-                      "NCHAR_TEXT", "BACK_TICK_QUOTED_REST_PATH", "BACK_TICK_QUOTED_ID", 
+                      "INVALID_INPUT", "IDENTIFIER", "NCHAR_TEXT", "BACK_TICK_QUOTED_ID", 
                       "DOUBLE_QUOTED_TEXT", "SINGLE_QUOTED_TEXT", "BLOCK_COMMENT", 
                       "POUND_COMMENT", "DASHDASH_COMMENT", "WS", "NOT_EQUAL2_OPERATOR" ]
 
@@ -1185,57 +1185,57 @@ class MRSParser ( Parser ):
     AT_DELETE_SYMBOL=141
     AT_NODELETE_SYMBOL=142
     AT_KEY_SYMBOL=143
-    EQUAL_OPERATOR=144
-    ASSIGN_OPERATOR=145
-    NULL_SAFE_EQUAL_OPERATOR=146
-    GREATER_OR_EQUAL_OPERATOR=147
-    GREATER_THAN_OPERATOR=148
-    LESS_OR_EQUAL_OPERATOR=149
-    LESS_THAN_OPERATOR=150
-    NOT_EQUAL_OPERATOR=151
-    PLUS_OPERATOR=152
-    MINUS_OPERATOR=153
-    MULT_OPERATOR=154
-    DIV_OPERATOR=155
-    MOD_OPERATOR=156
-    LOGICAL_NOT_OPERATOR=157
-    BITWISE_NOT_OPERATOR=158
-    SHIFT_LEFT_OPERATOR=159
-    SHIFT_RIGHT_OPERATOR=160
-    LOGICAL_AND_OPERATOR=161
-    BITWISE_AND_OPERATOR=162
-    BITWISE_XOR_OPERATOR=163
-    LOGICAL_OR_OPERATOR=164
-    BITWISE_OR_OPERATOR=165
-    DOT_SYMBOL=166
-    COMMA_SYMBOL=167
-    SEMICOLON_SYMBOL=168
-    COLON_SYMBOL=169
-    OPEN_PAR_SYMBOL=170
-    CLOSE_PAR_SYMBOL=171
-    OPEN_CURLY_SYMBOL=172
-    CLOSE_CURLY_SYMBOL=173
-    UNDERLINE_SYMBOL=174
-    OPEN_SQUARE_SYMBOL=175
-    CLOSE_SQUARE_SYMBOL=176
-    JSON_SEPARATOR_SYMBOL=177
-    JSON_UNQUOTED_SEPARATOR_SYMBOL=178
-    AT_SIGN_SYMBOL=179
-    AT_TEXT_SUFFIX=180
-    AT_AT_SIGN_SYMBOL=181
-    NULL2_SYMBOL=182
-    PARAM_MARKER=183
-    HEX_NUMBER=184
-    BIN_NUMBER=185
-    INT_NUMBER=186
-    DECIMAL_NUMBER=187
-    FLOAT_NUMBER=188
-    WHITESPACE=189
-    INVALID_INPUT=190
-    IDENTIFIER=191
-    REST_REQUEST_PATH=192
-    NCHAR_TEXT=193
-    BACK_TICK_QUOTED_REST_PATH=194
+    REST_REQUEST_PATH=144
+    BACK_TICK_QUOTED_REST_PATH=145
+    EQUAL_OPERATOR=146
+    ASSIGN_OPERATOR=147
+    NULL_SAFE_EQUAL_OPERATOR=148
+    GREATER_OR_EQUAL_OPERATOR=149
+    GREATER_THAN_OPERATOR=150
+    LESS_OR_EQUAL_OPERATOR=151
+    LESS_THAN_OPERATOR=152
+    NOT_EQUAL_OPERATOR=153
+    PLUS_OPERATOR=154
+    MINUS_OPERATOR=155
+    MULT_OPERATOR=156
+    DIV_OPERATOR=157
+    MOD_OPERATOR=158
+    LOGICAL_NOT_OPERATOR=159
+    BITWISE_NOT_OPERATOR=160
+    SHIFT_LEFT_OPERATOR=161
+    SHIFT_RIGHT_OPERATOR=162
+    LOGICAL_AND_OPERATOR=163
+    BITWISE_AND_OPERATOR=164
+    BITWISE_XOR_OPERATOR=165
+    LOGICAL_OR_OPERATOR=166
+    BITWISE_OR_OPERATOR=167
+    DOT_SYMBOL=168
+    COMMA_SYMBOL=169
+    SEMICOLON_SYMBOL=170
+    COLON_SYMBOL=171
+    OPEN_PAR_SYMBOL=172
+    CLOSE_PAR_SYMBOL=173
+    OPEN_CURLY_SYMBOL=174
+    CLOSE_CURLY_SYMBOL=175
+    UNDERLINE_SYMBOL=176
+    OPEN_SQUARE_SYMBOL=177
+    CLOSE_SQUARE_SYMBOL=178
+    JSON_SEPARATOR_SYMBOL=179
+    JSON_UNQUOTED_SEPARATOR_SYMBOL=180
+    AT_SIGN_SYMBOL=181
+    AT_TEXT_SUFFIX=182
+    AT_AT_SIGN_SYMBOL=183
+    NULL2_SYMBOL=184
+    PARAM_MARKER=185
+    HEX_NUMBER=186
+    BIN_NUMBER=187
+    INT_NUMBER=188
+    DECIMAL_NUMBER=189
+    FLOAT_NUMBER=190
+    WHITESPACE=191
+    INVALID_INPUT=192
+    IDENTIFIER=193
+    NCHAR_TEXT=194
     BACK_TICK_QUOTED_ID=195
     DOUBLE_QUOTED_TEXT=196
     SINGLE_QUOTED_TEXT=197
@@ -1318,7 +1318,7 @@ class MRSParser ( Parser ):
                             self.state = 328 
                             self._errHandler.sync(self)
                             _la = self._input.LA(1)
-                            if not (_la==168):
+                            if not (_la==170):
                                 break
 
                         self.state = 330
@@ -1332,7 +1332,7 @@ class MRSParser ( Parser ):
             self.state = 339
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==168:
+            if _la==170:
                 self.state = 338
                 self.match(MRSParser.SEMICOLON_SYMBOL)
 
@@ -3643,7 +3643,7 @@ class MRSParser ( Parser ):
             self.state = 541
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==192 or _la==194:
+            if _la==144 or _la==145:
                 self.state = 540
                 self.schemaRequestPath()
 
@@ -3950,7 +3950,7 @@ class MRSParser ( Parser ):
             self.state = 592
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==172:
+            if _la==174:
                 self.state = 591
                 self.graphQlObj()
 
@@ -7045,7 +7045,7 @@ class MRSParser ( Parser ):
             self.state = 937
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==192 or _la==194:
+            if _la==144 or _la==145:
                 self.state = 936
                 self.schemaRequestPath()
 
@@ -7262,7 +7262,7 @@ class MRSParser ( Parser ):
                 self.state = 985
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if _la==172:
+                if _la==174:
                     self.state = 984
                     self.graphQlObj()
 
@@ -10525,7 +10525,7 @@ class MRSParser ( Parser ):
             self.state = 1400
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==192 or _la==194:
+            if _la==144 or _la==145:
                 self.state = 1399
                 self.schemaRequestPath()
 
@@ -12064,7 +12064,7 @@ class MRSParser ( Parser ):
             self.state = 1533
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==167:
+            while _la==169:
                 self.state = 1529
                 self.match(MRSParser.COMMA_SYMBOL)
                 self.state = 1530
@@ -12120,7 +12120,7 @@ class MRSParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 1538
             _la = self._input.LA(1)
-            if not(_la==192 or _la==194):
+            if not(_la==144 or _la==145):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -12173,7 +12173,7 @@ class MRSParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 1540
             _la = self._input.LA(1)
-            if not(((((_la - 192)) & ~0x3f) == 0 and ((1 << (_la - 192)) & 13) != 0)):
+            if not(((((_la - 144)) & ~0x3f) == 0 and ((1 << (_la - 144)) & 2251799813685251) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -12245,7 +12245,7 @@ class MRSParser ( Parser ):
                 self.state = 1548
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                while _la==167:
+                while _la==169:
                     self.state = 1544
                     self.match(MRSParser.COMMA_SYMBOL)
                     self.state = 1545
@@ -12380,13 +12380,13 @@ class MRSParser ( Parser ):
             self.state = 1570
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if (((_la) & ~0x3f) == 0 and ((1 << _la) & 481036337152) != 0) or ((((_la - 152)) & ~0x3f) == 0 and ((1 << (_la - 152)) & 17678094827523) != 0):
+            if (((_la) & ~0x3f) == 0 and ((1 << _la) & 481036337152) != 0) or ((((_la - 154)) & ~0x3f) == 0 and ((1 << (_la - 154)) & 4483955294211) != 0):
                 self.state = 1562
                 self.jsonValue()
                 self.state = 1567
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                while _la==167:
+                while _la==169:
                     self.state = 1563
                     self.match(MRSParser.COMMA_SYMBOL)
                     self.state = 1564
@@ -12475,15 +12475,15 @@ class MRSParser ( Parser ):
                 self.state = 1574
                 self.match(MRSParser.DOUBLE_QUOTED_TEXT)
                 pass
-            elif token in [152, 153, 188]:
+            elif token in [154, 155, 190]:
                 self.enterOuterAlt(localctx, 2)
                 self.state = 1576
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if _la==152 or _la==153:
+                if _la==154 or _la==155:
                     self.state = 1575
                     _la = self._input.LA(1)
-                    if not(_la==152 or _la==153):
+                    if not(_la==154 or _la==155):
                         self._errHandler.recoverInline(self)
                     else:
                         self._errHandler.reportMatch(self)
@@ -12493,17 +12493,17 @@ class MRSParser ( Parser ):
                 self.state = 1578
                 self.match(MRSParser.FLOAT_NUMBER)
                 pass
-            elif token in [186]:
+            elif token in [188]:
                 self.enterOuterAlt(localctx, 3)
                 self.state = 1579
                 self.match(MRSParser.INT_NUMBER)
                 pass
-            elif token in [172]:
+            elif token in [174]:
                 self.enterOuterAlt(localctx, 4)
                 self.state = 1580
                 self.jsonObj()
                 pass
-            elif token in [175]:
+            elif token in [177]:
                 self.enterOuterAlt(localctx, 5)
                 self.state = 1581
                 self.jsonArr()
@@ -12593,7 +12593,7 @@ class MRSParser ( Parser ):
                 self.state = 1593
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                while _la==167:
+                while _la==169:
                     self.state = 1589
                     self.match(MRSParser.COMMA_SYMBOL)
                     self.state = 1590
@@ -12863,7 +12863,7 @@ class MRSParser ( Parser ):
             self.state = 1630
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==172:
+            if _la==174:
                 self.state = 1629
                 self.graphQlObj()
 
@@ -13890,7 +13890,7 @@ class MRSParser ( Parser ):
                 self.enterOuterAlt(localctx, 1)
                 self.state = 1670
                 _la = self._input.LA(1)
-                if not(((((_la - 191)) & ~0x3f) == 0 and ((1 << (_la - 191)) & 25) != 0)):
+                if not(((((_la - 145)) & ~0x3f) == 0 and ((1 << (_la - 145)) & 1407374883553281) != 0)):
                     self._errHandler.recoverInline(self)
                 else:
                     self._errHandler.reportMatch(self)
@@ -14005,7 +14005,7 @@ class MRSParser ( Parser ):
             self.state = 1682
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==167:
+            while _la==169:
                 self.state = 1678
                 self.match(MRSParser.COMMA_SYMBOL)
                 self.state = 1679
@@ -14116,7 +14116,7 @@ class MRSParser ( Parser ):
             self.state = 1691
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==166:
+            if _la==168:
                 self.state = 1690
                 self.dotIdentifier()
 
@@ -14174,13 +14174,13 @@ class MRSParser ( Parser ):
             self.state = 1698
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==166:
+            if _la==168:
                 self.state = 1694
                 self.dotIdentifier()
                 self.state = 1696
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if _la==166:
+                if _la==168:
                     self.state = 1695
                     self.dotIdentifier()
 

@@ -172,6 +172,12 @@ AT_DELETE_SYMBOL:       AT_SIGN_SYMBOL D E L E T E;
 AT_NODELETE_SYMBOL:     AT_SIGN_SYMBOL N O D E L E T E;
 AT_KEY_SYMBOL:          AT_SIGN_SYMBOL K E Y;
 
+REST_REQUEST_PATH:
+    (DIV_OPERATOR IDENTIFIER)+;
+
+BACK_TICK_QUOTED_REST_PATH:
+    BACK_TICK (DIV_OPERATOR (({!this.isSqlModeActive(SqlMode.NoBackslashEscapes)}? '\\')? .)+?)+? BACK_TICK;
+
 /* END OF MERGE PART */
 
 //-------------------------------------------------------------------------------------------------
@@ -298,9 +304,6 @@ IDENTIFIER:
 ;
 // INT_NUMBER matches first if there are only digits.
 
-REST_REQUEST_PATH:
-    (DIV_OPERATOR IDENTIFIER)+;
-
 NCHAR_TEXT: [nN] SINGLE_QUOTED_TEXT;
 
 // MySQL supports automatic concatenation of multiple single and double quoted strings if they
@@ -311,9 +314,6 @@ NCHAR_TEXT: [nN] SINGLE_QUOTED_TEXT;
 fragment BACK_TICK:    '`';
 fragment SINGLE_QUOTE: '\'';
 fragment DOUBLE_QUOTE: '"';
-
-BACK_TICK_QUOTED_REST_PATH:
-    BACK_TICK (DIV_OPERATOR (({!this.isSqlModeActive(SqlMode.NoBackslashEscapes)}? '\\')? .)+?)+? BACK_TICK;
 
 BACK_TICK_QUOTED_ID:
     BACK_TICK (({!this.isSqlModeActive(SqlMode.NoBackslashEscapes)}? '\\')? .)*? BACK_TICK;
