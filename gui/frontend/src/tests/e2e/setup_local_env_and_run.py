@@ -110,6 +110,7 @@ class SetEnvironmentVariablesTask:
         self.environment["DBUSERNAME"] = argv.db_root_user
         self.environment["DBPASSWORD"] = DB_ROOT_PASSWORD
         self.environment["MYSQL_PORT"] = argv.db_port
+        self.environment["MYSQL_REST_PORT"] = "3307"
         self.environment["DBPORTX"] = argv.db_port + "0"
         self.environment["DBUSERNAMESHELL"] = "clientqa"
         self.environment["DBPASSWORDSHELL"] = "dummy"
@@ -289,8 +290,11 @@ def main() -> None:
             pathlib.Path(tmp_dirname, "mysqlsh", "plugins"), be_servers))
         executor.add_task(task_utils.AddUserToBE(executor.environment, tmp_dirname, be_servers))
         executor.add_task(task_utils.StartBeServersTask(be_servers))
+        
         executor.add_task(task_utils.SetMySQLServerTask(
-            executor.environment, tmp_dirname, True))
+            executor.environment, tmp_dirname, argv.db_port, True))
+        executor.add_task(task_utils.SetMySQLServerTask(
+            executor.environment, tmp_dirname, "3307"))
         executor.add_task(task_utils.ClearCredentials(executor.environment))
         executor.add_task(NPMScript(executor.environment, "e2e-tests-run", [f"--maxWorkers={MAX_WORKERS}"]))
 
