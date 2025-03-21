@@ -534,11 +534,11 @@ export class ShellInterfaceMrs {
         crudOperationFormat: string, requiresAuth: boolean,
         autoDetectMediaType: boolean,
         options: IShellDictionary | null,
+        metadata: IShellDictionary | null,
         itemsPerPage: number | null,
         schemaId?: string, schemaName?: string,
         comments?: string, mediaType?: string,
         authStoredProcedure?: string,
-        metadata?: IShellDictionary | null,
         objects?: IMrsObject[]): Promise<string> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsAddDbObject,
@@ -560,7 +560,7 @@ export class ShellInterfaceMrs {
                     autoDetectMediaType,
                     authStoredProcedure,
                     options,
-                    metadata: metadata === null ? undefined : metadata,
+                    metadata,
                     objects,
                 },
             },
