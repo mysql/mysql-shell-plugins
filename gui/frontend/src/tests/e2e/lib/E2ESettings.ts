@@ -59,7 +59,8 @@ export class E2ESettings {
      */
     public selectCurrentTheme = async (theme: string): Promise<void> => {
 
-        const currentThemeValue = await driver.findElement(locator.settingsPage.themeSettings.currentTheme.exists)
+        const currentThemeValue = await driver.wait(until.elementLocated(locator
+            .settingsPage.themeSettings.currentTheme.exists), constants.wait5seconds)
             .findElement(locator.htmlTag.label);
 
         if (await currentThemeValue.getText() !== theme) {
@@ -70,8 +71,10 @@ export class E2ESettings {
             const selectList = await driver.wait(until
                 .elementLocated(locator.settingsPage.themeSettings.currentTheme.selectList.exists),
                 constants.wait3seconds, "Could not find the Current Theme Select List");
-            await selectList.findElement(locator.settingsPage.themeSettings.currentTheme.selectList.item(theme))
-                .click();
+
+            const themeToSelect = await selectList.findElement(locator.settingsPage.themeSettings.currentTheme
+                .selectList.item(theme));
+            await driver.executeScript("arguments[0].click()", themeToSelect);
 
             const notification = await new E2EToastNotification().create();
             await notification!.close();

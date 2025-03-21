@@ -32,11 +32,11 @@ const testPriority = new Map([
     [join(basePath, "ui-rest.ts"), 1],
     [join(basePath, "ui-result-grids.ts"), 2],
     [join(basePath, "ui-db.ts"), 3],
-    [join(basePath, "ui-clipboard.ts"), 4],
-    [join(basePath, "ui-notebook.ts"), 5],
-    [join(basePath, "ui-oci.ts"), 6],
-    [join(basePath, "ui-shell.ts"), 7],
-    [join(basePath, "ui-misc.ts"), 8],
+    [join(basePath, "ui-notebook.ts"), 4],
+    [join(basePath, "ui-misc.ts"), 5],
+    [join(basePath, "ui-clipboard.ts"), 6],
+    [join(basePath, "ui-oci.ts"), 7],
+    [join(basePath, "ui-shell.ts"), 8],
     [join(basePath, "ui-open-editors.ts"), 9],
 ]);
 

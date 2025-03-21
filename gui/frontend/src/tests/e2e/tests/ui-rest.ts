@@ -53,7 +53,7 @@ const globalConn: interfaces.IDBConnection = {
     basic: {
         hostname: "localhost",
         username: String(process.env.DBUSERNAME1),
-        port: parseInt(process.env.MYSQL_PORT!, 10),
+        port: parseInt(process.env.MYSQL_REST_PORT!, 10),
         schema: "sakila",
         password: String(process.env.DBUSERNAME1PWD),
     },
@@ -67,7 +67,7 @@ describe("MYSQL REST SERVICE", () => {
 
     beforeAll(async () => {
 
-        await loadDriver(true);
+        await loadDriver(false);
         await driver.get(url);
 
         try {
@@ -383,6 +383,22 @@ describe("MYSQL REST SERVICE", () => {
             }
         });
 
+        it("Copy CREATE REST SERVICE Statement", async () => {
+            try {
+                await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
+                    [constants.copyToClipboard.exists, constants.copyCreateRestServiceSt]);
+                const notification = await new E2EToastNotification().create();
+                expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
+                expect(await Os.readClipboard())
+                    .toMatch(new RegExp(`(CREATE REST SERVICE|${constants.jsError})`));
+
+                await notification!.close();
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
         it("Edit REST Service", async () => {
             try {
                 await dbTreeSection.openContextMenuAndSelect(service1.servicePath, constants.editRESTService);
@@ -601,6 +617,26 @@ describe("MYSQL REST SERVICE", () => {
             }
         });
 
+        it("Copy CREATE REST SCHEMA Statement", async () => {
+            try {
+                const restSchema = `${service2.restSchemas![0]
+                    .restSchemaPath!} (${service2.restSchemas![0].settings!.schemaName})`;
+
+                await dbTreeSection.openContextMenuAndSelect(restSchema,
+                    [constants.copyToClipboard.exists, constants.copyCreateRestSchemaSt]);
+
+                const notification = await new E2EToastNotification().create();
+                expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
+                expect(await Os.readClipboard())
+                    .toMatch(new RegExp(`(CREATE OR REPLACE REST SCHEMA|${constants.jsError})`));
+
+                await notification!.close();
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
         it("Edit REST Schema", async () => {
             try {
                 await dbTreeSection.expandTreeItem(service2.servicePath);
@@ -795,6 +831,45 @@ describe("MYSQL REST SERVICE", () => {
                         .restSchemaPath} (${service3.restSchemas![0].settings?.schemaName})`));
                     await driver.wait(dbTreeSection.untilTreeItemExists(table.restObjectPath!), constants.wait5seconds);
                 }
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
+        it("Copy CREATE REST OBJECT Statement", async () => {
+            try {
+                await dbTreeSection.openContextMenuAndSelect(service3.restSchemas![0].restObjects![1]
+                    .restObjectPath!, [constants.copyToClipboard.exists, constants.copyCreateRestObjSt]);
+
+                const notification = await new E2EToastNotification().create();
+                expect(notification!.message).toBe("The CREATE statement was copied to the system clipboard");
+                expect(await Os.readClipboard())
+                    .toMatch(new RegExp(`(CREATE OR REPLACE REST VIEW|${constants.jsError})`));
+
+                await notification!.close();
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
+        it("Copy REST Object Request Path to Clipboard", async () => {
+            try {
+                const service = service3.servicePath;
+                const sakila = service3.restSchemas![0].settings?.schemaName;
+                const address = service3.restSchemas![0].restObjects![1].dataMapping?.dbObject;
+                const regex = new RegExp(`(localhost:(\\d+)${service}/${sakila}/${address}|${constants.jsError})`);
+
+                await dbTreeSection.openContextMenuAndSelect(service3.restSchemas![0].restObjects![1]
+                    .restObjectPath!, [constants.copyToClipboard.exists, constants.copyRESTObjReqPath]);
+
+                const notification = await new E2EToastNotification().create();
+                expect(notification!.message).toBe("The DB Object Path was copied to the system clipboard");
+                const clipboard = await Os.readClipboard();
+                expect(clipboard).toMatch(regex);
+
+                await Misc.dismissNotifications();
             } catch (e) {
                 testFailed = true;
                 throw e;

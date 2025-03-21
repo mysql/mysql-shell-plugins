@@ -74,14 +74,7 @@ describe("DATABASE CONNECTIONS", () => {
         await Misc.loadDriver();
         try {
             await driver.wait(Workbench.untilExtensionIsReady(), constants.wait1minute * 2);
-
-            if (process.env.PARALLEL) {
-                await driver.wait(Misc.untilSchemaExists(constants.restServiceMetadataSchema),
-                    constants.wait1minute * 2);
-            }
-
             await Os.appendToExtensionLog("beforeAll DATABASE CONNECTIONS");
-
             const activityBare = new ActivityBar();
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
             await Workbench.dismissNotifications();
