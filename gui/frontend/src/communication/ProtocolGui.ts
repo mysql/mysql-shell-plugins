@@ -760,7 +760,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiDbConnectionsListCredentials]: { result: string[]; };
     [ShellAPIGui.GuiDbConnectionsTestConnection]: { result?: { moduleSessionId?: string; }; };
     [ShellAPIGui.GuiDbConnectionsMoveConnection]: {};
-    [ShellAPIGui.GuiDbConnectionsAddFolderPath]: { result: number; };
+    [ShellAPIGui.GuiDbConnectionsAddFolderPath]: { result: IFolderPath; };
     [ShellAPIGui.GuiDbConnectionsRemoveFolderPath]: {};
     [ShellAPIGui.GuiDbConnectionsRenameFolderPath]: {};
     [ShellAPIGui.GuiDbConnectionsMoveFolder]: {};

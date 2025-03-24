@@ -76,7 +76,7 @@ ws.validateLastResponse({
 })
 
 
-ws.tokens['folder_path_id'] = ws.lastResponse['result']
+ws.tokens['folder_path_id'] = ws.lastResponse['result']['id']
 
 ws.validateLastResponse({
     "request_state": {

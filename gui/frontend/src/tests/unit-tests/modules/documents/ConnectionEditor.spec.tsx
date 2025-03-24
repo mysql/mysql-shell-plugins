@@ -36,7 +36,7 @@ import { ConnectionEditor } from "../../../../modules/db-editor/ConnectionEditor
 import { DocumentContext, type DocumentContextType } from "../../../../modules/db-editor/index.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { DBType, IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";
+import { DBType, IConnectionDetails, IFolderPath } from "../../../../supplement/ShellInterface/index.js";
 import { webSession } from "../../../../supplement/WebSession.js";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
 import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
@@ -61,7 +61,7 @@ describe("ConnectionEditor tests", (): void => {
     let backend: ShellInterfaceSqlEditor;
     let connID: number;
     let dialogHelper: DialogHelper;
-    let folderID: number;
+    let folder: IFolderPath;
 
     const credentials = getDbCredentials();
     const dataModel = new ConnectionDataModel();
@@ -87,11 +87,11 @@ describe("ConnectionEditor tests", (): void => {
         backend = new ShellInterfaceSqlEditor();
 
         launcher = await setupShellForTests(false, true, "DEBUG3");
-        folderID = await ShellInterface.dbConnections.addFolderPath(
+        folder = await ShellInterface.dbConnections.addFolderPath(
             webSession.currentProfileId, "unit-tests", -1);
-        expect(folderID).toBeGreaterThan(-1);
+        expect(folder.id).toBeGreaterThan(-1);
         testMySQLConnection.id = await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
-            testMySQLConnection, folderID) ?? -1;
+            testMySQLConnection, folder.id) ?? -1;
         expect(testMySQLConnection.id).toBeGreaterThan(-1);
         connID = testMySQLConnection.id;
 
@@ -101,7 +101,7 @@ describe("ConnectionEditor tests", (): void => {
     });
 
     afterAll(async () => {
-        await ShellInterface.dbConnections.removeFolderPath(folderID);
+        await ShellInterface.dbConnections.removeFolderPath(folder.id);
         await backend.closeSession();
         await ShellInterface.dbConnections.removeDbConnection(webSession.currentProfileId, connID);
         await launcher.exitProcess();
