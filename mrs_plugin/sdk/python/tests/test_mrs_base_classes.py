@@ -284,7 +284,41 @@ class ActorWithUpdateAndDeleteBehavior(
     _MrsDocumentDeleteMixin[ActorData, ActorFilterable],
     Actor,
 ):
-    """Add `delete()` to data class."""
+    """Add `delete()` and `update()` to data class."""
+
+
+class RestDocumentWithoutIdentifierData(TypedDict):
+    pass
+
+
+class RestDocumentWithoutIdentifierDetails(IMrsResourceDetails):
+    pass
+
+
+@dataclass(init=False, repr=True)
+class RestDocumentWithoutIdentifier(MrsDocument[RestDocumentWithoutIdentifierData]):
+
+    def __init__(self, schema: MrsBaseSchema, data: RestDocumentWithoutIdentifierData) -> None:
+        """RestDocumentWithoutIdentifier data class."""
+        super().__init__(
+            schema,
+            data,
+            fields_map={},
+        )
+
+    @classmethod
+    def get_primary_key_name(cls) -> Optional[str]:
+        """Get primary key name (Class Method)."""
+        return None
+
+
+@dataclass(init=False, repr=True)
+class UpdatableAndDeletableRestDocumentWithoutIdentifier(
+    _MrsDocumentUpdateMixin[RestDocumentWithoutIdentifierData, RestDocumentWithoutIdentifier, RestDocumentWithoutIdentifierDetails],
+    _MrsDocumentDeleteMixin[RestDocumentWithoutIdentifierData, None],
+    RestDocumentWithoutIdentifier,
+):
+    """Add `delete()` and `update()` to data class."""
 
 
 class Obj1Details(IMrsResourceDetails, total=False):
@@ -2514,6 +2548,18 @@ async def test_dataclass_delete(
     )
     assert hasattr(document2, "update") == True
     assert hasattr(document2, "delete") == True
+
+    document3 = UpdatableAndDeletableRestDocumentWithoutIdentifier(schema=schema, data={})
+
+    with pytest.raises(
+        MrsDocumentNotFoundError, match="Unable to update a REST document without the identifier."
+    ):
+        await document3.update()
+
+    with pytest.raises(
+        MrsDocumentNotFoundError, match="Unable to delete a REST document without the identifier."
+    ):
+        await document3.delete()
 
 
 ####################################################################################

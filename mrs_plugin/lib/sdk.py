@@ -858,14 +858,6 @@ def field_is_required(field, obj):
     return False
 
 
-def get_primary_key(fields: dict) -> Optional[str]:
-    for field in fields:
-        db_column_info = field.get("db_column")
-        if db_column_info and field_is_pk(field):
-            return db_column_info.get("name")
-    return None
-
-
 def field_can_be_cursor(field):
     if field.get("lev") != 1:
         return False
@@ -1009,7 +1001,7 @@ def generate_data_class(
     sdk_language,
     db_object_crud_ops: list[str],
     obj_endpoint: Optional[str] = None,
-    obj_primary_key: Optional[str] = None,
+    primary_key_fields: list[str] = [],
 ):
     if sdk_language == "TypeScript":
         return generate_type_declaration(
@@ -1042,7 +1034,7 @@ def generate_data_class(
         )
 
         mixins = []
-        if obj_primary_key is not None:
+        if len(primary_key_fields) > 0:
             if "UPDATE" in db_object_crud_ops:
                 mixins.append(f'\n\t_MrsDocumentUpdateMixin["I{name}Data", "I{name}", "I{name}Details"],')
             if "DELETE" in db_object_crud_ops:
@@ -1056,7 +1048,7 @@ def generate_data_class(
             obj_endpoint=obj_endpoint,
             field_profile=join_field_profile,
             primary_key_name=(
-                None if obj_primary_key is None else f'"{obj_primary_key}"'
+                None if len(primary_key_fields) == 0 else f'"{",".join(primary_key_fields)}"'
             ),
             mixins="".join(mixins),
         )
@@ -1157,7 +1149,6 @@ def generate_interfaces(
     obj_cursor_fields = {}
     obj_sortable_fields: set[str] = set()
     has_nested_fields = False
-    obj_primary_key = get_primary_key(fields)
     required_datatypes: set[str] = set()
 
     # The I{class_name}, I{class_name}Params and I{class_name}Out interfaces
@@ -1331,6 +1322,7 @@ def generate_interfaces(
                 )
             )
 
+        primary_key_fields = [field.get("name") for field in fields if field_is_pk(field)]
         obj_interfaces.append(
             generate_data_class(
                 name=class_name,
@@ -1338,7 +1330,7 @@ def generate_interfaces(
                 sdk_language=sdk_language,
                 db_object_crud_ops=db_object_crud_ops,
                 obj_endpoint=obj_endpoint,
-                obj_primary_key=obj_primary_key,
+                primary_key_fields=primary_key_fields,
             )
         )
 

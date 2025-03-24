@@ -9,6 +9,8 @@
 ### Fixes
 
 - BUG#37733806 Type error not raised when attempting to sort by unsortable fields in the MRS SDK
+- BUG#37728029 Unable to update REST View with composite primary key fields with the Python SDK
+- BUG#37630549 Unexpected behavior when updating REST document without identifier in the Python SDK
 -
 
 ## Changes in 1.19.3+9.2.0

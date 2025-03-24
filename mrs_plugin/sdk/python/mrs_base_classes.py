@@ -467,8 +467,10 @@ class _MrsDocumentUpdateMixin(Generic[Data, DataClass, DataDetails], MrsDocument
 
     async def update(self) -> None:
         """Update a resource represented by the data class instance."""
-        prk_name = cast(str, self.get_primary_key_name())
-        rest_document_id = getattr(self, prk_name)
+        prk_name = self.get_primary_key_name()
+        if not prk_name:
+            raise MrsDocumentNotFoundError(msg="Unable to update a REST document without the identifier.")
+        rest_document_id = ",".join([f"{getattr(self, field_name)}" for field_name in prk_name.split(",")])
 
         await MrsBaseObjectUpdate[DataClass, DataDetails](
             schema=self._schema,
@@ -482,10 +484,16 @@ class _MrsDocumentDeleteMixin(Generic[Data, Filterable], MrsDocument[Data]):
 
     async def delete(self, read_own_writes: bool = False) -> None:
         """Deletes the resource represented by the data class instance."""
-        prk_name = cast(str, self.get_primary_key_name())
-        rest_document_id = getattr(self, prk_name)
+        prk_name = self.get_primary_key_name()
+        if not prk_name:
+            raise MrsDocumentNotFoundError(msg="Unable to delete a REST document without the identifier.")
+
+        query_filter = {}
+        for field_name in prk_name.split(","):
+            query_filter.update({ f"{field_name}": getattr(self, field_name) })
+
         options = {
-            "where": {prk_name: rest_document_id},
+            "where": query_filter,
             "read_own_writes": read_own_writes,
         }
 
