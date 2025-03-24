@@ -483,7 +483,7 @@ FUNCTIONS
       native_ui()
             Starts the native Shell GUI client
 
-      web_server([port][, secure][, webrootpath][, single_instance_token][, read_token_on_stdin][, accept_remote_connections])
+      web_server([port][, secure][, webrootpath][, single_instance_token][, read_token_on_stdin][, accept_remote_connections][, single_server])
             Starts a web server that will serve the MySQL Shell GUI'''
 
     assert help_text == mysqlsh.globals.gui.start.help() # pylint: disable=no-member
