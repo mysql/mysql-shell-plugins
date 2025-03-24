@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -287,7 +287,6 @@ class ShellModuleSession(ModuleSession):
                                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                        encoding='utf-8', env=env, text=True,
                                        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == 'nt' else 0)
-
         self._request_queue: "Queue[ShellCommandTask]" = Queue()
 
         self._thread = threading.Thread(target=self.handle_frontend_command)
