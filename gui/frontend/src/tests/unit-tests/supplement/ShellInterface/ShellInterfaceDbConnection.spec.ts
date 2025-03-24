@@ -61,10 +61,10 @@ describe("ShellInterfaceDbConnection Tests", () => {
 
         let connections = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId);
         expect(connections.length).toBe(0);
-        const folderID = await ShellInterface.dbConnections.addFolderPath(
+        const folder = await ShellInterface.dbConnections.addFolderPath(
             webSession.currentProfileId, "unit-tests", -1);
         testConnection.id = await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
-            testConnection, folderID) ?? -1;
+            testConnection, folder.id) ?? -1;
         expect(testConnection.id).toBeGreaterThan(-1);
 
         connections = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, 1);
@@ -73,7 +73,7 @@ describe("ShellInterfaceDbConnection Tests", () => {
         connections = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId);
         expect(connections.length).toBe(0);
 
-        connections = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, folderID);
+        connections = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId, folder.id);
         expect(connections.length).toBe(1);
 
         // Add the same connection again, this time with no folder path.
@@ -100,6 +100,6 @@ describe("ShellInterfaceDbConnection Tests", () => {
         connections = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId);
         expect(connections.length).toBe(0);
 
-        await ShellInterface.dbConnections.removeFolderPath(folderID);
+        await ShellInterface.dbConnections.removeFolderPath(folder.id);
     });
 });

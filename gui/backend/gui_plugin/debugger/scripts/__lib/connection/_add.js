@@ -37,8 +37,8 @@ ws.validateLastResponse({
 })
 
 
-_this.params['folder_path_id'] = ws.lastResponse['result']
-ws.tokens['base_tests_folder_path_id'] = ws.lastResponse['result']
+_this.params['folder_path_id'] = ws.lastResponse['result']['id']
+ws.tokens['base_tests_folder_path_id'] = ws.lastResponse['result']['id']
 
 ws.validateLastResponse({
     "request_state": {

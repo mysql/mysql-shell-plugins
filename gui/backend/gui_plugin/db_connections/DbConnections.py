@@ -163,7 +163,7 @@ def update_db_connection(profile_id, connection_id, connection, folder_path_id=N
             if "settings" in connection:
                 db.execute("UPDATE db_connection SET settings=? WHERE id=?", (json.dumps(
                     connection['settings']), connection_id))
-            if "folder_path_id" in connection:
+            if folder_path_id is not None:
                 index = db_connections.get_next_connection_index(
                     db, profile_id, folder_path_id)
                 db.execute("""UPDATE profile_has_db_connection
@@ -412,7 +412,7 @@ def add_folder_path(profile_id, caption, parent_folder_id=None, be_session=None)
                             VALUES (?, ?, ?)''',
                         (parent_folder_id, caption, index))
                 folder_path_id = db.get_last_row_id()
-    return folder_path_id
+    return db.select('''SELECT * FROM folder_path WHERE id=?''', (folder_path_id,))[0]
 
 
 @plugin_function('gui.dbConnections.removeFolderPath', shell=False, web=True)
