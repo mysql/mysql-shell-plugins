@@ -27,7 +27,6 @@ import hashlib
 import inspect
 import json
 import re
-import sys
 import threading
 import uuid
 from contextlib import contextmanager
@@ -52,6 +51,14 @@ from gui_plugin.users.backend import get_id_personal_user_group
 
 
 class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
+    _db = None
+    session_uuid = ""
+    session_id = None
+    _session_user_id = None
+    _session_user_personal_group_id = None
+    _single_server_conn_id = None
+    _thread_context = None
+    _active_profile_id = None
 
     def _is_shell_object(self, object):
         return type(object).__name__ in ['Dict', 'List']
@@ -82,7 +89,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         while self.connected:
             try:
                 json_message = self._response_queue.get(timeout=1)
-            except Empty as e:
+            except Empty:
                 continue
 
             self.send_message(json.dumps(json_message, default=str))
@@ -91,7 +98,10 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         request = json_message.get('request')
         if request == 'authenticate':
             if not self.is_authenticated:
-                self.authenticate_session(json_message)
+                if self.single_server is not None:
+                    self.setup_single_server(json_message)
+                else:
+                    self.authenticate_session(json_message)
             else:
                 self.send_response_message('ERROR',
                                            'This session was already '
@@ -140,7 +150,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                 json_message = None
                 try:
                     json_message = json.loads(message)
-                except Exception as e:
+                except Exception:
                     raise Exception("Unable to decode the JSON message.")
 
                 if 'request' not in json_message:
@@ -179,7 +189,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         logger.info("Websocket connected")
 
         reset_session = False
-        if 'SessionId' in self.cookies.keys():
+        if self.cookies and 'SessionId' in self.cookies:
             requested_session_id = self.cookies['SessionId']
             self.session_uuid = str(requested_session_id)
 
@@ -222,6 +232,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                             self.send_response_message('OK', 'Session recovered', values={
                                 "session_uuid": self.session_uuid,
                                 "local_user_mode": self.is_local_session,
+                                "single_server_mode": self.single_server is not None,
                                 "active_profile": default_profile})
 
                             # Starts the response processor...
@@ -232,7 +243,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                     # If reaches this point it means the session id on the cookie was not valid at the end
                     # so we make sure a new session is created with the right UUID
                     reset_session = True
-            except Exception as e:
+            except Exception:
                 # No problem, we continue to create the new session
                 pass
 
@@ -265,7 +276,8 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         logger.info("Sending session response...")
         self.send_response_message('OK', 'A new session has been created',
                                    values={"session_uuid": self.session_uuid,
-                                           "local_user_mode": self.is_local_session})
+                                           "local_user_mode": self.is_local_session,
+                                           "single_server_mode": self.single_server is not None})
 
         # Starts the response processor...
         self._response_thread.start()
@@ -415,15 +427,11 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
     @property
     def is_authenticated(self):
-        return self.session_user_id is not None
+        return self._session_user_id is not None
 
     @property
     def session_user_id(self):
         return self._session_user_id
-
-    @property
-    def user_personal_group_id(self):
-        return self._session_user_personal_group_id
 
     @property
     def user_personal_group_id(self):
@@ -480,11 +488,13 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
     def authenticate_session(self, json_msg):
         request_id = json_msg.get('request_id')
         username = json_msg.get('username')
+        if username.startswith("ssu:"):
+            raise Exception('Single server user authentication not supported')
         try:
             if self.is_local_session:
-                if username != gui.users.backend.LOCAL_USERNAME:
+                if username != gui.users.backend.LOCAL_USERNAME:  # type: ignore
                     raise Exception('Incorrect username or password')
-                gui.users.backend.create_local_user(self.db)
+                gui.users.backend.create_local_user(self.db)  # type: ignore
             row = self.db.execute(
                 'SELECT id, password_hash FROM user '
                 'WHERE upper(name) = upper(?)',
@@ -496,7 +506,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                     password_hash = hashlib.pbkdf2_hmac(
                         'sha256', json_msg['password'].encode(), salt.encode(), 100000).hex()
 
-                if self.is_local_session or row[1] == password_hash + salt:
+                if self.is_local_session or (password_hash and row[1] == password_hash + salt):
                     with self.db_tx() as db:
                         db.execute('UPDATE session SET user_id=? WHERE uuid=?',
                                    (row['id'], self.session_uuid))
@@ -506,7 +516,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                             db, self._session_user_id)
 
                     # get default profile for the user
-                    default_profile = gui.users.get_default_profile(
+                    default_profile = gui.users.get_default_profile( # type: ignore
                         row[0], self.db)
                     self.set_active_profile_id(default_profile["id"])
                     values = {"active_profile": default_profile}
@@ -522,13 +532,9 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                     # TODO
                     # Cache the user's privileges
                 else:
-                    # raise Exception(f'The given password for user '
-                    #     f'{json_msg.get("username")} is incorrect.')
                     raise Exception('Incorrect username or password')
 
             else:
-                # raise Exception(f'There is no user account with the name '
-                #     f'{json_msg.get("username")}.')
                 raise Exception('Incorrect username or password')
 
         except Exception as e:
@@ -770,10 +776,12 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
             match = re.match(r'(.|\s)*?SYNTAX(.|\s)*?\(([\w,\[\]\s]*)',
                              help_output, flags=re.MULTILINE)
-            arguments = match[3].replace('[', '').replace(']', '').\
-                replace('\n', '').replace(' ', '')
-
-            f_args = arguments.split(",")
+            if match:
+                arguments = match[3].replace('[', '').replace(']', '').\
+                    replace('\n', '').replace(' ', '')
+                f_args = arguments.split(",")
+            else:
+                f_args = []
 
             # Include the kwargs
             if 'kwargs' in f_args:
@@ -856,3 +864,106 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             logger.error(e)
 
             self.send_response_message('ERROR', str(e).strip(), request_id)
+
+    def create_single_server_user(self, username, request_id):
+        try:
+            username = "ssu:" + username
+            user_id = None
+            try:
+                user_id = gui.users.backend.get_user_id(  # type: ignore
+                    self.db, username)
+            except Exception:
+                pass
+
+            if user_id is None:
+                user_id = gui.users.backend.create_user(  # type: ignore
+                    self.db, username, "", "Administrator")
+
+            with self.db_tx() as db:
+                db.execute('UPDATE session SET user_id=? WHERE uuid=?',
+                            (user_id, self.session_uuid))
+
+                self._session_user_id = user_id
+                self._session_user_personal_group_id = get_id_personal_user_group(
+                    db, self._session_user_id)
+
+            # get default profile for the user
+            default_profile = gui.users.get_default_profile(  # type: ignore
+                user_id, self.db)
+            self.set_active_profile_id(default_profile["id"])
+        except Exception as e:
+            error_msg = f'User could not be authenticated. {str(e)}.'
+            logger.exception(error_msg)
+
+            self.send_response_message('ERROR', error_msg, request_id)
+
+    def setup_single_server(self, json_msg):
+        con_string = self.single_server.split(':')
+        server = con_string[0]
+        port = con_string[1]
+        request_id = json_msg.get('request_id')
+        username = json_msg.get('username')
+        password = json_msg.get('password')
+
+        connection = {
+            "db_type": "MySQL",
+            "caption": "Single MySQL Server",
+            "description": "Connection to Single MySQL Server",
+            "options": {
+                "scheme": "mysql",
+                "user": username,
+                "password": password,
+                "host": server,
+                "port": port
+            }}
+
+        self.create_single_server_user(username, request_id)
+
+        self._thread_context = threading.local()
+        self._thread_context.request_id = request_id
+        self._thread_context.web_handler = self
+
+        current_thread = threading.current_thread()
+        setattr(current_thread, 'get_context', self.get_context)
+
+        if self.authenticate_single_server_user(connection, password):
+            connections = gui.db_connections.list_db_connections(  # type: ignore
+                self._active_profile_id)
+            for connection in connections:
+                if connection['caption'] == "Single MySQL Server":
+                    self._single_server_conn_id = connection['id']
+                    break
+
+            if self._single_server_conn_id is None:
+                self._single_server_conn_id = gui.db_connections.add_db_connection(  # type: ignore
+                    self.session_user_id, connection)[0]
+
+            gui.shell.start_session(self._single_server_conn_id)  # type: ignore
+
+            values = {"active_profile": self._active_profile_id}
+
+            self.send_response_message('OK',
+                                    f'User {username} was '
+                                    f'successfully authenticated.',
+                                    request_id, values)
+        else:
+            self._session_user_id = None
+            self._session_user_personal_group_id = None
+            self._active_profile_id = None
+            self.send_response_message('ERROR',
+                                    f'User {username} could not be authenticated.',
+                                    request_id)
+
+    def get_context(self):
+        return self._thread_context
+
+    def authenticate_single_server_user(self, connection, password):
+        new_session = DbModuleSession()
+        new_session.open_connection(connection, password)
+        new_session.completion_event.wait()  # type: ignore
+
+        if not new_session.completion_event.has_errors:  # type: ignore
+            new_session.close()
+            return True
+
+        return False

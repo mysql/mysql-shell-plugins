@@ -22,36 +22,38 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 # Implementation of the MySQL Shell GUI web server
 
-from dataclasses import replace
-import subprocess
-from mysqlsh.plugin_manager import plugin_function  # pylint: disable=no-name-in-module
-from gui_plugin.core.ShellGuiWebSocketHandler import ShellGuiWebSocketHandler
-from gui_plugin.core.ThreadedHTTPServer import ThreadedHTTPServer
-from gui_plugin.core.Certificates import is_shell_web_certificate_installed
-from gui_plugin.core.lib import SystemUtils
-import mysqlsh
-import ssl
-import os
-from os import path
 import json
-import socket
-from contextlib import closing
-import uuid
-from subprocess import Popen
-import time
+import os
 import platform
-import sys
-import tempfile
 import shutil
 import signal
+import socket
+import ssl
+import subprocess
+import sys
+import tempfile
+import time
+import uuid
+from contextlib import closing
+from os import path
+from subprocess import Popen
+
+import mysqlsh
+from mysqlsh.plugin_manager import \
+    plugin_function  # pylint: disable=no-name-in-module
+
 import gui_plugin.core.Logger as logger
 from gui_plugin.core import Filtering
+from gui_plugin.core.Certificates import is_shell_web_certificate_installed
+from gui_plugin.core.lib import SystemUtils
+from gui_plugin.core.ShellGuiWebSocketHandler import ShellGuiWebSocketHandler
+from gui_plugin.core.ThreadedHTTPServer import ThreadedHTTPServer
 
 
 @plugin_function('gui.start.webServer', cli=True)
 def web_server(port=None, secure=None, webrootpath=None,
                single_instance_token=None, read_token_on_stdin=False,
-               accept_remote_connections=False):
+               accept_remote_connections=False, single_server=None):
     """Starts a web server that will serve the MySQL Shell GUI
 
     Args:
@@ -68,6 +70,7 @@ def web_server(port=None, secure=None, webrootpath=None,
             from STDIN
         accept_remote_connections (bool): If set to True, the web server will
             accept remote connections
+        single_server (str): The optional single server connection string
 
     Allowed options for secure:
         keyfile (str): The path to the server private key file
@@ -79,10 +82,13 @@ def web_server(port=None, secure=None, webrootpath=None,
 
     import mysqlsh.plugin_manager.general
 
+    if (single_instance_token is not None or read_token_on_stdin) and single_server is not None:
+        raise ValueError(
+            'The single_instance_token and single_server parameters are mutually exclusive.')
+
     # TODO: TEMPORARY HACK!!
     # import gc
     # gc.disable()
-
     # Read single_instance_token from STDIN if read_token_on_stdin is True
     if read_token_on_stdin:
         single_instance_token = input(
@@ -92,7 +98,7 @@ def web_server(port=None, secure=None, webrootpath=None,
         logger.info('Token read from STDIN')
 
     if platform.system() == 'Darwin':
-        result = subprocess.run(['ulimit', '-a'], stdout=subprocess.PIPE)
+        result = subprocess.run(['ulimit', '-a'], stdout=subprocess.PIPE, check=False)
         logger.debug(f"ULIMIT:\n{result.stdout.decode('utf-8')}")
 
     # Start the web server
@@ -170,11 +176,10 @@ def web_server(port=None, secure=None, webrootpath=None,
         server = ThreadedHTTPServer(
             ('127.0.0.1' if not accept_remote_connections else '0.0.0.0', port), ShellGuiWebSocketHandler)
         server.daemon_threads = True
-        server.host = (
-            f'{"https" if secure else "http"}://'
-            f'{"127.0.0.1" if not accept_remote_connections else socket.getfqdn()}')
+        server.host = f'{"https" if secure else "http"}://{"127.0.0.1" if not accept_remote_connections else socket.getfqdn()}'
         server.port = port
         server.single_instance_token = single_instance_token
+        server.single_server = single_server
 
         if secure:
             context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
@@ -194,15 +199,21 @@ def web_server(port=None, secure=None, webrootpath=None,
             logger.info(
                 f"Server started [port:{port}, "
                 f"secure:{'version' in dir(server.socket)}, "
-                f"single user: {server.single_instance_token is not None}]",
+                f"single user: {server.single_instance_token is not None}]"
+                f"single server: {server.single_server is not None}]",
                 ['session'])
 
             # Log server start
             logger.info(f"\tPort: {port}")
             logger.info(f"\tSecure: {'version' in dir(server.socket)}")
             logger.info(f"\tWebroot: {webrootpath}")
-            logger.info(
-                f"\tMode: {f'Single user' if server.single_instance_token is not None else 'Multi-user'}")
+            if server.single_instance_token is not None:
+                mode = 'Single user'
+            elif server.single_server is not None:
+                mode = 'Single server'
+            else:
+                mode = 'Multi-user'
+            logger.info(f"\tMode: {mode}")
 
             if server.single_instance_token:
                 logger.add_filter({
@@ -220,6 +231,7 @@ def web_server(port=None, secure=None, webrootpath=None,
             logger.error(f'Log message could not be inserted into db. {e}')
     except KeyboardInterrupt:  # pragma: no cover
         logger.info('^C received, shutting down server')
+    finally:
         if server:
             server.socket.close()
 
@@ -291,7 +303,7 @@ def browser_app():
 
     executable = sys.executable
     if 'executable' in dir(mysqlsh):
-        executable = mysqlsh.executable
+        executable = mysqlsh.executable  # type: ignore
 
     command = executable if executable.endswith(
         "mysqlsh") or executable.endswith("mysqlsh.exe") else "mysqlsh"
@@ -307,7 +319,7 @@ def browser_app():
     try:
         # In order to support running more than one instance of the application it is required to use a different user data dir
         # for this reason we create a temporary directory every time the application is launched
-        data_dir_path = mysqlsh.plugin_manager.general.get_shell_user_dir(  # pylint: disable=no-member
+        data_dir_path = mysqlsh.plugin_manager.general.get_shell_user_dir(  # type: ignore
             'plugin_data', 'gui_plugin')
         with tempfile.TemporaryDirectory(dir=data_dir_path) as data_path:
             leftover_path = data_path

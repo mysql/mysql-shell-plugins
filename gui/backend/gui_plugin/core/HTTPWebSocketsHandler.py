@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -20,15 +20,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
-import threading
-import socket
 import base64
+import threading
 from hashlib import sha1
 from http.server import SimpleHTTPRequestHandler
-from urllib.parse import urlparse, parse_qsl
-import json
-import time
-from queue import Queue
+from urllib.parse import parse_qsl, urlparse
+
 import gui_plugin.core.Logger as logger
 import gui_plugin.core.WebSocketCommon as WebSocket
 
@@ -36,20 +33,26 @@ import gui_plugin.core.WebSocketCommon as WebSocket
 class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
     _ws_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
     _single_instance_token = None
+    cookies = None
+    connected = False
 
     mutex = threading.Lock()
 
     def on_ws_message(self, message):
         """Override this handler to process incoming websocket messages."""
-        pass  # pragma: no cover
+        pass
 
     def on_ws_connected(self):
         """Override this handler."""
-        pass  # pragma: no cover
+        pass
 
     def on_ws_closed(self):
         """Override this handler."""
-        pass  # pragma: no cover
+        pass
+
+    def on_ws_sending_message(self, message):
+        """Override this handler to process outgoing websocket messages."""
+        pass
 
     def send_message(self, message):
         with self.mutex:
@@ -71,7 +74,7 @@ class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
         self.cached_successful_auth = None
 
         # Disable the support for basic http auth
-        self.server.perform_auth = False
+        self.server.perform_auth = False  # type: ignore
 
     def check_credentials(self, auth_header):
         """Override this handler to perform the credentials check."""
@@ -92,13 +95,13 @@ class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
             self._single_instance_token = url_params['token']
 
         auth_header = None
-        if self.server.perform_auth:
+        if self.server.perform_auth:  # type: ignore
             auth_header = self.headers.get('Authorization')
 
         self.cookies = {}
-        cookieString = self.headers.get('Cookie', '').strip()
-        if len(cookieString) > 0:
-            for cookie in cookieString.split(';'):
+        cookie_string = self.headers.get('Cookie', '').strip()
+        if len(cookie_string) > 0:
+            for cookie in cookie_string.split(';'):
                 cookie = cookie.strip()
                 if '=' in cookie:
                     key, value = cookie.split('=')
@@ -114,11 +117,11 @@ class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
             # do_GET only returns after client close or socket error.
             self._read_messages()
         # if authentication is required and there was no auth in the header
-        elif self.server.perform_auth and auth_header is None:
+        elif self.server.perform_auth and auth_header is None:  # type: ignore
             self.send_auth_header()
             self.wfile.write(b'no auth header received')
         # if authentication is required and auth data was provided, check it
-        elif not self.server.perform_auth or (self.server.perform_auth and
+        elif not self.server.perform_auth or (self.server.perform_auth and  # type: ignore
                                               self.check_credentials(auth_header)):
             SimpleHTTPRequestHandler.do_GET(self)
         # if the auth data provided was incorrect
@@ -127,7 +130,7 @@ class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
             self.wfile.write(b'not authenticated')
 
     def _read_messages(self):
-        while self.connected == True:
+        while self.connected is True:
             try:
                 self._read_next_message()
             except Exception as e:
@@ -196,10 +199,14 @@ class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
 
     @property
     def is_local_session(self):
-        return self.server.single_instance_token != None
+        return self.server.single_instance_token is not None  # type: ignore
+
+    @property
+    def single_server(self):
+        return self.server.single_server  # type: ignore
 
     def verify_token(self):
-        return self._single_instance_token == self.server.single_instance_token
+        return self._single_instance_token == self.server.single_instance_token  # type: ignore
 
     def log_message(self, format, *args):
         logger.debug(format % args, sensitive=self.is_local_session)
