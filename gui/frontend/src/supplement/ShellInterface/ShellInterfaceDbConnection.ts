@@ -154,7 +154,7 @@ export class ShellInterfaceDbConnection {
      *
      * @returns A promise resolving to the id of the new folder path.
      */
-    public async addFolderPath(profileId: number, caption: string, parentFolderId?: number): Promise<number> {
+    public async addFolderPath(profileId: number, caption: string, parentFolderId?: number): Promise<IFolderPath> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiDbConnectionsAddFolderPath,
             parameters: { args: { profileId, caption, parentFolderId } },

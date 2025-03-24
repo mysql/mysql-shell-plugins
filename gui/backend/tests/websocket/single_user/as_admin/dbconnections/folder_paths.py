@@ -70,7 +70,7 @@ await ws.sendAndValidate({
     }
 ])
 
-ws.tokens['develop_folder_path_id'] = ws.lastResponse['result']
+ws.tokens['develop_folder_path_id'] = ws.lastResponse['result']['id']
 
 ws.validateLastResponse({
     "request_state": {
@@ -135,7 +135,7 @@ await ws.sendAndValidate({
     }
 ])
 
-ws.tokens['test_folder_path_id'] = ws.lastResponse['result']
+ws.tokens['test_folder_path_id'] = ws.lastResponse['result']['id']
 
 ws.validateLastResponse({
     "request_state": {
@@ -167,7 +167,7 @@ await ws.sendAndValidate({
     }
 ])
 
-ws.tokens['sub_develop_folder_path_id'] = ws.lastResponse['result']
+ws.tokens['sub_develop_folder_path_id'] = ws.lastResponse['result']['id']
 
 ws.validateLastResponse({
     "request_state": {
@@ -273,7 +273,7 @@ await ws.sendAndValidate({
     }
 ])
 
-ws.tokens['subfolder1_id'] = ws.lastResponse['result']
+ws.tokens['subfolder1_id'] = ws.lastResponse['result']['id']
 
 ws.validateLastResponse({
     "request_state": {
@@ -305,7 +305,7 @@ await ws.sendAndValidate({
     }
 ])
 
-ws.tokens['subfolder2_id'] = ws.lastResponse['result']
+ws.tokens['subfolder2_id'] = ws.lastResponse['result']['id']
 
 ws.validateLastResponse({
     "request_state": {
@@ -337,7 +337,7 @@ await ws.sendAndValidate({
     }
 ])
 
-ws.tokens['subfolder3_id'] = ws.lastResponse['result']
+ws.tokens['subfolder3_id'] = ws.lastResponse['result']['id']
 
 ws.validateLastResponse({
     "request_state": {

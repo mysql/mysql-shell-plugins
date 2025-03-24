@@ -843,11 +843,11 @@ export const createBackend = async (): Promise<ShellInterfaceSqlEditor> => {
         options,
     };
 
-    const folderID = await ShellInterface.dbConnections.addFolderPath(webSession.currentProfileId, "unit-tests", -1);
-    expect(folderID).toBeGreaterThan(-1);
+    const folder = await ShellInterface.dbConnections.addFolderPath(webSession.currentProfileId, "unit-tests", -1);
+    expect(folder.id).toBeGreaterThan(-1);
 
     testConnection.id = await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
-        testConnection, folderID) ?? -1;
+        testConnection, folder.id) ?? -1;
     expect(testConnection.id).toBeGreaterThan(-1);
 
     const backend = new ShellInterfaceSqlEditor();
