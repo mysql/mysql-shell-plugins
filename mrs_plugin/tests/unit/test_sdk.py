@@ -781,11 +781,11 @@ def test_generate_data_class():
     ]
     name = "Foobar"
     for db_object_crud_ops in test_cases_db_object_crud_ops:
-        for obj_prk in [None, None, "foo_id", "foo_id"]:
+        for obj_prk_fields in [[], [], ["foo_id"], ["foo_id"], ["foo_id1", "foo_id2"]]:
             db_object_delete_op = []
             mixins = []
 
-            if obj_prk is not None:
+            if len(obj_prk_fields) > 0:
                 if "UPDATE" in db_object_crud_ops:
                     mixins.append(
                         f'\n\t_MrsDocumentUpdateMixin["I{name}Data", "I{name}", "I{name}Details"],'
@@ -803,7 +803,7 @@ def test_generate_data_class():
                 "Python",
                 db_object_crud_ops + db_object_delete_op,
                 obj_endpoint=obj_endpoint,
-                obj_primary_key=obj_prk,
+                primary_key_fields=obj_prk_fields,
             )
 
             assert data_class == SDK_PYTHON_DATACLASS_TEMPLATE.format(
@@ -817,7 +817,7 @@ def test_generate_data_class():
                     + f"\n{" "*12}"
                     + "}"
                 ),
-                primary_key_name=f'"{obj_prk}"' if obj_prk is not None else obj_prk,
+                primary_key_name=f'"{','.join(obj_prk_fields)}"' if len(obj_prk_fields) > 0 else None,
                 mixins="".join(mixins),
             )
 
