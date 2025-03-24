@@ -32,6 +32,7 @@ from typing import (
     Generic,
     Literal,
     Optional,
+    Type,
     TypeAlias,
     TypedDict,
     Union,
@@ -46,7 +47,8 @@ import pytest  # type: ignore[import-not-found]
 from ..mrs_base_classes import (
     _MrsDocumentDeleteMixin,
     _MrsDocumentUpdateMixin,
-    AuthAppNotFoundError,
+    Authenticating,
+    AuthenticationError,
     AuthenticateOptions,
     BoolField,
     Date,
@@ -70,7 +72,7 @@ from ..mrs_base_classes import (
     MrsBaseObjectQuery,
     MrsBaseObjectUpdate,
     MrsBaseSchema,
-    MrsBaseService,
+    MrsService,
     MrsDataDownstreamConverter,
     MrsDataUpstreamConverter,
     MrsDeauthenticate,
@@ -83,7 +85,7 @@ from ..mrs_base_classes import (
     MrsDocumentNotFoundError,
     MrsBaseSession,
     ProcedureResponseTypeHintStruct,
-    ServiceNotAuthenticatedError,
+    DeauthenticationError,
     StringField,
     Time,
     UndefinedDataClassField,
@@ -203,6 +205,12 @@ TEST_DATA_DECODE_SAMPLE_DATA = [
 ####################################################################################
 #                               Custom Types
 ####################################################################################
+class MyService(Authenticating, MrsService):
+
+    def __init__(self, service_url):
+        super().__init__(service_url=service_url)
+
+
 class ActorDetails(IMrsResourceDetails, total=False):
     actor_id: int
     first_name: str
@@ -478,9 +486,6 @@ SampleProcResultSet: TypeAlias = Union[
 ]
 
 
-IMyServiceAuthApp: TypeAlias = Literal["MRS",]
-
-
 ####################################################################################
 #                               Utilities
 ####################################################################################
@@ -490,7 +495,7 @@ def schema():
     schema_url = f"{service_url}/{DATABASE}"
 
     return MrsBaseSchema(
-        service=MrsBaseService(service_url=service_url), request_path=schema_url
+        service=MyService(service_url=service_url), request_path=schema_url
     )
 
 
@@ -500,7 +505,7 @@ def schema_on_service_with_session() -> MrsBaseSchema:
     schema_url = f"{service_url}/{DATABASE}"
     session: MrsBaseSession = {"access_token": ""}
     session.update({"access_token": "foo"})
-    service = MrsBaseService(service_url=service_url)
+    service = MyService(service_url=service_url)
     service._session = session
     return MrsBaseSchema(service=service, request_path=schema_url)
 
@@ -518,6 +523,11 @@ def mock_request_class(mocker) -> MagicMock:
 @pytest.fixture
 def mock_authenticate_nonce(mocker) -> MagicMock:
     return mocker.patch("python.mrs_base_classes.MrsAuthenticate._nonce")
+
+
+@pytest.fixture
+def mock_get_auth_apps(mocker) -> MagicMock:
+    return mocker.patch("python.mrs_base_classes.Authenticating.get_auth_apps")
 
 
 @pytest.fixture
@@ -644,10 +654,10 @@ async def test_get_metadata(
     rest_obj_name: Literal["service", "schema", "object"],
 ):
     """Check `rest_obj.get_metadata()`."""
-    rest_obj: Optional[MrsBaseService | MrsBaseSchema | MrsBaseObject] = None
+    rest_obj: Optional[MrsService | MrsBaseSchema | MrsBaseObject] = None
     exp_request_path = ""
     if rest_obj_name == "service":
-        rest_obj = MrsBaseService(service_url=schema._service._service_url)
+        rest_obj = MyService(service_url=schema._service._service_url)
         exp_request_path = rest_obj._service_url
     elif rest_obj_name == "schema":
         rest_obj = MrsBaseSchema(
@@ -918,18 +928,72 @@ async def test_gtid_track_and_sync(
 
 
 ####################################################################################
-#               Test "submit_mrs_native" Method (authenticate*'s backbone)
+#                             Test Get Authentication Apps
 ####################################################################################
 @pytest.mark.parametrize(
-    "options, vendor_id, nonce, fictional_payload, client_proof",
+    "fictional_payload",
     [
         (
+            [
+                {
+                    "name": "MRS",
+                    "vendor_id": "0x30000000000000000000000000000000",
+                },
+                {
+                    "name": "MySQL",
+                    "vendor_id": "0x31000000000000000000000000000000",
+                },
+            ]
+        ),
+    ],
+)
+async def test_auth_apps(
+    mock_urlopen: MagicMock,
+    mock_request_class: MagicMock,
+    urlopen_simulator: MagicMock,
+    mock_create_default_context: MagicMock,
+    fictional_payload: dict[str, Any],
+    schema: MrsBaseSchema,
+):
+    """Check `MrsService.get_auth_apps()`."""
+    my_service = my_service = cast(Authenticating, schema._service)
+
+    # mocking
+    mock_urlopen.return_value = urlopen_simulator(urlopen_read=fictional_payload)
+    mock_create_default_context.return_value = ssl.create_default_context()
+
+    assert fictional_payload == await my_service.get_auth_apps()
+
+    # check one request happened
+    assert mock_request_class.call_count == 1
+
+    # check that request is issued as expected
+    mock_request_class.assert_called_with(
+        url=f"{my_service._service_url}/authentication/authApps",
+        headers={"Accept": "application/json"},
+        method="GET",
+    )
+
+
+####################################################################################
+#                     Test Authenticate With MRS Native
+####################################################################################
+@pytest.mark.parametrize(
+    "options, nonce, fictional_payload, client_proof",
+    [
+        (
+            # Test description: Call the authenticate command providing the name of an
+            # auth app and a vendor ID.
+            #
+            # Test set up: test is rigged to guarantee that the app exists for the vendor ID.
+            #
+            # Expected behavior: vendor ID lookup should be skipped and authentication should succeed.
             {
-                "app_name": "MRS",
+                "app": "MRS",
                 "user": "furbo",
                 "password": "s3cr3t",
+                "vendor_id": "0x30000000000000000000000000000000",
             },
-            "0x30000000000000000000000000000000",
             "419eebd0e8722f4c77a9",
             {
                 "session": "2024-08-22 13:06:45-3",
@@ -946,28 +1010,20 @@ async def test_gtid_track_and_sync(
         ),
     ],
 )
-async def test_authenticate_submit_mrs_native(
+async def test_authenticate_with_mrs_native(
     mock_urlopen: MagicMock,
     mock_request_class: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
     mock_authenticate_nonce: MagicMock,
-    options: AuthenticateOptions[IMyServiceAuthApp],
-    vendor_id: str,
+    options: AuthenticateOptions,
     nonce: str,
     fictional_payload: dict[str, Any],
     client_proof: bytes,
     schema: MrsBaseSchema,
 ):
-    """Check `MrsAuthenticate.submit()`."""
-    request_path = f"{schema._service._service_url}{schema._service._auth_path}"
-
-    request = MrsAuthenticate[IMyServiceAuthApp](
-        service=schema._service,
-        request_path=request_path,
-        vendor_id=vendor_id,
-        **options,
-    )
+    """Check `MrsService.authenticate()`."""
+    my_service = cast(Authenticating, schema._service)
 
     # mocking
     mock_urlopen.return_value = urlopen_simulator(urlopen_read=fictional_payload)
@@ -975,7 +1031,7 @@ async def test_authenticate_submit_mrs_native(
     mock_authenticate_nonce.return_value = nonce
 
     # do auth
-    await request.submit()
+    await my_service.authenticate(**options)
 
     # check the access token is updated
     assert schema._service._session["access_token"] == fictional_payload["access_token"]
@@ -984,12 +1040,13 @@ async def test_authenticate_submit_mrs_native(
     assert mock_request_class.call_count == 2
 
     # check first request
+    request_path = f"{my_service._service_url}{my_service._auth_path}"
     mock_request_class.assert_any_call(
         url=request_path,
         headers={"Accept": "application/json"},
         data=json.dumps(
             {
-                "authApp": options["app_name"],
+                "authApp": options["app"],
                 "nonce": nonce,
                 "sessionType": "bearer",
                 "user": options["user"],
@@ -1017,56 +1074,101 @@ async def test_authenticate_submit_mrs_native(
     mock_urlopen.return_value = urlopen_simulator(
         urlopen_read={"foo": "bar"}, status=400, msg="Bad response"
     )
-    with pytest.raises(HTTPError, match="Bad response"):
+    with pytest.raises(AuthenticationError, match="Bad response"):
         # do auth
-        await request.submit()
+        await my_service.authenticate(**options)
 
 
 ####################################################################################
-#               Test "submit_mysql_internal" Method (authenticate*'s backbone)
+#                     Test Authenticate With MySQL Internal
 ####################################################################################
 @pytest.mark.parametrize(
-    "options, vendor_id, fictional_payload",
+    "options, fictional_payload, fictional_get_auth_apps, exp_err",
     [
         (
+            # Test description: Call the authenticate command providing the name of an
+            # auth app and a vendor ID.
+            #
+            # Test set up: test is rigged to guarantee that the app exists for the vendor ID.
+            #
+            # Expected behavior: vendor ID lookup should be skipped and authentication should succeed.
             {
-                "app_name": "MySQL Internal",
+                "app": "MySQL",
+                "user": "furbo",
+                "password": "s3cr3t",
+                "vendor_id": "0x31000000000000000000000000000000",
+            },
+            {"access_token": "85888969"},
+            [],  # it can be empty since lookup is skipped
+            None,
+        ),
+        (
+            # Test description: Call the authenticate command providing the name of an
+            # auth app, but not a vendor ID.
+            #
+            # Test set up: test is rigged to guarantee that the app exists for the vendor ID.
+            #
+            # Expected behavior: vendor ID lookup should not be skipped and authentication should succeed.
+            {
+                "app": "MySQL",
                 "user": "furbo",
                 "password": "s3cr3t",
             },
-            "0x31000000000000000000000000000000",
+            {"access_token": "85888969"},
+            [{"name": "MySQL", "vendor_id": "0x31000000000000000000000000000000"}],
+            None,
+        ),
+        (
+            # Test description: Call the authenticate command providing the name of an
+            # auth app, but not a vendor ID.
+            #
+            # Test set up: test is rigged to guarantee that the app does not exist for the vendor ID.
+            #
+            # Expected behavior: vendor ID lookup should not be skipped and authentication
+            # should raise an authentication error.
             {
-                "access_token": "85888969",
+                "app": "MySQL",
+                "user": "furbo",
+                "password": "s3cr3t",
             },
+            {"access_token": "85888969"},
+            [{"name": "Foo", "vendor_id": "0x31000000000000000000000000000000"}],
+            AuthenticationError(msg="Authentication app does not exist."),
         ),
     ],
 )
-async def test_authenticate_submit_mysql_internal(
+async def test_authenticate_with_mysql_internal(
     mock_urlopen: MagicMock,
     mock_request_class: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    options: AuthenticateOptions[IMyServiceAuthApp],
-    vendor_id: str,
+    mock_get_auth_apps: MagicMock,
+    options: AuthenticateOptions,
     fictional_payload: dict[str, Any],
+    fictional_get_auth_apps: list[dict],
+    exp_err: Optional[AuthenticationError],
     schema: MrsBaseSchema,
 ):
-    """Check `MrsAuthenticate.submit()`."""
-    request_path = f"{schema._service._service_url}{schema._service._auth_path}"
-
-    request = MrsAuthenticate[IMyServiceAuthApp](
-        service=schema._service,
-        request_path=request_path,
-        vendor_id=vendor_id,
-        **options,
-    )
+    """Check `MrsService.submit()`."""
+    my_service = cast(Authenticating, schema._service)
 
     # mocking
     mock_urlopen.return_value = urlopen_simulator(urlopen_read=fictional_payload)
     mock_create_default_context.return_value = ssl.create_default_context()
+    mock_get_auth_apps.return_value = fictional_get_auth_apps
 
-    # do auth
-    await request.submit()
+    if not exp_err:
+        # do auth
+        await my_service.authenticate(**options)
+    else:
+        with pytest.raises(AuthenticationError, match=str(exp_err)):
+            # do auth
+            await my_service.authenticate(**options)
+        return
+
+    # check vendor ID lookup is not skipped when `vendor_id` is not specified
+    if not options.get("vendor_id"):
+        mock_get_auth_apps.assert_called_once()
 
     # check the access token is updated
     assert schema._service._session["access_token"] == fictional_payload["access_token"]
@@ -1075,10 +1177,11 @@ async def test_authenticate_submit_mysql_internal(
     assert mock_request_class.call_count == 1
 
     # check that request is issued as expected
+    request_path = f"{my_service._service_url}{my_service._auth_path}"
     data_auth = {
         "username": options["user"],
         "password": options["password"],
-        "authApp": options["app_name"],
+        "authApp": options["app"],
         "sessionType": "bearer",
     }
     mock_request_class.assert_called_with(
@@ -1092,13 +1195,13 @@ async def test_authenticate_submit_mysql_internal(
     mock_urlopen.return_value = urlopen_simulator(
         urlopen_read={"foo": "bar"}, status=400, msg="Bad response"
     )
-    with pytest.raises(HTTPError, match="Bad response"):
+    with pytest.raises(AuthenticationError, match="Bad response"):
         # do auth
-        await request.submit()
+        await my_service.authenticate(**options)
 
 
 ####################################################################################
-#           Test "submit_deauthenticate" Method (deauthenticate*'s backbone)
+#                              Test Deauthenticate
 ####################################################################################
 @pytest.mark.parametrize(
     "fictional_access_token",
@@ -1106,7 +1209,7 @@ async def test_authenticate_submit_mysql_internal(
         ("85888969"),
     ],
 )
-async def test_submit_deauthenticate(
+async def test_deauthenticate(
     mock_urlopen: MagicMock,
     mock_request_class: MagicMock,
     urlopen_simulator: MagicMock,
@@ -1114,13 +1217,8 @@ async def test_submit_deauthenticate(
     fictional_access_token: str,
     schema: MrsBaseSchema,
 ):
-    """Check `MrsDeauthenticate.submit()`."""
-    request_path = f"{schema._service._service_url}{schema._service._deauth_path}"
-
-    request = MrsDeauthenticate(
-        service=schema._service,
-        request_path=request_path,
-    )
+    """Check `MrsService.submit()`."""
+    my_service = cast(Authenticating, schema._service)
 
     mock_create_default_context.return_value = ssl.create_default_context()
 
@@ -1131,9 +1229,9 @@ async def test_submit_deauthenticate(
     mock_urlopen.return_value = urlopen_simulator(
         urlopen_read={"foo": "bar"}, status=401, msg="Bad response"
     )
-    with pytest.raises(HTTPError, match="Bad response"):
+    with pytest.raises(DeauthenticationError, match="Bad response"):
         # do deauth
-        await request.submit()
+        await my_service.deauthenticate()
 
     # one call so far
     assert mock_request_class.call_count == 1
@@ -1142,7 +1240,7 @@ async def test_submit_deauthenticate(
     mock_urlopen.return_value = urlopen_simulator(urlopen_read={})
 
     # do deauth
-    await request.submit()
+    await my_service.deauthenticate()
 
     # check the access token is reset
     assert schema._service._session["access_token"] == ""
@@ -1151,6 +1249,7 @@ async def test_submit_deauthenticate(
     assert mock_request_class.call_count == 2
 
     # check that request is issued as expected
+    request_path = f"{my_service._service_url}{my_service._deauth_path}"
     headers = {
         "Accept": "application/json",
         "Authorization": f"Bearer {fictional_access_token}",
@@ -1162,9 +1261,11 @@ async def test_submit_deauthenticate(
     )
 
     # check an exception is raised if logging out again
-    with pytest.raises(ServiceNotAuthenticatedError):
+    with pytest.raises(
+        DeauthenticationError, match="No user is currently authenticated"
+    ):
         # do deauth
-        await request.submit()
+        await my_service.deauthenticate()
 
 
 ####################################################################################
@@ -1297,7 +1398,7 @@ async def test_update_submit(
     etag = data.__dict__["_metadata"]["etag"]
     request_body = asdict(data)
     if etag:
-        request_body.update({ "_metadata": { "etag": etag } })
+        request_body.update({"_metadata": {"etag": etag}})
 
     mock_request_class.assert_called_once_with(
         url=request_path,
@@ -1333,7 +1434,7 @@ async def test_update_submit(
     etag = data.__dict__["_metadata"]["etag"]
     request_body = asdict(data)
     if etag:
-        request_body.update({ "_metadata": { "etag": etag } })
+        request_body.update({"_metadata": {"etag": etag}})
 
     mock_request_class.assert_called_with(
         url=request_path,
@@ -2316,7 +2417,7 @@ async def test_dataclass_update(
     etag = document.__dict__["_metadata"]["etag"]
     request_body = asdict(document)
     if etag:
-        request_body.update({ "_metadata": { "etag": etag } })
+        request_body.update({"_metadata": {"etag": etag}})
 
     # verify
     mock_request_class.assert_called_once_with(
@@ -2350,7 +2451,7 @@ async def test_dataclass_update(
     etag = document.__dict__["_metadata"]["etag"]
     request_body = asdict(document)
     if etag:
-        request_body.update({ "_metadata": { "etag": etag } })
+        request_body.update({"_metadata": {"etag": etag}})
 
     mock_request_class.assert_called_with(
         url=request_path,
@@ -2669,12 +2770,12 @@ def test_mrs_document_not_found_exception():
 
 
 def test_auth_app_not_found_exception():
-    """Check custom message is shown when raising `AuthAppNotFoundError"""
+    """Check custom message is shown when raising `AuthenticationError"""
     with pytest.raises(
-        AuthAppNotFoundError,
-        match=AuthAppNotFoundError._default_msg,
+        AuthenticationError,
+        match="Authentication app does not exist.",
     ):
-        raise AuthAppNotFoundError
+        raise AuthenticationError(msg="Authentication app does not exist.")
 
 
 ####################################################################################

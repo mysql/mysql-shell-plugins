@@ -38,13 +38,13 @@ MRS resources, as shown above, are grouped under service namespaces.
 
 The following commands can be executed in the scope of a client-side representation of any MRS resource (except [REST Documents](#rest-documents)).
 
-* [get_metadata](#get_metadata)
+* [get_metadata()](#get_metadata)
 
 ### get_metadata
 
 The MRS has a dedicated JSON field where users can store application specific metadata at different levels: service, schema and objects of the schema (such as Views or Functions).
 
-`get_metadata` is a command that enables users to access the underlying MRS metadata information from client REST objects.
+`get_metadata()` is a command that enables users to access the underlying MRS metadata information from client REST objects.
 
 #### Options (get_metadata)
 
@@ -79,8 +79,39 @@ The following resources can be accessed from a service namespace:
 
 The following commands can be accessed from a service namespace:
 
-* [authenticate](#authenticate)
-* [deauthenticate](#deauthenticate)
+* [get_auth_apps()](#get_auth_apps)
+* [authenticate()](#authenticate)
+* [deauthenticate()](#deauthenticate)
+
+### get_auth_apps
+
+`get_auth_apps()` is a service-level command that enables users to get a list containing the authentication apps and vendor IDs registered for the given service.
+
+#### Options (get_auth_apps)
+
+This command expects no input from the calling application.
+
+#### Return Type (get_auth_apps)
+
+A list of dictionaries. Each element in the list is a *2-key* dictionary, where keys are `name` and `vendor_id`.
+
+#### Example (get_auth_apps)
+
+```py
+from sdk.python import MyService
+
+my_service = MyService()
+
+auth_apps = await my_service.get_auth_apps()
+
+# print(auth_apps)
+# ----------------
+# [
+#     {"name": "MRS", "vendor_id": "0x30000000000000000000000000000000"},
+#     {"name": "MySQL", "vendor_id": "0x31000000000000000000000000000000"}
+# ]
+```
+
 
 ### authenticate
 
@@ -88,21 +119,26 @@ The following commands can be accessed from a service namespace:
 
 #### Options (authenticate)
 
-| Name | Type | Required | Description
-|---|---|---|---|
-| app_name  | str | Yes | Name of the authentication application (as specified by the admin) |
-| user  | str | Yes | User name |
-| password  | str | No | If not provided, the empty string is assumed as the password
- |
+| Argument Name  | Data Type | Required | Default | Notes |
+| :-------- | :------- | :------- | :------- |  :------- |
+| app | `str` | Yes | N/A | Name of the authentication application (as specified by the admin). |
+| user | `str` | Yes |  N/A | User name |
+| password | `str` | No | `""` | If not provided, the empty string is assumed as the password |
+| vendor_id | `str` | No | `None` | ID of the underlying authentication mechanism. <br>Specifying the vendor ID avoids an additional round-trip to the server |
+
 
 The following authentication application names are supported:
 
 * *MRS*
-* *MySQL Internal*
+* *MySQL*
 
 #### Return Type (authenticate)
 
-`None`.
+This command returns nothing.
+
+#### Raises (authenticate)
+
+`AuthenticationError` if something goes wrong during the authentication workflow.
 
 #### Example (authenticate)
 
@@ -113,9 +149,10 @@ my_service = MyService()
 
 # `authenticate` will account for authentication
  await my_service.authenticate(
-    app_name="${app_name}",
+    app="MySQL",
     user="Lucas",
-    password="S3cr3t"
+    password="S3cr3t",
+    vendor_id="0x31000000000000000000000000000000"
 )
 
 # Service is ready and tied database objects can be utilized
@@ -124,21 +161,28 @@ res = await my_service.sakila.hello_func(name="Rui")
 # print(res) -> Hello, Rui!
 ```
 
+When `vendor_id` is not specified, a vendor ID lookup is performed. The vendor ID that matches the given `app` is picked and used down the road. If not a match takes place, an `AuthenticationError` exception is raised.
+
+In the case the vendor ID is not specified, and a nonexisting app is provided, an `AuthenticationError` exception is raised.
+
+Also, in the case the vendor ID is specified alongside a nonexisting app, there will not be a lookup. This means that if, by accident, or not, there is no authentication app from the specified `vendor_id` with the given `app`, an `AuthenticationError` exception is returned to the application.
+
+
 ### deauthenticate
 
 `deauthenticate` is a service-level command that logs you out from authenticated MySQL REST Services.
 
 #### Options (deauthenticate)
 
-`None`.
+This command expects no input from the calling application.
 
 #### Return Type (deauthenticate)
 
-`None`.
+This command returns nothing.
 
 #### Raises (deauthenticate)
 
-`ServiceNotAuthenticatedError` if no user is currently authenticated.
+`DeauthenticationError` if no user is currently authenticated.
 
 #### Example (deauthenticate)
 
@@ -149,7 +193,7 @@ my_service = MyService()
 
 # Log in - `authenticate` will account for authentication
  await my_service.authenticate(
-    app_name="${app_name}",
+    app="MySQL",
     user="Lucas",
     password="S3cr3t"
 )

@@ -52,6 +52,7 @@ from typing import (
     TypedDict,
     TypeVar,
     Union,
+    Unpack,
     cast,
 )
 import typing
@@ -111,18 +112,16 @@ class MrsDocumentNotFoundError(MrsError):
     _default_msg = "No document exists matching the query options"
 
 
-class AuthAppNotFoundError(MrsError):
-    """Raised when there are no auth apps for a given service."""
+class AuthenticationError(MrsError):
+    """Raised when something goes wrong during authentication."""
 
-    _default_msg = "No auth apps are registered for the service"
+    _default_msg = "Authentication failed"
 
 
-class ServiceNotAuthenticatedError(MrsError):
-    """Raised when the client wants to log out (deauthenticate)
-    from an already deauthenticated service.
-    """
+class DeauthenticationError(MrsError):
+    """Raised when something goes wrong during deauthentication."""
 
-    _default_msg = "No user is currently authenticated"
+    _default_msg = "Deauthentication failed"
 
 
 ####################################################################################
@@ -349,7 +348,13 @@ IMrsFunctionResult = TypeVar(
     "IMrsFunctionResult", bound=str | int | float | bool | JsonValue | "DateOrTime"
 )
 
-AuthAppName = TypeVar("AuthAppName", bound=Optional[str])
+
+class AuthApp(TypedDict):
+    name: str
+    vendor_id: str
+
+
+type AuthApps = list[AuthApp]
 
 
 ####################################################################################
@@ -639,14 +644,15 @@ class MrsProcedureResultSet(
             self.__dict__.update({key: data.get(key)})
 
 
-class AuthenticateOptions(Generic[AuthAppName], TypedDict):
-    app_name: AuthAppName
+class AuthenticateOptions(TypedDict):
+    app: str
     user: str
     password: NotRequired[str]
+    vendor_id: NotRequired[Optional[str]]
 
 
 class MrsBaseSession(TypedDict, total=False):
-    access_token: str
+    access_token: Optional[str]
     gtid: Optional[str]
 
 
@@ -1322,6 +1328,15 @@ class MrsQueryEncoder(json.JSONEncoder):
 
 
 async def _get_metadata(url: str, access_token: Optional[str] = None) -> JsonObject:
+    """Get the underlying MRS metadata information of the REST object.
+
+    Returns:
+        metadata: A dictionary.
+
+    Raises:
+        HTTPError: If something goes wrong while trying to retrieve
+            the data.
+    """
     headers = {"Accept": "application/json"}
 
     if access_token:
@@ -1339,31 +1354,12 @@ async def _get_metadata(url: str, access_token: Optional[str] = None) -> JsonObj
     return json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys)
 
 
-class MrsBaseService:
-    """Base class for MRS-related service instances."""
-
-    def __init__(
-        self,
-        service_url: str,
-        auth_path: Optional[str] = None,
-        deauth_path: Optional[str] = None,
-    ) -> None:
-        """Constructor."""
-        self._service_url: str = service_url
-        self._auth_path: Optional[str] = auth_path
-        self._deauth_path: Optional[str] = deauth_path
-        self._session: MrsBaseSession = {"access_token": "", "gtid": None}
-
-    async def get_metadata(self) -> JsonObject:
-        return await _get_metadata(url=self._service_url)
-
-
 class MrsBaseSchema:
     """Base class for MRS-related schema (database) instances."""
 
-    def __init__(self, service: MrsBaseService, request_path: str) -> None:
+    def __init__(self, service: MrsService, request_path: str) -> None:
         """Constructor."""
-        self._service: MrsBaseService = service
+        self._service: MrsService = service
         self._request_path: str = request_path
 
     async def get_metadata(self) -> JsonObject:
@@ -1870,7 +1866,7 @@ class MrsBaseObjectUpdate(Generic[DataClass, DataDetails]):
         # Should be removed once BUG#37716405 is addressed.
         body = asdict(self._data)
         if etag:
-            body.update({ "_metadata": { "etag": etag } })
+            body.update({"_metadata": {"etag": etag}})
 
         req = Request(
             url=self._request_path,
@@ -1976,22 +1972,22 @@ class MrsBaseObjectDelete(Generic[Filterable]):
 
 
 ####################################################################################
-#                              Authentication
+#                              Authenticating
 ####################################################################################
-class MrsAuthenticate(Generic[AuthAppName]):
+class MrsAuthenticate:
     def __init__(
         self,
-        service: MrsBaseService,
+        service: Authenticating,
         request_path: str,
-        vendor_id: str,
-        app_name: AuthAppName,
+        app: str,
         user: str,
         password: str = "",
+        vendor_id: Optional[str] = None,
     ) -> None:
-        self._service: MrsBaseService = service
+        self._service: Authenticating = service
         self._request_path: str = request_path
-        self._vendor_id: str = vendor_id
-        self._app_name: AuthAppName = app_name
+        self._vendor_id: Optional[str] = vendor_id
+        self._app: str = app
         self._user: str = user
         self._password: str = password
 
@@ -2036,8 +2032,8 @@ class MrsAuthenticate(Generic[AuthAppName]):
         """
         nonce = MrsAuthenticate._nonce()
         ssl_context = ssl.create_default_context()
-        auth_data = {
-            "auth_app": self._app_name,
+        auth_data: dict[str, Any] = {
+            "auth_app": self._app,
             "nonce": nonce,
             "session_type": "bearer",
             "user": self._user,
@@ -2122,7 +2118,7 @@ class MrsAuthenticate(Generic[AuthAppName]):
         data_auth = {
             "username": self._user,
             "password": self._password,
-            "authApp": self._app_name,
+            "authApp": self._app,
             "sessionType": "bearer",
         }
 
@@ -2146,10 +2142,17 @@ class MrsAuthenticate(Generic[AuthAppName]):
                 fp=None,
             )
 
-        return cast(
+        auth_response = cast(
             IMrsTokenBasedAuthenticationResponse,
             json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys),
         )
+
+        if auth_response.get("access_token") is None:
+            raise AuthenticationError(
+                msg="Authentication app does not match the given vendor id."
+            )
+
+        return auth_response
 
     async def submit(self) -> None:
         """Authenticate user to access protected REST resources.
@@ -2157,37 +2160,50 @@ class MrsAuthenticate(Generic[AuthAppName]):
         This method returns nothing, however the relevant (based on the
         requested authentication option) service session variables are
         updated in-place.
+
+        Raises:
+            AuthenticationError: If something goes wrong during the authentication workflow.
         """
-        if self._vendor_id == "0x30000000000000000000000000000000":
-            self._service._session["access_token"] = (await self._submit_mrs_native())[
-                "access_token"
-            ]
-        else:
-            self._service._session["access_token"] = (
-                await self._submit_mysql_internal()
-            )["access_token"]
+        try:
+            if self._vendor_id is None:
+                # vendor lookup
+                for auth_app in await self._service.get_auth_apps():
+                    if auth_app["name"] == self._app:
+                        self._vendor_id = auth_app["vendor_id"]
+                        break
+                if self._vendor_id is None:
+                    raise AuthenticationError(msg="Authentication app does not exist.")
+
+            # choose auth workflow based on the vendor ID
+            if self._vendor_id == "0x30000000000000000000000000000000":
+                self._service._session["access_token"] = (
+                    await self._submit_mrs_native()
+                )["access_token"]
+            else:
+                self._service._session["access_token"] = (
+                    await self._submit_mysql_internal()
+                )["access_token"]
+        except HTTPError as err:
+            raise AuthenticationError(msg=str(err))
 
 
 class MrsDeauthenticate:
     def __init__(
         self,
-        service: MrsBaseService,
+        service: Authenticating,
         request_path: str,
     ) -> None:
-        self._service: MrsBaseService = service
+        self._service: Authenticating = service
         self._request_path: str = request_path
 
     async def submit(self) -> None:
         """Logs you out (deauthenticate) from an authenticated service.
 
-        Returns:
-            None.
-
         Raises:
-            ServiceNotAuthenticatedError: if no user is currently authenticated.
+            DeauthenticationError: if no user is currently authenticated.
         """
         if not self._service._session.get("access_token"):
-            raise ServiceNotAuthenticatedError()
+            raise DeauthenticationError(msg="No user is currently authenticated")
 
         headers = {
             "Accept": "application/json",
@@ -2200,10 +2216,78 @@ class MrsDeauthenticate:
             method="POST",
         )
 
+        try:
+            response = await asyncio.to_thread(
+                urlopen, req, context=ssl.create_default_context()
+            )
+
+            if response.status != 200:
+                raise HTTPError(
+                    url=response.url,
+                    code=response.status,
+                    msg=response.msg,
+                    hdrs=response.headers,
+                    fp=None,
+                )
+        except HTTPError as err:
+            raise DeauthenticationError(msg=str(err))
+
+        # If deauthentication completes successfully, then
+        # let's reset `access_token`.
+        self._service._session["access_token"] = ""
+
+        return None
+
+
+####################################################################################
+#                               REST Service
+####################################################################################
+class MrsService(ABC):
+    """`Service` Interface."""
+
+    @abstractmethod
+    def __init__(self, service_url: str) -> None:
+        self._service_url: str = service_url
+        self._auth_path: str = "/authentication/login"
+        self._deauth_path: str = "/authentication/logout"
+        self._session: MrsBaseSession = {"access_token": None, "gtid": None}
+
+    async def get_metadata(self) -> JsonObject:
+        """Get the underlying MRS metadata information of the REST service.
+
+        Returns:
+            metadata: A dictionary.
+
+        Raises:
+            HTTPError: If something goes wrong while trying to retrieve
+                the data.
+        """
+        return await _get_metadata(url=self._service_url)
+
+
+class Authenticating(MrsService):
+    """Extends the service interface by adding the authentication interface."""
+
+    async def get_auth_apps(self) -> AuthApps:
+        """Get a list containing the authentication apps and vendor IDs
+        registered for the service.
+
+        Returns:
+            auth_apps: A list of 2-key dictionaries, where keys are
+                `name` and `vendor_id`.
+
+        Raises:
+            HTTPError: If something goes wrong while trying to retrieve
+                the data.
+        """
+        req = Request(
+            url=f"{self._service_url}/authentication/authApps",
+            headers={"Accept": "application/json"},
+            method="GET",
+        )
         response = await asyncio.to_thread(
             urlopen, req, context=ssl.create_default_context()
         )
-
         if response.status != 200:
             raise HTTPError(
                 url=response.url,
@@ -2213,8 +2297,31 @@ class MrsDeauthenticate:
                 fp=None,
             )
 
-        # If deauthentication completes successfully, then
-        # let's reset `access_token`.
-        self._service._session["access_token"] = ""
+        return cast(
+            AuthApps,
+            json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys),
+        )
 
-        return None
+    async def authenticate(self, **options: Unpack[AuthenticateOptions]) -> None:
+        """Authenticate user to access protected REST resources.
+
+        Raises:
+            AuthenticationError: If something goes wrong during the authentication workflow.
+        """
+        request = MrsAuthenticate(
+            service=self,
+            request_path=f"{self._service_url}{self._auth_path}",
+            **options,
+        )
+        return await request.submit()
+
+    async def deauthenticate(self) -> None:
+        """Logs you out (deauthenticate) from an authenticated service.
+
+        Raises:
+            DeauthenticationError: if no user is currently authenticated.
+        """
+        request = MrsDeauthenticate(
+            service=self, request_path=f"{self._service_url}{self._deauth_path}"
+        )
+        return await request.submit()

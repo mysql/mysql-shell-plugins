@@ -261,46 +261,6 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
             template = template.replace(auth_loop.group(), "")
 
     service_id = service.get("id")
-    # Auth App infrastructure should only be generated if the service contains a
-    # db object that requires authentication and there is at least one authentication app available
-    # TODO: Information about authentication apps should always be retrieved at runtime to avoid stale data.
-    # On the TypeScript SDK, this already happens, but the Python SDK still relies on this generated code.
-    # The following block should be removed entirely once this is addressed in the Python SDK.
-    if requires_auth and sdk_language == "Python":
-        # TODO: include apps from all vendors.
-        # For now, only include MRS and MySQL-Internal vendor auth apps
-        supported_vendors = {
-            "30000000000000000000000000000000", # MRS Native
-            "31000000000000000000000000000000"  # MySQL Internal
-        }
-
-        service_auth_apps = [
-            {
-                "name": auth_app.get("name"),
-                apply_language_convention(
-                    value="vendor_id", sdk_language=sdk_language
-                ): f"0x{auth_app.get("auth_vendor_id").hex()}",
-            }
-            for auth_app in lib.auth_apps.get_auth_apps(
-                session=session, service_id=service_id, include_enable_state=True
-            )
-            if auth_app.get("auth_vendor_id").hex() in supported_vendors
-        ]
-
-        service_class_name = apply_language_convention(value=service.get("url_context_root"), primitive="class")
-        service_level_constants += generate_sequence_constant(name="AUTH_APPS", values=service_auth_apps,
-                                                            sdk_language=sdk_language)
-
-        if len(service_auth_apps) > 0:
-            service_level_type_definitions += generate_enum(
-                name=f"{service_class_name}AuthApp",
-                values=[auth_app.get("name") for auth_app in service_auth_apps],
-                sdk_language=sdk_language,
-            )
-        else:
-            service_level_type_definitions += generate_type_declaration_placeholder(
-                name=f"{service_class_name}AuthApp", sdk_language=sdk_language
-            )
 
     mapping = {
         "service_level_constants": service_level_constants,
