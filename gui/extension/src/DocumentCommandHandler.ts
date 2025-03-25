@@ -430,6 +430,14 @@ export class DocumentCommandHandler {
                 }
             }));
 
+        context.subscriptions.push(commands.registerCommand("msg.createProcedureJs",
+            (entry?: ICdmSchemaGroupEntry<CdmEntityType.StoredProcedure>) => {
+                if (entry) {
+                    void this.addNewSqlScript(entry.connection.details.id, "msg.createProcedureJs",
+                        entry.parent.caption, "New Procedure", "my_procedure");
+                }
+            }));
+
         context.subscriptions.push(commands.registerCommand("msg.editRoutine", async (entry?: ICdmRoutineEntry) => {
             if (entry) {
                 const entryType = entry.type === CdmEntityType.StoredFunction ? "function" : "procedure";
@@ -894,21 +902,35 @@ export class DocumentCommandHandler {
             }
 
             case "msg.createFunctionJs": {
-                sql = `DELIMITER %%\n`
-                    + `DROP FUNCTION IF EXISTS \`${schemaName}\`.\`${name}\`%%\n`
+                sql = `DROP FUNCTION IF EXISTS \`${schemaName}\`.\`${name}\`;\n`
                     + `/* Add or remove function parameters as needed. */\n`
                     + `CREATE FUNCTION \`${schemaName}\`.\`${name}\`(arg1 INTEGER)\n`
                     + `RETURNS INTEGER\n`
                     + `SQL SECURITY DEFINER\n`
-                    + `DETERMINISTIC LANGUAGE JAVASCRIPT\nAS $js$\n`
+                    + `DETERMINISTIC LANGUAGE JAVASCRIPT\nAS $$\n`
                     + `    /* Insert the function code here. */\n`
-                    + `    console.log("Hello World!");\n\n`
-                    + `    console.log('{"info": "This is MLE."}');\n`
-                    + `    /* throw("Custom Error"); */\n\n`
+                    + `    console.log("Hello World!");\n`
+                    + `    console.log('{"info": "This is Javascript"}');\n`
+                    + `    /* throw("Custom Error"); */\n`
                     + `    return arg1;\n`
-                    + `$js$%%\n`
-                    + `DELIMITER ;\n\n`
+                    + `$$;\n`
                     + `SELECT \`${schemaName}\`.\`${name}\`(1);`;
+                break;
+            }
+
+            case "msg.createProcedureJs": {
+                sql = `DROP PROCEDURE IF EXISTS \`${schemaName}\`.\`${name}\`;\n`
+                    + `/* Add or remove procedure parameters as needed. */\n`
+                    + `CREATE PROCEDURE \`${schemaName}\`.\`${name}\`(IN arg1 INTEGER, OUT arg2 INTEGER)\n`
+                    + `DETERMINISTIC LANGUAGE JAVASCRIPT\nAS $$\n`
+                    + `    /* Insert the procedure code here. */\n`
+                    + `    console.log("Hello World!");\n`
+                    + `    const sql_query = session.prepare('SELECT ?');\n`
+                    + `    const query_result = sql_query.bind(arg1).execute().fetchOne();\n`
+                    + `    arg2 = query_result[0];\n`
+                    + `$$;\n`
+                    + `CALL\`${schemaName}\`.\`${name}\`(42, @out);\n`
+                    + `SELECT @out;`;
                 break;
             }
 
