@@ -507,6 +507,10 @@
                 "title": "Create Stored Procedure..."
             },
             {
+                "command": "msg.createProcedureJs",
+                "title": "Create Stored JavaScript Procedure..."
+            },
+            {
                 "command": "msg.createFunction",
                 "title": "Create Stored Function..."
             },
@@ -1554,6 +1558,11 @@
                 {
                     "command": "msg.createFunctionJs",
                     "when": "view == msg.connections && viewItem == FunctionsGroupItem && !showsModalDialog",
+                    "group": "6_msg@1"
+                },
+                {
+                    "command": "msg.createProcedureJs",
+                    "when": "view == msg.connections && viewItem == ProceduresGroupItem && !showsModalDialog",
                     "group": "6_msg@1"
                 },
                 {
