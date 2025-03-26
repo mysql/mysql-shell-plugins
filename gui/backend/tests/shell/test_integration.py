@@ -204,6 +204,9 @@ FUNCTIONS
             Remove a db_connection by disassociating the connection from a
             profile
 
+      remove_empty_folders([be_session])
+            Remove all empty folders
+
       remove_folder_path(folder_path_id[, be_session])
             Remove a folder path
 
@@ -216,7 +219,7 @@ FUNCTIONS
       test_connection(connection[, password])
             Opens test connection
 
-      update_db_connection(profile_id, connection_id, connection[, folder_path_id][, be_session])
+      update_db_connection(profile_id, connection_id[, connection][, folder_path_id][, be_session])
             Update the data for a database connection'''
 
 
