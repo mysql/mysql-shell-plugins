@@ -150,7 +150,7 @@
                 <nav class="section-nav">
                     <div class="bookToc">
                         <br>
-                        <h3>MRS SQL Reference 1.19.3+9.2.0</h3>
+                        <h3>MRS SQL Reference 1.19.4+9.2.0</h3>
                                                 <ul>
                                                 <li><a
                                                 href="#introduction"
@@ -962,7 +962,7 @@ restServiceOptions: (
                 service publicly available.</p>
                 <div class="sourceCode" id="cb12"><pre
                 class="sourceCode sql"><code class="sourceCode sql"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST SERVICE <span class="op">/</span>myService</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;A simple REST service&quot;</span>;</span></code></pre></div>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">COMMENT</span> <span class="ot">&quot;A simple REST service&quot;</span>;</span></code></pre></div>
                 <p>The next example shows how to set the REST service
                 options.</p>
                 <div class="sourceCode" id="cb13"><pre
@@ -1305,7 +1305,7 @@ All other keys will be ignored and can be used to store custom metadata about th
                 service. The maximal length is of the comments string is
                 512 characters.</p>
                 <pre class="antlr"><code>comments:
-    COMMENTS quotedText
+    COMMENT quotedText
 ;</code></pre>
                 <p>comments ::= <img
                 src="sections/sql/../../images/sql/comments.svg"
@@ -1373,7 +1373,7 @@ restSchemaOptions: (
                 <div class="sourceCode" id="cb24"><pre
                 class="sourceCode sql"><code class="sourceCode sql"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">FROM</span> `sakila`</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;The sakila schema&quot;</span>;</span></code></pre></div>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">COMMENT</span> <span class="ot">&quot;The sakila schema&quot;</span>;</span></code></pre></div>
                 <h3 data-number="2.3.1"
                 id="enabling-or-disabling-a-rest-schema-at-creation-time"><span
                 class="header-section-number">2.3.1</span> Enabling or
@@ -1440,7 +1440,7 @@ The comments can hold a description of the REST schema. The maximal length is of
 
 ```antlr
 comments:
-    COMMENTS quotedText
+    COMMENT quotedText
 ;</code></pre>
                 <p>comments ::= <img
                 src="sections/sql/../../images/sql/comments.svg"
@@ -2415,7 +2415,7 @@ removeAuthApp:
                 <code>/myService</code> by setting a new comment.</p>
                 <div class="sourceCode" id="cb56"><pre
                 class="sourceCode sql"><code class="sourceCode sql"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> REST SERVICE <span class="op">/</span>myService</span>
-<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;A simple, improved REST service&quot;</span>;</span></code></pre></div>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">COMMENT</span> <span class="ot">&quot;A simple, improved REST service&quot;</span>;</span></code></pre></div>
                 <h2 data-number="3.2" id="alter-rest-schema"><span
                 class="header-section-number">3.2</span> ALTER REST
                 SCHEMA</h2>

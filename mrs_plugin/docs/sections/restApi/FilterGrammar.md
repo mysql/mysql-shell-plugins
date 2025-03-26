@@ -21,7 +21,25 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
 
-# FilterObject Grammar
+# Filtering in REST Queries
+
+This section details the process of filtering in queries against REST-enabled tables and views. The next section offers practical examples to illustrate the concepts.
+
+Filtering involves the process of limiting a collection resource by using a per-request dynamic filter definition across multiple page resources. Each page contains a subset of items found in the complete collection. Filtering enables efficient traversal of large collections.
+
+To implement filtering in a query, incorporate the parameter q=FilterObject, where FilterObject is a JSON object specifying the custom selection and sorting to be applied to the resource. To illustrate, consider the following example:
+
+```txt
+https://example.com/myService/sakila/actor/
+```
+
+The following query contains a filter that restricts the `first_name` column to "BRUCE". Note that the REST object was created using the default JSON field mapping, which translates the database column `first_name` (snake_case) to the JSON field `firstName` (camelCase).
+
+```txt
+https://example.com/myService/sakila/actor/?q={"firstName":"BRUCE"}
+```
+
+## FilterObject Grammar
 
 The FilterObject must be a JSON object that complies with the following syntax:
 
