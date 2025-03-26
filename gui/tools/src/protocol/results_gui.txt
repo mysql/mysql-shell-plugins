@@ -342,6 +342,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiDbConnectionsMoveConnection]: {};
     [ShellAPIGui.GuiDbConnectionsAddFolderPath]: { result: IFolderPath; };
     [ShellAPIGui.GuiDbConnectionsRemoveFolderPath]: {};
+    [ShellAPIGui.GuiDbConnectionsRemoveEmptyFolders]: {};
     [ShellAPIGui.GuiDbConnectionsRenameFolderPath]: {};
     [ShellAPIGui.GuiDbConnectionsMoveFolder]: {};
     [ShellAPIGui.GuiDbConnectionsListFolderPaths]: { result: IFolderPath[]; };

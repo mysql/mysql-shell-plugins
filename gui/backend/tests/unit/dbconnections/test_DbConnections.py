@@ -40,7 +40,7 @@ def validate_rows(rows, validate_function):
 
 def validate_connection_row(row):
     assert "id" in row
-    assert "folder_path" in row
+    assert "folder_path_id" in row
     assert "caption" in row
     assert "description" in row
     assert "db_type" in row
@@ -48,7 +48,7 @@ def validate_connection_row(row):
     assert isinstance(row["id"], int)
     assert row["id"] > 0
 
-    assert isinstance(row["folder_path"], str)
+    assert isinstance(row["folder_path_id"], int)
     assert isinstance(row["caption"], str)
     assert isinstance(row["caption"], str)
     assert isinstance(row["description"], str)
