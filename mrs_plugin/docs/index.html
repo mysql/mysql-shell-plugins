@@ -150,7 +150,7 @@
                 <nav class="section-nav">
                     <div class="bookToc">
                         <br>
-                        <h3>MRS Developer's Guide 1.19.3+9.2.0</h3>
+                        <h3>MRS Developer's Guide 1.19.4+9.2.0</h3>
                                                 <ul>
                                                 <li><a
                                                 href="#introduction-to-the-mysql-rest-service"
@@ -551,7 +551,7 @@ Developer's Guide
                 </tr>
                 </tbody>
                 </table>
-                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -1215,7 +1215,7 @@ router_id=16</code></pre>
                 <div class="sourceCode" id="cb12"><pre
                 class="sourceCode sql"><code class="sourceCode sql"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">FROM</span> `sakila`</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    COMMENTS <span class="ot">&quot;The sakila schema&quot;</span>;</span></code></pre></div>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">COMMENT</span> <span class="ot">&quot;The sakila schema&quot;</span>;</span></code></pre></div>
                 <h3 data-number="4.2.2"
                 id="adding-a-schema-using-the-mysql-shell-for-vs-code-ui"><span
                 class="header-section-number">4.2.2</span> Adding a
@@ -1432,7 +1432,7 @@ router_id=16</code></pre>
                 function.</p>
                 <div class="sourceCode" id="cb18"><pre
                 class="sourceCode js"><code class="sourceCode javascript"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>\<span class="op">?</span> mrs<span class="op">.</span><span class="at">add</span><span class="op">.</span><span class="at">dbObject</span></span></code></pre></div>
-                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -1684,7 +1684,7 @@ router_id=16</code></pre>
                 Notebooks.</p>
                 <div class="sourceCode" id="cb25"><pre
                 class="sourceCode ts"><code class="sourceCode typescript"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">edit</span>()</span></code></pre></div>
-                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -2868,7 +2868,7 @@ router_id=16</code></pre>
 <span id="cb44-31"><a href="#cb44-31" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;editor&quot;</span> <span class="kw">TO</span> <span class="ot">&quot;mike&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span>;</span>
 <span id="cb44-32"><a href="#cb44-32" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb44-33"><a href="#cb44-33" aria-hidden="true" tabindex="-1"></a># Now, these three users can login <span class="kw">with</span> <span class="kw">the</span> specified <span class="kw">password</span> via MRS authentication.</span></code></pre></div>
-                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
