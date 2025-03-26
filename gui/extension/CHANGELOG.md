@@ -9,6 +9,7 @@
 ### Fixes
 
 - BUG#38749096 Unexpected runtime error when triggering the MRS authentication dialog in a notebook
+- BUG#37755849 Python SDK: fails to generate valid code for view using generated invisible primary key
 -
 
 ## Changes in 1.19.20+9.5.0

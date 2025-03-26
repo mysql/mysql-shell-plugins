@@ -397,14 +397,19 @@ def test_generate_interfaces():
         "datatype": "varchar(3)",
         "not_null": True,
         "id_generation": "auto_inc",
+        "is_primary": True,
     }
     fields = [{"lev": 1, "enabled": True, "db_column": db_column, "name": "bar", "allow_sorting": True}]
 
     want = """export interface IFoo {
-    bar?: string,
+    readonly bar?: string,
 }
 
 export type IFooSortable = ["bar"];
+
+export interface IFooUniqueFilterable {
+    bar?: string,
+}
 
 export interface IFooCursors {
     bar?: string,
@@ -428,10 +433,16 @@ export interface IUpdateFoo {
 }
 
 export interface IFoo {
-    bar?: string,
+    readonly bar?: string,
+    update(): Promise<IFoo>,
+    delete(): Promise<void>,
 }
 
 export type IFooSortable = ["bar"];
+
+export interface IFooUniqueFilterable {
+    bar?: string,
+}
 
 export interface IFooCursors {
     bar?: string,
@@ -446,7 +457,7 @@ export interface IFooCursors {
     assert got == want
 
     obj_endpoint = "https://localhost:8443/myService/dummy/foo"
-    obj_primary_key = None
+    obj_primary_key = "bar"
     join_field_block = "    bar: str | UndefinedDataClassField"
 
     mixins = []
@@ -490,6 +501,10 @@ class I{name}Selectable(TypedDict, total=False):
 
 class I{name}Sortable(TypedDict, total=False):
     bar: Order
+
+
+class I{name}UniqueFilterable(TypedDict, total=False):
+    bar: StringField
 
 
 class I{name}Cursors(TypedDict, total=False):
@@ -599,10 +614,29 @@ public struct IFooCursors {
 
 """
 
-    fields[0]["db_column"]["is_primary"] = True
     got, _ = generate_interfaces(
         db_obj, obj, fields, class_name, "swift", db_object_crud_ops
     )
+
+    assert got == want
+
+    fields[0]["db_column"] = { "datatype": "varchar(3)", "not_null": True }
+    db_object_crud_ops = ["READ"]
+    got, _ = generate_interfaces(
+        db_obj, obj, fields, class_name, "typescript", db_object_crud_ops
+    )
+
+    want = """export interface IFoo {
+    bar?: string,
+}
+
+export type IFooSortable = ["bar"];
+
+type IFooUniqueFilterable = never;
+
+type IFooCursors = never;
+
+"""
 
     assert got == want
 

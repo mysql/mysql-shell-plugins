@@ -1462,6 +1462,33 @@ def generate_literal_type(values, sdk_language):
     return ""
 
 
+def generate_filterable(name, fields, sdk_language):
+    parents = (
+        []
+        if sdk_language != "python"
+        else ["Generic[Filterable]", "HighOrderOperator[Filterable]"]
+    )
+    return generate_type_declaration(
+        name=f"{name}Filterable",
+        parents=parents,
+        fields=fields,
+        sdk_language=sdk_language,
+        ignore_base_types=True,
+        non_mandatory_fields=set() if sdk_language == "swift" else set(fields),
+    )
+
+
+def generate_unique_filterable(name, fields, sdk_language):
+    return generate_type_declaration(
+        name=f"{name}UniqueFilterable",
+        fields=fields,
+        sdk_language=sdk_language,
+        non_mandatory_fields=set() if sdk_language == "swift" else set(fields),
+        # To avoid conditional logic in the template, we should generate a void type declaration.
+        requires_placeholder=True,
+    )
+
+
 def generate_selectable(name, fields, sdk_language):
     if sdk_language == "typescript":
         return ""
@@ -1490,11 +1517,23 @@ def generate_sortable(
             fields={field: "Order" for field in fields},
             sdk_language=sdk_language,
             non_mandatory_fields=set(fields),
+            # To avoid conditional logic in the template, we should generate a void type declaration.
             requires_placeholder=True,
         )
     if sdk_language == "swift":
         return generate_enum(name=f"{name}Sortable", values=[field_name for field_name in fields], sdk_language=sdk_language)
     return ""
+
+
+def generate_cursors(name, fields, sdk_language):
+    return generate_type_declaration(
+        name=f"{name}Cursors",
+        fields=fields,
+        sdk_language=sdk_language,
+        non_mandatory_fields=set() if sdk_language == "swift" else set(fields),
+        # To avoid conditional logic in the template, we should generate a void type declaration.
+        requires_placeholder=True,
+    )
 
 
 def generate_union(name, types, sdk_language):
@@ -1809,40 +1848,16 @@ def generate_interfaces(
             generate_sortable(class_name, obj_sortable_fields, sdk_language)
         )
 
-        construct_parents = (
-            []
-            if sdk_language != "python"
-            else ["Generic[Filterable]", "HighOrderOperator[Filterable]"]
-        )
         obj_interfaces.append(
-            generate_type_declaration(
-                name=f"{class_name}Filterable",
-                parents=construct_parents,
-                fields=param_interface_fields,
-                sdk_language=sdk_language,
-                ignore_base_types=True,
-                non_mandatory_fields=set() if sdk_language == "swift" else set(param_interface_fields),
-            )
+            generate_filterable(class_name, param_interface_fields, sdk_language)
         )
 
         obj_interfaces.append(
-            generate_type_declaration(
-                name=f"{class_name}UniqueFilterable",
-                fields=obj_unique_fields,
-                sdk_language=sdk_language,
-                non_mandatory_fields=set() if sdk_language == "swift" else set(obj_unique_fields),
-            )
+            generate_unique_filterable(class_name, obj_unique_fields, sdk_language)
         )
 
         obj_interfaces.append(
-            generate_type_declaration(
-                name=f"{class_name}Cursors",
-                fields=obj_cursor_fields,
-                sdk_language=sdk_language,
-                non_mandatory_fields=set() if sdk_language == "swift" else set(obj_cursor_fields),
-                # To avoid conditional logic in the template, we should generate a void type declaration.
-                requires_placeholder=True,
-            )
+            generate_cursors(class_name, obj_cursor_fields, sdk_language)
         )
 
     # FUNCTIONs, PROCEDUREs and SCRIPTs
@@ -1901,8 +1916,6 @@ def generate_interfaces(
                 fields=param_interface_fields,
                 sdk_language=sdk_language,
                 non_mandatory_fields=set(param_interface_fields),
-                # To avoid conditional logic in the template, we should generate a void type declaration.
-                requires_placeholder=True,
                 is_unpacked=True,
             )
         )
