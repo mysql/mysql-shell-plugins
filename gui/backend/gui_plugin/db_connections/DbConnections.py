@@ -34,7 +34,7 @@ from gui_plugin.core.Error import MSGException
 from gui_plugin.core.modules.DbModuleSession import DbModuleSession
 
 
-@plugin_function('gui.dbConnections.addDbConnection', shell=False, web=True)
+@plugin_function('gui.dbConnections.addDbConnection', cli=True, shell=True, web=True)
 def add_db_connection(profile_id, connection, folder_path_id=None,
                       be_session=None):
     """Add a new db_connection and associate the connection with a profile
@@ -113,7 +113,7 @@ def add_db_connection(profile_id, connection, folder_path_id=None,
     return connection_id
 
 
-@plugin_function('gui.dbConnections.updateDbConnection', shell=False, web=True)
+@plugin_function('gui.dbConnections.updateDbConnection', cli=True, shell=True, web=True)
 def update_db_connection(profile_id, connection_id, connection, folder_path_id=None, be_session=None):
     """Update the data for a database connection
 
@@ -335,7 +335,7 @@ def test_connection(connection, password=None):
         new_session.close()
 
 
-@plugin_function('gui.dbConnections.moveConnection', shell=False, web=True)
+@plugin_function('gui.dbConnections.moveConnection', cli=True, shell=True, web=True)
 def move_connection(profile_id, folder_id, connection_id_to_move, connection_id_offset, before=False, be_session=None):
     """Updates the connections sort order for the given profile
 
@@ -387,7 +387,7 @@ def move_connection(profile_id, folder_id, connection_id_to_move, connection_id_
                        (index, profile_id, folder_id, connection_id_to_move))
 
 
-@plugin_function('gui.dbConnections.addFolderPath', shell=False, web=True)
+@plugin_function('gui.dbConnections.addFolderPath', cli=True, shell=True, web=True)
 def add_folder_path(profile_id, caption, parent_folder_id=None, be_session=None):
     """Add a new folder path
 
@@ -415,7 +415,7 @@ def add_folder_path(profile_id, caption, parent_folder_id=None, be_session=None)
     return db.select('''SELECT * FROM folder_path WHERE id=?''', (folder_path_id,))[0]
 
 
-@plugin_function('gui.dbConnections.removeFolderPath', shell=False, web=True)
+@plugin_function('gui.dbConnections.removeFolderPath', cli=True, shell=True, web=True)
 def remove_folder_path(folder_path_id, be_session=None):
     """Remove a folder path
 
@@ -430,7 +430,7 @@ def remove_folder_path(folder_path_id, be_session=None):
         db.execute('''DELETE FROM folder_path WHERE id=?''', (folder_path_id,))
 
 
-@plugin_function('gui.dbConnections.renameFolderPath', shell=False, web=True)
+@plugin_function('gui.dbConnections.renameFolderPath', cli=True, shell=True, web=True)
 def rename_folder_path(folder_path_id, new_caption, be_session=None):
     """Rename a folder path
 
@@ -446,7 +446,7 @@ def rename_folder_path(folder_path_id, new_caption, be_session=None):
         db.execute('''UPDATE folder_path SET caption=? WHERE id=?''', (new_caption, folder_path_id))
 
 
-@plugin_function('gui.dbConnections.moveFolder', shell=False, web=True)
+@plugin_function('gui.dbConnections.moveFolder', cli=True, shell=True, web=True)
 def move_folder(folder_path_id, new_parent_folder_id, be_session=None):
     """Move a folder path to a new parent folder
 
@@ -462,7 +462,7 @@ def move_folder(folder_path_id, new_parent_folder_id, be_session=None):
         db.execute('''UPDATE folder_path SET parent_folder_id=? WHERE id=?''', (new_parent_folder_id, folder_path_id))
 
 
-@plugin_function('gui.dbConnections.listFolderPaths', shell=False, web=True)
+@plugin_function('gui.dbConnections.listFolderPaths', cli=True, shell=True, web=True)
 def list_folder_paths(parent_folder_id=None, be_session=None):
     """List folder paths
 
@@ -480,7 +480,7 @@ def list_folder_paths(parent_folder_id=None, be_session=None):
             return db.select('''SELECT * FROM folder_path WHERE parent_folder_id=? ORDER BY `index` ASC''', (parent_folder_id,))
 
 
-@plugin_function('gui.dbConnections.listAll', shell=False, web=True)
+@plugin_function('gui.dbConnections.listAll', cli=True, shell=True, web=True)
 def list_all(profile_id, folder_id=None, be_session=None):
     """Lists all connections and folder paths for the given profile and folder
 

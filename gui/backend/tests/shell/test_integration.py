@@ -163,6 +163,12 @@ DESCRIPTION
       Connections MySQL Shell GUI module
 
 FUNCTIONS
+      add_db_connection(profile_id, connection[, folder_path_id][, be_session])
+            Add a new db_connection and associate the connection with a profile
+
+      add_folder_path(profile_id, caption[, parent_folder_id][, be_session])
+            Add a new folder path
+
       delete_credential(url)
             Deletes the password of a db_connection url
 
@@ -175,21 +181,43 @@ FUNCTIONS
       help([member])
             Provides help about this object and it's members
 
+      list_all(profile_id[, folder_id][, be_session])
+            Lists all connections and folder paths for the given profile and
+            folder
+
       list_credentials()
             Lists the db_connection urls that have a password stored
 
       list_db_connections(profile_id[, folder_path_id][, be_session])
             Lists the db_connections for the given profile
 
+      list_folder_paths([parent_folder_id][, be_session])
+            List folder paths
+
+      move_connection(profile_id, folder_id, connection_id_to_move, connection_id_offset[, before][, be_session])
+            Updates the connections sort order for the given profile
+
+      move_folder(folder_path_id, new_parent_folder_id[, be_session])
+            Move a folder path to a new parent folder
+
       remove_db_connection(profile_id, connection_id[, be_session])
             Remove a db_connection by disassociating the connection from a
             profile
+
+      remove_folder_path(folder_path_id[, be_session])
+            Remove a folder path
+
+      rename_folder_path(folder_path_id, new_caption[, be_session])
+            Rename a folder path
 
       set_credential(url, password)
             Set the password of a db_connection url
 
       test_connection(connection[, password])
-            Opens test connection'''
+            Opens test connection
+
+      update_db_connection(profile_id, connection_id, connection[, folder_path_id][, be_session])
+            Update the data for a database connection'''
 
 
     assert help_text == mysqlsh.globals.gui.db_connections.help() # pylint: disable=no-member
