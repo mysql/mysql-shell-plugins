@@ -207,8 +207,8 @@ TEST_DATA_DECODE_SAMPLE_DATA = [
 ####################################################################################
 class MyService(Authenticating, MrsService):
 
-    def __init__(self, service_url):
-        super().__init__(service_url=service_url)
+    def __init__(self, service_url: str, verify_tls_cert: bool | str = True):
+        super().__init__(service_url=service_url, verify_tls_cert=verify_tls_cert)
 
 
 class ActorDetails(IMrsResourceDetails, total=False):
@@ -523,13 +523,15 @@ SampleProcResultSet: TypeAlias = Union[
 ####################################################################################
 #                               Utilities
 ####################################################################################
+SERVICE_URL = f"https://localhost:{MRS_SERVICE_PORT}/{MRS_SERVICE_NAME}"
+
+
 @pytest.fixture
 def schema():
-    service_url = f"https://localhost:{MRS_SERVICE_PORT}/{MRS_SERVICE_NAME}"
-    schema_url = f"{service_url}/{DATABASE}"
+    schema_url = f"{SERVICE_URL}/{DATABASE}"
 
     return MrsBaseSchema(
-        service=MyService(service_url=service_url), request_path=schema_url
+        service=MyService(service_url=SERVICE_URL), request_path=schema_url
     )
 
 
@@ -593,6 +595,11 @@ def mock_create_default_context(mocker) -> MagicMock:
     return mocker.patch("python.mrs_base_classes.ssl.create_default_context")
 
 
+@pytest.fixture
+def mock_os_path_isdir(mocker) -> MagicMock:
+    return mocker.patch("python.mrs_base_classes.os.path.isdir")
+
+
 async def validate_url(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
@@ -650,7 +657,65 @@ async def validate_url(
 
 
 ####################################################################################
-#                             Test "Get Metadata"
+#                       Test service property `tls_context`
+####################################################################################
+@pytest.mark.parametrize(
+    "param_verify_tls_cert, param_return_value_os_path_isdir",
+    [
+        (None, False),  # nothing specified, verification enabled by default
+        (True, False),  # verification explicitly enabled
+        (False, False),  # verification disabled
+        ("/path/to/certificates/my_cert.pem", False),  # verification enabled + file
+        ("/path/to/certificates", True),  # verification enabled + folder
+    ],
+)
+async def test_tls_context(
+    mock_create_default_context: MagicMock,
+    mock_os_path_isdir: MagicMock,
+    param_verify_tls_cert: Optional[bool | str],
+    param_return_value_os_path_isdir: bool,
+):
+    """Check `service.tls_context`."""
+
+    # let's use a dummy SSLContext object
+    class SSLContextDummy:
+
+        def __init__(self):
+            self.check_hostname = True
+            self.verify_mode = ssl.CERT_REQUIRED
+
+    # create service
+    if param_verify_tls_cert is None:
+        my_service = MyService(service_url=SERVICE_URL)
+    else:
+        my_service = MyService(
+            service_url=SERVICE_URL, verify_tls_cert=param_verify_tls_cert
+        )
+
+    # rigging ssl.create_default_context() and os.path.isdir()
+    mock_create_default_context.return_value = SSLContextDummy()
+    mock_os_path_isdir.return_value = param_return_value_os_path_isdir
+
+    # check the TLS/SSL cert verification is disabled when corresponds
+    assert my_service.tls_context.check_hostname == (param_verify_tls_cert is not False)
+    assert my_service.tls_context.verify_mode == (
+        ssl.CERT_NONE if param_verify_tls_cert is False else ssl.CERT_REQUIRED
+    )
+
+    # check create_default_context(...) is called once and with
+    # the right arguments based on how the service was configured
+    assert mock_create_default_context.call_count == 1
+    if isinstance(param_verify_tls_cert, str):
+        if param_return_value_os_path_isdir is True:
+            mock_create_default_context.assert_called_with(capath=param_verify_tls_cert)
+        else:
+            mock_create_default_context.assert_called_with(cafile=param_verify_tls_cert)
+    else:
+        mock_create_default_context.assert_called_with()
+
+
+####################################################################################
+#                       Test service method `get_metadata()`
 ####################################################################################
 @pytest.mark.parametrize(
     "rest_obj_name, fictional_payload",
