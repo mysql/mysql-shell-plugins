@@ -77,11 +77,88 @@ The following resources can be accessed from a service namespace:
 
 * [REST Schemas](#rest-schemas)
 
-The following commands can be accessed from a service namespace:
+The following options are supported when creating a service:
 
-* [get_auth_apps()](#get_auth_apps)
-* [authenticate()](#authenticate)
-* [deauthenticate()](#deauthenticate)
+* [verify_tls_cert](#verify_tls_cert)
+
+The following commands can be accessed from a service object:
+
+* Properties
+    * [tls_context](#tls_context)
+
+* Methods
+    * [get_auth_apps()](#get_auth_apps)
+    * [authenticate()](#authenticate)
+    * [deauthenticate()](#deauthenticate)
+
+
+### verify_tls_cert
+
+`verify_tls_cert` is a service constructor option that allows you to customize the configuration of the TLS/SSL context that is created alongside the service. This option can be used to disable TLS/SSL CA certificate (cert) verification or specify what cert(s) should be loaded during the verification.
+
+**TLS/SSL cert(s) verification is enabled by default**, in this regard, if `verify_tls_cert` is never set, or set as `True` explicitly, TLS/SSL cert verification is enabled and a set of default "certification authority" (CA) certificates from default locations are loaded (see [TLS/SSL default certs](https://docs.python.org/3/library/ssl.html#ssl.SSLContext.load_default_certs)).
+
+```py
+# default behavior
+
+from sdk.python import MyService
+
+my_service = MyService()
+# print(my_service.tls_context.verify_mode)
+# ------------------------------
+# True
+```
+
+**To customize what CA certificates should be loaded**, instead of relying on the default behavior, `verify_tls_cert` must be specified as a path-like string (the string can be the path to a CA certificate file, or it can be the path to a folder containing several CA certificates). The file(s) referenced by the specified path-like string are loaded during TLS/SSL cert verification. Certificates should be in PEM format, following an [OpenSSL specific layout](https://docs.openssl.org/master/man3/SSL_CTX_load_verify_locations/).
+
+```py
+# customize what CA certificates should be loaded
+
+from sdk.python import MyService
+
+my_service = MyService(verify_tls_cert="/path/to/certfile")
+# print(my_service.tls_context.verify_mode)
+# ------------------------------
+# True
+```
+
+Finally, **to disable TLS/SSL cert(s) verification**, `verify tls cert` must be specified as `False`.
+
+```py
+# disable TLS/SSL cert(s) verification
+
+from sdk.python import MyService
+
+my_service = MyService(verify_tls_cert=False)
+# print(my_service.tls_context.verify_mode)
+# ------------------------------
+# False
+```
+
+
+### tls_context
+
+`tls_context` is a service-level property that gets the TLS/SSL context configured for the service, which is used when executing HTTPS requests. The TLS/SSL context configuration depends on how `verify_tls_cert` is set when the service is created, see [verify_tls_cert](#verify_tls_cert).
+
+#### Return Type (tls_context)
+
+An `ssl.SSLContext` instance.
+
+
+#### Example (tls_context)
+
+```py
+from sdk.python import MyService
+
+my_service = MyService()
+
+tls_context = my_service.tls_context
+
+# print(tls_context.verify_mode)
+# ------------------------------
+# True
+```
+
 
 ### get_auth_apps
 

@@ -354,8 +354,11 @@ class ${service_class_name}(
     MrsService,
 ):
 
-    def __init__(self) -> None:
-        super().__init__(service_url="${service_url}")
+    def __init__(self, verify_tls_cert: bool | str = True) -> None:
+        super().__init__(
+            service_url="${service_url}",
+            verify_tls_cert=verify_tls_cert
+        )
         # --- schemaLoopStart
         self.${schema_name} = ${schema_class_name}(service=self, request_path=self._service_url)
         # --- schemaLoopEnd

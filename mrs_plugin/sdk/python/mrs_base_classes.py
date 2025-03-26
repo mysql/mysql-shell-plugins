@@ -30,6 +30,7 @@ import datetime
 import hashlib
 import hmac
 import json
+import os
 import random
 import re
 import ssl
@@ -1330,12 +1331,11 @@ class MrsQueryEncoder(json.JSONEncoder):
 
 
 ####################################################################################
-#                            REST Services and Schemas
+#                Functionality shared between different resource types
 ####################################################################################
-# pylint: disable=protected-access,too-many-lines
-
-
-async def _get_metadata(url: str, access_token: Optional[str] = None) -> JsonObject:
+async def _get_metadata(
+    tls_context: ssl.SSLContext, url: str, access_token: Optional[str] = None
+) -> JsonObject:
     """Get the underlying MRS metadata information of the REST object.
 
     Returns:
@@ -1355,11 +1355,15 @@ async def _get_metadata(url: str, access_token: Optional[str] = None) -> JsonObj
         headers=headers,
         method="GET",
     )
-    response = await asyncio.to_thread(
-        urlopen, req, context=ssl.create_default_context()
-    )
+    response = await asyncio.to_thread(urlopen, req, context=tls_context)
 
     return json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys)
+
+
+####################################################################################
+#                      REST Schema and Objects of the Schema
+####################################################################################
+# pylint: disable=protected-access,too-many-lines
 
 
 class MrsBaseSchema:
@@ -1372,6 +1376,7 @@ class MrsBaseSchema:
 
     async def get_metadata(self) -> JsonObject:
         return await _get_metadata(
+            tls_context=self._service.tls_context,
             url=self._request_path,
             access_token=self._service._session.get("access_token"),
         )
@@ -1387,6 +1392,7 @@ class MrsBaseObject:
 
     async def get_metadata(self) -> JsonObject:
         return await _get_metadata(
+            tls_context=self._schema._service.tls_context,
             url=self._request_path,
             access_token=self._schema._service._session.get("access_token"),
         )
@@ -1445,8 +1451,9 @@ class MrsBaseObjectRoutineCall(
             data=json.dumps(obj=self._params, cls=MrsJSONDataEncoder).encode(),
             method="POST",
         )
-        context = ssl.create_default_context()
-        data = await asyncio.to_thread(urlopen, req, context=context)
+        data = await asyncio.to_thread(
+            urlopen, req, context=self._schema._service.tls_context
+        )
 
         response = cast(
             IMrsRoutineResponse,
@@ -1664,8 +1671,9 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
             headers=headers,
             method="GET",
         )
-        context = ssl.create_default_context()
-        response = await asyncio.to_thread(urlopen, req, context=context)
+        response = await asyncio.to_thread(
+            urlopen, req, context=self._schema._service.tls_context
+        )
 
         return json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys)
 
@@ -1799,8 +1807,9 @@ class MrsBaseObjectCreate(Generic[Data, DataDetails]):
             data=json.dumps(obj=self._data, cls=MrsJSONDataEncoder).encode(),
             method="POST",
         )
-        context = ssl.create_default_context()
-        response = await asyncio.to_thread(urlopen, req, context=context)
+        response = await asyncio.to_thread(
+            urlopen, req, context=self._schema._service.tls_context
+        )
 
         mrs_document = cast(
             DataDetails,
@@ -1882,8 +1891,9 @@ class MrsBaseObjectUpdate(Generic[DataClass, DataDetails]):
             data=json.dumps(obj=body, cls=MrsJSONDataEncoder).encode(),
             method="PUT",
         )
-        context = ssl.create_default_context()
-        response = await asyncio.to_thread(urlopen, req, context=context)
+        response = await asyncio.to_thread(
+            urlopen, req, context=self._schema._service.tls_context
+        )
 
         mrs_document = cast(
             DataDetails,
@@ -1961,8 +1971,9 @@ class MrsBaseObjectDelete(Generic[Filterable]):
             headers=headers,
             method="DELETE",
         )
-        context = ssl.create_default_context()
-        response = await asyncio.to_thread(urlopen, req, context=context)
+        response = await asyncio.to_thread(
+            urlopen, req, context=self._schema._service.tls_context
+        )
 
         delete_response = json.loads(
             response.read(), object_hook=MrsJSONDataDecoder.convert_keys
@@ -2039,7 +2050,6 @@ class MrsAuthenticate:
         the client and the router.
         """
         nonce = MrsAuthenticate._nonce()
-        ssl_context = ssl.create_default_context()
         auth_data: dict[str, Any] = {
             "auth_app": self._app,
             "nonce": nonce,
@@ -2054,7 +2064,9 @@ class MrsAuthenticate:
             method="POST",
         )
 
-        response = await asyncio.to_thread(urlopen, req, context=ssl_context)
+        response = await asyncio.to_thread(
+            urlopen, req, context=self._service.tls_context
+        )
 
         if response.status != 200:
             raise HTTPError(
@@ -2099,7 +2111,9 @@ class MrsAuthenticate:
             method="POST",
         )
 
-        response = await asyncio.to_thread(urlopen, req, context=ssl_context)
+        response = await asyncio.to_thread(
+            urlopen, req, context=self._service.tls_context
+        )
 
         if response.status != 200:
             raise HTTPError(
@@ -2138,7 +2152,7 @@ class MrsAuthenticate:
         )
 
         response = await asyncio.to_thread(
-            urlopen, req, context=ssl.create_default_context()
+            urlopen, req, context=self._service.tls_context
         )
 
         if response.status != 200:
@@ -2226,7 +2240,7 @@ class MrsDeauthenticate:
 
         try:
             response = await asyncio.to_thread(
-                urlopen, req, context=ssl.create_default_context()
+                urlopen, req, context=self._service.tls_context
             )
 
             if response.status != 200:
@@ -2254,11 +2268,38 @@ class MrsService(ABC):
     """`Service` Interface."""
 
     @abstractmethod
-    def __init__(self, service_url: str) -> None:
+    def __init__(self, service_url: str, verify_tls_cert: bool | str = True) -> None:
         self._service_url: str = service_url
         self._auth_path: str = "/authentication/login"
         self._deauth_path: str = "/authentication/logout"
         self._session: MrsBaseSession = {"access_token": None, "gtid": None}
+        self._verify_tls_cert: bool | str = verify_tls_cert
+        self._tls_context: Optional[ssl.SSLContext] = None
+
+    @property
+    def tls_context(self) -> ssl.SSLContext:
+        """Get the TLS/SSL context configured for the service.
+
+        Python SDK creates an TLS/SSL context with a certain
+        configuration, which is used when executing HTTPS
+        requests.
+
+        The TLS/SSL context configuration depends on how
+        `verify_tls_cert` is set when the service is created.
+        """
+        if self._tls_context is None:
+            if isinstance(self._verify_tls_cert, str):
+                self._tls_context = (
+                    ssl.create_default_context(capath=self._verify_tls_cert)
+                    if os.path.isdir(self._verify_tls_cert)
+                    else ssl.create_default_context(cafile=self._verify_tls_cert)
+                )
+            else:
+                self._tls_context = ssl.create_default_context()
+                if self._verify_tls_cert is False:
+                    self._tls_context.check_hostname = False
+                    self._tls_context.verify_mode = ssl.CERT_NONE
+        return self._tls_context
 
     async def get_metadata(self) -> JsonObject:
         """Get the underlying MRS metadata information of the REST service.
@@ -2270,7 +2311,7 @@ class MrsService(ABC):
             HTTPError: If something goes wrong while trying to retrieve
                 the data.
         """
-        return await _get_metadata(url=self._service_url)
+        return await _get_metadata(tls_context=self.tls_context, url=self._service_url)
 
 
 class Authenticating(MrsService):
@@ -2293,9 +2334,7 @@ class Authenticating(MrsService):
             headers={"Accept": "application/json"},
             method="GET",
         )
-        response = await asyncio.to_thread(
-            urlopen, req, context=ssl.create_default_context()
-        )
+        response = await asyncio.to_thread(urlopen, req, context=self.tls_context)
         if response.status != 200:
             raise HTTPError(
                 url=response.url,
