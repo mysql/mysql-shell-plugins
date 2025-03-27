@@ -24,6 +24,7 @@
 import pytest
 import mysqlsh
 import os
+import re
 
 from mrs_plugin import lib, general
 from .helpers import ServiceCT, SchemaCT, QueryResults, TableContents
@@ -209,7 +210,6 @@ def check_metadata_upgrade(session, from_version, to_version):
 
 
 def get_md_versions():
-    import re
     repat = re.compile("mysql_rest_service_metadata_(.*?).sql")
     path = os.path.dirname(lib.__file__)+"/../db_schema/mysql_rest_service_metadata.msm.project/releases/versions"
     versions = []
