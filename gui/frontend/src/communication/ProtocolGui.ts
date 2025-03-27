@@ -326,7 +326,7 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiDbConnectionsRemoveEmptyFolders]: {};
     [ShellAPIGui.GuiDbConnectionsRenameFolderPath]: { args: { folderPathId: number; newCaption: string; }; };
     [ShellAPIGui.GuiDbConnectionsMoveFolder]: { args: { folderPathId: number; newParentFolderId: number; }; };
-    [ShellAPIGui.GuiDbConnectionsListFolderPaths]: { args: { parentFolderId?: number; }; };
+    [ShellAPIGui.GuiDbConnectionsListFolderPaths]: { args: { parentFolderId?: number; recursive?: boolean; }; };
     [ShellAPIGui.GuiDbConnectionsListAll]: { args: { profileId: number; folderId?: number; }; };
     [ShellAPIGui.GuiMdsIsGuiModuleBackend]: {};
     [ShellAPIGui.GuiMdsGetGuiModuleDisplayInfo]: {};
@@ -752,7 +752,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiCoreIsShellWebCertificateInstalled]: {};
     [ShellAPIGui.GuiCoreInstallShellWebCertificate]: {};
     [ShellAPIGui.GuiCoreRemoveShellWebCertificate]: {};
-    [ShellAPIGui.GuiDbConnectionsAddDbConnection]: { result: number; };
+    [ShellAPIGui.GuiDbConnectionsAddDbConnection]: { result: [number, number, number]; };
     [ShellAPIGui.GuiDbConnectionsUpdateDbConnection]: {};
     [ShellAPIGui.GuiDbConnectionsRemoveDbConnection]: {};
     [ShellAPIGui.GuiDbConnectionsListDbConnections]: { result: IConnectionDetails[]; };

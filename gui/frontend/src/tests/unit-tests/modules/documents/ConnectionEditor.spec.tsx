@@ -90,8 +90,9 @@ describe("ConnectionEditor tests", (): void => {
         folder = await ShellInterface.dbConnections.addFolderPath(
             webSession.currentProfileId, "unit-tests", -1);
         expect(folder.id).toBeGreaterThan(-1);
-        testMySQLConnection.id = await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
-            testMySQLConnection, folder.id) ?? -1;
+        const connectionResult = await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
+            testMySQLConnection, folder.id);
+        testMySQLConnection.id = Array.isArray(connectionResult) ? connectionResult[0] : -1;
         expect(testMySQLConnection.id).toBeGreaterThan(-1);
         connID = testMySQLConnection.id;
 
