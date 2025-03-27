@@ -86,8 +86,8 @@ class ${obj_class_name}Object extends MrsBaseObject {
     };
     // --- crudCreateOnlyEnd
     // --- crudReadOnlyStart
-    public async find(args?: IFindManyOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<PaginatedList<I${obj_class_name}>> {
-        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors, [${obj_quoted_pk_list}]>(
+    public async find(args?: IFindManyOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Sortable, I${obj_class_name}Cursors>): Promise<PaginatedList<I${obj_class_name}>> {
+        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Sortable, I${obj_class_name}Cursors, [${obj_quoted_pk_list}]>(
             this.schema, this.requestPath, args, [${obj_quoted_pk_list}]);
         const response = await request.fetch();
         const docs: I${obj_class_name}[] = response.items;
@@ -107,15 +107,15 @@ class ${obj_class_name}Object extends MrsBaseObject {
         return paginatedList;
     }
 
-    public async findFirst(args?: IFindFirstOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<I${obj_class_name} | undefined> {
-        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors, [${obj_quoted_pk_list}]>(
+    public async findFirst(args?: IFindFirstOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Sortable, I${obj_class_name}Cursors>): Promise<I${obj_class_name} | undefined> {
+        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Sortable, I${obj_class_name}Cursors, [${obj_quoted_pk_list}]>(
             this.schema, this.requestPath, { ...args, take: 1 }, [${obj_quoted_pk_list}]);
         const response = await request.fetchOne();
 
         return response;
     }
 
-    public async findFirstOrThrow(args?: IFindFirstOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<I${obj_class_name}> {
+    public async findFirstOrThrow(args?: IFindFirstOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Sortable, I${obj_class_name}Cursors>): Promise<I${obj_class_name}> {
         const response = await this.findFirst(args);
 
         if (response === undefined) {
@@ -127,7 +127,7 @@ class ${obj_class_name}Object extends MrsBaseObject {
     // --- crudReadOnlyEnd
     // --- crudReadUniqueOnlyStart
     public findUnique = async (args?: IFindUniqueOptions<I${obj_class_name}, I${obj_class_name}UniqueFilterable>): Promise<I${obj_class_name} | undefined> => {
-        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}UniqueFilterable, never, [${obj_quoted_pk_list}]>(
+        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}UniqueFilterable, never, never, [${obj_quoted_pk_list}]>(
             this.schema, this.requestPath, { ...args, take: 1 }, [${obj_quoted_pk_list}]);
         const response = await request.fetchOne();
 

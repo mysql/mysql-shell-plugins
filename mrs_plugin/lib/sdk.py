@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Literal, Optional
+from typing import Literal, Optional, TypeAlias
 from mrs_plugin import lib
 from pathlib import Path
 import os
@@ -32,6 +32,9 @@ from base64 import b64decode
 import mysqlsh
 import string
 import random
+
+
+ProgrammingLanguage: TypeAlias = Literal["TypeScript", "Python"]
 
 
 SDK_PYTHON_DATACLASS_TEMPLATE = '''@dataclass(init=False, repr=True)
@@ -427,7 +430,7 @@ def language_comment_delimiter(sdk_language):
 def generate_identifier(
     value: str,
     primitive: Literal["variable", "class"] = "variable",
-    sdk_language: Literal["TypeScript", "Python"] = "TypeScript",
+    sdk_language: ProgrammingLanguage = "TypeScript",
     # mutable objects for default values are re-used on subsequent function calls, let's leverage that
     existing_identifiers: list[str] = [],
     allowed_special_characters: Optional[set[str]] = None
@@ -1237,11 +1240,15 @@ def generate_selectable(name, fields, sdk_language):
 
 def generate_sortable(
     name: str,
-    fields: dict[str, str] = {},
-    sdk_language: Literal["TypeScript", "Python"] = "TypeScript",
+    fields: set[str] = set(),
+    sdk_language: ProgrammingLanguage = "TypeScript",
 ):
     if sdk_language == "TypeScript":
-        return ""
+        return generate_tuple(
+            name=f"I{name}Sortable",
+            values=fields,
+            sdk_language=sdk_language,
+        )
     if sdk_language == "Python":
         return generate_type_declaration(
             name=f"{name}Sortable",
@@ -1264,6 +1271,23 @@ def generate_sequence_constant(name, values, sdk_language):
         return f"const {name} = {json.dumps(values)} as const;\n"
     elif sdk_language == "Python":
         return f"{name}: Sequence = {json.dumps(values)}\n\n"
+
+
+def generate_tuple(
+    name: str,
+    values: set[str] = set(),
+    sdk_language: ProgrammingLanguage = "TypeScript",
+):
+    if sdk_language == "TypeScript":
+        return f"export type {name} = [{', '.join([f'"{value}"' for value in sorted(values)])}];\n\n"
+    if sdk_language == "Python":
+        tuple_elements = (
+            "()"
+            if len(values) == 0
+            else ", ".join([f'Literal["{value}"]' for value in sorted(values)])
+        )
+        return f"{name}: TypeAlias = tuple[{tuple_elements}]\n\n\n"
+    return ""
 
 
 def object_is_routine(db_obj, of_type: set[str] = {"PROCEDURE", "FUNCTION", "SCRIPT"}):
@@ -1650,7 +1674,7 @@ def generate_nested_interfaces(
         obj_interfaces, parent_interface_fields, parent_field,
         reference_class_name_suffix,
         fields, class_name, reference_obj,
-        sdk_language: Optional[Literal["TypeScript", "Python"]] = "TypeScript",
+        sdk_language: ProgrammingLanguage = "TypeScript",
         fully_qualified_parent_name: str = "",
         nested_fields: set[str] = set(),
         nesting_fields: set[str] = set(),

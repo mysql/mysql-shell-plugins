@@ -219,7 +219,7 @@ describe("MRS SDK API", () => {
         });
 
         it("selects fields to include in the result set using a field mapper", async () => {
-            const options: IFindManyOptions<ITableMetadata1, unknown, unknown> = {
+            const options: IFindManyOptions<ITableMetadata1, unknown> = {
                 select: {
                     str: true,
                     json: true,
@@ -263,7 +263,7 @@ describe("MRS SDK API", () => {
 
         it("sets the order of the records in the result set based on a given field using a literal order keyword",
                 async () => {
-            const options: IFindFirstOptions<ITableMetadata1, unknown> = { orderBy: { num: "DESC" } };
+            const options: IFindFirstOptions<ITableMetadata1, unknown, ["num"]> = { orderBy: { num: "DESC" } };
             const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options);
             await query.fetch();
 
@@ -274,7 +274,7 @@ describe("MRS SDK API", () => {
 
         it("sets the order of the records in the result set based on a given field using a numeric order identifier",
                 async () => {
-            const options: IFindFirstOptions<ITableMetadata1, unknown> = { orderBy: { num: -1 } };
+            const options: IFindFirstOptions<ITableMetadata1, unknown, ["num"]> = { orderBy: { num: -1 } };
             const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options);
             await query.fetch();
 
@@ -559,7 +559,7 @@ describe("MRS SDK API", () => {
         it("creates a query filter that includes the cursor in the absence of one", async () => {
             type Filterable = Pick<ITableMetadata1, "str">;
             type Iterable = Pick<ITableMetadata1, "id">;
-            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
+            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, [], Iterable>(
                     schema, "/baz", { cursor: { id: 10 } });
 
             await query.fetch();
@@ -571,7 +571,7 @@ describe("MRS SDK API", () => {
         it("includes the cursor in a query filter that does not include it", async () => {
             type Filterable = Pick<ITableMetadata1, "str">;
             type Iterable = Pick<ITableMetadata1, "id">;
-            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
+            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, [], Iterable>(
                     schema, "/baz", { where: { str: "foo" }, cursor: { id: 10 } });
 
             await query.fetch();
@@ -585,7 +585,7 @@ describe("MRS SDK API", () => {
             type Iterable = Pick<ITableMetadata1, "id">;
 
             // implicit query filter
-            let query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
+            let query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, [], Iterable>(
                     schema, "/baz", { where: { id: 5 }, cursor: { id: 10 } });
 
             await query.fetch();
@@ -594,7 +594,7 @@ describe("MRS SDK API", () => {
             expect(fetch).toHaveBeenNthCalledWith(1, `/foo/bar/baz?${searchParams.toString()}`, expect.anything());
 
             // explicit query filter
-            query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
+            query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, [], Iterable>(
                 schema, "/baz", { where: { id: { $gt: 5 } }, cursor: { id: 10 } });
 
             await query.fetch();
@@ -605,7 +605,7 @@ describe("MRS SDK API", () => {
 
         it("ignores any offset in the presence of a cursor", async () => {
             type Iterable = Pick<ITableMetadata1, "id">;
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown, Iterable>(
+            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown, [], Iterable>(
                 schema, "/baz", { skip: 20, cursor: { id: 10 } });
 
             await query.fetch();
@@ -617,7 +617,7 @@ describe("MRS SDK API", () => {
         it("overrides the sort order of a cursor field", async () => {
             type Iterable = Pick<ITableMetadata1, "id">;
             type Filterable = Pick<ITableMetadata1, "id" | "str">;
-            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, Iterable>(
+            const query = new MrsBaseObjectQuery<ITableMetadata1, Filterable, [], Iterable>(
                 schema, "/baz", { orderBy: { id: "DESC" }, cursor: { id: 10 } });
 
             await query.fetch();
@@ -628,7 +628,7 @@ describe("MRS SDK API", () => {
 
         it("accounts for multiple cursors", async () => {
             type Iterable = Pick<ITableMetadata1, "id" | "num">;
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown, Iterable>(
+            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown, [], Iterable>(
                 schema, "/baz", { cursor: { id: 10, num: 20 } });
 
             await query.fetch();

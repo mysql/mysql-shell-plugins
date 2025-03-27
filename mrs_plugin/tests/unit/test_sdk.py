@@ -394,6 +394,8 @@ def test_generate_interfaces():
     bar?: string,
 }
 
+export type IFooSortable = ["bar"];
+
 export interface IFooCursors {
     bar?: string,
 }
@@ -418,6 +420,8 @@ export interface IUpdateFoo {
 export interface IFoo {
     bar?: string,
 }
+
+export type IFooSortable = ["bar"];
 
 export interface IFooCursors {
     bar?: string,
@@ -850,7 +854,10 @@ def test_generate_selectable():
 
 def test_generate_sortable():
     sortable = generate_sortable("Foo", {"bar": "baz", "qux": "quux"}, "TypeScript")
-    assert sortable == ""
+    assert sortable == 'export type IFooSortable = ["bar", "qux"];\n\n'
+
+    sortable = generate_sortable(name="Foo")
+    assert sortable == "export type IFooSortable = [];\n\n"
 
     sortable = generate_sortable("Foo", {"bar": "baz", "qux": "quux"}, "Python")
     assert sortable == (
@@ -998,3 +1005,17 @@ def test_generate_identifier():
     value = generate_identifier(value="/_1", existing_identifiers=existing_identifiers)
     assert value == "_12"
     assert existing_identifiers == ["_1", "_1", "_1"]
+
+
+def test_generate_tuple():
+    tup = generate_tuple(name="Foo", values={"bar", "baz"})
+    assert tup == 'export type Foo = ["bar", "baz"];\n\n'
+
+    tup = generate_tuple(name="Foo")
+    assert tup == "export type Foo = [];\n\n"
+
+    tup = generate_tuple(name="Foo", values={"bar", "baz"}, sdk_language="Python")
+    assert tup == 'Foo: TypeAlias = tuple[Literal["bar"], Literal["baz"]]\n\n\n'
+
+    tup = generate_tuple(name="Foo", sdk_language="Python")
+    assert tup == "Foo: TypeAlias = tuple[()]\n\n\n"
