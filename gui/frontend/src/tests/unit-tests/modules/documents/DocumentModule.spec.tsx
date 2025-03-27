@@ -119,8 +119,9 @@ describe("Document module tests", (): void => {
         backend = new ShellInterfaceSqlEditor();
 
         launcher = await setupShellForTests(false, true, "DEBUG3");
-        testMySQLConnection.id = await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
-            testMySQLConnection) ?? -1;
+        const connectionResult = await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
+            testMySQLConnection);
+        testMySQLConnection.id = Array.isArray(connectionResult) ? connectionResult[0] : -1;
         expect(testMySQLConnection.id).toBeGreaterThan(-1);
         connectionId = testMySQLConnection.id;
 

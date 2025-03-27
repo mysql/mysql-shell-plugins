@@ -49,7 +49,7 @@ await ws.sendAndValidate({
     }
 ])
 
-_this["connection_id_user1"] = ws.lastResponse["result"]
+_this["connection_id_user1"] = ws.lastResponse["result"][0]
 
 await ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
@@ -84,7 +84,7 @@ await ws.sendAndValidate({
     }
 ])
 
-_this["connection_id_user2"] = ws.lastResponse["result"]
+_this["connection_id_user2"] = ws.lastResponse["result"][0]
 
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
@@ -119,7 +119,7 @@ await ws.sendAndValidate({
     }
 ])
 
-_this["connection_id_user2_nopwd"] = ws.lastResponse["result"]
+_this["connection_id_user2_nopwd"] = ws.lastResponse["result"][0]
 
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,

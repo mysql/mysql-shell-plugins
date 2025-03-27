@@ -751,9 +751,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
     private handleAddConnection = (entry: ICdmConnectionEntry): void => {
         ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId, entry.details)
-            .then((connectionId) => {
-                if (connectionId !== undefined) {
-                    entry.details.id = connectionId;
+            .then((connection) => {
+                if (connection !== undefined) {
+                    entry.details.id = connection[0];
                     this.connectionsDataModel.addConnectionEntry(entry);
 
                     requisitions.executeRemote("connectionAdded", entry.details);

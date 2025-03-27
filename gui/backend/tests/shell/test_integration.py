@@ -191,7 +191,7 @@ FUNCTIONS
       list_db_connections(profile_id[, folder_path_id][, be_session])
             Lists the db_connections for the given profile
 
-      list_folder_paths([parent_folder_id][, be_session])
+      list_folder_paths([parent_folder_id][, recursive][, be_session])
             List folder paths
 
       move_connection(profile_id, folder_id, connection_id_to_move, connection_id_offset[, before][, be_session])

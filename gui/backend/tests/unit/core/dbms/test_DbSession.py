@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -89,7 +89,7 @@ def mysql_connections_exists():  # pragma: no cover
         "settings": {}
     }, 'tests')
 
-    connection_id = result
+    connection_id = result[0]
 
     results.append({
         "id": connection_id,

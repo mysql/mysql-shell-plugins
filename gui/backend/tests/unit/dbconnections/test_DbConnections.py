@@ -103,7 +103,7 @@ class TestDbConnectionsSqlite:
         assert len(results2) == len(results1) + 1
 
         DbConnections.remove_db_connection(
-            1, result)
+            1, result[0])
         results3 = DbConnections.list_db_connections(1)
 
         assert len(results3) == len(results1)
@@ -118,7 +118,7 @@ class TestDbConnectionsSqlite:
             }
         })
 
-        connection_id = result
+        connection_id = result[0]
 
         DbConnections.update_db_connection(
             1, connection_id, {"caption": "Altered caption"})
@@ -177,7 +177,7 @@ class TestDbConnectionMySQL:
         assert len(results2) == len(results1) + 1
 
         DbConnections.remove_db_connection(
-            1, result)
+            1, result[0])
         results3 = DbConnections.list_db_connections(1)
 
         assert len(results3) == len(results1)
@@ -259,7 +259,7 @@ class TestDbConnectionMySQL:
                 'scheme': default_root_config['options']['scheme']
             }
         }, 'sort_tests')
-        conn1_id = result
+        conn1_id = result[0]
 
         result = DbConnections.add_db_connection(profile_id, {
             "db_type": default_root_config['type'],
@@ -273,7 +273,7 @@ class TestDbConnectionMySQL:
                 'scheme': default_root_config['options']['scheme']
             }
         }, 'sort_tests')
-        conn2_id = result
+        conn2_id = result[0]
 
         result = DbConnections.add_db_connection(profile_id, {
             "db_type": default_root_config['type'],
@@ -287,7 +287,7 @@ class TestDbConnectionMySQL:
                 'scheme': default_root_config['options']['scheme']
             }
         }, 'sort_tests')
-        conn3_id = result
+        conn3_id = result[0]
 
         result = DbConnections.add_db_connection(profile_id, {
             "db_type": default_root_config['type'],
@@ -301,7 +301,7 @@ class TestDbConnectionMySQL:
                 'scheme': default_root_config['options']['scheme']
             }
         }, 'sort_tests')
-        conn4_id = result
+        conn4_id = result[0]
 
         # Before moving
         db_connections = DbConnections.list_db_connections(

@@ -41,7 +41,7 @@ await ws.sendAndValidate({
     }
 ])
 
-ws.tokens["db_connection_id"] = ws.lastResponse["result"]
+ws.tokens["db_connection_id"] = ws.lastResponse["result"][0]
 
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
@@ -191,7 +191,7 @@ await ws.sendAndValidate({
     }
 ])
 
-ws.tokens["db_connection_id"] = ws.lastResponse["result"]
+ws.tokens["db_connection_id"] = ws.lastResponse["result"][0]
 
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,

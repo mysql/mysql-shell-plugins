@@ -1,4 +1,3 @@
-
 //
 //  Add a new connection, using the supplied database settings
 //  params:
@@ -65,11 +64,11 @@ await ws.sendAndValidate({
             "type": "PENDING",
             "msg": ws.ignore
         },
-        "result": ws.matchRegexp("\\d+")
+        "result": ws.ignore
     }
 ])
 
-_this.result["connection_id"] = ws.lastResponse["result"]
+_this.result["connection_id"] = ws.lastResponse["result"][0]
 
 await ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,
