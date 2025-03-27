@@ -4,7 +4,10 @@
 
 ### Additions
 
--
+- Add templated based creation of JS stored procedures
+- Improved debuggability for javaScript stored programs
+- MRS Python SDK - Support CA certificates customization for SSL
+- Allow linking and unlinking auth apps in the MRS service dialog
 
 ### Fixes
 
@@ -12,7 +15,8 @@
 - BUG#37728029 Unable to update REST View with composite primary key fields with the Python SDK
 - BUG#37630549 Unexpected behavior when updating REST document without identifier in the Python SDK
 - BUG#37762230 Bad Python SDK files generated when no REST object field is sortable
--
+- Cleanup of MRS SQL Grammar
+- Expose missing gui plugin functions
 
 ## Changes in 1.19.3+9.2.0
 

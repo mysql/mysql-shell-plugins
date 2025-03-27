@@ -282,9 +282,6 @@ BEGIN
     IF @msm_schema_init THEN
         CALL `${schema_name}`.`msm_auth_${version_target}`();
     ELSE
-        -- Run the update scripts if available, always DO NONE; cause
-        -- the ELSE clause cannot be empty.
-        DO NULL;
 -- ### MSM-LOOP-START:UPDATABLE-VERSIONS - Authorization Updates
         IF version_str = '${version_from}' THEN
             CALL `${schema_name}`.`msm_auth_${version_from}_to_${version_to}`();
@@ -292,6 +289,7 @@ BEGIN
         END IF;
 
 -- ### MSM-LOOP-END:UPDATABLE-VERSIONS - Authorization Updates
+        CALL `${schema_name}`.`msm_auth_${version_target}`();
     END IF;
 END%%
 

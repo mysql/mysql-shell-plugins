@@ -1544,7 +1544,7 @@ def deploy_schema(
         # local_infile to 1
         # cSpell:ignore infile
         row = lib.core.MsmDbExec("SELECT @@local_infile as local_infile").exec(session).first
-        original_local_infile = (row and int(row["local_infile"]) != 1)
+        original_local_infile = (row and int(row["local_infile"]) == 1)
         if not original_local_infile:
             try:
                 lib.core.write_to_msm_schema_update_log(
@@ -1560,6 +1560,9 @@ def deploy_schema(
 
                 raise Exception(err_msg)
 
+        lib.core.write_to_msm_schema_update_log(
+            "INFO",
+            f"Creating dump of `{schema_name}` version {schema_version} ...")
         mysqlsh.globals.util.dump_schemas(
             [schema_name],
             f"file://{backup_directory}",
@@ -1638,7 +1641,7 @@ def deploy_schema(
             err_str = (
                 "An error occurred while updating the database schema "
                 f"`{schema_name}` to version {version}. The schema has been "
-                f"restored back to version {schema_version}."
+                f"restored back to version {schema_version}. {e}"
             )
             lib.core.write_to_msm_schema_update_log("ERROR", err_str)
 

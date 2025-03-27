@@ -1,5 +1,5 @@
 -- Copyright (c) 2021, 2025, Oracle and/or its affiliates.
--- Fri Mar 14 10:38:50 2025
+-- Thu Mar 27 17:35:26 2025
 -- Model: New Model    Version: 1.0
 -- MySQL Workbench Forward Engineering
 
@@ -627,9 +627,11 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`router_general_log` (
   `router_id` INT UNSIGNED NOT NULL,
   `router_session_id` INT UNSIGNED NULL,
   `log_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `log_type` ENUM("INFO", "WARNING", "ERROR") NOT NULL,
-  `code` SMALLINT UNSIGNED NULL,
-  `message` VARCHAR(255) NULL,
+  `log_type` ENUM("INFO", "WARNING", "DEBUG", "ERROR", "FATAL", "SYSTEM", "NOTE") NOT NULL,
+  `code` INT UNSIGNED NULL,
+  `domain` VARCHAR(255) NULL,
+  `message` VARCHAR(4096) NULL,
+  `thread_id` INT UNSIGNED NULL,
   `data` JSON NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_router_general_log_router1_idx` (`router_id` ASC) VISIBLE,
