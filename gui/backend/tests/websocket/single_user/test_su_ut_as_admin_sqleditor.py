@@ -106,11 +106,11 @@ def add_connection(ws):
         {
             "request_id": ws.lastGeneratedRequestId,
             "request_state": {"type": "PENDING", "msg": ws.ignore},
-            "result": ws.matchRegexp("\\d+")
+            "result": ws.ignore
         }
     ])
 
-    connection_id = ws.lastResponse["result"]
+    connection_id = ws.lastResponse["result"][0]
 
     ws.validateLastResponse({
         "request_id": ws.lastGeneratedRequestId,

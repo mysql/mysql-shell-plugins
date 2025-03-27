@@ -583,3 +583,338 @@ await ws.sendAndValidate({
         "done": true
     }
 ])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.add_folder_path",
+    "args": {
+        "profile_id": 1,
+        "caption": "test_recursive",
+    }
+},
+[
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ws.ignore
+    }
+])
+
+ws.tokens['recursive_folder_id'] = ws.lastResponse['result']['id']
+
+ws.validateLastResponse({
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
+})
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.add_folder_path",
+    "args": {
+        "profile_id": 1,
+        "parent_folder_id": ws.tokens['recursive_folder_id'],
+        "caption": "sub_recursive1",
+    }
+},
+[
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ws.ignore
+    }
+])
+
+ws.tokens['sub_recursive1_id'] = ws.lastResponse['result']['id']
+
+ws.validateLastResponse({
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
+})
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.add_folder_path",
+    "args": {
+        "profile_id": 1,
+        "parent_folder_id": ws.tokens['sub_recursive1_id'],
+        "caption": "subsub_recursive1",
+    }
+},
+[
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ws.ignore
+    }
+])
+
+ws.tokens['subsub_recursive1_id'] = ws.lastResponse['result']['id']
+
+ws.validateLastResponse({
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
+})
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.list_folder_paths",
+    "args": {
+        "parent_folder_id": ws.tokens['recursive_folder_id'],
+    }
+},
+[
+    {
+    'request_state': {
+        'type': 'PENDING',
+        'msg': ''
+        },
+    'result': [
+            {
+                "id": ws.tokens['sub_recursive1_id'],
+                "parent_folder_id": ws.tokens['recursive_folder_id'],
+                "caption": "sub_recursive1",
+                "index": ws.ignore
+            }
+        ],
+    'request_id': ws.lastGeneratedRequestId,
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.list_folder_paths",
+    "args": {
+        "parent_folder_id": ws.tokens['recursive_folder_id'],
+        "recursive": true
+    }
+},
+[
+    {
+    'request_state': {
+        'type': 'PENDING',
+        'msg': ''
+        },
+    'result': [
+            {
+                "id": ws.tokens['sub_recursive1_id'],
+                "parent_folder_id": ws.tokens['recursive_folder_id'],
+                "caption": "sub_recursive1",
+                "index": ws.ignore
+            },
+            {
+                "id": ws.tokens['subsub_recursive1_id'],
+                "parent_folder_id": ws.tokens['sub_recursive1_id'],
+                "caption": "subsub_recursive1",
+                "index": ws.ignore
+            }
+        ],
+    'request_id': ws.lastGeneratedRequestId,
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.add_db_connection",
+    "args": {
+        "profile_id": 1,
+        "folder_path_id": ws.tokens['recursive_folder_id'],
+        "connection": {
+            "db_type": "MySQL",
+            "caption": "Test MySQL Connection",
+            "description": "Connection for testing list_all function",
+            "options": {
+                "uri": "mysql://user@localhost:3306/test"
+            }
+        }
+    }
+},
+[
+    {
+        "request_state": {
+            "type": "PENDING",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "result": ws.ignore
+    }
+])
+
+ws.tokens['test_connection_id'] = ws.lastResponse['result'][0]
+
+ws.validateLastResponse({
+    "request_state": {
+        "type": "OK",
+        "msg": ""
+    },
+    "request_id": ws.lastGeneratedRequestId,
+    "done": true
+})
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.list_all",
+    "args": {
+        "profile_id": 1,
+        "folder_id": ws.tokens['recursive_folder_id']
+    }
+},
+[
+    {
+    'request_state': {
+        'type': 'PENDING',
+        'msg': ''
+        },
+    'result': [
+            {
+                "id": ws.tokens['sub_recursive1_id'],
+                "caption": "sub_recursive1",
+                "description": null,
+                "db_type": null,
+                "options": null,
+                "settings": null,
+                "index": ws.ignore,
+                "type": "folder"
+            },
+            {
+                "id": ws.tokens['test_connection_id'],
+                "caption": "Test MySQL Connection",
+                "description": "Connection for testing list_all function",
+                "db_type": "MySQL",
+                "options": ws.ignore,
+                "settings": ws.ignore,
+                "index": ws.ignore,
+                "type": "connection"
+            }
+        ],
+    'request_id': ws.lastGeneratedRequestId,
+    },
+    {
+        "request_state": {
+            "type": "OK",
+            "msg": ""
+        },
+        "request_id": ws.lastGeneratedRequestId,
+        "done": true
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.remove_db_connection",
+    "args": {
+        "profile_id": 1,
+        "connection_id": ws.tokens['test_connection_id']
+    }
+},
+[
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ws.ignore
+        },
+        "done": true
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.remove_folder_path",
+    "args": {
+        "folder_path_id": ws.tokens['subsub_recursive1_id']
+    }
+},
+[
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ws.ignore
+        },
+        "done": true
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.remove_folder_path",
+    "args": {
+        "folder_path_id": ws.tokens['sub_recursive1_id']
+    }
+},
+[
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ws.ignore
+        },
+        "done": true
+    }
+])
+
+await ws.sendAndValidate({
+    "request": "execute",
+    "request_id": ws.generateRequestId(),
+    "command": "gui.db_connections.remove_folder_path",
+    "args": {
+        "folder_path_id": ws.tokens['recursive_folder_id']
+    }
+},
+[
+    {
+        "request_id": ws.lastGeneratedRequestId,
+        "request_state": {
+            "type": "OK",
+            "msg": ws.ignore
+        },
+        "done": true
+    }
+])

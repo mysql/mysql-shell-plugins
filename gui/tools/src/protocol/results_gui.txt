@@ -329,7 +329,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiCoreIsShellWebCertificateInstalled]: {};
     [ShellAPIGui.GuiCoreInstallShellWebCertificate]: {};
     [ShellAPIGui.GuiCoreRemoveShellWebCertificate]: {};
-    [ShellAPIGui.GuiDbConnectionsAddDbConnection]: { result: number; };
+    [ShellAPIGui.GuiDbConnectionsAddDbConnection]: { result: [number, number, number]; };
     [ShellAPIGui.GuiDbConnectionsUpdateDbConnection]: {};
     [ShellAPIGui.GuiDbConnectionsRemoveDbConnection]: {};
     [ShellAPIGui.GuiDbConnectionsListDbConnections]: { result: IConnectionDetails[]; };

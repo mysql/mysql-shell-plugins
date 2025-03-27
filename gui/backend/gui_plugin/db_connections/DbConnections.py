@@ -64,7 +64,7 @@ def add_db_connection(profile_id, connection, folder_path_id=None,
         settings (dict): The additional settings for the given connection
 
     Returns:
-        int: The connection ID
+        tuple: A tuple containing (connection_id, folder_path_id, index)
     """
     # Verify connection parameters
     if not 'caption' in connection \
@@ -110,7 +110,7 @@ def add_db_connection(profile_id, connection, folder_path_id=None,
                 VALUES(?, ?, ?, ?)''',
                        (profile_id, connection_id, folder_path_id, index))
 
-    return connection_id
+    return (connection_id, folder_path_id, index)
 
 
 @plugin_function('gui.dbConnections.updateDbConnection', shell=True, web=True)
@@ -493,21 +493,40 @@ def move_folder(folder_path_id, new_parent_folder_id, be_session=None):
 
 
 @plugin_function('gui.dbConnections.listFolderPaths', cli=True, shell=True, web=True)
-def list_folder_paths(parent_folder_id=None, be_session=None):
+def list_folder_paths(parent_folder_id=None, recursive=False, be_session=None):
     """List folder paths
 
     Args:
         parent_folder_id (int): The id of the parent folder to list child folders, optional
+        recursive (bool): If True, returns all nested subfolders; if False, returns only immediate children
         be_session (object): A session to the GUI backend database where the operation will be performed.
 
     Returns:
         list: The list of folder paths
     """
     with BackendDatabase(be_session) as db:
-        if parent_folder_id is None:
-            return db.select('''SELECT * FROM folder_path WHERE parent_folder_id IS NULL ORDER BY `index` ASC''')
+        if not recursive:
+            if parent_folder_id is None:
+                return db.select('''SELECT * FROM folder_path WHERE parent_folder_id IS NULL ORDER BY `index` ASC''')
+            else:
+                return db.select('''SELECT * FROM folder_path WHERE parent_folder_id=? ORDER BY `index` ASC''', (parent_folder_id,))
         else:
-            return db.select('''SELECT * FROM folder_path WHERE parent_folder_id=? ORDER BY `index` ASC''', (parent_folder_id,))
+            result = []
+
+            def get_folders_recursive(parent_id):
+                if parent_id is None:
+                    folders = db.select('''SELECT * FROM folder_path WHERE parent_folder_id IS NULL ORDER BY `index` ASC''')
+                else:
+                    folders = db.select('''SELECT * FROM folder_path WHERE parent_folder_id=? ORDER BY `index` ASC''', (parent_id,))
+
+                result.extend(folders)
+
+                for folder in folders:
+                    get_folders_recursive(folder['id'])
+
+            get_folders_recursive(parent_folder_id)
+
+            return result
 
 
 @plugin_function('gui.dbConnections.listAll', cli=True, shell=True, web=True)
@@ -533,6 +552,6 @@ def list_all(profile_id, folder_id=None, be_session=None):
                 FROM folder_path fp
                 WHERE fp.parent_folder_id = ?
                 ORDER BY `index` ASC
-        ''', (profile_id, folder_id if folder_id is not None else 1, folder_id if folder_id is not None else None))
+        ''', (profile_id, folder_id if folder_id is not None else 1, folder_id if folder_id is not None else 1))
 
     return combined_list

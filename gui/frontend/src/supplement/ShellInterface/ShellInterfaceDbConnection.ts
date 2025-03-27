@@ -38,10 +38,10 @@ export class ShellInterfaceDbConnection {
      * @param connection An object holding all data of the connection.
      * @param folderPathId The folder path id used for grouping and nesting connections, optional
      *
-     * @returns A promise resolving to the id of the new connection.
+     * @returns A promise resolving to the tuple containing (connection_id, folder_path_id, index).
      */
     public async addDbConnection(profileId: number, connection: IConnectionDetails,
-        folderPathId: number | undefined = undefined): Promise<number | undefined> {
+        folderPathId: number | undefined = undefined): Promise<[number, number, number] | undefined> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiDbConnectionsAddDbConnection,
             parameters: {
@@ -211,13 +211,14 @@ export class ShellInterfaceDbConnection {
      * Lists folder paths.
      *
      * @param parentFolderId The id of the parent folder to list child folders, optional.
+     * @param recursive If True, returns all nested subfolders; if False, returns only immediate children.
      *
      * @returns A promise resolving to the list of folder paths.
      */
-    public async listFolderPaths(parentFolderId?: number): Promise<IFolderPath[]> {
+    public async listFolderPaths(parentFolderId?: number, recursive?: boolean): Promise<IFolderPath[]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiDbConnectionsListFolderPaths,
-            parameters: { args: { parentFolderId } },
+            parameters: { args: { parentFolderId, recursive } },
         });
 
         return response.result;

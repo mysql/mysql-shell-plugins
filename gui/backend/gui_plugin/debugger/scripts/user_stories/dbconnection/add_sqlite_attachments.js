@@ -174,7 +174,7 @@ await ws.sendAndValidate({
     "result": ws.matchRegexp("\\d+")
 }])
 
-ws.tokens["connection_id"] = ws.lastResponse["result"]
+ws.tokens["connection_id"] = ws.lastResponse["result"][0]
 
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,

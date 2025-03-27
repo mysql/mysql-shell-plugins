@@ -61,8 +61,8 @@ describe("ShellInterfaceShellSession Tests", () => {
 
         };
 
-        testConnection.id = await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
-            testConnection) ?? -1;
+        testConnection.id = (await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
+            testConnection) ?? [-1, -1, -1])[0];
         expect(testConnection.id).toBeGreaterThan(-1);
     });
 

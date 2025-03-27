@@ -84,7 +84,7 @@ ws.validateLastResponse({
     "result": ws.matchRegexp("\\d+")
 })
 
-ws.tokens["connectionId"] = ws.lastResponse["result"]
+ws.tokens["connectionId"] = ws.lastResponse["result"][0]
 
 ws.validateLastResponse({
     "request_id": ws.lastGeneratedRequestId,

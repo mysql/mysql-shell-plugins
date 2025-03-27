@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -85,7 +85,7 @@ def params():
     }, '', parameters._web_session.db)
 
     parameters._web_session.request_id = open_connection_cb.request_id
-    parameters._db_connection_id = result
+    parameters._db_connection_id = result[0]
     sql_editor.open_connection(
         parameters._db_connection_id, parameters._module_session)
 
