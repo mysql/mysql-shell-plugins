@@ -859,6 +859,9 @@ def test_generate_sortable():
         + "    qux: Order\n\n\n"
     )
 
+    sortable = generate_sortable(name="Foo", sdk_language="Python")
+    assert sortable == "IFooSortable: TypeAlias = None\n\n\n"
+
 
 def test_generate_union():
     union = generate_union("Foo", ["Bar", "Baz"], "TypeScript")
