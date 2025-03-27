@@ -5321,7 +5321,6 @@ identifierKeywordsUnambiguous:
         | AT_NODELETE_SYMBOL
         | AT_KEY_SYMBOL
         | REST_REQUEST_PATH
-        | BACK_TICK_QUOTED_REST_PATH
     )
 ;
 
@@ -6619,13 +6618,14 @@ serviceDevelopersIdentifier:
 
 requestPathIdentifier:
     REST_REQUEST_PATH
-    | BACK_TICK_QUOTED_REST_PATH
+    | BACK_TICK_QUOTED_ID
+    | {this.isSqlModeActive(SqlMode.AnsiQuotes)}? DOUBLE_QUOTED_TEXT
 ;
 
 requestPathIdentifierWithWildcard:
     REST_REQUEST_PATH
-    | BACK_TICK_QUOTED_REST_PATH
     | BACK_TICK_QUOTED_ID
+    | {this.isSqlModeActive(SqlMode.AnsiQuotes)}? DOUBLE_QUOTED_TEXT
 ;
 
 //----------------- Json -----------------------------------------------------------------------------------------------
