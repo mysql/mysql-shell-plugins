@@ -111,3 +111,8 @@ def table_contents(phone_book):
         schema = schema or phone_book
         return helpers.TableContents(schema["session"], table_name, take_snapshot)
     yield create_table_content_object
+
+
+def pytest_addoption(parser):
+    parser.addoption('--mdupgrade', action='store_true', dest="mdupgrade",
+                 default=False, help="enable metadata upgrade tests (slow)")
