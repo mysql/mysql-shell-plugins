@@ -1010,13 +1010,21 @@ def get_db_object_privileges(session, schema_name, db_object_name):
     return grants
 
 
-def get_connection_data():
-    return {
-        "user": os.environ.get("MYSQL_USER", "root"),
-        "host": os.environ.get("MYSQL_HOST", "localhost"),
-        "port": os.environ.get("MYSQL_PORT", "3388"),
-        "password": os.environ.get("MYSQL_PASSWORD", ""),
-    }
+def get_connection_data(instance:int=0):
+    if instance == 0:
+        return {
+            "user": os.environ.get("MYSQL_USER", "root"),
+            "host": os.environ.get("MYSQL_HOST", "localhost"),
+            "port": os.environ.get("MYSQL_PORT", "3388"),
+            "password": os.environ.get("MYSQL_PASSWORD", ""),
+        }
+    else:
+        return {
+            "user": os.environ.get("MYSQL_USER", "root"),
+            "host": os.environ.get("MYSQL_HOST", "localhost"),
+            "port": os.environ.get(f"MYSQL_PORT{instance}", str(3388+instance)),
+            "password": os.environ.get("MYSQL_PASSWORD", ""),
+        }
 
 
 def create_shell_session() -> mysqlsh.globals.session:
