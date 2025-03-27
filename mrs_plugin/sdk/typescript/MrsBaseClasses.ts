@@ -630,8 +630,8 @@ export type BinaryOperatorParam<ParentType, Type> = ComparisonOpExpr<Type> | Del
 
 export type BinaryOperator = "$and" | "$or";
 
-export type ColumnOrder<Type> = {
-    [Key in keyof Type]?: "ASC" | "DESC" | 1 | -1
+export type ColumnOrder<Field extends string[]> = {
+    [Key in Field[number]]?: "ASC" | "DESC" | 1 | -1
 };
 
 // Prisma-like API type definitions.
@@ -786,9 +786,11 @@ export interface IAuthenticateOptions {
 
 /**
  * Options available to create a new REST document
- * For now, to create a record we only need to specify the details of that specific document.
  */
 export interface ICreateOptions<Type> {
+    /**
+     * Mapping of values for each field of the document.
+     */
     data: Type;
 }
 
@@ -804,41 +806,57 @@ interface IFindCommonOptions<Item> {
 
 /** Options available to find records based on a given filter. */
 interface IFindAnyOptions<Item, Filterable> extends IFindCommonOptions<Item> {
-    // A filter that matches multiple items should be optional and allow both logical operators and valid field names.
+    // A filter that matches multiple documents should be optional and allow both logical operators and valid field
+    // names.
     where?: DataFilter<Filterable>;
 }
 
 /** Options available to find a record based on a unique identifier or primary key. */
 export interface IFindUniqueOptions<Item, Filterable> extends IFindCommonOptions<Item> {
-    // A filter that matches a single item via a unique field must be mandatory and should not allow logical operators
-    // because a unique field by nature should be enough to identify a given item.
+    // A filter that matches a single document via a unique field must be mandatory and should not allow logical
+    // operators because a unique field by nature should be enough to identify a given item.
     where: DelegationFilter<Filterable>;
 }
 
+/**
+ * Options available to find documents (one or many) after a given cursor.
+ */
 type CursorEnabledOptions<Item, Filterable, Iterable> = [Iterable] extends [never]
     ? IFindAnyOptions<Item, Filterable> : (IFindAnyOptions<Item, Filterable> & {
         cursor?: Cursor<Iterable>
     });
 
-/** Options available to find the first record that optionally matches a given filter. */
-export type IFindFirstOptions<Item, Filterable, Iterable = never> = CursorEnabledOptions<Item, Filterable, Iterable> & {
-    /* Return the first or last record depending on the specified order clause. */
-    orderBy?: ColumnOrder<Filterable>;
-    /** Skip a given number of records that match the same filter. */
+/** Options available to find the first document that optionally matches a given filter. */
+export type IFindFirstOptions<Item, Filterable, Sortable extends string[] = never, Iterable = never> =
+CursorEnabledOptions<Item, Filterable, Iterable> & {
+    /* Return the first or last document depending on the specified order clause. */
+    orderBy?: ColumnOrder<Sortable>;
+    /** Skip a given number of document that match the same filter. */
     skip?: number;
 };
 
-/** Options available to find multiple that optionally match a given filter. */
-export type IFindManyOptions<Item, Filterable, Iterable = never> = IFindFirstOptions<Item, Filterable, Iterable> & {
-    /** Set the maximum number of records in the result set. */
+/** Options available to find multiple documents that optionally match a given filter. */
+export type IFindManyOptions<Item, Filterable, Sortable extends string[] = never, Iterable = never> =
+IFindFirstOptions<Item, Filterable, Sortable, Iterable> & {
+    /** Set the maximum number of documents in the result set. */
     take?: number;
 };
 
-type IFindRangeOptions<Item, Filterable, Iterable> = IFindFirstOptions<Item, Filterable, Iterable>
-| IFindManyOptions<Item, Filterable, Iterable>;
+/**
+ * When retrieving a range of documents, once can specify the total number of documents to retrieve.
+ * When retrieving a single document, that is not the case.
+ */
+type IFindRangeOptions<Item, Filterable, Sortable extends string[], Iterable> =
+    IFindFirstOptions<Item, Filterable, Sortable, Iterable>
+    | IFindManyOptions<Item, Filterable, Sortable, Iterable>;
 
-export type IFindOptions<Item, Filterable, Iterable> = IFindRangeOptions<Item, Filterable, Iterable>
-| IFindUniqueOptions<Item, Filterable>;
+/**
+ * The options for available for finding a unique REST document are not the same as the ones available for finding a
+ * range of documents.
+ */
+export type IFindOptions<Item, Filterable, Sortable extends string[], Iterable> =
+    IFindRangeOptions<Item, Filterable, Sortable, Iterable>
+    | IFindUniqueOptions<Item, Filterable>;
 
 /**
  * Object with boolean fields that determine if the field should be included (or not) in the result set.
@@ -893,8 +911,11 @@ export type NestingFieldMap<Type> = Type extends unknown[] ? BooleanFieldMapSele
 
 // delete*() API
 
-// To avoid unwarranted data loss, deleting records from the database always requires a filter.
-// Deleting a single item requires a filter that only matches unique fields.
+/**
+ * Options available when deleting a REST document.
+ * To avoid unwarranted data loss, deleting REST documents always requires a filter.
+ * Deleting a single item requires a filter that only matches unique fields.
+ */
 export type IDeleteOptions<Type, Options extends { many: boolean } = { many: true }> =
     Options["many"] extends true ? {
         where: DataFilter<Type>,
@@ -906,13 +927,21 @@ export type IDeleteOptions<Type, Options extends { many: boolean } = { many: tru
 
 // update*() API
 
-// To avoid unwarranted data loss, updating a record in the database always requires a filter that operates only
-// using the values of primary key or other unique columns.
+/**
+ * Options available when updating a REST document.
+ * For now, the options are exactly the same as when creating a REST document.
+ */
 export type IUpdateOptions<Type> = ICreateOptions<Type>;
 
-export type MrsRequestFilter<Filterable> = {
-    $orderby?: ColumnOrder<Filterable>, $asof?: string } & { [key: string]: unknown };
+/**
+ * Top-level operators available for a query filter in MRS.
+ */
+type MrsQueryFilter<Sortable extends string[]> = {
+    $orderby?: ColumnOrder<Sortable>, $asof?: string } & { [key: string]: unknown };
 
+/**
+ * JSON utilities with MRS-specific glue code.
+ */
 class MrsJSON {
     public static stringify = <T>(obj: T): string => {
         return JSON.stringify(obj, (key: string, value: { not?: null; } & T) => {
@@ -1152,13 +1181,14 @@ class MrsDocumentList<Doc, KeyFieldNames extends string[]> {
 /**
  * @template Doc The entire set of fields of a given database object.
  * @template Filterable The set of fields of a given database object that can be used in a query filter.
+ * @template Sortable The list of names of sortable fields in the corresponding REST object. It is optional
  * @template Iterable An optional set of fields of a given database object that can be used as cursors. It is optional
  * because it is not used by "findAll()" or "findFirst()", both of which, also create an instance of MrsBaseObjectQuery.
  * Creates an object that represents an MRS GET request.
  */
-export class MrsBaseObjectQuery<Doc, Filterable, Iterable = never,
+export class MrsBaseObjectQuery<Doc, Filterable, Sortable extends string[] = never, Iterable = never,
     KeyFieldNames extends string[] = never> {
-    private where?: MrsRequestFilter<Filterable>;
+    private where?: MrsQueryFilter<Sortable>;
     private exclude: string[] = [];
     private include: string[] = [];
     private offset?: number;
@@ -1168,14 +1198,14 @@ export class MrsBaseObjectQuery<Doc, Filterable, Iterable = never,
     public constructor(
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
-        options?: IFindOptions<Doc, Filterable, Iterable>,
+        options?: IFindOptions<Doc, Filterable, Sortable, Iterable>,
         private readonly primaryKeys?: KeyFieldNames) {
         if (options === undefined) {
             return;
         }
 
         const { cursor, orderBy, readOwnWrites, select, skip, take, where } =
-        options as IFindManyOptions<Doc, Filterable, Iterable> & { cursor?: Cursor<Iterable> };
+        options as IFindManyOptions<Doc, Filterable, Sortable, Iterable> & { cursor?: Cursor<Iterable> };
 
         if (where !== undefined) {
             this.where = where;

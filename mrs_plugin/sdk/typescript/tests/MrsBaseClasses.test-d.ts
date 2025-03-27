@@ -54,7 +54,7 @@ describe("MRS SDK base types", () => {
 
     describe("IColumnOrder", () => {
         it("accepts the appropriate options to order a given column", () => {
-            const orderBy: ColumnOrder<{ name: string; }> = { name: 1 };
+            const orderBy: ColumnOrder<["name"]> = { name: 1 };
             expectTypeOf(orderBy).toBeObject();
             expectTypeOf(orderBy).toHaveProperty("name");
             expectTypeOf(orderBy.name).toEqualTypeOf<"DESC" | "ASC" | -1 | 1 | undefined>();
@@ -266,41 +266,41 @@ describe("MRS SDK base types", () => {
 
     describe("IFindFirstOptions", () => {
         it("accepts the appropriate option to order the result set", () => {
-            const options: IFindFirstOptions<unknown, { name: string; }, unknown> = {};
+            const options: IFindFirstOptions<unknown, { name: string; }, ["name"]> = {};
             expectTypeOf(options).toHaveProperty("orderBy");
-            expectTypeOf(options.orderBy).toEqualTypeOf<ColumnOrder<{ name: string; }> | undefined>();
+            expectTypeOf(options.orderBy).toEqualTypeOf<ColumnOrder<["name"]> | undefined>();
         });
 
         it("accepts the appropriate option to select specific fields from the records in the result set", () => {
-            const options: IFindFirstOptions<{ name: string; }, unknown, unknown> = {};
+            const options: IFindFirstOptions<{ name: string; }, unknown> = {};
             expectTypeOf(options).toHaveProperty("select");
             expectTypeOf(options.select).toEqualTypeOf<
                 BooleanFieldMapSelect<{ name: string; }> | FieldNameSelect<{ name: string; }> | undefined>();
         });
 
         it("accepts the number of records to skip in the result set", () => {
-            const options: IFindFirstOptions<{ name: string; }, unknown, unknown> = {};
+            const options: IFindFirstOptions<{ name: string; }, unknown> = {};
             expectTypeOf(options).toHaveProperty("skip");
             expectTypeOf(options.skip).toEqualTypeOf<number | undefined>();
         });
 
         it("does not accept the maximum number of records to include in the result set", () => {
-            expectTypeOf<{ take: number }>().not.toMatchTypeOf<IFindFirstOptions<unknown, unknown, unknown>>();
+            expectTypeOf<{ take: number }>().not.toMatchTypeOf<IFindFirstOptions<unknown, unknown>>();
         });
 
         it("accepts the appropriate option to filter the records in the result set", () => {
-            const options: IFindFirstOptions<unknown, { name: string; }, unknown> = {};
+            const options: IFindFirstOptions<unknown, { name: string; }> = {};
             expectTypeOf(options).toHaveProperty("where");
             expectTypeOf(options.where).toEqualTypeOf<DataFilter<{ name: string; }> | undefined>();
         });
 
         it("does not allow to enable or disable iterator behavior", () => {
-            expectTypeOf<IFindFirstOptions<unknown, unknown, unknown>>().not.toHaveProperty("iterator");
+            expectTypeOf<IFindFirstOptions<unknown, unknown>>().not.toHaveProperty("iterator");
         });
 
         it("allows to set a pagination cursor when there is an eligible field", () => {
             interface IIterable { id: string }
-            const options: IFindFirstOptions<unknown, unknown, IIterable> = {};
+            const options: IFindFirstOptions<unknown, unknown, [], IIterable> = {};
             expectTypeOf(options).toHaveProperty("cursor");
             expectTypeOf(options.cursor).toEqualTypeOf<Cursor<IIterable> | undefined>();
         });
@@ -318,39 +318,39 @@ describe("MRS SDK base types", () => {
 
     describe("IFindManyOptions", () => {
         it("accepts the appropriate option to order the result set", () => {
-            const options: IFindManyOptions<unknown, { name: string; }, unknown> = {};
+            const options: IFindManyOptions<unknown, { name: string; }, ["name"]> = {};
             expectTypeOf(options).toHaveProperty("orderBy");
-            expectTypeOf(options.orderBy).toEqualTypeOf<ColumnOrder<{ name: string; }> | undefined>();
+            expectTypeOf(options.orderBy).toEqualTypeOf<ColumnOrder<["name"]> | undefined>();
         });
 
         it("accepts the appropriate option to select specific fields from the records in the result set", () => {
-            const options: IFindManyOptions<{ name: string; }, unknown, unknown> = {};
+            const options: IFindManyOptions<{ name: string; }, unknown> = {};
             expectTypeOf(options).toHaveProperty("select");
             expectTypeOf(options.select).toEqualTypeOf<
                 BooleanFieldMapSelect<{ name: string; }> | FieldNameSelect<{ name: string; }> | undefined>();
         });
 
         it("accepts the number of records to skip in the result set", () => {
-            const options: IFindManyOptions<{ name: string; }, unknown, unknown> = {};
+            const options: IFindManyOptions<{ name: string; }, unknown> = {};
             expectTypeOf(options).toHaveProperty("skip");
             expectTypeOf(options.skip).toEqualTypeOf<number | undefined>();
         });
 
         it("accepts the maximum number of records to include the result set", () => {
-            const options: IFindManyOptions<{ name: string; }, unknown, unknown> = {};
+            const options: IFindManyOptions<{ name: string; }, unknown> = {};
             expectTypeOf(options).toHaveProperty("take");
             expectTypeOf(options.take).toEqualTypeOf<number | undefined>();
         });
 
         it("accepts the appropriate option to filter the records in the result set", () => {
-            const options: IFindManyOptions<unknown, { name: string; }, unknown> = {};
+            const options: IFindManyOptions<unknown, { name: string; }> = {};
             expectTypeOf(options).toHaveProperty("where");
             expectTypeOf(options.where).toEqualTypeOf<DataFilter<{ name: string; }> | undefined>();
         });
 
         it("allows to set a pagination cursor when there is an eligible field", () => {
             interface IIterable { id: string }
-            const options: IFindManyOptions<unknown, unknown, IIterable> = {};
+            const options: IFindManyOptions<unknown, unknown, [], IIterable> = {};
             expectTypeOf(options).toHaveProperty("cursor");
             expectTypeOf(options.cursor).toEqualTypeOf<Cursor<IIterable> | undefined>();
         });
