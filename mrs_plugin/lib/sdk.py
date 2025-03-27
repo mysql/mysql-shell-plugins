@@ -1106,12 +1106,21 @@ def generate_selectable(name, fields, sdk_language):
                                          sdk_language=sdk_language, non_mandatory_fields=set(fields))
 
 
-def generate_sortable(name, fields, sdk_language):
+def generate_sortable(
+    name: str,
+    fields: dict[str, str] = {},
+    sdk_language: Literal["TypeScript", "Python"] = "TypeScript",
+):
     if sdk_language == "TypeScript":
         return ""
     if sdk_language == "Python":
-        return generate_type_declaration(name=f"{name}Sortable", fields={ field: "Order" for field in fields },
-                                         sdk_language=sdk_language, non_mandatory_fields=set(fields))
+        return generate_type_declaration(
+            name=f"{name}Sortable",
+            fields={field: "Order" for field in fields},
+            sdk_language=sdk_language,
+            non_mandatory_fields=set(fields),
+            requires_placeholder=True,
+        )
 
 
 def generate_union(name, types, sdk_language):
