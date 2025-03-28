@@ -373,7 +373,9 @@ BEGIN
         CHANGE COLUMN `code` `code` INT UNSIGNED NULL,
         CHANGE COLUMN `message` `message` VARCHAR(4096) NULL,
         ADD COLUMN `domain` VARCHAR(255) NULL,
-        ADD COLUMN `thread_id` INT UNSIGNED NULL;
+        ADD COLUMN `thread_id` INT UNSIGNED NULL,
+        ADD INDEX `router_log_type` (`log_type` ASC) VISIBLE,
+        ADD INDEX `router_log_thread_id` (`thread_id` ASC) VISIBLE;
 END%%
 
 -- -----------------------------------------------------------------------------
@@ -1002,6 +1004,8 @@ BEGIN
       INDEX `fk_router_general_log_router1_idx` (`router_id` ASC) VISIBLE,
       INDEX `log_time` (`log_time` ASC) VISIBLE,
       INDEX `fk_router_general_log_router_session1_idx` (`router_session_id` ASC) VISIBLE,
+      INDEX `router_log_type` (`log_type` ASC) VISIBLE,
+      INDEX `router_log_thread_id` (`thread_id` ASC) VISIBLE,
       CONSTRAINT `fk_router_general_log_router1`
         FOREIGN KEY (`router_id`)
         REFERENCES `mysql_rest_service_metadata`.`router` (`id`)
@@ -4752,6 +4756,17 @@ DROP EVENT IF EXISTS `mysql_rest_service_metadata`.`router_status_cleanup`%%
 CREATE EVENT `mysql_rest_service_metadata`.`router_status_cleanup` ON SCHEDULE EVERY 1 HOUR
 ON COMPLETION NOT PRESERVE ENABLE COMMENT 'Aggregate and clean up router_status entries' DO
     CALL mysql_rest_service_metadata.router_status_do_cleanup(NOW())%%
+
+
+-- Periodically delete the router_general_log
+
+DROP EVENT IF EXISTS `mysql_rest_service_metadata`.`router_log_cleanup`%%
+CREATE EVENT `mysql_rest_service_metadata`.`router_log_cleanup`
+ON SCHEDULE EVERY 1 HOUR
+ON COMPLETION NOT PRESERVE ENABLE COMMENT 'Clean up router_general_log entries'
+DO
+    DELETE FROM `mysql_rest_service_metadata`.`router_general_log`
+        WHERE `log_time` <= NOW() - INTERVAL 1 DAY%%
 
 DELIMITER ;
 
