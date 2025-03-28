@@ -97,7 +97,9 @@ ALTER TABLE `mysql_rest_service_metadata`.`router_general_log`
     CHANGE COLUMN `code` `code` INT UNSIGNED NULL,
     CHANGE COLUMN `message` `message` VARCHAR(4096) NULL,
     ADD COLUMN `domain` VARCHAR(255) NULL,
-    ADD COLUMN `thread_id` INT UNSIGNED NULL;
+    ADD COLUMN `thread_id` INT UNSIGNED NULL,
+    ADD INDEX `router_log_type` (`log_type` ASC) VISIBLE,
+    ADD INDEX `router_log_thread_id` (`thread_id` ASC) VISIBLE;
 
 
 -- #############################################################################
@@ -116,28 +118,15 @@ ALTER TABLE `mysql_rest_service_metadata`.`router_general_log`
 
 DELIMITER %%
 
-/*
--- ToDo: Add schema objects create statements
+-- Periodically delete the router_general_log
 
--- -----------------------------------------------------------------------------
--- VIEW `mysql_rest_service_metadata`.`my_view`
--- -----------------------------------------------------------------------------
-
-CREATE OR REPLACE VIEW `mysql_rest_service_metadata`.`my_view` AS
-    SELECT t.`id`, t.`name`
-    FROM `mysql_rest_service_metadata`.`my_table` AS t
-    ORDER BY t.`name`%%
-
--- -----------------------------------------------------------------------------
--- PROCEDURE `mysql_rest_service_metadata`.`my_proc`
--- -----------------------------------------------------------------------------
-
-DROP PROCEDURE IF EXISTS `mysql_rest_service_metadata`.`my_proc`%%
-CREATE PROCEDURE `mysql_rest_service_metadata`.`my_proc`(INOUT value INT)
-BEGIN
-    SET value = value + 1;
-END%%
-*/
+DROP EVENT IF EXISTS `mysql_rest_service_metadata`.`router_log_cleanup`%%
+CREATE EVENT `mysql_rest_service_metadata`.`router_log_cleanup`
+ON SCHEDULE EVERY 1 HOUR
+ON COMPLETION NOT PRESERVE ENABLE COMMENT 'Clean up router_general_log entries'
+DO
+    DELETE FROM `mysql_rest_service_metadata`.`router_general_log`
+        WHERE `log_time` <= NOW() - INTERVAL 1 DAY%%
 
 DELIMITER ;
 

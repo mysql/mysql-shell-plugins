@@ -1,5 +1,5 @@
 -- Copyright (c) 2021, 2025, Oracle and/or its affiliates.
--- Thu Mar 27 17:35:26 2025
+-- Fri Mar 28 17:26:11 2025
 -- Model: New Model    Version: 1.0
 -- MySQL Workbench Forward Engineering
 
@@ -637,6 +637,8 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`router_general_log` (
   INDEX `fk_router_general_log_router1_idx` (`router_id` ASC) VISIBLE,
   INDEX `log_time` (`log_time` ASC) VISIBLE,
   INDEX `fk_router_general_log_router_session1_idx` (`router_session_id` ASC) VISIBLE,
+  INDEX `router_log_type` (`log_type` ASC) VISIBLE,
+  INDEX `router_log_thread_id` (`thread_id` ASC) VISIBLE,
   CONSTRAINT `fk_router_general_log_router1`
     FOREIGN KEY (`router_id`)
     REFERENCES `mysql_rest_service_metadata`.`router` (`id`)
