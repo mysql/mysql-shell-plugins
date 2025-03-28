@@ -1244,6 +1244,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             const serverVersion = details.version ?? Settings.get("editor.dbVersion", 80024);
             const heatWaveEnabled = details.heatWaveAvailable ?? false;
             const mleEnabled = details.mleAvailable ?? false;
+            const isCloudInstance = details.isCloudInstance ?? false;
 
             const entryId = uuid();
             let useNotebook;
@@ -1292,6 +1293,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 documentStates,
                 heatWaveEnabled,
                 mleEnabled,
+                isCloudInstance,
                 adminPageStates: {
                     lakehouseNavigatorState: {
                         activeTabId: LakehouseNavigatorTab.Overview,

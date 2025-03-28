@@ -227,6 +227,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         this.details.edition = connectionData.info.edition;
         this.details.heatWaveAvailable = connectionData.info.heatWaveAvailable;
         this.details.mleAvailable = connectionData.info.mleAvailable;
+        this.details.isCloudInstance = connectionData.info.isCloudInstance;
 
         return true;
     }
@@ -328,7 +329,8 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                                     }
                                 }
                             }
-                        } else if (status.serviceUpgradeable && !status.serviceUpgradeIgnored) {
+                        } else if (status.serviceUpgradeable && !status.serviceUpgradeIgnored
+                            && !this.details.isCloudInstance) {
                             addMrsItem = false;
 
                             const answer = await ui.confirm(

@@ -467,6 +467,7 @@ export interface IOpenConnectionData {
         edition?: string;
         heatWaveAvailable?: boolean;
         mleAvailable?: boolean;
+        isCloudInstance?: boolean;
     };
 }
 
