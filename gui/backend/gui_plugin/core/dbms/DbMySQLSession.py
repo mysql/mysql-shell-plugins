@@ -357,6 +357,9 @@ class DbMysqlSession(DbSession):
         if common.MySQLData.MLE_AVAILABLE in self.data:
             ret_val["mle_available"] = self.data[common.MySQLData.MLE_AVAILABLE]
 
+        if common.MySQLData.IS_CLOUD_INSTANCE in self.data:
+            ret_val["is_cloud_instance"] = self.data[common.MySQLData.IS_CLOUD_INSTANCE]
+
         return ret_val
 
     @property
