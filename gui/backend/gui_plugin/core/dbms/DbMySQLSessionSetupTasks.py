@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -67,18 +67,29 @@ class HeatWaveCheckTask(DbSessionSetupTask):
             self.define_data(
                 common.MySQLData.HEATWAVE_AVAILABLE, False)
             self.define_data(
+                common.MySQLData.IS_CLOUD_INSTANCE, False)
+            self.define_data(
                 common.MySQLData.MLE_AVAILABLE, False)
 
     def on_connected(self):
         if not self._skip_hw_check:
             # Check if HeatWave is available
             result = self.execute("""
-                SELECT TABLE_NAME FROM `information_schema`.`TABLES`
+                SELECT TABLE_NAME, @@version AS version
+                    FROM `information_schema`.`TABLES`
                     WHERE TABLE_SCHEMA = 'performance_schema'
                         AND TABLE_NAME = 'rpd_nodes'
                 """).fetch_all()
-            self.define_data(
-                common.MySQLData.HEATWAVE_AVAILABLE, len(result) == 1)
+            if len(result) == 1:
+                self.define_data(
+                    common.MySQLData.HEATWAVE_AVAILABLE, True)
+                self.define_data(
+                    common.MySQLData.IS_CLOUD_INSTANCE, result[0][1].endswith("cloud"))
+            else:
+                self.define_data(
+                    common.MySQLData.HEATWAVE_AVAILABLE, False)
+                self.define_data(
+                    common.MySQLData.IS_CLOUD_INSTANCE, False)
 
             # Check if MLE is available
             result = self.execute("SHOW STATUS LIKE 'mle_status'").fetch_all()

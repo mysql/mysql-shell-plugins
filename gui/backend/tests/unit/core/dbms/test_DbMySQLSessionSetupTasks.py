@@ -1,4 +1,4 @@
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -153,7 +153,8 @@ class TestHeatWaveCheckTask:
                                     on_connect_options,
                                     {
                                         common.MySQLData.MLE_AVAILABLE: False,
-                                        common.MySQLData.HEATWAVE_AVAILABLE: False
+                                        common.MySQLData.HEATWAVE_AVAILABLE: False,
+                                        common.MySQLData.IS_CLOUD_INSTANCE: False,
                                     })
         except Exception as e:
             assert False, f"Unexpected Error Happened: {str(e)}"
@@ -193,13 +194,14 @@ class TestHeatWaveCheckTask:
                 known_data = {}
                 if known is not None:
                     known_data[common.MySQLData.HEATWAVE_AVAILABLE] = known
+                    known_data[common.MySQLData.IS_CLOUD_INSTANCE] = known
                     known_data[common.MySQLData.MLE_AVAILABLE] = False
 
                 expected_data = {
                     common.MySQLData.MLE_AVAILABLE: False,
-                    common.MySQLData.HEATWAVE_AVAILABLE: expected
+                    common.MySQLData.HEATWAVE_AVAILABLE: expected,
+                    common.MySQLData.IS_CLOUD_INSTANCE: expected
                 }
-
 
                 expected_queries = []
                 if not skipped and known is None:
@@ -208,7 +210,7 @@ class TestHeatWaveCheckTask:
                     else:
                         result = MockResult([])
 
-                    expected_queries = [(("""SELECT TABLE_NAME FROM `information_schema`.`TABLES`
+                    expected_queries = [(("""SELECT TABLE_NAME, @@version AS version FROM `information_schema`.`TABLES`
                     WHERE TABLE_SCHEMA = 'performance_schema'
                         AND TABLE_NAME = 'rpd_nodes'""", None), result), (("SHOW STATUS LIKE 'mle_status'", None), result)]
 

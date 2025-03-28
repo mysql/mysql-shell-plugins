@@ -70,6 +70,9 @@ export interface IConnectionDetails {
     /** Is MLE (Multi lingual Engine) available on this server? */
     mleAvailable?: boolean;
 
+    /** Is this an OCI cloud DB System? */
+    isCloudInstance?: boolean;
+
     /** Connection specific UI settings. */
     settings?: IConnectionSettings;
 }

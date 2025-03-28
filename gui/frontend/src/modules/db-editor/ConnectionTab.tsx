@@ -110,7 +110,8 @@ export interface ISavedEditorState {
      */
     readonly heatWaveEnabled: boolean;
 
-    mleEnabled: boolean;
+    readonly mleEnabled: boolean;
+    readonly isCloudInstance: boolean;
 }
 
 /** A record holding state for an open document. */
@@ -304,6 +305,48 @@ Execute \\help or \\? for help;`;
             "onSaveSchemaTree", "onSaveExplorerState", "onExplorerResize", "onExplorerMenuAction");
 
     }
+
+    private static shiftMLEStacktraceLineNumbers = (
+        stackTrace: QueryResult, jsStartLine: number): string | undefined => {
+        if (stackTrace?.rows && stackTrace.rows.length > 0) {
+            const stackTraceRow = stackTrace.rows[0][0];
+
+            if (stackTraceRow) {
+                let rowValue = stackTraceRow.split("\n").filter((val) => { return val !== ""; });
+
+                if (rowValue.length > 50) {
+                    rowValue = rowValue.slice(0, 50);
+                }
+
+                for (let index = 0; index < rowValue.length; index++) {
+                    // Keep same line numbers for stacktrace lines that contain /mysql/sql or ml
+                    if (rowValue[index].includes("/mysql/sql") || rowValue[index].includes("/mysql/ml")) {
+                        continue;
+                    }
+
+                    // Extract the line number and offset it with jsStartLine
+                    const rowInfo = rowValue[index].split(":");
+
+                    // Check if this is a multiline error
+                    if (!rowInfo[1].includes("-")) {
+                        rowInfo[1] = `${Number(rowInfo[1]) + jsStartLine}`;
+                    } else {
+                        const multiLineError = rowInfo[1].split("-").map((val) => {
+                            return `${Number(val) + jsStartLine}`;
+                        });
+
+                        rowInfo[1] = multiLineError.join("-");
+                    }
+
+                    rowValue[index] = rowInfo.join(":");
+                }
+
+                return `Exception Stack Trace: \n${rowValue.join("\n")}`.trim();
+            }
+        }
+
+        return undefined;
+    };
 
     public override componentDidMount(): void {
         requisitions.register("editorStopExecution", this.editorStopExecution);
@@ -1012,46 +1055,6 @@ Execute \\help or \\? for help;`;
 
         return Promise.resolve(true);
     };
-
-    private static shiftMLEStacktraceLineNumbers = (stackTrace: QueryResult, jsStartLine: number): string | undefined => {
-        if (stackTrace?.rows && stackTrace.rows.length > 0) {
-            const stackTraceRow = stackTrace.rows[0][0];
-
-            if (stackTraceRow) {
-                let rowValue = stackTraceRow.split("\n").filter((val) => { return val !== ""; });
-
-                if (rowValue.length > 50) {
-                    rowValue = rowValue.slice(0, 50);
-                }
-
-                for (let index = 0; index < rowValue.length; index++) {
-                    // Keep same line numbers for stacktrace lines that contain /mysql/sql or ml
-                    if (rowValue[index].includes("/mysql/sql") || rowValue[index].includes("/mysql/ml")) {
-                        continue;
-                    }
-
-                    // Extract the line number and offset it with jsStartLine
-                    const rowInfo = rowValue[index].split(":");
-
-                    // Check if this is a multiline error
-                    if (!rowInfo[1].includes("-")) {
-                        rowInfo[1] = `${Number(rowInfo[1]) + jsStartLine}`;
-                    } else {
-                        const multiLineError = rowInfo[1].split("-").map((val) => {
-                            return `${Number(val) + jsStartLine}`;
-                        });
-
-                        rowInfo[1] = multiLineError.join("-");
-                    }
-
-                    rowValue[index] = rowInfo.join(":");
-                }
-
-                return `Exception Stack Trace: \n${rowValue.join("\n")}`.trim();
-            }
-        }
-        return undefined;
-    }
 
     /**
      * Called for SQL code from a code editor. All result sets start at 0 offset in this scenario.
