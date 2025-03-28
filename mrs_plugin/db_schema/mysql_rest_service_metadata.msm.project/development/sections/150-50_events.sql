@@ -29,4 +29,15 @@ CREATE EVENT `mysql_rest_service_metadata`.`router_status_cleanup` ON SCHEDULE E
 ON COMPLETION NOT PRESERVE ENABLE COMMENT 'Aggregate and clean up router_status entries' DO
     CALL mysql_rest_service_metadata.router_status_do_cleanup(NOW())%%
 
+
+-- Periodically delete the router_general_log
+
+DROP EVENT IF EXISTS `mysql_rest_service_metadata`.`router_log_cleanup`%%
+CREATE EVENT `mysql_rest_service_metadata`.`router_log_cleanup`
+ON SCHEDULE EVERY 1 HOUR
+ON COMPLETION NOT PRESERVE ENABLE COMMENT 'Clean up router_general_log entries'
+DO
+    DELETE FROM `mysql_rest_service_metadata`.`router_general_log`
+        WHERE `log_time` <= NOW() - INTERVAL 1 DAY%%
+
 DELIMITER ;

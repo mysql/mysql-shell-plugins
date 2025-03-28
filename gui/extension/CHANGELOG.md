@@ -17,6 +17,7 @@
 - BUG#37762230 Bad Python SDK files generated when no REST object field is sortable
 - Cleanup of MRS SQL Grammar
 - Expose missing gui plugin functions
+- Disable MRS upgrade prompt for cloud instances
 
 ## Changes in 1.19.3+9.2.0
 
