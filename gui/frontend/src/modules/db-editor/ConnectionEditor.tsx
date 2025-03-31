@@ -338,7 +338,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 }
             }
 
-            if (typeof mysqlAdvancedSection.timeout.value === "number") {
+            if (mysqlAdvancedSection.timeout.value !== undefined &&
+                typeof mysqlAdvancedSection.timeout.value === "number") {
                 const timeout = this.checkValidInt(mysqlAdvancedSection.timeout.value);
                 if (timeout === undefined || isNaN(timeout) || timeout < 0) {
                     result.messages.timeout = "The timeout must be a valid integer >= 0";
@@ -459,7 +460,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
                         //useAnsiQuotes: section5.ansiQuotes.value,
                         //enableClearTextAuthPlugin: section5.clearTextAuth.value,
-                        "connect-timeout": mysqlAdvancedSection.timeout.value,
+                        "connect-timeout": mysqlAdvancedSection.timeout.value ?? 0,
                         //sqlMode: section5.sqlMode.value,
                         "ssh": details.useSSH ? mysqlSshSection.ssh.value as string : undefined,
 
@@ -874,6 +875,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     type: "number",
                     caption: "Connection Timeout",
                     value: optionsMySQL["connect-timeout"],
+                    placeholder: 0,
                     horizontalSpan: 4,
                 },
                 compression: {

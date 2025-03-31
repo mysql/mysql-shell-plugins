@@ -33,6 +33,7 @@ import {
     IMrsRouterData, IMrsCurrentServiceMetadata, IMrsTableColumnWithReference, IMrsObjectFieldWithReference,
     IMrsObject, IMrsDbObjectParameterData, IMrsSdkOptions, IMrsAddAuthAppData,
     IMrsRouterService, IMrsScriptDefinitions, IMrsScriptModuleDefinition,
+    IMrsConfigData,
 } from "../../communication/ProtocolMrs.js";
 import { MrsDbObjectType } from "../../modules/mrs/types.js";
 import { webSession } from "../WebSession.js";
@@ -42,7 +43,21 @@ export class ShellInterfaceMrs {
     // The key under which the module session is stored in the WebSession instance.
     public moduleSessionLookupId = "";
 
-    public async configure(enableMrs?: boolean, updateIfAvailable?: boolean, options?: string): Promise<void> {
+    public async getAvailableMetadataVersions(): Promise<string[]> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetAvailableMetadataVersions,
+            parameters: {
+                args: {
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async configure(enableMrs?: boolean, updateIfAvailable?: boolean, options?: string,
+        version?: string): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsConfigure,
             parameters: {
@@ -51,6 +66,7 @@ export class ShellInterfaceMrs {
                     enableMrs,
                     updateIfAvailable,
                     options,
+                    version,
                 },
             },
             caseConversionIgnores: ["options"],
@@ -60,6 +76,19 @@ export class ShellInterfaceMrs {
     public async status(): Promise<IMrsStatusData> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsStatus,
+            parameters: {
+                args: {
+                    moduleSessionId: this.moduleSessionId,
+                },
+            },
+        });
+
+        return response.result;
+    }
+
+    public async getConfigurationOptions(): Promise<IMrsConfigData> {
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIMrs.MrsGetConfigurationOptions,
             parameters: {
                 args: {
                     moduleSessionId: this.moduleSessionId,

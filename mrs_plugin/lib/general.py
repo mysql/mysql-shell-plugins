@@ -224,3 +224,25 @@ def ignore_version_upgrade(session):
         sets=f"data = JSON_SET(data, '$.ignore_service_upgrades_till', '{DB_VERSION_STR}')",
         where="id = 1"
     ).exec(session)
+
+
+def get_available_metadata_versions(session):
+    return schema_management.get_released_versions(
+        schema_project_path=lib.core.script_path(
+            "db_schema", "mysql_rest_service_metadata.msm.project"))
+
+
+def get_config_options(session):
+    # Check if the msm_schema_version VIEW already exists
+    row = lib.database.get_db_object(
+        session, "mysql_rest_service_metadata", "config", "TABLE")
+    if row:
+        row = lib.core.select(
+            table="config",
+            cols=["data"],
+            where="id=1"
+        ).exec(session).first
+
+        return row["data"]
+    else:
+        return {}

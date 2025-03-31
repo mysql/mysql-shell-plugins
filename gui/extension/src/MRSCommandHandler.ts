@@ -38,10 +38,11 @@ import {
     IMySQLConnectionOptions, MySQLConnectionScheme,
 } from "../../frontend/src/communication/MySQL.js";
 import { IMrsServiceData } from "../../frontend/src/communication/ProtocolMrs.js";
-import type {
-    ICdmConnectionEntry, ICdmRestAuthAppEntry, ICdmRestAuthAppGroupEntry, ICdmRestContentFileEntry,
-    ICdmRestContentSetEntry, ICdmRestDbObjectEntry, ICdmRestRootEntry, ICdmRestRouterEntry, ICdmRestSchemaEntry,
-    ICdmRestServiceAuthAppEntry, ICdmRestServiceEntry, ICdmRestUserEntry, ICdmSchemaEntry,
+import {
+    type ICdmConnectionEntry, type ICdmRestAuthAppEntry, type ICdmRestAuthAppGroupEntry, type ICdmRestContentFileEntry,
+    type ICdmRestContentSetEntry, type ICdmRestDbObjectEntry, type ICdmRestRootEntry, type ICdmRestRouterEntry,
+    type ICdmRestSchemaEntry, type ICdmRestServiceAuthAppEntry, type ICdmRestServiceEntry, type ICdmRestUserEntry,
+    type ICdmSchemaEntry,
 } from "../../frontend/src/data-models/ConnectionDataModel.js";
 import { getRouterPortForConnection } from "../../frontend/src/modules/mrs/mrs-helpers.js";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
@@ -70,9 +71,14 @@ export class MRSCommandHandler {
 
         this.#mrsScriptBlocks.setup(context);
 
-        context.subscriptions.push(commands.registerCommand("msg.mrs.configureMySQLRestService",
+        context.subscriptions.push(commands.registerCommand("msg.mrs.configureMySQLRestServiceSupport",
             async (entry?: ICdmConnectionEntry) => {
                 await this.configureMrs(entry);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.configureMySQLRestService",
+            async (entry?: ICdmRestRootEntry) => {
+                await this.configureMrs(entry?.parent);
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.disableMySQLRestService",
@@ -1401,38 +1407,42 @@ export class MRSCommandHandler {
     };
 
     private configureMrs = async (entry?: ICdmConnectionEntry, enableMrs?: boolean): Promise<void> => {
-        let answer: string | undefined = "Yes";
-
-        if (enableMrs === undefined) {
-            answer = await ui.showInformationMessage("Do you want to configure this instance for MySQL REST Service " +
-                "Support? This operation will create the MRS metadata database schema.", {}, "Yes", "No");
-        }
-
-        if (entry && answer === "Yes") {
-            const sqlEditor = new ShellInterfaceSqlEditor();
-            try {
-                await openSqlEditorSessionAndConnection(sqlEditor, entry.details.id,
-                    "msg.mrs.configureMySQLRestService");
-
-                const statusbarItem = window.createStatusBarItem();
-                try {
-                    statusbarItem.text = "$(loading~spin) Configuring the MySQL REST Service " +
-                        "Metadata Schema ...";
-                    statusbarItem.show();
-
-                    await sqlEditor.mrs.configure(enableMrs);
-                } finally {
-                    statusbarItem.hide();
+        if (entry) {
+            if (enableMrs === undefined) {
+                const connectionId = entry.connection.details.id;
+                const provider = this.#host.currentProvider;
+                if (provider) {
+                    void provider.runCommand("job", [
+                        { requestType: "showPage", parameter: { connectionId } },
+                        { requestType: "showMrsConfigurationDialog", parameter: undefined },
+                    ], "newConnection");
                 }
+            } else {
+                const sqlEditor = new ShellInterfaceSqlEditor();
+                try {
+                    await openSqlEditorSessionAndConnection(sqlEditor, entry.details.id,
+                        "msg.mrs.configureMySQLRestService");
 
-                void commands.executeCommand("msg.refreshConnections");
-                void ui.showInformationMessage("MySQL REST Service configured successfully.", {});
-            } catch (reason) {
-                const message = convertErrorToString(reason);
-                void ui.showErrorMessage("A error occurred when trying to configure the MySQL REST Service. " +
-                    `Error: ${message}`, {});
-            } finally {
-                await sqlEditor.closeSession();
+                    const statusbarItem = window.createStatusBarItem();
+                    try {
+                        statusbarItem.text = "$(loading~spin) Configuring the MySQL REST Service " +
+                            "Metadata Schema ...";
+                        statusbarItem.show();
+
+                        await sqlEditor.mrs.configure(enableMrs);
+                    } finally {
+                        statusbarItem.hide();
+                    }
+
+                    void commands.executeCommand("msg.refreshConnections");
+                    void ui.showInformationMessage("MySQL REST Service configured successfully.", {});
+                } catch (reason) {
+                    const message = convertErrorToString(reason);
+                    void ui.showErrorMessage("A error occurred when trying to configure the MySQL REST Service. " +
+                        `Error: ${message}`, {});
+                } finally {
+                    await sqlEditor.closeSession();
+                }
             }
         }
     };

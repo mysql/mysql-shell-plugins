@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -186,7 +186,6 @@ describe("MRS Db Object dialog tests", () => {
 
             // cell 5
             expect(gridCells[4].children[0].textContent).toBe("Automatically Detect Media Type");
-            expect(gridCells[4].children[1].textContent).toBe("Automatically Detect Media Type");
         }
 
         //  authorization tab

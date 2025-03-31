@@ -397,7 +397,7 @@ describe("DATABASE CONNECTIONS", () => {
                             strictTransTables: false,
                             timeTruncateFractional: false,
                         },
-                        timeout: "0",
+                        timeout: "5",
                         compression: "Required",
                         compressionLevel: "5",
                         disableHeatWave: true,

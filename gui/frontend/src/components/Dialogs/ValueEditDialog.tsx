@@ -168,6 +168,9 @@ interface INumberInputDialogValue extends IBaseDialogValue {
 
     value?: number | bigint;
 
+    /** Number to be shown in the input field, if no value is set yet. */
+    placeholder?: number | bigint;
+
     /** The minimum number possible in this field. */
     min?: number | bigint;
 
@@ -315,6 +318,11 @@ export interface ICustomDialogValue extends IBaseDialogValue {
     );
 }
 
+export interface ISeparatorValue extends IBaseDialogValue {
+    type: "separator",
+    value?: boolean,
+}
+
 type IDialogValue =
     IDescriptionDialogValue
     | IChoiceDialogValue
@@ -328,6 +336,7 @@ type IDialogValue =
     | ISetDialogValue
     | IKeyValueDialogValue
     | ICustomDialogValue
+    | ISeparatorValue
     ;
 
 /** A set of keys and their associated values, which can be edited in this dialog. */
@@ -471,6 +480,10 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
         this.addHandledProperties("container", "advancedAction", "advancedActionCaption",
             "customFooter", "onClose", "onValidate", "onToggleAdvanced");
+    }
+
+    public get activeContexts(): Set<string> {
+        return this.state.activeContexts;
     }
 
     public render(): ComponentChild {
@@ -953,8 +966,11 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
         // If the group consists of more than one value and the first value is pure description,
         // use that as the group's caption.
-        const caption = (group.length === 1 && (typeof group[0].value.type !== "boolean"))
-            || group[0].value.type === "description"
+        const caption = (group.length === 1
+            && group[0].value.type !== "boolean"
+            && group[0].value.type !== "description") || (
+                group.length > 1 && group[0].value.type === "description"
+            )
             ? group[0].value.caption
             : undefined;
         if (caption && group.length > 1) {
@@ -979,6 +995,8 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             mainAlignment = ContentAlignment.End; // Aligns to the bottom if there is no label.
         }
 
+        const captionClass = group[0]?.value.type !== "separator" ? "valueTitle" : "separatorTitle";
+
         result.push(
             <GridCell
                 key={`valueCell${index}`}
@@ -988,7 +1006,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                 columnSpan={groupHorizontalSpan}
                 rowSpan={groupVerticalSpan}
             >
-                {labelCaption && <Label className="valueTitle" caption={labelCaption} />}
+                {labelCaption && <Label className={captionClass} caption={labelCaption} />}
                 {contentCount > 0 && edits}
                 {errors.map((value: string, errorIndex: number) => {
                     return (
@@ -1088,6 +1106,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                             key={key}
                             className="valueEditor"
                             value={value as (number | bigint)}
+                            placeholder={entry.value.placeholder as (number | bigint)}
                             step={1}
                             min={entry.value.min}
                             max={entry.value.max}
@@ -1300,6 +1319,11 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                         });
                         result.push(clone);
 
+                        break;
+                    }
+
+                    case "separator": {
+                        result.push(<div className="separatorTitleUnderline"></div>);
                         break;
                     }
 

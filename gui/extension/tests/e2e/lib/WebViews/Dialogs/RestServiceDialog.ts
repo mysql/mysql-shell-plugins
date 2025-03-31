@@ -55,16 +55,6 @@ export class RestServiceDialog {
 
         // Settings
         if (restService.settings) {
-            if (restService.settings.mrsAdminUser) {
-                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.settings.mrsAdminUser,
-                    restService.settings.mrsAdminUser);
-            }
-
-            if (restService.settings.mrsAdminPassword) {
-                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.settings.mrsAdminUserPassword,
-                    restService.settings.mrsAdminPassword);
-            }
-
             if (restService.settings.comments) {
                 await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.settings.comments,
                     restService.settings.comments);
@@ -98,14 +88,6 @@ export class RestServiceDialog {
                 await DialogHelper.setFieldText(dialog,
                     locator.mrsServiceDialog.authentication.authCompletedPageContent,
                     restService.authentication.authCompletedChangeCont);
-            }
-        }
-
-        if (restService.advanced) {
-            await dialog.findElement(locator.mrsServiceDialog.advancedTab).click();
-            if (restService.advanced.hostNameFilter) {
-                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.settings.hostNameFilter,
-                    restService.advanced.hostNameFilter);
             }
         }
 
@@ -161,16 +143,6 @@ export class RestServiceDialog {
         authentication.authCompletedChangeCont = await DialogHelper.getFieldValue(dialog,
             locator.mrsServiceDialog.authentication.authCompletedPageContent);
         restService.authentication = authentication;
-
-        await dialog.findElement(locator.mrsServiceDialog.advancedTab).click();
-        const hostnameFilter = await DialogHelper.getFieldValue(dialog,
-            locator.mrsServiceDialog.settings.hostNameFilter);
-
-        if (hostnameFilter !== "") {
-            restService.advanced = {
-                hostNameFilter: hostnameFilter,
-            };
-        }
 
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsServiceDialog.cancel).click();

@@ -627,6 +627,8 @@ export interface IRequestTypeMap {
 
     "showMrsSdkExportDialog": (data: IMrsSdkExportRequest) => Promise<boolean>;
 
+    "showMrsConfigurationDialog": (initialize: boolean) => Promise<boolean>;
+
     /** A list of requests that must be executed sequentially. */
     "job": (job: Array<IJobEntry<keyof IRequestTypeMap>>) => Promise<boolean>;
 
