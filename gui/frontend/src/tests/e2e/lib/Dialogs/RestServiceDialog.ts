@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -55,16 +55,6 @@ export class RestServiceDialog {
 
         // Settings
         if (restService.settings) {
-            if (restService.settings.mrsAdminUser) {
-                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.settings.mrsAdminUser,
-                    restService.settings.mrsAdminUser);
-            }
-
-            if (restService.settings.mrsAdminPassword) {
-                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.settings.mrsAdminUserPassword,
-                    restService.settings.mrsAdminPassword);
-            }
-
             if (restService.settings.comments) {
                 await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.settings.comments,
                     restService.settings.comments);
@@ -98,14 +88,6 @@ export class RestServiceDialog {
                 await DialogHelper.setFieldText(dialog,
                     locator.mrsServiceDialog.authentication.authCompletedPageContent,
                     restService.authentication.authCompletedChangeCont);
-            }
-        }
-
-        if (restService.advanced) {
-            await dialog.findElement(locator.mrsServiceDialog.advancedTab).click();
-            if (restService.advanced.hostNameFilter) {
-                await DialogHelper.setFieldText(dialog, locator.mrsServiceDialog.settings.hostNameFilter,
-                    restService.advanced.hostNameFilter);
             }
         }
 
@@ -160,14 +142,6 @@ export class RestServiceDialog {
         authentication.authCompletedChangeCont = await DialogHelper.getFieldValue(dialog,
             locator.mrsServiceDialog.authentication.authCompletedPageContent);
         restService.authentication = authentication;
-
-        await dialog.findElement(locator.mrsServiceDialog.advancedTab).click();
-        const hostnameFilter = await DialogHelper.getFieldValue(dialog,
-            locator.mrsServiceDialog.settings.hostNameFilter);
-
-        if (hostnameFilter !== "") {
-            restService.advanced!.hostNameFilter = hostnameFilter;
-        }
 
         await driver.wait(async () => {
             await dialog.findElement(locator.mrsServiceDialog.cancel).click();

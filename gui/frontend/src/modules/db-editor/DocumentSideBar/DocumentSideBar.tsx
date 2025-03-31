@@ -819,6 +819,13 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     placement={ComponentPlacement.BottomLeft}
                     onItemClick={this.handleMrsContextMenuItemClick}
                 >
+                    <MenuItem
+                        command={{
+                            title: "Configure MySQL REST Service",
+                            command: "msg.mrs.configureMySQLRestService",
+                        }}
+                    />
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Add REST Service...", command: "msg.mrs.addService" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem
@@ -1398,6 +1405,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             case CdmEntityType.MrsRoot: {
                 if (!data.dataModelEntry.serviceEnabled) {
                     overlays.push({ icon: Assets.overlay.statusDotRed, mask: Assets.overlay.statusDotMask });
+                } else if (data.dataModelEntry.showUpdateAvailable) {
+                    overlays.push({ icon: Assets.overlay.updateAvailable, mask: Assets.overlay.updateAvailableMask });
                 }
 
                 break;
@@ -2355,6 +2364,13 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
         try {
             switch (command.command) {
+                case "msg.mrs.configureMySQLRestService": {
+                    void onConnectionTreeCommand?.(command, entry.dataModelEntry).then(() => {
+                        void this.refreshConnectionTreeEntryChildren(entry.dataModelEntry, true);
+                    });
+                    break;
+                }
+
                 case "msg.mrs.addAuthApp":
                 case "msg.mrs.linkAuthApp": {
                     void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
@@ -2424,7 +2440,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                             void this.refreshConnectionTreeEntryChildren(router, true);
                         });
 
-                        // And the serivice entry itself needs an update.
+                        // And the service entry itself needs an update.
                         await this.refreshConnectionTreeEntryChildren(mrsService, false);
                     }
 

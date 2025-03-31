@@ -626,14 +626,8 @@ exports[`Value Edit Dialog Tests Grouped Values 1`] = `
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 5;"
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 5;"
         >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Print Help
-          </label>
           <label
             class="msg label description"
             data-tooltip="expand"
@@ -1051,14 +1045,8 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 4;"
         >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            A caption for the section
-          </label>
           <label
             class="msg label description"
             data-tooltip="expand"
@@ -1068,14 +1056,8 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 4;"
         >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Activate this
-          </label>
           <label
             class="msg checkbox unchecked valueEditor"
             id="yesNo"
@@ -1394,15 +1376,8 @@ exports[`Value Edit Dialog Tests Update Contexts 2`] = `
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Parameter 3
-          </label>
-        </div>
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 4;"
+        />
         <div
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
@@ -1538,14 +1513,8 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 4;"
         >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            A caption for the section
-          </label>
           <label
             class="msg label description"
             data-tooltip="expand"
@@ -1555,14 +1524,8 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 4;"
         >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Activate this
-          </label>
           <label
             class="msg checkbox unchecked valueEditor"
             id="yesNo"
@@ -1881,15 +1844,8 @@ exports[`Value Edit Dialog Tests Updating Dialog Values 1`] = `
         </div>
         <div
           class="msg container fixedScrollbar gridCell"
-          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"
-        >
-          <label
-            class="msg label valueTitle"
-            data-tooltip="expand"
-          >
-            Parameter 3
-          </label>
-        </div>
+          style="flex-direction: column; justify-content: flex-end; align-items: stretch; grid-column: span 4;"
+        />
         <div
           class="msg container fixedScrollbar gridCell"
           style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 4;"

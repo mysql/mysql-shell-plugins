@@ -654,8 +654,12 @@
                 "command": "msg.selectDocument"
             },
             {
-                "command": "msg.mrs.configureMySQLRestService",
+                "command": "msg.mrs.configureMySQLRestServiceSupport",
                 "title": "Configure Instance for MySQL REST Service Support"
+            },
+            {
+                "command": "msg.mrs.configureMySQLRestService",
+                "title": "Configure MySQL REST Service"
             },
             {
                 "command": "msg.mrs.enableMySQLRestService",
@@ -1516,7 +1520,7 @@
                     "group": "7_msg@1"
                 },
                 {
-                    "command": "msg.mrs.configureMySQLRestService",
+                    "command": "msg.mrs.configureMySQLRestServiceSupport",
                     "when": "view == msg.connections && viewItem == connectionMySQL",
                     "group": "7_msg@2"
                 },
@@ -1691,50 +1695,55 @@
                     "group": "inline"
                 },
                 {
-                    "command": "msg.mrs.addService",
+                    "command": "msg.mrs.configureMySQLRestService",
                     "when": "viewItem == mrs",
-                    "group": "1_msg@2"
+                    "group": "1_msg@1"
                 },
                 {
-                    "command": "msg.mrs.enableMySQLRestService",
+                    "command": "msg.mrs.addService",
                     "when": "viewItem == mrs",
                     "group": "2_msg@1"
                 },
                 {
+                    "command": "msg.mrs.enableMySQLRestService",
+                    "when": "viewItem == mrs",
+                    "group": "3_msg@1"
+                },
+                {
                     "command": "msg.mrs.disableMySQLRestService",
                     "when": "viewItem == mrs",
-                    "group": "2_msg@2"
+                    "group": "3_msg@2"
                 },
                 {
                     "command": "msg.mrs.showPrivateItems",
                     "alt": "msg.mrs.hidePrivateItems",
                     "when": "viewItem == mrs",
-                    "group": "3_msg@1"
+                    "group": "4_msg@1"
                 },
                 {
                     "command": "msg.mrs.bootstrapLocalRouter",
                     "when": "viewItem == mrs",
-                    "group": "4_msg@1"
+                    "group": "5_msg@1"
                 },
                 {
                     "command": "msg.mrs.startLocalRouter",
                     "when": "viewItem == mrs",
-                    "group": "4_msg@2"
+                    "group": "5_msg@2"
                 },
                 {
                     "command": "msg.mrs.stopLocalRouter",
                     "when": "viewItem == mrs",
-                    "group": "4_msg@3"
+                    "group": "5_msg@3"
                 },
                 {
                     "command": "msg.mrs.killLocalRouters",
                     "when": "viewItem == mrs",
-                    "group": "4_msg@4"
+                    "group": "5_msg@4"
                 },
                 {
                     "command": "msg.mrs.docs",
                     "when": "viewItem == mrs",
-                    "group": "5_msg@1"
+                    "group": "6_msg@1"
                 },
                 {
                     "command": "msg.mrs.docs",

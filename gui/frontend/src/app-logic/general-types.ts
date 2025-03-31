@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -328,6 +328,9 @@ export enum MrsDialogType {
 
     /** A dialog to set the SDK export settings. */
     MrsSdkExport,
+
+    /** A dialog to configure MRS. */
+    MrsConfiguration,
 }
 
 /** Types for MySQL Database Service (OCI) dialogs. */
@@ -439,3 +442,25 @@ export type DeepMutable<T> = T extends Function
 export type MutuallyExclusive<T> = {
     [K in keyof T]: Pick<T, K> & Partial<Record<Exclude<keyof T, K>, never>>;
 }[keyof T];
+
+/**
+ * A JSON object contains keys which are strings and values in a specific range of primitives.
+ */
+export type JsonObject = { [Key in string]: JsonValue } & { [Key in string]?: JsonValue | undefined };
+
+/**
+ * A JSON array is just a list of valid JSON values.
+ * Since ReadonlyArray is a first-class type in TypeScript, it needs to be accounted for.
+ */
+type JsonArray = JsonValue[] | readonly JsonValue[];
+
+/**
+ * JSON supports a set of primitives that includes strings, numbers, booleans and null.
+ */
+type JsonPrimitive = string | number | boolean | null;
+
+/**
+ * JSON supports a set of values that includes specific primitive types, other JSON object definitions
+ * and arrays of these.
+ */
+export type JsonValue = JsonPrimitive | JsonObject | JsonArray;

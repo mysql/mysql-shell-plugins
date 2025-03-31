@@ -117,8 +117,6 @@ describe("MySQL REST Service", () => {
             enabled: true,
             default: false,
             settings: {
-                mrsAdminUser: "testUser",
-                mrsAdminPassword: "MySQLR0cks!",
                 comments: "testing",
             },
             authentication: {
@@ -326,9 +324,6 @@ describe("MySQL REST Service", () => {
                     redirectionUrlValid: "(.*)(.*)",
                     authCompletedChangeCont: "<body>",
                 },
-                advanced: {
-                    hostNameFilter: "127.0.0.1",
-                },
             };
 
             await dbTreeSection.expandTreeItem(service1.servicePath);
@@ -338,7 +333,7 @@ describe("MySQL REST Service", () => {
             await driver.wait(Workbench.untilNotificationExists("The MRS service has been successfully updated."),
                 constants.wait1second * 10);
 
-            const treeName = `${service1.servicePath} (${service1.advanced.hostNameFilter})`;
+            const treeName = `${service1.servicePath}`;
             await driver.wait(dbTreeSection.untilTreeItemExists(treeName), constants.waitForTreeItem);
 
             await dbTreeSection.openContextMenuAndSelect(treeName, constants.editRESTService);

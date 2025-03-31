@@ -229,7 +229,8 @@
         "webrootpath",
         "xdescribe",
         "xpto",
-        "zstd"
+        "zstd",
+        "gtid"
     ],
     "ignorePaths": [
         ".eslintrc.json",

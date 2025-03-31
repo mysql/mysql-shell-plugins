@@ -61,7 +61,7 @@
 
     padding: 8px 0 4px 0;
     margin: 4px 0;
-    border-bottom: 1px solid var(--textSeparator-foreground);
+    border-bottom: 1px solid var(--disabledForeground);
 }
 
 .msg.dialog.valueEditDialog #dialogHeading {
@@ -81,12 +81,26 @@
 }
 
 .msg.valueEditDialog .valueTitle {
-    font-size: 0.95em;
     color: var(--disabledForeground);
+    font-size: 0.95em;
+    padding: 2px 0;
+
+    white-space: pre-line;
+}
+
+.msg.valueEditDialog .separatorTitle {
+    font-size: 0.95em;
     padding-bottom: 2px;
 
     white-space: pre-line;
 }
+
+.msg.valueEditDialog .separatorTitleUnderline {
+    height: 1px;
+    width: auto;
+    border-bottom: 1px solid var(--disabledForeground);
+}
+
 
 .msg.dialog.valueEditDialog .valueEditor {
     flex: 0 0 auto;
@@ -221,10 +235,20 @@
     font-size: var(--msg-standard-font-size);
 }
 
+.msg.dialog.valueEditDialog textarea.msg.input.valueEditor {
+    padding-top: 3px;
+    padding-bottom: 3px;
+    font-size: 0.9em;
+}
+
 .msg.dialog.valueEditDialog .msg.button.valueEditor {
     height: 24px;
 }
 
 .msg.dialog.valueEditDialog .icon:not(.codicon) {
     background-color: var(--icon-foreground);
+}
+
+.msg.dialog.valueEditDialog .msg.label.description {
+    color: var(--disabledForeground);
 }

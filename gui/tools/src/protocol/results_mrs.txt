@@ -461,6 +461,53 @@ export interface IMrsConfigureStatus {
     mrsEnabled: boolean;
 }
 
+export interface IMrsConfigAuthenticationThrottlingSettings {
+    minimumTimeBetweenRequestsInMs?: number;
+    maximumAttemptsPerMinute?: number;
+}
+
+export interface IMrsConfigAuthenticationThrottling {
+    perAccount?: IMrsConfigAuthenticationThrottlingSettings;
+    perHost?: IMrsConfigAuthenticationThrottlingSettings;
+    blockWhenAttemptsExceededInSeconds?: number;
+}
+
+export interface IMrsConfigAuthentication {
+    throttling?: IMrsConfigAuthenticationThrottling;
+}
+
+export interface IMrsConfigResponseCache {
+    maxCacheSize?: string;
+}
+
+export interface IMrsConfigFileCache {
+    maxCacheSize?: string;
+}
+
+export interface IMrsConfigGtidCache {
+    enable?: boolean;
+    refreshRate?: number;
+    refreshWhenIncreasesBy?: number;
+}
+
+export interface IMrsConfigGtid {
+    cache?: IMrsConfigGtidCache;
+}
+
+export interface IStringDict {
+    [key: string]: string;
+}
+
+export interface IMrsConfigData {
+    authentication?: IMrsConfigAuthentication;
+    responseCache?: IMrsConfigResponseCache;
+    fileCache?: IMrsConfigFileCache;
+    gtid?: IMrsConfigGtid;
+    defaultStaticContent?: IStringDict;
+    defaultRedirects?: IStringDict;
+    directoryIndexDirective?: string[];
+}
+
 export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddService]: { result: IMrsServiceData; };
     [ShellAPIMrs.MrsGetService]: { result: IMrsServiceData; };
@@ -573,4 +620,6 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddAuthenticationAppLink]: {};
     [ShellAPIMrs.MrsDeleteAuthenticationAppLink]: {};
     [ShellAPIMrs.MrsListAuthenticationAppServices]: { result: IMrsServiceData[]; };
+    [ShellAPIMrs.MrsGetAvailableMetadataVersions]: { result: string[]; };
+    [ShellAPIMrs.MrsGetConfigurationOptions]: { result: IMrsConfigData; };
 }

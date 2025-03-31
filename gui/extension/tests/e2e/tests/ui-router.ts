@@ -47,7 +47,6 @@ const crudService: interfaces.IRestService = {
     published: true,
     enabled: true,
     advanced: {
-        hostNameFilter: "",
     },
 };
 
@@ -166,10 +165,9 @@ describe("Router", () => {
 
     it("Create the Rest Service with the Router hostname", async () => {
 
-        crudService.advanced.hostNameFilter = `127.0.0.1:${routerPort}`;
-        crudSchema.restServicePath = `${crudService.advanced.hostNameFilter}${crudService.servicePath}`;
-        crudObject.restServicePath = `${crudService.advanced.hostNameFilter}${crudService.servicePath}`;
-        baseUrl = `https://${crudService.advanced.hostNameFilter}`;
+        crudSchema.restServicePath = crudService.servicePath;
+        crudObject.restServicePath = crudService.servicePath;
+        baseUrl = `https://127.0.0.1:${routerPort}`;
         baseUrl += `${crudService.servicePath}${crudSchema.restSchemaPath}`;
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 

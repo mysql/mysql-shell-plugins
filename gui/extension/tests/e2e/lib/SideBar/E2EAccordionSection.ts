@@ -41,7 +41,6 @@ import { DatabaseConnectionDialog } from "../WebViews/Dialogs/DatabaseConnection
 import { Misc, driver } from "../Misc";
 import { Os } from "../Os";
 import { Workbench } from "../Workbench";
-import { E2ELogger } from "../E2ELogger";
 
 /**
  * This class represents the Accordion section element and its related functions

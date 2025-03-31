@@ -279,6 +279,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
             try {
                 if (!this.mrsEntry) {
                     let addMrsItem = true;
+                    let showUpdateAvailable = false;
                     const status = await this.backend.mrs.status();
 
                     if (status.serviceBeingUpgraded) {
@@ -331,35 +332,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                             }
                         } else if (status.serviceUpgradeable && !status.serviceUpgradeIgnored
                             && !this.details.isCloudInstance) {
-                            addMrsItem = false;
-
-                            const answer = await ui.confirm(
-                                "A new MRS metadata schema update to version " +
-                                `${String(status.availableMetadataVersion)} is available. The currently deployed ` +
-                                `schema version is ${String(status.currentMetadataVersion)}. Do you want to ` +
-                                "update the MRS metadata schema, skip this version for now or permanently ignore " +
-                                "this version upgrade going forward?",
-                                "Upgrade", "Skip", "Permanently Ignore");
-                            if (answer === "Upgrade") {
-                                addMrsItem = true;
-                                const statusbarItem = ui.createStatusBarItem();
-                                try {
-                                    statusbarItem.text = "$(loading~spin) Updating the MySQL REST Service " +
-                                        "Metadata Schema ...";
-                                    statusbarItem.show();
-
-                                    await this.backend.mrs.configure(true, true);
-
-                                    void ui.showInformationMessage("The MySQL REST Service Metadata Schema has " +
-                                        "been updated.", {});
-                                } finally {
-                                    statusbarItem.hide();
-                                }
-                            } else if (answer === "Permanently Ignore") {
-                                await this.backend.mrs.ignoreVersionUpgrade();
-                            } else {
-                                this.ignoreMrsUpgrade = true;
-                            }
+                            showUpdateAvailable = true;
                         }
 
                         if (addMrsItem) {
@@ -369,6 +342,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                                 type: CdmEntityType.MrsRoot,
                                 id: uuid(),
                                 state: createDataModelEntryState(false, true),
+                                showUpdateAvailable,
                                 requiredRouterVersion: status.requiredRouterVersion,
                                 serviceEnabled: status.serviceEnabled,
                                 services: [],

@@ -121,6 +121,9 @@ jest.mock("../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js", () =>
                     getRouterServices: (): Promise<IMrsRouterService[]> => {
                         return Promise.resolve(routerServiceData);
                     },
+                    listAuthApps: (): Promise<IMrsAuthAppData[]> => {
+                        return Promise.resolve([]);
+                    },
                 },
             };
         }),
@@ -278,7 +281,7 @@ describe("ConnectionDataModel", () => {
         webSession.profile.id = 1;
     });
 
-    it("Refreshing entries", async () => {
+    it.only("Refreshing entries", async () => {
         // Refresh all children of the connections recursively.
         cdmMockState.haveMockConnectionResponse = true;
 

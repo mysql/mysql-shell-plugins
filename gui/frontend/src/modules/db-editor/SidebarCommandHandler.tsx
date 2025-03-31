@@ -171,29 +171,26 @@ export class SidebarCommandHandler {
                 }
 
                 case "msg.mrs.configureMySQLRestService": {
-                    if (entry.type === CdmEntityType.Connection) {
-                        let configure = entry.mrsEntry !== undefined;
-
-                        if (!entry.mrsEntry) {
-                            const response = await DialogHost.showDialog({
-                                id: "msg.mrs.configureMySQLRestService",
-                                type: DialogType.Confirm,
-                                parameters: {
-                                    title: "Confirmation",
-                                    prompt: `Do you want to configure this instance for MySQL REST Service Support? ` +
-                                        `This operation will create the MRS metadata database schema.`,
-                                    accept: "Configure",
-                                    refuse: "No",
-                                    default: "No",
-                                },
-                            });
-
-                            configure = response.closure === DialogResponseClosure.Accept;
+                    const treeItem = entry.type === CdmEntityType.Connection
+                        ? entry
+                        : entry.type === CdmEntityType.MrsRoot
+                            ? entry.parent
+                            : undefined;
+                    if (treeItem) {
+                        if (!treeItem.isOpen) {
+                            const statusBarItem = ui.createStatusBarItem();
+                            try {
+                                statusBarItem.text = "$(loading~spin) Opening Database Connection ...";
+                                await treeItem.refresh?.();
+                            } catch (error) {
+                                break;
+                            } finally {
+                                statusBarItem.dispose();
+                            }
                         }
 
-                        if (configure) {
-                            success = await this.configureMrs(connection, true);
-                        }
+                        success = await this.mrsHubRef.current
+                            ?.showMrsConfigurationDialog(connection) ?? false;
                     }
 
                     break;

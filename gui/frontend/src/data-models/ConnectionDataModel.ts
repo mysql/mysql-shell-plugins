@@ -529,6 +529,7 @@ export interface ICdmRestRootEntry extends ICdmBaseEntry {
 
     readonly requiredRouterVersion: string;
     serviceEnabled: boolean;
+    showUpdateAvailable: boolean;
 
     /** When true, show also all entries considered private in the MRS subtree (default: false). */
     showPrivateItems: boolean;

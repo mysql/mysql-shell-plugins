@@ -69,6 +69,7 @@
         "DELETEUNIQUE",
         "FUNCTIONCALL",
         "PROCEDURECALL",
-        "coro"
+        "coro",
+        "squote"
     ]
 }

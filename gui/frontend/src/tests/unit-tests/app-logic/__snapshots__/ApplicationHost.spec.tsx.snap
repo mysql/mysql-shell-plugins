@@ -9563,6 +9563,77 @@ exports[`Application host tests Rendering About 1`] = `
                       </Container>
                     </Tabview>
                     <MrsHub>
+                      <MrsConfigurationDialog
+                        key="MrsConfigurationDialog"
+                      >
+                        <ValueEditDialog
+                          id="mrsConfigurationDialog"
+                          onClose={[Function]}
+                          onValidate={[Function]}
+                        >
+                          <Dialog
+                            actions={
+                              {
+                                "begin": [],
+                                "end": [
+                                  <Button
+                                    caption="OK"
+                                    disabled={false}
+                                    id="ok"
+                                    onClick={[Function]}
+                                  />,
+                                  <Button
+                                    caption="Cancel"
+                                    id="cancel"
+                                    onClick={[Function]}
+                                  />,
+                                ],
+                              }
+                            }
+                            caption={
+                              <g>
+                                <Icon
+                                  disabled={false}
+                                  src={391}
+                                />
+                                <Label />
+                              </g>
+                            }
+                            className="msg valueEditDialog"
+                            container={
+                              <body
+                                theme="dark"
+                              />
+                            }
+                            content={
+                              <Grid
+                                columnGap={16}
+                                columns={8}
+                                id="contentGrid"
+                                rowGap={16}
+                              />
+                            }
+                            id="mrsConfigurationDialog"
+                            onClose={[Function]}
+                          >
+                            <Portal
+                              container={
+                                <body
+                                  theme="dark"
+                                />
+                              }
+                              id="mrsConfigurationDialog"
+                              onClose={[Function]}
+                              onOpen={[Function]}
+                            />
+                          </Dialog>
+                          <Menu
+                            onItemClick={[Function]}
+                            orientation="column"
+                            placement="right-start"
+                          />
+                        </ValueEditDialog>
+                      </MrsConfigurationDialog>
                       <MrsServiceDialog
                         key="MrsServiceDialog"
                       >
@@ -19763,6 +19834,77 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                       </Container>
                     </Tabview>
                     <MrsHub>
+                      <MrsConfigurationDialog
+                        key="MrsConfigurationDialog"
+                      >
+                        <ValueEditDialog
+                          id="mrsConfigurationDialog"
+                          onClose={[Function]}
+                          onValidate={[Function]}
+                        >
+                          <Dialog
+                            actions={
+                              {
+                                "begin": [],
+                                "end": [
+                                  <Button
+                                    caption="OK"
+                                    disabled={false}
+                                    id="ok"
+                                    onClick={[Function]}
+                                  />,
+                                  <Button
+                                    caption="Cancel"
+                                    id="cancel"
+                                    onClick={[Function]}
+                                  />,
+                                ],
+                              }
+                            }
+                            caption={
+                              <g>
+                                <Icon
+                                  disabled={false}
+                                  src={391}
+                                />
+                                <Label />
+                              </g>
+                            }
+                            className="msg valueEditDialog"
+                            container={
+                              <body
+                                theme="dark"
+                              />
+                            }
+                            content={
+                              <Grid
+                                columnGap={16}
+                                columns={8}
+                                id="contentGrid"
+                                rowGap={16}
+                              />
+                            }
+                            id="mrsConfigurationDialog"
+                            onClose={[Function]}
+                          >
+                            <Portal
+                              container={
+                                <body
+                                  theme="dark"
+                                />
+                              }
+                              id="mrsConfigurationDialog"
+                              onClose={[Function]}
+                              onOpen={[Function]}
+                            />
+                          </Dialog>
+                          <Menu
+                            onItemClick={[Function]}
+                            orientation="column"
+                            placement="right-start"
+                          />
+                        </ValueEditDialog>
+                      </MrsConfigurationDialog>
                       <MrsServiceDialog
                         key="MrsServiceDialog"
                       >
@@ -29963,6 +30105,77 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                       </Container>
                     </Tabview>
                     <MrsHub>
+                      <MrsConfigurationDialog
+                        key="MrsConfigurationDialog"
+                      >
+                        <ValueEditDialog
+                          id="mrsConfigurationDialog"
+                          onClose={[Function]}
+                          onValidate={[Function]}
+                        >
+                          <Dialog
+                            actions={
+                              {
+                                "begin": [],
+                                "end": [
+                                  <Button
+                                    caption="OK"
+                                    disabled={false}
+                                    id="ok"
+                                    onClick={[Function]}
+                                  />,
+                                  <Button
+                                    caption="Cancel"
+                                    id="cancel"
+                                    onClick={[Function]}
+                                  />,
+                                ],
+                              }
+                            }
+                            caption={
+                              <g>
+                                <Icon
+                                  disabled={false}
+                                  src={391}
+                                />
+                                <Label />
+                              </g>
+                            }
+                            className="msg valueEditDialog"
+                            container={
+                              <body
+                                theme="dark"
+                              />
+                            }
+                            content={
+                              <Grid
+                                columnGap={16}
+                                columns={8}
+                                id="contentGrid"
+                                rowGap={16}
+                              />
+                            }
+                            id="mrsConfigurationDialog"
+                            onClose={[Function]}
+                          >
+                            <Portal
+                              container={
+                                <body
+                                  theme="dark"
+                                />
+                              }
+                              id="mrsConfigurationDialog"
+                              onClose={[Function]}
+                              onOpen={[Function]}
+                            />
+                          </Dialog>
+                          <Menu
+                            onItemClick={[Function]}
+                            orientation="column"
+                            placement="right-start"
+                          />
+                        </ValueEditDialog>
+                      </MrsConfigurationDialog>
                       <MrsServiceDialog
                         key="MrsServiceDialog"
                       >
@@ -40475,6 +40688,77 @@ exports[`Application host tests Rendering Preferences 1`] = `
                       </Container>
                     </Tabview>
                     <MrsHub>
+                      <MrsConfigurationDialog
+                        key="MrsConfigurationDialog"
+                      >
+                        <ValueEditDialog
+                          id="mrsConfigurationDialog"
+                          onClose={[Function]}
+                          onValidate={[Function]}
+                        >
+                          <Dialog
+                            actions={
+                              {
+                                "begin": [],
+                                "end": [
+                                  <Button
+                                    caption="OK"
+                                    disabled={false}
+                                    id="ok"
+                                    onClick={[Function]}
+                                  />,
+                                  <Button
+                                    caption="Cancel"
+                                    id="cancel"
+                                    onClick={[Function]}
+                                  />,
+                                ],
+                              }
+                            }
+                            caption={
+                              <g>
+                                <Icon
+                                  disabled={false}
+                                  src={391}
+                                />
+                                <Label />
+                              </g>
+                            }
+                            className="msg valueEditDialog"
+                            container={
+                              <body
+                                theme="dark"
+                              />
+                            }
+                            content={
+                              <Grid
+                                columnGap={16}
+                                columns={8}
+                                id="contentGrid"
+                                rowGap={16}
+                              />
+                            }
+                            id="mrsConfigurationDialog"
+                            onClose={[Function]}
+                          >
+                            <Portal
+                              container={
+                                <body
+                                  theme="dark"
+                                />
+                              }
+                              id="mrsConfigurationDialog"
+                              onClose={[Function]}
+                              onOpen={[Function]}
+                            />
+                          </Dialog>
+                          <Menu
+                            onItemClick={[Function]}
+                            orientation="column"
+                            placement="right-start"
+                          />
+                        </ValueEditDialog>
+                      </MrsConfigurationDialog>
                       <MrsServiceDialog
                         key="MrsServiceDialog"
                       >

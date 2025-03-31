@@ -349,7 +349,7 @@ export const notebook = {
                         @monaco-view-zone='g${id}' or
                         @monaco-view-zone='h${id}' or
                         @monaco-view-zone='i${id}' or
-                        @monaco-view-zone='j${id}' or 
+                        @monaco-view-zone='j${id}' or
                         @monaco-view-zone='k${id}' or
                         @monaco-view-zone='l${id}' or
                         @monaco-view-zone='m${id}' or
@@ -1076,10 +1076,7 @@ export const mrsServiceDialog = {
     servicePath: By.id("servicePath"),
     name: By.id("name"),
     settings: {
-        mrsAdminUser: By.id("mrsAdminUser"),
-        mrsAdminUserPassword: By.id("mrsAdminUserPassword"),
         comments: By.id("comments"),
-        hostNameFilter: By.id("hostName"),
     },
     optionsTab: By.id("page1"),
     options: {

@@ -52,6 +52,7 @@ export interface IUpDownProperties<ValueType extends string | null | number | bi
 
     value?: ValueType;
     textAlignment?: TextAlignment;
+    placeholder?: ValueType
 
     nullable?: boolean;
 
@@ -66,6 +67,7 @@ export interface IUpDownProperties<ValueType extends string | null | number | bi
 
 export interface IUpDownState extends IComponentState {
     currentValue: string | null | number | bigint;
+    missingInitialValue?: boolean;
 }
 
 const parseNumber = (value?: string | null, nullable?: boolean): number | bigint | null => {
@@ -117,14 +119,23 @@ export class UpDown<ValueType extends string | null | number | bigint>
 
     public static override getDerivedStateFromProps(props: Readonly<IUpDownProperties<string | null | number | bigint>>,
         state: Readonly<IUpDownState>): IUpDownState | null {
-        const { value, min, max, nullable } = props;
+        const { value, min, max } = props;
 
+        if (value === undefined && state.missingInitialValue === undefined) {
+            // This occurs only during the initial render.
+            return { currentValue: null, missingInitialValue: true };
+        }
+
+        const nullable = props.nullable || state.missingInitialValue === true;
         const currentValue = isNumberOrBigInt(value) ? value : parseNumber(value, nullable);
-        const newState: IUpDownState = {
+        if (currentValue === state.currentValue) {
+            // No updates to the state are required.
+            return null;
+        }
+
+        return {
             currentValue: currentValue === null ? null : clampValue(currentValue, min, max),
         };
-
-        return newState;
     }
 
     public override componentDidMount(): void {
@@ -136,7 +147,7 @@ export class UpDown<ValueType extends string | null | number | bigint>
     }
 
     public render(): ComponentChild {
-        const { textAlignment } = this.props;
+        const { textAlignment, placeholder } = this.props;
         const { currentValue } = this.state;
 
         const className = this.getEffectiveClassNames(["upDown"]);
@@ -150,6 +161,7 @@ export class UpDown<ValueType extends string | null | number | bigint>
                 onConfirm={this.handleInputConfirm}
                 onCancel={this.handleInputCancel}
                 textAlignment={textAlignment}
+                placeholder={placeholder?.toString()}
             />
         );
 
@@ -206,7 +218,6 @@ export class UpDown<ValueType extends string | null | number | bigint>
         }
 
         onChange?.(newValue as ValueType, this.props);
-        this.setState({ currentValue: newValue });
     };
 
     private handleInputChange = (e: InputEvent): void => {
@@ -214,7 +225,6 @@ export class UpDown<ValueType extends string | null | number | bigint>
         const currentValue = (e.target as HTMLInputElement)?.value;
 
         onChange?.(currentValue as ValueType, this.props);
-        this.setState({ currentValue });
     };
 
     private handleInputConfirm = (): void => {

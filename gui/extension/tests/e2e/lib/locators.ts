@@ -353,10 +353,7 @@ export const mrsServiceDialog = {
     exists: By.id("mrsServiceDialog"),
     servicePath: By.id("servicePath"),
     settings: {
-        mrsAdminUser: By.id("mrsAdminUser"),
-        mrsAdminUserPassword: By.id("mrsAdminUserPassword"),
         comments: By.id("comments"),
-        hostNameFilter: By.id("hostName"),
     },
     optionsTab: By.id("page1"),
     options: {

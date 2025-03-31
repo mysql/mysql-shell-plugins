@@ -36,7 +36,6 @@ export interface IMrsServiceDialogData extends IDictionary {
     servicePath: string;
     name: string;
     comments: string;
-    hostName: string;
     isCurrent: boolean;
     enabled: boolean;
     published: boolean;
@@ -47,8 +46,6 @@ export interface IMrsServiceDialogData extends IDictionary {
     authCompletedUrl: string;
     authCompletedPageContent: string;
     metadata: string;
-    mrsAdminUser?: string;
-    mrsAdminUserPassword?: string;
     linkedAuthAppIds: string[];
 }
 
@@ -89,29 +86,6 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
                 const name = mainSection.values.name.value as string;
                 if (!name) {
                     result.messages.name = "The service name must not be empty.";
-                }
-            }
-            const settingsSection = values.sections.get("settingsSection");
-            if (settingsSection) {
-                if (settingsSection.values.mrsAdminUser?.value && !settingsSection.values.mrsAdminUserPassword?.value) {
-                    result.messages.mrsAdminUserPassword = "Please specify a password for the MRS Admin User.";
-                } else if (settingsSection.values.mrsAdminUser?.value
-                    && settingsSection.values.mrsAdminUserPassword?.value) {
-                    // Enforce password strength
-                    const pwd = (settingsSection.values.mrsAdminUserPassword.value as string);
-                    if (pwd.length < 8) {
-                        result.messages.mrsAdminUserPassword = "The minimum authentication string length is "
-                            + "8 characters.";
-                    } else {
-                        const hasUpperCase = /[A-Z]/.test(pwd) ? 1 : 0;
-                        const hasLowerCase = /[a-z]/.test(pwd) ? 1 : 0;
-                        const hasNumbers = /\d/.test(pwd) ? 1 : 0;
-                        const hasNonAlphas = /\W/.test(pwd) ? 1 : 0;
-                        if (hasUpperCase + hasLowerCase + hasNumbers + hasNonAlphas < 4) {
-                            result.messages.mrsAdminUserPassword = "The authentication string needs to contain at "
-                                + "least one uppercase, lowercase, a special and a numeric character.";
-                        }
-                    }
                 }
             }
 
@@ -201,33 +175,13 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
             values: {},
         };
 
-        // If this is a new service, show the option to create a MRS auth app and user name
-        if (!request.values?.serviceId) {
-            settingsSection.values.mrsAdminUser = {
-                type: "text",
-                caption: "Create MRS Admin User",
-                value: "",
-                horizontalSpan: 4,
-                description: "If a user name is given, a MRS Auth App will be created and the " +
-                    "user will be added.",
-            };
-            settingsSection.values.mrsAdminUserPassword = {
-                type: "text",
-                caption: "MRS Admin User Password",
-                obfuscated: true,
-                value: "",
-                horizontalSpan: 4,
-                description: "The password of the MRS Admin User.",
-            };
-        }
-
         request.parameters ??= {};
         const authApps = request.parameters.authApps as IMrsAuthAppData[] ?? [];
         const linkedAuthApps = request.parameters.linkedAuthApps as IMrsAuthAppData[] ?? [];
 
         settingsSection.values.linkedAuthApps = {
             type: "checkList",
-            caption: "Linked Auth Apps",
+            caption: "Linked REST Auth Apps",
             checkList: Object.values(authApps).map((app) => {
                 const linked = linkedAuthApps.find((linkedApp) => {
                     return linkedApp.id === app.id;
@@ -241,7 +195,8 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
 
                 return { data: result };
             }),
-            horizontalSpan: 2,
+            horizontalSpan: 3,
+            description: "Select one or more REST auth apps to allow users to authenticate",
         };
 
         settingsSection.values.comments = {
@@ -250,7 +205,7 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
             value: request.values?.comments as string,
             multiLine: true,
             multiLineCount: 3,
-            horizontalSpan: 6,
+            horizontalSpan: 5,
             description: "Comments to describe this REST Service.",
         };
 
@@ -280,7 +235,7 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
         };
 
         const authSection: IDialogSection = {
-            caption: "Authentication",
+            caption: "Authentication Details",
             groupName: "group1",
             values: {
                 authPath: {
@@ -337,15 +292,6 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
                     value: protocol,
                     description: "The protocol the REST service is accessed on. HTTPS is preferred.",
                 },
-                hostName: {
-                    type: "text",
-                    caption: "Host Name Filter",
-                    value: request.values?.hostName as string,
-                    horizontalSpan: 5,
-                    description: "If specified, the REST service will only be made available " +
-                        "to requests for this specific host.",
-                    placeholder: "<Host Name Filter:Port>",
-                },
             },
         };
 
@@ -388,9 +334,6 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
                 authCompletedUrl: authSection.values.authCompletedUrl.value as string,
                 authCompletedPageContent: authSection.values.authCompletedPageContent.value as string,
                 metadata: optionsSection.values.metadata.value as string,
-                mrsAdminUser: settingsSection.values.mrsAdminUser?.value as string | undefined,
-                mrsAdminUserPassword: settingsSection.values.mrsAdminUserPassword?.value as string | undefined,
-                hostName: advancedSection.values.hostName.value as string,
                 protocols: [advancedSection.values.protocols.value as string],
                 linkedAuthAppIds,
             };

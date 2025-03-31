@@ -293,6 +293,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         requisitions.register("showMrsAuthAppDialog", this.showMrsAuthAppDialog);
         requisitions.register("showMrsUserDialog", this.showMrsUserDialog);
         requisitions.register("showMrsSdkExportDialog", this.showMrsSdkExportDialog);
+        requisitions.register("showMrsConfigurationDialog", this.showMrsConfigurationDialog);
 
         requisitions.register("openSession", this.openSession);
 
@@ -331,6 +332,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         requisitions.unregister("showMrsAuthAppDialog", this.showMrsAuthAppDialog);
         requisitions.unregister("showMrsUserDialog", this.showMrsUserDialog);
         requisitions.unregister("showMrsSdkExportDialog", this.showMrsSdkExportDialog);
+        requisitions.unregister("showMrsConfigurationDialog", this.showMrsConfigurationDialog);
 
         requisitions.unregister("openSession", this.openSession);
     }
@@ -1064,6 +1066,27 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             const tab = connectionTabs.find((entry) => { return entry.dataModelEntry.id === selectedPage; });
             if (tab) {
                 return this.mrsHubRef.current.showMrsDbObjectDialog(tab.connection.backend, request);
+            }
+        }
+
+        return false;
+    };
+
+    private showMrsConfigurationDialog = async (): Promise<boolean> => {
+        if (this.mrsHubRef.current) {
+            const { selectedPage, connectionTabs } = this.state;
+            const tab = connectionTabs.find((entry) => { return entry.dataModelEntry.id === selectedPage; });
+            if (tab) {
+                const result = await this.mrsHubRef.current.showMrsConfigurationDialog(
+                    tab.connection);
+                if (result) {
+                    const connection = this.connectionsDataModel.findConnectionEntryById(tab.connection.details.id);
+                    if (connection) {
+                        void requisitions.executeRemote("updateMrsRoot", String(connection.details.id));
+                    }
+                }
+
+                return result;
             }
         }
 

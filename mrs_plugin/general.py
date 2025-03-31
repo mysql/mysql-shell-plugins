@@ -256,7 +256,7 @@ def cd(path=None, session=None):
 
 @plugin_function('mrs.configure', shell=True, cli=True, web=True)
 def configure(session=None, enable_mrs=None, options=None,
-              update_if_available=False,
+              update_if_available=None,
               edition=None, version=None):
     """Initializes and configures the MySQL REST Data Service
 
@@ -286,7 +286,7 @@ def configure(session=None, enable_mrs=None, options=None,
             schema_project_path=lib.core.script_path(
                 "db_schema", "mysql_rest_service_metadata.msm.project"))
 
-        if current_db_version < last_deployment_version and not update_if_available and interactive:
+        if interactive and update_if_available is None and current_db_version < last_deployment_version:
             # A version upgrade is available
             from_v = '%d.%d.%d' % tuple(current_db_version)
             to_v = '%d.%d.%d' % tuple(last_deployment_version)
@@ -300,21 +300,6 @@ def configure(session=None, enable_mrs=None, options=None,
 
             update_if_available = True
 
-        if current_db_version < last_deployment_version and not update_if_available:
-            info_msg = (
-                f"A new version {update_if_available} of the MRS metadata "
-                "schema is available. Call "
-                "`mrs.configure(update_if_available=True)` to update.")
-            if interactive:
-                print(info_msg)
-            else:
-                return {
-                    "schema_changed": False,
-                    "info_msg": info_msg,
-                    "mrs_enabled": lib.core.get_mrs_enabled(session=session)
-                }
-
-            return
     elif interactive:
         print("Creating MRS metadata schema...")
 
@@ -394,3 +379,39 @@ def ignore_version_upgrade(session=None):
     with lib.core.MrsDbSession(
             exception_handler=lib.core.print_exception, session=session, check_version=False) as session:
         lib.general.ignore_version_upgrade(session)
+
+
+@plugin_function('mrs.get.availableMetadataVersions', shell=True, cli=True, web=True)
+def get_available_metadata_versions(session=None) -> list[str]:
+    """Returns the list of available MRS metadata versions
+
+    Args:
+        session (object): The database session to use
+
+    Returns:
+        The list of available versions as strings, sorted descending
+    """
+
+    with lib.core.MrsDbSession(
+            exception_handler=lib.core.print_exception, session=session, check_version=False) as session:
+        versions = lib.general.get_available_metadata_versions(session)
+
+        versions.sort(reverse=True)
+
+        return list(map(lambda v: '%d.%d.%d' % tuple(v), versions))
+
+
+@plugin_function('mrs.get.configurationOptions', shell=True, cli=True, web=True)
+def get_configuration_options(session=None) -> dict:
+    """Returns the list of available MRS metadata versions
+
+    Args:
+        session (object): The database session to use
+
+    Returns:
+        The configuration options as a JSON string
+    """
+
+    with lib.core.MrsDbSession(
+            exception_handler=lib.core.print_exception, session=session, check_version=False) as session:
+        return lib.general.get_config_options(session)

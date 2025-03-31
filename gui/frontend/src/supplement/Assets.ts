@@ -216,6 +216,9 @@ import overlayStatusDotOrange from "../assets/images/overlays/statusDotOrange.sv
 import overlayStatusDotBlue from "../assets/images/overlays/statusDotBlue.svg";
 import overlayStatusDotMask from "../assets/images/overlays/statusDotMask.svg";
 
+import overlayUpdateAvailable from "../assets/images/overlays/updateAvailable.svg";
+import overlayUpdateAvailableMask from "../assets/images/overlays/updateAvailableMask.svg";
+
 // Lakehouse.
 import chatOptionsIcon from "../assets/images/chatOptions.svg";
 import dataLakeIcon from "../assets/images/dataLake.svg";
@@ -434,6 +437,8 @@ export class Assets {
         statusDotMask: overlayStatusDotMask,
         statusDotOrange: overlayStatusDotOrange,
         statusDotRed: overlayStatusDotRed,
+        updateAvailable: overlayUpdateAvailable,
+        updateAvailableMask: overlayUpdateAvailableMask,
     };
 
     public static toolbar = {
