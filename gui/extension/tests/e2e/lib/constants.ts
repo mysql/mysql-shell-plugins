@@ -412,14 +412,14 @@ export const eventsCtxMenu = new Map([
 ]);
 
 export const restMainCtxMenu = new Map([
-    [addRESTService, 1],
-    [enableRESTService, 2],
-    [disableRESTService, 3],
-    [bootstrapRouter, 5],
-    [startRouter, 6],
-    [stopRouter, 7],
-    [killRouters, 8],
-    [browseRESTDocs, 9],
+    [addRESTService, 2],
+    [enableRESTService, 3],
+    [disableRESTService, 4],
+    [bootstrapRouter, 6],
+    [startRouter, 7],
+    [stopRouter, 8],
+    [killRouters, 9],
+    [browseRESTDocs, 10],
 ]);
 
 export const dumpRESTSchemaToSQL = "Rest Schema SQL...";

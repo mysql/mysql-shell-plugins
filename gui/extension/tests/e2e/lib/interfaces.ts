@@ -125,8 +125,6 @@ export interface IConnSSH {
 }
 
 export interface IRestServiceSettings {
-    mrsAdminUser?: string;
-    mrsAdminPassword?: string;
     comments?: string;
 }
 
@@ -151,7 +149,6 @@ export interface IRestService {
 }
 
 export interface IRestServiceAdvanced {
-    hostNameFilter?: string;
     protocols?: string[];
 }
 

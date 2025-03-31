@@ -43,6 +43,10 @@ export enum ShellAPIMrs {
     MrsStatus = "mrs.status",
     /** Marks the current version to be ignored during version upgrade checks */
     MrsIgnoreVersionUpgrade = "mrs.ignore_version_upgrade",
+    /** Returns the list of available MRS metadata versions */
+    MrsGetAvailableMetadataVersions = "mrs.get.available_metadata_versions",
+    /** Returns the list of available MRS metadata versions */
+    MrsGetConfigurationOptions = "mrs.get.configuration_options",
     /** Adds a new MRS service */
     MrsAddService = "mrs.add.service",
     /** Gets a specific MRS service */
@@ -1508,6 +1512,8 @@ export interface IProtocolMrsParameters {
     [ShellAPIMrs.MrsConfigure]: { args: { moduleSessionId?: string; enableMrs?: boolean; options?: string; updateIfAvailable?: boolean; edition?: string; version?: string; }; };
     [ShellAPIMrs.MrsStatus]: { args: { moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsIgnoreVersionUpgrade]: { args: { moduleSessionId?: string; }; };
+    [ShellAPIMrs.MrsGetAvailableMetadataVersions]: { args: { moduleSessionId?: string; }; };
+    [ShellAPIMrs.MrsGetConfigurationOptions]: { args: { moduleSessionId?: string; }; };
     [ShellAPIMrs.MrsAddService]: { kwargs?: IShellMrsAddServiceKwargs; };
     [ShellAPIMrs.MrsGetService]: { kwargs?: IShellMrsGetServiceKwargs; };
     [ShellAPIMrs.MrsListServices]: { kwargs?: IShellMrsListServicesKwargs; };
@@ -2079,6 +2085,53 @@ export interface IMrsConfigureStatus {
     mrsEnabled: boolean;
 }
 
+export interface IMrsConfigAuthenticationThrottlingSettings {
+    minimumTimeBetweenRequestsInMs?: number;
+    maximumAttemptsPerMinute?: number;
+}
+
+export interface IMrsConfigAuthenticationThrottling {
+    perAccount?: IMrsConfigAuthenticationThrottlingSettings;
+    perHost?: IMrsConfigAuthenticationThrottlingSettings;
+    blockWhenAttemptsExceededInSeconds?: number;
+}
+
+export interface IMrsConfigAuthentication {
+    throttling?: IMrsConfigAuthenticationThrottling;
+}
+
+export interface IMrsConfigResponseCache {
+    maxCacheSize?: string;
+}
+
+export interface IMrsConfigFileCache {
+    maxCacheSize?: string;
+}
+
+export interface IMrsConfigGtidCache {
+    enable?: boolean;
+    refreshRate?: number;
+    refreshWhenIncreasesBy?: number;
+}
+
+export interface IMrsConfigGtid {
+    cache?: IMrsConfigGtidCache;
+}
+
+export interface IStringDict {
+    [key: string]: string;
+}
+
+export interface IMrsConfigData {
+    authentication?: IMrsConfigAuthentication;
+    responseCache?: IMrsConfigResponseCache;
+    fileCache?: IMrsConfigFileCache;
+    gtid?: IMrsConfigGtid;
+    defaultStaticContent?: IStringDict;
+    defaultRedirects?: IStringDict;
+    directoryIndexDirective?: string[];
+}
+
 export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddService]: { result: IMrsServiceData; };
     [ShellAPIMrs.MrsGetService]: { result: IMrsServiceData; };
@@ -2191,5 +2244,7 @@ export interface IProtocolMrsResults {
     [ShellAPIMrs.MrsAddAuthenticationAppLink]: {};
     [ShellAPIMrs.MrsDeleteAuthenticationAppLink]: {};
     [ShellAPIMrs.MrsListAuthenticationAppServices]: { result: IMrsServiceData[]; };
+    [ShellAPIMrs.MrsGetAvailableMetadataVersions]: { result: string[]; };
+    [ShellAPIMrs.MrsGetConfigurationOptions]: { result: IMrsConfigData; };
 }
 

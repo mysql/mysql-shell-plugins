@@ -57,6 +57,8 @@ import { IMrsSdkExportDialogData, MrsSdkExportDialog } from "./dialogs/MrsSdkExp
 import { IMrsServiceDialogData, MrsServiceDialog } from "./dialogs/MrsServiceDialog.js";
 import { IMrsUserDialogData, MrsUserDialog } from "./dialogs/MrsUserDialog.js";
 import { MrsDbObjectType } from "./types.js";
+import { IMrsConfigurationDialogData, MrsConfigurationDialog } from "./dialogs/MrsConfigurationDialog.js";
+import { ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
 
 type DialogConstructor = new (props: {}) => AwaitableValueEditDialog;
 
@@ -88,6 +90,7 @@ export class MrsHub extends ComponentBase {
     // Lists the dialog types and their corresponding dialog components.
     // These dialogs are registered and instantiated in the render() method.
     static readonly #dialogTypes = new Map<MrsDialogType, DialogConstructor>([
+        [MrsDialogType.MrsConfiguration, MrsConfigurationDialog],
         [MrsDialogType.MrsService, MrsServiceDialog],
         [MrsDialogType.MrsSchema, MrsSchemaDialog],
         [MrsDialogType.MrsDbObject, MrsDbObjectDialog],
@@ -123,6 +126,109 @@ export class MrsHub extends ComponentBase {
             </>
         );
     }
+
+    /**
+     * Shows a dialog to create a new or edit an existing MRS service.
+     *
+     * @param connection The connection the MRS config dialog should be show for
+     *
+     * @returns A promise resolving when the dialog was closed. Always resolves to true to indicate the request
+     *          was handled.
+     */
+    public showMrsConfigurationDialog = async (connection: ICdmConnectionEntry): Promise<boolean> => {
+        try {
+            const backend = connection.backend;
+
+            const statusBarItem = ui.createStatusBarItem();
+            let dialogRequest;
+            try {
+                statusBarItem.text = "$(loading~spin) Fetching MRS status ...";
+
+                const backend = connection.backend;
+                const versionsAvailable = await backend.mrs.getAvailableMetadataVersions();
+                const status = await backend.mrs.status();
+                const configData = await backend.mrs.getConfigurationOptions();
+
+                const title = !status.serviceConfigured
+                    ? "Configure Instance for MySQL REST Service Support"
+                    : "MySQL REST Service Configuration";
+
+                dialogRequest = {
+                    id: "mrsConfigurationDialog",
+                    type: MrsDialogType.MrsConfiguration,
+                    title,
+                    parameters: {
+                        init: !status.serviceConfigured,
+                        versionsAvailable,
+                        status,
+                        isCloudInstance: connection.details.isCloudInstance,
+                    },
+                    values: {
+                        version: status.currentMetadataVersion ?? versionsAvailable.at(0),
+                        enabled: !status.serviceConfigured ? true : status.serviceEnabled,
+                        options: configData,
+                    },
+                };
+            } finally {
+                statusBarItem.dispose();
+            }
+
+            const result = await this.showDialog(dialogRequest);
+            if (result === DialogResponseClosure.Cancel) {
+                return true;
+            }
+
+            const data = result as IMrsConfigurationDialogData;
+
+            // Perform the actual configuration
+            await backend.mrs.configure(data.enabled, data.performUpdate ?? false, JSON.stringify(data.options),
+                data.version);
+
+            // If admin username and password have been specified, create MRS Auth App and user
+            if (data.mrsAdminUser && data.mrsAdminUserPassword) {
+                let authApp;
+                let nameCounter = 1;
+                while (authApp === undefined && nameCounter < 10) {
+                    try {
+                        authApp = await backend.mrs.addAuthApp({
+                            id: "",
+                            authVendorId: "MAAAAAAAAAAAAAAAAAAAAA==",
+                            authVendorName: "MRS",
+                            serviceId: "",
+                            name: `MRS${(nameCounter > 1) ? nameCounter.toString() : ""}`,
+                            description: "MRS Auth App",
+                            url: "",
+                            urlDirectAuth: "",
+                            accessToken: "",
+                            appId: "",
+                            enabled: true,
+                            limitToRegisteredUsers: true,
+                            defaultRoleId: "MQAAAAAAAAAAAAAAAAAAAA==",
+                        }, []);
+                    } catch {
+                        nameCounter += 1;
+                        if (nameCounter === 10) {
+                            throw new Error("The authentication app could not be created.");
+                        }
+                    }
+                }
+                if (authApp !== undefined) {
+                    await backend.mrs.addUser(authApp.authAppId, data.mrsAdminUser, "", "", true, "", null, null,
+                        data.mrsAdminUserPassword, []);
+                }
+            }
+
+            void ui.showInformationMessage(`MySQL REST Service configured successfully.`, {});
+            void requisitions.executeRemote("refreshConnection", undefined);
+
+            return true;
+        } catch (reason) {
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`MRS Configuration Failed: ${message}`, {});
+        }
+
+        return false;
+    };
 
     /**
      * Shows a dialog to create a new or edit an existing MRS service.
@@ -218,7 +324,6 @@ export class MrsHub extends ComponentBase {
         const urlContextRoot = data.servicePath;
         const name = data.name;
         const protocols = data.protocols;
-        const hostName = data.hostName;
         const comments = data.comments;
         const isCurrent = data.isCurrent;
         const enabled = data.enabled;
@@ -233,7 +338,7 @@ export class MrsHub extends ComponentBase {
 
         if (!service) {
             try {
-                const service = await backend.mrs.addService(urlContextRoot, name, protocols, hostName ?? "", comments,
+                const service = await backend.mrs.addService(urlContextRoot, name, protocols, "", comments,
                     enabled, options, authPath, authCompletedUrl, authCompletedUrlValidation, authCompletedPageContent,
                     metadata, published);
 
@@ -263,7 +368,7 @@ export class MrsHub extends ComponentBase {
                         urlContextRoot,
                         name,
                         urlProtocol: protocols,
-                        urlHostName: hostName,
+                        urlHostName: "",
                         enabled,
                         published,
                         comments,
@@ -967,7 +1072,7 @@ export class MrsHub extends ComponentBase {
                         vendorUserId: data.vendorUserId ?? null,
                         loginPermitted: data.loginPermitted,
                         mappedUserId: data.mappedUserId ?? null,
-                        options: data.options  ? JSON.parse(data.options) as IShellDictionary : null,
+                        options: data.options ? JSON.parse(data.options) as IShellDictionary : null,
                         appOptions: data.appOptions ? JSON.parse(data.appOptions) as IShellDictionary : null,
                         authString: data.authString ?? null,
                     }, rolesToUpdate);
@@ -995,7 +1100,7 @@ export class MrsHub extends ComponentBase {
                 if (authApp && authApp.id) {
                     await backend.mrs.addUser(authApp.id, data.name!, data.email!, data.vendorUserId!,
                         data.loginPermitted, data.mappedUserId!,
-                        data.options  ? JSON.parse(data.options) as IShellDictionary : null,
+                        data.options ? JSON.parse(data.options) as IShellDictionary : null,
                         data.appOptions ? JSON.parse(data.appOptions) as IShellDictionary : null,
                         data.authString!, rolesToUpdate);
                 }

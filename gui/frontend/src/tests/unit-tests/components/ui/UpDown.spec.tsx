@@ -33,14 +33,15 @@ import { mouseEventMock } from "../../__mocks__/EventMocks.js";
 import { useState } from "preact/hooks";
 
 interface IProps {
-    initialValue: number;
-    min: number;
-    max: number;
+    initialValue?: number;
+    min?: number;
+    max?: number;
+    placeholder?: number;
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-const Wrapper = ({ initialValue, min, max }: IProps) => {
-    const [ value, setValue ] = useState(`${initialValue}`);
+const Wrapper = ({ initialValue, min, max, placeholder }: IProps) => {
+    const [ value, setValue ] = useState(initialValue);
 
     return (
         <UpDown
@@ -50,6 +51,7 @@ const Wrapper = ({ initialValue, min, max }: IProps) => {
             min={min}
             max={max}
             step={1}
+            placeholder={placeholder}
         />
     );
 };
@@ -57,6 +59,12 @@ const Wrapper = ({ initialValue, min, max }: IProps) => {
 describe("UpDown render testing", (): void => {
     const queryInput = () => {
         return document.getElementById("upDownInput")! as HTMLInputElement;
+    };
+    const queryDownButton = () => {
+        return document.getElementById("down") as Element;
+    };
+    const queryUpButton = () => {
+        return document.getElementById("up") as Element;
     };
 
     it("Test UpDown callbacks", async () => {
@@ -95,22 +103,24 @@ describe("UpDown render testing", (): void => {
         );
         expect(component).toBeTruthy();
 
-        const upButton = document.getElementById("up") as Element;
+        const upButton = queryUpButton();
         fireEvent.click(upButton);
-        expect(queryInput().value).toBe(max);
+        const inputElement = queryInput();
+        expect(inputElement).toBeTruthy();
+        expect(inputElement.value).toBe(max);
 
         fireEvent.click(upButton);
-        expect(queryInput().value).toBe(max);
+        expect(inputElement.value).toBe(max);
 
-        const downButton = document.getElementById("down") as Element;
+        const downButton = queryDownButton();
         fireEvent.click(downButton);
-        expect(queryInput().value).toBe("10");
-
-        fireEvent.click(downButton);
-        expect(queryInput().value).toBe(min);
+        expect(inputElement.value).toBe("10");
 
         fireEvent.click(downButton);
-        expect(queryInput().value).toBe(min);
+        expect(inputElement.value).toBe(min);
+
+        fireEvent.click(downButton);
+        expect(inputElement.value).toBe(min);
     });
 
     it("Test UpDown elements", () => {
@@ -122,5 +132,51 @@ describe("UpDown render testing", (): void => {
         expect(props.id).toEqual("upDownId");
         expect(props.value).toEqual("10");
         expect(props.textAlignment).toEqual(TextAlignment.End);
+    });
+
+    it("Test UpDown with missing initial value and placeholder", () => {
+        const placeholder = 10;
+        render(<Wrapper placeholder={placeholder} />);
+        const inputElement = queryInput();
+        expect(inputElement.placeholder).toBe(`${placeholder}`);
+        expect(inputElement.value).toBe("");
+
+        // Simulate entering text.
+        fireEvent.input(inputElement, { target: { value: "15" } });
+        expect(inputElement.value).toBe("15");
+
+        fireEvent.input(inputElement, { target: { value: "" } });
+        expect(inputElement.value).toBe("");
+    });
+
+    it("Test UpDown with non nullable value", () => {
+        render(<Wrapper initialValue={123} />);
+        const inputElement = queryInput();
+        fireEvent.doubleClick(inputElement); // Select all text.
+
+        fireEvent.input(inputElement, {
+            target: { value: "" },
+        });
+        expect(inputElement.value).toBe("0");
+    });
+
+    it("Test up button of UpDown with missing value", () => {
+        render(<Wrapper />);
+
+        const upButton = queryUpButton();
+        expect(upButton).toBeTruthy();
+        fireEvent.click(upButton);
+        const inputElement = queryInput();
+        expect(inputElement.value).toBe("1");
+    });
+
+    it("Test down button of UpDown with missing value", () => {
+        render(<Wrapper />);
+
+        const downButton = queryDownButton();
+        expect(downButton).toBeTruthy();
+        fireEvent.click(downButton);
+        const inputElement = queryInput();
+        expect(inputElement.value).toBe("-1");
     });
 });
