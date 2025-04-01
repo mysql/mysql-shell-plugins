@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,12 +26,23 @@
 import { mount } from "enzyme";
 
 import { DBDataType, IColumnInfo, MessageType } from "../../../../../app-logic/general-types.js";
-import { ResultView } from "../../../../../components/ResultView/ResultView.js";
+import { getWideColumns, ResultView, updateWideColumnsCache } from "../../../../../components/ResultView/ResultView.js";
 import { Menu } from "../../../../../components/ui/Menu/Menu.js";
 import { TreeGrid } from "../../../../../components/ui/TreeGrid/TreeGrid.js";
 import { requisitions } from "../../../../../supplement/Requisitions.js";
-import { nextProcessTick } from "../../../test-helpers.js";
+import { createResultSet, nextProcessTick } from "../../../test-helpers.js";
 import { CellComponentMock } from "../../../__mocks__/CellComponentMock.js";
+
+export const createColumn = (title: string, field: string, inPK = false): IColumnInfo => {
+    return {
+        title,
+        field,
+        dataType: { type: DBDataType.Varchar },
+        inPK,
+        autoIncrement: false,
+        nullable: false,
+    };
+};
 
 describe("Result View Tests", (): void => {
 
@@ -935,5 +946,110 @@ describe("Result View Tests", (): void => {
 
         wrapper.unmount();
 
+    });
+});
+
+describe("Test getWideColumns", (): void => {
+    const shortValue = "short";
+    const longValue = "long".repeat(100);
+
+    it("Test all short values", () => {
+        const rows = [
+            { 0: "42", 1: shortValue },
+            { 0: "43", 1: shortValue },
+        ];
+        const columns = [ createColumn("id", "0"), createColumn("value", "1") ];
+        const resultSet = createResultSet("abc", rows, columns);
+
+        const wideColumns = getWideColumns(resultSet);
+
+        expect(wideColumns.size).toBe(0);
+    });
+
+    it("Test with long value in the end of the set", () => {
+        const rows = [
+            { 0: "42", 1: shortValue },
+            { 0: "43", 1: longValue },
+        ];
+        const columns = [ createColumn("id", "0"), createColumn("value", "1") ];
+        const resultSet = createResultSet("abc", rows, columns);
+
+        const wideColumns = getWideColumns(resultSet);
+
+        expect(wideColumns.has("id")).toBeFalsy();
+        expect(wideColumns.has("value")).toBeTruthy();
+    });
+
+    it("Test with long value in the beginning of the set", () => {
+        const rows = [
+            { 0: "43", 1: longValue },
+            { 0: "42", 1: shortValue },
+        ];
+        const columns = [ createColumn("id", "0"), createColumn("value", "1") ];
+        const resultSet = createResultSet("abc", rows, columns);
+
+        const wideColumns = getWideColumns(resultSet);
+
+        expect(wideColumns.has("id")).toBeFalsy();
+        expect(wideColumns.has("value")).toBeTruthy();
+    });
+});
+
+describe("Test updateWideColumnsCache", (): void => {
+    const shortValue = "short";
+    const longValue = "long".repeat(100);
+
+    it("Test short values", () => {
+        const columnsCache: Map<string, number> = new Map();
+
+        const rows = [
+            { 0: "42", 1: shortValue },
+            { 0: "43", 1: shortValue },
+        ];
+        const columns = [ createColumn("id", "0"), createColumn("value", "1") ];
+        const resultSet = createResultSet("abc", rows, columns);
+
+        updateWideColumnsCache(columnsCache, resultSet);
+
+        expect(columnsCache.size).toBe(0);
+    });
+
+    it("Test previous long values deleted", () => {
+        const columnsCache: Map<string, number> = new Map();
+        columnsCache.set("id", 400);
+        columnsCache.set("value", 400);
+
+        const rows = [
+            { 0: "42", 1: shortValue },
+            { 0: "43", 1: shortValue },
+        ];
+        const columns = [ createColumn("id", "0"), createColumn("value", "1") ];
+        const resultSet = createResultSet("abc", rows, columns);
+
+        updateWideColumnsCache(columnsCache, resultSet);
+
+        expect(columnsCache.has("id")).toBeFalsy();
+        expect(columnsCache.has("value")).toBeFalsy();
+    });
+
+    it("Test with long value", () => {
+        const columnsCache: Map<string, number> = new Map();
+
+        const rows = [
+            { 0: "42", 1: longValue, 2: shortValue },
+            { 0: "43", 1: shortValue, 2: shortValue },
+        ];
+        const columns = [
+            createColumn("id", "0"),
+            createColumn("long_value", "1"),
+            createColumn("short_value", "2"),
+        ];
+        const resultSet = createResultSet("abc", rows, columns);
+
+        updateWideColumnsCache(columnsCache, resultSet);
+
+        expect(columnsCache.has("id")).toBeFalsy();
+        expect(columnsCache.has("long_value")).toBeTruthy();
+        expect(columnsCache.has("short_value")).toBeFalsy();
     });
 });

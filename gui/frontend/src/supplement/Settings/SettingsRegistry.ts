@@ -310,6 +310,15 @@ export const registerSettings = (): void => {
         false,
     );
     registerSetting(
+        "editor.wideColumnsWidth",
+        "Fixed Width for Wide Columns",
+        "Fixed width (in pixels) applied to wide columns containing long unbroken text," +
+        " preventing excessive stretching. Requires reopening the view to take effect.",
+        "number",
+        800,
+        false,
+    );
+    registerSetting(
         "editor.showHidden",
         "Invisible Characters",
         "When set to true, normally invisible characters (like space or tabulator) are displayed too.",

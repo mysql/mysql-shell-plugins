@@ -180,7 +180,7 @@ class WebSession {
     public saveProfile(): void {
         // Notify the shell for profile updates
         ShellInterface.users.updateProfile(this.shellProfile).then(() => {
-            if (!appParameters.embedded) {
+            if (!appParameters.inExtension) {
                 void ui.showInformationMessage("Profile updated successfully.", {});
             }
         }).catch((reason) => {
