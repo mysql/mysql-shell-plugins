@@ -317,8 +317,8 @@ export class E2ETests {
         console.log(`[OK] Installed MLE component`);
 
         // INSTALL THE REST SCHEMA ON SERVER 3307
-        this.runShellCommand([connUriRest, "--sql", "-e", "CONFIGURE REST METADATA;"]);
-        console.log(`[OK] Installed REST METADATA schema`);
+        this.runShellCommand([connUriRest, "--py", "-e", "mrs.configure()"]);
+        console.log(`[OK] MRS was configured successfully`);
 
         // CREATE THE OCI CONFIG FILE
         const ociConfigFile = `
@@ -602,6 +602,51 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
     };
 
     /**
+     * Disables the tests or test suites that are defined in the DISABLE_TESTS env variable.
+     * Multiple tests/test suites to disable should be separated by the "," character
+     */
+    public static disableTests = async (): Promise<void> => {
+        const testsDir = join(process.cwd(), "tests");
+
+        let testsToDisable: string[];
+
+        if (process.env.DISABLE_TESTS.includes(",")) {
+            testsToDisable = process.env.DISABLE_TESTS.split(",");
+        } else {
+            testsToDisable = [process.env.DISABLE_TESTS];
+        }
+
+        const files = await fs.readdir(testsDir);
+
+        for (const test of testsToDisable) {
+
+            for (const file of files) {
+                const testFile = (await fs.readFile(join(testsDir, file))).toString();
+                let toReplace = "";
+
+                if (testFile.match(new RegExp(test)) !== null) {
+
+                    let log = `[INF] `;
+
+                    if (testFile.match(new RegExp(`describe\\("${test}"`)) !== null) {
+                        log += `Test Suite`;
+                        toReplace = testFile.replace(`describe("${test}"`, `describe.skip("${test}"`);
+                    } else if (testFile.match(new RegExp(`it\\("${test}"`)) !== null) {
+                        log += `Test`;
+                        toReplace = testFile.replace(`it("${test}"`, `it.skip("${test}"`);
+                    } else {
+                        continue;
+                    }
+
+                    await fs.writeFile(join(testsDir, file), toReplace);
+                    console.log(`${log} "${test}" on file "${file}" was DISABLED`);
+                    break;
+                }
+            }
+        }
+    };
+
+    /**
      * Executes the tests
      * @param testSuite The test suite name
      * @param log True to log the test results to a file, false otherwise
@@ -849,5 +894,4 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         // copy to workspace
         await fs.copyFile(`${testSuite.name}_output_tab.log`, join(process.cwd(), `${testSuite.name}_output_tab.log`));
     };
-
 }

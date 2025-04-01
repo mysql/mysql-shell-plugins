@@ -26,5 +26,16 @@
 
 import { E2ETests } from "../lib/E2ETests";
 
-E2ETests.setTestSuite("DB");
-E2ETests.setup();
+const main = async () => {
+    E2ETests.setTestSuite("DB");
+
+    if (process.env.DISABLE_TESTS) {
+        await E2ETests.disableTests();
+    }
+
+    E2ETests.setup();
+};
+
+void main().catch((err) => {
+    throw err;
+});

@@ -39,6 +39,11 @@ const main = async () => {
         for (const testSuite of E2ETests.testSuites) {
             await E2ETests.installTestResources(testSuite);
             await E2ETests.installExtension(testSuite);
+
+            if (process.env.DISABLE_TESTS) {
+                await E2ETests.disableTests();
+            }
+
             E2ETests.setup();
             E2ETests.generateWebCertificate();
             results.push(await E2ETests.run(testSuite));

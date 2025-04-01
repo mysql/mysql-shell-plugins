@@ -613,7 +613,7 @@ describe("NOTEBOOKS", () => {
 
     });
 
-    xdescribe("HeatWave Chat", () => {
+    describe("HeatWave Chat", () => {
 
         const heatWaveConn: interfaces.IDBConnection = {
             dbType: "MySQL",

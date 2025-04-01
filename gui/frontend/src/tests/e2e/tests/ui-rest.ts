@@ -980,15 +980,29 @@ describe("MYSQL REST SERVICE", () => {
             try {
                 let browserTabs: string[] = [];
                 const addressTable = service3.restSchemas![0].restObjects![1].restObjectPath;
-                await dbTreeSection.openContextMenuAndSelect(addressTable!, constants.openRESTObjReqPathInBrowser);
-                await driver.wait(async () => {
-                    browserTabs = await driver.getAllWindowHandles();
-                    if (browserTabs.length > 1) {
-                        await driver.switchTo().window(browserTabs[1]);
 
-                        return true;
+                await driver.wait(async () => {
+                    try {
+                        await dbTreeSection.openContextMenuAndSelect(addressTable!,
+                            constants.openRESTObjReqPathInBrowser);
+
+                        browserTabs = await driver.getAllWindowHandles();
+
+                        if (browserTabs.length > 1) {
+                            await driver.switchTo().window(browserTabs[1]);
+                            await driver.getCurrentUrl();
+
+                            return true;
+                        }
+                    } catch (e) {
+                        if (e instanceof error.WebDriverError) {
+                            await driver.switchTo().window(browserTabs[0]);
+                        } else {
+                            throw e;
+                        }
                     }
-                }, constants.wait5seconds, "A new tab was not opened to the MRS Documentation");
+
+                }, constants.wait10seconds, "A new tab was not opened to the MRS Documentation");
 
                 const service = service3.servicePath;
                 const sakila = service3.restSchemas![0].settings?.schemaName;

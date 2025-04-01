@@ -261,7 +261,7 @@ def main() -> None:
             raise "Please define environment variable 'OCI_BASTION_USERNAME'"
         if (os.environ["OCI_BASTION_PASSWORD"]) is None:
             raise "Please define environment variable 'OCI_BASTION_PASSWORD'"
-
+        
         executor.add_prerequisite(task_utils.CheckVersionTask("MySQL Shell"))
         executor.add_prerequisite(task_utils.CheckVersionTask("MySQL Server"))
         executor.add_prerequisite(
@@ -298,8 +298,9 @@ def main() -> None:
             executor.environment, tmp_dirname, "2207"))
         executor.add_task(task_utils.InstallMRSSchema(executor.environment, "2207"))
         executor.add_task(task_utils.ClearCredentials(executor.environment))
+        executor.add_task(task_utils.DisableTests)
         executor.add_task(NPMScript(executor.environment, "e2e-tests-run", [f"--maxWorkers={MAX_WORKERS}"]))
-
+        
         if executor.check_prerequisites():
             try:
                 executor.run_tasks()

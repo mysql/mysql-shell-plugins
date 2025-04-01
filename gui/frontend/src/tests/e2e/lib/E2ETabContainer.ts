@@ -111,7 +111,12 @@ export class E2ETabContainer {
      */
     public selectTab = async (name: string | RegExp): Promise<void> => {
         const action = async (): Promise<void> => {
-            await (await this.getTab(name)).click();
+            await driver.wait(async () => {
+                await (await this.getTab(name)).click();
+                const tab = await this.getTab(name);
+
+                return (await tab.getAttribute("class")).includes("selected");
+            }, constants.wait5seconds, `'${name}' was not selected`);
         };
 
         await action().catch(async (e) => {

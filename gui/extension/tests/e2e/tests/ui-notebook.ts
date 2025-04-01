@@ -533,10 +533,12 @@ describe("NOTEBOOKS", () => {
 
     });
 
-    describe("Persistent Notebooks", () => {
+    describe("Persistent Notebooks", function () {
 
         const destFile = `${process.cwd()}/a_test`;
         const notebook = new E2ENotebook();
+
+        this.retries(1);
 
         before(async function () {
             try {
@@ -617,19 +619,24 @@ describe("NOTEBOOKS", () => {
             }, constants.wait1second * 15, "Input path box was not displayed");
 
             await notebook.exists("SELECT VERSION");
-            await Workbench.closeAllEditors();
 
         });
 
         it("Open the Notebook from file with connection", async () => {
 
+            await Workbench.closeAllEditors();
             await driver.wait(Workbench.untilExplorerFolderIsOpened("e2e"), constants.wait1second * 15);
             const e2eTreeSection = new E2EAccordionSection("e2e");
             await e2eTreeSection.openContextMenuAndSelect("a_test.mysql-notebook", constants.openNotebookWithConn);
-            const input = await InputBox.create(constants.wait1second * 5 * 4);
+            const input = await InputBox.create(constants.wait1second * 5);
             await (await input.findQuickPick(globalConn.caption)).select();
-            await (await input.findQuickPick(globalConn.caption)).select();
-            await driver.wait(Workbench.untilTabIsOpened("a_test.mysql-notebook"), constants.wait1second * 5);
+            await (await input.findQuickPick(globalConn.caption)).select()
+                .catch((e) => {
+                    if (!(e instanceof error.ElementNotInteractableError)) {
+                        throw e;
+                    }
+                });
+            await driver.wait(Workbench.untilTabIsOpened("a_test.mysql-notebook"), constants.wait1second * 10);
             await driver.wait(notebook.untilIsOpened(globalConn), constants.wait1second * 15);
             await notebook.exists("SELECT VERSION");
             await Workbench.closeEditor(new RegExp("a_test.mysql-notebook"), true);
@@ -690,7 +697,7 @@ describe("NOTEBOOKS", () => {
 
     });
 
-    describe.skip("HeatWave Chat", () => {
+    describe("HeatWave Chat", () => {
 
         const heatWaveConn: interfaces.IDBConnection = {
             dbType: "MySQL",
