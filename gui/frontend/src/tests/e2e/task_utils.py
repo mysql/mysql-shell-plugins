@@ -747,3 +747,42 @@ class BEServer:
     def stop(self) -> None:
         self.server.kill()
         Logger.success(f"Shell Server: {self.port} has been stopped")
+
+class DisableTests:
+    def clean_up() -> None:
+        """Clean up after task finish"""
+
+    def run() -> None:
+        tests_dir = WORKING_DIR.joinpath("tests")
+
+        if "DISABLE_TESTS" in os.environ:
+            if "," in os.environ["DISABLE_TESTS"]:
+                tests_to_disable = os.environ["DISABLE_TESTS"].split(",")
+            else:
+                tests_to_disable = [os.environ["DISABLE_TESTS"]]
+
+            files = os.listdir(tests_dir)
+
+            for test in tests_to_disable:
+                for file in files:
+                    test_file = pathlib.Path(tests_dir.joinpath(file)).read_text()
+
+                    log = ""
+
+                    if test in test_file:
+                        if f"describe(\"{test}" in test_file:
+                            log += "Test Suite"
+                            to_replace = test_file.replace(f"describe(\"{test}\"", f"describe.skip(\"{test}\"")
+                        elif f"it(\"{test}" in test_file:
+                            log += "Test"
+                            to_replace = test_file.replace(f"it(\"{test}\"", f"it.skip(\"{test}\"")
+                        else:
+                            continue
+                        
+                        f = open(pathlib.Path(tests_dir.joinpath(file)), "w")
+                        f.write(to_replace)
+                        f.close()
+
+                        Logger.info(f"{log} \"{test}\" on file \"{file}\" was DISABLED")
+                        break
+                    
