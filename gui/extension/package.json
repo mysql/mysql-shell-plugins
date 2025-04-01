@@ -158,6 +158,11 @@
                     "default": 120,
                     "description": "Controls the column of the editor to wrap long lines when Code Editor: Word Wrap is `wordWrapColumn` or `bounded`."
                 },
+                "msg.editor.wideColumnsWidth": {
+                    "type": "number",
+                    "default": 800,
+                    "description": "Fixed width (in pixels) applied to wide columns containing long unbroken text, preventing excessive stretching. Requires reopening the view to take effect."
+                },
                 "msg.editor.showHidden": {
                     "type": "boolean",
                     "default": false,

@@ -29,23 +29,8 @@ import { MessageType } from "../../../../../app-logic/general-types.js";
 import { ResultStatus } from "../../../../../components/ResultView/ResultStatus.js";
 import { ResultTabView } from "../../../../../components/ResultView/ResultTabView.js";
 import { Button } from "../../../../../components/ui/Button/Button.js";
-import { IResultSet, IResultSets } from "../../../../../script-execution/index.js";
-import { nextProcessTick, nextRunLoop } from "../../../test-helpers.js";
-
-const createResultSet = (resultId: string): IResultSet => {
-    return {
-        type: "resultSet",
-        resultId,
-        fullTableName: "bar",
-        sql: "baz",
-        updatable: true,
-        columns: [],
-        data: {
-            rows: [],
-            currentPage: 1,
-        },
-    };
-};
+import { IResultSets } from "../../../../../script-execution/index.js";
+import { createResultSet, nextProcessTick, nextRunLoop } from "../../../test-helpers.js";
 
 describe("Result Tabview Tests", (): void => {
 
