@@ -245,6 +245,35 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
+        it("Connect to MySQL database using SSL", async () => {
+            try {
+                sslConn = Object.assign({}, globalConn);
+                sslConn.caption = `e2eSSLConnection`;
+
+                sslConn.ssl = {
+                    mode: "Require and Verify CA",
+                    caPath: join(process.env.SSL_ROOT_FOLDER!, "ca.pem"),
+                    clientCertPath: join(process.env.SSL_ROOT_FOLDER!, "client-cert.pem"),
+                    clientKeyPath: join(process.env.SSL_ROOT_FOLDER!, "client-key.pem"),
+                };
+
+                await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+                await DatabaseConnectionDialog.setConnection(sslConn);
+                const dbConn = dbConnectionOverview.getConnection(sslConn.caption);
+
+                await driver.executeScript("arguments[0].click();", dbConn);
+                const notebook = await new E2ENotebook().untilIsOpened(sslConn);
+                const query = `select * from performance_schema.session_status
+                where variable_name in ("ssl_cipher") and variable_value like "%TLS%";`;
+
+                const result = await notebook.codeEditor.execute(query) as E2ECommandResultGrid;
+                expect(result.status).toMatch(/1 record retrieved/);
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
         it("Connect to SQLite database", async () => {
             try {
                 const sqliteConn = Object.assign({}, globalConn);
@@ -277,35 +306,6 @@ describe("DATABASE CONNECTIONS", () => {
                 const result = await notebook.executeWithButton("SELECT * FROM main.db_connection;",
                     constants.execFullBlockSql) as E2ECommandResultGrid;
                 expect(result.status).toMatch(/OK/);
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
-        });
-
-        it("Connect to MySQL database using SSL", async () => {
-            try {
-                sslConn = Object.assign({}, globalConn);
-                sslConn.caption = `e2eSSLConnection`;
-
-                sslConn.ssl = {
-                    mode: "Require and Verify CA",
-                    caPath: join(process.env.SSL_ROOT_FOLDER!, "ca.pem"),
-                    clientCertPath: join(process.env.SSL_ROOT_FOLDER!, "client-cert.pem"),
-                    clientKeyPath: join(process.env.SSL_ROOT_FOLDER!, "client-key.pem"),
-                };
-
-                await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
-                await DatabaseConnectionDialog.setConnection(sslConn);
-                const dbConn = dbConnectionOverview.getConnection(sslConn.caption);
-
-                await driver.executeScript("arguments[0].click();", dbConn);
-                const notebook = await new E2ENotebook().untilIsOpened(sslConn);
-                const query = `select * from performance_schema.session_status
-                where variable_name in ("ssl_cipher") and variable_value like "%TLS%";`;
-
-                const result = await notebook.codeEditor.execute(query) as E2ECommandResultGrid;
-                expect(result.status).toMatch(/1 record retrieved/);
             } catch (e) {
                 testFailed = true;
                 throw e;

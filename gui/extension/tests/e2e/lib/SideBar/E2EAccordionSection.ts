@@ -30,6 +30,7 @@ import {
     TreeItem,
     Button,
     EditorView,
+    Key,
 } from "vscode-extension-tester";
 import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
 import * as constants from "../constants";
@@ -654,12 +655,19 @@ export class E2EAccordionSection {
 
                         const menu = await treeItem.openContextMenu();
                         const menuItem = await menu.getItem(ctxMenuItems[0].trim());
+
                         const anotherMenu = await menuItem.select();
+
                         if (ctxMenuItems.length > 1) {
                             await (await anotherMenu.getItem(ctxMenuItems[1].trim())).select();
                         }
 
-                        return true;
+                        return driver.wait(until.stalenessOf(menuItem), constants.wait1second * 3)
+                            .then(() => { return true; })
+                            .catch(async () => {
+                                await driver.actions().keyDown(Key.ESCAPE).keyUp(Key.ESCAPE).perform();
+                            });
+
                     } catch (e) {
                         console.log(e);
                     }

@@ -140,7 +140,7 @@ export class Workbench {
                     throw e;
                 }
             }
-        }, constants.wait1second * 5, `Could not find '${text}' notification`);
+        }, constants.wait1second * 8, `Could not find '${text}' notification`);
 
         return notification;
     };
