@@ -46,6 +46,8 @@ import { MrsDbObjectType, MrsObjectKind } from "../../modules/mrs/types.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { uuidBinary16Base64 } from "../../utilities/helpers.js";
+import { IResultSet } from "../../script-execution/index.js";
+import { IColumnInfo } from "../../app-logic/general-types.js";
 
 export const loremIpsum = "Lorem ipsum dolor sit amet, consectetur adipisci elit, " +
     "sed eiusmod tempor incidunt ut labore et dolore magna aliqua.";
@@ -1048,3 +1050,18 @@ export const ignoreSnapshotUuids = (): void => {
     });
 };
 
+export const createResultSet = (resultId: string, rows: IDictionary[] = [],
+    columns: IColumnInfo[] = []): IResultSet => {
+    return {
+        type: "resultSet",
+        resultId,
+        fullTableName: "bar",
+        sql: "baz",
+        updatable: true,
+        columns,
+        data: {
+            rows,
+            currentPage: 1,
+        },
+    };
+};

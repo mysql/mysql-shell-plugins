@@ -90,6 +90,59 @@ export type ResultRowChanges = Array<{
 /** A type describing what was the last keyboard or mouse event before a field editor lost focus. */
 type LastInputType = "mousedown" | "shiftTab" | "tab" | "other";
 
+/**
+ * Retrieves a set of column titles for which at least one cell in the corresponding column
+ * contains a string value with a length equal to or exceeding the specified minimum length.
+ *
+ * @param resultSet - The result set containing rows and columns data.
+ * @param minLength - The minimum string length required for a column to be deemed "wide". Defaults to 300.
+ * @returns A Set containing the titles of columns that satisfy the "wide" criteria.
+ */
+export const getWideColumns = (resultSet: IResultSet, minLength = 300): Set<string> => {
+    const fieldTitles: Map<string, string> = new Map();
+    resultSet.columns.forEach((info) => {
+        fieldTitles.set(info.field, info.title);
+    });
+
+    const wideColumns: Set<string> = new Set();
+
+    resultSet.data.rows.forEach((columnValues) => {
+        for (const indexString in columnValues) {
+            const field = fieldTitles.get(indexString);
+            if (!field || wideColumns.has(field)) {
+                // Once already computed, skip further processing of this field
+                continue;
+            }
+            const val = columnValues[indexString];
+            if (!val || typeof val !== "string" || val.length < minLength) {
+                continue;
+            }
+            wideColumns.add(field);
+        }
+    });
+
+    return wideColumns;
+};
+
+/**
+ * Updates a cache of wide columns with appropriate widths for the result set.
+ *
+ * @param columnsCache - A Map storing column titles and their widths.
+ * @param resultSet - The result set containing rows and columns data.
+ * @param width - The width to assign to wide columns, defaults to 800.
+ */
+export const updateWideColumnsCache = (columnsCache: Map<string, number>, resultSet: IResultSet, width = 800): void => {
+    const wideColumns = getWideColumns(resultSet);
+
+    resultSet.columns.forEach((info) => {
+        if (wideColumns.has(info.title)) {
+            columnsCache.set(info.title, width);
+        } else {
+            columnsCache.delete(info.title);
+        }
+    });
+};
+
 export interface IResultViewProperties extends IComponentProperties {
     /** The result data to show. */
     resultSet: IResultSet;
@@ -153,6 +206,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     #navigating = false;
     #lastInputType: LastInputType = "other";
 
+    #wideColumnsWidth = Settings.get("editor.wideColumnsWidth", 800);
+
     public constructor(props: IResultViewProperties) {
         super(props);
 
@@ -168,6 +223,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
 
         if (this.gridRef.current) {
             const canEdit = Settings.get<boolean>("editor.editOnDoubleClick", true) || editModeActive;
+
+            updateWideColumnsCache(this.columnWidthCache, resultSet, this.#wideColumnsWidth);
             this.#columnDefinitions = this.generateColumnDefinitions(resultSet.columns, editable && canEdit);
 
             void this.gridRef.current.setColumns(this.#columnDefinitions).then(() => {
@@ -311,9 +368,11 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
     public updateColumns(columns: IColumnInfo[]): Promise<void> {
         // istanbul ignore next
         if (this.gridRef.current) {
-            const { editable, editModeActive } = this.props;
+            const { editable, editModeActive, resultSet } = this.props;
 
             const canEdit = Settings.get<boolean>("editor.editOnDoubleClick", true) || editModeActive;
+
+            updateWideColumnsCache(this.columnWidthCache, resultSet, this.#wideColumnsWidth);
             this.#columnDefinitions = this.generateColumnDefinitions(columns, editable && canEdit);
 
             return this.gridRef.current.setColumns(this.#columnDefinitions);
