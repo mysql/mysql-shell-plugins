@@ -1076,8 +1076,9 @@ Execute \\help or \\? for help;`;
 
         await context.clearResult();
         if (savedState.mleEnabled) {
-            // Reset MLE console log.
-            void await connection.backend.execute("SELECT mle_session_reset()");
+            // Reset MLE console log
+            const param = context.dbVersion >= 90300 ? "'output'" : "";
+            void await connection.backend.execute(`SELECT mle_session_reset(${param})`);
         }
 
         let statementCount = 0;
