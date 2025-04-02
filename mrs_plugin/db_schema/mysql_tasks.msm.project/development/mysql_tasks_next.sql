@@ -84,38 +84,7 @@ CREATE TABLE IF NOT EXISTS `mysql_tasks`.`config` (
   `id` TINYINT NOT NULL DEFAULT 1,
   `data` JSON NULL,
   PRIMARY KEY (`id`),
-  CONSTRAINT Config_OnlyOneRow CHECK (id = 1),
-  CONSTRAINT Config_CheckJsonSchema CHECK (
-    JSON_SCHEMA_VALID('{
-        "type": "object",
-        "properties": {
-            "limits": {
-                "type": "object",
-                "properties": {
-                    "maximumPreparedStmtAsyncTasks": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "exclusiveMinimum": true,
-                        "maximum": 128
-                    },
-                    "maximumHeatwaveLoadingTasks": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "exclusiveMinimum": true,
-                        "maximum": 10
-                    }
-                },
-                "required": [
-                  "maximumPreparedStmtAsyncTasks",
-                  "maximumHeatwaveLoadingTasks"
-                ],
-                "additionalProperties": false
-            }
-        },
-        "required": ["limits"],
-        "additionalProperties": false
-    }', data)
-  )
+  CONSTRAINT Config_OnlyOneRow CHECK (id = 1)
 ) ENGINE = InnoDB;
 
 INSERT IGNORE INTO `mysql_tasks`.`config` (`id`, `data`)
@@ -188,10 +157,10 @@ CREATE TABLE IF NOT EXISTS `mysql_tasks`.`task_log_impl` (
   `progress` SMALLINT NOT NULL DEFAULT 0 COMMENT 'A task completion progress
       between 0 and 100%.',
   `status` ENUM('SCHEDULED', 'RUNNING', 'COMPLETED', 'ERROR', 'CANCELLED')
-      DEFAULT 'SCHEDULED' COMMENT 'The task state. When created, a task goes
-      in the SCHEDULED state, then is moved to RUNNING and finally COMPLETED
-      state. In case of ERROR, the task status becomes ERROR. When task is
-      killed by the user or by the garbage collector, it gets the
+      NOT NULL DEFAULT 'SCHEDULED' COMMENT 'The task state. When created, a task
+      goes in the SCHEDULED state, then is moved to RUNNING and finally
+      COMPLETED state. In case of ERROR, the task status becomes ERROR. When
+      task is killed by the user or by the garbage collector, it gets the
       CANCELLED status.',
   PRIMARY KEY(`id`),
   INDEX(`mysql_user`(192)),
@@ -247,14 +216,12 @@ BEGIN
             "properties": {
                 "maximumPreparedStmtAsyncTasks": {
                     "type": "integer",
-                    "minimum": 0,
-                    "exclusiveMinimum": true,
+                    "minimum": 1,
                     "maximum": 128
                 },
                 "maximumHeatwaveLoadingTasks": {
                     "type": "integer",
-                    "minimum": 0,
-                    "exclusiveMinimum": true,
+                    "minimum": 1,
                     "maximum": 10
                 }
             },
@@ -1126,10 +1093,10 @@ BEGIN
   RETURN (
     SELECT COUNT(*) FROM (
       SELECT t.id
-      FROM task_impl t
-      JOIN task_log_impl tl ON t.id = tl.task_id
+      FROM `mysql_tasks`.`task_impl` t
+      JOIN `mysql_tasks`.`task_log_impl` tl ON t.id = tl.task_id
       WHERE t.server_uuid = UUID_TO_BIN(@@server_uuid, 1)
-      AND (t.task_type = task_type OR task_type IS NULL)
+      AND (t.task_type = `task_type` OR `task_type` IS NULL)
       GROUP BY t.id
       HAVING SUM(tl.status IN ('COMPLETED', 'ERROR', 'CANCELLED')) = 0
         AND SUM(tl.status IN ('RUNNING', 'SCHEDULED')) > 0
@@ -1612,7 +1579,6 @@ SQL SECURITY INVOKER
 COMMENT '
   Kills a task.
   Parameters:
-  - app_user_id: application user id to filter the list on
   - id_or_alias: UUID or a unique alias of the task to kill.'
 BEGIN
   CALL `mysql_tasks`.`kill_app_task`(NULL, id_or_alias);
@@ -1754,7 +1720,8 @@ BEGIN
 
   -- user() and current_user() are different when invoked through an event
   IF (SELECT COUNT(*)>0 FROM `performance_schema`.`events_statements_current`
-      WHERE thread_id=PS_CURRENT_THREAD_ID() AND object_type="EVENT") THEN
+      WHERE thread_id=PS_CURRENT_THREAD_ID() AND
+      event_name="statement/scheduler/event") THEN
     SIGNAL SQLSTATE '45000'
       SET MESSAGE_TEXT = 'Invoking the procedure from a MySQL EVENT is not '
         'supported';
@@ -2266,6 +2233,9 @@ BEGIN
     SET @mysql_tasks_initiated = initiate_name;
   END IF;
 
+  CREATE TEMPORARY TABLE `mysql_tasks`.`processlist_snapshot` AS
+  SELECT * FROM `performance_schema`.`processlist`;
+
   -- Find active tasks without alive process
   SELECT JSON_ARRAYAGG(
     BIN_TO_UUID(t.id, 1)),
@@ -2284,12 +2254,12 @@ BEGIN
   ON tl.log_time = tl2.max_log_time
   JOIN `mysql_tasks`.`task_impl` t
   ON tl.task_id = t.id
-  LEFT JOIN `performance_schema`.`processlist` p ON t.connection_id = p.id
+  LEFT JOIN `mysql_tasks`.`processlist_snapshot` p ON t.connection_id = p.id
   WHERE
-    (tl.status = 'RUNNING' OR tl.status = 'SCHEDULED')
+    (tl.status <=> 'RUNNING' OR tl.status <=> 'SCHEDULED')
     AND p.id IS NULL
-    AND t.server_uuid = UUID_TO_BIN(@@server_uuid, 1)
-    AND t.data->'$.mysqlMetadata.autoGc' = true;
+    AND t.server_uuid <=> UUID_TO_BIN(@@server_uuid, 1)
+    AND t.data->'$.mysqlMetadata.autoGc' <=> true;
 
   WHILE i < JSON_LENGTH(json_id) DO
     SET curr_id = JSON_UNQUOTE(JSON_EXTRACT(json_id, CONCAT('$[', i, ']')));
@@ -2338,7 +2308,7 @@ BEGIN
       t.data->'$.mysqlMetadata.events[0]') =
       CONCAT(mysql_tasks.quote_identifier(
         ise.EVENT_SCHEMA), '.', mysql_tasks.quote_identifier(ise.EVENT_NAME))
-  LEFT JOIN `performance_schema`.`processlist` p ON t.connection_id = p.id
+  LEFT JOIN `mysql_tasks`.`processlist_snapshot` p ON t.connection_id = p.id
   WHERE
     (tl.status <> 'RUNNING' AND tl.status <> 'SCHEDULED')
     AND p.id IS NULL
@@ -2362,6 +2332,8 @@ BEGIN
 
     SELECT i + 1 INTO i;
   END WHILE;
+
+  DROP TABLE `mysql_tasks`.`processlist_snapshot`;
 
   IF @mysql_tasks_initiated <=> initiate_name THEN
     SET @mysql_tasks_initiated = NULL;

@@ -4,6 +4,41 @@
 
 DELIMITER %%
 
+-- -----------------------------------------------------------------------------
+-- CREATE PROCEDURE `mysql_rest_service_metadata`.`msm_instance_demoted`
+-- -----------------------------------------------------------------------------
+
+DROP PROCEDURE IF EXISTS `mysql_rest_service_metadata`.`msm_instance_demoted`%%
+CREATE PROCEDURE `mysql_rest_service_metadata`.`msm_instance_demoted`()
+SQL SECURITY DEFINER
+COMMENT 'This procedure needs to be called on a primary instance in an InnoDB Cluster setup before it is demoted to
+    become a secondary.'
+BEGIN
+    ALTER EVENT `mysql_rest_service_metadata`.`delete_old_audit_log_entries` DISABLE;
+    ALTER EVENT `mysql_rest_service_metadata`.`router_status_cleanup` DISABLE;
+    ALTER EVENT `mysql_rest_service_metadata`.`router_log_cleanup` DISABLE;
+END%%
+
+-- -----------------------------------------------------------------------------
+-- CREATE PROCEDURE `mysql_rest_service_metadata`.`msm_instance_promoted`
+-- -----------------------------------------------------------------------------
+
+DROP PROCEDURE IF EXISTS `mysql_rest_service_metadata`.`msm_instance_promoted`%%
+CREATE PROCEDURE `mysql_rest_service_metadata`.`msm_instance_promoted`()
+SQL SECURITY DEFINER
+COMMENT 'This procedure needs to be called on an instance in an InnoDB Cluster setup when it is promoted to
+    become the primary.'
+BEGIN
+    ALTER EVENT `mysql_rest_service_metadata`.`delete_old_audit_log_entries` ENABLE;
+    ALTER EVENT `mysql_rest_service_metadata`.`router_status_cleanup` ENABLE;
+    ALTER EVENT `mysql_rest_service_metadata`.`router_log_cleanup` ENABLE;
+END%%
+
+
+-- -----------------------------------------------------------------------------
+-- CREATE FUNCTIONs
+-- -----------------------------------------------------------------------------
+
 DROP FUNCTION IF EXISTS `mysql_rest_service_metadata`.`get_sequence_id`%%
 CREATE FUNCTION `mysql_rest_service_metadata`.`get_sequence_id`() RETURNS BINARY(16) SQL SECURITY INVOKER NOT DETERMINISTIC NO SQL
 RETURN UUID_TO_BIN(UUID(), 1)%%
@@ -59,6 +94,11 @@ BEGIN
     RETURN @valid;
 END%%
 
+
+-- -----------------------------------------------------------------------------
+-- CREATE PROCEDUREs
+-- -----------------------------------------------------------------------------
+
 DROP PROCEDURE IF EXISTS `mysql_rest_service_metadata`.`dump_audit_log`%%
 CREATE PROCEDURE `mysql_rest_service_metadata`.`dump_audit_log`()
 SQL SECURITY DEFINER
@@ -86,13 +126,13 @@ BEGIN
         IF event_count > 0 THEN
             -- Export all audit_log entries that occurred since the last dump
             SET @sql = CONCAT(
-                'SELECT changed_at, id, @@server_uuid AS server_uuid, ',
-                '    schema_name, table_name, dml_type, changed_by, '
-                '    JSON_REPLACE(old_row_data, "$.data.defaultStaticContent", "BINARY_DATA") AS old_row_data, ',
-                '    JSON_REPLACE(new_row_data, "$.data.defaultStaticContent", "BINARY_DATA") AS new_row_data ',
+                'SELECT JSON_OBJECT("changed_at", changed_at, "id", id, "server_uuid", @@server_uuid, ',
+                '    "schema_name", schema_name, "table_name", table_name, "dm_type", dml_type, "changed_by", changed_by, '
+                '    "old_row_data", JSON_REPLACE(old_row_data, "$.data.defaultStaticContent", "BINARY_DATA"), ',
+                '    "new_row_data", JSON_REPLACE(new_row_data, "$.data.defaultStaticContent", "BINARY_DATA")) ',
                 'INTO OUTFILE "', TRIM(TRAILING '/' FROM @@secure_file_priv), '/mrs/mrs_audit_log_',
                 DATE_FORMAT(dump_until, '%Y-%m-%d_%H-%i-%s'),
-                '.log" FIELDS TERMINATED BY "," OPTIONALLY ENCLOSED BY "\\\"" LINES TERMINATED BY "\\\n" ',
+                '.log" LINES TERMINATED BY "\\\n" ',
                 'FROM `mysql_rest_service_metadata`.`audit_log` ',
                 'WHERE `changed_at` BETWEEN CAST("', DATE_FORMAT(dump_from, '%Y-%m-%d %H:%i:%s'), '" AS DATETIME) ',
                 '    AND CAST("', DATE_FORMAT(dump_until, '%Y-%m-%d %H:%i:%s'), '" AS DATETIME) ',
