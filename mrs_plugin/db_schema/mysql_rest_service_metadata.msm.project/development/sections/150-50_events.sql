@@ -4,11 +4,14 @@
 
 DELIMITER %%
 
+-- Create an event to delete old audit_log entries that are older than 14 days
+
 DROP EVENT IF EXISTS `mysql_rest_service_metadata`.`delete_old_audit_log_entries`%%
 CREATE EVENT `mysql_rest_service_metadata`.`delete_old_audit_log_entries`
-ON SCHEDULE EVERY 1 DAY DISABLE
+ON SCHEDULE EVERY 1 DAY ENABLE
 DO BEGIN
-    DELETE FROM `mysql_rest_service_metadata`.`audit_log` WHERE changed_at < TIMESTAMP(DATE_SUB(NOW(), INTERVAL 14 DAY));
+    DELETE FROM `mysql_rest_service_metadata`.`audit_log`
+        WHERE changed_at < NOW() - INTERVAL 14 DAY;
 END%%
 
 -- Create an event to dump the audit log every 15 minutes
