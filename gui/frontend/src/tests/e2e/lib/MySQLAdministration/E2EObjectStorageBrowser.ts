@@ -322,8 +322,8 @@ export class E2EObjectStorageBrowser {
                     .then(() => {
                         isChecked = true;
                     })
-                    .catch((e) => {
-                        console.log(e);
+                    .catch(() => {
+                        // continue
                     });
 
                 if (!isChecked) {

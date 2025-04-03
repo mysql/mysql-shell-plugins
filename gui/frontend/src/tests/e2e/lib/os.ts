@@ -131,7 +131,6 @@ export class Os {
                     return true;
                 }
             } catch (e) {
-                console.log(e);
                 if (!(e instanceof error.JavascriptError)) {
                     throw e;
                 }

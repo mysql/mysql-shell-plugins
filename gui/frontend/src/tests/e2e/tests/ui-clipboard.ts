@@ -42,6 +42,7 @@ import { E2ETabContainer } from "../lib/E2ETabContainer.js";
 import { TestQueue } from "../lib/TestQueue.js";
 import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
 import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
+import { E2ELogger } from "../lib/E2ELogger.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -497,7 +498,7 @@ describe("CLIPBOARD", () => {
                     if (copy.toString() === clipboard!.toString()) {
                         return true;
                     } else {
-                        console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
+                        E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
                     }
                 }, constants.wait3seconds, `Copy all rows failed`);
 
@@ -509,7 +510,7 @@ describe("CLIPBOARD", () => {
                     if (copy.toString() === clipboard!.toString()) {
                         return true;
                     } else {
-                        console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
+                        E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
                     }
                 }, constants.wait3seconds, `Copy all rows with names failed`);
 
@@ -521,7 +522,7 @@ describe("CLIPBOARD", () => {
                     if (copy.toString() === clipboard!.toString()) {
                         return true;
                     } else {
-                        console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
+                        E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
                     }
                 }, constants.wait3seconds, `Copy all rows unquoted failed`);
 
@@ -533,7 +534,7 @@ describe("CLIPBOARD", () => {
                     if (copy.toString() === clipboard!.toString()) {
                         return true;
                     } else {
-                        console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
+                        E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
                     }
                 }, constants.wait3seconds, `Copy all rows with names unquoted failed`);
 
@@ -545,7 +546,7 @@ describe("CLIPBOARD", () => {
                     if (copy.toString() === clipboard!.toString()) {
                         return true;
                     } else {
-                        console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
+                        E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
                     }
                 }, constants.wait3seconds, `Copy all rows with names tab separated failed`);
 
@@ -573,7 +574,7 @@ describe("CLIPBOARD", () => {
                         if (copy.toString().match(new RegExp(clip!.toString()))) {
                             return true;
                         } else {
-                            console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip!.toString()}`);
+                            E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clip!.toString()}`);
                         }
                     }, constants.wait10seconds, "Copy field failed");
 
@@ -584,7 +585,7 @@ describe("CLIPBOARD", () => {
                         if (copy.toString() === clip!.toString()) {
                             return true;
                         } else {
-                            console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip!.toString()}`);
+                            E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clip!.toString()}`);
                         }
                     }, constants.wait10seconds, "Copy field unquoted failed");
 
@@ -617,7 +618,7 @@ describe("CLIPBOARD", () => {
                     if (copy.toString() === clipboard!.toString()) {
                         return true;
                     } else {
-                        console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
+                        E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
                     }
                 }, constants.wait10seconds, `Copy row failed`);
 
@@ -629,7 +630,7 @@ describe("CLIPBOARD", () => {
                     if (copy.toString() === clipboard!.toString()) {
                         return true;
                     } else {
-                        console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
+                        E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
                     }
                 }, constants.wait10seconds, `Copy row with names failed`);
 
@@ -641,7 +642,7 @@ describe("CLIPBOARD", () => {
                     if (copy.toString() === clipboard!.toString()) {
                         return true;
                     } else {
-                        console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
+                        E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
                     }
                 }, constants.wait10seconds, `Copy row unquoted failed`);
 
@@ -653,7 +654,7 @@ describe("CLIPBOARD", () => {
                     if (copy.toString() === clipboard!.toString()) {
                         return true;
                     } else {
-                        console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
+                        E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
                     }
                 }, constants.wait10seconds, `Copy row with names, unquoted failed`);
 
@@ -665,7 +666,7 @@ describe("CLIPBOARD", () => {
                     if (copy.toString() === clipboard!.toString()) {
                         return true;
                     } else {
-                        console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
+                        E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
                     }
                 }, constants.wait10seconds, `Copy row with names, tab separated failed`);
 
@@ -677,7 +678,7 @@ describe("CLIPBOARD", () => {
                     if (copy.toString() === clipboard!.toString()) {
                         return true;
                     } else {
-                        console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
+                        E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard!.toString()}`);
                     }
                 }, constants.wait10seconds, `Copy row, tab separated failed`);
             } catch (e) {
@@ -704,7 +705,7 @@ describe("CLIPBOARD", () => {
                         if (copy.toString().match(new RegExp(clip!.toString()))) {
                             return true;
                         } else {
-                            console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip!.toString()}`);
+                            E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clip!.toString()}`);
                         }
                     }, constants.wait10seconds, "Copy field failed");
 
@@ -715,7 +716,7 @@ describe("CLIPBOARD", () => {
                         if (copy.toString() === clip!.toString()) {
                             return true;
                         } else {
-                            console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip!.toString()}`);
+                            E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clip!.toString()}`);
                         }
                     }, constants.wait10seconds, "Copy field unquoted failed");
 

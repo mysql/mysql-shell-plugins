@@ -34,9 +34,9 @@ import { ConfirmDialog } from "../Dialogs/ConfirmationDialog.js";
 import { E2ECodeEditor } from "../E2ECodeEditor.js";
 import clipboard from "clipboardy";
 import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
+import { E2ELogger } from "../../E2ELogger";
 
 const gridLocator = locator.notebook.codeEditor.editor.result.grid;
-
 const toolbarLocator = locator.notebook.codeEditor.editor.result.toolbar;
 
 /**
@@ -649,7 +649,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             const fieldValues = clipboard.readSync().split(",");
 
             if (fieldValues.length !== allColumns.length) {
-                console.log(`clipboard: ${fieldValues.join(",")}`);
+                E2ELogger.debug(`clipboard: ${fieldValues.join(",")}`);
             } else {
                 return true;
             }
@@ -682,7 +682,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             const columns = clipboard.readSync().split("\n");
 
             if (columns[0].split(",").length !== allColumns.length) {
-                console.log(`clipboard: ${columns.join("\n")}`);
+                E2ELogger.debug(`clipboard: ${columns.join("\n")}`);
             } else {
                 return true;
             }
@@ -721,7 +721,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             const fieldValues = clipboard.readSync().split(",");
 
             if (fieldValues.length !== allColumns.length) {
-                console.log(`clipboard: ${fieldValues.join(",")}`);
+                E2ELogger.debug(`clipboard: ${fieldValues.join(",")}`);
             } else {
                 return true;
             }
@@ -754,7 +754,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             const fieldValues = clipboard.readSync().split("\n");
 
             if (fieldValues[0].split(",").length !== allColumns.length) {
-                console.log(`clipboard: ${fieldValues.join("\n")}`);
+                E2ELogger.debug(`clipboard: ${fieldValues.join("\n")}`);
             } else {
                 return true;
             }
@@ -791,7 +791,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             const fieldValues = clipboard.readSync().split("\n");
 
             if (fieldValues[0].split("\t").length !== allColumns.length) {
-                console.log(`clipboard: ${fieldValues.join("\n")}`);
+                E2ELogger.debug(`clipboard: ${fieldValues.join("\n")}`);
             } else {
                 return true;
             }
@@ -828,7 +828,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
             const fieldValues = clipboard.readSync().split("\t");
 
             if (fieldValues.length !== allColumns.length) {
-                console.log(`clipboard: ${fieldValues.join("\t")}`);
+                E2ELogger.debug(`clipboard: ${fieldValues.join("\t")}`);
             } else {
                 return true;
             }
@@ -861,7 +861,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                 constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRows);
 
             if (Os.getClipboardContent()[0].split(",").length !== allColumns.length) {
-                console.log(`clipboard: ${Os.getClipboardContent().toString()}`);
+                E2ELogger.debug(`clipboard: ${Os.getClipboardContent().toString()}`);
             } else {
                 return true;
             }
@@ -900,7 +900,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                 constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNames);
 
             if (Os.getClipboardContent()[0].split(",").length !== allColumns.length) {
-                console.log(`clipboard: ${Os.getClipboardContent().toString()}`);
+                E2ELogger.debug(`clipboard: ${Os.getClipboardContent().toString()}`);
             } else {
                 return true;
             }
@@ -939,7 +939,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                 constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsUnquoted);
 
             if (Os.getClipboardContent()[0].split(",").length !== allColumns.length) {
-                console.log(`clipboard: ${Os.getClipboardContent().toString()}`);
+                E2ELogger.debug(`clipboard: ${Os.getClipboardContent().toString()}`);
             } else {
                 return true;
             }
@@ -978,7 +978,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                 constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNamesUnquoted);
 
             if (Os.getClipboardContent()[0].split(",").length !== allColumns.length) {
-                console.log(`clipboard: ${Os.getClipboardContent().toString()}`);
+                E2ELogger.debug(`clipboard: ${Os.getClipboardContent().toString()}`);
             } else {
                 return true;
             }
@@ -1017,7 +1017,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                 constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsWithNamesTabSeparated);
 
             if (Os.getClipboardContent()[0].split("\t").length !== allColumns.length) {
-                console.log(`clipboard: ${Os.getClipboardContent().toString()}`);
+                E2ELogger.debug(`clipboard: ${Os.getClipboardContent().toString()}`);
             } else {
                 return true;
             }
@@ -1056,7 +1056,7 @@ export class E2ECommandResultGrid extends E2ECommandResult {
                 constants.resultGridContextMenu.copyMultipleRowsContextMenu.copyAllRowsTabSeparated);
 
             if (Os.getClipboardContent()[0].split("\t").length !== allColumns.length) {
-                console.log(`clipboard: ${Os.getClipboardContent().toString()}`);
+                E2ELogger.debug(`clipboard: ${Os.getClipboardContent().toString()}`);
             } else {
                 return true;
             }

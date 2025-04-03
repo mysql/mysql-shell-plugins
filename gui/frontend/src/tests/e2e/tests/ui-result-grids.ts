@@ -38,6 +38,7 @@ import { ConfirmDialog } from "../lib/Dialogs/ConfirmationDialog.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
 import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
 import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
+import { E2ELogger } from "../lib/E2ELogger.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -276,7 +277,7 @@ describe("RESULT GRIDS", () => {
                             constants.wait3seconds);
                     } catch (e) {
                         if (String(e).includes("Could not find tooltip for cell")) {
-                            console.log(`Another try for ${tableColumns[i]}...`);
+                            E2ELogger.info(`Another try for ${tableColumns[i]}...`);
                             await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
                             const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
                             await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
@@ -317,7 +318,7 @@ describe("RESULT GRIDS", () => {
                             constants.wait3seconds);
                     } catch (e) {
                         if (String(e).includes("Could not find tooltip for cell")) {
-                            console.log(`Another try for ${tableColumns[i]}...`);
+                            E2ELogger.info(`Another try for ${tableColumns[i]}...`);
                             await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
                             const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
                             await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
@@ -357,7 +358,7 @@ describe("RESULT GRIDS", () => {
                             constants.wait3seconds);
                     } catch (e) {
                         if (String(e).includes("Could not find tooltip for cell")) {
-                            console.log(`Another try for ${tableColumns[i]}...`);
+                            E2ELogger.info(`Another try for ${tableColumns[i]}...`);
                             await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
                             const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
                             await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
@@ -397,7 +398,7 @@ describe("RESULT GRIDS", () => {
                             constants.wait3seconds);
                     } catch (e) {
                         if (String(e).includes("Could not find tooltip for cell")) {
-                            console.log(`Another try for ${tableColumns[i]}...`);
+                            E2ELogger.info(`Another try for ${tableColumns[i]}...`);
                             await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
                             const cellText = await result.getCellValue(rowNumber, tableColumns[i]);
                             await driver.wait(result.untilCellTooltipIs(rowNumber, tableColumns[i], cellText),
@@ -426,7 +427,7 @@ describe("RESULT GRIDS", () => {
                     await driver.wait(result.untilCellTooltipIs(rowNumber, column, cellText), constants.wait3seconds);
                 } catch (e) {
                     if (String(e).includes("Could not find tooltip for cell")) {
-                        console.log(`Another try for ${column}...`);
+                        E2ELogger.info(`Another try for ${column}...`);
                         await result.reduceCellWidth(rowNumber, column, "js");
                         const cellText = await result.getCellValue(rowNumber, column);
                         await driver.wait(result.untilCellTooltipIs(rowNumber, column, cellText),

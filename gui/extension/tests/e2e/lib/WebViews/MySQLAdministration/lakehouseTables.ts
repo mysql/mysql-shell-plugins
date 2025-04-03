@@ -195,8 +195,6 @@ export class LakehouseTables {
 
                 return true;
             } catch (e) {
-                console.log(e);
-                console.log("-----");
                 if (!errors.isStaleError(e as Error)) {
                     throw e;
                 }

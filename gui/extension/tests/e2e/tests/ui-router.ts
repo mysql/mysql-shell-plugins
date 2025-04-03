@@ -220,7 +220,6 @@ describe("Router", () => {
     });
 
     it("Get object data", async () => {
-        console.log(`fetching: ${baseUrl}${crudObject.restObjectPath}`);
         response = await fetch(`${baseUrl}${crudObject.restObjectPath}`);
         const data = await response.json();
         expect(response.ok, `response should be OK`).to.be.true;

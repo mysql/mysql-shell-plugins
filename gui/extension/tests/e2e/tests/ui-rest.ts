@@ -44,6 +44,7 @@ import { RestSchemaDialog } from "../lib/WebViews/Dialogs/RestSchemaDialog";
 import { RestObjectDialog } from "../lib/WebViews/Dialogs/RestObjectDialog";
 import { AuthenticationAppDialog } from "../lib/WebViews/Dialogs/AuthenticationAppDialog";
 import { RestUserDialog } from "../lib/WebViews/Dialogs/RestUserDialog";
+import { E2ELogger } from "../lib/E2ELogger";
 
 const sakilaRestSchema: interfaces.IRestSchema = {
     restSchemaPath: `/sakila`,
@@ -236,7 +237,7 @@ describe("MySQL REST Service", () => {
                 if (clipboard.readSync()
                     .match(regex) === null) {
 
-                    console.log(`[DEBUG] clipboard content: ${clipboard.readSync()}`);
+                    E2ELogger.debug(`clipboard content: ${clipboard.readSync()}`);
                     await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
                         [constants.copyToClipboard, constants.copyCreateServiceStatement],
                         constants.restServiceCtxMenu);
@@ -266,7 +267,7 @@ describe("MySQL REST Service", () => {
                     clipboardContent.match(regexObject) === null
                 ) {
 
-                    console.log(`[DEBUG] clipboard content: ${clipboardContent}`);
+                    E2ELogger.debug(`clipboard content: ${clipboardContent}`);
                     await dbTreeSection.openContextMenuAndSelect(service1.servicePath,
                         [constants.copyToClipboard, constants.copyCreateServiceStatementAll],
                         constants.restServiceCtxMenu);
@@ -541,7 +542,7 @@ describe("MySQL REST Service", () => {
                 if (clipboard.readSync()
                     .match(regexSchema) === null) {
 
-                    console.log(`[DEBUG] clipboard content: ${clipboard.readSync()}`);
+                    E2ELogger.debug(`clipboard content: ${clipboard.readSync()}`);
                     await dbTreeSection.openContextMenuAndSelect(treeSchema,
                         [constants.copyToClipboard, constants.copyCreateSchemaStatement],
                         constants.restSchemaCtxMenu);
@@ -570,7 +571,7 @@ describe("MySQL REST Service", () => {
                     clipboardContent.match(regexObject) === null
                 ) {
 
-                    console.log(`[DEBUG] clipboard content: ${clipboardContent}`);
+                    E2ELogger.debug(`clipboard content: ${clipboardContent}`);
                     await dbTreeSection.openContextMenuAndSelect(treeSchema,
                         [constants.copyToClipboard, constants.copyCreateSchemaStatementAll],
                         constants.restSchemaCtxMenu);
@@ -847,7 +848,7 @@ describe("MySQL REST Service", () => {
                 if (clipboard.readSync()
                     .match(regexObject) === null) {
 
-                    console.log(`[DEBUG] clipboard content: ${clipboard.readSync()}`);
+                    E2ELogger.debug(`clipboard content: ${clipboard.readSync()}`);
                     await dbTreeSection.openContextMenuAndSelect(objectTreeName,
                         [constants.copyToClipboard, constants.createStatement], constants.restObjCtxMenu);
 
@@ -879,7 +880,7 @@ describe("MySQL REST Service", () => {
             await driver.wait(Workbench
                 .untilNotificationExists(`The REST Database Object has been dumped successfully`),
                 constants.wait1second * 5);
-            console.log(`Dumped to: ${destDumpTable}.mrs.json`);
+            E2ELogger.info(`Dumped to: ${destDumpTable}.mrs.json`);
             await fs.access(`${destDumpTable}.mrs.json`);
 
         });
@@ -903,7 +904,7 @@ describe("MySQL REST Service", () => {
                 if (clipboard.readSync()
                     .match(new RegExp(url)) === null) {
 
-                    console.log(`[DEBUG] clipboard content: ${clipboard.readSync()}`);
+                    E2ELogger.debug(`clipboard content: ${clipboard.readSync()}`);
                     await dbTreeSection.openContextMenuAndSelect(treeActor,
                         [constants.copyToClipboard, constants.restObjectRequestPath], constants.restObjCtxMenu);
                     await driver.wait(Workbench
@@ -1251,7 +1252,7 @@ describe("MySQL REST Service", () => {
                 if (clipboard.readSync()
                     .match(regex) === null) {
 
-                    console.log(`[DEBUG] clipboard content: ${clipboard.readSync()}`);
+                    E2ELogger.debug(`clipboard content: ${clipboard.readSync()}`);
                     await dbTreeSection.openContextMenuAndSelect(service4.authenticationApps[0].name,
                         [constants.copyToClipboard, constants.createStatement], constants.restAppCtxMenu1);
 
@@ -1275,7 +1276,7 @@ describe("MySQL REST Service", () => {
 
                 if (clipboardContent.match(regex) === null) {
 
-                    console.log(`[DEBUG] clipboard content: ${clipboardContent}`);
+                    E2ELogger.debug(`clipboard content: ${clipboardContent}`);
                     await dbTreeSection.openContextMenuAndSelect(service4.authenticationApps[0].name,
                         [constants.copyToClipboard, constants.createStatementIncludingAllObjects],
                         constants.restAppCtxMenu1);
@@ -1576,7 +1577,7 @@ describe("MySQL REST Service", () => {
                 if (clipboard.readSync()
                     .match(regex) === null) {
 
-                    console.log(`[DEBUG] clipboard content: ${clipboard.readSync()}`);
+                    E2ELogger.debug(`clipboard content: ${clipboard.readSync()}`);
                     await dbTreeSection.openContextMenuAndSelect(service5.authenticationApps[0].user[0].username,
                         [constants.copyToClipboard, constants.createStatement], constants.restUserCtxMenu);
 
@@ -1601,7 +1602,7 @@ describe("MySQL REST Service", () => {
 
                 if (clipboardContent.match(regex) === null && clipboardContent.match(/GRANT REST ROLE/)) {
 
-                    console.log(`[DEBUG] clipboard content: ${clipboardContent}`);
+                    E2ELogger.debug(`clipboard content: ${clipboardContent}`);
                     await dbTreeSection.openContextMenuAndSelect(service5.authenticationApps[0].user[0].username,
                         [constants.copyToClipboard, constants.createStatementIncludingAllObjects],
                         constants.restUserCtxMenu);

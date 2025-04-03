@@ -33,6 +33,7 @@ import { Workbench } from "./Workbench";
 import * as constants from "./constants";
 import * as locator from "./locators";
 import * as interfaces from "./interfaces";
+import { E2ELogger } from "./E2ELogger";
 export let driver: WebDriver;
 export let browser: VSBrowser;
 
@@ -162,7 +163,7 @@ export class Misc {
                 if (String(e).match(/(target frame detached|DevToolsActivePort)/) === null) {
                     throw e;
                 } else {
-                    console.log("Retrying the browser creation...");
+                    E2ELogger.info("Retrying the browser creation...");
                 }
 
                 counter++;

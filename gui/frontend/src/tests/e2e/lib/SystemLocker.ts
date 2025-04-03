@@ -27,6 +27,7 @@ import { mkdirSync, rmdirSync, writeFileSync, existsSync, appendFileSync } from 
 import { join } from "path";
 import { driver } from "./driver.js";
 import * as constants from "./constants.js";
+import { E2ELogger } from "./E2ELogger.js";
 
 /**
  * This class locks the testing system by creating a folder in the file system.
@@ -53,9 +54,7 @@ export class SystemLocker {
 
                 return true;
             } catch (e) {
-                console.log(e);
-
-                return false;
+                E2ELogger.error(String(e));
             }
         }, timeout, "Could not lock the system");
     };
