@@ -52,6 +52,7 @@ import { E2EMySQLAdministration } from "../lib/WebViews/MySQLAdministration/E2EM
 import { E2ECommandResultGrid } from "../lib/WebViews/CommandResults/E2ECommandResultGrid";
 import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
 import { PasswordDialog } from "../lib/WebViews/Dialogs/PasswordDialog.js";
+import { E2ELogger } from "../lib/E2ELogger";
 
 describe("DATABASE CONNECTIONS", () => {
 
@@ -171,7 +172,7 @@ describe("DATABASE CONNECTIONS", () => {
                     }
                 }, constants.wait1second * 20, "Restarting the internal MySQL Shell server went wrong");
             } finally {
-                console.log("<<<<MySQLSH Logs>>>>");
+                E2ELogger.info("<<<<MySQLSH Logs>>>>");
                 await Os.writeMySQLshLogs();
             }
 
@@ -1541,7 +1542,7 @@ describe("DATABASE CONNECTIONS", () => {
                         .schema, [constants.copyToClipboard,
                         constants.copyToClipboardName], constants.schemaCtxMenu);
                     await Workbench.getNotification("The name was copied to the system clipboard");
-                    console.log(`clipboard content: ${clipboard.readSync()}`);
+                    E2ELogger.debug(`clipboard content: ${clipboard.readSync()}`);
 
                     return clipboard.readSync() === (globalConn.basic as interfaces.IConnBasicMySQL).schema;
                 } catch (e) {
@@ -1557,7 +1558,7 @@ describe("DATABASE CONNECTIONS", () => {
                         .schema, [constants.copyToClipboard,
                         constants.copyToClipboardStat], constants.schemaCtxMenu);
                     await Workbench.getNotification("The create script was copied to the system clipboard");
-                    console.log(`clipboard content: ${clipboard.readSync()}`);
+                    E2ELogger.debug(`clipboard content: ${clipboard.readSync()}`);
 
                     return clipboard.readSync().includes("CREATE DATABASE");
                 } catch (e) {
@@ -1597,7 +1598,7 @@ describe("DATABASE CONNECTIONS", () => {
                     await dbTreeSection.openContextMenuAndSelect("actor", [constants.copyToClipboard,
                     constants.copyToClipboardName], constants.dbObjectCtxMenu);
                     await Workbench.getNotification("The name was copied to the system clipboard");
-                    console.log(`clipboard content: ${clipboard.readSync()}`);
+                    E2ELogger.debug(`clipboard content: ${clipboard.readSync()}`);
 
                     return clipboard.readSync() === "actor";
                 } catch (e) {
@@ -1612,7 +1613,7 @@ describe("DATABASE CONNECTIONS", () => {
                     await dbTreeSection.openContextMenuAndSelect("actor", [constants.copyToClipboard,
                     constants.copyToClipboardStat], constants.dbObjectCtxMenu);
                     await Workbench.getNotification("The create script was copied to the system clipboard");
-                    console.log(`clipboard content: ${clipboard.readSync()}`);
+                    E2ELogger.debug(`clipboard content: ${clipboard.readSync()}`);
 
                     return clipboard.readSync().includes("idx_actor_last_name");
                 } catch (e) {
@@ -1662,7 +1663,7 @@ describe("DATABASE CONNECTIONS", () => {
                     await dbTreeSection.openContextMenuAndSelect(testView, [constants.copyToClipboard,
                     constants.copyToClipboardName], constants.dbObjectCtxMenu);
                     await Workbench.getNotification("The name was copied to the system clipboard");
-                    console.log(`clipboard content: ${clipboard.readSync()}`);
+                    E2ELogger.debug(`clipboard content: ${clipboard.readSync()}`);
 
                     return clipboard.readSync() === testView;
                 } catch (e) {
@@ -1677,7 +1678,7 @@ describe("DATABASE CONNECTIONS", () => {
                     await dbTreeSection.openContextMenuAndSelect(testView, [constants.copyToClipboard,
                     constants.copyToClipboardStat], constants.dbObjectCtxMenu);
                     await Workbench.getNotification("The create script was copied to the system clipboard");
-                    console.log(`clipboard content: ${clipboard.readSync()}`);
+                    E2ELogger.debug(`clipboard content: ${clipboard.readSync()}`);
 
                     return clipboard.readSync().includes("DEFINER VIEW");
                 } catch (e) {

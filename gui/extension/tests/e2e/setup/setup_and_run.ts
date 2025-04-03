@@ -26,6 +26,7 @@
 import { existsSync } from "fs";
 import { join } from "path";
 import { E2ETests } from "../lib/E2ETests";
+import { E2ELogger } from "../lib/E2ELogger";
 
 const results: number[] = [];
 
@@ -66,13 +67,13 @@ const main = async () => {
                     `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
                 ]);
 
-                console.log("[OK] Killed MySQL sandbox instance successfully");
+                E2ELogger.success("Killed MySQL sandbox instance successfully");
             } catch (e) {
                 if (!String(e).includes("Unable to find pid file")) {
                     // eslint-disable-next-line no-unsafe-finally
                     throw e;
                 }
-                console.log("[OK] MySQL PID file not found. Continuing...");
+                E2ELogger.success("MySQL PID file not found. Continuing...");
             }
 
             E2ETests.runShellCommand([
@@ -82,7 +83,7 @@ const main = async () => {
                 E2ETests.mysqlPort,
                 `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
             ]);
-            console.log("[OK] Deleted MySQL sandbox instance successfully");
+            E2ELogger.success("Deleted MySQL sandbox instance successfully");
         }
 
         if (existsSync(join(E2ETests.mysqlSandboxDir, E2ETests.mysqlPortRest))) {
@@ -96,13 +97,13 @@ const main = async () => {
                     `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
                 ]);
 
-                console.log("[OK] Killed MySQL sandbox instance successfully for REST instance");
+                E2ELogger.success("Killed MySQL sandbox instance successfully for REST instance");
             } catch (e) {
                 if (!String(e).includes("Unable to find pid file")) {
                     // eslint-disable-next-line no-unsafe-finally
                     throw e;
                 }
-                console.log("[OK] MySQL PID file not found for REST instance. Continuing...");
+                E2ELogger.success("MySQL PID file not found for REST instance. Continuing...");
             }
 
             E2ETests.runShellCommand([
@@ -112,7 +113,7 @@ const main = async () => {
                 E2ETests.mysqlPortRest,
                 `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
             ]);
-            console.log("[OK] Deleted MySQL sandbox instance successfully for REST instance");
+            E2ELogger.success("Deleted MySQL sandbox instance successfully for REST instance");
         }
 
         E2ETests.generateReport();

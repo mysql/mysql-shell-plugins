@@ -34,6 +34,7 @@ import {
 import { get } from "https";
 import { ExTester } from "vscode-extension-tester";
 import { IE2ECli, IE2ETestSuite } from "./interfaces";
+import { E2ELogger } from "./E2ELogger";
 
 /**
  * This class aggregates the functions that are used on the tests setup script
@@ -112,7 +113,7 @@ export class E2ETests {
             this.setTestSuite(testSuiteName);
         }
 
-        console.log(`[OK] Read test suites: ${this.testSuites.map((item) => {
+        E2ELogger.success(`Read test suites: ${this.testSuites.map((item) => {
             return item.name;
         }).toString()}`);
     };
@@ -220,25 +221,26 @@ export class E2ETests {
                                 file.close();
                             });
                         });
-                    console.log(`[OK] Downloaded VSCode (ARM64) for ${testSuite.name} test suite`);
+
+                    E2ELogger.success(`Downloaded VSCode (ARM64) for ${testSuite.name} test suite`);
                 } else {
                     await testSuite.exTester.downloadCode(process.env.CODE_VERSION);
-                    console.log(`[OK] Downloaded VSCode for ${testSuite.name} test suite`);
+                    E2ELogger.success(`Downloaded VSCode for ${testSuite.name} test suite`);
                 }
             } else {
                 await testSuite.exTester.downloadCode(process.env.CODE_VERSION);
-                console.log(`[OK] Downloaded VSCode for ${testSuite.name} test suite`);
+                E2ELogger.success(`Downloaded VSCode for ${testSuite.name} test suite`);
             }
 
         } else {
-            console.log(`[OK] Found VSCode for ${testSuite.name} test suite`);
+            E2ELogger.success(`Found VSCode for ${testSuite.name} test suite`);
         }
 
         if (!this.existsChromedriver(testSuite)) {
             await testSuite.exTester.downloadChromeDriver(process.env.CODE_VERSION);
-            console.log(`[OK] Downloaded Chromedriver for ${testSuite.name} test suite`);
+            E2ELogger.success(`Downloaded Chromedriver for ${testSuite.name} test suite`);
         } else {
-            console.log(`[OK] Found Chromedriver for ${testSuite.name} test suite`);
+            E2ELogger.success(`Found Chromedriver for ${testSuite.name} test suite`);
         }
 
     };
@@ -261,7 +263,7 @@ export class E2ETests {
             `--password=${process.env.DBROOTPASSWORD}`,
             `--sandbox-dir=${this.mysqlSandboxDir}`,
         ]);
-        console.log(`[OK] MySQL Sandbox instance deployed successfully on port ${this.mysqlPort}`);
+        E2ELogger.success(`MySQL Sandbox instance deployed successfully on port ${this.mysqlPort}`);
 
         this.runShellCommand([
             "--",
@@ -272,7 +274,7 @@ export class E2ETests {
             `--sandbox-dir=${this.mysqlSandboxDir}`,
         ]);
 
-        console.log(`[OK] MySQL Sandbox REST instance deployed successfully on port ${this.mysqlPortRest}`);
+        E2ELogger.success(`MySQL Sandbox REST instance deployed successfully on port ${this.mysqlPortRest}`);
 
         // RUN SQL CONFIGURATIONS
         const feSqlFiles = join("..", "..", "..", "..", "gui", "frontend", "src", "tests", "e2e", "sql");
@@ -293,32 +295,32 @@ export class E2ETests {
         });
 
         this.runShellCommand([connUri, "--file", sakilaSchema[0]]);
-        console.log(`[OK] Installed sakila schema successfully`);
+        E2ELogger.success(`Installed sakila schema successfully`);
 
         for (const file of sqlFiles) {
             if (!file.includes("sakila")) {
                 this.runShellCommand([connUri, "--file", file]);
-                console.log(`[OK] Executed SQL file ${file} successfully`);
+                E2ELogger.success(`Executed SQL file ${file} successfully`);
             }
         }
 
         this.runShellCommand([connUriRest, "--file", sakilaSchema[0]]);
-        console.log(`[OK] Installed sakila schema successfully on REST instance`);
+        E2ELogger.success(`Installed sakila schema successfully on REST instance`);
 
         for (const file of sqlFiles) {
             if (file.includes("users") || file.includes("world")) {
                 this.runShellCommand([connUriRest, "--file", file]);
-                console.log(`[OK] Executed SQL file ${file} successfully on REST instance`);
+                E2ELogger.success(`Executed SQL file ${file} successfully on REST instance`);
             }
         }
 
         // INSTALL MLE ON SERVER 3308
         this.runShellCommand([connUri, "--sql", "-e", `INSTALL COMPONENT "file://component_mle";`]);
-        console.log(`[OK] Installed MLE component`);
+        E2ELogger.success(`Installed MLE component`);
 
         // INSTALL THE REST SCHEMA ON SERVER 3307
         this.runShellCommand([connUriRest, "--py", "-e", "mrs.configure()"]);
-        console.log(`[OK] MRS was configured successfully`);
+        E2ELogger.success(`MRS was configured successfully`);
 
         // CREATE THE OCI CONFIG FILE
         const ociConfigFile = `
@@ -338,13 +340,13 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         `;
 
         writeFileSync(join(process.cwd(), "config"), ociConfigFile);
-        console.log("[OK] OCI Configuration file created successfully");
+        E2ELogger.success("OCI Configuration file created successfully");
 
         // CONVERT LIB TS FILES TO JS
         const npm = platform() !== "win32" ? "npm" : "npm.cmd";
         this.runCommand(npm, ["run", "e2e-tests-tsc"]);
-        console.log("[OK] TS files converted to JS successfully");
-        console.log("[OK] Setup finished !");
+        E2ELogger.success("TS files converted to JS successfully");
+        E2ELogger.success("Setup finished !");
     };
 
     /**
@@ -377,7 +379,7 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         const maxPort = 6000;
 
         process.env.MYSQLSH_GUI_CUSTOM_PORT = `${Math.floor(Math.random() * (maxPort - minPort + 1) + minPort)}`;
-        console.log(`[OK] MYSQLSH_GUI_CUSTOM_PORT is ${process.env.MYSQLSH_GUI_CUSTOM_PORT}`);
+        E2ELogger.success(`MYSQLSH_GUI_CUSTOM_PORT is ${process.env.MYSQLSH_GUI_CUSTOM_PORT}`);
 
         // TRUNCATE THE MYSQL SHELL LOG FILE
         const mysqlshLog = join(process.env.TEST_RESOURCES_PATH, `mysqlsh-${testSuite.name}`, "mysqlsh.log");
@@ -413,11 +415,11 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         // (ON WINDOWS/MACOS, THERE IS A NATIVE DIALOG THAT THIS SCRIPT CAN'T INTERACT WITH)
         if (platform() === "linux") {
             this.runShellCommand(["--js", "-e", "gui.core.removeShellWebCertificate()"]);
-            console.log("[OK] Web Certificates removed");
+            E2ELogger.success("Web Certificates removed");
             this.runShellCommand(["--js", "-e", "gui.core.installShellWebCertificate()"]);
-            console.log("[OK] Web Certificate installed successfully");
+            E2ELogger.success("Web Certificate installed successfully");
         } else {
-            console.log(`[INF] It is only possible to generate the Web Certificates automatically for linux`);
+            E2ELogger.info(`It is only possible to generate the Web Certificates automatically for linux`);
         }
     };
 
@@ -445,7 +447,7 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
                     throw new Error(error);
                 } else {
                     webCertificatesPath = webCertificatesPath || webCertificatesGuiPath;
-                    console.log(`[OK] Web certificates found at ${webCertificatesPath}`);
+                    E2ELogger.success(`Web certificates found at ${webCertificatesPath}`);
                 }
                 break;
             }
@@ -463,7 +465,7 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
                     throw new Error(error);
                 } else {
                     webCertificatesPath = webCertificatesPath || webCertificatesGuiPath;
-                    console.log(`[OK] Web certificates found at ${webCertificatesPath}`);
+                    E2ELogger.success(`[OK] Web certificates found at ${webCertificatesPath}`);
                 }
                 break;
             }
@@ -479,7 +481,7 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
             mkdirSync(configFolder);
             writeFileSync(join(configFolder, "mysqlsh.log"), "");
             mkdirSync(join(configFolder, "plugin_data", "gui_plugin"), { recursive: true });
-            console.log(`[OK] Created config folder for ${testSuite.name} test suite`);
+            E2ELogger.success(`Created config folder for ${testSuite.name} test suite`);
         }
 
         const webCerts = join(configFolder, "plugin_data", "gui_plugin", "web_certs");
@@ -492,13 +494,13 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
             }
 
             symlinkSync(webCertificatesPath, webCerts);
-            console.log(`[OK] Web Certificates symlink created for ${testSuite.name} test suite`);
+            E2ELogger.success(`Web Certificates symlink created for ${testSuite.name} test suite`);
         } else {
             if (!existsSync(webCerts)) {
                 cpSync(webCertificatesPath, webCerts, { recursive: true });
-                console.log(`[OK] Copied web_certs folder for ${testSuite.name} test suite`);
+                E2ELogger.success(`[OK] Copied web_certs folder for ${testSuite.name} test suite`);
             } else {
-                console.log(`[OK] Found web_certs folder for ${testSuite.name} test suite`);
+                E2ELogger.success(`Found web_certs folder for ${testSuite.name} test suite`);
             }
         }
     };
@@ -519,9 +521,9 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
 
         for (const error of errorMatches) {
             if (result.toString().match(error) !== null) {
-                console.log(`[WRN] Extension NOT loaded: ${error.toString()}`);
-                console.log(result.toString());
-                console.log("-----");
+                E2ELogger.warning(`Extension NOT loaded: ${error.toString()}`);
+                E2ELogger.debug(result.toString());
+                console.debug("-----");
 
                 return true;
             }
@@ -553,7 +555,7 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
             "-o",
             "mergeReport.json",
         ].concat(reportFiles));
-        console.log("[OK] Test reports merged successfully");
+        E2ELogger.success("Test reports merged successfully");
 
         this.runCommand(npm, [
             "run",
@@ -563,7 +565,7 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
             "finalReport",
             "mergeReport.json",
         ]);
-        console.log("[OK] Test report generated successfully");
+        E2ELogger.success("Test report generated successfully");
     };
 
     /**
@@ -578,7 +580,7 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
 
         if (existsSync(testSuiteSource.extensionDir)) {
             cpSync(testSuiteSource.extensionDir, testSuite.extensionDir, { recursive: true });
-            console.log(`[OK] Copied the extension from ${testSuiteSource.name} suite to ${testSuite.name} suite`);
+            E2ELogger.success(`Copied the extension from ${testSuiteSource.name} suite to ${testSuite.name} suite`);
         } else {
             throw new Error(`Please install the extension for ${testSuite.name} test suite`);
         }
@@ -597,7 +599,7 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         if (cliArguments.extensionPath) {
             await testSuite.exTester.installVsix({ vsixFile: cliArguments.extensionPath });
         } else {
-            console.log(`[INF] Skipping extension installation for ${testSuite.name} test suite`);
+            E2ELogger.info(`Skipping extension installation for ${testSuite.name} test suite`);
         }
     };
 
@@ -639,7 +641,7 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
                     }
 
                     await fs.writeFile(join(testsDir, file), toReplace);
-                    console.log(`${log} "${test}" on file "${file}" was DISABLED`);
+                    E2ELogger.info(`${log} "${test}" on file "${file}" was DISABLED`);
                     break;
                 }
             }
@@ -654,7 +656,7 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
      */
     private static executeTests = async (testSuite: IE2ETestSuite, log: boolean): Promise<number> => {
 
-        console.log(`[INF] Running tests for ${testSuite.name.toUpperCase()} suite...`);
+        E2ELogger.info(`Running tests for ${testSuite.name.toUpperCase()} suite...`);
         process.env.NODE_ENV = "test";
         const defaultStdoutWrite = process.stdout.write.bind(process.stdout);
 
@@ -681,8 +683,8 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
             process.stdout.write = defaultStdoutWrite;
         }
 
-        result === 0 ? console.log(`[INF] Tests PASSED for ${testSuite.name.toUpperCase()} suite.`) :
-            console.log(`[INF] Tests FAILED for ${testSuite.name.toUpperCase()} suite`);
+        result === 0 ? E2ELogger.info(`Tests PASSED for ${testSuite.name.toUpperCase()} suite.`) :
+            E2ELogger.error(`Tests FAILED for ${testSuite.name.toUpperCase()} suite`);
 
         return result;
     };
@@ -793,7 +795,7 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         let output: string;
         try {
             output = this.runCommand("mysql", ["--version"]);
-            console.log(`[OK] Found MySQL Server - ${output}`);
+            E2ELogger.success(`Found MySQL Server - ${output}`);
         } catch (e) {
             throw new Error(`[ERR] MySQL Server was not found.`);
         }

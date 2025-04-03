@@ -42,6 +42,7 @@ import { HeatWaveProfileEditor } from "../lib/WebViews/MySQLAdministration/heatW
 import { TestQueue } from "../lib/TestQueue";
 import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
 import { E2ECommandResultGrid } from "../lib/WebViews/CommandResults/E2ECommandResultGrid";
+import { E2ELogger } from "../lib/E2ELogger";
 
 describe("NOTEBOOKS", () => {
 
@@ -590,7 +591,7 @@ describe("NOTEBOOKS", () => {
 
             await driver.wait(new Condition(`for ${destFile}.mysql-notebook to exist`, async () => {
                 try {
-                    console.log(`accessTest: ${destFile}.mysql-notebook`);
+                    E2ELogger.info(`accessTest: ${destFile}.mysql-notebook`);
                     await fs.access(`${destFile}.mysql-notebook`);
 
                     return true;

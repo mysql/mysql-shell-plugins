@@ -34,6 +34,7 @@ import clipboard from "clipboardy";
 import * as constants from "./constants";
 import { driver, Misc } from "./Misc";
 import * as locators from "./locators";
+import { E2ELogger } from "./E2ELogger";
 
 /**
  * This class aggregates the functions that perform operating system related operations
@@ -341,7 +342,7 @@ export class Os {
      */
     public static writeMySQLshLogs = async (): Promise<void> => {
         const text = await fs.readFile(Os.getMysqlshLog());
-        console.log(text.toString());
+        E2ELogger.debug(text.toString());
     };
 
     /**

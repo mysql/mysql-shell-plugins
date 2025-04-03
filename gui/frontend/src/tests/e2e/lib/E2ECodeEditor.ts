@@ -28,6 +28,7 @@ import { driver } from "./driver.js";
 import { Os } from "./os.js";
 import { E2ECommandResultGrid } from "./CommandResults/E2ECommandResultGrid.js";
 import { E2ECommandResultData } from "./CommandResults/E2ECommandResultData.js";
+import { E2ELogger } from "./E2ELogger.js";
 
 /**
  * This class represents the code editor that exist on notebooks, scripts or shell consoles
@@ -372,12 +373,12 @@ export class E2ECodeEditor {
                     if (results.length > 0) {
                         const lastId = await results[results.length - 1].getAttribute("monaco-view-zone");
                         // eslint-disable-next-line max-len
-                        console.log(`[DEBUG] Could not find result id ${String(resultId)} for ${cmd}. Last id found: ${lastId}`);
+                        E2ELogger.debug(`Could not find result id ${String(resultId)} for ${cmd}. Last id found: ${lastId}`);
                         this.lastResultId = parseInt(lastId.match(/(\d+)/)![1], 10);
 
                         result = results[results.length - 1];
                     } else {
-                        throw new Error("[DEBUG] No results at all were found on the notebook");
+                        throw new Error("No results at all were found on the notebook");
                     }
                 } else {
                     throw e;
