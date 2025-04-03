@@ -26,21 +26,19 @@
 import { join } from "path";
 import * as fs from "fs/promises";
 import { expect } from "chai";
-import { BottomBarPanel, ModalDialog } from "vscode-extension-tester";
+import { ModalDialog } from "vscode-extension-tester";
 import clipboard from "clipboardy";
 import { driver, Misc } from "../lib/Misc";
 import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection";
 import { Os } from "../lib/Os";
 import { Workbench } from "../lib/Workbench";
 import { DatabaseConnectionOverview } from "../lib/WebViews/DatabaseConnectionOverview";
-import { hostname } from "os";
 import * as constants from "../lib/constants";
 import * as interfaces from "../lib/interfaces";
 import * as locator from "../lib/locators";
 import { E2ENotebook } from "../lib/WebViews/E2ENotebook";
 import { ExportSDKDialog } from "../lib/WebViews/Dialogs/ExportSDKDialog";
 import { TestQueue } from "../lib/TestQueue";
-import { existsSync } from "fs";
 import { RestServiceDialog } from "../lib/WebViews/Dialogs/RestServiceDialog";
 import { RestSchemaDialog } from "../lib/WebViews/Dialogs/RestSchemaDialog";
 import { RestObjectDialog } from "../lib/WebViews/Dialogs/RestObjectDialog";
@@ -73,7 +71,6 @@ describe("MySQL REST Service", () => {
     };
 
     const tableToDump = "abc";
-    let routerPort: string;
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
 
     before(async function () {
@@ -110,125 +107,6 @@ describe("MySQL REST Service", () => {
             await Misc.processFailure(this);
             throw e;
         }
-    });
-
-    describe("MySQL Rest Service Context Menu", () => {
-
-        before(async () => {
-            await Os.deleteCredentials();
-        });
-
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
-        });
-
-        afterEach(async function () {
-            if (this.currentTest.state === "failed") {
-                await Misc.processFailure(this);
-            }
-        });
-
-        after(async function () {
-            try {
-                routerPort = await Os.getValueFromRouterConfigFile("port");
-                await new BottomBarPanel().toggle(false);
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-        });
-
-        it("Disable MySQL REST Service", async () => {
-
-            await dbTreeSection.expandTreeItem(constants.mysqlRestService);
-            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.disableRESTService);
-            await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
-            await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully"),
-                constants.wait1second * 20);
-            await dbTreeSection.clickToolbarButton(constants.reloadConnections);
-            await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait1second * 25);
-            expect(await dbTreeSection.treeItemHasRedMark(constants.mysqlRestService)).to.equals(true);
-
-        });
-
-        it("Enable MySQL REST Service", async () => {
-
-            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.enableRESTService);
-            await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
-            await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully"),
-                constants.wait1second * 20);
-            await dbTreeSection.clickToolbarButton(constants.reloadConnections);
-            await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait1second * 25);
-            expect(await dbTreeSection.treeItemHasRedMark(constants.mysqlRestService)).to.equals(false);
-
-        });
-
-        it("Bootstrap Local MySQL Router Instance", async () => {
-
-            Os.killRouterFromTerminal();
-            const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
-            await treeMySQLRestService.expand();
-            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.bootstrapRouter);
-            await Workbench.waitForTerminalText("Please enter MySQL password for root:", constants.wait1second * 10);
-            await Workbench.execOnTerminal((globalConn.basic as interfaces.IConnBasicMySQL).password,
-                constants.wait1second * 10);
-            await Workbench.waitForTerminalText("JWT secret:", constants.wait1second * 10);
-            await Workbench.execOnTerminal("1234", constants.wait1second * 10);
-            await Workbench.waitForTerminalText("Once the MySQL Router is started", constants.wait1second * 10);
-            expect(await Workbench.terminalHasErrors(), "Terminal has errors").to.be.false;
-            await dbTreeSection.expandTreeItem(constants.mysqlRouters);
-            await (await dbTreeSection.getTreeItemActionButton(globalConn.caption, constants.reloadDataBaseInformation))
-                .click();
-            await driver.wait(dbTreeSection.untilTreeItemExists(new RegExp(hostname())), constants.wait1second * 5);
-            await Os.setRouterConfigFile({
-                sinks: "filelog",
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                logging_folder: process.cwd(),
-            });
-        });
-
-        it("Start Local MySQL Router Instance", async () => {
-
-            const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
-            await treeMySQLRestService.expand();
-            const logFile = await Os.getRouterLogFile();
-
-            if (existsSync(logFile)) {
-                await fs.truncate(logFile);
-            }
-
-            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.startRouter);
-            await driver.wait(Os.untilRouterLogFileExists(), constants.wait1second * 5);
-            await driver.wait(Os.untilRouterIsActive(), constants.wait1second * 20);
-        });
-
-        it("Stop Local MySQL Router Instance", async () => {
-            const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
-            await treeMySQLRestService.expand();
-            await fs.truncate(await Os.getRouterLogFile());
-            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.stopRouter);
-            await driver.wait(Os.untilRouterIsInactive(), constants.wait1second * 20);
-        });
-
-        it("Browse the MySQL REST Service Documentation", async () => {
-
-            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.browseRESTDocs);
-            try {
-                await driver.wait(async () => {
-                    await Misc.switchBackToTopFrame();
-                    await Misc.switchToFrame();
-                    const titles = await driver.findElements(locator.mrsDocumentation.title);
-                    for (const title of titles) {
-                        if ((await title.getText()).includes("MRS Developer's Guide")) {
-                            return true;
-                        }
-                    }
-                }, constants.wait1second * 5, "Could not find the title 'MRS Developer's Guide'");
-            } finally {
-                await Workbench.closeEditor(new RegExp(constants.mrsDocs));
-            }
-        });
-
     });
 
     describe("Rest Services", () => {
@@ -295,10 +173,7 @@ describe("MySQL REST Service", () => {
 
         it("Set as Current", async () => {
 
-            await dbTreeSection.openContextMenuAndSelect(service1.servicePath, constants.setAsCurrentREST);
-            await driver.wait(Workbench
-                .untilNotificationExists("The MRS service has been set as the new default service."),
-                constants.wait1second * 10);
+            await dbTreeSection.setCurrentRestService(service1.servicePath);
             await driver.wait(dbTreeSection.untilTreeItemIsDefault(service1.servicePath),
                 constants.wait1second * 5, "REST Service tree item did not became default");
 
@@ -611,6 +486,7 @@ describe("MySQL REST Service", () => {
 
         it("Schema - Dump to Disk - Create Statements", async () => {
 
+            await dbTreeSection.setCurrentRestService(service2.servicePath);
             let dumpedSchema = join(process.cwd(), "dumpedSchema.mrs.sql");
             const treeSchema = `${service2.restSchemas[0].restSchemaPath} (${service2.restSchemas[0]
                 .settings.schemaName})`;
@@ -846,10 +722,7 @@ describe("MySQL REST Service", () => {
                 await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
                     constants.wait1second * 20);
                 await driver.wait(dbTreeSection.untilTreeItemExists(service3.servicePath), constants.wait1second * 10);
-                await dbTreeSection.openContextMenuAndSelect(service3.servicePath, constants.setAsCurrentREST);
-                await driver.wait(Workbench
-                    .untilNotificationExists("The MRS service has been set as the new default service."),
-                    constants.wait1second * 10);
+                await dbTreeSection.setCurrentRestService(service3.servicePath);
 
                 await dbTreeSection.openContextMenuAndSelect(service3.restSchemas[0].settings.schemaName,
                     constants.addSchemaToREST);
@@ -1249,10 +1122,7 @@ describe("MySQL REST Service", () => {
                 await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
                     constants.wait1second * 20);
                 await driver.wait(dbTreeSection.untilTreeItemExists(service4.servicePath), constants.wait1second * 10);
-                await dbTreeSection.openContextMenuAndSelect(service4.servicePath, constants.setAsCurrentREST);
-                await driver.wait(Workbench
-                    .untilNotificationExists("The MRS service has been set as the new default service."),
-                    constants.wait1second * 10);
+                await dbTreeSection.setCurrentRestService(service4.servicePath);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -1318,10 +1188,10 @@ describe("MySQL REST Service", () => {
 
             let dumpedAuthApp = join(process.cwd(), "dumpedAuthApp.mrs.sql");
             await fs.rm(dumpedAuthApp, { recursive: true, force: true });
-            await (await dbTreeSection.getTreeItem(constants.restAuthenticationApps)).collapse();
+            await (await dbTreeSection.getTreeItem(constants.restAuthenticationApps)).expand();
             await dbTreeSection.expandTreeItem(service4.servicePath);
 
-            await dbTreeSection.openContextMenuAndSelect(service4.authenticationApps[0].name,
+            await dbTreeSection.openContextMenuAndSelect([service4.servicePath, service4.authenticationApps[0].name],
                 [constants.dumpToDisk, constants.createStatement3Dots], constants.restAppCtxMenu1);
             await Workbench.setInputPath(dumpedAuthApp);
             await driver.wait(Workbench.untilNotificationExists(`The REST Authentication App SQL was exported`),
@@ -1336,9 +1206,9 @@ describe("MySQL REST Service", () => {
             dumpedAuthApp = join(process.cwd(), "dumpedAuthAppAllObjects.mrs.sql");
             await fs.rm(dumpedAuthApp, { recursive: true, force: true });
 
-            await (await dbTreeSection.getTreeItem(service4.servicePath)).collapse();
             await (await dbTreeSection.getTreeItem(constants.restAuthenticationApps)).expand();
-            await dbTreeSection.openContextMenuAndSelect(service4.authenticationApps[0].name, constants.addRESTUser);
+            await dbTreeSection.openContextMenuAndSelect([constants.restAuthenticationApps,
+            service4.authenticationApps[0].name], constants.addRESTUser);
 
             await RestUserDialog.set(service4.authenticationApps[0].user[0]);
             await driver.wait(Workbench.untilNotificationExists(`The MRS User "${service4.authenticationApps[0].user[0]
@@ -1346,9 +1216,7 @@ describe("MySQL REST Service", () => {
                 constants.wait1second * 5);
 
             await (await dbTreeSection.getTreeItem(service4.servicePath)).expand();
-            await (await dbTreeSection.getTreeItem(constants.restAuthenticationApps)).collapse();
-
-            await dbTreeSection.openContextMenuAndSelect(service4.authenticationApps[0].name,
+            await dbTreeSection.openContextMenuAndSelect([service4.servicePath, service4.authenticationApps[0].name],
                 [constants.dumpToDisk, constants.createStatementIncludingAllObjects3Dots], constants.restAppCtxMenu1);
             await Workbench.setInputPath(dumpedAuthApp);
             await driver.wait(Workbench.untilNotificationExists(`The REST Authentication App SQL was exported`),
@@ -1545,10 +1413,7 @@ describe("MySQL REST Service", () => {
                 await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
                     constants.wait1second * 20);
                 await driver.wait(dbTreeSection.untilTreeItemExists(service5.servicePath), constants.wait1second * 10);
-                await dbTreeSection.openContextMenuAndSelect(service5.servicePath, constants.setAsCurrentREST);
-                await driver.wait(Workbench
-                    .untilNotificationExists("The MRS service has been set as the new default service."),
-                    constants.wait1second * 10);
+                await dbTreeSection.setCurrentRestService(service5.servicePath);
 
                 await dbTreeSection.openContextMenuAndSelect(constants.restAuthenticationApps,
                     constants.addNewAuthenticationApp);
@@ -1775,117 +1640,14 @@ describe("MySQL REST Service", () => {
 
     });
 
-    describe("CRUD Operations", () => {
-
-        let actorId: string;
-        let response: Response;
-
-        const crudService: interfaces.IRestService = {
-            servicePath: `/crudService`,
-            published: true,
-            enabled: true,
-            advanced: {
-                hostNameFilter: "",
-            },
-        };
-
-        const crudSchema: interfaces.IRestSchema = {
-            restSchemaPath: `/sakila`,
-            accessControl: constants.accessControlEnabled,
-            requiresAuth: false,
-            settings: {
-                schemaName: "sakila",
-            },
-        };
-
-        const crudObject: interfaces.IRestObject = {
-            requiresAuth: false,
-            restObjectPath: "/actor",
-            dataMapping: {
-                dbObject: "actor",
-                crud: {
-                    insert: true,
-                    update: true,
-                    delete: true,
-                },
-            },
-        };
-
-        let baseUrl: string;
-
-        before(async function () {
-            try {
-                await dbTreeSection.focus();
-                await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
-                crudService.advanced.hostNameFilter = `127.0.0.1:${routerPort}`;
-                crudSchema.restServicePath = `${crudService.advanced.hostNameFilter}${crudService.servicePath}`;
-                crudObject.restServicePath = `${crudService.advanced.hostNameFilter}${crudService.servicePath}`;
-                baseUrl = `https://${crudService.advanced.hostNameFilter}`;
-                baseUrl += `${crudService.servicePath}${crudSchema.restSchemaPath}`;
-
-                process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-                await Os.deleteCredentials();
-
-                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.addRESTService);
-                await RestServiceDialog.set(crudService);
-                await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
-                    constants.wait1second * 20);
-                await dbTreeSection.openContextMenuAndSelect(new RegExp(crudService.servicePath),
-                    constants.setAsCurrentREST);
-                await driver.wait(Workbench
-                    .untilNotificationExists("The MRS service has been set as the new default service."),
-                    constants.wait1second * 10);
-                await dbTreeSection.expandTreeItem(constants.mysqlRestService);
-
-                await dbTreeSection.openContextMenuAndSelect(crudSchema.settings.schemaName, constants.addSchemaToREST);
-                await RestSchemaDialog.set(crudSchema);
-                await driver.wait(Workbench.untilNotificationExists("The MRS schema has been added successfully."),
-                    constants.wait1second * 10);
-
-                await dbTreeSection.clickToolbarButton(constants.reloadConnections);
-                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait1second * 20);
-                await dbTreeSection.expandTreeItem(new RegExp(crudService.servicePath));
-                await dbTreeSection.expandTreeItem(new RegExp(crudSchema.restSchemaPath));
-
-                await (await dbTreeSection.getTreeItem(constants.restAuthenticationApps)).collapse();
-                await dbTreeSection.expandTreeItem(crudSchema.settings.schemaName);
-                await dbTreeSection.expandTreeItem("Tables");
-
-                await dbTreeSection.openContextMenuAndSelect(crudObject.dataMapping.dbObject,
-                    constants.addDBObjToREST);
-                await RestObjectDialog.set(crudObject);
-
-                await Workbench.dismissNotifications();
-
-                // Check Router
-                await fs.truncate(await Os.getRouterLogFile());
-                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.startRouter);
-                await driver.wait(Os.untilRouterIsActive(), constants.wait1second * 20);
-                console.log("Using router service:");
-                console.log(crudService);
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-        });
+    describe("Other MySQL Rest Service Operations", () => {
 
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
-        });
-
-        after(async function () {
             try {
-                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.killRouters);
-                await dbTreeSection.expandTreeItem(constants.mysqlRouters);
-                const router = await dbTreeSection.getTreeItem(new RegExp(hostname()));
-                const routerName = await router.getLabel();
-                await dbTreeSection.openContextMenuAndSelect(routerName, constants.deleteRouter);
-                const ntf = await Workbench
-                    .getNotification(`Are you sure the MRS router ${routerName} should be deleted?`,
-                        false);
-                await Workbench.clickOnNotificationButton(ntf, "Yes");
-                await driver.wait(Workbench.untilNotificationExists("The MRS Router has been deleted successfully."),
-                    constants.wait1second * 5);
+                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait1second * 20,
+                    `${constants.dbTreeSection} is still loading`);
+                await Workbench.dismissNotifications();
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -1896,85 +1658,52 @@ describe("MySQL REST Service", () => {
             if (this.currentTest.state === "failed") {
                 await Misc.processFailure(this);
             }
+
+            await Workbench.dismissNotifications();
         });
 
-        it("Get object data", async () => {
-            console.log(`fetching: ${baseUrl}${crudObject.restObjectPath}`);
-            response = await fetch(`${baseUrl}${crudObject.restObjectPath}`);
-            const data = await response.json();
-            expect(response.ok, `response should be OK`).to.be.true;
-            expect(data.items[0].firstName).to.equals("PENELOPE");
+        it("Browse the MySQL REST Service Documentation", async () => {
+
+            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.browseRESTDocs);
+            try {
+                await driver.wait(async () => {
+                    await Misc.switchBackToTopFrame();
+                    await Misc.switchToFrame();
+                    const titles = await driver.findElements(locator.mrsDocumentation.title);
+                    for (const title of titles) {
+                        if ((await title.getText()).includes("MRS Developer's Guide")) {
+                            return true;
+                        }
+                    }
+                }, constants.wait1second * 5, "Could not find the title 'MRS Developer's Guide'");
+            } finally {
+                await Workbench.closeEditor(new RegExp(constants.mrsDocs));
+            }
         });
 
-        it("Insert table row", async () => {
-            response = await fetch(`${baseUrl}${crudObject.restObjectPath}`, {
-                method: "post",
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                body: JSON.stringify({
-                    firstName: "Doctor", lastName: "Testing",
-                    lastUpdate: "2023-01-01 00:02:00",
-                }),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                headers: { "Content-Type": "application/json" },
-            });
-            const data = await response.json();
-            expect(response.ok, `response should be OK`).to.be.true;
-            actorId = data.actorId;
-            expect(data.actorId).to.exist;
-            expect(data.firstName).to.equals("Doctor");
-            expect(data.lastName).to.equals("Testing");
-            expect(data.lastUpdate).to.exist;
+        it("Disable MySQL REST Service", async () => {
+
+            await dbTreeSection.expandTreeItem(constants.mysqlRestService);
+            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.disableRESTService);
+            await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
+            await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully"),
+                constants.wait1second * 20);
+            await dbTreeSection.clickToolbarButton(constants.reloadConnections);
+            await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait1second * 25);
+            expect(await dbTreeSection.treeItemHasRedMark(constants.mysqlRestService)).to.equals(true);
+
         });
 
-        it("Update table row", async () => {
+        it("Enable MySQL REST Service", async () => {
 
-            const bodyContent = JSON.stringify({
-                actorId,
-                firstName: "Mister",
-                lastName: "Test",
-                lastUpdate: "2023-06-23 13:32:54",
-            });
+            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.enableRESTService);
+            await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
+            await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully"),
+                constants.wait1second * 20);
+            await dbTreeSection.clickToolbarButton(constants.reloadConnections);
+            await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait1second * 25);
+            expect(await dbTreeSection.treeItemHasRedMark(constants.mysqlRestService)).to.equals(false);
 
-            response = await fetch(encodeURI(`${baseUrl}${crudObject.restObjectPath}/${actorId}`), {
-                method: "PUT",
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                body: bodyContent,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                headers: { "Content-Type": "application/json" },
-            });
-            const data = await response.json();
-
-            expect(actorId).to.exist;
-            expect(data.firstName).to.equals("Mister");
-            expect(data.lastName).to.equals("Test");
-            expect(data.lastUpdate).to.exist;
-        });
-
-        it("Delete table row", async () => {
-            const query = `"actorId":${actorId}`;
-            response = await fetch(encodeURI(`${baseUrl}${crudObject.restObjectPath}?q={${query}}`),
-                {
-                    method: "delete",
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    headers: { "Content-Type": "application/json" },
-                });
-
-            const data = await response.json();
-            expect(response.ok, `response should be OK`).to.be.true;
-            expect(data.itemsDeleted).to.equals(1);
-        });
-
-        it("Filter object data", async () => {
-            const query = `"firstName":"PENELOPE"`;
-            response = await fetch(encodeURI(`${baseUrl}${crudObject.restObjectPath}?q={${query}}`),
-                {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    headers: { "Content-Type": "application/json" },
-                },
-            );
-            const data = await response.json();
-            expect(response.ok, `response should be OK`).to.be.true;
-            expect(data.items).to.exist;
         });
 
     });

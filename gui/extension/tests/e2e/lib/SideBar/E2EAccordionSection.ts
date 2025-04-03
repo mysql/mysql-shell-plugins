@@ -361,7 +361,7 @@ export class E2EAccordionSection {
      * @param type The element type
      * @returns A promise resolving with the element
      */
-    public getTreeItem = async (element: string | RegExp, type?: string): Promise<TreeItem> => {
+    public getTreeItem = async (element: string | RegExp | string[], type?: string): Promise<TreeItem> => {
         let el: TreeItem;
 
         if (!element && !type) {
@@ -396,6 +396,16 @@ export class E2EAccordionSection {
                             if ((await item.getLabel()).match(element) !== null) {
                                 el = item;
                                 break;
+                            }
+                        }
+                    } else if (Array.isArray(element)) {
+                        let parent = await section.findItem(element[0]);
+
+                        for (let i = 1; i <= element.length - 1; i++) {
+                            parent = await parent.findChildItem(element[i]);
+
+                            if (i === element.length - 1) {
+                                el = parent;
                             }
                         }
                     } else {
@@ -609,7 +619,7 @@ export class E2EAccordionSection {
      * @param itemMap The map of the item. On macOS, the item map is required
      */
     public openContextMenuAndSelect = async (
-        element: string | RegExp,
+        element: string | RegExp | string[],
         ctxMenuItem: string | string[],
         itemMap?: Map<string, number>,
     ): Promise<void> => {
@@ -718,57 +728,6 @@ export class E2EAccordionSection {
     };
 
     /**
-     * Configures the Rest Service for a given database connection
-     * @param dbConnection The database connection
-     * @returns A promise resolving when the rest service is configured
-     */
-    public configureMySQLRestService = async (dbConnection: interfaces.IDBConnection): Promise<void> => {
-        await driver.wait(async () => {
-            try {
-
-                await this.openContextMenuAndSelect(dbConnection.caption, constants.configureREST);
-                const ntf = await Workbench.getNotification(
-                    `Do you want to configure this instance for MySQL REST Service Support?`, false);
-                await Workbench.clickOnNotificationButton(ntf, "Yes");
-
-                await driver.wait(async () => {
-                    const passwordWidget = await driver.findElements(locator.inputBox.exists);
-
-                    if (passwordWidget.length > 0) {
-                        const isDisplayed = await passwordWidget[0].getCssValue("display");
-                        if (isDisplayed) {
-                            await Workbench.setInputPassword((dbConnection.basic as interfaces.IConnBasicMySQL)
-                                .password);
-                            await driver.wait(Workbench
-                                .untilNotificationExists("MySQL REST Service configured successfully."),
-                                constants.wait1minute);
-
-                            return true;
-                        }
-                    }
-                    if (await Workbench.existsNotifications(50)) {
-                        if (await Workbench.existsNotification(/MySQL REST Service configured successfully/)) {
-                            return true;
-                        } else {
-                            throw new Error("Something wrong. Check the notification");
-                        }
-                    }
-                }, constants.wait1second * 5, "Password widget was not displayed");
-
-                return true;
-            } catch (e) {
-                console.log("[DEBUG] An error occurred");
-                if (await Workbench.existsNotification(/Error.*/)) {
-                    console.log("Shell session error, retrying...");
-                    await Workbench.dismissNotifications();
-                } else {
-                    throw e;
-                }
-            }
-        }, constants.wait1minute, `There was a problem configuring the MySQL REST Service`);
-    };
-
-    /**
      * Expands a tree
      * @param tree The elements to expand
      * @param timeout The timeout to wait for each element to have children
@@ -796,6 +755,17 @@ export class E2EAccordionSection {
                 }
             }, constants.wait1second * 15, `Could not expand tree ${tree.toString()}`);
         }
+    };
+
+    /**
+     * Set the service as current
+     * @param servicePath The service path (tree item name)
+     */
+    public setCurrentRestService = async (servicePath: string): Promise<void> => {
+        await this.openContextMenuAndSelect(servicePath, constants.setAsCurrentREST);
+        await driver.wait(Workbench
+            .untilNotificationExists("The MRS service has been set as the new default service."),
+            constants.wait1second * 10);
     };
 
 }
