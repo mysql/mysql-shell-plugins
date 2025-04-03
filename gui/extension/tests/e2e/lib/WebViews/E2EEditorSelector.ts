@@ -164,7 +164,6 @@ export class E2EEditorSelector {
 
                 throw new Error(`Could not find editor name ${editorName}`);
             } catch (e) {
-                console.log(e);
                 if (!(e instanceof error.StaleElementReferenceError)) {
                     throw e;
                 }

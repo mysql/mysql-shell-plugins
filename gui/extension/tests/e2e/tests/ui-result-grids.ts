@@ -39,6 +39,7 @@ import * as errors from "../lib/errors";
 import { TestQueue } from "../lib/TestQueue";
 import { E2ECommandResultGrid } from "../lib/WebViews/CommandResults/E2ECommandResultGrid";
 import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
+import { E2ELogger } from "../lib/E2ELogger";
 
 describe("RESULT GRIDS", () => {
 
@@ -636,7 +637,7 @@ describe("RESULT GRIDS", () => {
                 if (copy.toString() === clipboard.toString()) {
                     return true;
                 } else {
-                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
             }, constants.wait1second * 10, `Copy row failed`);
 
@@ -648,7 +649,7 @@ describe("RESULT GRIDS", () => {
                 if (copy.toString() === clipboard.toString()) {
                     return true;
                 } else {
-                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
             }, constants.wait1second * 10, `Copy row with names failed`);
 
@@ -660,7 +661,7 @@ describe("RESULT GRIDS", () => {
                 if (copy.toString() === clipboard.toString()) {
                     return true;
                 } else {
-                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
             }, constants.wait1second * 10, `Copy row unquoted failed`);
 
@@ -672,7 +673,7 @@ describe("RESULT GRIDS", () => {
                 if (copy.toString() === clipboard.toString()) {
                     return true;
                 } else {
-                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
             }, constants.wait1second * 10, `Copy row with names, unquoted failed`);
 
@@ -684,7 +685,7 @@ describe("RESULT GRIDS", () => {
                 if (copy.toString() === clipboard.toString()) {
                     return true;
                 } else {
-                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
             }, constants.wait1second * 10, `Copy row with names, tab separated failed`);
 
@@ -696,7 +697,7 @@ describe("RESULT GRIDS", () => {
                 if (copy.toString() === clipboard.toString()) {
                     return true;
                 } else {
-                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
             }, constants.wait1second * 10, `Copy row, tab separated failed`);
 
@@ -724,7 +725,7 @@ describe("RESULT GRIDS", () => {
                 if (copy.toString() === clipboard.toString()) {
                     return true;
                 } else {
-                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
             }, constants.wait1second * 10, `Copy all rows failed`);
 
@@ -736,7 +737,7 @@ describe("RESULT GRIDS", () => {
                 if (copy.toString() === clipboard.toString()) {
                     return true;
                 } else {
-                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
             }, constants.wait1second * 10, `Copy all rows with names failed`);
 
@@ -748,7 +749,7 @@ describe("RESULT GRIDS", () => {
                 if (copy.toString() === clipboard.toString()) {
                     return true;
                 } else {
-                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
             }, constants.wait1second * 10, `Copy all rows unquoted failed`);
 
@@ -760,7 +761,7 @@ describe("RESULT GRIDS", () => {
                 if (copy.toString() === clipboard.toString()) {
                     return true;
                 } else {
-                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
             }, constants.wait1second * 10, `Copy all rows with names unquoted failed`);
 
@@ -772,7 +773,7 @@ describe("RESULT GRIDS", () => {
                 if (copy.toString() === clipboard.toString()) {
                     return true;
                 } else {
-                    console.log(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
+                    E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clipboard.toString()}`);
                 }
             }, constants.wait1second * 10, `Copy all rows with names tab separated failed`);
 
@@ -802,7 +803,7 @@ describe("RESULT GRIDS", () => {
                         if (copy.toString().match(new RegExp(clip.toString()))) {
                             return true;
                         } else {
-                            console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip.toString()}`);
+                            E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clip.toString()}`);
                         }
                     } catch (e) {
                         // the clipboard can have content with special chars from other tests
@@ -820,7 +821,7 @@ describe("RESULT GRIDS", () => {
                         if (copy.toString() === clip.toString()) {
                             return true;
                         } else {
-                            console.log(`expected: ${copy.toString()}. Got from clipboard: ${clip.toString()}`);
+                            E2ELogger.debug(`expected: ${copy.toString()}. Got from clipboard: ${clip.toString()}`);
                         }
                     } catch (e) {
                         // the clipboard can have content with special chars from other tests
@@ -957,7 +958,7 @@ describe("RESULT GRIDS", () => {
                 } else {
                     await result.reduceCellWidth(rowNumber, tableColumns[i]).catch(async (e) => {
                         if (String(e).includes("The cell width was not reduced")) {
-                            console.log(`Error, trying to reduce with js on '${tableColumns[i]}'`);
+                            E2ELogger.error(`Error, trying to reduce with js on '${tableColumns[i]}'`);
                             await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
                         }
                     });
@@ -989,7 +990,7 @@ describe("RESULT GRIDS", () => {
                 } else {
                     await result.reduceCellWidth(rowNumber, tableColumns[i]).catch(async (e) => {
                         if (String(e).includes("The cell width was not reduced")) {
-                            console.log(`Error, trying to reduce with js on '${tableColumns[i]}'`);
+                            E2ELogger.error(`Error, trying to reduce with js on '${tableColumns[i]}'`);
                             await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
                         }
                     });
@@ -1019,7 +1020,7 @@ describe("RESULT GRIDS", () => {
             for (let i = 1; i <= tableColumns.length - 1; i++) {
                 await result.reduceCellWidth(rowNumber, tableColumns[i]).catch(async (e) => {
                     if (String(e).includes("The cell width was not reduced")) {
-                        console.log(`Error, trying to reduce with js on '${tableColumns[i]}'`);
+                        E2ELogger.error(`Error, trying to reduce with js on '${tableColumns[i]}'`);
                         await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
                     }
                 });
@@ -1051,7 +1052,7 @@ describe("RESULT GRIDS", () => {
                 } else {
                     await result.reduceCellWidth(rowNumber, tableColumns[i]).catch(async (e) => {
                         if (String(e).includes("The cell width was not reduced")) {
-                            console.log(`Error, trying to reduce with js on '${tableColumns[i]}'`);
+                            E2ELogger.error(`Error, trying to reduce with js on '${tableColumns[i]}'`);
                             await result.reduceCellWidth(rowNumber, tableColumns[i], "js");
                         }
                     });

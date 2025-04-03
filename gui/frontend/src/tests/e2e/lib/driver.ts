@@ -26,6 +26,7 @@ import {
     Builder, WebDriver, logging, Browser, error,
 } from "selenium-webdriver";
 import { Options, ServiceBuilder } from "selenium-webdriver/chrome.js";
+import { E2ELogger } from "./E2ELogger.js";
 export let driver: WebDriver;
 
 /**
@@ -90,10 +91,10 @@ export const loadDriver = async (runInBackground: boolean): Promise<void> => {
     } catch (e) {
         if (e instanceof error.SessionNotCreatedError) {
             await new Promise((resolve) => { setTimeout(resolve, constants.wait5seconds); });
-            console.log("Creating again the driver ...");
+            E2ELogger.info("Creating again the driver ...");
             driver = await createDriver();
         } else {
-            console.log("Another error ...");
+            E2ELogger.error("Another error ...");
             throw e;
         }
     }

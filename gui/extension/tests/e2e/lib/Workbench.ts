@@ -38,6 +38,7 @@ import { Misc, driver, browser } from "./Misc";
 import * as errors from "../lib/errors";
 import { E2EToolbar } from "./WebViews/E2EToolbar";
 import { E2EAccordionSection } from "./SideBar/E2EAccordionSection";
+import { E2ELogger } from "./E2ELogger";
 
 export let credentialHelperOk = true;
 
@@ -789,7 +790,7 @@ export class Workbench {
                     `${constants.dbDefaultEditor} tab was not opened`);
                 await Misc.switchToFrame();
                 await driver.wait(this.untilFEisLoaded(), constants.wait1second * 15);
-                console.log("<<<<FE was loaded successfully>>>>>");
+                E2ELogger.debug("<<<<FE was loaded successfully>>>>>");
             };
 
             while (tryNumber <= feLoadTries) {
@@ -806,17 +807,17 @@ export class Workbench {
             }
 
             if (feWasLoaded === false) {
-                console.log("<<<<MYSQLSH Logs>>>>");
+                E2ELogger.debug("<<<<MYSQLSH Logs>>>>");
                 await Os.writeMySQLshLogs();
                 const logs = driver.manage().logs();
-                console.log("<<<<<DEV TOOLS Console log>>>>");
-                console.log(await logs.get(logging.Type.BROWSER));
+                E2ELogger.debug("<<<<<DEV TOOLS Console log>>>>");
+                E2ELogger.debug(String(await logs.get(logging.Type.BROWSER)));
 
                 const text = `Extension was not loaded successfully after ${feLoadTries} tries. Check the logs.`;
                 // one last try to recover
                 const output = (await fs.readFile(await Os.getExtensionLogFile())).toString();
-                console.log("-----OUTPUT LOGS------");
-                console.log(output);
+                E2ELogger.debug("-----OUTPUT LOGS------");
+                E2ELogger.debug(output);
                 throw new Error(text);
             }
 
