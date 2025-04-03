@@ -378,18 +378,7 @@ export class Workbench {
                 if ((await input.getText()).trim() === path) {
                     await input.confirm();
 
-                    let inputBox: InputBox | undefined;
-                    try {
-                        inputBox = await InputBox.create(constants.wait1second);
-
-                        return inputBox.isPassword();
-                    } catch (e) {
-                        if (e instanceof error.TimeoutError) {
-                            return true;
-                        } else {
-                            throw e;
-                        }
-                    }
+                    return true;
                 }
             } catch (e) {
                 if (!String(e).includes("Wait until element is visible")) {
@@ -908,6 +897,5 @@ export class Workbench {
                     return false;
                 });
         });
-
     };
 }
