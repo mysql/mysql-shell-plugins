@@ -48,6 +48,13 @@ export const ociComputeType = "ociCompute";
 export const wait150MilliSeconds = 150;
 export const wait1second = 1000;
 export const wait1minute = 60000;
+export const waitConnectionOpen = 15000;
+export const waitShellOpen = 15000;
+export const waitSectionNoProgressBar = 25000;
+export const waitForTreeItem = 5000;
+export const waitForNotification = 5000;
+export const waitForWebElement = 5000;
+export const waitForExtensionReady = wait1minute * 2;
 export const queuePollTimeout = wait1minute * 5;
 
 // TREE SEARCH LEVELS

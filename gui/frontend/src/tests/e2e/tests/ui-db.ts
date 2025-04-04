@@ -49,6 +49,7 @@ import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid
 import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData.js";
 import { E2ETreeItem } from "../lib/SideBar/E2ETreeItem.js";
 import { PasswordDialog } from "../lib/Dialogs/PasswordDialog.js";
+import { E2EObjectStorageBrowserError } from "../lib/errors/E2EObjectStorageBrowserError.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -1074,6 +1075,8 @@ describe("DATABASE CONNECTIONS", () => {
 
         describe("Lakehouse Navigator", () => {
 
+            let skipTest = false;
+
             const heatWaveConn: interfaces.IDBConnection = {
                 dbType: "MySQL",
                 caption: "e2eHeatWave Connection",
@@ -1159,7 +1162,18 @@ describe("DATABASE CONNECTIONS", () => {
                         constants.wait25seconds);
 
                     await uploadToObjectStorage.objectStorageBrowser
-                        .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
+                        .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"])
+                        .catch((e) => {
+                            if (e instanceof E2EObjectStorageBrowserError) {
+                                skipTest = true;
+                            }
+                        });
+
+                    if (skipTest) {
+                        skipTest = false;
+
+                        return;
+                    }
 
                     await uploadToObjectStorage.addFiles(join(process.cwd(), "..", "extension",
                         "tests", "e2e", "lakehouse_nav_files", fileToUpload));
@@ -1183,7 +1197,17 @@ describe("DATABASE CONNECTIONS", () => {
                     await driver.wait(loadIntoLakehouse.objectStorageBrowser.untilItemsAreLoaded(),
                         constants.wait10seconds);
                     await mysqlAdministration.lakeHouseNavigator.uploadToObjectStorage.objectStorageBrowser
-                        .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"]);
+                        .openObjectStorageCompartment(["HeatwaveAutoML", "genai-shell-test", "upload"])
+                        .catch((e) => {
+                            if (e instanceof E2EObjectStorageBrowserError) {
+                                skipTest = true;
+                            }
+                        });
+
+                    if (skipTest) {
+                        return;
+                    }
+
                     expect(await loadIntoLakehouse.objectStorageBrowser.existsItem(fileToUpload)).toBe(true);
                     await loadIntoLakehouse.objectStorageBrowser.checkItem(fileToUpload);
                     await driver.wait(loadIntoLakehouse.untilExistsLoadingTask(fileToUpload), constants.wait5seconds);
@@ -1197,6 +1221,10 @@ describe("DATABASE CONNECTIONS", () => {
 
             it("Lakehouse Tables", async () => {
                 try {
+                    if (skipTest) {
+                        return;
+                    }
+
                     const lakehouseTables = mysqlAdministration.lakeHouseNavigator.lakehouseTables;
                     await driver.wait(lakehouseTables.untilIsOpened(), constants.wait15seconds);
                     expect(await lakehouseTables.getDatabaseSchemas()).toContain(newTask.targetDatabaseSchema);

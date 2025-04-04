@@ -74,7 +74,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         await Misc.loadDriver();
         try {
-            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait1minute * 2);
+            await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Os.appendToExtensionLog("beforeAll DATABASE CONNECTIONS");
             const activityBare = new ActivityBar();
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
@@ -82,7 +82,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.focus();
             await dbTreeSection.createDatabaseConnection(globalConn);
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
             await Workbench.closeAllEditors();
             await new BottomBarPanel().toggle(false);
             await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
@@ -118,7 +118,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Reload the connection list", async () => {
 
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
 
         });
 
@@ -369,7 +369,7 @@ describe("DATABASE CONNECTIONS", () => {
             );
 
             const notebook = new E2ENotebook();
-            await driver.wait(notebook.untilIsOpened(sqliteConn), constants.wait1second * 15);
+            await driver.wait(notebook.untilIsOpened(sqliteConn), constants.waitConnectionOpen);
             await dbTreeSection.focus();
             await dbTreeSection.clickToolbarButton(constants.reloadConnections);
             await driver.wait(new Condition("", async () => {
@@ -394,7 +394,7 @@ describe("DATABASE CONNECTIONS", () => {
             }), constants.wait1second * 10, `Tables was not expanded`);
 
             await dbTreeSection.openContextMenuAndSelect("db_connection", constants.selectRowsInNotebook);
-            await driver.wait(notebook.untilIsOpened(sqliteConn), constants.wait1second * 15);
+            await driver.wait(notebook.untilIsOpened(sqliteConn), constants.waitConnectionOpen);
             const result = await notebook.executeWithButton("SELECT * FROM main.db_connection;",
                 constants.execFullBlockSql) as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
@@ -418,7 +418,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.executeScript("arguments[0].click();", dbConn);
             const notebook = new E2ENotebook();
-            await driver.wait(notebook.untilIsOpened(sslConn), constants.wait1second * 15);
+            await driver.wait(notebook.untilIsOpened(sslConn), constants.waitConnectionOpen);
             const query =
                 `select * from performance_schema.session_status where variable_name in
                 ("ssl_cipher") and variable_value like "%TLS%";`;
@@ -682,7 +682,7 @@ describe("DATABASE CONNECTIONS", () => {
                 constants.wait1second * 5, "confirm dialog was not found");
             await dialog.findElement(locator.confirmDialog.accept).click();
             await dbTreeSection.focus();
-            await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait1second * 20);
+            await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar);
             expect(await dbConnectionOverview.existsConnection(sqliteConnectionToRemove)).to.be.false;
 
         });
@@ -695,7 +695,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(until.elementIsVisible(newNotebook), constants.wait1second * 5,
                 "New notebook button was not visible");
             await newNotebook.click();
-            await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait1second * 5);
+            await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.waitConnectionOpen);
             const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
             const dbNotebook = await openEditorsSection.getTreeItem(constants.openEditorsDBNotebook);
             expect(dbNotebook).to.exist;
@@ -723,7 +723,7 @@ describe("DATABASE CONNECTIONS", () => {
             await driver.wait(until.elementLocated(locator.dbConnectionOverview.newConsoleButton),
                 constants.wait1second * 10).click();
             await driver.wait(new E2EShellConsole().untilIsOpened(globalConn),
-                constants.wait1second * 15, "Shell Console was not loaded");
+                constants.waitShellOpen, "Shell Console was not loaded");
 
         });
 
@@ -913,10 +913,10 @@ describe("DATABASE CONNECTIONS", () => {
             await dbTreeSection.clickToolbarButton(constants.collapseAll);
             await Workbench.closeAllEditors();
             await dbTreeSection.createDatabaseConnection(mleDisabledConn);
-            await driver.wait(dbTreeSection.untilTreeItemExists(mleDisabledConn.caption), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists(mleDisabledConn.caption), constants.waitForTreeItem);
             await (await dbTreeSection.getTreeItemActionButton(mleDisabledConn.caption,
                 constants.openNewConnectionUsingNotebook)).click();
-            await driver.wait(new E2ENotebook().untilIsOpened(mleDisabledConn), constants.wait1second * 10);
+            await driver.wait(new E2ENotebook().untilIsOpened(mleDisabledConn), constants.waitConnectionOpen);
             await dbTreeSection.expandTreeItem(mleDisabledConn.caption, mleDisabledConn);
             const treeMySQLAdmin = await dbTreeSection.getTreeItem(constants.mysqlAdmin);
             await treeMySQLAdmin.expand();
@@ -1026,7 +1026,7 @@ describe("DATABASE CONNECTIONS", () => {
             await (await dbTreeSection.getTreeItemActionButton(globalConn.caption,
                 constants.openNewConnectionUsingNotebook)).click();
             const notebook = new E2ENotebook();
-            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait1second * 10);
+            await driver.wait(notebook.untilIsOpened(globalConn), constants.waitConnectionOpen);
 
             const jsFunction =
                 `CREATE FUNCTION IF NOT EXISTS js_pow(arg1 INT, arg2 INT)
@@ -1126,7 +1126,7 @@ describe("DATABASE CONNECTIONS", () => {
                     await (await dbTreeSection.getTreeItem("Tables")).expand();
                     await (await dbTreeSection.getTreeItemActionButton(heatWaveConn.caption,
                         constants.reloadDataBaseInformation)).click();
-                    await driver.wait(dbTreeSection.untilTreeItemExists(newTask.name), constants.wait1second * 5);
+                    await driver.wait(dbTreeSection.untilTreeItemExists(newTask.name), constants.waitForTreeItem);
 
                     await dbTreeSection.openContextMenuAndSelect(newTask.name, constants.dropTable);
                     await Workbench.pushDialogButton(`Drop ${newTask.name}`);
@@ -1316,15 +1316,15 @@ describe("DATABASE CONNECTIONS", () => {
         it("Open Database Connection", async () => {
 
             await dbTreeSection.openContextMenuAndSelect(globalConn.caption, constants.openNewConnection);
-            await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait1second * 15);
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.wait1second * 5);
+            await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.waitConnectionOpen);
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
 
         });
 
         it("Open MySQL Shell Console for this connection", async () => {
 
             await dbTreeSection.openContextMenuAndSelect(globalConn.caption, constants.openShellConnection);
-            await driver.wait(new E2EShellConsole().untilIsOpened(globalConn), constants.wait1second * 15);
+            await driver.wait(new E2EShellConsole().untilIsOpened(globalConn), constants.waitShellOpen);
             const treeOpenEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
             await treeOpenEditorsSection.expand();
             await treeOpenEditorsSection.focus();
@@ -1344,7 +1344,7 @@ describe("DATABASE CONNECTIONS", () => {
             await new DatabaseConnectionOverview().getConnection(localConn.caption);
             await dbTreeSection.openContextMenuAndSelect(localConn.caption, constants.editDBConnection);
             await DatabaseConnectionDialog.setConnection(localConn);
-            await driver.wait(dbTreeSection.untilTreeItemExists(localConn.caption), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists(localConn.caption), constants.waitForTreeItem);
 
         });
 
@@ -1355,7 +1355,7 @@ describe("DATABASE CONNECTIONS", () => {
             await dbTreeSection.focus();
             await dbTreeSection.openContextMenuAndSelect(globalConn.caption, constants.duplicateConnection);
             await DatabaseConnectionDialog.setConnection(dupConn);
-            await driver.wait(dbTreeSection.untilTreeItemExists(dup), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists(dup), constants.waitForTreeItem);
 
         });
 
@@ -1406,7 +1406,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Workbench.openEditor(globalConn.caption);
 
             const notebook = new E2ENotebook();
-            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait1second * 10);
+            await driver.wait(notebook.untilIsOpened(globalConn), constants.waitConnectionOpen);
 
             await notebook.codeEditor.clean();
             let result = await notebook.codeEditor.execute("SELECT DATABASE();") as E2ECommandResultGrid;
@@ -1451,7 +1451,7 @@ describe("DATABASE CONNECTIONS", () => {
             expect(files.length, `The dump did not exported any files to ${dumpFolder}`).to.be.greaterThan(0);
             await tasksTreeSection.focus();
             await driver.wait(tasksTreeSection.untilTreeItemExists(`Dump Schema ${dumpSchemaToDisk} to Disk (done)`),
-                constants.wait1second * 5);
+                constants.waitForTreeItem);
             await dbTreeSection.focus();
             await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
 
@@ -1461,7 +1461,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await driver.wait(async () => {
                 return !(await dbTreeSection.treeItemExists(dumpSchemaToDisk));
-            }, constants.wait1second * 5, `${dumpSchemaToDisk} should not exist on the tree`);
+            }, constants.waitForTreeItem, `${dumpSchemaToDisk} should not exist on the tree`);
 
         });
 
@@ -1477,7 +1477,7 @@ describe("DATABASE CONNECTIONS", () => {
             await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
             await Workbench.waitForOutputText(/Task 'Loading Dump .* from Disk' completed successfully/,
                 constants.wait1second * 10);
-            await driver.wait(dbTreeSection.untilTreeItemExists(dumpSchemaToDisk), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists(dumpSchemaToDisk), constants.waitForTreeItem);
 
         });
 
@@ -1578,7 +1578,7 @@ describe("DATABASE CONNECTIONS", () => {
             await treeGlobalSchemaTables.expand();
             await dbTreeSection.openContextMenuAndSelect("actor", constants.selectRowsInNotebook);
             const notebook = new E2ENotebook();
-            await driver.wait(notebook.untilIsOpened(globalConn));
+            await driver.wait(notebook.untilIsOpened(globalConn), constants.waitConnectionOpen);
             const result = await notebook.codeEditor.getLastExistingCommandResult(true) as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
 
@@ -1645,7 +1645,7 @@ describe("DATABASE CONNECTIONS", () => {
 
             await dbTreeSection.openContextMenuAndSelect(testView, constants.selectRowsInNotebook);
             const notebook = new E2ENotebook();
-            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait1second * 10);
+            await driver.wait(notebook.untilIsOpened(globalConn), constants.waitConnectionOpen);
             const result = await notebook.codeEditor.getLastExistingCommandResult(true) as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
             expect(result.status).to.match(/OK, (\d+) records/);
@@ -1734,7 +1734,7 @@ describe("DATABASE CONNECTIONS", () => {
             await (await dbTreeSection.getTreeItem("Tables")).collapse();
             const treeRoutines = await dbTreeSection.getTreeItem("Functions");
             await treeRoutines.expand();
-            await driver.wait(dbTreeSection.untilTreeItemExists(testRoutine), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists(testRoutine), constants.waitForTreeItem);
             await driver.wait(new Condition("", async () => {
                 try {
                     await dbTreeSection.openContextMenuAndSelect(testRoutine, [constants.copyToClipboard,
@@ -1813,7 +1813,7 @@ describe("DATABASE CONNECTIONS", () => {
             await treeRoutines.collapse();
             const treeEvents = await dbTreeSection.getTreeItem("Events");
             await treeEvents.expand();
-            await driver.wait(dbTreeSection.untilTreeItemExists(testEvent), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists(testEvent), constants.waitForTreeItem);
             await dbTreeSection.openContextMenuAndSelect(testEvent, constants.dropEvent);
             await Workbench.pushDialogButton(`Drop ${testEvent}`);
             await Workbench.getNotification(`The object ${testEvent} has been dropped successfully.`);

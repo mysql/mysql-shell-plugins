@@ -29,6 +29,7 @@ import * as locator from "../locators";
 import { E2EToolbar } from "./E2EToolbar";
 import * as errors from "../errors";
 import { Os } from "../Os";
+import { E2EShellConsole } from "./E2EShellConsole";
 
 /**
  * This class represents the database connection overview page, and all its related functions
@@ -155,6 +156,17 @@ export class DatabaseConnectionOverview {
             .keyUp(Os.isMacOs() ? Key.COMMAND : Key.ALT)
             .perform();
 
+    };
+
+    /**
+     * Clicks on the "Open New Shell Session" button and waits for the shell session to be opened
+     */
+    public openNewShellSession = async (): Promise<void> => {
+        await Misc.switchToFrame();
+        await driver.wait(until.elementLocated(locator.dbConnectionOverview.newConsoleButton),
+            constants.waitForWebElement).click();
+        await driver.wait(new E2EShellConsole().untilIsOpened(), constants.waitShellOpen,
+            "Shell Console was not loaded");
     };
 
 }

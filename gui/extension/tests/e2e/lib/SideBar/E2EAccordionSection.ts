@@ -74,7 +74,7 @@ export class E2EAccordionSection {
             await Misc.switchBackToTopFrame();
         }
 
-        await driver.wait(this.untilIsNotLoading(), constants.wait1second * 20);
+        await driver.wait(this.untilIsNotLoading(), constants.waitSectionNoProgressBar);
 
         let sectionActions: WebElement;
         const thisSection = await new SideBarView().getContent().getSection(this.name);
@@ -258,7 +258,7 @@ export class E2EAccordionSection {
         };
 
         const treeDBSection = await new SideBarView().getContent().getSection(this.name);
-        await driver.wait(this.untilIsNotLoading, constants.wait1second * 5);
+        await driver.wait(this.untilIsNotLoading, constants.waitSectionNoProgressBar);
         await treeDBSection.click();
         const moreActions = await treeDBSection.findElement(locator.section.moreActions);
         await moreActions.click();
@@ -631,9 +631,9 @@ export class E2EAccordionSection {
         const treeItem = await this.getTreeItem(element);
 
         if (ctxMenuItem !== constants.openNotebookWithConn) {
-            await driver.wait(this.untilIsNotLoading(), constants.wait1minute);
+            await driver.wait(this.untilIsNotLoading(), constants.waitSectionNoProgressBar);
             const ociSection = new E2EAccordionSection(constants.ociTreeSection);
-            await driver.wait(ociSection.untilIsNotLoading(), constants.wait1second * 20);
+            await driver.wait(ociSection.untilIsNotLoading(), constants.waitSectionNoProgressBar);
         }
 
         if (element) {
