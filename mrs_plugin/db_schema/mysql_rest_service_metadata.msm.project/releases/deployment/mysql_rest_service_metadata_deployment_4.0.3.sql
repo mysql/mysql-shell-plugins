@@ -4905,6 +4905,12 @@ DROP PROCEDURE IF EXISTS `mysql_rest_service_metadata`.`msm_auth_4.0.2_to_4.0.3`
 CREATE PROCEDURE `mysql_rest_service_metadata`.`msm_auth_4.0.2_to_4.0.3`()
 SQL SECURITY INVOKER
 BEGIN
+    -- Change ROLEs and perform the required GRANT/REVOKE statements.
+
+    REVOKE CREATE TEMPORARY TABLES ON *.* FROM 'mysql_rest_service_data_provider';
+
+    GRANT CREATE TEMPORARY TABLES ON `mysql_rest_service_metadata`.*
+        TO 'mysql_rest_service_data_provider';
 END%%
 
 -- -----------------------------------------------------------------------------
@@ -4933,7 +4939,7 @@ BEGIN
     GRANT 'mysql_rest_service_data_provider' TO 'mysql_rest_service_user';
 
     -- Allow the creation of temporary tables
-    GRANT CREATE TEMPORARY TABLES ON *.*
+    GRANT CREATE TEMPORARY TABLES ON `mysql_rest_service_metadata`.*
         TO 'mysql_rest_service_data_provider';
 
     -- `mysql_rest_service_metadata`.`msm_schema_version`

@@ -16,7 +16,7 @@ CREATE ROLE IF NOT EXISTS 'mysql_rest_service_admin', 'mysql_rest_service_schema
 GRANT 'mysql_rest_service_data_provider' TO 'mysql_rest_service_user';
 
 -- Allow the creation of temporary tables
-GRANT CREATE TEMPORARY TABLES ON *.*
+GRANT CREATE TEMPORARY TABLES ON `mysql_rest_service_metadata`.*
     TO 'mysql_rest_service_data_provider';
 
 -- `mysql_rest_service_metadata`.`msm_schema_version`
