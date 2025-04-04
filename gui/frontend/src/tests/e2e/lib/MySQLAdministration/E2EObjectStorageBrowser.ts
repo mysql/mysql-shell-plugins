@@ -284,7 +284,7 @@ export class E2EObjectStorageBrowser {
         }
 
         if (!done) {
-            throw new Error("Tried to open the Object Storage Browser tree 3 times without success");
+            throw new E2EObjectStorageBrowserError();
         }
 
     };

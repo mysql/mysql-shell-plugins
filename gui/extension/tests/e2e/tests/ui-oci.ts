@@ -39,6 +39,7 @@ import * as interfaces from "../lib/interfaces";
 import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
 import { TestQueue } from "../lib/TestQueue";
 import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
+import { DatabaseConnectionOverview } from "../lib/WebViews/DatabaseConnectionOverview";
 
 let ociConfig: interfaces.IOciProfileConfig;
 let ociTree: RegExp[];
@@ -46,7 +47,7 @@ let ociTree: RegExp[];
 describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
     const ociTreeSection = new E2EAccordionSection(constants.ociTreeSection);
-    const opedEditorsTreeSection = new E2EAccordionSection(constants.openEditorsTreeSection);
+    const openEditorsTreeSection = new E2EAccordionSection(constants.openEditorsTreeSection);
     const tasksTreeSection = new E2EAccordionSection(constants.tasksTreeSection);
 
     before(async function () {
@@ -61,7 +62,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait1minute * 2);
+            await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Workbench.toggleBottomBar(false);
             await ociTreeSection.focus();
             await ociTreeSection.clickToolbarButton(constants.configureOci);
@@ -188,15 +189,15 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             await ociTreeSection.openContextMenuAndSelect(ociTree[2], constants.setCurrentCompartment);
             await driver.wait(ociTreeSection.untilTreeItemExists(`${ociTree[2].source} (Default)`),
-                constants.wait1second * 5);
+                constants.waitForTreeItem);
             await driver.wait(ociTreeSection.untilTreeItemIsDefault(`${ociTree[2].source} (Default)`,
             ), constants.wait1second * 5, `${ociTree[2].source} (Default) should be marked as default on the tree`);
 
             const slicedOciTree = ociTree;
             slicedOciTree.splice(0, 2);
             await ociTreeSection.expandTree(slicedOciTree, constants.wait1minute);
-            await opedEditorsTreeSection.expand();
-            await opedEditorsTreeSection.openContextMenuAndSelect(constants.dbConnectionsLabel,
+            await openEditorsTreeSection.expand();
+            await openEditorsTreeSection.openContextMenuAndSelect(constants.dbConnectionsLabel,
                 constants.openNewShellConsole);
             const shellConsole = new E2EShellConsole();
             await driver.wait(shellConsole.untilIsOpened(),
@@ -262,11 +263,11 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
 
             try {
                 await driver.wait(tasksTreeSection.untilTreeItemExists("Start DB System (running)"),
-                    constants.wait1second * 5);
+                    constants.waitForTreeItem);
                 const ntf = await Workbench.getNotification("Are you sure you want to start the DB System", false);
                 await Workbench.clickOnNotificationButton(ntf, "NO");
                 await driver.wait(tasksTreeSection.untilTreeItemExists("Start DB System (done)"),
-                    constants.wait1second * 10);
+                    constants.waitForTreeItem);
             } finally {
                 await ociTreeSection.focus();
             }
@@ -280,11 +281,11 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await tasksTreeSection.expand();
             try {
                 await driver.wait(tasksTreeSection.untilTreeItemExists("Restart DB System (running)"),
-                    constants.wait1second * 5);
+                    constants.waitForTreeItem);
                 const ntf = await Workbench.getNotification("Are you sure you want to restart the DB System", false);
                 await Workbench.clickOnNotificationButton(ntf, "NO");
                 await driver.wait(tasksTreeSection.untilTreeItemExists("Restart DB System (done)"),
-                    constants.wait1second * 10);
+                    constants.waitForTreeItem);
             } finally {
                 await tasksTreeSection.collapse();
             }
@@ -298,11 +299,11 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await tasksTreeSection.expand();
             try {
                 await driver.wait(tasksTreeSection.untilTreeItemExists("Stop DB System (running)"),
-                    constants.wait1second * 5);
+                    constants.waitForTreeItem);
                 const ntf = await Workbench.getNotification("Are you sure you want to stop the DB System", false);
                 await Workbench.clickOnNotificationButton(ntf, "NO");
                 await driver.wait(tasksTreeSection.untilTreeItemExists("Stop DB System (done)"),
-                    constants.wait1second * 10);
+                    constants.waitForTreeItem);
             } finally {
                 await tasksTreeSection.collapse();
             }
@@ -316,11 +317,11 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await tasksTreeSection.expand();
             try {
                 await driver.wait(tasksTreeSection.untilTreeItemExists("Delete DB System (running)"),
-                    constants.wait1second * 5);
+                    constants.waitForTreeItem);
                 const ntf = await Workbench.getNotification("Are you sure you want to delete", false);
                 await Workbench.clickOnNotificationButton(ntf, "NO");
                 await driver.wait(tasksTreeSection.untilTreeItemExists("Delete DB System (done)"),
-                    constants.wait1second * 10);
+                    constants.waitForTreeItem);
             } finally {
                 await tasksTreeSection.collapse();
             }
@@ -383,16 +384,16 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             const treeBastion = await ociTreeSection.getTreeItem(undefined, constants.bastionType);
             const bastionName = await treeBastion.getLabel();
             await ociTreeSection.openContextMenuAndSelect(bastionName, constants.setAsCurrentBastion, undefined);
+            await driver.wait(ociTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar);
             await driver.wait(ociTreeSection.untilTreeItemIsDefault(bastionName),
                 constants.wait1second * 10, "Bastion is not the default item");
-            await opedEditorsTreeSection.expand();
+            await openEditorsTreeSection.expand();
 
-            await opedEditorsTreeSection.openContextMenuAndSelect(constants.dbConnectionsLabel,
-                constants.openNewShellConsole);
-            const shellConsole = new E2EShellConsole();
-            await driver.wait(shellConsole.untilIsOpened(),
-                constants.wait1second * 15, "Shell Console was not loaded");
-            const result = await shellConsole.codeEditor.execute("mds.get.currentBastionId()") as E2ECommandResultData;
+            await (await openEditorsTreeSection.getTreeItem(constants.dbConnectionsLabel)).click();
+            await new DatabaseConnectionOverview().openNewShellSession();
+
+            const result = await new E2EShellConsole().codeEditor
+                .execute("mds.get.currentBastionId()") as E2ECommandResultData;
             expect(result.text).to.equal(bastionId);
 
         });
@@ -407,7 +408,7 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
                 constants.wait1second * 20);
             await new OutputView().clearText();
             await driver.wait(tasksTreeSection.untilTreeItemExists("Refresh Bastion (done)"),
-                constants.wait1second * 5);
+                constants.waitForTreeItem);
 
         });
 
@@ -419,14 +420,14 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             await Workbench.waitForOutputText("OCI profile 'E2ETESTS' loaded.", constants.wait1second * 25);
             await tasksTreeSection.expand();
             await driver.wait(tasksTreeSection.untilTreeItemExists("Delete Bastion (running)"),
-                constants.wait1second * 5);
+                constants.waitForTreeItem);
             await driver.wait(Workbench.untilNotificationExists("Are you sure you want to delete", false),
                 constants.wait1second * 15);
             const ntf = await Workbench.getNotification("Are you sure you want to delete", false);
             await Workbench.clickOnNotificationButton(ntf, "NO");
             await Workbench.waitForOutputText("Deletion aborted", constants.wait1second * 5);
             await driver.wait(tasksTreeSection.untilTreeItemExists("Delete Bastion (error)"),
-                constants.wait1second * 5);
+                constants.waitForTreeItem);
             await new OutputView().clearText();
             await new BottomBarPanel().toggle(false);
 
@@ -489,13 +490,13 @@ describe("ORACLE CLOUD INFRASTRUCTURE", () => {
             try {
                 await tasksTreeSection.focus();
                 await driver.wait(tasksTreeSection.untilTreeItemExists("Delete Compute Instance (running)"),
-                    constants.wait1second * 5);
+                    constants.waitForTreeItem);
 
                 const text = `Are you sure you want to delete the instance ${instanceLabel}`;
                 const ntf = await Workbench.getNotification(text, false);
                 await Workbench.clickOnNotificationButton(ntf, "NO");
                 await driver.wait(tasksTreeSection.untilTreeItemExists("Delete Compute Instance (error)"),
-                    constants.wait1second * 5);
+                    constants.waitForTreeItem);
             } finally {
                 await tasksTreeSection.collapse();
             }

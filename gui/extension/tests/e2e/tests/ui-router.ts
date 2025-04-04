@@ -97,16 +97,16 @@ describe("Router", () => {
 
         await Misc.loadDriver();
         try {
-            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait1minute * 2);
+            await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Workbench.toggleBottomBar(false);
             Misc.removeDatabaseConnections();
 
             await dbTreeSection.clickToolbarButton(constants.reloadConnections);
             await dbTreeSection.createDatabaseConnection(globalConn);
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
             await (await new DatabaseConnectionOverview().getConnection(globalConn.caption)).click();
             await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait1second * 10);
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
             await Os.deleteCredentials();
             await dbTreeSection.focus();
             await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
@@ -155,7 +155,7 @@ describe("Router", () => {
         await dbTreeSection.expandTreeItem(constants.mysqlRouters);
         await (await dbTreeSection.getTreeItemActionButton(globalConn.caption, constants.reloadDataBaseInformation))
             .click();
-        await driver.wait(dbTreeSection.untilTreeItemExists(new RegExp(hostname())), constants.wait1second * 5);
+        await driver.wait(dbTreeSection.untilTreeItemExists(new RegExp(hostname())), constants.waitForTreeItem);
         await Os.setRouterConfigFile({
             sinks: "filelog",
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -190,7 +190,7 @@ describe("Router", () => {
             constants.wait1second * 10);
 
         await dbTreeSection.clickToolbarButton(constants.reloadConnections);
-        await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait1second * 20);
+        await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar);
         await dbTreeSection.expandTreeItem(new RegExp(crudService.servicePath));
         await dbTreeSection.expandTreeItem(new RegExp(crudSchema.restSchemaPath));
 
