@@ -60,14 +60,14 @@ describe("OPEN EDITORS", () => {
 
         await Misc.loadDriver();
         try {
-            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait1minute * 2);
+            await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             const activityBare = new ActivityBar();
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
             await Workbench.dismissNotifications();
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.createDatabaseConnection(globalConn);
             await dbTreeSection.focus();
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
             await Workbench.closeAllEditors();
             await new BottomBarPanel().toggle(false);
             await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
@@ -135,7 +135,7 @@ describe("OPEN EDITORS", () => {
         await driver.executeScript("arguments[0].click()", loadScriptFromDisk);
         await Workbench.setInputPath(join(process.cwd(), "sql", sqlScript));
         await driver.wait(Workbench.untilCurrentEditorIs(new RegExp(sqlScript)), constants.wait1second * 5);
-        await driver.wait(openEditorsTreeSection.untilTreeItemExists(sqlScript), constants.wait1second * 5);
+        await driver.wait(openEditorsTreeSection.untilTreeItemExists(sqlScript), constants.waitForTreeItem);
         expect((await new E2EScript().codeEditor.existsText("GEOMETRYCOLLECTION"))).to.be.true;
         const treeItem = await openEditorsTreeSection.getTreeItem(new RegExp(sqlScript), constants.mysqlType);
         await (await openEditorsTreeSection.getTreeItemActionButton(await treeItem.getLabel(),
@@ -231,7 +231,7 @@ describe("OPEN EDITORS", () => {
                 constants.openNewShellConsole);
             await driver.wait(new E2EShellConsole().untilIsOpened(globalConn), constants.wait1second * 15,
                 "Shell Console was not loaded");
-            await driver.wait(openEditorsTreeSection.untilTreeItemExists(`Session ${i}`), constants.wait1second * 5);
+            await driver.wait(openEditorsTreeSection.untilTreeItemExists(`Session ${i}`), constants.waitForTreeItem);
             openedSessions.push(i);
         }
 

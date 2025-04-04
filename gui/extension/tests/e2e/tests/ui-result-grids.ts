@@ -74,15 +74,15 @@ describe("RESULT GRIDS", () => {
 
         await Misc.loadDriver();
         try {
-            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait1minute * 2);
+            await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.createDatabaseConnection(globalConn);
             await dbTreeSection.createDatabaseConnection(anotherConn);
             await dbTreeSection.focus();
-            await driver.wait(dbTreeSection.untilTreeItemExists(anotherConn.caption), constants.wait1second * 5);
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists(anotherConn.caption), constants.waitForTreeItem);
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
             await (await new DatabaseConnectionOverview().getConnection(globalConn.caption)).click();
-            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait1second * 10);
+            await driver.wait(notebook.untilIsOpened(globalConn), constants.waitConnectionOpen);
             await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
         } catch (e) {
             await Misc.processFailure(this);

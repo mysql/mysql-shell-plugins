@@ -36,6 +36,7 @@ import * as errors from "../lib/errors";
 import { E2EShellConsole } from "../lib/WebViews/E2EShellConsole";
 import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
 import { E2ECommandResultGrid } from "../lib/WebViews/CommandResults/E2ECommandResultGrid";
+import { DatabaseConnectionOverview } from "../lib/WebViews/DatabaseConnectionOverview";
 
 describe("MYSQL SHELL CONSOLES", () => {
 
@@ -65,13 +66,9 @@ describe("MYSQL SHELL CONSOLES", () => {
         await Misc.loadDriver();
 
         try {
-            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait1minute * 2);
+            await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Workbench.toggleBottomBar(false);
-            await Misc.switchToFrame();
-            await driver.wait(until.elementLocated(locator.dbConnectionOverview.newConsoleButton),
-                constants.wait1second * 10).click();
-            await driver.wait(shellConsole.untilIsOpened(globalConn), constants.wait1second * 15,
-                "Shell Console was not loaded");
+            await new DatabaseConnectionOverview().openNewShellSession();
         } catch (e) {
             await Misc.processFailure(this);
             throw e;

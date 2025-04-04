@@ -77,22 +77,22 @@ describe("MySQL REST Service", () => {
 
         await Misc.loadDriver();
         try {
-            await driver.wait(Workbench.untilExtensionIsReady(), constants.wait1minute * 2);
+            await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
             await Workbench.toggleBottomBar(false);
             Misc.removeDatabaseConnections();
 
             await dbTreeSection.clickToolbarButton(constants.reloadConnections);
             await dbTreeSection.createDatabaseConnection(globalConn);
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
             await (await new DatabaseConnectionOverview().getConnection(globalConn.caption)).click();
             await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait1second * 10);
-            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
             await Os.deleteCredentials();
             await dbTreeSection.focus();
             await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
             await dbTreeSection.openContextMenuAndSelect(globalConn.caption, constants.showSystemSchemas);
             await driver.wait(dbTreeSection.untilTreeItemExists("mysql_rest_service_metadata"),
-                constants.wait1second * 5);
+                constants.waitForTreeItem);
             await Workbench.dismissNotifications();
         } catch (e) {
             await Misc.processFailure(this);
@@ -133,7 +133,7 @@ describe("MySQL REST Service", () => {
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
             try {
-                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait1second * 20,
+                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                     `${constants.dbTreeSection} is still loading`);
                 await Workbench.dismissNotifications();
             } catch (e) {
@@ -168,7 +168,7 @@ describe("MySQL REST Service", () => {
             service1 = await RestServiceDialog.set(service1);
             await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
                 constants.wait1second * 20);
-            await driver.wait(dbTreeSection.untilTreeItemExists(service1.servicePath), constants.wait1second * 10);
+            await driver.wait(dbTreeSection.untilTreeItemExists(service1.servicePath), constants.waitForTreeItem);
         });
 
         it("Set as Current", async () => {
@@ -338,7 +338,7 @@ describe("MySQL REST Service", () => {
                 constants.wait1second * 10);
 
             const treeName = `${service1.servicePath} (${service1.advanced.hostNameFilter})`;
-            await driver.wait(dbTreeSection.untilTreeItemExists(treeName), constants.wait1second * 3);
+            await driver.wait(dbTreeSection.untilTreeItemExists(treeName), constants.waitForTreeItem);
 
             await dbTreeSection.openContextMenuAndSelect(treeName, constants.editRESTService);
 
@@ -412,7 +412,7 @@ describe("MySQL REST Service", () => {
                 await RestServiceDialog.set(service2);
                 await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
                     constants.wait1second * 20);
-                await driver.wait(dbTreeSection.untilTreeItemExists(service2.servicePath), constants.wait1second * 10);
+                await driver.wait(dbTreeSection.untilTreeItemExists(service2.servicePath), constants.waitForTreeItem);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -422,7 +422,7 @@ describe("MySQL REST Service", () => {
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
             try {
-                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait1second * 20,
+                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                     `${constants.dbTreeSection} is still loading`);
                 await Workbench.dismissNotifications();
             } catch (e) {
@@ -479,7 +479,7 @@ describe("MySQL REST Service", () => {
                     .settings.schemaName})`;
                 await (await dbTreeSection.getTreeItemActionButton(globalConn.caption,
                     constants.reloadDataBaseInformation)).click();
-                await driver.wait(dbTreeSection.untilTreeItemExists(schemaTreeName), constants.wait1second * 3);
+                await driver.wait(dbTreeSection.untilTreeItemExists(schemaTreeName), constants.waitForTreeItem);
             }
 
         });
@@ -634,7 +634,7 @@ describe("MySQL REST Service", () => {
             await dbTreeSection.expandTreeItem(service2.servicePath);
             const schemaToLoad = service2.restSchemas[1];
             await driver.wait(dbTreeSection.untilTreeItemExists(`${schemaToLoad.restSchemaPath} (${schemaToLoad.settings
-                .schemaName})`), constants.wait1second * 5);
+                .schemaName})`), constants.waitForTreeItem);
 
         });
 
@@ -661,7 +661,7 @@ describe("MySQL REST Service", () => {
                 constants.wait1second * 10);
 
             treeName = `${editedSchema.restSchemaPath} (${editedSchema.settings.schemaName})`;
-            await driver.wait(dbTreeSection.untilTreeItemExists(treeName), constants.wait1second * 10);
+            await driver.wait(dbTreeSection.untilTreeItemExists(treeName), constants.waitForTreeItem);
 
             await dbTreeSection.openContextMenuAndSelect(treeName, constants.editRESTSchema);
             expect(await RestSchemaDialog.get()).to.deep.equal(editedSchema);
@@ -721,7 +721,7 @@ describe("MySQL REST Service", () => {
                 await RestServiceDialog.set(service3);
                 await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
                     constants.wait1second * 20);
-                await driver.wait(dbTreeSection.untilTreeItemExists(service3.servicePath), constants.wait1second * 10);
+                await driver.wait(dbTreeSection.untilTreeItemExists(service3.servicePath), constants.waitForTreeItem);
                 await dbTreeSection.setCurrentRestService(service3.servicePath);
 
                 await dbTreeSection.openContextMenuAndSelect(service3.restSchemas[0].settings.schemaName,
@@ -734,7 +734,7 @@ describe("MySQL REST Service", () => {
                 await dbTreeSection.expandTreeItem(service3.servicePath);
                 const schemaTreeName = `${service3.restSchemas[0].restSchemaPath} (${service3.restSchemas[0]
                     .settings.schemaName})`;
-                await driver.wait(dbTreeSection.untilTreeItemExists(schemaTreeName), constants.wait1second * 3);
+                await driver.wait(dbTreeSection.untilTreeItemExists(schemaTreeName), constants.waitForTreeItem);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -744,7 +744,7 @@ describe("MySQL REST Service", () => {
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
             try {
-                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait1second * 20,
+                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                     `${constants.dbTreeSection} is still loading`);
                 await Workbench.dismissNotifications();
             } catch (e) {
@@ -807,7 +807,7 @@ describe("MySQL REST Service", () => {
                 await driver.wait(Workbench.untilNotificationExists(notification), constants.wait1second * 5);
                 await (await dbTreeSection.getTreeItem(`${service3.restSchemas[0]
                     .restSchemaPath} (${service3.restSchemas[0].settings.schemaName})`)).expand();
-                await driver.wait(dbTreeSection.untilTreeItemExists(`/${table}`), constants.wait1second * 5);
+                await driver.wait(dbTreeSection.untilTreeItemExists(`/${table}`), constants.waitForTreeItem);
             }
 
         });
@@ -1001,7 +1001,7 @@ describe("MySQL REST Service", () => {
             await driver.wait(Workbench.untilNotificationExists(notification), constants.wait1second * 5);
 
             await driver.wait(dbTreeSection.untilTreeItemExists(service3.restSchemas[0].restObjects[0]
-                .restObjectPath), constants.wait1second * 5);
+                .restObjectPath), constants.waitForTreeItem);
 
             await dbTreeSection.openContextMenuAndSelect(service3.restSchemas[0].restObjects[0]
                 .restObjectPath, constants.editRESTObj);
@@ -1060,7 +1060,7 @@ describe("MySQL REST Service", () => {
 
             await dbTreeSection.expandTree(tree);
             await driver.wait(dbTreeSection.untilTreeItemExists(json.object.request_path as string),
-                constants.wait1second * 10);
+                constants.waitForTreeItem);
         });
 
     });
@@ -1121,7 +1121,7 @@ describe("MySQL REST Service", () => {
                 await RestServiceDialog.set(service4);
                 await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
                     constants.wait1second * 20);
-                await driver.wait(dbTreeSection.untilTreeItemExists(service4.servicePath), constants.wait1second * 10);
+                await driver.wait(dbTreeSection.untilTreeItemExists(service4.servicePath), constants.waitForTreeItem);
                 await dbTreeSection.setCurrentRestService(service4.servicePath);
             } catch (e) {
                 await Misc.processFailure(this);
@@ -1132,7 +1132,7 @@ describe("MySQL REST Service", () => {
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
             try {
-                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait1second * 20,
+                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                     `${constants.dbTreeSection} is still loading`);
                 await Workbench.dismissNotifications();
             } catch (e) {
@@ -1181,7 +1181,7 @@ describe("MySQL REST Service", () => {
                 constants.wait1second * 5);
             await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);
             await driver.wait(dbTreeSection.untilTreeItemExists(service4.authenticationApps[0].name),
-                constants.wait1second * 5);
+                constants.waitForTreeItem);
         });
 
         it("Authentication App - Dump to disk - Create statements", async () => {
@@ -1323,7 +1323,7 @@ describe("MySQL REST Service", () => {
             await driver.wait(Workbench.untilNotificationExists("The MRS Authentication App has been updated"),
                 constants.wait1second * 5);
 
-            await driver.wait(dbTreeSection.untilTreeItemExists(editedApp.name), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists(editedApp.name), constants.waitForTreeItem);
             await dbTreeSection.openContextMenuAndSelect(editedApp.name, constants.editAuthenticationApp);
 
             const app = await AuthenticationAppDialog.get();
@@ -1412,7 +1412,7 @@ describe("MySQL REST Service", () => {
                 await RestServiceDialog.set(service5);
                 await driver.wait(Workbench.untilNotificationExists("The MRS service has been created"),
                     constants.wait1second * 20);
-                await driver.wait(dbTreeSection.untilTreeItemExists(service5.servicePath), constants.wait1second * 10);
+                await driver.wait(dbTreeSection.untilTreeItemExists(service5.servicePath), constants.waitForTreeItem);
                 await dbTreeSection.setCurrentRestService(service5.servicePath);
 
                 await dbTreeSection.openContextMenuAndSelect(constants.restAuthenticationApps,
@@ -1422,7 +1422,7 @@ describe("MySQL REST Service", () => {
                     constants.wait1second * 5);
                 await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);
                 await driver.wait(dbTreeSection.untilTreeItemExists(service5.authenticationApps[0].name),
-                    constants.wait1second * 5);
+                    constants.waitForTreeItem);
             } catch (e) {
                 await Misc.processFailure(this);
                 throw e;
@@ -1432,7 +1432,7 @@ describe("MySQL REST Service", () => {
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
             try {
-                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait1second * 20,
+                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                     `${constants.dbTreeSection} is still loading`);
                 await Workbench.dismissNotifications();
             } catch (e) {
@@ -1485,7 +1485,7 @@ describe("MySQL REST Service", () => {
                 constants.wait1second * 5);
             await dbTreeSection.expandTreeItem(service5.authenticationApps[0].name);
             await driver.wait(dbTreeSection.untilTreeItemExists(service5.authenticationApps[0].user[0].username),
-                constants.wait1second * 5);
+                constants.waitForTreeItem);
         });
 
         it("Edit User", async () => {
@@ -1513,7 +1513,7 @@ describe("MySQL REST Service", () => {
 
             await dbTreeSection.expandTreeItem(service5.authenticationApps[0].name);
 
-            await driver.wait(dbTreeSection.untilTreeItemExists(editedUser.username), constants.wait1second * 5);
+            await driver.wait(dbTreeSection.untilTreeItemExists(editedUser.username), constants.waitForTreeItem);
             await dbTreeSection.openContextMenuAndSelect(editedUser.username, constants.editRESTUser);
 
             const userInfo = await RestUserDialog.get();
@@ -1645,7 +1645,7 @@ describe("MySQL REST Service", () => {
         beforeEach(async function () {
             await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
             try {
-                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait1second * 20,
+                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
                     `${constants.dbTreeSection} is still loading`);
                 await Workbench.dismissNotifications();
             } catch (e) {
@@ -1689,7 +1689,7 @@ describe("MySQL REST Service", () => {
             await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully"),
                 constants.wait1second * 20);
             await dbTreeSection.clickToolbarButton(constants.reloadConnections);
-            await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait1second * 25);
+            await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar);
             expect(await dbTreeSection.treeItemHasRedMark(constants.mysqlRestService)).to.equals(true);
 
         });
@@ -1701,7 +1701,7 @@ describe("MySQL REST Service", () => {
             await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully"),
                 constants.wait1second * 20);
             await dbTreeSection.clickToolbarButton(constants.reloadConnections);
-            await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait1second * 25);
+            await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar);
             expect(await dbTreeSection.treeItemHasRedMark(constants.mysqlRestService)).to.equals(false);
 
         });
