@@ -217,6 +217,11 @@ DELIMITER ;
 
 -- Change ROLEs and perform the required GRANT/REVOKE statements.
 
+REVOKE CREATE TEMPORARY TABLES ON *.* FROM 'mysql_rest_service_data_provider';
+
+GRANT CREATE TEMPORARY TABLES ON `mysql_rest_service_metadata`.*
+    TO 'mysql_rest_service_data_provider';
+
 
 -- #############################################################################
 -- MSM Section 290: Removal of Update Helpers
