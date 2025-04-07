@@ -50,7 +50,6 @@ export class ExecutionContext implements IExecutionContext {
     protected disposed = false;
 
     private internalId: string;
-    private decorationIDs: string[] = [];
 
     #showNextResultMaximized = false;
     #tokenList: Uint32Array | undefined;
@@ -492,7 +491,7 @@ export class ExecutionContext implements IExecutionContext {
             // No need to send the model content here. The validator will get it from the model.
             void services.validate(this, "", (result: IDiagnosticEntry[]): void => {
                 // Update the decorations in the editor.
-                this.decorationIDs = this.presentation.updateDiagnosticsDecorations(this.decorationIDs, result);
+                this.presentation.updateDiagnosticsDecorations(result);
             });
         }
     }
@@ -576,7 +575,7 @@ export class ExecutionContext implements IExecutionContext {
     }
 
     protected clearDecorations(): void {
-        this.decorationIDs = this.presentation.updateDiagnosticsDecorations(this.decorationIDs, []);
+        this.presentation.updateDiagnosticsDecorations([]);
     }
 
     /**

@@ -246,8 +246,8 @@
     height: 100%;
 }
 
-.msg .resultText.actionLabel:not(.error, .warning, .success),
-.zoneHost .resultText:not(.error, .warning, .success) {
+.msg .resultText.actionLabel:not(.error, .warning, .success, .log),
+.zoneHost .resultText:not(.error, .warning, .success, .log) {
     /* background-color: var(--editorZone-background); */
     color: var(--resultZone-foreground);
     white-space: pre-wrap;

@@ -35,7 +35,7 @@ import { ExecutionContext } from "./ExecutionContext.js";
 import {
     IExecutionResult, IExecutionResultData, IPresentationOptions, IResponseDataOptions,
     IResultSet,
-    IResultSetRows, IResultSets, LoadingState,
+    IResultSetRows, IResultSets, IRuntimeErrorResult, LoadingState,
 } from "./index.js";
 
 import { MessageType, type ISqlUpdateResult } from "../app-logic/general-types.js";
@@ -124,6 +124,9 @@ export class PresentationInterface {
     private marginDecorationIDs: string[] = [];
     private markedLines: Set<number> = new Set();
     private markerClass = "";
+
+    // Editor decorations
+    private decorationIDs: string[] = [];
 
     private waitTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -754,12 +757,11 @@ export class PresentationInterface {
     /**
      * Applies the new diagnostics to the code block represented by this presentation interface.
      *
-     * @param decorationIDs Previously set decorations. They will be updated with the new diagnostics.
      * @param diagnostics Records of data describing the new diagnostics.
      *
      * @returns A set of decoration IDs that can be used for further updates (or removal).
      */
-    public updateDiagnosticsDecorations(decorationIDs: string[], diagnostics: IDiagnosticEntry[]): string[] {
+    public updateDiagnosticsDecorations(diagnostics: IDiagnosticEntry[]): void {
         const editorModel = this.#backend?.getModel?.();
 
         if (editorModel) {
@@ -790,10 +792,8 @@ export class PresentationInterface {
 
 
             // Update the decorations in the editor.
-            return editorModel.deltaDecorations?.(decorationIDs, newDecorations) ?? [];
+            this.decorationIDs = editorModel.deltaDecorations?.(this.decorationIDs, newDecorations) ?? [];
         }
-
-        return [];
     }
 
     /**
