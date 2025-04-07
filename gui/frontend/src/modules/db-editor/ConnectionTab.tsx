@@ -39,7 +39,7 @@ import { IMdsChatData, IMdsChatStatus } from "../../communication/ProtocolMds.js
 import { ResponseError } from "../../communication/ResponseError.js";
 import { ChatOptionAction, ChatOptions, IChatOptionsState } from "../../components/Chat/ChatOptions.js";
 import { IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
-import { IScriptExecutionOptions } from "../../components/ui/CodeEditor/index.js";
+import { IScriptExecutionOptions, Range } from "../../components/ui/CodeEditor/index.js";
 import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase.js";
 import { SplitContainer } from "../../components/ui/SplitContainer/SplitContainer.js";
 import { type ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
@@ -51,7 +51,7 @@ import { QueryType } from "../../parsing/parser-common.js";
 import { ExecutionContext } from "../../script-execution/ExecutionContext.js";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
 import {
-    IExecutionResult, INotebookFileFormat, IResponseDataOptions, ITextResultEntry, LoadingState, currentNotebookVersion,
+    IExecutionResult, INotebookFileFormat, IResponseDataOptions, IRuntimeErrorResult, ITextResultEntry, LoadingState, currentNotebookVersion,
 } from "../../script-execution/index.js";
 import {
     IEditorExtendedExecutionOptions, IMrsDbObjectEditRequest, IMrsSchemaEditRequest, type IColumnDetails,
@@ -310,11 +310,14 @@ Execute \\help or \\? for help;`;
     }
 
     private static shiftMLEStacktraceLineNumbers = (
-        stackTrace: QueryResult, jsStartLine: number): string | undefined => {
+        stackTrace: QueryResult, jsStartLine: number): IRuntimeErrorResult | undefined => {
         if (stackTrace?.rows && stackTrace.rows.length > 0) {
             const stackTraceRow = stackTrace.rows[0][0];
 
             if (stackTraceRow) {
+
+                let range!: Range;
+
                 let rowValue = stackTraceRow.split("\n").filter((val) => { return val !== ""; });
 
                 if (rowValue.length > 50) {
@@ -333,22 +336,34 @@ Execute \\help or \\? for help;`;
                     // Check if this is a multiline error
                     if (!rowInfo[1].includes("-")) {
                         rowInfo[1] = `${Number(rowInfo[1]) + jsStartLine}`;
+
+                        range = new Range(
+                            Number(rowInfo[1]),
+                            Number(rowInfo[2].split("-")[0]),
+                            Number(rowInfo[1]),
+                            Number(rowInfo[2].split("-")[1]),
+                        );
                     } else {
                         const multiLineError = rowInfo[1].split("-").map((val) => {
                             return `${Number(val) + jsStartLine}`;
                         });
 
                         rowInfo[1] = multiLineError.join("-");
+
+                        range = new Range(
+                            Number(rowInfo[1].split("-")[0]),
+                            Number(rowInfo[2].split("-")[0]),
+                            Number(rowInfo[1].split("-")[1]),
+                            Number(rowInfo[2].split("-")[1]),
+                        );
                     }
 
                     rowValue[index] = rowInfo.join(":");
                 }
 
-                return `Exception Stack Trace: \n${rowValue.join("\n")}`.trim();
+                return { message: `Exception Stack Trace: \n${rowValue.join("\n")}`.trim(), range: range };
             }
         }
-
-        return undefined;
     };
 
     public override componentDidMount(): void {
@@ -1080,7 +1095,7 @@ Execute \\help or \\? for help;`;
             return;
         }
 
-        const { statementCount, errorCount, startTime, jsStartLine } = result;
+        const { statementCount, errorCount, startTime, jsStartLine, errorMessage, errorStatementIndex } = result;
 
         if (this.mrsSdkUpdateRequired) {
             // Enforce a refresh of the MRS Sdk Cache
@@ -1093,6 +1108,8 @@ Execute \\help or \\? for help;`;
         // If MLE is enabled, collect all stack trace, console.log() output and all errors.
         if (savedState.mleEnabled) {
             const resultData: ITextResultEntry[] = [];
+            // Clear any existing runtime error decorations as they become obsolete after new execution
+            void await context.clearRuntimeErrorData();
 
             try {
                 const stackTrace: QueryResult = await connection?.backend?.execute(
@@ -1104,12 +1121,13 @@ Execute \\help or \\? for help;`;
                     resultData.push({
                         type: MessageType.Error,
                         index: -1,
-                        content: updatedStacktrace + "\n",
-                        language: "ini",
+                        content: updatedStacktrace.message + "\n",
+                        language: "ansi",
                     });
+                    void await context.addRuntimeErrorData(errorStatementIndex, { message: errorMessage, range: updatedStacktrace.range });
                 }
             } catch (error) {
-                console.error("Error while getting stack trace:\n " + String(error));
+                console.error("Error while getting stack trace:\n" + String(error));
             }
 
             try {
@@ -1124,10 +1142,10 @@ Execute \\help or \\? for help;`;
                             const consoleLogInfo: string = `${row[0]}`.trim();
 
                             resultData.push({
-                                type: MessageType.Info,
+                                type: MessageType.Log,
                                 index: -1,
                                 content: consoleLogInfo + "\n",
-                                language: "json",
+                                language: "ansi",
                             });
                         }
                     }
@@ -1151,7 +1169,7 @@ Execute \\help or \\? for help;`;
                                 type: MessageType.Warning,
                                 index: -1,
                                 content: consoleErrorInfo + "\n",
-                                language: "json",
+                                language: "ansi",
                             });
                         }
                     }

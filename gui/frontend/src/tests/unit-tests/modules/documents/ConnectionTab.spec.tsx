@@ -129,6 +129,7 @@ describe("DBConnectionTab tests", (): void => {
         },
         executionHistory: [],
         currentExecutionHistoryIndex: 0,
+        isCloudInstance: false
     };
 
     const connection = connectionsDataModel.createConnectionEntry({

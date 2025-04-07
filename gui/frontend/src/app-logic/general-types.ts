@@ -274,6 +274,7 @@ export enum MessageType {
     Text,
     Response,
     Success,
+    Log,
 }
 
 /** Details for a status message, usually used in result view status bars. */

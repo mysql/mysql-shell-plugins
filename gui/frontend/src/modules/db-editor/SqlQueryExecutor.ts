@@ -33,8 +33,10 @@ import { QueryType } from "../../parsing/parser-common.js";
 import { IExecutionResult, IResponseDataOptions, ITextResultEntry } from "../../script-execution/index.js";
 import { ScriptingLanguageServices } from "../../script-execution/ScriptingLanguageServices.js";
 import { SQLExecutionContext } from "../../script-execution/SQLExecutionContext.js";
-import { convertRows, generateColumnInfo, getColumnsMetadataForEmptyResultSet,
-    parseSchemaTable} from "../../supplement/index.js";
+import {
+    convertRows, generateColumnInfo, getColumnsMetadataForEmptyResultSet,
+    parseSchemaTable
+} from "../../supplement/index.js";
 import type { IColumnDetails } from "../../supplement/RequisitionTypes.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { uuid } from "../../utilities/helpers.js";
@@ -55,6 +57,8 @@ interface IRunSqlCodeResult {
     errorCount: number;
     startTime: number;
     jsStartLine: number;
+    errorMessage: string;
+    errorStatementIndex: number;
 }
 
 export const sendSqlUpdatesFromModel = async (afterCommit: (() => void) | undefined, backend: ShellInterfaceSqlEditor,
@@ -113,7 +117,7 @@ export class SqlQueryExecutor {
      */
     public runSQLCode = async (context: SQLExecutionContext, options: IScriptExecutionOptions,
         pageSize: number, stopOnErrors: boolean, mleEnabled: boolean, tabId?: string)
-            : Promise<IRunSqlCodeResult | undefined> => {
+        : Promise<IRunSqlCodeResult | undefined> => {
         const connection = this.#connection;
 
         if (!connection?.backend) {
@@ -131,6 +135,8 @@ export class SqlQueryExecutor {
         let errorCount = 0;
         const startTime = Date.now();
         let jsStartLine = 0;
+        let errorMessage: string = "";
+        let errorStatementIndex: number = -1;
 
         if (options.source) {
             const sql = (await context.getStatementAtPosition(options.source))?.text;
@@ -158,18 +164,21 @@ export class SqlQueryExecutor {
                 } catch (e) {
                     errorCount += 1;
                     if (mleEnabled) {
-                        // currentStatement is the one calling the procedure/function
-                        const currentStatement = nonEmptyStatements.indexOf(statement);
-                        // Assume that before the call is the routine definition, hence - 1
-                        const jsDefinitionStatements = nonEmptyStatements[currentStatement - 1]?.text.split("\n") || [];
-
-                        // Find the line where the js body starts
-                        // This line contains $ from AS $...$
-                        for (const jsDefinitionStatement of jsDefinitionStatements) {
-                            ++jsStartLine;
-                            if (jsDefinitionStatement.includes("$")) {
-                                break;
+                        const lines = context.model?.getLinesContent();
+                        if (lines) {
+                            for (const line of lines) {
+                                ++jsStartLine;
+                                // Find the line with the first occurrence of $...$
+                                if (line.match("\\$(.*?)\\$")) {
+                                    break;
+                                }
                             }
+                        }
+                        if (e instanceof Error) {
+                            // If this error comes from Javascript, extract only the part after JavaScript>
+                            const startIndex = e.message.indexOf("JavaScript>");
+                            errorMessage = startIndex ? e.message.substring(startIndex) : e.message;
+                            errorStatementIndex = statement.index;
                         }
                     }
                     if (stopOnErrors) {
@@ -179,7 +188,7 @@ export class SqlQueryExecutor {
             }
         }
 
-        return { statementCount, errorCount, startTime, jsStartLine };
+        return { statementCount, errorCount, startTime, jsStartLine, errorMessage, errorStatementIndex };
     };
 
     /**

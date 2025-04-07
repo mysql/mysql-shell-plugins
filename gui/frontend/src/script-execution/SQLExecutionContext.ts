@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IPosition } from "monaco-editor";
+import { IPosition, IRange } from "monaco-editor";
 
 import type { StoreType } from "../app-logic/ApplicationDB.js";
 import { Monaco } from "../components/ui/CodeEditor/index.js";
@@ -37,6 +37,11 @@ import { ScriptingLanguageServices } from "./ScriptingLanguageServices.js";
 
 interface IStatementDetails extends IStatementSpan {
     diagnosticDecorationIDs: string[];
+}
+
+interface IRuntimeErrorResult {
+    message: string;
+    range: IRange;
 }
 
 /**
@@ -61,6 +66,7 @@ export class SQLExecutionContext extends ExecutionContext {
     #splitterSignal?: Semaphore<void>;
 
     #validationTimer?: ReturnType<typeof setTimeout> | null;
+    private runtimeErrorDecorations: string[] | undefined;
 
     public constructor(presentation: PresentationInterface, store: StoreType, public dbVersion: number,
         public sqlMode: string,
@@ -528,6 +534,35 @@ export class SQLExecutionContext extends ExecutionContext {
         span.start = details.contentStart;
 
         this.presentation.selectRange(span);
+    }
+
+    public async addRuntimeErrorData(index: number, data: IRuntimeErrorResult) {
+        const editorModel = this.presentation.backend?.getModel?.();
+        const details = this.statementDetails[index];
+        let decoration = [{
+            range: data.range,
+            options: {
+                stickiness: Monaco.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+                isWholeLine: false,
+                inlineClassName: "error",
+                minimap: {
+                    position: Monaco.MinimapPosition.Inline,
+                    color: "red",
+                },
+                hoverMessage: { value: data.message },
+            },
+        }];
+        // Only add runtime error decoration if there is no existing syntax error decorations
+        if (details.diagnosticDecorationIDs.length == 0) {
+            this.runtimeErrorDecorations = editorModel?.deltaDecorations?.(details.diagnosticDecorationIDs, decoration);
+        }
+    }
+
+    public async clearRuntimeErrorData() {
+        const editorModel = this.presentation.backend?.getModel?.();
+        if (this.runtimeErrorDecorations) {
+            editorModel?.deltaDecorations?.(this.runtimeErrorDecorations, []);
+        }
     }
 
     /**
