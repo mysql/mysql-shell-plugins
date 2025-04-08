@@ -415,11 +415,15 @@ def revoke_all_from_db_object(session, schema_name, db_object_name, db_object_ty
             FROM 'mysql_rest_service_data_provider'@'%'
         """
     else:
+        if db_object_type == "PROCEDURE":
+            revoke = "EXECUTE ON PROCEDURE"
+        elif db_object_type == "FUNCTION":
+            revoke = "EXECUTE ON FUNCTION"
+        else:
+            revoke = "ALL PRIVILEGES ON"
         sql = f"""
             REVOKE IF EXISTS
-            {'EXECUTE ON PROCEDURE' if db_object_type ==
-             "PROCEDURE" else 'ALL PRIVILEGES ON'}
-            {schema_name}.{db_object_name}
+            {revoke} {schema_name}.{db_object_name}
             FROM 'mysql_rest_service_data_provider'@'%'
         """
     session.run_sql(sql)
