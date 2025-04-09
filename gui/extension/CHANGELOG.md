@@ -4,11 +4,7 @@
 
 ### Additions
 
-- 
-
-### Fixes
-
-- 
+- MRS metadata schema 4.0.3
 
 ## Changes in 1.19.4+9.2.0
 
