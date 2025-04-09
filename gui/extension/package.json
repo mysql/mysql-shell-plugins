@@ -1305,7 +1305,7 @@
                     "group": "8_msg@1"
                 },
                 {
-                    "when": "explorerResourceIsFolder && resourceExtname =~ /.*\\.mrs\\.sdk'$/",
+                    "when": "explorerResourceIsFolder && resourceFilename =~ /.*\\.mrs\\.sdk$/",
                     "command": "msg.mrs.rebuildMrsSdk",
                     "group": "8_msg@2"
                 }
@@ -2029,7 +2029,7 @@
                 {
                     "id": "msg.oci",
                     "name": "ORACLE CLOUD INFRASTRUCTURE",
-                    "icon": "images/light/ociProvile.svg"
+                    "icon": "images/light/ociProfile.svg"
                 },
                 {
                     "id": "msg.shellTasks",

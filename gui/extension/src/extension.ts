@@ -260,24 +260,24 @@ export const activate = (context: ExtensionContext): void => {
                 onStdOutData: (output: string) => {
                     if (output.includes("true")) {
                         void ui.showWarningMessage(resetShellUserDirDataMessage, {},
-                            "Reset All User Data", "Cancel").then( (choice) => {
-                            if (choice === "Reset All User Data") {
-                                // Delete the shell user settings folder, only if it is the dedicated one for the
-                                // extension.
-                                const shellUserConfigDir = MySQLShellLauncher.getShellUserConfigDir(
-                                    context.extensionMode === ExtensionMode.Development);
-                                if (shellUserConfigDir
-                                    .endsWith(MySQLShellLauncher.extensionShellUserConfigFolderBaseName)) {
-                                    rmSync(shellUserConfigDir, { recursive: true, force: true });
-                                }
-                            }
-
-                            void ui.showWarningMessage(resetRestartMessage, {}, "Restart VS Code", "Cancel")
-                                .then((choice) => {
-                                    if (choice === "Restart VS Code") {
-                                        void commands.executeCommand("workbench.action.reloadWindow");
+                            "Reset All User Data", "Cancel").then((choice) => {
+                                if (choice === "Reset All User Data") {
+                                    // Delete the shell user settings folder, only if it is the dedicated one for the
+                                    // extension.
+                                    const shellUserConfigDir = MySQLShellLauncher.getShellUserConfigDir(
+                                        context.extensionMode === ExtensionMode.Development);
+                                    if (shellUserConfigDir
+                                        .endsWith(MySQLShellLauncher.extensionShellUserConfigFolderBaseName)) {
+                                        rmSync(shellUserConfigDir, { recursive: true, force: true });
                                     }
-                                });
+                                }
+
+                                void ui.showWarningMessage(resetRestartMessage, {}, "Restart VS Code", "Cancel")
+                                    .then((choice) => {
+                                        if (choice === "Restart VS Code") {
+                                            void commands.executeCommand("workbench.action.reloadWindow");
+                                        }
+                                    });
                             });
                     } else if (output.toLowerCase().includes("error")) {
                         void ui.showInformationMessage(`The following error occurred while deleting the ` +
@@ -351,6 +351,7 @@ export const activate = (context: ExtensionContext): void => {
     if (!lastRunVersion || lastRunVersion === "" || lastRunVersion !== currentVersion) {
         void context.globalState.update("MySQLShellLastRunVersion", currentVersion);
         const extensionShellDir = join(context.extensionPath, "shell");
+        const extensionRouterDir = join(context.extensionPath, "router");
 
         // Reset extended attributes on macOS
         if (osName === "darwin") {
@@ -358,10 +359,9 @@ export const activate = (context: ExtensionContext): void => {
                 // cSpell:ignore xattr
                 void childProcess.execSync(`xattr -rc ${extensionShellDir}`);
             }
-            const routerDir = join(context.extensionPath, "router");
-            if (existsSync(routerDir)) {
+            if (existsSync(extensionRouterDir)) {
                 // cSpell:ignore xattr
-                void childProcess.execSync(`xattr -rc ${routerDir}`);
+                void childProcess.execSync(`xattr -rc ${extensionRouterDir}`);
             }
         } else if (osName === "win32") {
             const promptForVcUpdate = () => {
@@ -397,15 +397,30 @@ export const activate = (context: ExtensionContext): void => {
             if (osName !== "win32") {
                 // Create a direct link to the mysqlsh binary in the shell extension folder on MacOS/Linux
                 const mysqlshLinkPath = join(shellHomeDir, "mysqlsh");
+                const mysqlRouterLinkPath = join(shellHomeDir, "mysqlrouter");
                 if (existsSync(mysqlshLinkPath)) {
                     unlinkSync(mysqlshLinkPath);
                 }
+                if (existsSync(mysqlRouterLinkPath)) {
+                    unlinkSync(mysqlRouterLinkPath);
+                }
                 symlinkSync(join(extensionShellDir, "bin", "mysqlsh"), mysqlshLinkPath, "file");
+                if (existsSync(extensionRouterDir)) {
+                    symlinkSync(join(extensionRouterDir, "bin", "mysqlrouter"), mysqlRouterLinkPath, "file");
+                }
             } else {
                 // Create a mysqlsh.bat that calls the mysqlsh binary located in the shell extension folder on Windows
-                const shellBatFilePath = join(shellHomeDir, "mysqlsh.bat");
+                let shellBatFilePath = join(shellHomeDir, "mysqlsh.bat");
                 try {
                     writeFileSync(shellBatFilePath, `@echo off\n"${join(extensionShellDir, "bin", "mysqlsh.exe")}" %*`);
+                } catch (err) {
+                    outputChannel.appendLine(`Error while writing to '${shellBatFilePath}'. Error: ${String(err)}`);
+                }
+
+                shellBatFilePath = join(shellHomeDir, "mysqlrouter.bat");
+                try {
+                    writeFileSync(shellBatFilePath,
+                        `@echo off\n"${join(extensionRouterDir, "bin", "mysqlrouter.exe")}" %*`);
                 } catch (err) {
                     outputChannel.appendLine(`Error while writing to '${shellBatFilePath}'. Error: ${String(err)}`);
                 }
