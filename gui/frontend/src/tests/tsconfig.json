@@ -36,7 +36,8 @@
             "react-dom": [
                 "../../node_modules/preact/compat/"
             ]
-        }
+        },
+        "baseUrl": "./",
     },
     "include": [
         "./e2e/**/*",

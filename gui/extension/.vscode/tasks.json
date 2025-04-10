@@ -11,16 +11,16 @@
                 ".",
             ],
             "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": false
+                "close": true,
+                "reveal": "never",
+                "revealProblems": "onProblem",
             },
             "isBackground": true,
             "group": "build",
-            "problemMatcher": "$tsc-watch"
+            "problemMatcher": "$tsc-watch",
+            "runOptions": {
+                "runOn": "folderOpen",
+            },
         },
         {
             "label": "esbuild: extension",
@@ -28,6 +28,9 @@
             "script": "esbuild-watch",
             "isBackground": true,
             "group": "build",
+            "runOptions": {
+                "runOn": "folderOpen",
+            },
             "problemMatcher": [
                 {
                     "owner": "typescript",
@@ -60,14 +63,7 @@
                         }
                     }
                 },
-            ]
-        },
-        {
-            "label": "Build Extension",
-            "dependsOn": [
-                "tsc: extension",
-                "esbuild: extension"
-            ]
+            ],
         },
         {
             "label": "tsc: e2e",
