@@ -23,11 +23,13 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 # TypeScript Client API Reference
 
-## authenticate
+## REST Service
+
+### authenticate
 
 `authenticate` is used to authenticate in a given service using a given authentication app.
 
-## Options (authenticate)
+### Options (authenticate)
 
 | Name | Type | Required | Description
 |---|---|---|---|
@@ -35,11 +37,11 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 | password | string | No | Password in the scope of the authentication app. |
 | authApp  | string | Yes | Name of the authentication app. |
 
-## Return Type (authenticate)
+### Return Type (authenticate)
 
 Nothing (void).
 
-## Reference (authenticate)
+### Reference (authenticate)
 
 ```TypeScript
 async function authenticate (IAuthenticateOptions): Promise<IMrsLoginResult> {
@@ -61,7 +63,7 @@ interface IMrsLoginResult {
 }
 ```
 
-## Example (authenticate)
+### Example (authenticate)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -72,15 +74,15 @@ myService.authenticate({ username: 'foo', password: 'bar', app: 'baz' });
 myService.authenticate({ username: 'foo', password: 'bar', app: 'baz', vendor: "0x30000000000000000000000000000000" });
 ```
 
-## getMetadata
+### getMetadata
 
 `getMetadata` is used to retrieve application-specific metadata attached to an MRS resource (REST Service, Schema and/or Object).
 
-### Return Type (getMetadata)
+#### Return Type (getMetadata)
 
 A JSON object containing the application-specific metadata attached to the resource.
 
-### Example (getMetadata)
+#### Example (getMetadata)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -92,21 +94,23 @@ await myService.mrsNotes.getMetadata();
 await myService.mrsNotes.note.getMetadata();
 ```
 
-## create
+## REST View
+
+### create
 
 `create` is used to insert a record in a given table. The record is represented as a plain TypeScript/JavaScript object or, alternatively, as an instance of a particular class that encapsulates the data required to create a new record. To insert multiple records, see `createMany`[#createmany].
 
-### Options (create)
+#### Options (create)
 
 | Name | Type | Required | Description
 |---|---|---|---|
 | data  | object | Yes | Object containing the mapping between column names and values for the record to be inserted. |
 
-### Return Type (create)
+#### Return Type (create)
 
 A JSON object representing the inserted record.
 
-### Reference (create)
+#### Reference (create)
 
 ```TypeScript
 async function create (args: ICreateOptions<Type>): Promise<Type> {
@@ -118,7 +122,7 @@ interface ICreateOptions<Type> {
 }
 ```
 
-### Example (create)
+#### Example (create)
 
 ```TypeScript
 import type { IMyServiceMrsNotesNote } from '/path/to/sdk/myService';
@@ -140,21 +144,21 @@ note.title = 'foo';
 myService.mrsNotes.note.create({ data: note });
 ```
 
-## createMany
+### createMany
 
 `createMany` inserts one or more records in a given table. The records are represented as plain TypeScript/JavaScript objects, or alternatively, as instances of a particular class that encapsulates the data required to create them.
 
-### Options (create)
+#### Options (create)
 
 | Name | Type | Required | Description
 |---|---|---|---|
 | data  | object | Yes | Array of objects containing the mapping between column names and values for the records to be inserted. |
 
-### Return Type (createMany)
+#### Return Type (createMany)
 
 An array of JSON objects representing the inserted records.
 
-### Reference (createMany)
+#### Reference (createMany)
 
 ```TypeScript
 async function createMany (args: ICreateOptions<Type[]>): Promise<Type[]> {
@@ -166,7 +170,7 @@ interface ICreateOptions<Type> {
 }
 ```
 
-### Example (createMany)
+#### Example (createMany)
 
 ```TypeScript
 import type { IMyServiceMrsNotesNote } from '/path/to/sdk/myService';
@@ -191,11 +195,11 @@ note1.title = 'bar';
 myService.mrsNotes.note.createMany({ data: [note1, note2] });
 ```
 
-## findFirst
+### findFirst
 
 `findFirst` is used to query the first record (**in no specific order**) that matches a given optional filter.
 
-### Options (findFirst)
+#### Options (findFirst)
 
 | Name | Type | Required | Description |
 |---|---|---|---|
@@ -204,11 +208,11 @@ myService.mrsNotes.note.createMany({ data: [note1, note2] });
 | skip  | number | No | Specifies how many records to skip before returning one of the matches. |
 | readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers. |
 
-### Return Type (findFirst)
+#### Return Type (findFirst)
 
 A JSON object representing the first record that matches the filter or `undefined` when the record was not found.
 
-### Reference (findFirst)
+#### Reference (findFirst)
 
 ```TypeScript
 async function findFirst (args?: IFindOptions<Selectable, Filterable>): Promise<Selectable | undefined> {
@@ -224,7 +228,7 @@ export interface IFindOptions<Selectable, Filterable> {
 }
 ```
 
-### Example (findFirst)
+#### Example (findFirst)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -247,7 +251,7 @@ await myService.mrsNotes.note.findFirst({ where: { shared: true } });
 await myService.mrsNotes.note.findFirst({ where: { title: { $like: "%foo%" } } });
 ```
 
-## findUnique
+### findUnique
 
 `findUnique` is used to query a single, uniquely identified record by:
 
@@ -256,7 +260,7 @@ await myService.mrsNotes.note.findFirst({ where: { title: { $like: "%foo%" } } }
 
 If no record was found matching the given `where` condition, `undefined` is returned. To have an exception thrown in this case, see [findUniqueOrThrow](#finduniqueorthrow).
 
-### Options (findUnique)
+#### Options (findUnique)
 
 | Name | Type | Required | Description |
 |---|---|---|---|
@@ -264,11 +268,11 @@ If no record was found matching the given `where` condition, `undefined` is retu
 | select | object | No | Specifies which properties to include in the returned object. |
 | readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers. |
 
-### Return Type (findUnique)
+#### Return Type (findUnique)
 
 A JSON object representing the specific record that matches the filter or `undefined` when the record was not found.
 
-### Reference (findUnique)
+#### Reference (findUnique)
 
 ```TypeScript
 async function findUnique (args?: IFindUniqueOptions<Selectable, Filterable>): Promise<Selectable | undefined> {
@@ -282,7 +286,7 @@ interface IFindUniqueOptions<Selectable, Filterable> {
 }
 ```
 
-### Example (findUnique)
+#### Example (findUnique)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -296,7 +300,7 @@ await myService.mrsNotes.note.findUnique({ where: { id: 4 } });
 await myService.mrsNotes.note.findUnique({ where: { id: { $eq: 4 } } });
 ```
 
-## findUniqueOrThrow
+### findUniqueOrThrow
 
 `findUniqueOrThrow` retrieves a single data record in the same way as [findUnique](#findunique). However, if the query does not find a record, it throws a `NotFoundError`.
 
@@ -304,11 +308,11 @@ await myService.mrsNotes.note.findUnique({ where: { id: { $eq: 4 } } });
 
 - Its return type is non-nullable. For example, myService.mrsNotes.note.findUnique() can return a note or undefined, but myService.mrsNotes.note.findUniqueOrThrow() always returns a note.
 
-## findMany
+### findMany
 
 `findMany` is used to query a subset of records in one or more pages, and optionally, those that match a given filter. To find all records see [findAll](#findall).
 
-### Options (findMany)
+#### Options (findMany)
 
 | Name | Type | Required | Description |
 |---|---|---|---|
@@ -321,11 +325,11 @@ await myService.mrsNotes.note.findUnique({ where: { id: { $eq: 4 } } });
 | take  | number | No | Maximum number of records to return. |
 | readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers. |
 
-### Return Type (findMany)
+#### Return Type (findMany)
 
 An array of JSON objects representing the records that match the filter.
 
-### Reference (findMany)
+#### Reference (findMany)
 
 ```TypeScript
 async function findMany ({ cursor, iterator = true, orderBy, select, skip, take, where }: IFindManyOptions<Item, Filterable, Cursors>): Promise<Item[]> {
@@ -344,7 +348,7 @@ interface IFindManyOptions<Item, Filterable, Iterable> {
 }
 ```
 
-### Example (findMany)
+#### Example (findMany)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -359,11 +363,11 @@ await myService.mrsNotes.note.findMany({ take: 3 });
 await myService.mrsNotes.note.findMany({ where: { id: { $gt: 10 } } });
 ```
 
-## findAll
+### findAll
 
 `findAll` is used to query every record, and optionally, all those that match a given filter. To get a paginated subset of records, see [findMany](#findmany).
 
-### Options (findAll)
+#### Options (findAll)
 
 | Name | Type | Required | Description |
 |---|---|---|---|
@@ -375,11 +379,11 @@ await myService.mrsNotes.note.findMany({ where: { id: { $gt: 10 } } });
 | where | object  | No | Filtering conditions that apply to specific fields. |
 | readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers. |
 
-### Return Type (findAll)
+#### Return Type (findAll)
 
 An array of JSON objects representing the records that match the filter.
 
-### Reference (findAll)
+#### Reference (findAll)
 
 ```TypeScript
 async function findAll (args?: IFindAllOptions<Item, Filterable>): Promise<Item[]> {
@@ -397,7 +401,7 @@ interface IFindAllOptions<Item, Filterable> {
 }
 ```
 
-### Example (findAll)
+#### Example (findAll)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -414,22 +418,22 @@ await myService.mrsNotes.note.findMany({ progress: (notes) => {
 }});
 ```
 
-## delete
+### delete
 
 `delete` is used to delete the first record that matches a given required filter.
 
-### Options (delete)
+#### Options (delete)
 
 | Name | Type | Required | Description |
 |---|---|---|---|
 | where | object | Yes | Filtering conditions that apply to specific fields. |
 | readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers. |
 
-### Return Type (delete)
+#### Return Type (delete)
 
 A JSON object containing the number of records that were deleted (always 1).
 
-### Reference (delete)
+#### Reference (delete)
 
 ```TypeScript
 async function delete (args: IDeleteOptions<IMyServiceMrsNotesUserParams>): Promise<IMrsDeleteResult> {
@@ -446,7 +450,7 @@ interface IMrsDeleteResult {
 }
 ```
 
-### Example (delete)
+#### Example (delete)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -457,22 +461,22 @@ const myService = new MyService();
 await myService.mrsNotes.note.delete({ where: { title: { $like: "%foo%" } } });
 ```
 
-## deleteMany
+### deleteMany
 
 `delete` is used to delete all records that match a given filter.
 
-### Options (deleteMany)
+#### Options (deleteMany)
 
 | Name | Type | Required | Description |
 |---|---|---|---|
 | where | object | No | Filtering conditions that apply to specific fields. |
 | readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers. |
 
-### Return Type (deleteMany)
+#### Return Type (deleteMany)
 
 A JSON object containing the number of records that were deleted.
 
-### Reference (deleteMany)
+#### Reference (deleteMany)
 
 ```TypeScript
 async function deleteMany (args: IDeleteOptions<IMyServiceMrsNotesUserParams>): Promise<IMrsDeleteResult> {
@@ -489,7 +493,7 @@ interface IMrsDeleteResult {
 }
 ```
 
-### Example (deleteMany)
+#### Example (deleteMany)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -502,21 +506,21 @@ await myService.mrsNotes.note.deleteMany({ where: { title: { $like: "%foo%" } } 
 await myService.mrsNotes.note.deleteMany({ where: { shared: true } });
 ```
 
-## update
+### update
 
 `update` is used to update a record with a given identifier or primary key.
 
-### Options (update)
+#### Options (update)
 
 | Name | Type | Required | Description |
 |---|---|---|---|
 | data | object | Yes | Set of fields and corresponding values to update. |
 
-### Return Type (update)
+#### Return Type (update)
 
 A JSON object representing the up-to-date record.
 
-### Reference (update)
+#### Reference (update)
 
 ```TypeScript
 async function update (args: IUpdateOptions<UpdatableFields>): Promise<Data> {
@@ -526,7 +530,7 @@ async function update (args: IUpdateOptions<UpdatableFields>): Promise<Data> {
 type IUpdateOptions<Type> = ICreateOptions<Type>;
 ```
 
-### Example (update)
+#### Example (update)
 
 ```TypeScript
 import type { IMyServiceMrsNotesNote } from '/path/to/sdk/myService';
@@ -550,21 +554,21 @@ note.shared = false;
 await myService.mrsNotes.note.update({ data: note });
 ```
 
-## updateMany
+### updateMany
 
 `updateMany` is used to update all records with matching identifiers or primary keys.
 
-### Options (updateMany)
+#### Options (updateMany)
 
 | Name | Type | Required | Description |
 |---|---|---|---|
 | data | object | Yes | Set of fields and corresponding values to update. |
 
-### Return Type (updateMany)
+#### Return Type (updateMany)
 
 An array of JSON objects representing the up-to-date records.
 
-### Reference (updateMany)
+#### Reference (updateMany)
 
 ```TypeScript
 async function updateMany (args: IUpdateOptions<UpdatableFields[]>): Promise<Data[]> {
@@ -574,7 +578,7 @@ async function updateMany (args: IUpdateOptions<UpdatableFields[]>): Promise<Dat
 type IUpdateOptions<Type> = ICreateOptions<Type>;
 ```
 
-### Example (updateMany)
+#### Example (updateMany)
 
 ```TypeScript
 import type { IMyServiceMrsNotesNote } from '/path/to/sdk/myService';
@@ -600,4 +604,248 @@ note.shared = false;
 
 // update the notes with id 1 and 2
 await myService.mrsNotes.note.update({ data: [note1, note2] });
+```
+
+### REST Function/Procedure
+
+### call
+
+`call` is used to execute a REST routine (`FUNCTION` or `PROCEDURE`). The first parameter of the command is an `object` containing the set of `IN`/`INOUT` parameters (and corresponding values) as specified by the database routine. The second parameter is an `object` with execution options which is only available if the REST routine has an associated Async Task.
+
+#### Options (call)
+
+| Name | Type | Required | Description |
+|---|---|---|---|
+| refreshRate | number (>=500) | No | Time (ms) to wait for retrieving the next progress report. |
+| progress | async function | No | Callback to be executed using the details of each progress report while the routine does not finish. |
+
+#### Return Type (call)
+
+A JSON object containing the result produced by the routine (including `OUT`/`INOUT` parameters and result sets).
+
+#### Reference (call)
+
+```TypeScript
+async function call (noteUpdateParams?: IMyServiceMrsNotesNoteUpdateParams, options?: IMrsTaskExecutionOptions<object, IMrsProcedureResult<IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>>): Promise<IMrsProcedureResult<IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>> {
+    // ...
+}
+
+interface IMyServiceMrsNotesNoteUpdateParams {
+    tags?: JsonValue;
+    lockedDown?: boolean;
+    noteId?: number;
+    title?: string;
+    content?: string;
+    pinned?: boolean;
+    userId?: string;
+}
+
+interface IMrsTaskWatchOptions {
+    refreshRate?: number;
+}
+
+interface IMrsTaskExecutionOptions<MrsTaskStatusUpdate, MrsTaskResult> extends IMrsTaskWatchOptions {
+    progress?: (report: IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>) => Promise<void>;
+}
+
+interface IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult> {
+    data: MrsTaskStatusUpdate;
+    status: "RUNNING";
+    message: string;
+    progress: number;
+}
+
+type IMyServiceMrsNotesNoteUpdateParamsOut = never;
+
+type IMyServiceMrsNotesNoteUpdateResultSet = JsonObject;
+
+interface IMrsProcedureResult<OutParams, ResultSet> {
+    outParameters?: OutParams;
+    resultSets: ResultSet[];
+}
+```
+
+#### Example (call)
+
+```TypeScript
+import { MyService } from './myService.mrs.sdk/myService';
+
+const myService = new MyService();
+
+try {
+    // update the title of a note with a given id
+    await myService.mrsNotes.noteUpdate.call({ noteId: note.id, title: "hello world" });
+} catch (err) {
+    // catch errors produced by the routine
+}
+```
+
+### start
+
+`start` is used to start a REST routine (`FUNCTION` or `PROCEDURE`) with an associated Async Task. The first and only parameter of the command is an `object` containing the set of `IN`/`INOUT` parameters (and corresponding values) as specified by the database routine.
+
+#### Return Type (start)
+
+A [Task](#task) instance.
+
+#### Reference (start)
+
+```TypeScript
+async function start(params?: IMyServiceMrsNotesNoteUpdateParams): Promise<MrsTask<object, IMrsProcedureResult<IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>>> {
+    // ...
+}
+
+interface IMyServiceMrsNotesNoteUpdateParams {
+    tags?: JsonValue;
+    lockedDown?: boolean;
+    noteId?: number;
+    title?: string;
+    content?: string;
+    pinned?: boolean;
+    userId?: string;
+}
+
+type IMyServiceMrsNotesNoteUpdateParamsOut = never;
+
+type IMyServiceMrsNotesNoteUpdateResultSet = JsonObject;
+
+interface IMrsProcedureResult<OutParams, ResultSet> {
+    outParameters?: OutParams;
+    resultSets: ResultSet[];
+}
+```
+
+#### Example (start)
+
+```TypeScript
+import { MyService } from './myService.mrs.sdk/myService';
+
+const myService = new MyService();
+
+// update the title of a note with a given id
+const task = await myService.mrsNotes.noteUpdate.start({ noteId: note.id, title: "hello world" });
+```
+
+## Task
+
+### watch
+
+`watch` is used to monitor the status of a REST routine (`FUNCTION` or `PROCEDURE`) with an associated Async Task. The first and only parameter of the command is an `object` that contains customizable monitoring options.
+
+#### Options (watch)
+
+| Name | Type | Required | Description |
+|---|---|---|---|
+| refreshRate | number (>=500) | No | Time (ms) to wait for retrieving the next progress report. |
+
+#### Return Type (watch)
+
+An [AsyncGenerator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncGenerator) instance which produces status update reports with details about the execution context of the REST routine.
+
+#### Reference (watch)
+
+```TypeScript
+async function watch(params?: IMrsTaskWatchOptions): AsyncGenerator<
+    IMrsTaskReport<object, IMrsProcedureResult<IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>>> {
+    // ...
+}
+
+interface IMrsTaskWatchOptions {
+    refreshRate?: number;
+}
+
+type IMyServiceMrsNotesNoteUpdateParamsOut = never;
+
+type IMyServiceMrsNotesNoteUpdateResultSet = JsonObject;
+
+interface IMrsProcedureResult<OutParams, ResultSet> {
+    outParameters?: OutParams;
+    resultSets: ResultSet[]
+}
+
+interface IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult> {
+    data: MrsTaskStatusUpdate;
+    status: "RUNNING";
+    message: string;
+    progress: number;
+}
+
+interface IMrsCompletedTaskReport<MrsTaskStatusUpdate, MrsTaskResult> {
+    result: MrsTaskResult;
+    status: "COMPLETED";
+    message: string;
+}
+
+interface IMrsCancelledTaskReport<MrsTaskStatusUpdate, MrsTaskResult> {
+    status: "CANCELLED";
+    message: string;
+}
+
+type IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult> = IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult> |
+    IMrsCompletedTaskReport<MrsTaskStatusUpdate, MrsTaskResult> |
+    IMrsCancelledTaskReport<MrsTaskStatusUpdate, MrsTaskResult>;
+```
+
+#### Example (watch)
+
+```TypeScript
+import { MyService } from './myService.mrs.sdk/myService';
+
+const myService = new MyService();
+
+// update the title of a note with a given id
+const task = await myService.mrsNotes.noteUpdate.start({ noteId: note.id, title: "hello world" });
+
+// assuming it is a long-running operation, watch for status updates
+try {
+    for await (const report of task.watch()) {
+        if (report.status === "RUNNING") {
+            console.log(report.progress);
+        }
+    }
+} catch (err) {
+    // catch errors produced by the task or by the routine itself
+}
+```
+
+### kill
+
+`watch` is used to kill the underlying Async Task of a REST routine (`FUNCTION` or `PROCEDURE`) and cancel its execution.
+
+#### Return Type (kill)
+
+An [AsyncGenerator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncGenerator) instance which produces status update reports with details about the execution context of the REST routine.
+
+#### Reference (kill)
+
+```TypeScript
+async function kill(): Promise<void> {
+    // ...
+}
+
+```
+
+#### Example (kill)
+
+```TypeScript
+import { MyService } from './myService.mrs.sdk/myService';
+
+const myService = new MyService();
+
+// update the title of a note with a given id
+const task = await myService.mrsNotes.noteUpdate.start({ noteId: note.id, title: "hello world" });
+const startedAt = Date.now();
+
+try {
+    // assuming it is a long-running operation, kill the task if it takes more than 10 seconds to finish
+    for await (const report of task.watch()) {
+        if (report.status === "RUNNING" && Date.now() - startedAt > 10000) {
+            await task.kill();
+        } else if (report.status === "CANCELLED") {
+            console.log(report.message);
+        }
+    }
+} catch (err) {
+    // stop the generator and catch errors produced by the task or by the routine itself
+}
 ```

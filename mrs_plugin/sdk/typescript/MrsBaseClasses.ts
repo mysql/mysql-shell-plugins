@@ -1513,7 +1513,9 @@ export class MrsBaseService {
 
     public async getMetadata (): Promise<JsonObject> {
         const response = await this.session.doFetch({ input: `/_metadata` });
-        return await response.json();
+        const metadata = await response.json() as JsonObject;
+
+        return metadata;
     }
 }
 
@@ -1530,7 +1532,9 @@ export class MrsBaseSchema {
 
     public async getMetadata (): Promise<JsonObject> {
         const response = await this.service.session.doFetch({ input: `${this.requestPath}/_metadata` });
-        return await response.json();
+        const metadata = await response.json() as JsonObject;
+
+        return metadata;
     }
 }
 
@@ -1543,6 +1547,178 @@ export class MrsBaseObject {
     public async getMetadata (): Promise<JsonObject> {
         const requestPath = `${this.schema.requestPath}${this.requestPath}/_metadata`;
         const response = await this.schema.service.session.doFetch({ input: requestPath });
-        return await response.json();
+        const metadata = await response.json() as JsonObject;
+
+        return metadata;
+    }
+}
+
+export interface IMrsTaskWatchOptions {
+    refreshRate?: number;
+}
+
+export interface IMrsTaskExecutionOptions<MrsTaskStatusUpdate, MrsTaskResult> extends IMrsTaskWatchOptions {
+    progress?: (report: IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>) => Promise<void>;
+}
+
+interface IMrsTaskStartResponse {
+    taskId: string
+    message: string
+    statusUrl: string
+}
+
+type MrsTaskStatusUpdateStage = "RUNNING" | "COMPLETED" | "ERROR" | "CANCELLED";
+
+interface IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult> {
+    data: MrsTaskStatusUpdate | MrsTaskResult
+    status: MrsTaskStatusUpdateStage
+    message: string
+    progress: number
+}
+
+export interface IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    extends Omit<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>, "data" | "status"> {
+    data: MrsTaskStatusUpdate
+    status: "RUNNING"
+}
+
+interface IMrsCompletedTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    extends Omit<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>, "data" | "progress" | "status"> {
+    result: MrsTaskResult
+    status: "COMPLETED"
+}
+
+interface IMrsCancelledTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    extends Omit<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>, "data" | "progress"> {
+    status: "CANCELLED"
+}
+
+export type IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult> = IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult> |
+IMrsCompletedTaskReport<MrsTaskStatusUpdate, MrsTaskResult> |
+IMrsCancelledTaskReport<MrsTaskStatusUpdate, MrsTaskResult>;
+
+export class MrsBaseTaskStart<MrsTaskInputParameters> {
+    public constructor(
+        private schema: MrsBaseSchema,
+        private requestPath: string,
+        private params?: MrsTaskInputParameters) {
+    }
+
+    public async submit(): Promise<IMrsTaskStartResponse> {
+        const input = `${this.schema.requestPath}${this.requestPath}`;
+        const response = await this.schema.service.session.doFetch({
+            input,
+            method: "POST",
+            body: this.params !== undefined ? this.params : {},
+            errorMsg: "Failed to start task.",
+        });
+
+        const responseBody = await response.json() as IMrsTaskStartResponse;
+
+        return responseBody;
+    }
+}
+
+export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
+    public constructor(
+        private schema: MrsBaseSchema,
+        private requestPath: string,
+        private taskId: string,
+        private options: IMrsTaskExecutionOptions<MrsTaskStatusUpdate, MrsTaskResult> = { refreshRate: 2000 }) {
+    }
+
+    async #getStatus(): Promise<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>> {
+        const input = `${this.schema.requestPath}${this.requestPath}/${this.taskId}`;
+        const response = await this.schema.service.session.doFetch({
+            input,
+            method: "GET",
+            errorMsg: "Failed to retrieve the task status report.",
+        });
+
+        const responseBody = await response.json() as IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>;
+
+        return responseBody;
+    }
+
+    public async* submit(): AsyncGenerator<IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult>> {
+        let lastCheck = Date.now();
+        let statusUpdate: IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>;
+
+        const { refreshRate = 2000, progress } = this.options;
+
+        if (refreshRate < 500) {
+            throw new Error("Refresh rate needs to be greater than or equal to 500ms.");
+        }
+
+        let i = 0;
+
+        while (true) {
+            const now = Date.now();
+            const delta = now - lastCheck;
+
+            // the first status report should be retrieved immediately
+            if (i !== 0 && delta < refreshRate) {
+                continue;
+            }
+
+            statusUpdate = await this.#getStatus();
+            lastCheck = now;
+
+            if (statusUpdate.status !== "RUNNING") {
+                break;
+            }
+
+            const runningTaskReport = statusUpdate as IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>;
+
+            if (progress) {
+                await progress(runningTaskReport);
+            }
+
+            yield runningTaskReport;
+            i++;
+        }
+
+        if (statusUpdate.status === "ERROR") {
+            throw new Error(statusUpdate.message);
+        }
+
+        if (statusUpdate.status === "CANCELLED") {
+            const { message, status } = statusUpdate;
+
+            return { message, status };
+        }
+
+        const { message, status } = statusUpdate;
+        const result = statusUpdate.data as MrsTaskResult;
+
+        return { result, message, status };
+    }
+}
+
+export class MrsTask<MrsTaskStatusUpdate, MrsTaskResult> {
+    public constructor(
+        private readonly schema: MrsBaseSchema,
+        private readonly requestPath: string,
+        public readonly id: string) {
+    }
+
+    public async kill(): Promise<void> {
+        const input = `${this.schema.requestPath}${this.requestPath}/${this.id}`;
+        const _ = await this.schema.service.session.doFetch({
+            input,
+            method: "DELETE",
+            errorMsg: "Failed to kill the task.",
+        });
+
+        return;
+    }
+
+    public async* watch(options?: IMrsTaskWatchOptions): AsyncGenerator<
+    IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult>, void, unknown> {
+        const request = new MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult>(
+            this.schema, this.requestPath, this.id, options);
+        for await (const response of request.submit()) {
+            yield response;
+        }
     }
 }

@@ -23,12 +23,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     IFindManyOptions, IFindUniqueOptions, JsonValue, MrsBaseObjectQuery, MrsBaseSchema, MrsBaseService,
     MrsResourceObject, MrsBaseObjectCreate, IFindFirstOptions, IMrsResourceCollectionData, MrsBaseObjectDelete,
     MrsBaseObjectUpdate, IMrsDeleteResult, IMrsFunctionJsonResponse, MrsBaseObjectFunctionCall,
     IMrsProcedureJsonResponse, MrsBaseObjectProcedureCall, JsonObject, MrsAuthenticate, MrsBaseObject,
+    MrsBaseTaskStart, MrsBaseTaskWatch,
+    MrsTask,
 } from "../MrsBaseClasses";
 
 // fixtures
@@ -55,17 +57,61 @@ interface ITableMetadata3 {
 const service: MrsBaseService = new MrsBaseService("/foo");
 const schema: MrsBaseSchema = new MrsBaseSchema(service, "/bar");
 
-const createFetchMock = ({ matchBody, matchUrl, response = "{}", statusCode = 200 }: {
-    matchBody?: string, matchUrl?: string, response?: string, statusCode?: number } = { response: "{}",
-        statusCode: 200 }): void => { vi.stubGlobal("fetch", vi.fn((url, { body }) => {
-        if ((matchUrl !== undefined && matchUrl !== url) || (matchBody !== undefined && matchBody !== body)) {
-            // in the end, this just means it is a Bad Request
-            return Promise.resolve(new Response(null, { status: 400 }));
+interface IFetchMockCall {
+    matchBody?: string;
+    matchUrl?: string;
+    response: string;
+    statusCode: number;
+}
+
+class FetchMock {
+    private static singleton: FetchMock;
+    #calls: IFetchMockCall[] = [];
+
+    private constructor() {
+
+    }
+
+    public static push({
+        matchBody,
+        matchUrl,
+        response = "{}",
+        statusCode = 200,
+    }: {
+        matchBody?: string,
+        matchUrl?: string,
+        response?: string,
+        statusCode?: number,
+    } = {
+        response: "{}",
+        statusCode: 200,
+    }) {
+        if (FetchMock.singleton !== undefined) {
+            FetchMock.singleton.#calls.push({ matchBody, matchUrl, response, statusCode });
+
+            return this;
         }
 
-        return Promise.resolve(new Response(new Blob([response], { type: "application/json" }), { status: statusCode }));
-    }));
-};
+        FetchMock.singleton = new FetchMock();
+        FetchMock.singleton.#calls.push({ matchBody, matchUrl, response, statusCode });
+
+        vi.stubGlobal("fetch", vi.fn((url: string, { body }: { body: string }) => {
+            const call = FetchMock.singleton.#calls.pop() ?? { response: "{}", statusCode: 200 };
+            const { matchBody, matchUrl } = call;
+            if ((matchUrl !== undefined && matchUrl !== url) || (matchBody !== undefined && matchBody !== body)) {
+                // in the end, this just means it is a Bad Request
+                return Promise.resolve(new Response(null, { status: 400 }));
+            }
+
+            const { response, statusCode } = call;
+            const type = "application/json";
+
+            return Promise.resolve(new Response(new Blob([response], { type }), { status: statusCode }));
+        }));
+
+        return this;
+    }
+}
 
 describe("MRS SDK API", () => {
     beforeEach(() => {
@@ -79,11 +125,12 @@ describe("MRS SDK API", () => {
         const vendorId = "0x31000000000000000000000000000000";
 
         beforeEach(() => {
-            createFetchMock({ matchUrl: "/foo/authentication/login" });
-            createFetchMock({
-                matchUrl: "/foo/authentication/authApps",
-                response: JSON.stringify([{ name: authApp, vendorId }]),
-            });
+            FetchMock
+                .push({ matchUrl: "/foo/authentication/login" })
+                .push({
+                    matchUrl: "/foo/authentication/authApps",
+                    response: JSON.stringify([{ name: authApp, vendorId }]),
+                });
         });
 
         describe("and providing a vendor id", () => {
@@ -363,7 +410,9 @@ describe("MRS SDK API", () => {
                 }],
             };
 
-            createFetchMock({ response: JSON.stringify(collectionResponse) });
+            FetchMock
+                .push({ response: JSON.stringify(collectionResponse) })
+                .push({ response: JSON.stringify(collectionResponse) });
         });
 
         it("metadata are not part of the JSON representation of an application resource instance",
@@ -555,16 +604,16 @@ describe("MRS SDK API", () => {
                 const vendorId = "0x31000000000000000000000000000000";
 
                 beforeEach(async () => {
-                    createFetchMock({
-                        matchUrl: "/foo/authentication/login",
-                        matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
-                        response: JSON.stringify({ accessToken: "ABC" }),
-                    });
+                    FetchMock
+                        .push()
+                        .push({
+                            matchUrl: "/foo/authentication/login",
+                            matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
+                            response: JSON.stringify({ accessToken: "ABC" }),
+                        });
 
                     const request = new MrsAuthenticate(schema.service, authApp, username, password, vendorId);
                     await request.submit();
-
-                    createFetchMock();
                 });
 
                 it("includes the appropriate access token in the request", async () => {
@@ -597,7 +646,7 @@ describe("MRS SDK API", () => {
         };
 
         beforeEach(() => {
-            createFetchMock({ response: JSON.stringify(response) });
+            FetchMock.push({ response: JSON.stringify(response) });
         });
 
         it("encodes the resource as a JSON string in the request body", async () => {
@@ -715,7 +764,7 @@ describe("MRS SDK API", () => {
                     }],
                 };
 
-                createFetchMock({ response: JSON.stringify(response) });
+                FetchMock.push({ response: JSON.stringify(response) });
 
                 const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: {
                     str: "qux" }});
@@ -781,16 +830,16 @@ describe("MRS SDK API", () => {
                 const vendorId = "0x31000000000000000000000000000000";
 
                 beforeEach(async () => {
-                    createFetchMock({
-                        matchUrl: "/foo/authentication/login",
-                        matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
-                        response: JSON.stringify({ accessToken: "ABC" }),
-                    });
+                    FetchMock
+                        .push({ response: JSON.stringify(response) })
+                        .push({
+                            matchUrl: "/foo/authentication/login",
+                            matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
+                            response: JSON.stringify({ accessToken: "ABC" }),
+                        });
 
                     const request = new MrsAuthenticate(schema.service, authApp, username, password, vendorId);
                     await request.submit();
-
-                    createFetchMock({ response: JSON.stringify(response) });
                 });
 
                 it("includes the appropriate access token in the request", async () => {
@@ -823,7 +872,7 @@ describe("MRS SDK API", () => {
         };
 
         beforeEach(() => {
-            createFetchMock({ response: JSON.stringify(response) });
+            FetchMock.push({ response: JSON.stringify(response) });
         });
 
         it("metadata are not part of the JSON representation of an application resource instance",
@@ -930,7 +979,7 @@ describe("MRS SDK API", () => {
                     }],
                 };
 
-                createFetchMock({ response: JSON.stringify(response) });
+                FetchMock.push({ response: JSON.stringify(response) });
 
                 const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz", {
                     data: { id:1, str: "qux" } }, ["id"]);
@@ -996,16 +1045,16 @@ describe("MRS SDK API", () => {
                 const vendorId = "0x31000000000000000000000000000000";
 
                 beforeEach(async () => {
-                    createFetchMock({
-                        matchUrl: "/foo/authentication/login",
-                        matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
-                        response: JSON.stringify({ accessToken: "ABC" }),
-                    });
+                    FetchMock
+                        .push({ response: JSON.stringify(response) })
+                        .push({
+                            matchUrl: "/foo/authentication/login",
+                            matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
+                            response: JSON.stringify({ accessToken: "ABC" }),
+                        });
 
                     const request = new MrsAuthenticate(schema.service, authApp, username, password, vendorId);
                     await request.submit();
-
-                    createFetchMock({ response: JSON.stringify(response) });
                 });
 
                 it("includes the appropriate access token in the request", async () => {
@@ -1028,7 +1077,7 @@ describe("MRS SDK API", () => {
 
     describe("when deleting REST documents", () => {
         beforeEach(() => {
-            createFetchMock();
+            FetchMock.push();
         });
 
         it("removes all records where a given field is NULL", async () => {
@@ -1089,7 +1138,7 @@ describe("MRS SDK API", () => {
                     },
                 };
 
-                createFetchMock({ response: JSON.stringify(response) });
+                FetchMock.push({ response: JSON.stringify(response) });
 
                 const query = new MrsBaseObjectDelete<ITableMetadata1>(schema, "/baz", { where: { id: 1 }});
                 await query.fetch();
@@ -1154,16 +1203,16 @@ describe("MRS SDK API", () => {
                 const vendorId = "0x31000000000000000000000000000000";
 
                 beforeEach(async () => {
-                    createFetchMock({
-                        matchUrl: "/foo/authentication/login",
-                        matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
-                        response: JSON.stringify({ accessToken: "ABC" }),
-                    });
+                    FetchMock
+                        .push()
+                            .push({
+                            matchUrl: "/foo/authentication/login",
+                            matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
+                            response: JSON.stringify({ accessToken: "ABC" }),
+                        });
 
                     const request = new MrsAuthenticate(schema.service, authApp, username, password, vendorId);
                     await request.submit();
-
-                    createFetchMock();
                 });
 
                 it("includes the appropriate access token in the request", async () => {
@@ -1185,7 +1234,7 @@ describe("MRS SDK API", () => {
 
     describe("when calling a REST function", () => {
         beforeEach(() => {
-            createFetchMock();
+            FetchMock.push();
         });
 
         it("sets the appropriate input parameters", async () => {
@@ -1203,7 +1252,7 @@ describe("MRS SDK API", () => {
         describe("transactional metadata", () => {
             beforeEach(() => {
                 const response: IMrsFunctionJsonResponse<string> = { result: "foo", _metadata: { gtid: "bar" } };
-                createFetchMock({ response: JSON.stringify(response) });
+                FetchMock.push({ response: JSON.stringify(response) });
             });
 
             it("are not part of the JSON representation of the function result",
@@ -1255,7 +1304,7 @@ describe("MRS SDK API", () => {
         describe("if the server does not send back a GTID", () => {
             beforeEach(async () => {
                 const response: IMrsFunctionJsonResponse<string> = { result: "foo" };
-                createFetchMock({ response: JSON.stringify(response) });
+                FetchMock.push({ response: JSON.stringify(response) });
 
                 const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", { name: "foo" });
                 await query.fetch();
@@ -1292,7 +1341,7 @@ describe("MRS SDK API", () => {
                     },
                 };
 
-                createFetchMock({ response: JSON.stringify(response) });
+                FetchMock.push({ response: JSON.stringify(response) });
 
                 const query = new MrsBaseObjectFunctionCall<{ name: string }, string>(schema, "/baz", { name: "foo" });
                 await query.fetch();
@@ -1357,16 +1406,16 @@ describe("MRS SDK API", () => {
                 const vendorId = "0x31000000000000000000000000000000";
 
                 beforeEach(async () => {
-                    createFetchMock({
-                        matchUrl: "/foo/authentication/login",
-                        matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
-                        response: JSON.stringify({ accessToken: "ABC" }),
-                    });
+                    FetchMock
+                        .push()
+                        .push({
+                            matchUrl: "/foo/authentication/login",
+                            matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
+                            response: JSON.stringify({ accessToken: "ABC" }),
+                        });
 
                     const request = new MrsAuthenticate(schema.service, authApp, username, password, vendorId);
                     await request.submit();
-
-                    createFetchMock();
                 });
 
                 it("includes the appropriate access token in the request", async () => {
@@ -1391,7 +1440,7 @@ describe("MRS SDK API", () => {
         };
 
         beforeEach(() => {
-            createFetchMock({ response: JSON.stringify(response) });
+            FetchMock.push({ response: JSON.stringify(response) });
         });
 
         it("sets the appropriate input parameters", async () => {
@@ -1428,7 +1477,7 @@ describe("MRS SDK API", () => {
                     },
                 };
 
-                createFetchMock({ response: JSON.stringify(response) });
+                FetchMock.push({ response: JSON.stringify(response) });
             });
 
             it("are not part of the JSON representation of the function result",
@@ -1535,7 +1584,7 @@ describe("MRS SDK API", () => {
                     },
                 };
 
-                createFetchMock({ response: JSON.stringify(response)} );
+                FetchMock.push({ response: JSON.stringify(response)} );
 
                 const query = new MrsBaseObjectProcedureCall<{ firstName: string, lastName: string }, { name: string },
                     JsonObject>(schema, "/baz", { firstName: "foo", lastName: "bar" });
@@ -1601,16 +1650,16 @@ describe("MRS SDK API", () => {
                 const vendorId = "0x31000000000000000000000000000000";
 
                 beforeEach(async () => {
-                    createFetchMock({
-                        matchUrl: "/foo/authentication/login",
-                        matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
-                        response: JSON.stringify({ accessToken: "ABC" }),
-                    });
+                    FetchMock
+                        .push({ response: JSON.stringify(response) })
+                        .push({
+                            matchUrl: "/foo/authentication/login",
+                            matchBody: JSON.stringify({ username, password, authApp, sessionType: "bearer" }),
+                            response: JSON.stringify({ accessToken: "ABC" }),
+                        });
 
                     const request = new MrsAuthenticate(schema.service, authApp, username, password, vendorId);
                     await request.submit();
-
-                    createFetchMock({ response: JSON.stringify(response) });
                 });
 
                 it("includes the appropriate access token in the request", async () => {
@@ -1634,7 +1683,7 @@ describe("MRS SDK API", () => {
 
         describe("for a REST service", () => {
             beforeEach(() => {
-                createFetchMock({
+                FetchMock.push({
                     matchUrl: "/foo/_metadata",
                     response: JSON.stringify(metadata),
                 });
@@ -1649,20 +1698,17 @@ describe("MRS SDK API", () => {
             describe("that requires authentication", () => {
                 describe("and the client is authenticated", () => {
                     beforeEach(async () => {
-                        createFetchMock({
-                            matchUrl: "/foo/authentication/login",
-                            response: JSON.stringify({ accessToken: "ABC" }),
-                        });
+                        FetchMock
+                            .push({ matchUrl: "/foo/bar/_metadata", response: JSON.stringify(metadata) })
+                            .push({
+                                matchUrl: "/foo/authentication/login",
+                                response: JSON.stringify({ accessToken: "ABC" }),
+                            });
 
                         // specify a valid vendor id to avoid the additional round-trip to retrieve auth apps
                         const request = new MrsAuthenticate(schema.service, "qux", "quux", "biz",
                             "0x31000000000000000000000000000000");
                         await request.submit();
-
-                        createFetchMock({
-                            matchUrl: "/foo/bar/_metadata",
-                            response: JSON.stringify(metadata),
-                        });
                     });
 
                     it("includes the appropriate access token in the request", async () => {
@@ -1683,25 +1729,20 @@ describe("MRS SDK API", () => {
 
                 describe("and the client is not authenticated", () => {
                     beforeEach(() => {
-                        createFetchMock({
-                            matchUrl: "/foo/bar/_metadata",
-                            statusCode: 401,
-                        });
-                    })
+                        FetchMock.push({ matchUrl: "/foo/bar/_metadata", statusCode: 401 });
+                    });
 
                     it("yields an authentication error", async () => {
                         await expect(async () => { await schema.getMetadata(); }).rejects.toThrowError(
-                            "Not authenticated. Please authenticate first before accessing the path /foo/bar/_metadata.");
+                            "Not authenticated. Please authenticate first before accessing the path " +
+                            "/foo/bar/_metadata.");
                     });
                 });
             });
 
             describe("that does not require authentication", () => {
                 beforeEach(() => {
-                    createFetchMock({
-                        matchUrl: "/foo/bar/_metadata",
-                        response: JSON.stringify(metadata),
-                    });
+                    FetchMock.push({ matchUrl: "/foo/bar/_metadata", response: JSON.stringify(metadata) });
                 });
 
                 it("returns a plain JavaScript object with the metadata", async () => {
@@ -1716,20 +1757,17 @@ describe("MRS SDK API", () => {
             describe("that requires authentication", () => {
                 describe("and the client is authenticated", () => {
                     beforeEach(async () => {
-                        createFetchMock({
-                            matchUrl: "/foo/authentication/login",
-                            response: JSON.stringify({ accessToken: "ABC" }),
-                        });
+                        FetchMock
+                            .push({ matchUrl: "/foo/bar/baz/_metadata", response: JSON.stringify(metadata) })
+                            .push({
+                                matchUrl: "/foo/authentication/login",
+                                response: JSON.stringify({ accessToken: "ABC" }),
+                            });
 
                         // specify a valid vendor id to avoid the additional round-trip to retrieve auth apps
                         const request = new MrsAuthenticate(schema.service, "qux", "quux", "biz",
                             "0x31000000000000000000000000000000");
                         await request.submit();
-
-                        createFetchMock({
-                            matchUrl: "/foo/bar/baz/_metadata",
-                            response: JSON.stringify(metadata),
-                        });
                     });
 
                     it("includes the appropriate access token in the request", async () => {
@@ -1750,30 +1788,258 @@ describe("MRS SDK API", () => {
 
                 describe("and the client is not authenticated", () => {
                     beforeEach(() => {
-                        createFetchMock({
-                            matchUrl: "/foo/bar/baz/_metadata",
-                            statusCode: 401,
-                        });
+                        FetchMock.push({ matchUrl: "/foo/bar/baz/_metadata", statusCode: 401 });
                     });
 
                     it("yields an authentication error", async () => {
                         await expect(async () => { await restObject.getMetadata(); }).rejects.toThrowError(
-                            "Not authenticated. Please authenticate first before accessing the path /foo/bar/baz/_metadata.");
+                            "Not authenticated. Please authenticate first before accessing the path " +
+                            "/foo/bar/baz/_metadata.");
                     });
                 });
             });
 
             describe("that does not require authentication", () => {
                 beforeEach(() => {
-                    createFetchMock({
-                        matchUrl: "/foo/bar/baz/_metadata",
-                        response: JSON.stringify(metadata),
-                    });
+                    FetchMock.push({ matchUrl: "/foo/bar/baz/_metadata", response: JSON.stringify(metadata) });
                 });
 
                 it("returns a plain JavaScript object with the metadata", async () => {
                     expect(await restObject.getMetadata()).to.deep.equal(metadata);
                 });
+            });
+        });
+    });
+
+    describe("when calling a long-running REST routine", () => {
+        interface IProcResult {
+            outParameters: {
+                salute: string
+            }
+        }
+
+        const taskId = "ABC";
+        const input = { name: "friend" };
+
+        beforeEach(() => {
+            vi.useFakeTimers({ now: Date.now(), toFake: ["Date"] });
+        });
+
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        describe("while it is running", () => {
+            const result = { outParameters: { salute: `hello, ${input.name}` } };
+
+            beforeEach(() => {
+                FetchMock
+                    .push({
+                        matchUrl: `/foo/bar/baz/${taskId}`,
+                        response: JSON.stringify({ status: "COMPLETED", data: result }),
+                    })
+                    .push({ matchUrl: `/foo/bar/baz/${taskId}`, response: JSON.stringify({ status: "RUNNING" }) })
+                    .push({ matchUrl: `/foo/bar/baz/${taskId}`, response: JSON.stringify({ status: "RUNNING" }) })
+                    .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
+            });
+
+            it("retrieves an update every 2 seconds by omission", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
+                const task = await startTaskRequest.submit();
+                expect(task.taskId).to.equal(taskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
+                    schema, "/baz", task.taskId);
+
+                const iterator = watchTaskRequest.submit();
+                expect((await iterator.next()).value).toHaveProperty("status", "RUNNING");
+                vi.advanceTimersByTime(2000);
+                expect((await iterator.next()).value).toHaveProperty("status", "RUNNING");
+            });
+
+            it("executes a given progress callback every 2 seconds by omission", async () => {
+                const progress = vi.fn();
+                const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
+                const task = await startTaskRequest.submit();
+                expect(task.taskId).to.equal(taskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
+                    schema, "/baz", task.taskId, { progress });
+
+                const iterator = watchTaskRequest.submit();
+                const { value: value1 } = await iterator.next();
+                vi.advanceTimersByTime(2000);
+                const { value: value2 } = await iterator.next();
+                expect(progress).toHaveBeenCalledTimes(2);
+                expect(progress).toHaveBeenNthCalledWith(1, value1);
+                expect(progress).toHaveBeenLastCalledWith(value2);
+            });
+
+            it("retrieves an update after every given amount of time", async () => {
+                const refreshRate = 1000;
+                const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
+                const task = await startTaskRequest.submit();
+                expect(task.taskId).to.equal(taskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
+                    schema, "/baz", task.taskId, { refreshRate });
+
+                const iterator = watchTaskRequest.submit();
+                expect((await iterator.next()).value).toHaveProperty("status", "RUNNING");
+                vi.advanceTimersByTime(refreshRate);
+                expect((await iterator.next()).value).toHaveProperty("status", "RUNNING");
+            });
+
+            it("executes a given progress callback after every given amount of time", async () => {
+                const progress = vi.fn();
+                const refreshRate = 1000;
+                const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
+                const task = await startTaskRequest.submit();
+                expect(task.taskId).to.equal(taskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
+                    schema, "/baz", task.taskId, { progress, refreshRate });
+
+                const iterator = watchTaskRequest.submit();
+                const { value: value1 } = await iterator.next();
+                vi.advanceTimersByTime(refreshRate);
+                const { value: value2 } = await iterator.next();
+                expect(progress).toHaveBeenCalledTimes(2);
+                expect(progress).toHaveBeenNthCalledWith(1, value1);
+                expect(progress).toHaveBeenLastCalledWith(value2);
+            });
+
+            it("stops retrieving updates when it finishes", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
+                const task = await startTaskRequest.submit();
+                expect(task.taskId).to.equal(taskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
+                    schema, "/baz", task.taskId);
+
+                const iterator = watchTaskRequest.submit();
+                await iterator.next();
+                vi.advanceTimersByTime(2000);
+                await iterator.next();
+                vi.advanceTimersByTime(2000);
+
+                const { value, done } = await iterator.next();
+                expect(value).toHaveProperty("status", "COMPLETED");
+                expect(value).toHaveProperty("result", result);
+                expect(done).toBeTruthy();
+            });
+
+            it("does not execute a given progress callback when it finishes", async () => {
+                const progress = vi.fn();
+                const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
+                const task = await startTaskRequest.submit();
+                expect(task.taskId).to.equal(taskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
+                    schema, "/baz", task.taskId, { progress });
+
+                for await (const _ of watchTaskRequest.submit()) {
+                    vi.advanceTimersByTime(4000);
+                }
+
+                expect(progress).toHaveBeenCalledTimes(2);
+            });
+
+            it("fails to retrieve updates in an interval below 0.5 seconds", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
+                const task = await startTaskRequest.submit();
+                expect(task.taskId).to.equal(taskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
+                    schema, "/baz", task.taskId, { refreshRate: 200 });
+
+                const iterator = watchTaskRequest.submit();
+                await expect(async () => { await iterator.next(); }).rejects.toThrowError(
+                    "Refresh rate needs to be greater than or equal to 500ms.");
+            });
+        });
+
+        describe("which can be cancelled when the application", () => {
+            beforeEach(() => {
+                FetchMock.push();
+            });
+
+            it("kills the underlying task", async () => {
+                const task = new MrsTask<object, IProcResult>(schema, "/baz", taskId);
+                await task.kill();
+
+                expect(fetch).toHaveBeenCalledOnce();
+                expect(fetch).toHaveBeenCalledWith(`/foo/bar/baz/${taskId}`, expect.objectContaining({
+                    method: "DELETE",
+                }));
+            });
+        });
+
+        describe("when it is cancelled", () => {
+            const message = "Task was killed.";
+
+            beforeEach(() => {
+                FetchMock
+                    .push({
+                        matchUrl: `/foo/bar/baz/${taskId}`,
+                        response: JSON.stringify({ status: "CANCELLED", message }),
+                    })
+                    .push({ matchUrl: `/foo/bar/baz/${taskId}`, response: JSON.stringify({ status: "RUNNING" }) })
+                    .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
+            });
+
+            it("stops retrieving status updates", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
+                const task = await startTaskRequest.submit();
+                expect(task.taskId).to.equal(taskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
+                    schema, "/baz", task.taskId);
+
+                const iterator = watchTaskRequest.submit();
+                await iterator.next();
+                vi.advanceTimersByTime(2000);
+
+                const { value, done } = await iterator.next();
+                expect(value).toHaveProperty("status", "CANCELLED");
+                expect(value).toHaveProperty("message", message);
+                expect(done).toBeTruthy();
+            });
+
+            it("does not execute a given progress callback", async () => {
+                const progress = vi.fn();
+                const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
+                const task = await startTaskRequest.submit();
+                expect(task.taskId).to.equal(taskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
+                    schema, "/baz", task.taskId, { progress });
+
+                const iterator = watchTaskRequest.submit();
+                await iterator.next();
+                vi.advanceTimersByTime(2000);
+                await iterator.next();
+
+                expect(progress).toHaveBeenCalledOnce();
+            });
+        });
+
+        describe("when it fails", () => {
+            const message = "There was an error...";
+
+            beforeEach(() => {
+                FetchMock
+                    .push({
+                        matchUrl: `/foo/bar/baz/${taskId}`,
+                        response: JSON.stringify({ status: "ERROR", message }),
+                    })
+                    .push({ matchUrl: `/foo/bar/baz/${taskId}`, response: JSON.stringify({ status: "RUNNING" }) })
+                    .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
+            });
+
+            it("propagates the error back to the application", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
+                const task = await startTaskRequest.submit();
+                expect(task.taskId).to.equal(taskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
+                    schema, "/baz", task.taskId);
+
+                const iterator = watchTaskRequest.submit();
+                await iterator.next();
+                vi.advanceTimersByTime(2000);
+                await expect(async () => { await iterator.next(); }).rejects
+                    .toThrowError(message);
             });
         });
     });
