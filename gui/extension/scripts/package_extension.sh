@@ -259,7 +259,7 @@ for d in packaging/mysql-shell/*; do
         fi
 
         echo "Create VSIX package"
-        vsce package --target $PLATFORM --baseImagesUrl https://github.com/mysql/mysql-shell-plugins/raw/master/gui/extension || exit 1
+        vsce package --target $PLATFORM --baseImagesUrl https://github.com/mysql/mysql-shell-plugins/raw/main/gui/extension || exit 1
 
         mv -f *.vsix packaging/extension-packages/.
     fi

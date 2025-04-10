@@ -2,13 +2,9 @@
 
 ## Changes in 1.19.6+9.2.0
 
-### Additions
-
-- 
-
 ### Fixes
 
-- 
+- Fixing README broken links.
 
 ## Changes in 1.19.5+9.2.0
 
