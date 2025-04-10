@@ -72,6 +72,7 @@ describe("Script editor tests", (): void => {
             activeEntry: "1",
             heatWaveEnabled: false,
             mleEnabled: false,
+            isCloudInstance: false,
         };
 
         const component = mount<ScriptEditor>(
