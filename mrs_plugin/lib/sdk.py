@@ -168,9 +168,15 @@ def substitute_imports_in_template(
         "ReadUnique",
         "FunctionCall",
         "Authenticate",
+        "TaskRun",
     ]
 
     enabled_ops = enabled_crud_ops if enabled_crud_ops else set()
+    task_ops = {"FunctionTaskRun", "ProcedureTaskRun"}
+
+    if len(enabled_ops) - len(enabled_ops.difference(task_ops)) > 0:
+        enabled_ops = enabled_ops.difference(task_ops)
+        enabled_ops.add("TaskRun")
 
     if requires_auth:
         enabled_ops.add("Authenticate")
@@ -404,6 +410,8 @@ def substitute_objects_in_template(
         "ProcedureCall",
         "ReadUnique",
         "FunctionCall",
+        "FunctionTaskRun",
+        "ProcedureTaskRun"
     ]
 
     enabled_crud_ops = set()
@@ -507,11 +515,18 @@ def substitute_objects_in_template(
                         db_object_crud_ops.append("DELETEUNIQUE")
                 # If the database object is a FUNCTION a PROCEDURE or a SCRIPT, CRUD operations should not be enabled
                 elif object_is_routine(db_obj, of_type={"FUNCTION", "SCRIPT"}):
-                    # For FUNCTIONs, handle custom "FunctionCall" operation, delete all other
-                    db_object_crud_ops = ["FUNCTIONCALL"]
+                    options = db_obj.get("options")
+                    if options is not None and options.get("mysqlTask") is not None:
+                        db_object_crud_ops = ["FUNCTIONTASKRUN"]
+                    else:
+                        db_object_crud_ops = ["FUNCTIONCALL"]
                 else:
-                    # For PROCEDUREs, handle custom "ProcedureCall" operation, delete all other
-                    db_object_crud_ops = ["PROCEDURECALL"]
+                    required_datatypes.add("IMrsProcedureResult")
+                    options = db_obj.get("options")
+                    if options is not None and options.get("mysqlTask") is not None:
+                        db_object_crud_ops = ["PROCEDURETASKRUN"]
+                    else:
+                        db_object_crud_ops = ["PROCEDURECALL"]
 
                 obj_interfaces_def, required_obj_datatypes = generate_interfaces(
                     db_obj,

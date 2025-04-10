@@ -28,12 +28,17 @@ import {
     MrsBaseObjectCreate,
     // --- importCreateOnlyEnd
     // --- importProcedureCallOnlyStart
-    IMrsProcedureResult,
     MrsBaseObjectProcedureCall,
     // --- importProcedureCallOnlyEnd
     // --- importFunctionCallOnlyStart
     MrsBaseObjectFunctionCall,
     // --- importFunctionCallOnlyEnd
+    // --- importTaskRunOnlyStart
+    IMrsTaskExecutionOptions,
+    MrsBaseTaskStart,
+    MrsBaseTaskWatch,
+    MrsTask,
+    // --- importTaskRunOnlyEnd
     // --- importUpdateOnlyStart
     IUpdateOptions,
     MrsBaseObjectUpdate,
@@ -56,6 +61,7 @@ export type { IMrsAuthUser, IMrsAuthStatus } from "./MrsBaseClasses";
  * MRS Object - ${obj_full_request_path} (${obj_type})
  */
 class ${obj_class_name}Object extends MrsBaseObject {
+
     // --- crudReadOnlyStart
     #hasMore = true;
     // --- crudReadOnlyEnd
@@ -79,7 +85,6 @@ class ${obj_class_name}Object extends MrsBaseObject {
         return result;
     };
     // --- crudCreateOnlyEnd
-
     // --- crudReadOnlyStart
     public findAll = async (args?: IFindAllOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<I${obj_class_name}[]> => {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable>(
@@ -116,7 +121,6 @@ class ${obj_class_name}Object extends MrsBaseObject {
         return response;
     };
     // --- crudReadOnlyEnd
-
     // --- crudReadUniqueOnlyStart
     public findUnique = async (args?: IFindUniqueOptions<I${obj_class_name}, I${obj_class_name}UniqueFilterable>): Promise<I${obj_class_name} | undefined> => {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}UniqueFilterable>(
@@ -136,7 +140,6 @@ class ${obj_class_name}Object extends MrsBaseObject {
         return response;
     };
     // --- crudReadUniqueOnlyEnd
-
     // --- crudUpdateOnlyStart
     public update = async (args: IUpdateOptions<IUpdate${obj_class_name}>): Promise<I${obj_class_name}> => {
         const request = new MrsBaseObjectUpdate<IUpdate${obj_class_name}, [${obj_quoted_pk_list}], I${obj_class_name}>(
@@ -158,13 +161,11 @@ class ${obj_class_name}Object extends MrsBaseObject {
         return result;
     };
     // --- crudUpdateOnlyEnd
-
     // --- crudDeleteUniqueOnlyStart
     public delete = async (args: IDeleteOptions<I${obj_class_name}UniqueFilterable, { many: false }>): Promise<IMrsDeleteResult> => {
         return this.deleteMany(args as IDeleteOptions<I${obj_class_name}Filterable>);
     };
     // --- crudDeleteUniqueOnlyEnd
-
     // --- crudDeleteOnlyStart
     public deleteMany = async (args: IDeleteOptions<I${obj_class_name}Filterable>): Promise<IMrsDeleteResult> => {
         const request = new MrsBaseObjectDelete<I${obj_class_name}Filterable>(this.schema, this.requestPath, args);
@@ -173,7 +174,6 @@ class ${obj_class_name}Object extends MrsBaseObject {
         return response;
     };
     // --- crudDeleteOnlyEnd
-
     // --- crudProcedureCallOnlyStart
     public call = async (${obj_name}Params?: I${obj_param_interface}): Promise<IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>> => {
         const request = new MrsBaseObjectProcedureCall<I${obj_param_interface}, I${obj_param_interface}Out, ${obj_meta_interface}>(
@@ -183,6 +183,27 @@ class ${obj_class_name}Object extends MrsBaseObject {
         return response;
     };
     // --- crudProcedureCallOnlyEnd
+    // --- crudProcedureTaskRunOnlyStart
+    async start(${obj_name}Params?: I${obj_param_interface}): Promise<MrsTask<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>> {
+        const request = new MrsBaseTaskStart<I${obj_param_interface}>(
+            this.schema, this.requestPath, ${obj_name}Params);
+        const response = await request.submit();
+
+        return new MrsTask(this.schema, this.requestPath, response.taskId);
+    }
+
+    async call(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskExecutionOptions<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>): Promise<IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>> {
+        const task = await this.start(${obj_name}Params);
+        const request = new MrsBaseTaskWatch<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>(
+            this.schema, this.requestPath, task.id, options);
+
+        for await (const response of request.submit()) {
+            if (response.status === "COMPLETED") {
+                return response.result;
+            }
+        }
+    };
+    // --- crudProcedureTaskRunOnlyEnd
     // --- crudFunctionCallOnlyStart
     public call = async (${obj_name}Params?: I${obj_param_interface}): Promise<${obj_function_result_datatype}> => {
         const request = new MrsBaseObjectFunctionCall<I${obj_param_interface}, ${obj_function_result_datatype}>(
@@ -192,6 +213,27 @@ class ${obj_class_name}Object extends MrsBaseObject {
         return response.result;
     };
     // --- crudFunctionCallOnlyEnd
+    // --- crudFunctionTaskRunOnlyStart
+    async start(${obj_name}Params?: I${obj_param_interface}): Promise<MrsTask<object, ${obj_function_result_datatype}>> {
+        const request = new MrsBaseTaskStart<I${obj_param_interface}>(
+            this.schema, this.requestPath, ${obj_name}Params);
+        const response = await request.submit();
+
+        return new MrsTask(this.schema, this.requestPath, response.taskId);
+    }
+
+    async call(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskExecutionOptions<object, ${obj_function_result_datatype}>): Promise<${obj_function_result_datatype}> {
+        const task = await this.start(${obj_name}Params);
+        const request = new MrsBaseTaskWatch<object, ${obj_function_result_datatype}>(
+            this.schema, this.requestPath, task.id, options);
+
+        for await (const response of request.submit()) {
+            if (response.status === "COMPLETED") {
+                return response.result;
+            }
+        }
+    };
+    // --- crudFunctionTaskRunOnlyEnd
 
 // --- MySQL Shell for VS Code Extension Only --- Begin
     public edit = (): void => {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -33,6 +33,10 @@ import {
     IMrsProcedureJsonResponse,
     IMrsProcedureResult,
     IMrsFunctionJsonResponse,
+    IMrsTaskWatchOptions,
+    IMrsTaskExecutionOptions,
+    IMrsTaskReport,
+    IMrsRunningTaskReport,
 } from "../MrsBaseClasses";
 
 describe("MRS SDK base types", () => {
@@ -937,6 +941,86 @@ describe("MRS SDK base types", () => {
 
         it("does not allow any kind of metadata", () => {
             expectTypeOf<IMrsProcedureResult<unknown, unknown>>().not.toHaveProperty("_metadata");
+        });
+    });
+
+    describe("IMrsTaskWatchOptions", () => {
+        it("allows to optionally set a numeric refresh rate", () => {
+            expectTypeOf<IMrsTaskWatchOptions>().toEqualTypeOf<{ refreshRate?: number }>;
+        });
+
+        it("can be empty", () => {
+            expectTypeOf({}).toMatchTypeOf<IMrsTaskWatchOptions>();
+        });
+    });
+
+    describe("IMrsTaskExecutionOptions", () => {
+        it("allows to set a numeric refresh rate", () => {
+            it("allows to optionally set a numeric refresh rate", () => {
+                expectTypeOf<IMrsTaskExecutionOptions<unknown, unknown>>().toHaveProperty("refreshRate")
+                    .toEqualTypeOf<number | undefined>();
+            });
+
+            it("allows to optionally set an asynchronous progress callback function with a proper parameter", () => {
+                interface ICallbackInput {
+                    foo: string
+                }
+
+                expectTypeOf<IMrsTaskExecutionOptions<ICallbackInput, unknown>>()
+                    .toHaveProperty("progress")
+                    .returns
+                    .resolves
+                    .toBeVoid();
+
+                expectTypeOf<IMrsTaskExecutionOptions<ICallbackInput, unknown>>()
+                    .toHaveProperty("progress")
+                    .parameter(0)
+                    .toEqualTypeOf<IMrsRunningTaskReport<ICallbackInput, unknown>>();
+            });
+
+            it("can be empty", () => {
+                expectTypeOf({}).toMatchTypeOf<IMrsTaskExecutionOptions<unknown, unknown>>();
+            });
+        });
+    });
+
+    describe("IMrsTaskReport", () => {
+        it("includes the details of a running task", () => {
+            interface IStatusUpdate {
+                foo: string
+            }
+
+            interface IStatusUpdateReport {
+                data: IStatusUpdate,
+                status: "RUNNING",
+                progress: number,
+                message: string
+            }
+
+            expectTypeOf<IMrsTaskReport<IStatusUpdate, unknown>>().extract<{ status: "RUNNING" }>().toEqualTypeOf<IStatusUpdateReport>();
+        });
+
+        it("includes the details of a cancelled task", () => {
+            interface IStatusUpdateReport {
+                status: "CANCELLED",
+                message: string
+            }
+
+            expectTypeOf<IMrsTaskReport<unknown, unknown>>().extract<{ status: "CANCELLED" }>().toEqualTypeOf<IStatusUpdateReport>();
+        });
+
+        it("includes the details of a completed task", () => {
+            interface IProcResult {
+                foo: string
+            }
+
+            interface IStatusUpdateReport {
+                status: "COMPLETED",
+                result: IProcResult,
+                message: string
+            }
+
+            expectTypeOf<IMrsTaskReport<unknown, IProcResult>>().extract<{ status: "COMPLETED" }>().toEqualTypeOf<IStatusUpdateReport>();
         });
     });
 });
