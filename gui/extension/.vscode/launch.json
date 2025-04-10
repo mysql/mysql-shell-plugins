@@ -13,7 +13,6 @@
             "outFiles": [
                 "${workspaceFolder}/out/**/*.js"
             ],
-            "preLaunchTask": "Build Extension",
             "trace": false,
             "smartStep": true,
         },
@@ -51,7 +50,6 @@
             "outFiles": [
                 "${workspaceFolder}/out/extension/src/test/**/*.js"
             ],
-            "preLaunchTask": "Build Extension",
             "env": {
                 "NODE_ENV": "test"
             }

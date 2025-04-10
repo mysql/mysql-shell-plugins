@@ -8,7 +8,6 @@
             "url": "https://localhost:3001",
             "webRoot": "${workspaceFolder}/src",
             "clearConsoleOnReload": true,
-            "preLaunchTask": "tsc: watch",
             "keepProfileChanges": false,
             "reAttach": true,
             "profile": "dev",
@@ -24,7 +23,6 @@
             "url": "http://localhost:3001?token=1234",
             "webRoot": "${workspaceFolder}/src",
             "clearConsoleOnReload": true,
-            "preLaunchTask": "tsc: watch",
             "keepProfileChanges": false,
             "reAttach": true,
             "profile": "dev",
@@ -44,7 +42,6 @@
             "webRoot": "${workspaceFolder}/src",
             "userDataDir": "${workspaceRoot}/.vscode/chrome",
             "sourceMaps": true,
-            "preLaunchTask": "tsc: watch",
             "sourceMapPathOverrides": {},
             "runtimeArgs": [
                 "--allow-insecure-localhost"
@@ -57,7 +54,6 @@
             "url": "http://127.0.0.1:3001?token=1234",
             "webRoot": "${workspaceFolder}", // Point to folder with vite.config.ts.
             "userDataDir": "${workspaceRoot}/.vscode/chrome",
-            "preLaunchTask": "tsc: watch",
             "sourceMaps": true,
             "runtimeArgs": [
                 "--allow-insecure-localhost"

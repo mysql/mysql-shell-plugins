@@ -19,14 +19,17 @@
             }
         },
         {
+            "label": "tsc: watch",
             "type": "typescript",
-            "tsconfig": "tsconfig.json",
+            "tsconfig": "./tsconfig.json",
             "option": "watch",
             "problemMatcher": [
-                "$tsc-watch"
+                "$tsc"
             ],
             "group": "build",
-            "label": "tsc: watch"
+            "runOptions": {
+                "runOn": "folderOpen",
+            }
         },
         {
             "label": "Setup and run e2e FE tests",
