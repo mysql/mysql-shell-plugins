@@ -32,7 +32,6 @@ from typing import (
     Generic,
     Literal,
     Optional,
-    Type,
     TypeAlias,
     TypedDict,
     Union,
@@ -40,7 +39,6 @@ from typing import (
 )
 import typing
 from unittest.mock import MagicMock
-from urllib.request import HTTPError
 
 import pytest  # type: ignore[import-not-found]
 
@@ -63,7 +61,6 @@ from ..mrs_base_classes import (
     HighOrderOperator,
     IMrsResourceDetails,
     IntField,
-    MrsAuthenticate,
     MrsBaseObject,
     MrsBaseObjectCreate,
     MrsBaseObjectDelete,
@@ -75,7 +72,6 @@ from ..mrs_base_classes import (
     MrsService,
     MrsDataDownstreamConverter,
     MrsDataUpstreamConverter,
-    MrsDeauthenticate,
     MrsDocumentBase,
     MrsJSONDataDecoder,
     MrsJSONDataEncoder,

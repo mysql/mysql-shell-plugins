@@ -125,6 +125,7 @@ def test_get_datatype_mapping():
             ("DATE",): "Date",
             ("TIME",): "Time",
             ("YEAR",): "Year",
+            ("VECTOR",): "Vector",
         },
         "Unknown": {
             ("varchar",): "unknown",

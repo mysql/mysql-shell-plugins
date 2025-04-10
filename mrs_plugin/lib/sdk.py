@@ -56,6 +56,9 @@ class I{name}({mixins}MrsDocument[I{name}Data]
 '''
 
 
+SDK_PYTHON_NON_NATIVE_TYPES = ("Date", "DateTime", "Time", "Year", "Vector")
+
+
 class LanguageNotSupportedError(Exception):
     def __init__(self, sdk_language):
         self.message = f"The SDK language {sdk_language} is not supported yet."
@@ -478,7 +481,7 @@ def substitute_objects_in_template(
                                 if (
                                     sdk_language == "Python"
                                     and client_datatype.startswith(
-                                        ("Date", "Time", "Year")
+                                        SDK_PYTHON_NON_NATIVE_TYPES
                                     )
                                 ):
                                     required_datatypes.add(
@@ -696,6 +699,8 @@ def get_datatype_mapping(db_datatype, sdk_language):
             return "Time"
         if db_datatype.startswith("year"):
             return "Year"
+        if db_datatype.startswith("vector"):
+            return "Vector"
         return "str"
 
     return "unknown"
@@ -711,7 +716,8 @@ def get_enhanced_datatype_mapping(db_datatype, sdk_language):
             "Date": "DateField",
             "DateTime": "DateTimeField",
             "Time": "TimeField",
-            "Year": "YearField"
+            "Year": "YearField",
+            "Vector": "VectorField",
         }
     }
     if sdk_language == "TypeScript":

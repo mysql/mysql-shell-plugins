@@ -14,6 +14,7 @@ __Chapter Overview__
 - [Checking for NULL Column Values](#checking-for-null-column-values)
 - [Working with Spatial Data Types](#working-with-spatial-data-types)
 - [Working with Date and Time Data Types](#working-with-date-and-time-data-types)
+- [Working with Vector Data Types](#working-with-vector-data-types)
 - [Authentication](#authentication)
 - [TypeScript Client API Reference](#typescript-client-api-reference)
 - [Python Client API Reference](#python-client-api-reference)
@@ -43,6 +44,8 @@ Please also see
 !include sections/sdk/WorkingWithSpatialDataTypes.md
 
 !include sections/sdk/WorkingWithDateAndTimeDataTypes.md
+
+!include sections/sdk/WorkingWithVectorDataTypes.md
 
 !include sections/sdk/Authentication.md
 
