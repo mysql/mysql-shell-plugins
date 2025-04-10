@@ -281,7 +281,7 @@ GEOMETRYCOLLECTION(POINT(10 10), POINT(30 30), LINESTRING(15 15, 20 20))
 """
 
 
-# Date and Time data type"
+# Date and Time data type
 # These aliases are instances of 'typing.TypeAliasType'
 type Date = datetime.date
 """Type alias object (instance of `typing.TypeAliasType`) identifying
@@ -303,6 +303,12 @@ type JsonFormattableDateOrTime = Date | DateTime | Time
 Client Date and Time data types that should convert to JSON formattable
 values before using them in an HTTP request."""
 
+# Vector data type
+# These aliases are instances of 'typing.TypeAliasType'
+type Vector = list[float]
+"""Type alias object (instance of `typing.TypeAliasType`) identifying
+the client-side counterpart of MySQL VECTOR data type."""
+
 
 # Misc types
 UndefinedField = UndefinedDataClassField()
@@ -317,8 +323,8 @@ Sortable = TypeVar("Sortable", bound=Optional[Mapping])
 Cursors = TypeVar("Cursors", bound=Optional[Mapping])
 
 
-EqOperand = TypeVar("EqOperand", bound=str | int | float | DateOrTime)
-NeqOperand = TypeVar("NeqOperand", bound=str | int | float | DateOrTime)
+EqOperand = TypeVar("EqOperand", bound=str | int | float | DateOrTime | Vector)
+NeqOperand = TypeVar("NeqOperand", bound=str | int | float | DateOrTime | Vector)
 NotOperator = TypedDict("NotOperator", {"not": None})
 PatternOperand = TypeVar("PatternOperand", bound=str)
 RangeOperand = TypeVar(
@@ -470,8 +476,12 @@ class _MrsDocumentUpdateMixin(Generic[Data, DataClass, DataDetails], MrsDocument
         """Update a resource represented by the data class instance."""
         prk_name = self.get_primary_key_name()
         if not prk_name:
-            raise MrsDocumentNotFoundError(msg="Unable to update a REST document without the identifier.")
-        rest_document_id = ",".join([f"{getattr(self, field_name)}" for field_name in prk_name.split(",")])
+            raise MrsDocumentNotFoundError(
+                msg="Unable to update a REST document without the identifier."
+            )
+        rest_document_id = ",".join(
+            [f"{getattr(self, field_name)}" for field_name in prk_name.split(",")]
+        )
 
         await MrsBaseObjectUpdate[DataClass, DataDetails](
             schema=self._schema,
@@ -487,11 +497,13 @@ class _MrsDocumentDeleteMixin(Generic[Data, Filterable], MrsDocument[Data]):
         """Deletes the resource represented by the data class instance."""
         prk_name = self.get_primary_key_name()
         if not prk_name:
-            raise MrsDocumentNotFoundError(msg="Unable to delete a REST document without the identifier.")
+            raise MrsDocumentNotFoundError(
+                msg="Unable to delete a REST document without the identifier."
+            )
 
         query_filter = {}
         for field_name in prk_name.split(","):
-            query_filter.update({ f"{field_name}": getattr(self, field_name) })
+            query_filter.update({f"{field_name}": getattr(self, field_name)})
 
         options = {
             "where": query_filter,
@@ -783,6 +795,9 @@ YearField: TypeAlias = (
     | LteOperator[int]
     | NotOperator
 )
+
+
+VectorField: TypeAlias = Vector | EqOperator[Vector] | NeqOperator[Vector] | NotOperator
 
 
 class HighOrderOperator(Generic[Filterable], TypedDict, total=False):
