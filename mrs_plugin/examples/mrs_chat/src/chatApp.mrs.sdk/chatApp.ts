@@ -7,45 +7,25 @@
 import {
     MrsBaseService,
     MrsBaseSchema,
+    MrsBaseObject,
+    IMrsProcedureResult,
     JsonObject,
     JsonValue,
     MaybeNull,
-    IMrsProcedureResult,
     MrsBaseObjectProcedureCall,
 } from "./MrsBaseClasses";
 
 // --- MySQL Shell for VS Code Extension Remove --- Begin
 export type { IMrsAuthUser, IMrsAuthStatus } from "./MrsBaseClasses";
 // --- MySQL Shell for VS Code Extension Remove --- End
-/* -----------------------------------------------------------------------------
- * MRS Schema /chat
- */
-
-export class ChatAppChatObjectRequest {
-    public constructor(
-        public schema: ChatAppChat) {
-    }
-}
-
 /*
  * MRS Object - /chatApp/chat/heatwaveChatAsync (PROCEDURE)
  */
-
-export class ChatAppChatHeatwaveChatAsyncParamsRequest extends ChatAppChatObjectRequest {
-
-    static readonly #schemaRequestPath = "/chat";
-    static readonly #requestPath = "/heatwaveChatAsync";
-
-
-
-
-
-
-
+class ChatAppChatHeatwaveChatAsyncParamsObject extends MrsBaseObject {
 
     public call = async (heatwaveChatAsyncParams?: IChatAppChatHeatwaveChatAsyncParams): Promise<IMrsProcedureResult<IChatAppChatHeatwaveChatAsyncParamsOut, IChatAppChatHeatwaveChatAsyncResultSet>> => {
         const request = new MrsBaseObjectProcedureCall<IChatAppChatHeatwaveChatAsyncParams, IChatAppChatHeatwaveChatAsyncParamsOut, IChatAppChatHeatwaveChatAsyncResultSet>(
-            this.schema, ChatAppChatHeatwaveChatAsyncParamsRequest.#requestPath, heatwaveChatAsyncParams);
+            this.schema, this.requestPath, heatwaveChatAsyncParams);
         const response = await request.fetch();
 
         return response;
@@ -68,22 +48,11 @@ export type IChatAppChatHeatwaveChatAsyncResultSet = JsonObject;
 /*
  * MRS Object - /chatApp/chat/heatwaveChatAsyncResult (PROCEDURE)
  */
-
-export class ChatAppChatHeatwaveChatAsyncResultParamsRequest extends ChatAppChatObjectRequest {
-
-    static readonly #schemaRequestPath = "/chat";
-    static readonly #requestPath = "/heatwaveChatAsyncResult";
-
-
-
-
-
-
-
+class ChatAppChatHeatwaveChatAsyncResultParamsObject extends MrsBaseObject {
 
     public call = async (heatwaveChatAsyncResultParams?: IChatAppChatHeatwaveChatAsyncResultParams): Promise<IMrsProcedureResult<IChatAppChatHeatwaveChatAsyncResultParamsOut, IChatAppChatHeatwaveChatAsyncResultResultSet>> => {
         const request = new MrsBaseObjectProcedureCall<IChatAppChatHeatwaveChatAsyncResultParams, IChatAppChatHeatwaveChatAsyncResultParamsOut, IChatAppChatHeatwaveChatAsyncResultResultSet>(
-            this.schema, ChatAppChatHeatwaveChatAsyncResultParamsRequest.#requestPath, heatwaveChatAsyncResultParams);
+            this.schema, this.requestPath, heatwaveChatAsyncResultParams);
         const response = await request.fetch();
 
         return response;
@@ -105,20 +74,20 @@ export interface IChatAppChatHeatwaveChatAsyncResultParamsOut {
 export type IChatAppChatHeatwaveChatAsyncResultResultSet = JsonObject;
 
 
-export class ChatAppChat extends MrsBaseSchema {
-    #heatwaveChatAsync?: ChatAppChatHeatwaveChatAsyncParamsRequest;
-    #heatwaveChatAsyncResult?: ChatAppChatHeatwaveChatAsyncResultParamsRequest;
+class ChatAppChat extends MrsBaseSchema {
+    #heatwaveChatAsync?: ChatAppChatHeatwaveChatAsyncParamsObject;
+    #heatwaveChatAsyncResult?: ChatAppChatHeatwaveChatAsyncResultParamsObject;
 
-    public get heatwaveChatAsync(): ChatAppChatHeatwaveChatAsyncParamsRequest {
+    public get heatwaveChatAsync(): ChatAppChatHeatwaveChatAsyncParamsObject {
         if (this.#heatwaveChatAsync === undefined) {
-            this.#heatwaveChatAsync = new ChatAppChatHeatwaveChatAsyncParamsRequest(this);
+            this.#heatwaveChatAsync = new ChatAppChatHeatwaveChatAsyncParamsObject(this, "/heatwaveChatAsync");
         }
 
         return this.#heatwaveChatAsync;
     }
-    public get heatwaveChatAsyncResult(): ChatAppChatHeatwaveChatAsyncResultParamsRequest {
+    public get heatwaveChatAsyncResult(): ChatAppChatHeatwaveChatAsyncResultParamsObject {
         if (this.#heatwaveChatAsyncResult === undefined) {
-            this.#heatwaveChatAsyncResult = new ChatAppChatHeatwaveChatAsyncResultParamsRequest(this);
+            this.#heatwaveChatAsyncResult = new ChatAppChatHeatwaveChatAsyncResultParamsObject(this, "/heatwaveChatAsyncResult");
         }
 
         return this.#heatwaveChatAsyncResult;
@@ -128,7 +97,6 @@ export class ChatAppChat extends MrsBaseSchema {
 /* =============================================================================
  * MRS Service https://localhost:8443/chatApp
  */
-
 export class ChatApp extends MrsBaseService {
     #chat?: ChatAppChat;
 

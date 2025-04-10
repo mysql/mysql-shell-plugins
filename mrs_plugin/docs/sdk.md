@@ -9,6 +9,7 @@ __Chapter Overview__
 - [Introduction to the MRS SDK](#introduction-to-the-mrs-sdk)
 - [Working with a REST Service](#working-with-a-rest-service)
 - [Querying Data Across Tables](#querying-data-across-tables)
+- [Functions And Procedures](#functions-and-procedures)
 - [Contextual Fields and Parameters](#contextual-fields-and-parameters)
 - [Read Your Writes Consistency](#read-your-writes-consistency)
 - [Checking for NULL Column Values](#checking-for-null-column-values)
@@ -34,6 +35,8 @@ Please also see
 !include sections/sdk/WorkingWithARESTService.md
 
 !include sections/sdk/QueryingDataAcrossTables.md
+
+!include sections/sdk/FunctionsAndProcedures.md
 
 !include sections/sdk/ContextualFieldsAndParameters.md
 
