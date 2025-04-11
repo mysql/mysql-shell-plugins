@@ -1649,7 +1649,7 @@ def deploy_schema(
         else:
             if not schema_exists:
                 err_str = (
-                    "Deploying the database schema `{schema_name}` failed. {e}"
+                    f"Deploying the database schema `{schema_name}` failed. {e}"
                 )
                 lib.core.write_to_msm_schema_update_log("ERROR", err_str)
 

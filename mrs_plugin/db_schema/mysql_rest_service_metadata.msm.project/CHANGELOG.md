@@ -1,5 +1,9 @@
 # Database Schema Change Log for `mysql_rest_service_metadata`
 
+## 4.0.4
+
+- Added fractional seconds precision to TIMESTAMP values in log tables
+
 ## 4.0.3
 
 - Changed the export format of the audit_log dump to valid JSON
