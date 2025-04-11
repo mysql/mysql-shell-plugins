@@ -1419,6 +1419,11 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "ALTER REST SCHEMA",
+            "schema_request_path": (
+                get_text_without_quotes(ctx.schemaRequestPath().getText())
+                if ctx.schemaRequestPath() is not None
+                else None
+            ),
         }
 
     def enterNewSchemaRequestPath(self, ctx):

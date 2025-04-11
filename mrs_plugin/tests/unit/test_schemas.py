@@ -29,7 +29,8 @@ import mysqlsh
 from .helpers import SchemaCT, DbObjectCT, get_default_db_object_init
 
 schema_create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook ON SERVICE /test
-    FROM `PhoneBook`;
+    FROM `PhoneBook`
+    AUTHENTICATION NOT REQUIRED;
 
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE /test SCHEMA /PhoneBook
@@ -337,7 +338,8 @@ def test_dump_create_statement(phone_book, table_contents):
 def test_dump_and_recover(phone_book, table_contents):
     session = phone_book["session"]
     create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE /test
-    FROM `PhoneBook`;"""
+    FROM `PhoneBook`
+    AUTHENTICATION NOT REQUIRED;"""
     create_function = lambda file_path, schema_id, overwrite=True: \
         store_schema_create_statement(file_path=file_path,
                                 overwrite=overwrite,
@@ -401,7 +403,8 @@ def test_dump_and_recover(phone_book, table_contents):
 def test_dump_and_recover_include_all_objects(phone_book, table_contents):
     session = phone_book["session"]
     create_statement = """CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE /test
-    FROM `PhoneBook`;
+    FROM `PhoneBook`
+    AUTHENTICATION NOT REQUIRED;
 
 CREATE OR REPLACE REST VIEW /addresses
     ON SERVICE /test SCHEMA /PhoneBook2

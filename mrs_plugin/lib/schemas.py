@@ -419,6 +419,11 @@ def get_schema_create_statement(session, schema, include_all_objects: bool = Fal
     elif schema.get("enabled") != 1:
         output.append("    DISABLED")
 
+    if schema.get("requires_auth") == 1:
+        output.append("    AUTHENTICATION REQUIRED")
+    else:
+        output.append("    AUTHENTICATION NOT REQUIRED")
+
     if schema.get("options"):
         output.append(core.format_json_entry("OPTIONS", schema.get("options")))
     if schema.get("metadata"):
