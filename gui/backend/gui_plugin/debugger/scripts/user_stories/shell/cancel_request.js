@@ -32,7 +32,7 @@ await ws.sendAndValidate({
     "request_id": ws.tokens["task1_req_id"],
     "command": "gui.shell.execute",
     "args": {
-        "command": "import time; time.sleep(5)",
+        "command": "import time; time.sleep(10)",
         "module_session_id": ws.lastModuleSessionId,
     }
 }, [
@@ -50,7 +50,7 @@ await ws.sendAndValidate({
     "request_id": ws.tokens["task2_req_id"],
     "command": "gui.shell.execute",
     "args": {
-        "command": "import time; time.sleep(5)",
+        "command": "import time; time.sleep(10)",
         "module_session_id": ws.lastModuleSessionId,
     }
 }, [

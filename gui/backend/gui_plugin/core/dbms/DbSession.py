@@ -296,6 +296,12 @@ class DbSession(threading.Thread):
     def get_default_schema(self):  # pragma: no cover
         raise NotImplementedError()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
     def close(self, after_fail=False):
         if self.threaded:
             # If connection failed to open

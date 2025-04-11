@@ -47,6 +47,34 @@ DEFAULT_CONFIG = {
 }
 
 
+class InitDBFirstTime():
+    __instance = None
+
+    @staticmethod
+    def get_instance() -> 'InitDBFirstTime':
+        if InitDBFirstTime.__instance is None:
+            InitDBFirstTime()
+        return InitDBFirstTime.__instance # type: ignore[return-value]
+
+    def __init__(self):
+        if InitDBFirstTime.__instance is not None:
+            raise RuntimeError(
+                "This class is a singleton, use get_instance function to get an instance.")
+        else:
+            InitDBFirstTime.__instance = self
+            self.__db_initialized = False
+
+
+    def is_db_initialized(self):
+        return self.__db_initialized
+
+    def set_db_initialized(self, value):
+        self.__db_initialized = value
+
+    def reset(self):
+        self.__db_initialized = False
+
+
 class BackendDbManager():
     """
     Handles the maintenance tasks on the backend database, including:
@@ -64,7 +92,17 @@ class BackendDbManager():
         self._config = DEFAULT_CONFIG
         self._log_rotation = log_rotation
 
-        self.ensure_database_exists()
+        if not InitDBFirstTime.get_instance().is_db_initialized():
+            self.ensure_database_exists()
+
+            # Log rotation verification should be enabled by the caller
+            # only at specific locations
+            if log_rotation:
+                with self.open_database() as db:
+                    if self.check_if_logs_need_rotation(db):
+                        self.backup_logs(db)
+
+        InitDBFirstTime.get_instance().set_db_initialized(True)
 
     def ensure_database_exists(self):
         if not self.current_database_exist():
@@ -152,6 +190,9 @@ class BackendSqliteDbManager(BackendDbManager):
         Safely handles WAL and SHM files for all environments
         """
         try:
+            if self._connection_options is None:
+                return
+
             db_file = self._connection_options["db_file"]
 
             if not path.exists(db_file):
@@ -192,6 +233,8 @@ class BackendSqliteDbManager(BackendDbManager):
             logger.error(f"Unexpected error during WAL checkpoint: {e}")
 
     def current_database_exist(self):
+        if self._connection_options is None:
+            return False
         return path.isfile(self._connection_options["db_file"])
 
     def check_for_previous_version_and_upgrade(self):
@@ -292,7 +335,8 @@ class BackendSqliteDbManager(BackendDbManager):
                 self.remove_db_file(final_db_file)
                 logger.info(
                     f"Renaming file: {installed_db_file}.backup to {installed_db_file}")
-                rename(f'{installed_db_file}.backup', installed_db_file)
+                if installed_db_file is not None:
+                    rename(f'{installed_db_file}.backup', installed_db_file)
                 if path.exists(f'{installed_db_log_file}.backup.old'):
                     self.rename_db_file(
                         f'{installed_db_log_file}.backup.old', f'{installed_db_log_file}.backup')
@@ -328,6 +372,9 @@ class BackendSqliteDbManager(BackendDbManager):
     def initialize_db(self):
         sql_file_path = path.join(path.dirname(__file__), 'db_schema',
                                   'mysqlsh_gui_backend.sqlite.sql')
+        if self._connection_options is None:
+            raise Exception("Connection options not initialized")
+
         logger.debug2(
             f"Starting initializing database:\n\tdatabase file:{self._connection_options['db_file']}\n\tsql_file:{sql_file_path}")
 
@@ -348,9 +395,10 @@ class BackendSqliteDbManager(BackendDbManager):
             chdir(self.db_dir)
             cursor.executescript(sql)
             conn.commit()
-            version = self.get_db_version(self._connection_options['db_file'])
-            logger.debug2(
-                f"Database successfully initialized\n\tDatabase version: {version}")
+            if self._connection_options is not None:
+                version = self.get_db_version(self._connection_options['db_file'])
+                logger.debug2(
+                    f"Database successfully initialized\n\tDatabase version: {version}")
         except Exception as e:  # pragma: no cover
             conn.rollback()
             logger.error(f'Cannot initialize database. {e}')

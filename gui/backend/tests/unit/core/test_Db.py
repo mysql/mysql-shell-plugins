@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -31,6 +31,7 @@ import contextlib
 import difflib
 import pytest
 import re
+from gui_plugin.core.GuiBackendDbManager import InitDBFirstTime
 
 
 def test_GuiBackendDb_init():
@@ -130,11 +131,17 @@ def test_GuiBackendDb_select_rows():
 
 
 def test_GuiBackendDb_check_for_previous_version_and_upgrade():
-    backend_db = BackendSqliteDbManager()
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        connection_options = {"db_dir": tmpdirname,
+                             "database_name": "main",
+                             "db_file": os.path.join(tmpdirname, f'mysqlsh_gui_backend.sqlite3')}
+        backend_db = BackendSqliteDbManager(log_rotation=False,
+                                           session_uuid=None,
+                                           connection_options=connection_options)
 
-    result = backend_db.check_for_previous_version_and_upgrade()
+        result = backend_db.check_for_previous_version_and_upgrade()
 
-    assert result == True
+        assert result == False
 
 
 def test_GuiBackendDb_convert_workbench_sql_file_to_sqlite():
@@ -170,6 +177,7 @@ def test_GuiBackendDb_convert_workbench_sql_file_to_sqlite():
 
 
 def test_upgrade_db():
+    InitDBFirstTime.get_instance().reset()
     current_create_script = os.path.join(
         'gui_plugin', 'core', 'db_schema', f'mysqlsh_gui_backend.sqlite.sql')
     assert os.path.exists(current_create_script)
@@ -231,7 +239,6 @@ def test_upgrade_db():
         with open(upgraded_dump_file, 'r') as f1, open(current_dump_file, 'r') as f2:
             diff = difflib.context_diff(f1.readlines(), f2.readlines())
             assert ''.join(diff) == ''
-
 
 
 def normalize_sql_file(file):
