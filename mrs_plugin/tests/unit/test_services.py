@@ -47,7 +47,8 @@ CREATE REST ROLE `Process Admin` EXTENDS `Maintenance Admin` ON SERVICE /test
     OPTIONS {};
 
 CREATE OR REPLACE REST SCHEMA /AnalogPhoneBook ON SERVICE /test
-    FROM `AnalogPhoneBook`;
+    FROM `AnalogPhoneBook`
+    AUTHENTICATION NOT REQUIRED;
 
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE /test SCHEMA /AnalogPhoneBook
@@ -61,7 +62,8 @@ CREATE OR REPLACE REST VIEW /Contacts
     AUTHENTICATION REQUIRED;
 
 CREATE OR REPLACE REST SCHEMA /MobilePhoneBook ON SERVICE /test
-    FROM `MobilePhoneBook`;
+    FROM `MobilePhoneBook`
+    AUTHENTICATION NOT REQUIRED;
 
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE /test SCHEMA /MobilePhoneBook
@@ -75,7 +77,8 @@ CREATE OR REPLACE REST VIEW /Contacts
     AUTHENTICATION REQUIRED;
 
 CREATE OR REPLACE REST SCHEMA /PhoneBook ON SERVICE /test
-    FROM `PhoneBook`;
+    FROM `PhoneBook`
+    AUTHENTICATION NOT REQUIRED;
 
 CREATE OR REPLACE REST VIEW /Contacts
     ON SERVICE /test SCHEMA /PhoneBook
@@ -559,7 +562,8 @@ def test_dump_and_recover(phone_book, table_contents):
     };
 
 CREATE OR REPLACE REST SCHEMA /PhoneBook2 ON SERVICE /test2
-    FROM `PhoneBook`;
+    FROM `PhoneBook`
+    AUTHENTICATION NOT REQUIRED;
 
 CREATE OR REPLACE REST VIEW /addresses
     ON SERVICE /test2 SCHEMA /PhoneBook2

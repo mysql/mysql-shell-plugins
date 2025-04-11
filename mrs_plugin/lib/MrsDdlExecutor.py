@@ -1263,9 +1263,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "request_path": mrs_object.get(
                         "new_request_path", schema["request_path"]
                     ),
-                    "requires_auth": mrs_object.get(
+                    "requires_auth": int(mrs_object.get(
                         "requires_auth", schema["requires_auth"]
-                    ),
+                    )),
                     "enabled": mrs_object.get("enabled", schema["enabled"]),
                     "items_per_page": mrs_object.get(
                         "items_per_page", schema["items_per_page"]
@@ -3015,6 +3015,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
 
+        caption = mrs_object.get("caption", "")
+
         try:
             result = [{"CREATE REST ROLE ": lib.roles.get_role_create_statement(self.session, mrs_object)}]
 
@@ -3036,7 +3038,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "statementIndex": len(self.results) + 1,
                     "line": mrs_object.get("line"),
                     "type": "error",
-                    "message": f"Failed to get the REST USER `{caption}`. {e}",
+                    "message": f"Failed to get the REST ROLE `{caption}`. {e}",
                     "operation": self.current_operation,
                 }
             )
