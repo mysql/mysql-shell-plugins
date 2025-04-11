@@ -1,5 +1,5 @@
 -- Copyright (c) 2021, 2025, Oracle and/or its affiliates.
--- Fri Mar 28 17:26:11 2025
+-- Fri Apr 11 15:56:50 2025
 -- Model: New Model    Version: 1.0
 -- MySQL Workbench Forward Engineering
 
@@ -294,7 +294,7 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`audit_log` (
   `old_row_data` JSON NULL,
   `new_row_data` JSON NULL,
   `changed_by` VARCHAR(255) NOT NULL,
-  `changed_at` TIMESTAMP NOT NULL,
+  `changed_at` TIMESTAMP(6) NOT NULL,
   `old_row_id` BINARY(16) NULL,
   `new_row_id` BINARY(16) NULL,
   PRIMARY KEY (`id`),
@@ -626,7 +626,7 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`router_general_log` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `router_id` INT UNSIGNED NOT NULL,
   `router_session_id` INT UNSIGNED NULL,
-  `log_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `log_time` TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   `log_type` ENUM("INFO", "WARNING", "DEBUG", "ERROR", "FATAL", "SYSTEM", "NOTE") NOT NULL,
   `code` INT UNSIGNED NULL,
   `domain` VARCHAR(255) NULL,
