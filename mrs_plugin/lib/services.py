@@ -21,12 +21,13 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import core, roles, schemas, content_sets, auth_apps
+from mrs_plugin.lib import core, roles, schemas, content_sets, auth_apps, database
 
 import re
 import os
 from zipfile import ZipFile
 import pathlib
+
 
 def prompt_for_url_context_root(default=None):
     """Prompts the user for the url_context_root
@@ -625,3 +626,9 @@ def store_service_create_statement(session, service: dict,
         with ZipFile(f"{file_path}.zip", "w") as f:
             f.write(file_path, arcname=pathlib.Path(file_path).name)
         os.remove(file_path)
+
+
+def get_service_sdk_data(session, service_id, binary_formatter=None):
+    return database.get_sdk_service_data(
+        session, service_id, binary_formatter=binary_formatter
+    )

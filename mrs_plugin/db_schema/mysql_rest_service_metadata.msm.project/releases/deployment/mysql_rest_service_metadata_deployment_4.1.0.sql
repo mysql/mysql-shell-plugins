@@ -1798,6 +1798,190 @@ BEGIN
 END%%
 
 
+DROP PROCEDURE IF EXISTS mysql_rest_service_metadata.sdk_service_data%%
+CREATE PROCEDURE mysql_rest_service_metadata.sdk_service_data(IN service_id BINARY(16))
+BEGIN
+    DECLARE service_res JSON;
+    DECLARE schema_id BINARY(16);
+    DECLARE schema_res JSON;
+
+    -- Get all db_schemas of the given service, fetch the id to do the nested SELECTs and
+    -- the data as JSON
+    DECLARE schema_loop_done TINYINT DEFAULT FALSE;
+    DECLARE schema_cursor CURSOR FOR
+        SELECT s.id,
+            JSON_OBJECT(
+                'id', s.id,
+                'name', s.name,
+                'schema_type', s.schema_type,
+                'request_path', s.request_path,
+                'requires_auth', s.requires_auth,
+                'internal', s.internal,
+                'options', s.options
+            )
+        FROM mysql_rest_service_metadata.db_schema AS s
+        WHERE s.service_id = service_id AND s.enabled = 1;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET schema_loop_done = 1;
+
+    -- Get the service data as JSON
+    SELECT
+        JSON_OBJECT(
+            'id', s.id,
+            'url_context_root', s.url_context_root,
+            'name', s.name,
+            'enabled', s.enabled,
+            'published', s.published,
+            'options', s.options,
+            'auth_path', s.auth_path,
+            'auth_completed_url_validation', s.auth_completed_url_validation
+        )
+        INTO service_res
+    FROM mysql_rest_service_metadata.service AS s
+    WHERE s.id = service_id;
+
+    -- Initiate the list of db_schemas with an empty JSON array
+    SET service_res = JSON_SET(service_res, '$.db_schemas', json_array());
+
+    -- Loop over all db_schema of the given service
+    OPEN schema_cursor;
+    schema_loop: LOOP
+        -- Get the next db_schema of the service
+        FETCH NEXT FROM schema_cursor INTO schema_id, schema_res;
+
+        IF schema_loop_done THEN
+            LEAVE schema_loop;
+        ELSE schema_block: BEGIN
+            -- Get all db_objects of the given db_schema, fetch the id to do the nested SELECTs and
+            -- the data as JSON
+            DECLARE db_object_id BINARY(16);
+            DECLARE db_object_res JSON;
+            DECLARE db_object_loop_done TINYINT DEFAULT FALSE;
+            DECLARE db_object_cursor CURSOR FOR
+                SELECT o.id,
+                    JSON_OBJECT(
+                        'id', o.id,
+                        'name', o.name,
+                        'request_path', o.request_path,
+                        'internal', o.internal,
+                        'object_type', o.object_type,
+                        'crud_operations', o.crud_operations,
+                        'format', o.format,
+                        'requires_auth', o.requires_auth,
+                        'options', o.options
+                    )
+                FROM mysql_rest_service_metadata.db_object AS o
+                WHERE o.db_schema_id = schema_id AND o.enabled = 1;
+            DECLARE CONTINUE HANDLER FOR NOT FOUND SET db_object_loop_done = 1;
+
+            -- Initiate the list of db_objects with an empty JSON array
+            SET schema_res = JSON_SET(schema_res, '$.db_objects', json_array());
+
+            -- Loop over all db_objects of the given db_schema
+            OPEN db_object_cursor;
+            db_object_loop: LOOP
+                FETCH NEXT FROM db_object_cursor INTO db_object_id, db_object_res;
+
+                IF db_object_loop_done THEN
+                    LEAVE db_object_loop;
+                ELSE db_object_block: BEGIN
+                    DECLARE object_id BINARY(16);
+                    DECLARE object_res JSON;
+                    DECLARE object_loop_done TINYINT DEFAULT FALSE;
+                    DECLARE object_cursor CURSOR FOR
+                        SELECT o.id,
+                          JSON_OBJECT(
+                            'id', o.id,
+                            'db_object_id', o.db_object_id,
+                            'name', name,
+                            'kind', kind,
+                            'position', position,
+                            'row_ownership_field_id', row_ownership_field_id,
+                            'options', options,
+                            'sdk_options', sdk_options
+                          )
+                      FROM mysql_rest_service_metadata.object AS o
+                      WHERE o.db_object_id = db_object_id;
+                    DECLARE CONTINUE HANDLER FOR NOT FOUND SET object_loop_done = 1;
+
+                    -- Initiate the list of objects with an empty JSON array
+                    SET db_object_res = JSON_SET(db_object_res, '$.objects', json_array());
+
+                    -- Loop over all SDK object instances of the given db_object
+                    OPEN object_cursor;
+                    object_loop: LOOP
+                        FETCH NEXT FROM object_cursor INTO object_id, object_res;
+
+                        IF object_loop_done THEN
+                            LEAVE object_loop;
+                        ELSE object_block: BEGIN
+                            DECLARE field_id BINARY(16);
+                            DECLARE field_res JSON;
+                            DECLARE field_loop_done TINYINT DEFAULT FALSE;
+                            DECLARE field_cursor CURSOR FOR
+                                SELECT f.id,
+                                    JSON_OBJECT(
+                                        'caption', f.caption,
+                                        'lev', f.lev,
+                                        'position', f.position,
+                                        'id', f.id,
+                                        'represents_reference_id', f.represents_reference_id,
+                                        'parent_reference_id', f.parent_reference_id,
+                                        'object_id', f.object_id,
+                                        'name', f.name,
+                                        'db_column', f.db_column,
+                                        'enabled', f.enabled,
+                                        'allow_filtering', f.allow_filtering,
+                                        'allow_sorting', f.allow_sorting,
+                                        'no_check', f.no_check,
+                                        'no_update', f.no_update,
+                                        'options', f.options,
+                                        'sdk_options', f.sdk_options,
+                                        'object_reference', f.object_reference
+                                    )
+                                FROM mysql_rest_service_metadata.object_fields_with_references AS f
+                                WHERE f.object_id = object_id;
+                            DECLARE CONTINUE HANDLER FOR NOT FOUND SET field_loop_done = 1;
+
+                            -- Initiate the list of fields with an empty JSON array
+                            SET object_res = JSON_SET(object_res, '$.fields', json_array());
+
+                            -- Loop over all fields of the given SDK object
+                            OPEN field_cursor;
+                            field_loop: LOOP
+                                FETCH NEXT FROM field_cursor INTO field_id, field_res;
+
+                                IF field_loop_done THEN
+                                    LEAVE field_loop;
+                                ELSE field_block: BEGIN
+                                    -- Append the field JSON data to the object's fields array
+                                    SET object_res = JSON_ARRAY_APPEND(object_res, '$.fields', field_res);
+                                END field_block; END IF;
+                            END LOOP field_loop;
+
+                            -- Append the SDK object JSON data to the db_objects's objects array
+                            SET db_object_res = JSON_ARRAY_APPEND(db_object_res, '$.objects', object_res);
+                        END object_block; END IF;
+                    END LOOP object_loop;
+
+                    -- Append the db_object JSON data to the db_schema's db_objects array
+                    SET schema_res = JSON_ARRAY_APPEND(schema_res, '$.db_objects', db_object_res);
+
+                END db_object_block; END IF;
+            END LOOP db_object_loop;
+
+            -- Append the db_schema JSON data to the service's db_schemas array
+            SET service_res = JSON_ARRAY_APPEND(service_res, '$.db_schemas', schema_res);
+
+            CLOSE db_object_cursor;
+        END schema_block; END IF;
+    END LOOP schema_loop;
+
+    CLOSE schema_cursor;
+
+    -- Return the JSON data as a result set
+    SELECT service_res;
+END%%
+
 DELIMITER ;
 
 -- -----------------------------------------------------

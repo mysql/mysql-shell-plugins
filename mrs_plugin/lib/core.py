@@ -464,6 +464,18 @@ def prompt_for_comments():
     return prompt("Comments: ").strip()
 
 
+def create_json_binary_decoder(binary_formatter=None):
+    binary_label = "base64:"
+
+    def decoder(obj):
+        for key in obj:
+            if isinstance(obj[key], str) and obj[key].startswith(binary_label):
+                obj[key] = binary_formatter(obj[key].lstrip(binary_label))
+        return obj
+
+    return decoder
+
+
 def get_sql_result_as_dict_list(res, binary_formatter=None):
     """Returns the result set as a list of dicts
 
@@ -495,7 +507,14 @@ def get_sql_result_as_dict_list(res, binary_formatter=None):
             elif col_type == "SET":
                 item[col_name] = field_val.split(",") if field_val else []
             elif col_type == "JSON":
-                item[col_name] = json.loads(field_val) if field_val else None
+                item[col_name] = (
+                    json.loads(
+                        field_val,
+                        object_hook=create_json_binary_decoder(binary_formatter),
+                    )
+                    if field_val
+                    else None
+                )
             elif binary_formatter is not None and isinstance(field_val, bytes):
                 item[col_name] = binary_formatter(field_val)
             else:

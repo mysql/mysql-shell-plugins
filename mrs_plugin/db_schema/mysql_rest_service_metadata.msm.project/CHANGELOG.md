@@ -1,5 +1,9 @@
 # Database Schema Change Log for `mysql_rest_service_metadata`
 
+## 4.1.0
+
+- Added `sdk_service_data` PROCEDURE to collect all data of a given REST service
+
 ## 4.0.4
 
 - Added fractional seconds precision to TIMESTAMP values in log tables
