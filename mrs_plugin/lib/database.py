@@ -492,3 +492,15 @@ def crud_mapping(crud_operations):
         grant_privileges.append(crud_to_grant_mapping[crud_operation])
 
     return grant_privileges
+
+
+def get_sdk_service_data(session, service_id, binary_formatter=None):
+    sql = """
+        CALL `mysql_rest_service_metadata`.`sdk_service_data`(?)
+    """
+
+    return (
+        core.MrsDbExec(sql, binary_formatter=binary_formatter)
+        .exec(session, [service_id])
+        .first
+    )
