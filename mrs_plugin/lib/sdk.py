@@ -28,6 +28,7 @@ import os
 import re
 from string import Template
 import json
+from base64 import b64decode
 
 
 SDK_PYTHON_DATACLASS_TEMPLATE = '''@dataclass(init=False, repr=True)
@@ -108,9 +109,27 @@ def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=Fal
     template = Path(os.path.dirname(path), "..", "sdk", sdk_language.lower(),
                     file_name).read_text()
 
+    def binary_formatter(base64str: str):
+        if base64str.startswith("type254:"):
+            return b64decode(base64str.split(":")[-1])
+        # booleans are encoded as BIT(1)
+        if base64str.startswith("type16:"):
+            return bool.from_bytes(b64decode(base64str.split(":")[-1]))
+        return base64str
+
+    sdk_data = lib.services.get_service_sdk_data(
+        session, service.get("id"), binary_formatter=binary_formatter
+    )
+
     # Process Template String
     code = substitute_service_in_template(
-        service=service, template=template, sdk_language=sdk_language, session=session, service_url=service_url)
+        service=service,
+        template=template,
+        sdk_language=sdk_language,
+        session=session,
+        service_url=service_url,
+        service_data=sdk_data.get("service_res", {}),
+    )
 
     code = substitute_imports_in_template(
         template=code.get("template"), enabled_crud_ops=code.get("enabled_crud_ops"),
@@ -232,7 +251,7 @@ def substitute_imports_in_template(
     }
 
 
-def substitute_service_in_template(service, template, sdk_language, session, service_url):
+def substitute_service_in_template(service, template, sdk_language, session, service_url, service_data):
     # Currently, we only generate the SDK for a single service, but this might change in the future.
     existing_identifiers = []
 
@@ -241,14 +260,12 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
         template=template,
         sdk_language=sdk_language,
         session=session,
-        service_url=service_url)
-
-    auth_apps = lib.auth_apps.get_auth_apps(
-        service_id=service.get("id"), session=session, include_enable_state=True
+        service_url=service_url,
+        schemas=service_data.get("db_schemas", []),
     )
 
     template = code.get("template")
-    requires_auth = code.get("requires_auth") and len(auth_apps) > 0
+    requires_auth = code.get("requires_auth")
 
     # if no db object requires auth and there are no authentication apps enabled for the service,
     # the SDK authentication command should not be generated
@@ -293,7 +310,7 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
 
 
 def substitute_schemas_in_template(
-    service, template, sdk_language, session, service_url
+    service, template, sdk_language, session, service_url, schemas
 ):
 
     delimiter = language_comment_delimiter(sdk_language)
@@ -302,8 +319,6 @@ def substitute_schemas_in_template(
         template,
         flags=re.DOTALL | re.MULTILINE,
     )
-
-    schemas = lib.schemas.query_schemas(session, service_id=service.get("id"))
 
     enabled_crud_ops = set()
     required_datatypes = set()
@@ -334,6 +349,7 @@ def substitute_schemas_in_template(
                     sdk_language=sdk_language,
                     session=session,
                     service_url=service_url,
+                    db_objs=schema.get("db_objects", [])
                 )
 
                 schema_template_with_obj_filled = code.get("template")
@@ -421,7 +437,7 @@ def generate_identifier(
 
 
 def substitute_objects_in_template(
-    service, schema, template, sdk_language, session, service_url
+    service, schema, template, sdk_language, session, service_url, db_objs
 ):
     delimiter = language_comment_delimiter(sdk_language)
     object_loops = re.finditer(
@@ -429,8 +445,6 @@ def substitute_objects_in_template(
         template,
         flags=re.DOTALL | re.MULTILINE,
     )
-
-    db_objs = lib.db_objects.query_db_objects(session, schema_id=schema.get("id"))
 
     crud_ops = [
         "Create",
@@ -485,19 +499,16 @@ def substitute_objects_in_template(
             obj_meta_interfaces = []
             db_object_crud_ops = ""
 
-            # Get objects
-            objects = lib.db_objects.get_objects(
-                session, db_object_id=db_obj.get("id"))
+            # Get SDK objects
+            objects = db_obj.get("objects")
 
             # Loop over all objects and build interfaces
             for obj in objects:
                 if requires_auth is False:
-                    object_data = lib.db_objects.get_db_object(session=session, db_object_id=obj.get("db_object_id"))
-                    requires_auth |= object_data.get("requires_auth") == 1
+                    requires_auth |= db_obj.get("requires_auth") == 1
 
                 # Get fields
-                fields = lib.db_objects.get_object_fields_with_references(
-                    session=session, object_id=obj.get("id"))
+                fields = obj.get("fields")
 
                 for field in fields:
                     if field.get("lev") == 1:
@@ -550,7 +561,8 @@ def substitute_objects_in_template(
                 # For database objects other than PROCEDUREs and FUNCTIONS, if there are unique fields,
                 # the corresponding SDK commands should be enabled.
                 if not object_is_routine(db_obj):
-                    db_object_crud_ops = db_obj.get("crud_operations", [])
+                    # READ is always enabled
+                    db_object_crud_ops = db_obj.get("crud_operations", "READ").split(",")
                     # If this DB Object has unique columns (PK or UNIQUE) allow ReadUnique
                     if len(obj_unique_list) > 0 and "READUNIQUE" not in db_object_crud_ops:
                         db_object_crud_ops.append("READUNIQUE")
@@ -597,8 +609,7 @@ def substitute_objects_in_template(
             if object_is_routine(db_obj, of_type={"FUNCTION"}):
                 obj_function_result_datatype = "unknown"
                 if len(objects) > 1:
-                    fields = lib.db_objects.get_object_fields_with_references(
-                        session=session, object_id=objects[1].get("id"))
+                    fields = objects[1].get("fields")
 
                     if len(fields) > 0:
                         db_column_info = field.get("db_column")
