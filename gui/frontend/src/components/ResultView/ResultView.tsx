@@ -1290,7 +1290,8 @@ export class ResultView extends ComponentBase<IResultViewProperties> {
             case DBDataType.Bigint:
             case DBDataType.Year: {
                 element = <UpDown
-                    value={value as number ?? 0}
+                    value={value as number}
+                    nullable={true}
                     textAlignment={TextAlignment.Start}
                     onChange={(newValue): void => {
                         this.renderCustomEditor(cell, host, newValue, success, cancel, editorParams);
