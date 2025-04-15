@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,37 +28,36 @@ import "./UpDown.css";
 import { ComponentChild, createRef } from "preact";
 
 import { convertPropValue } from "../../../utilities/string-helpers.js";
-import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
-import { IInputChangeProperties, Input } from "../Input/Input.js";
-import { clampValue, minValue } from "../../../utilities/helpers.js";
+import { Input } from "../Input/Input.js";
+import { clampValue } from "../../../utilities/helpers.js";
 import { IComponentProperties, IComponentState, ComponentBase } from "../Component/ComponentBase.js";
 import { Grid } from "../Grid/Grid.js";
 import { GridCell } from "../Grid/GridCell.js";
 import { TextAlignment } from "../Label/Label.js";
 import { Button } from "../Button/Button.js";
 
-export interface IUpDownProperties<ValueType extends string | number | bigint> extends IComponentProperties {
-    /** For any type of values, but limited to only those given here. */
-    items?: string[];
-
+export interface IUpDownProperties<ValueType extends string | null | number | bigint | undefined>
+    extends IComponentProperties {
     /** The minimal value that can be entered. For numeric values only. The items property is ignored then. */
-    min?: Exclude<ValueType, string> | number;
+    min?: number | bigint;
 
     /** The maximal value that can be entered. For numeric values only. The items property is ignored then. */
-    max?: Exclude<ValueType, string> | number;
+    max?: number | bigint;
 
     /**
      * The value for one step when using the arrow buttons.
      * For numeric values only. The items property is ignored then.
      */
-    step?: Exclude<ValueType, string> | number;
+    step?: number;
 
     value?: ValueType;
     textAlignment?: TextAlignment;
 
+    nullable?: boolean;
+
     innerRef?: preact.RefObject<HTMLDivElement>;
 
-    onChange?: (value: ValueType, props: IUpDownProperties<ValueType>) => void;
+    onChange: (value: ValueType, props: IUpDownProperties<ValueType>) => void;
 
     onConfirm?: (value: ValueType, props: IUpDownProperties<ValueType>) => void;
 
@@ -66,19 +65,46 @@ export interface IUpDownProperties<ValueType extends string | number | bigint> e
 }
 
 export interface IUpDownState extends IComponentState {
-    currentValue: number | bigint; // For non-numeric input this is the index into props.items.
-    useNumeric: boolean;
-
+    currentValue: string | null | number | bigint;
 }
 
-export class UpDown<ValueType extends string | number | bigint>
+const parseNumber = (value?: string | null, nullable?: boolean): number | bigint | null => {
+    const defaultValue = nullable ? null : 0;
+    if (value === undefined || value === null || value === "") {
+        return defaultValue;
+    }
+
+    // If it's an integer and exceeds safe number range, use BigInt.
+    if (/^\d+$/.test(value)) {
+        const big = BigInt(value);
+        if (big > BigInt(Number.MAX_SAFE_INTEGER)) {
+            return big;
+        }
+
+        return Number(value);
+    }
+
+    // Try to parse as regular number (decimal or scientific notation).
+    const asNumber = Number(value);
+    if (!Number.isNaN(asNumber)) {
+        return asNumber;
+    }
+
+    // Could not parse.
+    return defaultValue;
+};
+
+const isNumberOrBigInt = (value: unknown): value is number | bigint => {
+    return typeof value === "number" || typeof value === "bigint";
+};
+
+export class UpDown<ValueType extends string | null | number | bigint>
     extends ComponentBase<IUpDownProperties<ValueType>, IUpDownState> {
 
     public static override defaultProps = {
         textAlignment: TextAlignment.End,
     };
 
-    private innerListRef = createRef<HTMLDivElement>();
     private containerRef: preact.RefObject<HTMLDivElement>;
 
     public constructor(props: IUpDownProperties<ValueType>) {
@@ -86,34 +112,19 @@ export class UpDown<ValueType extends string | number | bigint>
 
         this.containerRef = props.innerRef ?? createRef<HTMLDivElement>();
 
-        const useNumeric = typeof props.value === "number" || typeof props.value === "bigint";
-        let min = props.min;
-        if (min != null && props.max != null && typeof min !== "string") {
-            min = minValue(min, props.max);
-        }
-
-        if (useNumeric || !props.items) {
-            const value: number | bigint = (typeof props.value === "string")
-                ? parseInt(props.value, 10)
-                : props.value ?? 0;
-
-            this.state = {
-                currentValue: clampValue(value, props.min, props.max),
-                useNumeric: true,
-            };
-        } else {
-            const value = props.value || props.items[0];
-            const index = props.items.findIndex((entry: string) => {
-                return entry === value;
-            });
-
-            this.state = {
-                currentValue: index,
-                useNumeric: false,
-            };
-        }
-
         this.addHandledProperties("items", "min", "max", "onChange", "initialValue", "textAlignment", "innerRef");
+    }
+
+    public static override getDerivedStateFromProps(props: Readonly<IUpDownProperties<string | null | number | bigint>>,
+        state: Readonly<IUpDownState>): IUpDownState | null {
+        const { value, min, max, nullable } = props;
+
+        const currentValue = isNumberOrBigInt(value) ? value : parseNumber(value, nullable);
+        const newState: IUpDownState = {
+            currentValue: currentValue === null ? null : clampValue(currentValue, min, max),
+        };
+
+        return newState;
     }
 
     public override componentDidMount(): void {
@@ -125,48 +136,22 @@ export class UpDown<ValueType extends string | number | bigint>
     }
 
     public render(): ComponentChild {
-        const { items = [], textAlignment } = this.props;
-        const { currentValue, useNumeric } = this.state;
+        const { textAlignment } = this.props;
+        const { currentValue } = this.state;
 
         const className = this.getEffectiveClassNames(["upDown"]);
 
-        let content;
-        if (useNumeric) {
-            content = <Input
+        const content = (
+            <Input
                 id="upDownInput"
                 autoFocus={true}
-                value={currentValue.toString()}
+                value={currentValue?.toString()}
                 onChange={this.handleInputChange}
                 onConfirm={this.handleInputConfirm}
                 onCancel={this.handleInputCancel}
                 textAlignment={textAlignment}
-            />;
-        } else {
-            const entries = items.map((item: string): ComponentChild => {
-                return <Container
-                    key={item}
-                    mainAlignment={ContentAlignment.Center}
-                    crossAlignment={ContentAlignment.Center}
-                >
-                    {item}
-                </Container>;
-            },
-            );
-
-            content = <Container
-                id="outerList"
-                key="outerList"
-                tabIndex={0}
-            >
-                <Container
-                    innerRef={this.innerListRef}
-                    id="innerList"
-                    key="innerList"
-                    orientation={Orientation.TopDown}>
-                    {entries}
-                </Container>
-            </Container>;
-        }
+            />
+        );
 
         return (
             <Grid
@@ -209,53 +194,27 @@ export class UpDown<ValueType extends string | number | bigint>
         e.preventDefault();
     };
 
-    private stepValue = (amount: number | bigint): void => {
-        const { onChange, min, max } = this.props;
-        const { currentValue, useNumeric } = this.state;
+    private stepValue = (amount: number): void => {
+        const { onChange } = this.props;
+        const { currentValue } = this.state;
 
         let newValue;
         if (typeof currentValue === "bigint") {
-            newValue = clampValue(currentValue + BigInt(amount), min as bigint, max as bigint);
-            onChange?.(newValue as ValueType, this.props);
-            this.setState({ currentValue: newValue });
-        } else {
-            newValue = clampValue(currentValue + Number(amount), min as number, max as number);
-            onChange?.(newValue as ValueType, this.props);
-            this.setState({ currentValue: newValue });
-        }
-
-        if (!useNumeric && this.innerListRef.current) {
-            const itemHeight = this.containerRef.current?.clientHeight ?? 0;
-
-            // Subtract one for the top border.
-            this.innerListRef.current.style.top = convertPropValue(-Number(newValue) * itemHeight - 1)!;
-        }
-    };
-
-    private handleInputChange = (e: InputEvent, props: IInputChangeProperties): void => {
-        const { onChange, value, min, max } = this.props;
-
-        // This handler is only called for numeric up/down controls.
-        let newValue;
-        let minValue;
-        let maxValue;
-        if (typeof value === "bigint") {
-            newValue = BigInt(props.value);
-            minValue = min != null ? BigInt(min) : undefined;
-            maxValue = max != null ? BigInt(max) : undefined;
-            onChange?.(newValue as ValueType, this.props);
-            this.setState({ currentValue: clampValue(newValue, minValue, maxValue) });
-        } else {
-            newValue = parseInt(props.value, 10);
-            if (isNaN(newValue)) {
-                newValue = 0;
-            }
-            minValue = min != null ? Number(min) : undefined;
-            maxValue = max != null ? Number(max) : undefined;
+            newValue = currentValue + BigInt(amount);
+        } else if (currentValue === null || typeof currentValue === "number") {
+            newValue = (currentValue ?? 0) + amount;
         }
 
         onChange?.(newValue as ValueType, this.props);
-        this.setState({ currentValue: clampValue(newValue, minValue, maxValue) });
+        this.setState({ currentValue: newValue });
+    };
+
+    private handleInputChange = (e: InputEvent): void => {
+        const { onChange } = this.props;
+        const currentValue = (e.target as HTMLInputElement)?.value;
+
+        onChange?.(currentValue as ValueType, this.props);
+        this.setState({ currentValue });
     };
 
     private handleInputConfirm = (): void => {

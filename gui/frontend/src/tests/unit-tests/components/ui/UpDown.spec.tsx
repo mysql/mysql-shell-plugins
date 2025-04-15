@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,15 +23,41 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { act } from "@testing-library/preact";
+import { act, fireEvent, render } from "@testing-library/preact";
 import { mount, shallow } from "enzyme";
 
 import { TextAlignment } from "../../../../components/ui/Label/Label.js";
-import { UpDown, IUpDownProperties, IUpDownState } from "../../../../components/ui/UpDown/UpDown.js";
+import { UpDown, IUpDownProperties } from "../../../../components/ui/UpDown/UpDown.js";
 
 import { mouseEventMock } from "../../__mocks__/EventMocks.js";
+import { useState } from "preact/hooks";
+
+interface IProps {
+    initialValue: number;
+    min: number;
+    max: number;
+}
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const Wrapper = ({ initialValue, min, max }: IProps) => {
+    const [ value, setValue ] = useState(`${initialValue}`);
+
+    return (
+        <UpDown
+            id="upDownId"
+            value={value}
+            onChange={setValue}
+            min={min}
+            max={max}
+            step={1}
+        />
+    );
+};
 
 describe("UpDown render testing", (): void => {
+    const queryInput = () => {
+        return document.getElementById("upDownInput")! as HTMLInputElement;
+    };
 
     it("Test UpDown callbacks", async () => {
         const component = shallow(
@@ -61,42 +87,35 @@ describe("UpDown render testing", (): void => {
         expect(spyOnChange).toHaveBeenCalled();
     });
 
-    it("Test UpDown values", async () => {
-        const component = shallow<IUpDownProperties<string>, IUpDownState>(
-            <UpDown<string> id="upDownId" value="10" min={9} max={11} step={1} textAlignment={TextAlignment.End} />,
+    it("Test UpDown min max values", () => {
+        const min = "9";
+        const max = "11";
+        const component = render(
+            <Wrapper initialValue={10} min={Number(min)} max={Number(max)} />,
         );
         expect(component).toBeTruthy();
 
-        const upButton = component.find("#up");
-        expect(upButton).toBeTruthy();
-        let onClick = (upButton.first().props() as IUpDownProperties<number>).onClick;
-        await act(() => {
-            onClick?.(mouseEventMock, { id: "up" });
-        });
+        const upButton = document.getElementById("up") as Element;
+        fireEvent.click(upButton);
+        expect(queryInput().value).toBe(max);
 
-        expect(component.state().currentValue).toBe(11);
+        fireEvent.click(upButton);
+        expect(queryInput().value).toBe(max);
 
-        const downButton = component.find("#down");
-        expect(downButton).toBeTruthy();
-        onClick = (downButton.first().props() as IUpDownProperties<number>).onClick;
-        await act(() => {
-            onClick?.(mouseEventMock, { id: "down" });
-        });
-        expect(component.state().currentValue).toBe(10);
-        await act(() => {
-            onClick?.(mouseEventMock, { id: "down" });
-        });
-        expect(component.state().currentValue).toBe(9);
-        await act(() => {
-            onClick?.(mouseEventMock, { id: "down" });
-        });
-        expect(component.state().currentValue).toBe(9);
+        const downButton = document.getElementById("down") as Element;
+        fireEvent.click(downButton);
+        expect(queryInput().value).toBe("10");
+
+        fireEvent.click(downButton);
+        expect(queryInput().value).toBe(min);
+
+        fireEvent.click(downButton);
+        expect(queryInput().value).toBe(min);
     });
-
 
     it("Test UpDown elements", () => {
         const component = mount<IUpDownProperties<number>>(
-            <UpDown id="upDownId" value="10" textAlignment={TextAlignment.End} />,
+            <UpDown id="upDownId" value="10" textAlignment={TextAlignment.End} onChange={jest.fn()} />,
         );
         expect(component).toBeTruthy();
         const props = component.props();
@@ -104,28 +123,4 @@ describe("UpDown render testing", (): void => {
         expect(props.value).toEqual("10");
         expect(props.textAlignment).toEqual(TextAlignment.End);
     });
-
-    it("Test UpDown output (Snapshot)", () => {
-        const component = mount<UpDown<string>>(
-            <UpDown
-                textAlignment={TextAlignment.Center}
-                items={[
-                    "January",
-                    "February",
-                    "March",
-                    "April",
-                    "May",
-                    "June",
-                    "July",
-                    "August",
-                    "September",
-                    "October",
-                    "November",
-                    "December",
-                ]}
-            />,
-        );
-        expect(component).toMatchSnapshot();
-    });
-
 });
