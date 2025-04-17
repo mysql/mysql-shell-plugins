@@ -141,12 +141,13 @@ export class MrsHub extends ComponentBase {
 
             const statusBarItem = ui.createStatusBarItem();
             let dialogRequest;
+            let status;
             try {
                 statusBarItem.text = "$(loading~spin) Fetching MRS status ...";
 
                 const backend = connection.backend;
                 const versionsAvailable = await backend.mrs.getAvailableMetadataVersions();
-                const status = await backend.mrs.status();
+                status = await backend.mrs.status();
                 const configData = await backend.mrs.getConfigurationOptions();
 
                 const title = !status.serviceConfigured
@@ -180,9 +181,14 @@ export class MrsHub extends ComponentBase {
 
             const data = result as IMrsConfigurationDialogData;
 
-            // Perform the actual configuration
-            await backend.mrs.configure(data.enabled, data.performUpdate ?? false, JSON.stringify(data.options),
-                data.version);
+            if (!status.serviceConfigured) {
+                // If the metadata schema is not configured yet, configure it
+                await backend.mrs.configure(data.enabled, true, undefined, data.version);
+            } else {
+                // If the metadata schema is configured, update the config and perform updates if requested
+                await backend.mrs.configure(data.enabled, data.performUpdate ?? false, JSON.stringify(data.options),
+                    data.version);
+            }
 
             // If admin username and password have been specified, create MRS Auth App and user
             if (data.mrsAdminUser && data.mrsAdminUserPassword) {
@@ -290,6 +296,7 @@ export class MrsHub extends ComponentBase {
             type: MrsDialogType.MrsService,
             title,
             parameters: {
+                init: service === undefined,
                 protocols: ["HTTPS"],
                 authVendors,
                 authApps,

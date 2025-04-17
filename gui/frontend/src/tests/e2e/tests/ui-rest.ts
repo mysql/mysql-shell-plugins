@@ -252,7 +252,7 @@ describe("MYSQL REST SERVICE", () => {
                     try {
                         const children = await dbTreeSection.getTreeItemChildren(service.servicePath);
 
-                        return children.length === 0;
+                        return children.length === 1;
                     } catch (e) {
                         if (!(e instanceof error.StaleElementReferenceError)) {
                             throw e;

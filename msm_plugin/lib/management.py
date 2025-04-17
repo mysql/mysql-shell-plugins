@@ -1605,9 +1605,12 @@ def deploy_schema(
         return info_msg
     except Exception as e:
         # Drop the schema after failed update
-        lib.core.MsmDbExec(
-            f"DROP SCHEMA {lib.core.quote_ident(schema_name)}"
-        ).exec(session)
+        try:
+            lib.core.MsmDbExec(
+                f"DROP SCHEMA IF EXISTS {lib.core.quote_ident(schema_name)}"
+            ).exec(session)
+        except:
+            pass
 
         # Restore the backup if available
         if backup_available:
