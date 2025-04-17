@@ -4,11 +4,14 @@
 
 ### Additions
 
-- 
+- New MRS configuration dialog.
+- Selection of a default REST authentication app on the REST service dialog.
+- Set a limit on the width and height of result view columns.
 
 ### Fixes
 
-- 
+- Clear only MLE output if server supports it.
+- Add missing MRS SQL AUTHENTICATION REQUIRED syntax for REST schemas.
 
 ## Changes in 1.19.6+9.2.0
 
@@ -20,26 +23,26 @@
 
 ### Additions
 
-- MRS metadata schema 4.0.3
+- MRS metadata schema 4.0.3.
 
 ## Changes in 1.19.4+9.2.0
 
 ### Additions
 
-- Add templated based creation of JS stored procedures
-- Improved debuggability for javaScript stored programs
-- MRS Python SDK - Support CA certificates customization for SSL
-- Allow linking and unlinking auth apps in the MRS service dialog
+- Add templated based creation of JS stored procedures.
+- Improved debuggability for javaScript stored programs.
+- MRS Python SDK - Support CA certificates customization for SSL.
+- Allow linking and unlinking auth apps in the MRS service dialog.
 
 ### Fixes
 
-- BUG#37733806 Type error not raised when attempting to sort by unsortable fields in the MRS SDK
-- BUG#37728029 Unable to update REST View with composite primary key fields with the Python SDK
-- BUG#37630549 Unexpected behavior when updating REST document without identifier in the Python SDK
-- BUG#37762230 Bad Python SDK files generated when no REST object field is sortable
-- Cleanup of MRS SQL Grammar
-- Expose missing gui plugin functions
-- Disable MRS upgrade prompt for cloud instances
+- BUG#37733806 Type error not raised when attempting to sort by unsortable fields in the MRS SDK.
+- BUG#37728029 Unable to update REST View with composite primary key fields with the Python SDK.
+- BUG#37630549 Unexpected behavior when updating REST document without identifier in the Python SDK.
+- BUG#37762230 Bad Python SDK files generated when no REST object field is sortable.
+- Cleanup of MRS SQL Grammar.
+- Expose missing gui plugin functions.
+- Disable MRS upgrade prompt for cloud instances.
 
 ## Changes in 1.19.3+9.2.0
 

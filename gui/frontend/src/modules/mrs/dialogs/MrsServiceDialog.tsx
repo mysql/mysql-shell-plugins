@@ -181,11 +181,18 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
 
         settingsSection.values.linkedAuthApps = {
             type: "checkList",
-            caption: "Linked REST Auth Apps",
+            caption: "Linked REST Authentication Apps",
             checkList: Object.values(authApps).map((app) => {
-                const linked = linkedAuthApps.find((linkedApp) => {
-                    return linkedApp.id === app.id;
-                }) !== undefined;
+                // When the REST service is initialized, pre-select the MRS authentication if available, otherwise MySQL
+                const defaultAuthApp = authApps.find((app) => {
+                    return app.name === "MRS";
+                }) ? "MRS" : "MySQL";
+
+                const linked = (request.parameters?.init === true)
+                    ? app.name === defaultAuthApp
+                    : linkedAuthApps.find((linkedApp) => {
+                        return linkedApp.id === app.id;
+                    }) !== undefined;
 
                 const result: ICheckboxProperties = {
                     id: app.id,
@@ -196,7 +203,8 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
                 return { data: result };
             }),
             horizontalSpan: 3,
-            description: "Select one or more REST auth apps to allow users to authenticate",
+            description: "Select one or more REST authentication app. This allows REST users of those applications "
+                + "to authenticate.",
         };
 
         settingsSection.values.comments = {
@@ -204,7 +212,7 @@ export class MrsServiceDialog extends AwaitableValueEditDialog {
             caption: "Comments",
             value: request.values?.comments as string,
             multiLine: true,
-            multiLineCount: 3,
+            multiLineCount: 4,
             horizontalSpan: 5,
             description: "Comments to describe this REST Service.",
         };
