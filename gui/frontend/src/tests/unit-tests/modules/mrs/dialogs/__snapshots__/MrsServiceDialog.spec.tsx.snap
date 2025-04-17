@@ -246,7 +246,7 @@ exports[`MRS Service dialog tests Show MRS Service Dialog (snapshot) and escape 
                     class="msg label valueTitle"
                     data-tooltip="expand"
                   >
-                    Linked REST Auth Apps
+                    Linked REST Authentication Apps
                   </label>
                   <div
                     class="msg treeGrid checkList"
@@ -256,7 +256,7 @@ exports[`MRS Service dialog tests Show MRS Service Dialog (snapshot) and escape 
                     class="msg label cellDescription"
                     data-tooltip="expand"
                   >
-                    Select one or more REST auth apps to allow users to authenticate
+                    Select one or more REST authentication app. This allows REST users of those applications to authenticate.
                   </label>
                 </div>
                 <div
@@ -276,7 +276,7 @@ exports[`MRS Service dialog tests Show MRS Service Dialog (snapshot) and escape 
                     <textarea
                       class="msg input valueEditor"
                       id="comments"
-                      rows="3"
+                      rows="4"
                       spellcheck="true"
                       type="text"
                     />

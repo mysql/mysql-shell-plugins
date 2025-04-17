@@ -49,11 +49,11 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
         const result = await this.doShow(() => { return dialogValues; },
             {
                 title: "MySQL REST Service",
-                contexts: request.parameters?.init ? ["init"] : [],
+                contexts: request.parameters?.init ? ["init"] : ["config"],
             });
 
         if (result.closure === DialogResponseClosure.Accept) {
-            return this.processResults(result.values, request.parameters?.status as IMrsStatusData);
+            return this.processResults(result.values);
         }
 
         return DialogResponseClosure.Cancel;
@@ -226,6 +226,7 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
 
 
             const authThrottlingSection: IDialogSection = {
+                contexts: ["config"],
                 caption: "Authentication Throttling",
                 groupName: "group1",
                 values: {
@@ -295,6 +296,7 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
             delete values.options.authentication;
 
             const cacheSection: IDialogSection = {
+                contexts: ["config"],
                 caption: "Caches",
                 groupName: "group1",
                 values: {
@@ -356,6 +358,7 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
             delete values.options.gtid;
 
             const contentRedirectSection: IDialogSection = {
+                contexts: ["config"],
                 caption: "Redirects & Static Content",
                 groupName: "group1",
                 values: {
@@ -410,6 +413,7 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
             }
 
             const optionsSection: IDialogSection = {
+                contexts: ["config"],
                 caption: "Options",
                 groupName: "group1",
                 values: {
@@ -441,7 +445,7 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
         }
     }
 
-    private processResults = (dialogValues: IDialogValues, status: IMrsStatusData): IDictionary => {
+    private processResults = (dialogValues: IDialogValues): IDictionary => {
         const mainSection = dialogValues.sections.get("mainSection");
         const authSection = dialogValues.sections.get("authSection");
         const authThrottlingSection = dialogValues.sections.get("authThrottlingSection");
