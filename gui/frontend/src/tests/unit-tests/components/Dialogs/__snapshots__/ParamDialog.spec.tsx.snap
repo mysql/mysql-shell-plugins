@@ -28,7 +28,7 @@ exports[`Param Dialog Tests Render Test 1`] = `
           src={258}
         />
         <Label>
-          Parameters
+          Lorem Ipsum
         </Label>
       </g>
     }
@@ -60,19 +60,10 @@ exports[`Param Dialog Tests Render Test 1`] = `
           />
         </GridCell>
         <GridCell
-          columnSpan={2}
-          crossAlignment="center"
-        >
-          <Label
-            caption="Lorem Ipsum"
-            id="caption"
-          />
-        </GridCell>
-        <GridCell
           className="left"
           crossAlignment="center"
         >
-          Parameter name:
+          Name:
         </GridCell>
         <GridCell
           className="right"
@@ -89,7 +80,7 @@ exports[`Param Dialog Tests Render Test 1`] = `
           className="left"
           crossAlignment="center"
         >
-          Parameter value:
+          Value:
         </GridCell>
         <GridCell
           className="right"
@@ -137,7 +128,7 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
         class="msg label"
         data-tooltip="expand"
       >
-        Parameters
+        Dolor Sit Amet
       </label>
       <div
         class="msg button imageOnly"
@@ -168,22 +159,10 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
           />
         </div>
         <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: row; align-items: center; grid-column: span 2;"
-        >
-          <label
-            class="msg label"
-            data-tooltip="expand"
-            id="caption"
-          >
-            Dolor Sit Amet
-          </label>
-        </div>
-        <div
           class="msg container fixedScrollbar gridCell left"
           style="flex-direction: row; align-items: center;"
         >
-          Parameter name:
+          Name:
         </div>
         <div
           class="msg container fixedScrollbar gridCell right"
@@ -200,7 +179,7 @@ exports[`Param Dialog Tests Show Panel and Escape 1`] = `
           class="msg container fixedScrollbar gridCell left"
           style="flex-direction: row; align-items: center;"
         >
-          Parameter value:
+          Value:
         </div>
         <div
           class="msg container fixedScrollbar gridCell right"
@@ -267,9 +246,7 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
       <label
         class="msg label"
         data-tooltip="expand"
-      >
-        Parameters
-      </label>
+      />
       <div
         class="msg button imageOnly"
         id="closeButton"
@@ -299,22 +276,10 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
           />
         </div>
         <div
-          class="msg container fixedScrollbar gridCell"
-          style="flex-direction: row; align-items: center; grid-column: span 2;"
-        >
-          <label
-            class="msg label"
-            data-tooltip="expand"
-            id="caption"
-          >
-            Please enter name/vale pair:
-          </label>
-        </div>
-        <div
           class="msg container fixedScrollbar gridCell left"
           style="flex-direction: row; align-items: center;"
         >
-          Parameter name:
+          Name:
         </div>
         <div
           class="msg container fixedScrollbar gridCell right"
@@ -331,7 +296,7 @@ exports[`Param Dialog Tests Show Panel and Escape 2`] = `
           class="msg container fixedScrollbar gridCell left"
           style="flex-direction: row; align-items: center;"
         >
-          Parameter value:
+          Value:
         </div>
         <div
           class="msg container fixedScrollbar gridCell right"

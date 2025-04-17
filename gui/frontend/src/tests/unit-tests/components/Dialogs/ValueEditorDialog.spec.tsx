@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -116,10 +116,8 @@ describe("Value Edit Dialog Tests", (): void => {
             },
             matrix: { // A grid with a name and a value column.
                 type: "matrix",
-                value: [
-                    { key: "Option 11", value: 1 },
-                    { key: "Option 22", value: 2 },
-                ],
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                value: { "Option 11": 1, "Option 22": 2 },
             },
             upDown: { // A number UpDown component.
                 type: "number",
@@ -902,7 +900,7 @@ describe("Value Edit Dialog Tests", (): void => {
         );
         await nextProcessTick();
 
-        expect(stateSpy).toHaveBeenCalledTimes(4);
+        expect(stateSpy).toHaveBeenCalledTimes(7);
 
         portals = document.getElementsByClassName("portal");
         expect(portals).toHaveLength(1);
@@ -914,20 +912,20 @@ describe("Value Edit Dialog Tests", (): void => {
         expect(nameInput.value).toBe("");
         changeInputValue(nameInput, "Mike");
 
-        expect(stateSpy).toHaveBeenCalledTimes(5);
+        expect(stateSpy).toHaveBeenCalledTimes(8);
         changeInputValue(nameInput, "");
 
         const fileSelector = inputs[1] as HTMLInputElement;
         expect(fileSelector.value).toBe("../relative/path");
         changeInputValue(fileSelector, "/absolutePath");
 
-        expect(stateSpy).toHaveBeenCalledTimes(7);
+        expect(stateSpy).toHaveBeenCalledTimes(10);
 
         const checkboxes = portals[0].getElementsByClassName("checkbox");
         expect(checkboxes).toHaveLength(1);
         (checkboxes[0] as HTMLInputElement).click();
 
-        expect(stateSpy).toHaveBeenCalledTimes(8);
+        expect(stateSpy).toHaveBeenCalledTimes(11);
 
         const state = component.state();
         const section = state.values.sections.get("full");

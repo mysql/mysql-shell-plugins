@@ -56,7 +56,7 @@ import { ProgressIndicator } from "../ui/ProgressIndicator/ProgressIndicator.js"
 import { Tabview, type ITabviewPage } from "../ui/Tabview/Tabview.js";
 import { TreeGrid, type ITreeGridOptions } from "../ui/TreeGrid/TreeGrid.js";
 import { UpDown, type IUpDownProperties } from "../ui/UpDown/UpDown.js";
-import { ParamDialog } from "./ParamDialog.js";
+import { IParamDialogState, ParamDialog, toKeyValueArray } from "./ParamDialog.js";
 import { ValueEditCustom, type IValueEditCustomProperties } from "./ValueEditCustom.js";
 
 interface IContextUpdateData {
@@ -229,7 +229,7 @@ interface ISetDialogValue extends IBaseDialogValue {
 interface IKeyValueDialogValue extends IBaseDialogValue {
     type: "matrix";
 
-    value?: IDictionary[];
+    value?: IDictionary;
 
     /** Called when the selection was changed. */
     onChange?: (value: string, dialog: ValueEditDialog) => void;
@@ -453,6 +453,8 @@ export interface IValueEditDialogState extends IComponentState {
 
     /** Additional data directly passed through from the caller to the receiver. */
     data?: IDictionary;
+
+    currentParamDialogForMatrix?: string;
 }
 
 /** A dialog to let the user enter values and to validate them. */
@@ -461,6 +463,8 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
     private dialogRef = createRef<Dialog>();
     private paramDialogRef = createRef<ParamDialog>();
     private relationListContextMenuRef = createRef<Menu>();
+
+    private selectedMatrixRowsBySectionKey = new Map<string, Set<string>>();
 
     // Counts to negative infinity, to produce unique IDs for new relation list entries.
     private relationListCounter = -1;
@@ -1254,10 +1258,12 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                     }
 
                     case "matrix": {
+                        this.resetSelectedMatrixRows(sectionId, key);
                         const settingsListColumns: ColumnDefinition[] = [
                             { title: "Option", field: "key", resizable: true },
                             { title: "Value", field: "value", resizable: true },
                         ];
+                        const tableData = toKeyValueArray(value as IDictionary);
 
                         const options: ITreeGridOptions = {
                             showHeader: true,
@@ -1269,30 +1275,30 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
                         const containerGridEntry = (
                             <Container className="matrixContainer" orientation={Orientation.LeftToRight}>
-                                <ParamDialog
-                                    ref={this.paramDialogRef}
-                                    id="paramDialog"
-                                    caption="Add parameters"
-                                />
+                                {this.renderParamDialog(sectionId, key)}
                                 <TreeGrid
                                     id="valueGrid"
                                     columns={settingsListColumns}
-                                    tableData={value as IDictionary[]}
+                                    tableData={tableData}
                                     options={options}
+                                    onRowSelected={this.onMatrixRowSelect.bind(this, sectionId, key, true)}
+                                    onRowDeselected={this.onMatrixRowSelect.bind(this, sectionId, key, false)}
+                                    onDoubleClick={this.onMatrixRowDoubleClick.bind(this, sectionId, key)}
                                 />
 
                                 <Container id="matrixActions">
                                     <Button
                                         id="buttonAddEntry"
                                         data-tooltip="Add new property entry"
-                                        onClick={this.handleAddProperty}
+                                        onClick={this.onAddMatrixProperty.bind(this, sectionId, key)}
                                     >
                                         <Icon src={Assets.misc.addIcon} data-tooltip="inherit" />
                                     </Button>
                                     <Button
                                         id="buttonRemoveEntry"
                                         data-tooltip="Remove selected entries"
-                                        onClick={this.handleRemoveProperty}
+                                        onClick={this.onRemoveMatrixProperty.bind(this, sectionId, key)}
+                                        disabled={tableData.length === 0}
                                     >
                                         <Icon src={Assets.misc.removeIcon} data-tooltip="inherit" />
                                     </Button>
@@ -1408,14 +1414,145 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         };
     };
 
-    private handleAddProperty = (): void => {
-        if (this.paramDialogRef.current) {
-            this.paramDialogRef.current.show();
+    private renderParamDialog(sectionId: string, key: string) {
+        const componentKey = this.getSelectedMatrixRowsKey(sectionId, key);
+        if (this.state.currentParamDialogForMatrix !== componentKey) {
+            return null;
+        }
+
+        return (
+            <ParamDialog
+                key={componentKey}
+                ref={this.paramDialogRef}
+                id="paramDialog"
+                caption="Add New Parameter"
+                onClose={this.onCloseMatrixParamDialog.bind(this, sectionId, key)}
+            />
+        );
+    }
+
+    private onAddMatrixProperty = (sectionId: string, key: string): void => {
+        this.setState({ currentParamDialogForMatrix: this.getSelectedMatrixRowsKey(sectionId, key) }, () => {
+            this.paramDialogRef.current?.show("", "");
+        });
+    };
+
+    private onMatrixRowDoubleClick = (sectionId: string, key: string): void => {
+        const selectedRowsSet = this.getSelectedMatrixRows(sectionId, key);
+        const section = this.state.values.sections.get(sectionId);
+        const matrixValues = section?.values[key] as IKeyValueDialogValue;
+
+        const setValues = [...selectedRowsSet];
+        const name = setValues[0]; // A double-click will always have one row selected.
+        const value = matrixValues.value?.[name];
+        if (!name || !value) {
+            return;
+        }
+
+        this.setState({ currentParamDialogForMatrix: this.getSelectedMatrixRowsKey(sectionId, key) }, () => {
+            this.paramDialogRef.current?.show(name, value as string);
+        });
+    };
+
+    private getSelectedMatrixRowsKey(sectionId: string, key: string) {
+        return `${sectionId}_${key}`;
+    }
+
+    private getSelectedMatrixRows(sectionId: string, key: string) {
+        const setKey = this.getSelectedMatrixRowsKey(sectionId, key);
+        let set = this.selectedMatrixRowsBySectionKey.get(setKey);
+        if (!set) {
+            set = new Set();
+            this.selectedMatrixRowsBySectionKey.set(setKey, set);
+        }
+
+        return set;
+    }
+
+    private resetSelectedMatrixRows(sectionId: string, key: string) {
+        const setKey = this.getSelectedMatrixRowsKey(sectionId, key);
+        this.selectedMatrixRowsBySectionKey.set(setKey, new Set());
+    }
+
+    private onMatrixRowSelect = (sectionId: string, key: string, selected: boolean, row: RowComponent) => {
+        const selectedRows = this.getSelectedMatrixRows(sectionId, key);
+        const rowKey = row.getData().key as string;
+        if (selected) {
+            selectedRows.add(rowKey);
+        } else {
+            selectedRows.delete(rowKey);
         }
     };
 
-    private handleRemoveProperty = (): void => {
-        return;
+    private onCloseMatrixParamDialog = (sectionId: string, key: string, cancelled: boolean,
+        payload?: unknown): void => {
+        if (cancelled) {
+            this.setState({ currentParamDialogForMatrix: undefined });
+
+            return;
+        }
+
+        const { values, data } = this.state;
+
+        const section = values.sections.get(sectionId);
+        const matrixValues = section?.values[key] as IKeyValueDialogValue;
+
+        if (!section || !matrixValues) {
+            return;
+        }
+
+        const { name, value, initialValues } = payload as IParamDialogState;
+
+        const newValue = { ...matrixValues.value ?? {} };
+        if (initialValues?.name && initialValues?.name !== name) {
+            delete newValue[initialValues.name];
+        }
+        newValue[name] = value;
+
+        const changedValue = this.setValue(key, newValue, section) as IKeyValueDialogValue;
+        if (!changedValue) {
+            return;
+        }
+
+        const validations = this.props.onValidate?.(false, values, data) || { messages: {} };
+
+        this.resetSelectedMatrixRows(sectionId, key);
+        this.setState({ values, validations, currentParamDialogForMatrix: undefined });
+
+        changedValue.onChange?.(name, this);
+    };
+
+    private onRemoveMatrixProperty = (sectionId: string, key: string): void => {
+        const { values, data } = this.state;
+
+        const section = values.sections.get(sectionId);
+        const matrixValues = section?.values[key] as IKeyValueDialogValue;
+
+        if (!section || !matrixValues) {
+            return;
+        }
+
+        const removedKeys: string[] = [];
+        const newValue = { ...matrixValues.value ?? {} };
+        const selectedRows = this.getSelectedMatrixRows(sectionId, key);
+        for (const name of selectedRows) {
+            removedKeys.push(name);
+            delete newValue[name];
+        }
+
+        const changedValue = this.setValue(key, newValue, section) as IKeyValueDialogValue;
+        if (!changedValue) {
+            return;
+        }
+
+        const validations = this.props.onValidate?.(false, values, data) || { messages: {} };
+
+        this.resetSelectedMatrixRows(sectionId, key);
+        this.setState({ values, validations });
+
+        removedKeys.forEach((name) => {
+            changedValue.onChange?.(name, this);
+        });
     };
 
     private handleActionClick = (_e: MouseEvent | KeyboardEvent, props: Readonly<IComponentProperties>): void => {

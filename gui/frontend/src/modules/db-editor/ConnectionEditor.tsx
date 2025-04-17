@@ -921,7 +921,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 others: {
                     type: "matrix",
                     caption: "Other Connection Options",
-                    value: this.parseConnectionAttributes(optionsMySQL["connection-attributes"] ?? {}),
+                    value: optionsMySQL["connection-attributes"],
                     horizontalSpan: 8,
                 },
             },
@@ -1211,12 +1211,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
             throw reason;
         }
-    }
-
-    private parseConnectionAttributes(value: { [key: string]: string; }): IDictionary[] {
-        return Object.entries(value).map((entry) => {
-            return { key: entry[0], value: entry[1] };
-        });
     }
 
     private beginValueUpdating = (value: string, valueId: string): void => {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -69,7 +69,7 @@ describe("Param Dialog Tests", (): void => {
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(0);
         expect(spyOnClose).toHaveBeenCalledTimes(1);
-        expect(spyOnClose).toHaveBeenCalledWith(true, { name: "", value: "" });
+        expect(spyOnClose).toHaveBeenCalledWith(true, { name: "", value: "", initialValues: { name: "", value: "" } });
 
         component.unmount();
     });
@@ -94,7 +94,7 @@ describe("Param Dialog Tests", (): void => {
         portals = document.getElementsByClassName("portal");
         expect(portals.length).toBe(1);
         expect(portals[0]).toMatchSnapshot();
-        expect(component.state()).toStrictEqual({ name: "", value: "" });
+        expect(component.state()).toStrictEqual({ name: "", value: "", initialValues: { name: "", value: "" } });
 
         const inputs = portals[0].getElementsByClassName("input");
         expect(inputs).toHaveLength(2);
@@ -116,7 +116,8 @@ describe("Param Dialog Tests", (): void => {
 
         (buttons[1] as HTMLButtonElement).click();
         expect(spyOnClose).toHaveBeenCalledTimes(1);
-        expect(spyOnClose).toHaveBeenCalledWith(false, { name: "ABC", value: "XYZ" });
+        expect(spyOnClose).toHaveBeenCalledWith(false, { name: "ABC", value: "XYZ",
+            initialValues: { name: "", value: "" } });
         await nextProcessTick();
 
         portals = document.getElementsByClassName("portal");

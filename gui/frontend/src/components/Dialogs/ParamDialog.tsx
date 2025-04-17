@@ -38,15 +38,29 @@ import { GridCell } from "../ui/Grid/GridCell.js";
 import { Icon } from "../ui/Icon/Icon.js";
 import { IInputChangeProperties, Input } from "../ui/Input/Input.js";
 import { Label } from "../ui/Label/Label.js";
+import type { IDictionary } from "../../app-logic/general-types.js";
+
+export const toKeyValueArray = (value?: IDictionary): IDictionary[] => {
+    if (!value) {
+        return [];
+    }
+
+    return Object.entries(value)
+        .map(([key, value]) => { return { key, value }; });
+};
 
 interface IParamDialogProperties extends IComponentProperties {
     caption?: string;
     onClose?: (accepted: boolean, payload?: unknown) => void;
 }
 
-interface IParamDialogState extends IComponentState {
+interface INameValuePair {
     name: string;
     value: string;
+}
+
+export interface IParamDialogState extends IComponentState, INameValuePair {
+    initialValues?: INameValuePair;
 }
 
 export class ParamDialog extends ComponentBase<IParamDialogProperties, IParamDialogState> {
@@ -64,7 +78,13 @@ export class ParamDialog extends ComponentBase<IParamDialogProperties, IParamDia
         this.addHandledProperties("caption", "onClose");
     }
 
-    public show = (): void => {
+    public show = (name = "", value = ""): void => {
+        this.setState({
+            name,
+            value,
+            initialValues: { name, value },
+        });
+
         return this.dialogRef.current?.open();
     };
 
@@ -73,7 +93,6 @@ export class ParamDialog extends ComponentBase<IParamDialogProperties, IParamDia
         const { name, value } = this.state;
 
         const className = this.getEffectiveClassNames(["paramDialog"]);
-        const dlgCaption = caption ?? "Please enter name/vale pair:";
 
         return <Dialog
             ref={this.dialogRef}
@@ -82,20 +101,17 @@ export class ParamDialog extends ComponentBase<IParamDialogProperties, IParamDia
             caption={
                 <>
                     <Icon src={Codicon.PassFilled} />
-                    <Label>Parameters</Label>
+                    <Label>{caption}</Label>
                 </>
             }
             content={
                 <Grid columns={["128px", "auto", "auto"]} columnGap={8}>
                     <GridCell rowSpan={4}><Icon src={Assets.misc.parametersIcon} width={128} height={128} /></GridCell>
-                    <GridCell columnSpan={2} crossAlignment={ContentAlignment.Center}>
-                        <Label id="caption" caption={dlgCaption} />
-                    </GridCell>
-                    <GridCell className="left" crossAlignment={ContentAlignment.Center}>Parameter name:</GridCell>
+                    <GridCell className="left" crossAlignment={ContentAlignment.Center}>Name:</GridCell>
                     <GridCell className="right" crossAlignment={ContentAlignment.Center}>
                         <Input id="name" value={name} onChange={this.handleNameChange} />
                     </GridCell>
-                    <GridCell className="left" crossAlignment={ContentAlignment.Center}>Parameter value:</GridCell>
+                    <GridCell className="left" crossAlignment={ContentAlignment.Center}>Value:</GridCell>
                     <GridCell className="right" crossAlignment={ContentAlignment.Center}>
                         <Input id="value" value={value} onChange={this.handleValueChange} />
                     </GridCell>
@@ -134,8 +150,7 @@ export class ParamDialog extends ComponentBase<IParamDialogProperties, IParamDia
 
     private closeDialog = (cancelled: boolean): void => {
         const { onClose } = this.props;
-        const { name, value } = this.state;
 
-        onClose?.(cancelled, { name, value });
+        onClose?.(cancelled, this.state);
     };
 }
