@@ -374,12 +374,7 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
                     defaultStaticContent: {
                         type: "matrix",
                         caption: "Endpoint Response Cache",
-                        value: values.options.defaultStaticContent
-                            ? Array.from(
-                                Object.keys(values.options.defaultStaticContent),
-                                (k) => { return { key: k, value: values.options.defaultStaticContent![k] }; },
-                            ) as IDictionary[]
-                            : [],
+                        value: values.options.defaultStaticContent,
                         horizontalSpan: 4,
                         description: "Allows the definition of static content for the root path / that will be "
                             + "returned for file paths matching the given JSON keys. A JSON key index.html will be "
@@ -388,12 +383,7 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
                     defaultRedirects: {
                         type: "matrix",
                         caption: "Default Redirects",
-                        value: values.options.defaultRedirects
-                            ? Array.from(
-                                Object.keys(values.options.defaultRedirects),
-                                (k) => { return { key: k, value: values.options.defaultRedirects![k] }; },
-                            ) as IDictionary[]
-                            : [],
+                        value: values.options.defaultRedirects,
                         horizontalSpan: 4,
                         description: "Is used to define internal redirects performed by the MySQL Router. This "
                             + "can be used to expose content of a REST service on the root path /. A JSON key "
@@ -519,27 +509,15 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
             };
 
             // Add the defaultStaticContent
-            const defaultStaticContent: IStringDict = {};
-            const staticFiles = contentRedirectSection.values.defaultStaticContent.value as IDictionary[];
-            staticFiles.forEach((staticFile) => {
-                const key = staticFile.key as string;
-                defaultStaticContent[key] = staticFile.value as string;
-            });
             options = {
                 ...options,
-                defaultStaticContent,
+                defaultStaticContent: contentRedirectSection.values.defaultStaticContent.value as IStringDict,
             };
 
             // Add the defaultRedirects
-            const defaultRedirects: IStringDict = {};
-            const redirects = contentRedirectSection.values.defaultRedirects.value as IDictionary[];
-            redirects.forEach((redirect) => {
-                const key = redirect.key as string;
-                defaultStaticContent[key] = redirect.value as string;
-            });
             options = {
                 ...options,
-                defaultRedirects,
+                defaultRedirects: contentRedirectSection.values.defaultRedirects.value as IStringDict,
             };
 
             // add the directoryIndexDirective
