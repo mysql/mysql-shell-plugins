@@ -112,7 +112,6 @@ Note: The previous task only works for classic MySQL connections that are not us
 After the MySQL Router has been bootstrapped and started, MRS is available at `https://localhost:8443/<service-name>`.
 You can then proceed and [add a REST service](#adding-rest-services-and-database-objects).
 
-
 ### Bootstrapping MySQL Router From the Command Line
 
 When deploying a new MySQL Router instance, it is advised to use the `mysqlrouter_bootstrap` command to bootstrap and configure the router, including the MRS configuration. This is also true for reconfiguring an existing MySQL Router instance for MRS support.
@@ -151,9 +150,11 @@ GRANT 'mysql_rest_service_meta_provider', 'mysql_rest_service_data_provider' TO 
 The user name specified for the account can then be used when calling the `mysqlrouter_bootstrap` command.
 
 | Option | Description
-| --- | ----- |
-| `--mrs-mysql-metadata-account=USER_NAME` | Setting the MRS metadata user |
-| `--mrs-mysql-data-account=USER_NAME` | Setting the MRS data user |
+| --- | -----
+| `--mrs-mysql-metadata-account=USER_NAME` | Setting the MRS metadata user
+| `--mrs-mysql-data-account=USER_NAME` | Setting the MRS data user
+
+: MySQL Router MRS Bootstrap Account Options
 
 **_Adding a MRS Configuration to an Existing MySQL Router Configuration_**
 
@@ -163,7 +164,7 @@ To get the path of the existing configuration file, execute `mysqlrouter --help`
 
 The following is an example when connecting to a single development server.
 
-```cnf
+```ini
 [DEFAULT]
 logging_folder = /var/log/mysqlrouter
 runtime_folder = /var/run/mysqlrouter
@@ -191,15 +192,19 @@ mysqlrouter_bootstrap dba@127.0.0.1:13000 --mrs --directory /export/mysql/src/my
 These parameters can be used to set the MRS configuration options.
 
 | Option | Description
-| --- | ----- |
-| `--mrs` | Include MRS configuration |
-| `--mrs-mysql-metadata-account=USER_NAME` | Setting the MRS metadata user |
-| `--mrs-mysql-data-account=USER_NAME` | Setting the MRS data user |
-| `--mrs-global-secret=SECRET` | The global JWT secret that must be the same for every MySQL Router installation |
+| --- | -----
+| `--mrs` | Include MRS configuration
+| `--mrs-mysql-metadata-account=USER_NAME` | Setting the MRS metadata user
+| `--mrs-mysql-data-account=USER_NAME` | Setting the MRS data user
+| `--mrs-global-secret=SECRET` | The global JWT secret that must be the same for every MySQL Router installation
+| `--mrs-developer MYSQL_USER_NAME` | Switches the MySQL Router to developer mode
+| `--mrs-developer-debug-port` DEBUG_PORT | The port used for local debugging of MRS Scripts
+
+: MySQL Router Bootstrap options
 
 The following example demonstrates connecting to a single development server and serving the REST services using HTTP.
 
-```cnf
+```ini
 [http_server]
 port=8443
 ssl=1

@@ -19,4 +19,7 @@ pandoc restApi.md -f markdown -t html -s -o $ROOTPATH/docs/restApi.html --templa
 pandoc sdk.md -f markdown -t html -s -o $ROOTPATH/docs/sdk.html --template=$ROOTPATH/docs/templates/mysql_docs.html --toc --toc-depth=2 --metadata title="MRS SDK Reference" --variable=template_css:style/style.css --filter pandoc-include --number-sections -V version="$version"
 pandoc sql.md -f markdown -t html -s -o $ROOTPATH/docs/sql.html --template=$ROOTPATH/docs/templates/mysql_docs.html --toc --toc-depth=2 --metadata title="MRS SQL Reference" --variable=template_css:style/style.css --filter pandoc-include --number-sections -V version="$version"
 
+echo "Generating Accessibility docs ..."
+pandoc index_one_page.md -f markdown -t html -s -o $ROOTPATH/docs/index_one_page.html --template=$ROOTPATH/docs/templates/mysql_docs_one_page.html --toc --toc-depth=2 --metadata title="MySQL REST Service - Reference Manual" --variable=template_css:style/style_one_page.css --filter pandoc-include --number-sections -V version="$version"
+
 sed -i '' 's#".*\.\.\/docs\/#".\/#g' $ROOTPATH/docs/index.html
