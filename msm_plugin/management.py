@@ -347,7 +347,7 @@ def prepare_release(**kwargs) -> list[str]:
         overwrite_existing=overwrite_existing)
 
     if lib.core.get_interactive_default():
-        print("The following files have been prepared for release:\n"
+        print("The following file(s) have been prepared for release:\n" +
               '\n'.join(files_for_release))
     else:
         return files_for_release

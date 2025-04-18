@@ -35,14 +35,8 @@ from textwrap import indent
 import mysqlsh
 
 
-MSM_SCRIPT_HEADER_LINE = "-- ###############################################" \
-    "##############################\n"
-
 # Regex to match MSM sections, excluding the license and the last section
-MSM_SECTIONS_REGEX = r'--\s+MSM\s+Section\s+(\d+):\s*(.*?)$\s+(.*?)(--\s+#+)'
-
-# Regex to match the last MSM sections below the second to last section
-MSM_LAST_SECTION_REGEX = r'--\s+MSM\s+Section\s+(\d+):\s*(.*?)$\s+(.*)'
+MSM_SECTIONS_REGEX = r'--\s+#+\s+--\s+MSM\s+Section\s+(\d+):\s*(.*?)$\s+.*?--\s+#+'
 
 # Regex to match the MSM LOOP UPDATABLE-VERSIONS
 MSM_LOOP_UPDATABLE_VERSIONS_REGEX = \
@@ -54,7 +48,7 @@ MSM_SECTION_PLACEHOLDER_REGEX = r'\$\{section_(\d+).*?\}\n'
 
 # Regex to match the leading comments and empty lines before SQL commands,
 # but ensure that comments before SQL commands are kept
-REMOVE_LEADING_COMMENTS_AND_EMPTY_LINES = r'((^--.*?\n)+(^\s*\n)+)'
+REMOVE_LEADING_COMMENTS_AND_EMPTY_LINES = r'((^--.*?\n)+(^\s*\n)*)'
 
 # Regex to match all empty lines, including whitespace, at the end of the file
 REMOVE_TRAILING_EMPTY_LINES = r'(\s*\Z)'
@@ -64,7 +58,7 @@ MSM_SCHEMA_VERSION_VIEW_VALUES = r'CREATE.*?VIEW.*?`msm_schema_version`.*?' \
     r'((\d+).*?,.*?(\d+).*?,.*?(\d+))'
 
 MSM_SECTION_SOURCE_REGEX = \
-    r'^SOURCE\s+[\'"](.*?)[\'"]\s*\[(\d*:-?\d*)\]\s*;.*?$\n'
+    r'^([ \t]*)SOURCE\s+[\'"](.*?)[\'"]\s*\[(\d*:-?\d*)\]\s*;.*?$\n'
 
 MSM_SECTION_REMOVE_COMMENTS_AND_DELIMITERS = \
     r'(^\s*--\s+.*?$)|(^DELIMITER\s+.*?$)|(\/\*.*?\*\/)'
@@ -137,7 +131,7 @@ def set_sql_content(section: dict, sql_content: str) -> None:
         raise ValueError("The given section does not contain SQL content.")
 
     section["full_content"] = (
-        section["full_content"][:section["sql_start"]] + sql_content)
+        section["full_content"][:section["sql_start"]] + "\n" + sql_content.strip("\n"))
     section["sql_content"] = sql_content
     section["sql_end"] = len(section["full_content"])
 
@@ -152,7 +146,7 @@ def get_script_sections(script: str) -> dict[str, dict]:
         A list of script dicts.
     """
 
-    # Search for SCHEMA_DECORATOR
+    # Search for MSM sections
     matches = re.finditer(
         MSM_SECTIONS_REGEX, script, re.MULTILINE | re.DOTALL)
 
@@ -164,47 +158,39 @@ def get_script_sections(script: str) -> dict[str, dict]:
     #         print("Group {group_id} found at {start}-{end}: {group}".format(group_id=group_id,
     #               start=match.start(group_id), end=match.end(group_id), group=match.group(group_id)))
 
-    sections = {}
-    last_match_end = 0
+    section_headers = []
     for match_id, match in enumerate(matches, start=1):
+        # Add license section if available
         if match_id == 1 and match.start() > 0:
-            license_end_pos = match.start() - 1 - len(MSM_SCRIPT_HEADER_LINE)
-            sections["license"] = {
-                "full_content": script[:license_end_pos],
-                "sql_content": "",
+            section_headers.append({
+                "section_id": "license",
                 "start_position": 0,
-                "end_position": license_end_pos,
-            }
+                "header_length": 0,
+            })
 
-        section_id = match.group(1)
-        # Add back the section header line that is not matched by the regex
-        full_content = (
-            MSM_SCRIPT_HEADER_LINE
-            + match.group()[:match.start(4) - match.start()]).strip() + "\n"
-        sql_content, sql_start, sql_end = get_sql_content(full_content)
-
-        sections[section_id] = {
-            "full_content": full_content,
-            "sql_content": sql_content,
-            "sql_start": sql_start,
-            "sql_end": sql_end,
-            "start_position": match.start() - len(MSM_SCRIPT_HEADER_LINE),
-            "end_position": match.end(),
-        }
-        last_match_end = match.end()
-
-    matches = re.finditer(
-        MSM_LAST_SECTION_REGEX, script[last_match_end + 1:], re.MULTILINE | re.DOTALL)
-    for match in matches:
-        section_id = match.group(1)
-        sql_content, sql_start, sql_end = get_sql_content(match.group(3))
-        sections[section_id] = {
-            "full_content": MSM_SCRIPT_HEADER_LINE + match.group(),
-            "sql_content": sql_content,
-            "sql_start": sql_start,
-            "sql_end": sql_end,
+        section_headers.append({
+            "section_id": match.group(1),
             "start_position": match.start(),
-            "end_position": match.end(),
+            "header_length": match.end() - match.start(),
+        })
+
+    sections = {}
+
+    for idx, header in enumerate(section_headers):
+        # Lookup the end of the section by checking the start of the next section,
+        # while the last section ends at the end of the script.
+        if idx + 1 < len(section_headers):
+            section_end = section_headers[idx + 1]["start_position"] - 1
+        else:
+            section_end = len(script)
+
+        sections[header["section_id"]] = {
+            "full_content": script[header["start_position"]:section_end],
+            "sql_content": script[header["start_position"] + header["header_length"]:section_end],
+            "sql_start": header["header_length"],
+            "sql_end": section_end,
+            "start_position": header["start_position"],
+            "end_position": section_end,
         }
 
     return sections
@@ -1119,15 +1105,15 @@ def generate_deployment_script(
         "version_target": version,
         "version_comma_str": ", ".join(str(number) for number in version_as_ints),
         "section_130_creation_of_helpers":
-            target_version_sections.get("130", {}).get("sql_content", ""),
+            target_version_sections.get("130", {}).get("sql_content", "").strip("\n"),
         "section_140_non_idempotent_schema_objects": indent(
-            target_version_sections.get("140", {}).get("sql_content", ""), "    "),
+            target_version_sections.get("140", {}).get("sql_content", "").strip("\n"), "    "),
         "section_150_idempotent_schema_objects":
-            target_version_sections.get("150", {}).get("sql_content", ""),
+            target_version_sections.get("150", {}).get("sql_content", "").strip("\n"),
         "section_170_authorization": indent(
-            target_version_sections.get("170", {}).get("sql_content", ""), "    "),
+            target_version_sections.get("170", {}).get("sql_content", "").strip("\n"), "    "),
         "section_190_removal_of_helpers":
-            target_version_sections.get("190", {}).get("sql_content", ""),
+            target_version_sections.get("190", {}).get("sql_content", "").strip("\n"),
         "updatable_versions": ", ".join(f'"{v}"' for v in updatable_versions),
     })
 
@@ -1157,7 +1143,7 @@ def generate_deployment_script(
             for s in sections_to_replace:
                 section_id = s.group(1)
                 sql_content = updatable_versions_sections[version_from]["sections"].get(
-                    section_id, {}).get("sql_content", "")
+                    section_id, {}).get("sql_content", "").strip("\n")
                 sql_content_indent = indent(
                     sql_content, " " * needs_indent) if needs_indent else sql_content
                 sql_content_indent += "\n"
@@ -1246,8 +1232,9 @@ def substitute_source_statements_with_content(script: str, source_absolute_file_
     #               start=match.start(group_id), end=match.end(group_id), group=match.group(group_id)))
 
     for match in reversed(list(matches)):
-        source_file_path = match.group(1)
-        source_slicing = match.group(2)
+        source_indention = len(match.group(1))
+        source_file_path = match.group(2)
+        source_slicing = match.group(3)
 
         # If a relative file path is defined in the SOURCE statement, convert it to an absolute path
         if not source_file_path.startswith("/"):
@@ -1270,6 +1257,9 @@ def substitute_source_statements_with_content(script: str, source_absolute_file_
                     slices = source_slicing.split(":")
                     source_file_content = source_file_content[int(
                         slices[0]):int(slices[1]) if slices[1] else None]
+
+        if source_indention > 0:
+            source_file_content = indent(source_file_content, source_indention * " ")
 
         script = (
             script[:match.start()]

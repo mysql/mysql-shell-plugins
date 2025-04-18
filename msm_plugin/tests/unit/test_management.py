@@ -68,6 +68,7 @@ def test_msm_sections():
     tests_folder = Path(__file__).parent.parent
 
     with tempfile.TemporaryDirectory() as temp_dir:
+        # temp_dir = os.path.join(os.path.expanduser("~"), "Documents", "temp")
         # Create a new MSM project
         project_path = create_new_project_folder(
             schema_name=SCHEMA_NAME,
