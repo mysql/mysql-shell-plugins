@@ -1359,6 +1359,8 @@ The following settings for `VENDOR` are currently supported.
 | `Google` | OAuth2 | Performing authentication against the Google OAuth2 servers using `Login with Google`.
 | `"OCI OAuth2"` | OAuth2 | Performing authentication against the OCI OAuth2 service. See [here](index.html#configuring-oci-oauth2) for details on how to configure the OCI Auth2 service.
 
+: REST Authentication App Vendors
+
 ### Configuring a REST Authentication App for OAuth2 access
 
 Before creating a REST authentication app using an OAuth2 vendor, it is required to register the application at the OAuth2 vendor beforehand. Please consult the documentation of the individual vendors for more details.

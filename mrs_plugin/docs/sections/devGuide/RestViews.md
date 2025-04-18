@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -176,12 +176,14 @@ AUTHENTICATION REQUIRED;
 
 The following table shows the mapping between CRUD operations and SQL operations.
 
-| Letter | CRUD Operation | SQL Operation |
-|---|---|---|
-| C | CREATE | CREATE |
-| R | READ | SELECT |
-| U | UPDATE | UPDATE |
-| D | DELETE | DELETE |
+| Letter | CRUD Operation | SQL Operation
+|---|---|---
+| C | CREATE | CREATE
+| R | READ | SELECT
+| U | UPDATE | UPDATE
+| D | DELETE | DELETE
+
+: CRUD Operation Mapping
 
 ### Creating a Nested REST Data Mapping View
 
@@ -191,7 +193,7 @@ By enabling a referenced table, the columns of that table are included as a nest
 
 This leads to the following result.
 
-```
+```txt
 GET /myService/sakila/city/1
 ```
 
@@ -226,7 +228,7 @@ If the columns of the referenced table should be added to the level above, the `
 
 This leads to the following result.
 
-```
+```txt
 GET /myService/sakila/city/1
 ```
 
@@ -257,7 +259,7 @@ Instead of having all columns unnested and disabling all columns that are not wa
 
 This leads to the same result as the query above.
 
-```
+```txt
 GET /myService/sakila/city/1
 ```
 
@@ -294,7 +296,7 @@ CREATE OR REPLACE REST VIEW /myTable
 
 Retrieving the specific REST document can be done as follows:
 
-```
+```txt
 GET /myService/sakila/myTable/1,1
 ```
 
@@ -317,7 +319,7 @@ GET /myService/sakila/myTable/1,1
 
 Updating a specific REST document can be done as follows:
 
-```
+```txt
 PUT /myService/sakila/myTable/1,1
 {
     "id1": 1,

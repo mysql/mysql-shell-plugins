@@ -70,6 +70,15 @@
         "FUNCTIONCALL",
         "PROCEDURECALL",
         "coro",
-        "squote"
+        "squote",
+        "Coruña",
+        "createmany",
+        "pandoc",
+        "certfile",
+        "GRACO",
+        "timedelta",
+        "fromisoformat",
+        "TIMESTAMPADD",
+        "mypy"
     ]
 }

@@ -32,10 +32,12 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 ### Options (authenticate)
 
 | Name | Type | Required | Description
-|---|---|---|---|
-| username | string | Yes | Username in the scope of the authentication app. |
-| password | string | No | Password in the scope of the authentication app. |
-| authApp  | string | Yes | Name of the authentication app. |
+|---|---|---|---
+| username | string | Yes | Username in the scope of the authentication app.
+| password | string | No | Password in the scope of the authentication app.
+| authApp  | string | Yes | Name of the authentication app.
+
+: REST Service Options for Authentication
 
 ### Return Type (authenticate)
 
@@ -103,8 +105,10 @@ await myService.mrsNotes.note.getMetadata();
 #### Options (create)
 
 | Name | Type | Required | Description
-|---|---|---|---|
-| data  | object | Yes | Object containing the mapping between column names and values for the record to be inserted. |
+|---|---|---|---
+| data  | object | Yes | Object containing the mapping between column names and values for the record to be inserted.
+
+: REST View Options (create)
 
 #### Return Type (create)
 
@@ -148,11 +152,13 @@ myService.mrsNotes.note.create({ data: note });
 
 `createMany` inserts one or more records in a given table. The records are represented as plain TypeScript/JavaScript objects, or alternatively, as instances of a particular class that encapsulates the data required to create them.
 
-#### Options (create)
+#### Options (createMany)
 
 | Name | Type | Required | Description
-|---|---|---|---|
-| data  | object | Yes | Array of objects containing the mapping between column names and values for the records to be inserted. |
+|---|---|---|---
+| data  | object | Yes | Array of objects containing the mapping between column names and values for the records to be inserted.
+
+: REST View Options (createMany)
 
 #### Return Type (createMany)
 
@@ -201,12 +207,14 @@ myService.mrsNotes.note.createMany({ data: [note1, note2] });
 
 #### Options (findFirst)
 
-| Name | Type | Required | Description |
-|---|---|---|---|
-| where | object | No | Filtering conditions that apply to specific fields. |
-| select | object | No | Specifies which properties to include in the returned object. |
-| skip  | number | No | Specifies how many records to skip before returning one of the matches. |
-| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers. |
+| Name | Type | Required | Description
+|---|---|---|---
+| where | object | No | Filtering conditions that apply to specific fields.
+| select | object | No | Specifies which properties to include in the returned object.
+| skip  | number | No | Specifies how many records to skip before returning one of the matches.
+| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers.
+
+: REST View Options (findFirst)
 
 #### Return Type (findFirst)
 
@@ -262,11 +270,13 @@ If no record was found matching the given `where` condition, `undefined` is retu
 
 #### Options (findUnique)
 
-| Name | Type | Required | Description |
-|---|---|---|---|
-| where | object | Yes | Wraps all unique columns so that individual records can be selected. |
-| select | object | No | Specifies which properties to include in the returned object. |
-| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers. |
+| Name | Type | Required | Description
+|---|---|---|---
+| where | object | Yes | Wraps all unique columns so that individual records can be selected.
+| select | object | No | Specifies which properties to include in the returned object.
+| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers.
+
+: REST View Options (findUnique)
 
 #### Return Type (findUnique)
 
@@ -314,16 +324,18 @@ await myService.mrsNotes.note.findUnique({ where: { id: { $eq: 4 } } });
 
 #### Options (findMany)
 
-| Name | Type | Required | Description |
-|---|---|---|---|
-| cursor | object | No | Retrieve records using unique and sequential fields as cursor. |
-| iterator | boolean | No | Enable or disable iterator behavior. |
-| orderBy | object | No | Determines the sort order of specific fields. |
-| select | object | No | Specifies which properties to include in the returned object. |
-| skip  | number | No | How many records to skip before returning one of the matches. |
-| where | object  | No | Filtering conditions that apply to specific fields. |
-| take  | number | No | Maximum number of records to return. |
-| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers. |
+| Name | Type | Required | Description
+|---|---|---|---
+| cursor | object | No | Retrieve records using unique and sequential fields as cursor.
+| iterator | boolean | No | Enable or disable iterator behavior.
+| orderBy | object | No | Determines the sort order of specific fields.
+| select | object | No | Specifies which properties to include in the returned object.
+| skip  | number | No | How many records to skip before returning one of the matches.
+| where | object  | No | Filtering conditions that apply to specific fields.
+| take  | number | No | Maximum number of records to return.
+| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers.
+
+: REST View Options (findMany)
 
 #### Return Type (findMany)
 
@@ -369,15 +381,17 @@ await myService.mrsNotes.note.findMany({ where: { id: { $gt: 10 } } });
 
 #### Options (findAll)
 
-| Name | Type | Required | Description |
-|---|---|---|---|
-| cursor | object | No | Retrieve records using unique and sequential fields as cursor. |
-| orderBy | object | No | Determines the sort order of specific fields. |
-| progress | function | No | Specifies a function to be called back when reporting progress. |
-| select | object | No | Specifies which properties to include in the returned object. |
-| skip  | number | No | How many records to skip before returning one of the matches. |
-| where | object  | No | Filtering conditions that apply to specific fields. |
-| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers. |
+| Name | Type | Required | Description
+|---|---|---|---
+| cursor | object | No | Retrieve records using unique and sequential fields as cursor.
+| orderBy | object | No | Determines the sort order of specific fields.
+| progress | function | No | Specifies a function to be called back when reporting progress.
+| select | object | No | Specifies which properties to include in the returned object.
+| skip  | number | No | How many records to skip before returning one of the matches.
+| where | object  | No | Filtering conditions that apply to specific fields.
+| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers.
+
+: REST View Options (findAll)
 
 #### Return Type (findAll)
 
@@ -424,10 +438,12 @@ await myService.mrsNotes.note.findMany({ progress: (notes) => {
 
 #### Options (delete)
 
-| Name | Type | Required | Description |
-|---|---|---|---|
-| where | object | Yes | Filtering conditions that apply to specific fields. |
-| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers. |
+| Name | Type | Required | Description
+|---|---|---|---
+| where | object | Yes | Filtering conditions that apply to specific fields.
+| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers.
+
+: REST View Options (delete)
 
 #### Return Type (delete)
 
@@ -467,10 +483,12 @@ await myService.mrsNotes.note.delete({ where: { title: { $like: "%foo%" } } });
 
 #### Options (deleteMany)
 
-| Name | Type | Required | Description |
-|---|---|---|---|
-| where | object | No | Filtering conditions that apply to specific fields. |
-| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers. |
+| Name | Type | Required | Description
+|---|---|---|---
+| where | object | No | Filtering conditions that apply to specific fields.
+| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers.
+
+: REST View Options (deleteMany)
 
 #### Return Type (deleteMany)
 
@@ -512,9 +530,11 @@ await myService.mrsNotes.note.deleteMany({ where: { shared: true } });
 
 #### Options (update)
 
-| Name | Type | Required | Description |
-|---|---|---|---|
-| data | object | Yes | Set of fields and corresponding values to update. |
+| Name | Type | Required | Description
+|---|---|---|---
+| data | object | Yes | Set of fields and corresponding values to update.
+
+: REST View Options (update)
 
 #### Return Type (update)
 
@@ -560,9 +580,11 @@ await myService.mrsNotes.note.update({ data: note });
 
 #### Options (updateMany)
 
-| Name | Type | Required | Description |
-|---|---|---|---|
-| data | object | Yes | Set of fields and corresponding values to update. |
+| Name | Type | Required | Description
+|---|---|---|---
+| data | object | Yes | Set of fields and corresponding values to update.
+
+: REST View Options (updateMany)
 
 #### Return Type (updateMany)
 
@@ -614,10 +636,12 @@ await myService.mrsNotes.note.update({ data: [note1, note2] });
 
 #### Options (call)
 
-| Name | Type | Required | Description |
-|---|---|---|---|
-| refreshRate | number (>=500) | No | Time (ms) to wait for retrieving the next progress report. |
-| progress | async function | No | Callback to be executed using the details of each progress report while the routine does not finish. |
+| Name | Type | Required | Description
+|---|---|---|---
+| refreshRate | number (>=500) | No | Time (ms) to wait for retrieving the next progress report.
+| progress | async function | No | Callback to be executed using the details of each progress report while the routine does not finish.
+
+: REST Function/Procedure Options (call)
 
 #### Return Type (call)
 
@@ -734,9 +758,11 @@ const task = await myService.mrsNotes.noteUpdate.start({ noteId: note.id, title:
 
 #### Options (watch)
 
-| Name | Type | Required | Description |
-|---|---|---|---|
-| refreshRate | number (>=500) | No | Time (ms) to wait for retrieving the next progress report. |
+| Name | Type | Required | Description
+|---|---|---|---
+| refreshRate | number (>=500) | No | Time (ms) to wait for retrieving the next progress report.
+
+: Task Options (watch)
 
 #### Return Type (watch)
 
