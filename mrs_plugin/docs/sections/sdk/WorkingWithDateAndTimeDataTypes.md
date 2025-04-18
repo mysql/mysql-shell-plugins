@@ -33,7 +33,6 @@ MySQL supports date and time data types for representing temporal values:
 
 Visit the [official documentation](https://dev.mysql.com/doc/refman/8.4/en/date-and-time-types.html) to know more about these MySQL data types.
 
-
 ## MRS Python SDK
 
 MySQL Rest Service (MRS) Python SDK utilizes the following client-side data types for representing, operating on, or manipulating MySQL date and time data:
@@ -45,6 +44,8 @@ MySQL Rest Service (MRS) Python SDK utilizes the following client-side data type
 | DATE | [`datetime.date`](https://docs.python.org/3/library/datetime.html#datetime.date) |
 | TIME | [`datetime.timedelta`](https://docs.python.org/3/library/datetime.html#datetime.timedelta) |
 | YEAR | `int` |
+
+: MRS Python SDK data type mapping
 
 The MRS Python SDK data types shall be used when inserting or updating (upstream operations) a record that contains a field matching a column of a *date and time* data type. Symmetrically, for downstream operations such as finding records having *date and time* fields, such fields are specified with MRS Python SDK data types according to the above equivalences.
 

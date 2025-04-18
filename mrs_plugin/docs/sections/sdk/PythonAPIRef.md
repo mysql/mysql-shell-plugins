@@ -30,15 +30,15 @@ The MRS Python SDK exposes a type-safe programmable interface for the MySQL REST
 The following `MRS Resources` exist as part of the MRS Python SDK:
 
 - [REST Service](#rest-services)
-    - [REST Schema](#rest-schemas)
-        - [REST View](#rest-views), [Function](#rest-functions) and [Procedure](#rest-procedures)
-            - [REST Document](#rest-documents)
+  - [REST Schema](#rest-schemas)
+    - [REST View](#rest-views), [Function](#rest-functions) and [Procedure](#rest-procedures)
+      - [REST Document](#rest-documents)
 
 MRS resources, as shown above, are grouped under service namespaces.
 
 The following commands can be executed in the scope of a client-side representation of any MRS resource (except [REST Documents](#rest-documents)).
 
-* [get_metadata()](#get_metadata)
+- [get_metadata()](#get_metadata)
 
 ### get_metadata
 
@@ -59,15 +59,12 @@ The metadata information is returned as a JSON-like object (`dict`). If there is
 ```py
 from sdk.python import MyService
 
-
 my_service = MyService()
-
 
 print(await my_service.get_metadata())  # {"title": "My Service"}
 
 print(await my_service.sakila.get_metadata())  # {"title": "Sakila Sample Database"}
 ```
-
 
 ## REST Services
 
@@ -75,22 +72,21 @@ In the Python SDK, schemas are grouped under service namespaces.
 
 The following resources can be accessed from a service namespace:
 
-* [REST Schemas](#rest-schemas)
+- [REST Schemas](#rest-schemas)
 
 The following options are supported when creating a service:
 
-* [verify_tls_cert](#verify_tls_cert)
+- [verify_tls_cert](#verify_tls_cert)
 
 The following commands can be accessed from a service object:
 
-* Properties
-    * [tls_context](#tls_context)
+- Properties
+  - [tls_context](#tls_context)
 
-* Methods
-    * [get_auth_apps()](#get_auth_apps)
-    * [authenticate()](#authenticate)
-    * [deauthenticate()](#deauthenticate)
-
+- Methods
+  - [get_auth_apps()](#get_auth_apps)
+  - [authenticate()](#authenticate)
+  - [deauthenticate()](#deauthenticate)
 
 ### verify_tls_cert
 
@@ -135,7 +131,6 @@ my_service = MyService(verify_tls_cert=False)
 # False
 ```
 
-
 ### tls_context
 
 `tls_context` is a service-level property that gets the TLS/SSL context configured for the service, which is used when executing HTTPS requests. The TLS/SSL context configuration depends on how `verify_tls_cert` is set when the service is created, see [verify_tls_cert](#verify_tls_cert).
@@ -143,7 +138,6 @@ my_service = MyService(verify_tls_cert=False)
 #### Return Type (tls_context)
 
 An `ssl.SSLContext` instance.
-
 
 #### Example (tls_context)
 
@@ -158,7 +152,6 @@ tls_context = my_service.tls_context
 # ------------------------------
 # True
 ```
-
 
 ### get_auth_apps
 
@@ -189,7 +182,6 @@ auth_apps = await my_service.get_auth_apps()
 # ]
 ```
 
-
 ### authenticate
 
 `authenticate` is a service-level command that authenticates a user so he/she can work with restricted MySQL REST Services.
@@ -201,13 +193,14 @@ auth_apps = await my_service.get_auth_apps()
 | app | `str` | Yes | N/A | Name of the authentication application (as specified by the admin). |
 | user | `str` | Yes |  N/A | User name |
 | password | `str` | No | `""` | If not provided, the empty string is assumed as the password |
-| vendor_id | `str` | No | `None` | ID of the underlying authentication mechanism. <br>Specifying the vendor ID avoids an additional round-trip to the server |
+| vendor_id | `str` | No | `None` | ID of the underlying authentication mechanism. Specifying the vendor ID avoids an additional round-trip to the server |
 
+: REST Service Options for Authentication
 
 The following authentication application names are supported:
 
-* *MRS*
-* *MySQL*
+- *MRS*
+- *MySQL*
 
 #### Return Type (authenticate)
 
@@ -243,7 +236,6 @@ When `vendor_id` is not specified, a vendor ID lookup is performed. The vendor I
 In the case the vendor ID is not specified, and a nonexisting app is provided, an `AuthenticationError` exception is raised.
 
 Also, in the case the vendor ID is specified alongside a nonexisting app, there will not be a lookup. This means that if, by accident, or not, there is no authentication app from the specified `vendor_id` with the given `app`, an `AuthenticationError` exception is returned to the application.
-
 
 ### deauthenticate
 
@@ -289,22 +281,18 @@ res = await my_service.sakila.hello_func(name="Rui")
 await my_service.deauthenticate()
 ```
 
-
 ## REST Schemas
 
 In the Python SDK, database objects such as tables and functions are grouped under namespaces that correspond to their schema. Applications can access and use those database objects via the API exposed by each one.
 
 The following REST resources can be accessed from the corresponding schema namespace:
 
-* [REST Views](#rest-views)
-* [REST Documents](#rest-documents)
-* [REST Functions](#rest-functions)
-* [REST Procedures](#rest-procedures)
-
-
+- [REST Views](#rest-views)
+- [REST Documents](#rest-documents)
+- [REST Functions](#rest-functions)
+- [REST Procedures](#rest-procedures)
 
 ## REST Views
-
 
 ### create
 
@@ -314,9 +302,11 @@ The following REST resources can be accessed from the corresponding schema names
 
 #### Options (create)
 
-| Name | Type | Required | Description
+| Name | Type | Required | Description |
 |---|---|---|---|
 | data  | TypedDict | Yes | Object containing the mapping between column names and values for the record to be inserted |
+
+: REST Views Options (create)
 
 #### Return Type (create)
 
@@ -342,8 +332,6 @@ print(actor)
 
 The `actor_id` and `last_update` columns from the `sakila` table on the sample [sakila database](https://dev.mysql.com/doc/sakila/en/) are automatically generated on each insert, which means they can be omitted.
 
-
-
 ### create_many
 
 `create_many` is used to insert one or more records (REST documents) into the database. A record is represented as a typed dictionary object whose fields, or keys, should comply with the interface exposed by the type definition `INew${obj_class_name}` where `${obj_class_name}` is a variable which value depends on the *service, schema and table* names themselves.
@@ -352,9 +340,11 @@ The `actor_id` and `last_update` columns from the `sakila` table on the sample [
 
 #### Options (create_many)
 
-| Name | Type | Required | Description
+| Name | Type | Required | Description |
 |---|---|---|---|
 | data  | Sequence of `TypedDict` - it can be any Python object supporting the iteration protocol, such as lists and tuples | Yes | List of objects containing the mapping between column names and values for the records to be inserted |
+
+: REST Views Options (create_many)
 
 #### Return Type (create_many)
 
@@ -399,14 +389,12 @@ print(actors)
 
 The `actor_id` and `last_update` columns from the `sakila` table on the sample [sakila database](https://dev.mysql.com/doc/sakila/en/) are automatically generated on each insert, which means they can be omitted.
 
-
-
 ### find_first
 
 `find_first` is used to query the first REST document (**in no specific order**) that matches a given optional filter. It returns `None` if no document is found.
 
 > To raise an exception if there are no matches, use [find_first_or_throw](#find_first_or_throw) instead.
-
+>
 > To find multiple REST documents, see [find_many](#find_many).
 
 #### Options (find_first)
@@ -419,6 +407,8 @@ The `actor_id` and `last_update` columns from the `sakila` table on the sample [
 | order_by | dict | No | Lets you customize the order (`ASC` or `DESC`) in which the documents are returned based on specific fields|
 | cursor | dict | No | Specifies the position of the first item to include in the result set. A cursor bookmarks a location in a result set and must be a column containing unique and sequential values. |
 | read_own_writes | bool | No | Ensures read consistency for a cluster of servers - `False` is used by default |
+
+: REST Views Options (find_first)
 
 > Cursor-based pagination takes precedence over offset-based pagination, which means that if a cursor is defined, the value of the offset property (`skip`) will be ignored.
 
@@ -571,6 +561,7 @@ Suppose the actor table contains a bunch of records. In the following snippet, o
 ```
 
 The cursor option can be used as follows:
+
 ```Python
 actor: Optional[Actor] = await self.my_service.sakila.actor.find_first(
     where={"last_name": {"like": "%%HA%%"}},
@@ -595,14 +586,12 @@ read_own_writes=True
 read_own_writes=False
 ```
 
-
-
 ### find_first_or_throw
 
 `find_first_or_throw` is used to retrieve the first REST document that matches a given optional filter in the same way as [find_first](#find_first) does. However, if the query does not find a document, it raises a `MrsDocumentNotFoundError` exception.
 
 > To not raise an exception and get `None` if there are no matches, use [find_first](#find_first) instead.
-
+>
 > To find multiple REST documents, see [find_many](#find_many).
 
 #### Options (find_first_or_throw)
@@ -634,8 +623,6 @@ except MrsDocumentNotFoundError:
 
 See [Example (find_first)](#example-find_first) for additional usage options.
 
-
-
 ### find_unique
 
 `find_unique` is used to query a single, uniquely identified REST document by:
@@ -654,6 +641,8 @@ It returns `None` if no document is found.
 | select | dict or list | No | Specifies which properties to include or exclude on the returned document - works as a *field filter* |
 | where | dict | Yes | Applies filtering conditions based on specific fields (must be unique) - works as a *document filter* |
 | read_own_writes | bool | No | Ensures read consistency for a cluster of servers - `False` is used by default |
+
+: REST Views Options (find_unique)
 
 #### Return Type (find_unique)
 
@@ -678,8 +667,6 @@ assert actor.actor_id == aid
 ```
 
 See [Example (find_first)](#example-find_first) for additional usage options.
-
-
 
 ### find_unique_or_throw
 
@@ -719,8 +706,6 @@ except MrsDocumentNotFoundError:
 
 See [Example (find_first)](#example-find_first) for additional usage options.
 
-
-
 ### find_many
 
 `find_many` is used to query a subset of REST documents in one or more pages, and optionally, those that match a given filter.
@@ -739,6 +724,8 @@ See [Example (find_first)](#example-find_first) for additional usage options.
 | read_own_writes | bool | No | Ensures read consistency for a cluster of servers - `False` is used by default |
 | take | int | No | Maximum number of documents to return |
 | iterator | bool | No | Enable or disable iterator behavior. It is used by the SDK to reset the internal iterator when consuming paginated data in order to avoid n + 1 requests, the internal iterator stops after the MySQL Router says there are no more items. Default value is `True` (enabled). |
+
+: REST Views Options (find_many)
 
 > Cursor-based pagination takes precedence over offset-based pagination, which means that if a cursor is defined, the value of the offset property (`skip`) will be ignored.
 
@@ -778,8 +765,6 @@ print(actors)
 
 See [Example (find_first)](#example-find_first) for additional usage options.
 
-
-
 ### find_all
 
 `find_all` is used to retrieve every MRS document, and optionally, all those that match a given filter.
@@ -798,8 +783,9 @@ See [Example (find_first)](#example-find_first) for additional usage options.
 | read_own_writes | bool | No | Ensures read consistency for a cluster of servers - `False` is used by default |
 | progress | function | No | Specifies a function to be called back when reporting progress |
 
-> Cursor-based pagination takes precedence over offset-based pagination, which means that if a cursor is defined, the value of the offset property (`skip`) will be ignored.
+: REST Views Options (find_all)
 
+> Cursor-based pagination takes precedence over offset-based pagination, which means that if a cursor is defined, the value of the offset property (`skip`) will be ignored.
 
 #### Return Type (find_all)
 
@@ -831,8 +817,6 @@ actors: list[Actor] = await self.my_service.sakila.actor.find_all(
 
 See [Example (find_first)](#example-find_first) for additional usage options.
 
-
-
 ### delete
 
 `delete` is used to delete a single, uniquely identified REST document by:
@@ -848,6 +832,8 @@ See [Example (find_first)](#example-find_first) for additional usage options.
 |---|---|---|---|
 | where | dict | Yes | Applies filtering conditions based on specific fields (must be unique) - works as a *document filter* |
 | read_own_writes | bool | No | Ensures read consistency for a cluster of servers - `False` is used by default |
+
+: REST Views Options (delete)
 
 #### Return Type (delete)
 
@@ -871,8 +857,6 @@ else:
     print(f"Actor document with ID={aid} was deleted")
 ```
 
-
-
 ### delete_many
 
 `delete_many` is used to delete all REST documents that match a given filter. To delete a single document, see [delete](#delete).
@@ -883,6 +867,8 @@ else:
 |---|---|---|---|
 | where | dict | Yes | Applies filtering conditions based on specific fields - works as a *document filter* |
 | read_own_writes | bool | No | Ensures read consistency for a cluster of servers - `False` is used by default |
+
+: REST Views Options (delete_many)
 
 #### Return Type (delete_many)
 
@@ -904,7 +890,6 @@ print(num_items_removed)
 # 3
 ```
 
-
 ### update
 
 `update` is used to update a REST document with a given identifier or primary key.
@@ -916,6 +901,8 @@ print(num_items_removed)
 | Name | Type | Required | Description |
 |---|---|---|---|
 | data | TypedDict | Yes | Set of fields and corresponding values to update. The identifier or primary key must be included |
+
+: REST Views Options (update)
 
 #### Return Type (update)
 
@@ -950,9 +937,6 @@ assert actor_updated.last_name == "Smith"
 assert actor.actor_id == actor_updated.actor_id
 ```
 
-
-
-
 ### update_many
 
 `update_many` is used to update all REST documents with matching identifiers or primary keys.
@@ -964,6 +948,8 @@ assert actor.actor_id == actor_updated.actor_id
 | Name | Type | Required | Description |
 |---|---|---|---|
 | data | list of `TypedDict` | Yes | A list of set of fields and corresponding values to update. The identifier or primary key must be included for each "set of fields" (document)|
+
+: REST Views Options (update_many)
 
 #### Return Type (update_many)
 
@@ -1011,8 +997,6 @@ assert actors_updated[0].last_name == "Smith"
 assert actors_updated[1].first_name == "Ma"
 assert actors_updated[1].last_name == "Yeung"
 ```
-
-
 
 ## REST Documents
 
@@ -1084,7 +1068,6 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-
 ### delete (document)
 
 `delete` deletes the resource represented by the data class instance.
@@ -1138,7 +1121,6 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-
 ## REST Functions
 
 ### Options (function)
@@ -1154,7 +1136,6 @@ The Python data type returned by `<func_name>(...)` depends on the data type ret
 > For instance, the Python data type `int` must be expected for MySQL functions declared to return `TINYINT`, `SMALLINT`, `MEDIUMINT`, `INT` and `BIGINT`.
 
 See [Example (function)](#example-function) for an example.
-
 
 ### Example (function)
 
@@ -1194,7 +1175,6 @@ mysql> CREATE FUNCTION my_birthday_func ()
 > RETURN CURDATE();
 ```
 
-
 ## REST Procedures
 
 ### Options (procedure)
@@ -1205,20 +1185,17 @@ Input parameters aren't mandatory, meaning you are free to not provide them.
 
 In case of being provided, input parameters can also be assigned a null value when calling the procedure, in other words, you can set any parameters to `None`.
 
-
 ### Return Type (procedure)
 
 The Python data type returned by `<proc_name>(...)` is a REST document data class object. For more details about REST documents, check the [REST Documents](#rest-documents) section.
 
 This data class object includes the following attributes:
 
-* `out_parameters`: Dictionary with fields for each  `OUT`/`INOUT`  parameter declared as part of the MySQL procedure that produces an actual value. If a parameter is not used to return a value, the field will not be present in the dictionary.
+- `out_parameters`: Dictionary with fields for each  `OUT`/`INOUT`  parameter declared as part of the MySQL procedure that produces an actual value. If a parameter is not used to return a value, the field will not be present in the dictionary.
 
-* `result_sets`: List of result set types generated when executing one or more SELECT statements as part of the procedure body. Each result set type can include one or more items.
-
+- `result_sets`: List of result set types generated when executing one or more SELECT statements as part of the procedure body. Each result set type can include one or more items.
 
 See [Example (procedure)](#example-procedure) for an example.
-
 
 ### Example (procedure)
 

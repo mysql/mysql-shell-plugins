@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.-->
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>$if(title)$$title$$endif$</title>
+    <link rel="shortcut icon" href="images/favicon.png" type="image/x-icon">
+    $if(template_css)$
+    <link rel="stylesheet" href="$template_css$">
+    $endif$
+    $for(author-meta)$
+    <meta name="author" content="$author-meta$" />
+    $endfor$
+    $if(date-meta)$
+    <meta name="date" content="$date-meta$" />
+    $endif$
+    <!-- cSpell:ignore pagetitle -->
+    <style type="text/css">
+        code {
+            white-space: pre;
+        }
+    </style>
+    $if(quotes)$
+    <style type="text/css">
+        q {
+            quotes: "“" "”" "‘" "’";
+        }
+    </style>
+    $endif$
+</head>
+
+<body>
+    <div class="content">
+        <div class="header" id="document-top">
+            <h1>
+                <div class="iconBig bookIcon"></div>&nbsp;$if(title)$$title$$endif$
+            </h1>
+            <h10>Version 1.19.8+9.2.0</h10>
+        </div>
+        <div class="main">
+            $body$
+        </div>
+    </div>
+    <div>
+        <nav class="section-nav">
+            <div class="bookToc">
+                <br>
+                <h3>$if(title)$$title$$endif$ $version$</h3>
+                $if(toc)$
+                $toc$
+                $endif$
+            </div>
+        </nav>
+    </div>
+</body>
+
+</html>

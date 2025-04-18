@@ -150,7 +150,7 @@
                 <nav class="section-nav">
                     <div class="bookToc">
                         <br>
-                        <h3>MRS SDK Reference 1.19.7+9.2.0</h3>
+                        <h3>MRS SDK Reference 1.19.8+9.2.0</h3>
                                                 <ul>
                                                 <li><a
                                                 href="#introduction-to-the-mrs-sdk"
@@ -591,7 +591,7 @@ Reference
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService(base_url<span class="op">=</span><span class="st">&quot;https://localhost:8443/myService&quot;</span>)</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># or just</span></span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService(<span class="st">&quot;https://localhost:8443/myService&quot;</span>)</span></code></pre></div>
-                <!-- Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -891,7 +891,7 @@ Reference
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(report<span class="op">.</span><span class="at">result</span>)<span class="op">;</span> <span class="co">// true</span></span>
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -1048,7 +1048,7 @@ Reference
                 class="sourceCode py"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>my_service.my_db.myFunc() <span class="co"># None</span></span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>my_service.my_db.myFunc(x<span class="op">=</span><span class="dv">3</span>) <span class="co"># 3</span></span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>my_service.my_db.myFunc(x<span class="op">=</span><span class="dv">3</span>, y<span class="op">=</span><span class="dv">2</span>) <span class="co"># 5</span></span></code></pre></div>
-                <!-- Copyright (c) 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -1129,7 +1129,7 @@ Reference
                 running on top of a MySQL instance cluster where the
                 GTID infrastructure is specifically configured and
                 enabled, otherwise the option will be ignored.</p>
-                <!-- Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -1683,6 +1683,7 @@ Reference
                 operating on, or manipulating MySQL date and time
                 data:</p>
                 <table>
+                <caption>MRS Python SDK data type mapping</caption>
                 <colgroup>
                 <col style="width: 52%" />
                 <col style="width: 47%" />
@@ -1917,6 +1918,8 @@ Reference
                 following client-side data type for representing,
                 operating on, or manipulating MySQL vector data:</p>
                 <table>
+                <caption>Client-Side Representation of Vector
+                Datatype</caption>
                 <colgroup>
                 <col style="width: 52%" />
                 <col style="width: 47%" />
@@ -2230,6 +2233,8 @@ Reference
                 class="header-section-number">12.1.2</span> Options
                 (authenticate)</h3>
                 <table>
+                <caption>REST Service Options for
+                Authentication</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -2342,6 +2347,7 @@ Reference
                 class="header-section-number">12.2.1.1</span> Options
                 (create)</h4>
                 <table>
+                <caption>REST View Options (create)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -2410,10 +2416,11 @@ Reference
                 TypeScript/JavaScript objects, or alternatively, as
                 instances of a particular class that encapsulates the
                 data required to create them.</p>
-                <h4 data-number="12.2.2.1" id="options-create-1"><span
+                <h4 data-number="12.2.2.1" id="options-createmany"><span
                 class="header-section-number">12.2.2.1</span> Options
-                (create)</h4>
+                (createMany)</h4>
                 <table>
+                <caption>REST View Options (createMany)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -2491,6 +2498,7 @@ Reference
                 class="header-section-number">12.2.3.1</span> Options
                 (findFirst)</h4>
                 <table>
+                <caption>REST View Options (findFirst)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -2598,6 +2606,7 @@ Reference
                 class="header-section-number">12.2.4.1</span> Options
                 (findUnique)</h4>
                 <table>
+                <caption>REST View Options (findUnique)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -2698,6 +2707,7 @@ Reference
                 class="header-section-number">12.2.6.1</span> Options
                 (findMany)</h4>
                 <table>
+                <caption>REST View Options (findMany)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -2816,6 +2826,7 @@ Reference
                 class="header-section-number">12.2.7.1</span> Options
                 (findAll)</h4>
                 <table>
+                <caption>REST View Options (findAll)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -2928,6 +2939,7 @@ Reference
                 class="header-section-number">12.2.8.1</span> Options
                 (delete)</h4>
                 <table>
+                <caption>REST View Options (delete)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -2999,6 +3011,7 @@ Reference
                 class="header-section-number">12.2.9.1</span> Options
                 (deleteMany)</h4>
                 <table>
+                <caption>REST View Options (deleteMany)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -3073,6 +3086,7 @@ Reference
                 class="header-section-number">12.2.10.1</span> Options
                 (update)</h4>
                 <table>
+                <caption>REST View Options (update)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -3144,6 +3158,7 @@ Reference
                 class="header-section-number">12.2.11.1</span> Options
                 (updateMany)</h4>
                 <table>
+                <caption>REST View Options (updateMany)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -3231,6 +3246,8 @@ Reference
                 class="header-section-number">12.2.13.1</span> Options
                 (call)</h4>
                 <table>
+                <caption>REST Function/Procedure Options
+                (call)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -3386,6 +3403,7 @@ Reference
                 class="header-section-number">12.3.1.1</span> Options
                 (watch)</h4>
                 <table>
+                <caption>Task Options (watch)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -3617,13 +3635,11 @@ Reference
                 <div class="sourceCode" id="cb93"><pre
                 class="sourceCode py"><code class="sourceCode python"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sdk.python <span class="im">import</span> MyService</span>
 <span id="cb93-2"><a href="#cb93-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb93-3"><a href="#cb93-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb93-4"><a href="#cb93-4" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
-<span id="cb93-5"><a href="#cb93-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb93-3"><a href="#cb93-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService()</span>
+<span id="cb93-4"><a href="#cb93-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb93-5"><a href="#cb93-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="cf">await</span> my_service.get_metadata())  <span class="co"># {&quot;title&quot;: &quot;My Service&quot;}</span></span>
 <span id="cb93-6"><a href="#cb93-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb93-7"><a href="#cb93-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="cf">await</span> my_service.get_metadata())  <span class="co"># {&quot;title&quot;: &quot;My Service&quot;}</span></span>
-<span id="cb93-8"><a href="#cb93-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb93-9"><a href="#cb93-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="cf">await</span> my_service.sakila.get_metadata())  <span class="co"># {&quot;title&quot;: &quot;Sakila Sample Database&quot;}</span></span></code></pre></div>
+<span id="cb93-7"><a href="#cb93-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="cf">await</span> my_service.sakila.get_metadata())  <span class="co"># {&quot;title&quot;: &quot;Sakila Sample Database&quot;}</span></span></code></pre></div>
                 <h2 data-number="13.2" id="rest-services"><span
                 class="header-section-number">13.2</span> REST
                 Services</h2>
@@ -3789,6 +3805,8 @@ Reference
                 class="header-section-number">13.2.4.1</span> Options
                 (authenticate)</h4>
                 <table>
+                <caption>REST Service Options for
+                Authentication</caption>
                 <colgroup>
                 <col style="width: 21%" />
                 <col style="width: 19%" />
@@ -3835,7 +3853,7 @@ Reference
                 <td style="text-align: left;">No</td>
                 <td style="text-align: left;"><code>None</code></td>
                 <td style="text-align: left;">ID of the underlying
-                authentication mechanism. <br>Specifying the vendor ID
+                authentication mechanism. Specifying the vendor ID
                 avoids an additional round-trip to the server</td>
                 </tr>
                 </tbody>
@@ -3984,6 +4002,7 @@ Reference
                 class="header-section-number">13.4.1.1</span> Options
                 (create)</h4>
                 <table>
+                <caption>REST Views Options (create)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -4059,6 +4078,7 @@ Reference
                 class="header-section-number">13.4.2.1</span> Options
                 (create_many)</h4>
                 <table>
+                <caption>REST Views Options (create_many)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -4148,8 +4168,6 @@ Reference
                 <p>To raise an exception if there are no matches, use <a
                 href="#find_first_or_throw">find_first_or_throw</a>
                 instead.</p>
-                </blockquote>
-                <blockquote>
                 <p>To find multiple REST documents, see <a
                 href="#find_many">find_many</a>.</p>
                 </blockquote>
@@ -4157,6 +4175,7 @@ Reference
                 class="header-section-number">13.4.3.1</span> Options
                 (find_first)</h4>
                 <table>
+                <caption>REST Views Options (find_first)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -4417,8 +4436,6 @@ Reference
                 <p>To not raise an exception and get <code>None</code>
                 if there are no matches, use <a
                 href="#find_first">find_first</a> instead.</p>
-                </blockquote>
-                <blockquote>
                 <p>To find multiple REST documents, see <a
                 href="#find_many">find_many</a>.</p>
                 </blockquote>
@@ -4482,6 +4499,7 @@ Reference
                 class="header-section-number">13.4.5.1</span> Options
                 (find_unique)</h4>
                 <table>
+                <caption>REST Views Options (find_unique)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -4619,6 +4637,7 @@ Reference
                 class="header-section-number">13.4.7.1</span> Options
                 (find_many)</h4>
                 <table>
+                <caption>REST Views Options (find_many)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -4758,6 +4777,7 @@ Reference
                 class="header-section-number">13.4.8.1</span> Options
                 (find_all)</h4>
                 <table>
+                <caption>REST Views Options (find_all)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -4883,6 +4903,7 @@ Reference
                 class="header-section-number">13.4.9.1</span> Options
                 (delete)</h4>
                 <table>
+                <caption>REST Views Options (delete)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -4948,6 +4969,7 @@ Reference
                 class="header-section-number">13.4.10.1</span> Options
                 (delete_many)</h4>
                 <table>
+                <caption>REST Views Options (delete_many)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -5014,6 +5036,7 @@ Reference
                 class="header-section-number">13.4.11.1</span> Options
                 (update)</h4>
                 <table>
+                <caption>REST Views Options (update)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -5088,6 +5111,7 @@ Reference
                 class="header-section-number">13.4.12.1</span> Options
                 (update_many)</h4>
                 <table>
+                <caption>REST Views Options (update_many)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />

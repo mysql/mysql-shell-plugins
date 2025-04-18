@@ -27,7 +27,6 @@ MySQL supports the VECTOR data type for representing a structure that can hold u
 
 Visit the [official documentation](https://dev.mysql.com/doc/refman/9.0/en/vector.html) to know more about the MySQL VECTOR type.
 
-
 ## MRS Python SDK
 
 ### Client-Side Representation
@@ -38,10 +37,11 @@ MySQL Rest Service (MRS) Python SDK utilizes the following client-side data type
 | :--------: | :-------: |
 | VECTOR | [`list`](https://docs.python.org/3/tutorial/datastructures.html#more-on-lists) of [`floats`](https://docs.python.org/3/library/functions.html#float)|
 
+: Client-Side Representation of Vector Datatype
+
 The MRS Python SDK data type shall be used when inserting or updating (upstream operations) a record that contains a field matching a column of a *vector* data type. Symmetrically, for downstream operations such as finding records having *vector* fields, such fields are specified with MRS Python SDK data types according to the above mapping.
 
 When a vector column has a `NULL` value, the Python SDK uses `None` on the client side to represent it.
-
 
 ### Out of Bounds
 
@@ -129,7 +129,6 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 ```
-
 
 #### Find
 

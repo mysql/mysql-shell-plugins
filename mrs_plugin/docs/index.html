@@ -150,7 +150,7 @@
                 <nav class="section-nav">
                     <div class="bookToc">
                         <br>
-                        <h3>MRS Developer's Guide 1.19.7+9.2.0</h3>
+                        <h3>MRS Developer's Guide 1.19.8+9.2.0</h3>
                                                 <ul>
                                                 <li><a
                                                 href="#introduction-to-the-mysql-rest-service"
@@ -551,7 +551,7 @@ Developer's Guide
                 </tr>
                 </tbody>
                 </table>
-                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -856,6 +856,8 @@ Developer's Guide
                 used when calling the <code>mysqlrouter_bootstrap</code>
                 command.</p>
                 <table>
+                <caption>MySQL Router MRS Bootstrap Account
+                Options</caption>
                 <colgroup>
                 <col style="width: 37%" />
                 <col style="width: 62%" />
@@ -887,20 +889,21 @@ Developer's Guide
                 exact location of the router config file.</p>
                 <p>The following is an example when connecting to a
                 single development server.</p>
-                <pre class="cnf"><code>[DEFAULT]
-logging_folder = /var/log/mysqlrouter
-runtime_folder = /var/run/mysqlrouter
-config_folder = /etc/mysqlrouter
-
-[logger]
-level = DEBUG
-
-[routing:mrs_rw]
-bind_address=0.0.0.0
-bind_port=6446
-destinations=10.0.1.135:3306
-routing_strategy=round-robin
-protocol=classic</code></pre>
+                <div class="sourceCode" id="cb5"><pre
+                class="sourceCode ini"><code class="sourceCode ini"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[DEFAULT]</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="dt">logging_folder </span><span class="ot">=</span><span class="st"> /var/log/mysqlrouter</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="dt">runtime_folder </span><span class="ot">=</span><span class="st"> /var/run/mysqlrouter</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="dt">config_folder </span><span class="ot">=</span><span class="st"> /etc/mysqlrouter</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="kw">[logger]</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="dt">level </span><span class="ot">=</span><span class="st"> DEBUG</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="kw">[routing:mrs_rw]</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="dt">bind_address</span><span class="ot">=</span><span class="st">0.0.0.0</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="dt">bind_port</span><span class="ot">=</span><span class="dv">6446</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="dt">destinations</span><span class="ot">=</span><span class="st">10.0.1.135:3306</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="dt">routing_strategy</span><span class="ot">=</span><span class="st">round-robin</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="dt">protocol</span><span class="ot">=</span><span class="st">classic</span></span></code></pre></div>
                 <p>To enable MRS support on the router, the
                 configuration file needs to be extended with the
                 [http_server] section and the [rest_mrs] section.</p>
@@ -912,6 +915,7 @@ protocol=classic</code></pre>
                 <p>These parameters can be used to set the MRS
                 configuration options.</p>
                 <table>
+                <caption>MySQL Router Bootstrap options</caption>
                 <colgroup>
                 <col style="width: 37%" />
                 <col style="width: 62%" />
@@ -940,23 +944,34 @@ protocol=classic</code></pre>
                 <td>The global JWT secret that must be the same for
                 every MySQL Router installation</td>
                 </tr>
+                <tr class="odd">
+                <td><code>--mrs-developer MYSQL_USER_NAME</code></td>
+                <td>Switches the MySQL Router to developer mode</td>
+                </tr>
+                <tr class="even">
+                <td><code>--mrs-developer-debug-port</code>
+                DEBUG_PORT</td>
+                <td>The port used for local debugging of MRS
+                Scripts</td>
+                </tr>
                 </tbody>
                 </table>
                 <p>The following example demonstrates connecting to a
                 single development server and serving the REST services
                 using HTTP.</p>
-                <pre class="cnf"><code>[http_server]
-port=8443
-ssl=1
-ssl_cert=/Users/myUser/.mysqlsh/plugin_data/gui_plugin/web_certs/server.crt
-ssl_key=/Users/myUser/.mysqlsh/plugin_data/gui_plugin/web_certs/server.key
-
-[mysql_rest_service]
-mysql_read_only_route=bootstrap_ro
-mysql_read_write_route=bootstrap_rw
-mysql_user=mysql_router_mrs16_250ho3u15n
-mysql_user_data_access=
-router_id=16</code></pre>
+                <div class="sourceCode" id="cb7"><pre
+                class="sourceCode ini"><code class="sourceCode ini"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[http_server]</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="dt">port</span><span class="ot">=</span><span class="dv">8443</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="dt">ssl</span><span class="ot">=</span><span class="dv">1</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="dt">ssl_cert</span><span class="ot">=</span><span class="st">/Users/myUser/.mysqlsh/plugin_data/gui_plugin/web_certs/server.crt</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="dt">ssl_key</span><span class="ot">=</span><span class="st">/Users/myUser/.mysqlsh/plugin_data/gui_plugin/web_certs/server.key</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="kw">[mysql_rest_service]</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="dt">mysql_read_only_route</span><span class="ot">=</span><span class="st">bootstrap_ro</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="dt">mysql_read_write_route</span><span class="ot">=</span><span class="st">bootstrap_rw</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="dt">mysql_user</span><span class="ot">=</span><span class="st">mysql_router_mrs16_250ho3u15n</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="dt">mysql_user_data_access</span><span class="ot">=</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="dt">router_id</span><span class="ot">=</span><span class="dv">16</span></span></code></pre></div>
                 <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -1432,7 +1447,7 @@ router_id=16</code></pre>
                 function.</p>
                 <div class="sourceCode" id="cb18"><pre
                 class="sourceCode js"><code class="sourceCode javascript"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>\<span class="op">?</span> mrs<span class="op">.</span><span class="at">add</span><span class="op">.</span><span class="at">dbObject</span></span></code></pre></div>
-                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -1684,7 +1699,7 @@ router_id=16</code></pre>
                 Notebooks.</p>
                 <div class="sourceCode" id="cb25"><pre
                 class="sourceCode ts"><code class="sourceCode typescript"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">edit</span>()</span></code></pre></div>
-                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -1974,6 +1989,7 @@ router_id=16</code></pre>
                 <p>The following table shows the mapping between CRUD
                 operations and SQL operations.</p>
                 <table>
+                <caption>CRUD Operation Mapping</caption>
                 <thead>
                 <tr class="header">
                 <th>Letter</th>
@@ -2021,7 +2037,8 @@ router_id=16</code></pre>
                 Table</figcaption>
                 </figure>
                 <p>This leads to the following result.</p>
-                <pre><code>GET /myService/sakila/city/1</code></pre>
+                <div class="sourceCode" id="cb31"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>GET /myService/sakila/city/1</span></code></pre></div>
                 <div class="sourceCode" id="cb32"><pre
                 class="sourceCode json"><code class="sourceCode json"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
@@ -2060,7 +2077,8 @@ router_id=16</code></pre>
                 Table</figcaption>
                 </figure>
                 <p>This leads to the following result.</p>
-                <pre><code>GET /myService/sakila/city/1</code></pre>
+                <div class="sourceCode" id="cb33"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>GET /myService/sakila/city/1</span></code></pre></div>
                 <div class="sourceCode" id="cb34"><pre
                 class="sourceCode json"><code class="sourceCode json"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
@@ -2097,7 +2115,8 @@ router_id=16</code></pre>
                 Table</figcaption>
                 </figure>
                 <p>This leads to the same result as the query above.</p>
-                <pre><code>GET /myService/sakila/city/1</code></pre>
+                <div class="sourceCode" id="cb35"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>GET /myService/sakila/city/1</span></code></pre></div>
                 <div class="sourceCode" id="cb36"><pre
                 class="sourceCode json"><code class="sourceCode json"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;city&quot;</span><span class="fu">:</span><span class="er"> </span><span class="st">&quot;A Corua (La Corua)&quot;</span><span class="fu">,</span></span>
@@ -2133,7 +2152,8 @@ router_id=16</code></pre>
 <span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">AS</span> `sakila`.`my_table` @UPDATE;</span></code></pre></div>
                 <p>Retrieving the specific REST document can be done as
                 follows:</p>
-                <pre><code>GET /myService/sakila/myTable/1,1</code></pre>
+                <div class="sourceCode" id="cb38"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>GET /myService/sakila/myTable/1,1</span></code></pre></div>
                 <div class="sourceCode" id="cb39"><pre
                 class="sourceCode json"><code class="sourceCode json"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id1&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
@@ -2151,12 +2171,13 @@ router_id=16</code></pre>
 <span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
                 <p>Updating a specific REST document can be done as
                 follows:</p>
-                <pre><code>PUT /myService/sakila/myTable/1,1
-{
-    &quot;id1&quot;: 1,
-    &quot;id2&quot;: 2,
-    &quot;name&quot;: &quot;bar&quot;
-}</code></pre>
+                <div class="sourceCode" id="cb40"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>PUT /myService/sakila/myTable/1,1</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>    &quot;id1&quot;: 1,</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>    &quot;id2&quot;: 2,</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>    &quot;name&quot;: &quot;bar&quot;</span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
                 <div class="sourceCode" id="cb41"><pre
                 class="sourceCode json"><code class="sourceCode json"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id1&quot;</span><span class="fu">:</span><span class="er"> </span><span class="dv">1</span><span class="fu">,</span></span>
@@ -2234,6 +2255,7 @@ router_id=16</code></pre>
                 Properties</h3>
                 <p>Each REST service has a common set of properties.</p>
                 <table>
+                <caption>REST Service Properties</caption>
                 <thead>
                 <tr class="header">
                 <th>Option</th>
@@ -2371,6 +2393,7 @@ router_id=16</code></pre>
                 Properties</h3>
                 <p>Each REST schema has a common set of properties.</p>
                 <table>
+                <caption>REST Schema Properties</caption>
                 <colgroup>
                 <col style="width: 37%" />
                 <col style="width: 62%" />
@@ -2868,7 +2891,7 @@ router_id=16</code></pre>
 <span id="cb44-31"><a href="#cb44-31" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;editor&quot;</span> <span class="kw">TO</span> <span class="ot">&quot;mike&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span>;</span>
 <span id="cb44-32"><a href="#cb44-32" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb44-33"><a href="#cb44-33" aria-hidden="true" tabindex="-1"></a># Now, these three users can login <span class="kw">with</span> <span class="kw">the</span> specified <span class="kw">password</span> via MRS authentication.</span></code></pre></div>
-                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,

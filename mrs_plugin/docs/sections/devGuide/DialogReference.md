@@ -31,14 +31,16 @@ This section discusses the individual MRS UI dialogs offered by MySQL Shell for 
 
 Each REST service has a common set of properties.
 
-| Option | Description |
-| --- | ----- |
-| MRS Service Path | The URL context root of this service |
-| Comments | Comments to describe this service |
-| Host Name | If specified, only requests for this host are served |
-| Supported Protocols | The supported protocols (HTTPS by default) |
-| Enabled | Specifies if the service is served by MySQL Router |
-| Options | Advanced options in JSON format |
+| Option | Description
+| --- | -----
+| MRS Service Path | The URL context root of this service
+| Comments | Comments to describe this service
+| Host Name | If specified, only requests for this host are served
+| Supported Protocols | The supported protocols (HTTPS by default)
+| Enabled | Specifies if the service is served by MySQL Router
+| Options | Advanced options in JSON format
+
+: REST Service Properties
 
 ### REST Service Advanced Options
 
@@ -103,16 +105,18 @@ When deploying a REST service in production, the following settings need to be c
 
 Each REST schema has a common set of properties.
 
-| Option | Description |
-| --- | ----- |
-| MRS Service Path | The path of the REST service for this REST schema |
-| Comments | Comments to describe this MRS schema |
-| REST Schema Path | The request path to access the schema (must start with /) |
-| Schema Name | The name of the corresponding database schema |
-| Items per Page | The default number of items to be returned when requesting REST objects of this schema |
-| Enabled | Whether or not the REST objects of this REST schema are exposed through the REST interface |
-| Requires Authentication | Whether or not authentication is required to access the REST objects of this REST schema |
-| Options | Additional options in JSON format |
+| Option | Description
+| --- | -----
+| MRS Service Path | The path of the REST service for this REST schema
+| Comments | Comments to describe this MRS schema
+| REST Schema Path | The request path to access the schema (must start with /)
+| Schema Name | The name of the corresponding database schema
+| Items per Page | The default number of items to be returned when requesting REST objects of this schema
+| Enabled | Whether or not the REST objects of this REST schema are exposed through the REST interface
+| Requires Authentication | Whether or not authentication is required to access the REST objects of this REST schema
+| Options | Additional options in JSON format
+
+: REST Schema Properties
 
 ## MRS Object Dialog
 
