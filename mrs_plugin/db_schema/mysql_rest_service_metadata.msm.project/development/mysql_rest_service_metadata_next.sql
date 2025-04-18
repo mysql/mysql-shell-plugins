@@ -28,13 +28,13 @@
 -- -----------------------------------------------------------------------------
 -- This script contains the current development version of the database schema
 -- `mysql_rest_service_metadata`
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 -- #############################################################################
 -- MSM Section 010: Server Variable Settings
 -- -----------------------------------------------------------------------------
 -- Set server variables, remember their state to be able to restore accordingly.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
@@ -46,7 +46,7 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,'
 -- MSM Section 110: Database Schema Creation
 -- -----------------------------------------------------------------------------
 -- CREATE SCHEMA statement.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 CREATE SCHEMA IF NOT EXISTS `mysql_rest_service_metadata`
     DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
@@ -57,7 +57,7 @@ CREATE SCHEMA IF NOT EXISTS `mysql_rest_service_metadata`
 -- Create the `mysql_rest_service_metadata`.`msm_schema_version` VIEW
 -- and initialize it with the version 0, 0, 0 which indicates the ongoing
 -- creation processes of the database schema.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 CREATE OR REPLACE SQL SECURITY INVOKER
 VIEW `mysql_rest_service_metadata`.`msm_schema_version` (
@@ -69,7 +69,7 @@ SELECT 0, 0, 0;
 -- -----------------------------------------------------------------------------
 -- Definitions of optional helper PROCEDUREs and FUNCTIONs that are called
 -- during the creations of the database schema.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 DELIMITER %%
 
@@ -87,9 +87,9 @@ DELIMITER ;
 -- ROLEs and GRANTs are defined in the MSM Section 170: Authorization.
 -- -----------------------------------------------------------------------------
 -- CREATE TABLE statements and standard INSERTs.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
-SOURCE './sections/140-10_tables.sql'[1072:-115]; -- Ignore header and footer
+SOURCE './sections/140-10_tables.sql'[1071:-115]; -- Ignore header and footer
 
 SOURCE './sections/140-20_table_additions.sql'[53:]; -- Remove copyright
 
@@ -107,7 +107,7 @@ SOURCE './sections/140-40_default_static_content.sql'[53:]; -- Remove copyright
 -- -----------------------------------------------------------------------------
 -- All other schema object definitions (VIEWS, PROCEDUREs, FUNCTIONs, TRIGGERs,
 -- EVENTS, ...).
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 SOURCE './sections/150-10_views.sql'[53:]; -- Remove copyright
 
@@ -119,11 +119,27 @@ SOURCE './sections/150-40_audit_log_triggers.sql'[53:]; -- Remove copyright
 
 SOURCE './sections/150-50_events.sql'[53:]; -- Remove copyright
 
+DELIMITER %%
+
+-- -----------------------------------------------------------------------------
+-- CREATE PROCEDURE `mysql_rest_service_metadata`.`restore_roles`
+-- -----------------------------------------------------------------------------
+
+DROP PROCEDURE IF EXISTS `mysql_rest_service_metadata`.`restore_roles`%%
+CREATE PROCEDURE `mysql_rest_service_metadata`.`restore_roles`()
+SQL SECURITY DEFINER
+COMMENT 'This procedure restores all the ROLEs required by the MySQL REST Service.'
+BEGIN
+    SOURCE './sections/170_roles.sql'[53:]; -- Remove copyright
+END%%
+
+DELIMITER ;
+
 -- #############################################################################
 -- MSM Section 170: Authorization
 -- -----------------------------------------------------------------------------
 -- This section is used to define the ROLEs and GRANT statements.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 SOURCE './sections/170_roles.sql'[53:]; -- Remove copyright
 
@@ -131,7 +147,7 @@ SOURCE './sections/170_roles.sql'[53:]; -- Remove copyright
 -- MSM Section 180: REST Service Definition
 -- -----------------------------------------------------------------------------
 -- This optional section is used to create MySQL REST Service endpoints
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 -- Create a REST service, schema and endpoints
 
@@ -141,7 +157,7 @@ SOURCE './sections/170_roles.sql'[53:]; -- Remove copyright
 -- Removal of optional helper PROCEDUREs and FUNCTIONs that are called during
 -- the creation of the database schema. Note that DROP IF EXISTS needs to be
 -- used.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 -- Drop optional helper PROCEDUREs and FUNCTIONs here
 
@@ -149,18 +165,18 @@ SOURCE './sections/170_roles.sql'[53:]; -- Remove copyright
 -- MSM Section 910: Database Schema Version
 -- -----------------------------------------------------------------------------
 -- Setting the correct database schema version.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 CREATE OR REPLACE SQL SECURITY INVOKER
 VIEW `mysql_rest_service_metadata`.`msm_schema_version` (
     `major`,`minor`,`patch`) AS
-SELECT 4, 0, 4;
+SELECT 4, 1, 0;
 
 -- #############################################################################
 -- MSM Section 920: Server Variable Restoration
 -- -----------------------------------------------------------------------------
 -- Restore the modified server variables to their original state.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

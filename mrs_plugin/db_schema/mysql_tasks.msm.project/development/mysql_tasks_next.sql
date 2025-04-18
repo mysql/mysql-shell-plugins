@@ -28,13 +28,13 @@
 -- -----------------------------------------------------------------------------
 -- This script contains the current development version of the database schema
 -- `mysql_tasks`
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 -- #############################################################################
 -- MSM Section 010: Server Variable Settings
 -- -----------------------------------------------------------------------------
 -- Set server variables, remember their state to be able to restore accordingly.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
@@ -46,7 +46,7 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,'
 -- MSM Section 110: Database Schema Creation
 -- -----------------------------------------------------------------------------
 -- CREATE SCHEMA statement.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 CREATE SCHEMA IF NOT EXISTS `mysql_tasks`
   DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
@@ -57,7 +57,7 @@ CREATE SCHEMA IF NOT EXISTS `mysql_tasks`
 -- Create the `${schema_name}`.`msm_schema_version` VIEW and initialize it with
 -- the version 0, 0, 0 which indicates the ongoing creation processes of the
 -- `${schema_name}` database schema.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 CREATE OR REPLACE SQL SECURITY INVOKER
 VIEW `mysql_tasks`.`msm_schema_version` (
@@ -74,7 +74,7 @@ SELECT 0, 0, 0;
 -- ROLEs and GRANTs are defined in the MSM Section 170: Authorization.
 -- -----------------------------------------------------------------------------
 -- CREATE TABLE statements and standard INSERTs.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 -- -----------------------------------------------------
 -- Table `mysql_tasks`.`config`
@@ -181,7 +181,7 @@ CREATE TABLE IF NOT EXISTS `mysql_tasks`.`task_log_impl` (
 -- -----------------------------------------------------------------------------
 -- All other schema object definitions (VIEWS, PROCEDUREs, FUNCTIONs, TRIGGERs,
 -- EVENTS, ...).
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 DELIMITER %%
 
@@ -2346,7 +2346,7 @@ DELIMITER ;
 -- MSM Section 170: Authorization
 -- -----------------------------------------------------------------------------
 -- This section is used to define the ROLEs and GRANT statements.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 -- Create ROLEs and assign privileges using GRANT statements
 
@@ -2427,7 +2427,7 @@ GRANT SELECT ON `performance_schema`.`events_statements_current` TO
 -- MSM Section 910: Database Schema Version
 -- -----------------------------------------------------------------------------
 -- Setting the correct database schema version.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 CREATE OR REPLACE SQL SECURITY INVOKER
 VIEW `mysql_tasks`.`msm_schema_version` (
@@ -2438,7 +2438,7 @@ SELECT 3, 0, 0;
 -- MSM Section 920: Server Variable Restoration
 -- -----------------------------------------------------------------------------
 -- Restore the modified server variables to their original state.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

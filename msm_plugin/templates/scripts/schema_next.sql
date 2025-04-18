@@ -5,13 +5,13 @@ ${license}
 -- -----------------------------------------------------------------------------
 -- This script contains the current development version of the database schema
 -- `${schema_name}`
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 -- #############################################################################
 -- MSM Section 010: Server Variable Settings
 -- -----------------------------------------------------------------------------
 -- Set server variables, remember their state to be able to restore accordingly.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
@@ -24,7 +24,7 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,'
 -- MSM Section 110: Database Schema Creation
 -- -----------------------------------------------------------------------------
 -- CREATE SCHEMA statement.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 CREATE SCHEMA IF NOT EXISTS `${schema_name}`
     DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
@@ -36,7 +36,7 @@ CREATE SCHEMA IF NOT EXISTS `${schema_name}`
 -- Create the `${schema_name}`.`msm_schema_version` VIEW
 -- and initialize it with the version 0, 0, 0 which indicates the ongoing
 -- creation processes of the database schema.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 CREATE OR REPLACE SQL SECURITY INVOKER
 VIEW `${schema_name}`.`msm_schema_version` (
@@ -50,7 +50,7 @@ SELECT 0, 0, 0;
 -- Definitions of optional helper PROCEDUREs and FUNCTIONs that are called
 -- during the creation of the database schema. The names of all helper routines
 -- need to start with `msm_`.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 DELIMITER %%
 
@@ -69,7 +69,7 @@ DELIMITER ;
 -- ROLEs and GRANTs are defined in the MSM Section 170: Authorization.
 -- -----------------------------------------------------------------------------
 -- CREATE TABLE statements and standard INSERTs.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 /*
 -- ToDo: Add schema TABLEs create statements
@@ -100,7 +100,7 @@ INSERT INTO `${schema_name}`.`my_table`(`name`, `options`)
 -- -----------------------------------------------------------------------------
 -- All other schema object definitions (VIEWS, PROCEDUREs, FUNCTIONs, TRIGGERs,
 -- EVENTS, ...).
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 DELIMITER %%
 
@@ -134,7 +134,7 @@ DELIMITER ;
 -- MSM Section 170: Authorization
 -- -----------------------------------------------------------------------------
 -- This section is used to define the ROLEs and GRANT statements.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 -- Create ROLEs and assign privileges using GRANT statements
 
@@ -143,7 +143,7 @@ DELIMITER ;
 -- MSM Section 180: REST Service Definition
 -- -----------------------------------------------------------------------------
 -- This optional section is used to create MySQL REST Service endpoints
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 -- Create a REST service, schema and endpoints
 
@@ -154,7 +154,7 @@ DELIMITER ;
 -- Removal of optional helper PROCEDUREs and FUNCTIONs that are called during
 -- the creation of the database schema. Note that DROP IF EXISTS needs to be
 -- used.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 -- Drop optional helper PROCEDUREs and FUNCTIONs here
 
@@ -163,7 +163,7 @@ DELIMITER ;
 -- MSM Section 910: Database Schema Version
 -- -----------------------------------------------------------------------------
 -- Setting the correct database schema version.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 CREATE OR REPLACE SQL SECURITY INVOKER
 VIEW `${schema_name}`.`msm_schema_version` (
@@ -175,7 +175,7 @@ SELECT ${version_comma_str};
 -- MSM Section 920: Server Variable Restoration
 -- -----------------------------------------------------------------------------
 -- Restore the modified server variables to their original state.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
