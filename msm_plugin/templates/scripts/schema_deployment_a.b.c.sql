@@ -5,14 +5,14 @@ ${license}
 -- -----------------------------------------------------------------------------
 -- This script either creates or updates the database schema
 -- `${schema_name}` to version ${version_target}
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 
 -- #############################################################################
 -- MSM Section 010: Server Variable Settings
 -- -----------------------------------------------------------------------------
 -- Set server variables, remember their state to be able to restore accordingly.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
@@ -25,7 +25,7 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,'
 -- MSM Section 110: Database Schema Creation
 -- -----------------------------------------------------------------------------
 -- CREATE SCHEMA statement
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 CREATE SCHEMA IF NOT EXISTS `${schema_name}`
     DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
@@ -40,7 +40,7 @@ CREATE SCHEMA IF NOT EXISTS `${schema_name}`
 -- name and type already exists. Use explicit DROP IF EXISTS statements or
 -- CREATE OR REPLACE statements when creating the helper objects. The names of
 -- all helper routines need to start with `msm_`.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 ${section_130_creation_of_helpers}
 
@@ -55,7 +55,7 @@ ${section_230_creation_of_update_helpers}
 -- Create the stored procedures used for schema TABLE installation and updates.
 -- These procedures will only be used during the installation and update
 -- process and will be dropped afterwards.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 DELIMITER %%
 
@@ -226,7 +226,7 @@ DROP PROCEDURE `${schema_name}`.`msm_create_or_update`;
 -- -----------------------------------------------------------------------------
 -- All other schema object definitions (VIEWS, PROCEDUREs, FUNCTIONs, TRIGGERs,
 -- EVENTS, ...)
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 ${section_150_idempotent_schema_objects}
 
@@ -235,7 +235,7 @@ ${section_150_idempotent_schema_objects}
 -- MSM Section 370: Authorization
 -- -----------------------------------------------------------------------------
 -- This section is used to define or update ROLEs and GRANTs.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 DELIMITER %%
 
@@ -302,7 +302,7 @@ DELIMITER ;
 CALL `${schema_name}`.`msm_auth`();
 
 -- -----------------------------------------------------------------------------
--- Drop the stored procedures used for schema TABLE installation and updates.
+-- Drop the stored procedures used for authorization setup and updates.
 -- -----------------------------------------------------------------------------
 
 -- ### MSM-LOOP-START:UPDATABLE-VERSIONS - Update Non-Idempotent
@@ -318,7 +318,7 @@ DROP PROCEDURE `${schema_name}`.`msm_auth`;
 -- -----------------------------------------------------------------------------
 -- Removal of optional helper PROCEDUREs and FUNCTIONs that are called during
 -- the creation and updates of the database schema
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 -- ### MSM-LOOP-START:UPDATABLE-VERSIONS - Removal of Helpers
 ${section_290_removal_of_helpers}
@@ -331,7 +331,7 @@ ${section_190_removal_of_helpers}
 -- MSM Section 910: Database Schema Version
 -- -----------------------------------------------------------------------------
 -- Setting the correct database schema version
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 CREATE OR REPLACE SQL SECURITY INVOKER
 VIEW `${schema_name}`.`msm_schema_version` (
@@ -343,7 +343,7 @@ SELECT ${version_comma_str};
 -- MSM Section 920: Server Variable Restoration
 -- -----------------------------------------------------------------------------
 -- Restore the modified server variables to their original state.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

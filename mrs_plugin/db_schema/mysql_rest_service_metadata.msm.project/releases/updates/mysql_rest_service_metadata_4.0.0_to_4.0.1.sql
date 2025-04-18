@@ -28,14 +28,14 @@
 -- -----------------------------------------------------------------------------
 -- This script updates the database schema `mysql_rest_service_metadata`
 -- from version 4.0.0 to 4.0.1
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 
 -- #############################################################################
 -- MSM Section 010: Server Variable Settings
 -- -----------------------------------------------------------------------------
 -- Set server variables, remember their state to be able to restore accordingly.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
@@ -50,7 +50,7 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,'
 -- Replace the `mysql_rest_service_metadata`.`msm_schema_version` VIEW
 -- and initialize it with the version 0, 0, 0 which indicates the ongoing
 -- update processes of the database schema.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 CREATE OR REPLACE SQL SECURITY INVOKER
 VIEW `mysql_rest_service_metadata`.`msm_schema_version` (
@@ -67,7 +67,7 @@ SELECT 0, 0, 0;
 -- already exists. Use explicit DROP IF EXISTS statements or CREATE OR REPLACE
 -- statements when creating the helper objects. The names of all helper
 -- routines need to start with `msm_`.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 DELIMITER %%
 
@@ -90,7 +90,7 @@ DELIMITER ;
 -- no changes required, this section can be skipped.
 -- -----------------------------------------------------------------------------
 -- TABLE changes and all DROP statements
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 -- -----------------------------------------------------------------------------
 -- ALTER TABLE `mysql_rest_service_metadata`.`my_table`
@@ -113,7 +113,7 @@ ALTER TABLE `mysql_rest_service_metadata`.`router`
 -- -----------------------------------------------------------------------------
 -- All other schema object definitions (VIEWs, PROCEDUREs, FUNCTIONs, TRIGGERs,
 -- EVENTs, ...) that are new or have changed
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 DELIMITER %%
 
@@ -447,7 +447,7 @@ DELIMITER ;
 -- This section is used to define changes for ROLEs and GRANTs in respect to
 -- the previous version. If there are no changes required, this section can
 -- be skipped.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 -- Change ROLEs and perform the required GRANT/REVOKE statements.
 
@@ -458,7 +458,7 @@ DELIMITER ;
 -- Removal of optional helper PROCEDUREs and FUNCTIONs that are called during
 -- the update of the database schema. Note that DROP IF EXISTS needs to be
 -- used.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 -- Drop optional helper PROCEDUREs and FUNCTIONs here.
 
@@ -467,7 +467,7 @@ DELIMITER ;
 -- MSM Section 910: Database Schema Version Definition
 -- -----------------------------------------------------------------------------
 -- Setting the correct database schema version.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 CREATE OR REPLACE SQL SECURITY INVOKER
 VIEW `mysql_rest_service_metadata`.`msm_schema_version` (
@@ -479,7 +479,7 @@ SELECT 4, 0, 1;
 -- MSM Section 920: Server Variable Restoration
 -- -----------------------------------------------------------------------------
 -- Restore the modified server variables to their original state.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
