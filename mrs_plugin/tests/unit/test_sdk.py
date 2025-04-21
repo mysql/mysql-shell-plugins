@@ -292,7 +292,7 @@ import {
 
 
 def test_generate_function_interface():
-    class_name = "MyServiceSakilaSumFuncResult"
+    class_name = "MyServiceSakilaSumFunc"
     db_obj = {"object_type": "FUNCTION"}
     obj = {
         "id": b"\xbd\x07oC\x91\xaaI\xc4\xdf\xf2\xb7eJ56\xa0",
@@ -369,7 +369,7 @@ def test_generate_function_interface():
         db_obj, obj, fields, class_name, "Python", db_object_crud_ops, obj_endpoint
     )
 
-    want = """class IMyServiceSakilaSumFuncResult(TypedDict, total=False):
+    want = """class IMyServiceSakilaSumFuncParams(TypedDict, total=False):
     b: int
     a: int
     """
@@ -959,24 +959,40 @@ def test_object_is_routine():
     )
 
 
-def test_apply_language_convention():
-    value = apply_language_convention(value="foo", primitive="class")
+def test_generate_identifier():
+    value = generate_identifier(value="foo", primitive="class", existing_identifiers=[])
     assert value == "Foo"
 
-    value = apply_language_convention(value="fooBar", primitive="class")
+    value = generate_identifier(value="fooBar", primitive="class", existing_identifiers=[])
     assert value == "FooBar"
 
-    value = apply_language_convention(value="foo_bar", primitive="class")
+    value = generate_identifier(value="foo_bar", primitive="class", existing_identifiers=[])
     assert value == "FooBar"
 
-    value = apply_language_convention(value="foo")
+    value = generate_identifier(value="foo", existing_identifiers=[])
     assert value == "foo"
 
-    value = apply_language_convention(value="Foo")
+    value = generate_identifier(value="Foo", existing_identifiers=[])
     assert value == "Foo"
 
-    value = apply_language_convention(value="fooBar", sdk_language="Python")
+    value = generate_identifier(value="fooBar", sdk_language="Python", existing_identifiers=[])
     assert value == "foo_bar"
 
-    value = apply_language_convention(value="FooBar", sdk_language="Python")
+    value = generate_identifier(value="FooBar", sdk_language="Python", existing_identifiers=[])
     assert value == "foo_bar"
+
+    value = generate_identifier(value="/1", existing_identifiers=[])
+    assert value == "_1"
+
+    value = generate_identifier(value="/_1", existing_identifiers=[])
+    assert value == "_1"
+
+    existing_identifiers = ["_1"]
+    value = generate_identifier(value="/_1", existing_identifiers=existing_identifiers)
+    assert value == "_11"
+    assert existing_identifiers == ["_1", "_1"]
+
+    existing_identifiers = ["_1", "_1"]
+    value = generate_identifier(value="/_1", existing_identifiers=existing_identifiers)
+    assert value == "_12"
+    assert existing_identifiers == ["_1", "_1", "_1"]

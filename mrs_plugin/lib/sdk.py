@@ -233,8 +233,8 @@ def substitute_imports_in_template(
 
 
 def substitute_service_in_template(service, template, sdk_language, session, service_url):
-    service_level_constants = ""
-    service_level_type_definitions = ""
+    # Currently, we only generate the SDK for a single service, but this might change in the future.
+    existing_identifiers = []
 
     code = substitute_schemas_in_template(
         service=service,
@@ -272,14 +272,15 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
     service_id = service.get("id")
 
     mapping = {
-        "service_level_constants": service_level_constants,
-        "service_level_type_definitions": service_level_type_definitions,
-        "service_name": apply_language_convention(
+        "service_name": generate_identifier(
             value=service.get("url_context_root"),
             sdk_language=sdk_language,
+            existing_identifiers=existing_identifiers,
         ),
-        "service_class_name": apply_language_convention(
-            value=service.get("url_context_root"), primitive="class"
+        "service_class_name": generate_identifier(
+            value=service.get("url_context_root"),
+            primitive="class",
+            existing_identifiers=existing_identifiers,
         ),
         "service_url": service_url,
         "service_auth_path": service.get("auth_path"),
@@ -291,10 +292,16 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
     return {"template": template, "enabled_crud_ops": code.get("enabled_crud_ops"), "required_datatypes": code.get("required_datatypes"), "requires_auth": requires_auth}
 
 
-def substitute_schemas_in_template(service, template, sdk_language, session, service_url):
+def substitute_schemas_in_template(
+    service, template, sdk_language, session, service_url
+):
+
     delimiter = language_comment_delimiter(sdk_language)
     schema_loops = re.finditer(
-        f"^[^\\S\r\n]*?{delimiter} --- schemaLoopStart\n\\s*(^[\\S\\s]*?)^\\s*?{delimiter} --- schemaLoopEnd\n", template, flags=re.DOTALL | re.MULTILINE)
+        f"^[^\\S\r\n]*?{delimiter} --- schemaLoopStart\n\\s*(^[\\S\\s]*?)^\\s*?{delimiter} --- schemaLoopEnd\n",
+        template,
+        flags=re.DOTALL | re.MULTILINE,
+    )
 
     schemas = lib.schemas.query_schemas(session, service_id=service.get("id"))
 
@@ -303,6 +310,9 @@ def substitute_schemas_in_template(service, template, sdk_language, session, ser
     requires_auth = False
 
     for loop in schema_loops:
+        # for each schema loop, we should restart tracking the identifiers
+        existing_identifiers = []
+
         schema_template = loop.group(1)
 
         filled_temp = ""
@@ -318,7 +328,12 @@ def substitute_schemas_in_template(service, template, sdk_language, session, ser
             if f"{delimiter} --- objectLoopStart" in schema_template:
                 # Fill inner Object loops
                 code = substitute_objects_in_template(
-                    service=service, schema=schema, template=schema_template, sdk_language=sdk_language, session=session, service_url=service_url
+                    service=service,
+                    schema=schema,
+                    template=schema_template,
+                    sdk_language=sdk_language,
+                    session=session,
+                    service_url=service_url,
                 )
 
                 schema_template_with_obj_filled = code.get("template")
@@ -331,24 +346,32 @@ def substitute_schemas_in_template(service, template, sdk_language, session, ser
                 schema_template_with_obj_filled = schema_template
 
             mapping = {
-                "schema_name": apply_language_convention(
-                    value=schema.get("name"),
+                "schema_name": generate_identifier(
+                    value=schema.get("request_path"),
                     sdk_language=sdk_language,
+                    existing_identifiers=existing_identifiers,
                 ),
-                "schema_class_name": apply_language_convention(
+                "schema_class_name": generate_identifier(
                     value=f"{service.get("url_context_root")}{schema.get("request_path")}",
                     primitive="class",
+                    existing_identifiers=existing_identifiers,
                 ),
                 "schema_request_path": schema.get("request_path"),
                 "schema_id": lib.core.convert_id_to_string(schema.get("id")),
             }
 
-            filled_temp += Template(
-                schema_template_with_obj_filled).substitute(**mapping)
+            filled_temp += Template(schema_template_with_obj_filled).substitute(
+                **mapping
+            )
 
         template = template.replace(loop.group(), filled_temp)
 
-    return {"template": template, "enabled_crud_ops": enabled_crud_ops, "required_datatypes": required_datatypes, "requires_auth": requires_auth}
+    return {
+        "template": template,
+        "enabled_crud_ops": enabled_crud_ops,
+        "required_datatypes": required_datatypes,
+        "requires_auth": requires_auth,
+    }
 
 
 def get_mrs_object_sdk_language_options(sdk_options, sdk_language):
@@ -370,18 +393,30 @@ def language_comment_delimiter(sdk_language):
         return "#"
 
 
-def apply_language_convention(
+def generate_identifier(
     value: str,
     primitive: Literal["variable", "class"] = "variable",
     sdk_language: Literal["TypeScript", "Python"] = "TypeScript",
+    # mutable objects for default values are re-used on subsequent function calls, let's leverage that
+    existing_identifiers: list[str] = [],
 ) -> str:
     if primitive == "class":
-        return lib.core.convert_path_to_pascal_case(value)
-    if sdk_language == "TypeScript":
-        return lib.core.convert_path_to_camel_case(value)
-    if sdk_language == "Python":
-        return lib.core.convert_to_snake_case(value)
-    return value
+        identifier = f"{lib.core.convert_path_to_pascal_case(value)}"
+    elif sdk_language == "TypeScript":
+        identifier = f"{lib.core.convert_path_to_camel_case(value)}"
+    elif sdk_language == "Python":
+        identifier = f"{lib.core.convert_to_snake_case(lib.core.convert_path_to_camel_case(value))}"
+    else:
+        identifier = value
+    identifier = f"_{identifier}" if identifier[0].isdigit() else identifier
+    total_duplicates = existing_identifiers.count(identifier)
+    # we want to track the identifier with a potential prefix, but without the suffix
+    existing_identifiers.append(identifier)
+    # the total number of duplicates determines the suffix
+    identifier = (
+        identifier if total_duplicates == 0 else f"{identifier}{total_duplicates}"
+    )
+    return identifier
 
 
 def substitute_objects_in_template(
@@ -395,11 +430,6 @@ def substitute_objects_in_template(
     )
 
     db_objs = lib.db_objects.query_db_objects(session, schema_id=schema.get("id"))
-
-    schema_class_name = apply_language_convention(
-        value=f"{service.get("url_context_root")}{schema.get("request_path")}",
-        primitive="class",
-    )
 
     crud_ops = [
         "Create",
@@ -419,19 +449,24 @@ def substitute_objects_in_template(
     requires_auth = False
 
     for loop in object_loops:
+        # for each object loop, we need to restart tracking the identifiers
+        existing_identifiers = []
+
         filled_temp = ""
         for db_obj in db_objs:
-            name = apply_language_convention(
-                value=db_obj.get("request_path"), sdk_language=sdk_language
+            name = generate_identifier(
+                value=db_obj.get("request_path"),
+                sdk_language=sdk_language,
+                existing_identifiers=existing_identifiers,
             )
-            default_class_name = apply_language_convention(
-                value=f"{schema_class_name}{db_obj.get("request_path")}",
+            schema_class_name = generate_identifier(
+                value=f"{service.get("url_context_root")}{schema.get("request_path")}{db_obj.get("request_path")}",
                 primitive="class",
+                existing_identifiers=existing_identifiers,
             )
 
             obj_interfaces = ""
-            obj_param_interface = "I" + default_class_name + "Params"
-            obj_meta_interface = "I" + default_class_name + "ResultSet"
+            obj_meta_interface = "I" + schema_class_name + "ResultSet"
             getters_setters = ""
             obj_pk_list = []
             obj_quoted_pk_list = []
@@ -439,7 +474,6 @@ def substitute_objects_in_template(
             obj_string_args_where_pk_list = []
             obj_unique_list = []
             obj_meta_interfaces = []
-            class_name = db_obj.get("name")
             db_object_crud_ops = ""
 
             # Get objects
@@ -502,7 +536,7 @@ def substitute_objects_in_template(
 
                 # Either take the custom interface_name or the default class_name
                 class_name = sdk_lang_options.get(
-                    "class_name", obj.get("name"))
+                    "class_name", schema_class_name)
 
                 # For database objects other than PROCEDUREs and FUNCTIONS, if there are unique fields,
                 # the corresponding SDK commands should be enabled.
@@ -545,8 +579,8 @@ def substitute_objects_in_template(
                     obj_interfaces += obj_interfaces_def
 
                 if obj.get("kind") == "PARAMETERS" and object_is_routine(db_obj):
-                    obj_param_interface = obj.get("name")
-                elif obj.get("kind") != "PARAMETERS" and object_is_routine(db_obj):
+                    obj_param_interface = f"{class_name}Params"
+                if obj.get("kind") != "PARAMETERS" and object_is_routine(db_obj):
                     obj_meta_interfaces.append(class_name)
 
             # If the db object is a function, get the return datatype
@@ -600,11 +634,9 @@ def substitute_objects_in_template(
             # Define the mappings
             mapping = {
                 "obj_id": lib.core.convert_id_to_string(db_obj.get("id")),
-                "obj_name": apply_language_convention(
-                    value=db_obj.get("name"), sdk_language=sdk_language
-                ),
+                "obj_name": name,
                 "obj_class_name": class_name,
-                "obj_param_interface": obj_param_interface,
+                "obj_param_interface": obj_param_interface, # None if not FUNCTION/PROCEDURE
                 "obj_meta_interface": obj_meta_interface,
                 "obj_request_path": db_obj.get("request_path"),
                 "schema_class_name": schema_class_name,
@@ -792,7 +824,7 @@ def get_interface_datatype(
             return client_datatype
 
         return maybe_null(client_datatype, sdk_language)
-    class_name_postfix = apply_language_convention(value=field.get("name"), primitive="class")
+    class_name_postfix = generate_identifier(value=field.get("name"), primitive="class", existing_identifiers=[])
     return f"I{class_name}{reference_class_name_postfix}{class_name_postfix}"
 
 
@@ -999,7 +1031,7 @@ def generate_type_declaration(
 def generate_type_declaration_field(
     name, value, sdk_language, non_mandatory=False
 ):
-    name = apply_language_convention(value=name, sdk_language=sdk_language)
+    name = generate_identifier(value=name, sdk_language=sdk_language, existing_identifiers=[])
     indent = " " * 4
 
     if sdk_language == "TypeScript":
@@ -1044,7 +1076,7 @@ def generate_data_class(
         field_profile = []
         for field_name, type_hint in [
             (
-                apply_language_convention(value=field, sdk_language=sdk_language),
+                generate_identifier(value=field, sdk_language=sdk_language, existing_identifiers=[]),
                 value[0] if isinstance(value, list) else value,
             )
             for field, value in fields.items()
@@ -1474,7 +1506,7 @@ def generate_interfaces(
         # Type definition for the set of IN/INOUT Parameters.
         obj_interfaces.append(
             generate_type_declaration(
-                name=f"{class_name}",
+                name=f"{class_name}Params",
                 fields=param_interface_fields,
                 sdk_language=sdk_language,
                 non_mandatory_fields=set(param_interface_fields),
@@ -1487,7 +1519,7 @@ def generate_interfaces(
         # Type definition for the set of OUT/INOUT Parameters.
         obj_interfaces.append(
             generate_type_declaration(
-                name=f"{class_name}Out",
+                name=f"{class_name}ParamsOut",
                 fields=out_params_interface_fields,
                 sdk_language=sdk_language,
                 non_mandatory_fields=set(out_params_interface_fields),

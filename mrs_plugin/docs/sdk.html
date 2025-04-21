@@ -520,6 +520,65 @@ Reference
                 <p>To start using the Client API import the
                 <code>&lt;RestServiceName&gt;.ts</code> file in your
                 project.</p>
+                <h3 data-number="1.1.3" id="important-notes"><span
+                class="header-section-number">1.1.3</span> Important
+                Notes</h3>
+                <p>The identifiers used to name each corresponding REST
+                resource (services, schemas and/or objects) in the SDK
+                are based on their corresponding request path
+                segment.</p>
+                <p>These are generated using the most common convention
+                for each language - TypeScript and Python - which means
+                that the identifier generated for a request path such as
+                <code>/myRequestPath</code> would be equivalent to the
+                one generated for <code>/my_request_path</code>. To
+                avoid a naming conflict in this case, the code generator
+                keeps track of potential conflicts and appends a suffix
+                to duplicate identifiers which corresponds to an
+                increasing number based on the current total of
+                duplicates. Following the sorting rules by omission in
+                MySQL, under these circumstances, the snake_case version
+                takes precedence over the camelCase version.</p>
+                <table>
+                <colgroup>
+                <col style="width: 20%" />
+                <col style="width: 18%" />
+                <col style="width: 18%" />
+                <col style="width: 20%" />
+                <col style="width: 20%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Request Path</th>
+                <th>TypeScript Class</th>
+                <th>Python Class</th>
+                <th>TypeScript Property</th>
+                <th>Python Property</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td><code>/my_request_path</code></td>
+                <td><code>MyRequestPath</code></td>
+                <td><code>MyRequestPath</code></td>
+                <td><code>myRequestPath</code></td>
+                <td><code>my_request_path</code></td>
+                </tr>
+                <tr class="even">
+                <td><code>/myRequestPath</code></td>
+                <td><code>MyRequestPath1</code></td>
+                <td><code>MyRequestPath1</code></td>
+                <td><code>myRequestPath1</code></td>
+                <td><code>my_request_path1</code></td>
+                </tr>
+                </tbody>
+                </table>
+                <p>Additionally, request paths with a leading numeric
+                character are also perfectly valid, but without special
+                handling, the resulting identifiers would lead to syntax
+                errors in both languages. In this case, following the
+                common convention, the generated identifier contains an
+                extra leading <code>_</code>.</p>
                 <!-- Copyright (c) 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -591,7 +650,7 @@ Reference
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService(base_url<span class="op">=</span><span class="st">&quot;https://localhost:8443/myService&quot;</span>)</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># or just</span></span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>my_service <span class="op">=</span> MyService(<span class="st">&quot;https://localhost:8443/myService&quot;</span>)</span></code></pre></div>
-                <!-- Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -891,7 +950,7 @@ Reference
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(report<span class="op">.</span><span class="at">result</span>)<span class="op">;</span> <span class="co">// true</span></span>
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -1048,7 +1107,7 @@ Reference
                 class="sourceCode py"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>my_service.my_db.myFunc() <span class="co"># None</span></span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>my_service.my_db.myFunc(x<span class="op">=</span><span class="dv">3</span>) <span class="co"># 3</span></span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>my_service.my_db.myFunc(x<span class="op">=</span><span class="dv">3</span>, y<span class="op">=</span><span class="dv">2</span>) <span class="co"># 5</span></span></code></pre></div>
-                <!-- Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
@@ -1129,7 +1188,7 @@ Reference
                 running on top of a MySQL instance cluster where the
                 GTID infrastructure is specifically configured and
                 enabled, otherwise the option will be ignored.</p>
-                <!-- Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,
