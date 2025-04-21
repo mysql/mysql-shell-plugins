@@ -54,3 +54,16 @@ __TypeScript__
 - `config.json` - A configuration file used for the SDK generation
 
 To start using the Client API import the `<RestServiceName>.ts` file in your project.
+
+### Important Notes
+
+The identifiers used to name each corresponding REST resource (services, schemas and/or objects) in the SDK are based on their corresponding request path segment.
+
+These are generated using the most common convention for each language - TypeScript and Python - which means that the identifier generated for a request path such as `/myRequestPath` would be equivalent to the one generated for `/my_request_path`. To avoid a naming conflict in this case, the code generator keeps track of potential conflicts and appends a suffix to duplicate identifiers which corresponds to an increasing number based on the current total of duplicates. Following the sorting rules by omission in MySQL, under these circumstances, the snake_case version takes precedence over the camelCase version.
+
+| Request Path        | TypeScript Class  | Python Class      | TypeScript Property | Python Property     |
+|---------------------|-------------------|-------------------|---------------------|---------------------|
+| `/my_request_path`  | `MyRequestPath`   | `MyRequestPath`   | `myRequestPath`     | `my_request_path`   |
+| `/myRequestPath`    | `MyRequestPath1`  | `MyRequestPath1`  | `myRequestPath1`    | `my_request_path1`  |
+
+Additionally, request paths with a leading numeric character are also perfectly valid, but without special handling, the resulting identifiers would lead to syntax errors in both languages. In this case, following the common convention, the generated identifier contains an extra leading `_`.

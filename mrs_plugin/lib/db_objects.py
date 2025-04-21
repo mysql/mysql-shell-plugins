@@ -232,7 +232,7 @@ def query_db_objects(session, db_object_id=None, schema_id=None, request_path=No
         params.append("1" if include_enable_state else "0")
 
     sql += core._generate_where(wheres)
-    sql += " GROUP BY o.id"
+    sql += " GROUP BY o.id ORDER BY o.request_path"
 
     return core.MrsDbExec(sql, params).exec(session).items
 
