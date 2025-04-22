@@ -10,7 +10,7 @@
 
 - BUG#37755512 Syntax error on the MRS SDK generated for a service where the path has a numeric prefix
 - BUG#37766420 Syntax error in MRS SDK files generated when various REST schemas reference the same database
--
+- Account for undefined return type in Async Task Routine "call" command
 
 ## Changes in 1.19.7+9.2.0
 
