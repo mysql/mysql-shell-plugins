@@ -192,7 +192,7 @@ class ${obj_class_name}Object extends MrsBaseObject {
         return new MrsTask(this.schema, this.requestPath, response.taskId);
     }
 
-    async call(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskExecutionOptions<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>): Promise<IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>> {
+    async call(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskExecutionOptions<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>): Promise<IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}> | undefined> {
         const task = await this.start(${obj_name}Params);
         const request = new MrsBaseTaskWatch<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>(
             this.schema, this.requestPath, task.id, options);
@@ -222,7 +222,7 @@ class ${obj_class_name}Object extends MrsBaseObject {
         return new MrsTask(this.schema, this.requestPath, response.taskId);
     }
 
-    async call(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskExecutionOptions<object, ${obj_function_result_datatype}>): Promise<${obj_function_result_datatype}> {
+    async call(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskExecutionOptions<object, ${obj_function_result_datatype}>): Promise<${obj_function_result_datatype} | undefined> {
         const task = await this.start(${obj_name}Params);
         const request = new MrsBaseTaskWatch<object, ${obj_function_result_datatype}>(
             this.schema, this.requestPath, task.id, options);
