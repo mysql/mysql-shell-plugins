@@ -207,14 +207,20 @@ export class UpDown<ValueType extends string | null | number | bigint>
     };
 
     private stepValue = (amount: number): void => {
-        const { onChange } = this.props;
-        const { currentValue } = this.state;
+        const { onChange, placeholder } = this.props;
+        const { missingInitialValue, currentValue } = this.state;
+        let initialStepValue = currentValue;
+
+        if (initialStepValue === null && placeholder !== undefined) {
+            const nullable = this.props.nullable || missingInitialValue === true;
+            initialStepValue = isNumberOrBigInt(placeholder) ? placeholder : parseNumber(placeholder, nullable);
+        }
 
         let newValue;
-        if (typeof currentValue === "bigint") {
-            newValue = currentValue + BigInt(amount);
-        } else if (currentValue === null || typeof currentValue === "number") {
-            newValue = (currentValue ?? 0) + amount;
+        if (typeof initialStepValue === "bigint") {
+            newValue = initialStepValue + BigInt(amount);
+        } else if (initialStepValue === null || typeof initialStepValue === "number") {
+            newValue = (initialStepValue ?? 0) + amount;
         }
 
         onChange?.(newValue as ValueType, this.props);

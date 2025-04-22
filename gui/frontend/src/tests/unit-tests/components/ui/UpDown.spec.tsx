@@ -179,4 +179,32 @@ describe("UpDown render testing", (): void => {
         const inputElement = queryInput();
         expect(inputElement.value).toBe("-1");
     });
+
+    it("Test Up button with placeholder and missing value", () => {
+        render(
+            <Wrapper placeholder={10} />,
+        );
+
+        const upButton = queryUpButton();
+        fireEvent.click(upButton);
+        const inputElement = queryInput();
+        expect(inputElement.value).toBe("11");
+
+        fireEvent.input(inputElement, {
+            target: { value: "" },
+        });
+        expect(inputElement.value).toBe("");
+    });
+
+    it("Test Down button with placeholder and missing value", () => {
+        render(
+            <Wrapper placeholder={10} />,
+        );
+
+        const downButton = queryDownButton();
+        fireEvent.click(downButton);
+        const inputElement = queryInput();
+        expect(inputElement.value).toBe("9");
+    });
+
 });
