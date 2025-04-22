@@ -459,14 +459,15 @@ def substitute_objects_in_template(
                 sdk_language=sdk_language,
                 existing_identifiers=existing_identifiers,
             )
+            class_name = ""
             schema_class_name = generate_identifier(
                 value=f"{service.get("url_context_root")}{schema.get("request_path")}{db_obj.get("request_path")}",
                 primitive="class",
                 existing_identifiers=existing_identifiers,
             )
-
             obj_interfaces = ""
             obj_meta_interface = "I" + schema_class_name + "ResultSet"
+            obj_param_interface = ""
             getters_setters = ""
             obj_pk_list = []
             obj_quoted_pk_list = []
@@ -636,7 +637,7 @@ def substitute_objects_in_template(
                 "obj_id": lib.core.convert_id_to_string(db_obj.get("id")),
                 "obj_name": name,
                 "obj_class_name": class_name,
-                "obj_param_interface": obj_param_interface, # None if not FUNCTION/PROCEDURE
+                "obj_param_interface": obj_param_interface, # empty if not FUNCTION/PROCEDURE
                 "obj_meta_interface": obj_meta_interface,
                 "obj_request_path": db_obj.get("request_path"),
                 "schema_class_name": schema_class_name,
