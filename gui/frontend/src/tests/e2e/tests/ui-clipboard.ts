@@ -831,7 +831,7 @@ describe("CLIPBOARD", () => {
         it("Copy to clipboard button", async () => {
             try {
                 await notebook.codeEditor.clean();
-                const result = await notebook.codeEditor.execute("\\about ") as E2ECommandResultData;
+                const result = await notebook.codeEditor.execute("\\about ", true) as E2ECommandResultData;
                 await driver.wait(async () => {
                     await result.copyToClipboard();
 
