@@ -449,6 +449,13 @@ def substitute_objects_in_template(
     required_datatypes = set()
     requires_auth = False
 
+    schema_request_path = f"{service.get("url_context_root")}{schema.get("request_path")}"
+    schema_class_name = generate_identifier(
+        value=schema_request_path,
+        primitive="class",
+        existing_identifiers=[],
+    )
+
     for loop in object_loops:
         # for each object loop, we need to restart tracking the identifiers
         existing_identifiers = []
@@ -461,13 +468,13 @@ def substitute_objects_in_template(
                 existing_identifiers=existing_identifiers,
             )
             class_name = ""
-            schema_class_name = generate_identifier(
-                value=f"{service.get("url_context_root")}{schema.get("request_path")}{db_obj.get("request_path")}",
+            obj_class_name = generate_identifier(
+                value=f"{schema_request_path}{db_obj.get("request_path")}",
                 primitive="class",
                 existing_identifiers=existing_identifiers,
             )
             obj_interfaces = ""
-            obj_meta_interface = "I" + schema_class_name + "ResultSet"
+            obj_meta_interface = "I" + obj_class_name + "ResultSet"
             obj_param_interface = ""
             getters_setters = ""
             obj_pk_list = []
@@ -538,7 +545,7 @@ def substitute_objects_in_template(
 
                 # Either take the custom interface_name or the default class_name
                 class_name = sdk_lang_options.get(
-                    "class_name", schema_class_name)
+                    "class_name", obj_class_name)
 
                 # For database objects other than PROCEDUREs and FUNCTIONS, if there are unique fields,
                 # the corresponding SDK commands should be enabled.

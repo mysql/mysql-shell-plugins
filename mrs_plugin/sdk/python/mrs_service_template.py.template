@@ -61,8 +61,6 @@ from .mrs_base_classes import (
 # --- importLoopEnd
 
 
-${service_level_constants}
-${service_level_type_definitions}
 # --- schemaLoopStart
 # --- objectLoopStart
 ${obj_interfaces}
