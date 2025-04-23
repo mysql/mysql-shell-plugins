@@ -2,6 +2,7 @@
 
 ## 4.1.0
 
+- Added `restore_roles` PROCEDURE to restore all ROLEs used by MRS
 - Added `sdk_service_data` PROCEDURE to collect all data of a given REST service
 
 ## 4.0.4
