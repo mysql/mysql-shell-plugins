@@ -37,14 +37,14 @@ export class E2ELogger {
     };
 
     public static warning = (message: string): void => {
-        console.warn(`[WRN] ${message}`);
+        console.log(`[WRN] ${message}`);
     };
 
     public static error = (message: string): void => {
-        console.error(`[ERR] ${message}`);
+        console.log(`[ERR] ${message}`);
     };
 
     public static debug = (message: string): void => {
-        console.error(`[DBG] ${message}`);
+        console.log(`[DBG] ${message}`);
     };
 }
