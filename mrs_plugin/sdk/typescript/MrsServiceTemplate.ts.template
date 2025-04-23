@@ -67,7 +67,7 @@ class ${obj_class_name}Object extends MrsBaseObject {
     // --- crudReadOnlyEnd
     // --- crudCreateOnlyStart
     public create = async (args: ICreateOptions<INew${obj_class_name}>): Promise<I${obj_class_name}> => {
-        const request = new MrsBaseObjectCreate<INew${obj_class_name}, I${obj_class_name}>(this.schema, this.requestPath, args);
+        const request = new MrsBaseObjectCreate<INew${obj_class_name}, I${obj_class_name}, [${obj_quoted_pk_list}]>(this.schema, this.requestPath, args, [${obj_quoted_pk_list}]);
         const response = await request.fetch();
 
         return response;
@@ -87,16 +87,16 @@ class ${obj_class_name}Object extends MrsBaseObject {
     // --- crudCreateOnlyEnd
     // --- crudReadOnlyStart
     public findAll = async (args?: IFindAllOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<I${obj_class_name}[]> => {
-        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable>(
-            this.schema, this.requestPath, { ...args, take: 25 });
+        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors, [${obj_quoted_pk_list}]>(
+            this.schema, this.requestPath, { ...args, take: 25 }, [${obj_quoted_pk_list}]);
         const response = await request.fetchAll(args?.progress);
 
         return response.items;
     };
 
     public findMany = async ({ iterator = true, ...args }: IFindManyOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<I${obj_class_name}[]> => {
-        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>(
-            this.schema, this.requestPath, args);
+        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors, [${obj_quoted_pk_list}]>(
+            this.schema, this.requestPath, args, [${obj_quoted_pk_list}]);
 
         if (!this.#hasMore && iterator) {
             this.#hasMore = true;
@@ -114,8 +114,8 @@ class ${obj_class_name}Object extends MrsBaseObject {
     };
 
     public findFirst = async (args?: IFindFirstOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<I${obj_class_name} | undefined> => {
-        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable>(
-            this.schema, this.requestPath, { ...args, take: 1 });
+        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors, [${obj_quoted_pk_list}]>(
+            this.schema, this.requestPath, { ...args, take: 1 }, [${obj_quoted_pk_list}]);
         const response = await request.fetchOne();
 
         return response;
@@ -123,8 +123,8 @@ class ${obj_class_name}Object extends MrsBaseObject {
     // --- crudReadOnlyEnd
     // --- crudReadUniqueOnlyStart
     public findUnique = async (args?: IFindUniqueOptions<I${obj_class_name}, I${obj_class_name}UniqueFilterable>): Promise<I${obj_class_name} | undefined> => {
-        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}UniqueFilterable>(
-            this.schema, this.requestPath, { ...args, take: 1 });
+        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}UniqueFilterable, never, [${obj_quoted_pk_list}]>(
+            this.schema, this.requestPath, { ...args, take: 1 }, [${obj_quoted_pk_list}]);
         const response = await request.fetchOne();
 
         return response;

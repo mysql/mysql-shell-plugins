@@ -33,8 +33,7 @@ import json
 from enum import IntEnum
 import threading
 import base64
-import datetime
-import pathlib
+from typing import Optional
 
 MRS_METADATA_LOCK_ERROR = "Failed to acquire MRS metadata lock. Please ensure no other metadata update is running, then try again."
 
@@ -1083,17 +1082,25 @@ def uppercase_first_char(s):
     return ""
 
 
-def convert_path_to_camel_case(path):
+def convert_path_to_camel_case(
+    path: str, allowed_special_characters: Optional[set[str]] = None
+):
+    if not allowed_special_characters:
+        allowed_special_characters = set()
     if path.startswith("/"):
         path = path[1:]
     parts = path.replace("/", "_").split("_")
     s = parts[0] + "".join(uppercase_first_char(x) for x in parts[1:])
-    # Only return alphanumeric characters
-    return "".join(e for e in s if e.isalnum())
+    # Only return alphanumeric characters or those in the allow list
+    return "".join(e for e in s if e.isalnum() or e in allowed_special_characters)
 
 
-def convert_path_to_pascal_case(path):
-    return uppercase_first_char(convert_path_to_camel_case(path))
+def convert_path_to_pascal_case(
+    path: str, allowed_special_characters: Optional[set[str]] = None
+):
+    return uppercase_first_char(
+        convert_path_to_camel_case(path, allowed_special_characters)
+    )
 
 
 def convert_snake_to_camel_case(snake_str):
@@ -1292,4 +1299,3 @@ class _NotSet: # used to differentiate None (NULL) vs argument not set
         return False
 
 NotSet = _NotSet()
-

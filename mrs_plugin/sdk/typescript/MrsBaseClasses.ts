@@ -933,12 +933,14 @@ class MrsJSON {
 /**
  * @template T The set of fields of a given database object that should be part of the result set.
  */
-class MrsSimplifiedObjectResponse<T> {
-    #json:  T & JsonObject;
+class MrsSimplifiedObjectResponse<Input, ResourceIdFieldNames extends string[], Output> {
     #hypermediaProperties = ["_metadata", "links"];
 
-    public constructor (json: T & JsonObject) {
-        this.#json = json;
+    public constructor (
+        private readonly json: Output & JsonObject,
+        private readonly schema: MrsBaseSchema,
+        private readonly requestPath: string,
+        private readonly primaryKeys?: ResourceIdFieldNames) {
     }
 
     /**
@@ -948,11 +950,12 @@ class MrsSimplifiedObjectResponse<T> {
      * @returns An abstraction of the database object item without hypermedia-related properties.
      */
     public getInstance () {
-        return new Proxy(this.#json, {
+        return new Proxy(this.json, {
             deleteProperty: (target, p) => {
                 const property = String(p);
+                const isPrimaryKey = this.primaryKeys && this.primaryKeys.indexOf(property) > 0;
 
-                if (this.#hypermediaProperties.indexOf(property) > -1) {
+                if (this.#hypermediaProperties.indexOf(property) > -1 || isPrimaryKey) {
                     throw new Error(`The "${property}" property cannot be deleted.`);
                 }
 
@@ -961,21 +964,23 @@ class MrsSimplifiedObjectResponse<T> {
                 return true;
             },
 
-            get: (target: MrsResourceObject<T> & { [key: symbol]: unknown }, key) => {
-                if (key !== "toJSON") {
-                    return target[key];
+            get: (target: MrsResourceObject<Output> & { [key: symbol]: unknown }, key) => {
+                if (key === "toJSON") {
+                    return this.deserialize.bind(this);
                 }
 
-                // .toJSON()
-                return () => {
-                    // We want to change a copy of the underlying json object, not the reference to the original one.
-                    const partial = { ...this.#json as Omit<MrsResourceObject<T>, "links" | "_metadata"> };
-                    delete partial.links;
-                    // eslint-disable-next-line no-underscore-dangle
-                    delete partial._metadata;
+                // primaryKeys only contains items if the "UPDATE" CRUD operation is enabled
+                // and there are, in fact, primary keys
+                if (key === "update" && this.primaryKeys?.length) {
+                    return this.update.bind(this);
+                }
 
-                    return partial;
-                };
+                // same as above
+                if (key === "delete" && this.primaryKeys?.length) {
+                    return this.delete.bind(this);
+                }
+
+                return target[key];
             },
 
             has: (target, p) => {
@@ -996,8 +1001,9 @@ class MrsSimplifiedObjectResponse<T> {
 
             set: (target, p, newValue) => {
                 const property = String(p);
+                const isPrimaryKey = this.primaryKeys && this.primaryKeys.indexOf(property) > 0;
 
-                if (this.#hypermediaProperties.indexOf(property) > -1) {
+                if (this.#hypermediaProperties.indexOf(property) > -1 || isPrimaryKey) {
                     throw new Error(`The "${property}" property cannot be changed.`);
                 }
 
@@ -1008,16 +1014,53 @@ class MrsSimplifiedObjectResponse<T> {
             },
         });
     }
+
+    private async delete(): Promise<void> {
+        const queryFilter: Record<string, unknown> = {};
+
+        // the proxy already guarantees that the primaryKeys property is always defined
+        for (const key of this.primaryKeys as ResourceIdFieldNames) {
+            queryFilter[key] = this.json[key];
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        const request = new MrsBaseObjectDelete(
+            this.schema, this.requestPath, { where: queryFilter });
+        const _ = await request.fetch();
+
+        return;
+    }
+
+    private deserialize(): Omit<MrsResourceObject<Output>, "links" | "_metadata"> {
+        // We want to change a copy of the underlying json object, not the reference to the original one.
+        const partial = { ...this.json as Omit<MrsResourceObject<Output>, "links" | "_metadata"> };
+        delete partial.links;
+        // eslint-disable-next-line no-underscore-dangle
+        delete partial._metadata;
+
+        return partial;
+    }
+
+    private async update(): Promise<MrsResourceObject<Output>> {
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        const request = new MrsBaseObjectUpdate<Input, ResourceIdFieldNames, Output>(
+            // the proxy already guarantees that the primaryKeys property is always defined
+            this.schema, this.requestPath, { data: this.json as Input }, this.primaryKeys as ResourceIdFieldNames);
+        const response = await request.fetch();
+
+        return response;
+    }
 }
 
 /**
  * @template T The set of fields of a given database object that should be part of the result set.
  */
-class MrsSimplifiedCollectionObjectResponse<T> {
-    #json: IMrsResourceCollectionData<T>;
-
-    public constructor (json: IMrsResourceCollectionData<T>) {
-        this.#json = json;
+class MrsSimplifiedCollectionObjectResponse<Input, ResourceIdFieldNames extends string[]> {
+    public constructor (
+        private readonly json: IMrsResourceCollectionData<Input>,
+        private readonly schema: MrsBaseSchema,
+        private readonly requestPath: string,
+        private readonly primaryKeys?: ResourceIdFieldNames) {
     }
 
     /**
@@ -1027,13 +1070,13 @@ class MrsSimplifiedCollectionObjectResponse<T> {
      * @returns A list of the database object items without hypermedia-related properties.
      */
     public getInstance () {
-        return new Proxy(this.#json, {
+        return new Proxy(this.json, {
             deleteProperty: (_, p) => {
                 throw new Error(`The "${String(p)}" property cannot be deleted.`);
             },
 
-            get: (target: IMrsResourceCollectionData<T> & { [key: symbol]: unknown }, key,
-                receiver: IMrsResourceCollectionData<T>) => {
+            get: (target: IMrsResourceCollectionData<Input> & { [key: symbol]: unknown }, key,
+                receiver: IMrsResourceCollectionData<Input>) => {
                 if (key !== "toJSON" && key !== "items") {
                     return target[key];
                 }
@@ -1049,7 +1092,8 @@ class MrsSimplifiedCollectionObjectResponse<T> {
 
                 // .items
                 return target.items.map((item) => {
-                    const resource = new MrsSimplifiedObjectResponse(item);
+                    const resource = new MrsSimplifiedObjectResponse(
+                        item, this.schema, this.requestPath, this.primaryKeys);
 
                     return resource.getInstance();
                 });
@@ -1077,7 +1121,7 @@ class MrsSimplifiedCollectionObjectResponse<T> {
  * because it is not used by "findAll()" or "findFirst()", both of which, also create an instance of MrsBaseObjectQuery.
  * Creates an object that represents an MRS GET request.
  */
-export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> {
+export class MrsBaseObjectQuery<Item, Filterable, Iterable = never, ResourceIdFieldNames extends string[] = never> {
     private where?: MrsRequestFilter<Filterable>;
     private exclude: string[] = [];
     private include: string[] = [];
@@ -1088,7 +1132,8 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> {
     public constructor(
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
-        options?: IFindOptions<Item, Filterable, Iterable>) {
+        options?: IFindOptions<Item, Filterable, Iterable>,
+        private readonly primaryKeys?: ResourceIdFieldNames) {
         if (options === undefined) {
             return;
         }
@@ -1169,7 +1214,8 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> {
         });
 
         const responseBody: IMrsResourceCollectionData<Item> = await response.json();
-        const collection = new MrsSimplifiedCollectionObjectResponse(responseBody);
+        const collection = new MrsSimplifiedCollectionObjectResponse(
+            responseBody, this.schema, this.requestPath, this.primaryKeys);
 
         return collection.getInstance();
     };
@@ -1261,11 +1307,12 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> {
     };
 }
 
-export class MrsBaseObjectCreate<Input, Output> {
+export class MrsBaseObjectCreate<Input, Output, ResourceIdFieldNames extends string[] = never> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
-        protected options: ICreateOptions<Input>) {
+        protected options: ICreateOptions<Input>,
+        protected primaryKeys?: ResourceIdFieldNames) {
     }
 
     public fetch = async (): Promise<MrsResourceObject<Output>> => {
@@ -1280,17 +1327,18 @@ export class MrsBaseObjectCreate<Input, Output> {
         // eslint-disable-next-line no-underscore-dangle
         this.schema.service.session.gtid = responseBody._metadata.gtid;
 
-        const resource = new MrsSimplifiedObjectResponse(responseBody);
+        const resource = new MrsSimplifiedObjectResponse(
+            responseBody, this.schema, this.requestPath, this.primaryKeys);
 
         return resource.getInstance();
     };
 }
 
-export class MrsBaseObjectDelete<T> {
+export class MrsBaseObjectDelete<Filterable> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
-        protected options: IDeleteOptions<T, { many: true }>) {
+        protected options: IDeleteOptions<Filterable, { many: true }>) {
     }
 
     public fetch = async (): Promise<IMrsDeleteResult> => {
@@ -1351,7 +1399,8 @@ export class MrsBaseObjectUpdate<Input, ResourceIdFieldNames extends string[], O
         // eslint-disable-next-line no-underscore-dangle
         this.schema.service.session.gtid = responseBody._metadata.gtid;
 
-        const resource = new MrsSimplifiedObjectResponse(responseBody);
+        const resource = new MrsSimplifiedObjectResponse(
+            responseBody, this.schema, this.requestPath, this.primaryKeys);
 
         return resource.getInstance();
     };
@@ -1379,7 +1428,8 @@ class MrsBaseObjectCall<Input, Output extends IMrsCommonRoutineResponse> {
         // eslint-disable-next-line no-underscore-dangle
         this.schema.service.session.gtid = responseBody._metadata?.gtid;
 
-        const resource = new MrsSimplifiedObjectResponse(responseBody);
+        const resource = new MrsSimplifiedObjectResponse(
+            responseBody, this.schema, this.requestPath);
 
         return resource.getInstance();
     }
@@ -1398,7 +1448,7 @@ export class MrsBaseObjectProcedureCall<InParams, OutParams, ResultSet extends J
         const response = await super.fetch();
 
         response.resultSets = response.resultSets.map((resultSet) => {
-            return (new MrsSimplifiedObjectResponse(resultSet)).getInstance();
+            return (new MrsSimplifiedObjectResponse(resultSet, this.schema, this.requestPath)).getInstance();
         });
 
         return response;
@@ -1613,9 +1663,10 @@ interface IMrsCancelledTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
     status: "CANCELLED"
 }
 
-export type IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult> = IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult> |
-IMrsCompletedTaskReport<MrsTaskStatusUpdate, MrsTaskResult> |
-IMrsCancelledTaskReport<MrsTaskStatusUpdate, MrsTaskResult>;
+export type IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult> =
+    IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    | IMrsCompletedTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    | IMrsCancelledTaskReport<MrsTaskStatusUpdate, MrsTaskResult>;
 
 export class MrsBaseTaskStart<MrsTaskInputParameters> {
     public constructor(
