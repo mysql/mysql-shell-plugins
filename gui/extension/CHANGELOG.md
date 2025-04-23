@@ -4,7 +4,10 @@
 
 ### Additions
 
--
+- Updated MRS metadata to 4.1.0
+- Added MRS REST document update() and delete() functions for Client SDK
+- Added logout functionality to Client SDK
+- Added support for MRS REST routines returning asynchronous tasks
 
 ### Fixes
 
