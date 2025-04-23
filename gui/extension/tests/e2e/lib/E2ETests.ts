@@ -176,7 +176,7 @@ export class E2ETests {
      * @returns The output of the command
      */
     public static runCommand = (cmd: string, params: string[]): string => {
-        const response = spawnSync(cmd, params);
+        const response = spawnSync(cmd, params, { shell: true });
 
         if (response.status !== 0) {
 
@@ -676,6 +676,7 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
             settings: join(process.cwd(), "setup", "settings.json"),
             offline: true,
             config: join(process.cwd(), "setup", ".mocharc.json"),
+            cleanup: process.env.UNINSTALL_EXTENSION ? true : false,
             resources: [],
         });
 
