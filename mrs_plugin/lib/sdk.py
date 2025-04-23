@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from typing import Literal, Optional, Set
+from typing import Literal, Optional
 from mrs_plugin import lib
 from pathlib import Path
 import os
@@ -399,13 +399,14 @@ def generate_identifier(
     sdk_language: Literal["TypeScript", "Python"] = "TypeScript",
     # mutable objects for default values are re-used on subsequent function calls, let's leverage that
     existing_identifiers: list[str] = [],
+    allowed_special_characters: Optional[set[str]] = None
 ) -> str:
     if primitive == "class":
-        identifier = f"{lib.core.convert_path_to_pascal_case(value)}"
+        identifier = f"{lib.core.convert_path_to_pascal_case(value, allowed_special_characters)}"
     elif sdk_language == "TypeScript":
-        identifier = f"{lib.core.convert_path_to_camel_case(value)}"
+        identifier = f"{lib.core.convert_path_to_camel_case(value, allowed_special_characters)}"
     elif sdk_language == "Python":
-        identifier = f"{lib.core.convert_to_snake_case(lib.core.convert_path_to_camel_case(value))}"
+        identifier = f"{lib.core.convert_to_snake_case(lib.core.convert_path_to_camel_case(value, allowed_special_characters))}"
     else:
         identifier = value
     identifier = f"_{identifier}" if identifier[0].isdigit() else identifier
@@ -493,8 +494,8 @@ def substitute_objects_in_template(
 
                 for field in fields:
                     if field.get("lev") == 1:
-                        # Build Primary Key lists
-                        if field_is_pk(field):
+                        # Build Primary Key lists (only if "UPDATE" is allowed)
+                        if field_is_pk(field) and "UPDATE" in db_obj.get("crud_operations", []):
                             obj_pk_list.append(field.get("name"))
                             obj_quoted_pk_list.append(f'"{field.get("name")}"')
                             obj_string_pk_list.append(
@@ -978,9 +979,10 @@ def generate_type_declaration(
     fields={},
     sdk_language="TypeScript",
     ignore_base_types=False,
-    non_mandatory_fields: Set[str] = set(),  # Users may or not specify them
+    non_mandatory_fields: set[str] = set(),  # Users may or not specify them
     requires_placeholder=False,
     is_unpacked=False,
+    readonly_fields: set[str] = set(),
 ):
     if len(fields) == 0:
         if not requires_placeholder:
@@ -993,6 +995,8 @@ def generate_type_declaration(
                 value,
                 sdk_language,
                 non_mandatory=(name in non_mandatory_fields),
+                allowed_special_characters={"(", ")"},
+                readonly=name in readonly_fields,
             )
             for name, value in fields.items()
         ]
@@ -1030,13 +1034,18 @@ def generate_type_declaration(
 
 
 def generate_type_declaration_field(
-    name, value, sdk_language, non_mandatory=False
+    name, value, sdk_language, non_mandatory=False, allowed_special_characters=None, readonly=False
 ):
-    name = generate_identifier(value=name, sdk_language=sdk_language, existing_identifiers=[])
+    name = generate_identifier(
+        value=name,
+        sdk_language=sdk_language,
+        existing_identifiers=[],
+        allowed_special_characters=allowed_special_characters,
+    )
     indent = " " * 4
 
     if sdk_language == "TypeScript":
-        field_name_part = f"{indent}{name}?" if non_mandatory else f"{indent}{name}"
+        field_name_part = f"{indent}{"readonly " if readonly else ""}{name}?" if non_mandatory else f"{indent}{"readonly " if readonly else ""}{name}"
         if isinstance(value, list):
             return f"{field_name_part}: {value[0]}[],\n"
         return f"{field_name_part}: {value},\n"
@@ -1055,14 +1064,20 @@ def generate_data_class(
     sdk_language,
     db_object_crud_ops: list[str],
     obj_endpoint: Optional[str] = None,
-    primary_key_fields: list[str] = [],
+    primary_key_fields: set[str] = set(),
 ):
     if sdk_language == "TypeScript":
+        if len(primary_key_fields) > 0:
+            if "UPDATE" in db_object_crud_ops:
+                fields.update({ "update()": f"Promise<I{name}>" })
+            if "DELETE" in db_object_crud_ops:
+                fields.update({ "delete()": f"Promise<void>" })
         return generate_type_declaration(
             name=name,
             fields=fields,
             sdk_language=sdk_language,
-            non_mandatory_fields=set(fields),
+            non_mandatory_fields=set(fields).difference({"update()", "delete()"}),
+            readonly_fields=primary_key_fields
         )
 
     if sdk_language == "Python":
@@ -1393,7 +1408,7 @@ def generate_interfaces(
                 sdk_language=sdk_language,
                 db_object_crud_ops=db_object_crud_ops,
                 obj_endpoint=obj_endpoint,
-                primary_key_fields=primary_key_fields,
+                primary_key_fields=set(primary_key_fields),
             )
         )
 

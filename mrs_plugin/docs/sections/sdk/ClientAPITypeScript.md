@@ -29,7 +29,7 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 `authenticate` is used to authenticate in a given service using a given authentication app.
 
-### Options (authenticate)
+#### Options (authenticate)
 
 | Name | Type | Required | Description
 |---|---|---|---
@@ -39,11 +39,11 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 : REST Service Options for Authentication
 
-### Return Type (authenticate)
+#### Return Type (authenticate)
 
 Nothing (void).
 
-### Reference (authenticate)
+#### Reference (authenticate)
 
 ```TypeScript
 async function authenticate (IAuthenticateOptions): Promise<IMrsLoginResult> {
@@ -65,7 +65,7 @@ interface IMrsLoginResult {
 }
 ```
 
-### Example (authenticate)
+#### Example (authenticate)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -76,15 +76,15 @@ await myService.authenticate({ username: 'foo', password: 'bar', app: 'baz' });
 await myService.authenticate({ username: 'foo', password: 'bar', app: 'baz', vendor: "0x30000000000000000000000000000000" });
 ```
 
-## deauthenticate
+### deauthenticate
 
 `deauthenticate` is used for logging out a user from a given service.
 
-## Return Type (deauthenticate)
+#### Return Type (deauthenticate)
 
 Nothing (void).
 
-## Reference (deauthenticate)
+#### Reference (deauthenticate)
 
 ```TypeScript
 async function deauthenticate (): Promise<void> {
@@ -93,7 +93,7 @@ async function deauthenticate (): Promise<void> {
 
 ```
 
-## Example (deauthenticate)
+#### Example (deauthenticate)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -127,19 +127,19 @@ await myService.mrsNotes.note.getMetadata();
 
 ### create
 
-`create` is used to insert a record in a given table. The record is represented as a plain TypeScript/JavaScript object or, alternatively, as an instance of a particular class that encapsulates the data required to create a new record. To insert multiple records, see `createMany`[#createmany].
+`create` is used to add a REST Document to a given REST View. The document is represented as a plain TypeScript/JavaScript object or, alternatively, as an instance of a particular class that encapsulates the data required to create a new document. To insert multiple documents, see `createMany`[#createmany].
 
 #### Options (create)
 
 | Name | Type | Required | Description
 |---|---|---|---
-| data  | object | Yes | Object containing the mapping between column names and values for the record to be inserted.
+| data  | object | Yes | Object containing the mapping between column names and values for the REST Document to be created.
 
 : REST View Options (create)
 
 #### Return Type (create)
 
-A JSON object representing the inserted record.
+A JSON object representing the created REST Documents.
 
 #### Reference (create)
 
@@ -177,19 +177,19 @@ myService.mrsNotes.note.create({ data: note });
 
 ### createMany
 
-`createMany` inserts one or more records in a given table. The records are represented as plain TypeScript/JavaScript objects, or alternatively, as instances of a particular class that encapsulates the data required to create them.
+`createMany` adds one or more REST Documents to a given REST View. The documents are represented as plain TypeScript/JavaScript objects, or alternatively, as instances of a particular class that encapsulates the data required to create them.
 
 #### Options (createMany)
 
 | Name | Type | Required | Description
 |---|---|---|---
-| data  | object | Yes | Array of objects containing the mapping between column names and values for the records to be inserted.
+| data  | object | Yes | Array of objects containing the mapping between column names and values for the REST Documents to be created.
 
 : REST View Options (createMany)
 
 #### Return Type (createMany)
 
-An array of JSON objects representing the inserted records.
+An array of JSON objects representing the created REST Documents.
 
 #### Reference (createMany)
 
@@ -230,7 +230,7 @@ myService.mrsNotes.note.createMany({ data: [note1, note2] });
 
 ### findFirst
 
-`findFirst` is used to query the first record (**in no specific order**) that matches a given optional filter.
+`findFirst` is used to query the first REST Document (**in no specific order**) that matches a given optional filter.
 
 #### Options (findFirst)
 
@@ -238,14 +238,14 @@ myService.mrsNotes.note.createMany({ data: [note1, note2] });
 |---|---|---|---
 | where | object | No | Filtering conditions that apply to specific fields.
 | select | object | No | Specifies which properties to include in the returned object.
-| skip  | number | No | Specifies how many records to skip before returning one of the matches.
+| skip  | number | No | Specifies how many documents to skip before returning one of the matches.
 | readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers.
 
 : REST View Options (findFirst)
 
 #### Return Type (findFirst)
 
-A JSON object representing the first record that matches the filter or `undefined` when the record was not found.
+A JSON object representing the first REST [Document](#rest-document) that matches the filter or `undefined` when the document was not found.
 
 #### Reference (findFirst)
 
@@ -288,18 +288,18 @@ await myService.mrsNotes.note.findFirst({ where: { title: { $like: "%foo%" } } }
 
 ### findUnique
 
-`findUnique` is used to query a single, uniquely identified record by:
+`findUnique` is used to query a single, uniquely identified REST Document by:
 
 - Primary key column(s)
 - Unique column(s)
 
-If no record was found matching the given `where` condition, `undefined` is returned. To have an exception thrown in this case, see [findUniqueOrThrow](#finduniqueorthrow).
+If no document was found matching the given `where` condition, `undefined` is returned. To have an exception thrown in this case, see [findUniqueOrThrow](#finduniqueorthrow).
 
 #### Options (findUnique)
 
 | Name | Type | Required | Description
 |---|---|---|---
-| where | object | Yes | Wraps all unique columns so that individual records can be selected.
+| where | object | Yes | Wraps all unique columns so that individual documents can be selected.
 | select | object | No | Specifies which properties to include in the returned object.
 | readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers.
 
@@ -307,7 +307,7 @@ If no record was found matching the given `where` condition, `undefined` is retu
 
 #### Return Type (findUnique)
 
-A JSON object representing the specific record that matches the filter or `undefined` when the record was not found.
+A JSON object representing the REST [Document](#rest-document) that matches the filter or `undefined` when the document was not found.
 
 #### Reference (findUnique)
 
@@ -339,7 +339,7 @@ await myService.mrsNotes.note.findUnique({ where: { id: { $eq: 4 } } });
 
 ### findUniqueOrThrow
 
-`findUniqueOrThrow` retrieves a single data record in the same way as [findUnique](#findunique). However, if the query does not find a record, it throws a `NotFoundError`.
+`findUniqueOrThrow` retrieves a single REST [Document](#rest-document) in the same way as [findUnique](#findunique). However, if the query does not find a document, it throws a `NotFoundError`.
 
 `findUniqueOrThrow` differs from `findUnique` as follows:
 
@@ -347,26 +347,26 @@ await myService.mrsNotes.note.findUnique({ where: { id: { $eq: 4 } } });
 
 ### findMany
 
-`findMany` is used to query a subset of records in one or more pages, and optionally, those that match a given filter. To find all records see [findAll](#findall).
+`findMany` is used to query a subset of REST [Documents](#rest-document) in one or more pages, and optionally, those that match a given filter. To find all REST Documents see [findAll](#findall).
 
 #### Options (findMany)
 
 | Name | Type | Required | Description
 |---|---|---|---
-| cursor | object | No | Retrieve records using unique and sequential fields as cursor.
+| cursor | object | No | Retrieve documents using unique and sequential fields as cursor.
 | iterator | boolean | No | Enable or disable iterator behavior.
 | orderBy | object | No | Determines the sort order of specific fields.
 | select | object | No | Specifies which properties to include in the returned object.
-| skip  | number | No | How many records to skip before returning one of the matches.
+| skip  | number | No | How many documents to skip before returning one of the matches.
 | where | object  | No | Filtering conditions that apply to specific fields.
-| take  | number | No | Maximum number of records to return.
+| take  | number | No | Maximum number of documents to return.
 | readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers.
 
 : REST View Options (findMany)
 
 #### Return Type (findMany)
 
-An array of JSON objects representing the records that match the filter.
+An array of JSON objects representing the REST Documents that match the filter.
 
 #### Reference (findMany)
 
@@ -404,17 +404,17 @@ await myService.mrsNotes.note.findMany({ where: { id: { $gt: 10 } } });
 
 ### findAll
 
-`findAll` is used to query every record, and optionally, all those that match a given filter. To get a paginated subset of records, see [findMany](#findmany).
+`findAll` is used to query every REST [Document](#rest-document), and optionally, all those that match a given filter. To get a paginated subset of documents, see [findMany](#findmany).
 
 #### Options (findAll)
 
 | Name | Type | Required | Description
 |---|---|---|---
-| cursor | object | No | Retrieve records using unique and sequential fields as cursor.
+| cursor | object | No | Retrieve documents using unique and sequential fields as cursor.
 | orderBy | object | No | Determines the sort order of specific fields.
 | progress | function | No | Specifies a function to be called back when reporting progress.
 | select | object | No | Specifies which properties to include in the returned object.
-| skip  | number | No | How many records to skip before returning one of the matches.
+| skip  | number | No | How many documents to skip before returning one of the matches.
 | where | object  | No | Filtering conditions that apply to specific fields.
 | readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers.
 
@@ -422,7 +422,7 @@ await myService.mrsNotes.note.findMany({ where: { id: { $gt: 10 } } });
 
 #### Return Type (findAll)
 
-An array of JSON objects representing the records that match the filter.
+An array of JSON objects representing the REST Documents that match the filter.
 
 #### Reference (findAll)
 
@@ -461,7 +461,7 @@ await myService.mrsNotes.note.findMany({ progress: (notes) => {
 
 ### delete
 
-`delete` is used to delete the first record that matches a given required filter.
+`delete` is used to delete the first REST Document that matches a given required filter.
 
 #### Options (delete)
 
@@ -474,7 +474,7 @@ await myService.mrsNotes.note.findMany({ progress: (notes) => {
 
 #### Return Type (delete)
 
-A JSON object containing the number of records that were deleted (always 1).
+A JSON object containing the number of REST Documents that were deleted (always 1).
 
 #### Reference (delete)
 
@@ -506,7 +506,7 @@ await myService.mrsNotes.note.delete({ where: { title: { $like: "%foo%" } } });
 
 ### deleteMany
 
-`delete` is used to delete all records that match a given filter.
+`delete` is used to delete all REST Documents that match a given filter.
 
 #### Options (deleteMany)
 
@@ -519,7 +519,7 @@ await myService.mrsNotes.note.delete({ where: { title: { $like: "%foo%" } } });
 
 #### Return Type (deleteMany)
 
-A JSON object containing the number of records that were deleted.
+A JSON object containing the number of REST Documents that were deleted.
 
 #### Reference (deleteMany)
 
@@ -553,7 +553,7 @@ await myService.mrsNotes.note.deleteMany({ where: { shared: true } });
 
 ### update
 
-`update` is used to update a record with a given identifier or primary key.
+`update` is used to update a REST Document with a given identifier or primary key.
 
 #### Options (update)
 
@@ -565,7 +565,7 @@ await myService.mrsNotes.note.deleteMany({ where: { shared: true } });
 
 #### Return Type (update)
 
-A JSON object representing the up-to-date record.
+A JSON object representing the up-to-date REST [Document](#rest-document).
 
 #### Reference (update)
 
@@ -603,7 +603,7 @@ await myService.mrsNotes.note.update({ data: note });
 
 ### updateMany
 
-`updateMany` is used to update all records with matching identifiers or primary keys.
+`updateMany` is used to update all REST Documents with matching identifiers or primary keys.
 
 #### Options (updateMany)
 
@@ -615,7 +615,7 @@ await myService.mrsNotes.note.update({ data: note });
 
 #### Return Type (updateMany)
 
-An array of JSON objects representing the up-to-date records.
+An array of JSON objects representing the up-to-date REST [Documents](#rest-document).
 
 #### Reference (updateMany)
 
@@ -654,8 +654,72 @@ note.shared = false;
 // update the notes with id 1 and 2
 await myService.mrsNotes.note.update({ data: [note1, note2] });
 ```
+## REST Document
 
-### REST Function/Procedure
+### update
+
+`update` is used to update a given REST document by committing the set of updates performed locally on the corresponding instance in the application.
+
+> This function is only available if the REST View enables the "UPDATE" CRUD operation and specifies one or more identifier fields.
+
+#### Reference (update)
+
+```TypeScript
+async function update(): Promise<IMyServiceSakilaActor> {
+    // ...
+}
+
+interface IMyServiceSakilaActor {
+    readonly actorId?: number;
+    firstName?: string;
+    lastName?: string;
+    lastUpdate?: string;
+}
+```
+
+#### Example (update)
+
+```TypeScript
+import { MyService } from './myService.mrs.sdk/myService';
+
+const myService = new MyService();
+
+const actor = await myService.sakila.actor.findFirst();
+if (actor) {
+    actor.lastName = "FOO";
+    const modifiedActor = await actor.update();
+    console.log(modifiedActor.lastName); // FOO
+}
+```
+
+### delete
+
+`delete` is used to delete a given REST document represented by a corresponding instance in the application.
+
+> This function is only available if the REST View enables the "DELETE" CRUD operation and specifies one or more identifier fields.
+
+#### Reference (delete)
+
+```TypeScript
+async function delete(): Promise<void> {
+    // ...
+}
+```
+
+#### Example (delete)
+
+```TypeScript
+import { MyService } from './myService.mrs.sdk/myService';
+
+const myService = new MyService();
+
+const actor = await myService.sakila.actor.findFirst();
+if (actor) {
+    await actor.delete();
+}
+```
+
+## REST Function/Procedure
 
 ### call
 
@@ -863,11 +927,7 @@ try {
 
 ### kill
 
-`watch` is used to kill the underlying Async Task of a REST routine (`FUNCTION` or `PROCEDURE`) and cancel its execution.
-
-#### Return Type (kill)
-
-An [AsyncGenerator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncGenerator) instance which produces status update reports with details about the execution context of the REST routine.
+`kill` is used to kill the underlying Async Task of a REST routine (`FUNCTION` or `PROCEDURE`) and cancel its execution.
 
 #### Reference (kill)
 
@@ -875,7 +935,6 @@ An [AsyncGenerator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 async function kill(): Promise<void> {
     // ...
 }
-
 ```
 
 #### Example (kill)

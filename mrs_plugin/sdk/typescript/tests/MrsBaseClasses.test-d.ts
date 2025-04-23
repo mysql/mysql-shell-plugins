@@ -997,7 +997,8 @@ describe("MRS SDK base types", () => {
                 message: string
             }
 
-            expectTypeOf<IMrsTaskReport<IStatusUpdate, unknown>>().extract<{ status: "RUNNING" }>().toEqualTypeOf<IStatusUpdateReport>();
+            expectTypeOf<IMrsTaskReport<IStatusUpdate, unknown>>().extract<{ status: "RUNNING" }>()
+                .toEqualTypeOf<IStatusUpdateReport>();
         });
 
         it("includes the details of a cancelled task", () => {
@@ -1006,7 +1007,8 @@ describe("MRS SDK base types", () => {
                 message: string
             }
 
-            expectTypeOf<IMrsTaskReport<unknown, unknown>>().extract<{ status: "CANCELLED" }>().toEqualTypeOf<IStatusUpdateReport>();
+            expectTypeOf<IMrsTaskReport<unknown, unknown>>().extract<{ status: "CANCELLED" }>()
+                .toEqualTypeOf<IStatusUpdateReport>();
         });
 
         it("includes the details of a completed task", () => {
@@ -1020,7 +1022,8 @@ describe("MRS SDK base types", () => {
                 message: string
             }
 
-            expectTypeOf<IMrsTaskReport<unknown, IProcResult>>().extract<{ status: "COMPLETED" }>().toEqualTypeOf<IStatusUpdateReport>();
+            expectTypeOf<IMrsTaskReport<unknown, IProcResult>>().extract<{ status: "COMPLETED" }>()
+                .toEqualTypeOf<IStatusUpdateReport>();
         });
     });
 });

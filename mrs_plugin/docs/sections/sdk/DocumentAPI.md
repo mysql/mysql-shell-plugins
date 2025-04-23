@@ -49,17 +49,49 @@ try {
 
 Additionally, these wrappers allow to augment the object representation of a REST Document with a small contextual API which contains utility commands (`update()` and `delete()`, names are self-describing) that operate directly in the scope of each particular document.
 
-```Python
-actor = await my_service.sakila.actor.find_first()
-print(actor.actor_id) # 1
-print(actor.last_name) # "GUINESS"
-actor.last_name = "NOGUINESS"
-await actor.update()
+These commands are only available if the corresponding REST View enables the "UPDATE" and/or "DELETE" CRUD operations, respectively and specifies the appropriate identifier fields (mapping to underlying database primary keys).
+
+> In the TypeScript SDK, the identifier fields that are part o a REST Document are read-only. This is currently not the case on the Python SDK.
+
+## TypeScript
+
+```TypeScript
+let actor = await my_service.sakila.actor.find_first()
+if (actor) {
+    console.log(actor.actorId) // 1
+    console.log(actor.lastName) // "GUINESS"
+    actor.lastName = "NOGUINESS"
+    await actor.update()
+}
 
 actor = await my_service.sakila.actor.find_first()
-print(actor.last_name) # "NOGUINESS"
-await actor.delete()
+if (actor) {
+    console.log(actor.lastName) // "NOGUINESS"
+    await actor.delete()
+}
 
 actor = await my_service.sakila.actor.find_first()
-print(actor.actor_id) # 2
+if (actor) {
+    console.log(actor.actorId) // 2
+}
+```
+
+## Python
+
+```py
+actor = await my_service.sakila.actor.find_first()
+if actor:
+    print(actor.actor_id) # 1
+    print(actor.last_name) # "GUINESS"
+    actor.last_name = "NOGUINESS"
+    await actor.update()
+
+actor = await my_service.sakila.actor.find_first()
+if actor:
+    print(actor.last_name) # "NOGUINESS"
+    await actor.delete()
+
+actor = await my_service.sakila.actor.find_first()
+if actor:
+    print(actor.actor_id) # 2
 ```
