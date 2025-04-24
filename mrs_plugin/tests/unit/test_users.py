@@ -376,16 +376,16 @@ def test_user_sql(phone_book):
 
     import json
 
-    with pytest.raises(Exception, match='ScriptingError: Invalid REST user "boss"@"MRS Auth App"'):
+    with pytest.raises(Exception, match='Invalid REST user "boss"@"MRS Auth App"\n'):
         session.run_sql('ALTER REST USER "boss"@"MRS Auth App" IDENTIFIED BY "somepassword";')
 
-    with pytest.raises(Exception, match='ScriptingError: The password must not be empty.'):
+    with pytest.raises(Exception, match='The password must not be empty.\n'):
         session.run_sql('ALTER REST USER "boss"@"MRS Auth App" IDENTIFIED BY "";')
 
-    with pytest.raises(Exception, match='ScriptingError: Invalid REST user "boss"@"MRS Auth App"'):
+    with pytest.raises(Exception, match='Invalid REST user "boss"@"MRS Auth App"\n'):
         session.run_sql('ALTER REST USER "boss"@"MRS Auth App" IDENTIFIED BY "SomePassword";')
 
-    with pytest.raises(Exception, match='ScriptingError: Invalid REST user "boss"@"MRS Auth App"'):
+    with pytest.raises(Exception, match='Invalid REST user "boss"@"MRS Auth App"\n'):
         session.run_sql('ALTER REST USER "boss"@"MRS Auth App" IDENTIFIED BY "SomePassword!";')
 
     session.run_sql("""CREATE REST USER "boss"@"MRS Auth App" IDENTIFIED BY "MySQLR0cks!" ACCOUNT LOCK OPTIONS {
