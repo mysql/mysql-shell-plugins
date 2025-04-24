@@ -1655,3 +1655,26 @@ def deploy_schema(
                 lib.core.write_to_msm_schema_update_log("ERROR", err_str)
 
                 raise Exception(err_str)
+
+
+def execute_msm_sql_script(session, sql_script: str = None,
+                           script_name: str = None, sql_file_path: str = None):
+    """
+    Execute a SQL script on the MySQL Server and log the progress in the
+    MSM log file.
+
+    The SQL script can be provided as a string, or as a path to a file.
+
+    Args:
+        session (object): The MySQL session to use.
+        sql_script (str): The SQL script to execute.
+        script_name (str): The name of the SQL script.
+        sql_file_path (str): The path to the SQL script file.
+
+    Returns:
+        None
+    """
+
+    lib.core.execute_msm_sql_script(
+        session, sql_script=sql_script,
+        script_name=script_name, sql_file_path=sql_file_path)

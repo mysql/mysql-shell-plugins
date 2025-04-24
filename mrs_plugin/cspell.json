@@ -79,6 +79,8 @@
         "timedelta",
         "fromisoformat",
         "TIMESTAMPADD",
-        "mypy"
+        "mypy",
+        "mysqlai",
+        "LONGTEXT"
     ]
 }

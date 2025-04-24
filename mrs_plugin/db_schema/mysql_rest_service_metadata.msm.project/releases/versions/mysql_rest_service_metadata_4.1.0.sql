@@ -51,6 +51,8 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,'
 CREATE SCHEMA IF NOT EXISTS `mysql_rest_service_metadata`
     DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
+USE `mysql_rest_service_metadata`;
+
 -- #############################################################################
 -- MSM Section 120: Database Schema Version Creation Indication
 -- -----------------------------------------------------------------------------

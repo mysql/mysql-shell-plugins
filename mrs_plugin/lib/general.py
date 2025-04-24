@@ -184,6 +184,23 @@ def configure(session=None, enable_mrs: bool = None, options: str = None,
                 version=version)
 
             schema_changed = not ("No changes" in info_msg)
+
+            # Check if the HeatWave default endpoints have already been deployed
+            if edition is not None and (
+                edition.lower() == "heatwave" or edition.lower() == "mysqlai"):
+                    res = session.run_sql("""
+                        SELECT COUNT(*) > 0 AS has_default_endpoints
+                        FROM mysql_rest_service_metadata.service
+                        WHERE url_context_root = '/HeatWave/v1';""").fetch_one()
+                    if res and int(res[0]) == 0:
+                        # HeatWave default endpoints have not been deployed yet,
+                        # so deploy them now
+                        schema_management.execute_msm_sql_script(
+                            session=session,
+                            script_name="HeatWave Default Endpoints",
+                            sql_file_path=lib.core.script_path(
+                                "internal", "default_heatwave_endpoints",
+                                "heatwave_rest_service_1.0.0.sql"))
         else:
             schema_changed = False
             info_msg = (
