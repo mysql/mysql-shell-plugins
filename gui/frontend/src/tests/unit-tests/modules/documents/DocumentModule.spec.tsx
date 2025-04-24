@@ -48,8 +48,10 @@ import { webSession } from "../../../../supplement/WebSession.js";
 import { IExecutionContext, INewEditorRequest, type EditorLanguage } from "../../../../supplement/index.js";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
 import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
-import { getDbCredentials, ignoreSnapshotUuids, nextProcessTick, nextRunLoop,
-    setupShellForTests } from "../../test-helpers.js";
+import {
+    getDbCredentials, ignoreSnapshotUuids, nextProcessTick, nextRunLoop,
+    setupShellForTests,
+} from "../../test-helpers.js";
 
 /**
  * This test module exists to isolate the different calls to private methods in the super class.
@@ -96,7 +98,7 @@ describe("Document module tests", (): void => {
     let connectionId: number;
 
     const credentials = getDbCredentials();
-    const dataModel = new ConnectionDataModel();
+    const dataModel = new ConnectionDataModel(false);
 
     const options: IMySQLConnectionOptions = {
         scheme: MySQLConnectionScheme.MySQL,
@@ -307,6 +309,7 @@ describe("Document module tests", (): void => {
         const webSessionData: IWebSessionData = {
             requestState: { msg: "test message" },
             localUserMode: true,
+            singleServerMode: false,
             activeProfile: profile,
         };
 
@@ -403,12 +406,14 @@ describe("Document module tests", (): void => {
 Execute "\\sql" to switch to SQL mode, "\\ts" to switch to TypeScript mode.
 
 GLOBAL FUNCTIONS
-    - \`print(value: any): void\`
+    - \`print(value)\`
       Send a value to the output area.
-    - \`runSql(code: string, callback?: (res: IResultSetRow[]) => void), params?: unknown): void\`
-      Run the given query.
-    - \`function runSqlIterative(code: string, callback?: (res: IResultSetData) => void, params?: unknown): void\`
-      Run the given query and process the rows iteratively.
+    - \`async runSql(code, params?), params?)\`
+      Run the given query and wait for the returned promise to resolve when done.
+    - \`runSqlWithCallback(sql, callback?, params?)\`
+      Run the query and process the rows in the given callback, once all are received.
+    - \`runSqlIterative(sql: string, callback?: (res: unknown) => void, params?: unknown): void\`
+      Run the given query and process the rows iteratively as they arrive.
 `;
 
         const expectedHelpTypeScript = `The DB Notebook's interactive prompt is currently running in TypeScript mode.
@@ -417,10 +422,12 @@ Execute "\\sql" to switch to SQL mode, "\\js" to switch to JavaScript mode.
 GLOBAL FUNCTIONS
     - \`print(value: unknown): void\`
       Send a value to the output area.
-    - \`runSql(code: string, callback?: (res: IResultSetRow[]) => void), params?: unknown[]): void\`
-      Run the given query.
-    - \`function runSqlIterative(code: string, callback?: (res: IResultSetData) => void, params?: unknown[]): void\`
-      Run the given query and process the rows iteratively.
+    - \`async runSql(code: string, params?: unknown), params?: unknown[]): Promise<unkown>\`
+      Run the given query and wait for the returned promise to resolve when done.
+    - \`runSqlWithCallback(sql: string, callback?: (res: unknown) => void, params?: unknown): void\`
+    Run the query and process the rows in the given callback, once all are received.
+    - \`runSqlIterative(sql: string, callback?: (res: unknown) => void, params?: unknown): void\`
+      Run the given query and process the rows iteratively as they arrive.
 `;
 
         const expectedHelpMySQL = `The DB Notebook's interactive prompt is currently running in SQL mode.
@@ -429,7 +436,8 @@ Execute "\\js" to switch to JavaScript mode, "\\ts" to switch to TypeScript mode
 Use ? as placeholders, provide values in comments.
 EXAMPLES
     SELECT * FROM user
-    WHERE name = ? /*=mike*/`;
+    WHERE name = ? /*=mike*/
+`;
 
         let result = instance.testHandleHelpCommand("test command", "javascript");
         expect(result).toBe(expectedHelpJavaScript);

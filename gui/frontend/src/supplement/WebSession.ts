@@ -30,6 +30,17 @@ import { Cookies } from "./Storage/Cookies.js";
 import { ui } from "../app-logic/UILayer.js";
 import { convertErrorToString } from "../utilities/helpers.js";
 
+/** Determines what conditions are used when running the app. The UI will change based on that.  */
+export enum RunMode {
+    /** This is the standard mode which requires a shell user login. */
+    Normal,
+
+    /** The app runs with a predefined local administrator account. This is only possible with local installations. */
+    LocalUser,
+
+    /** The app runs in a mode where it can only connect to a single MySQL server. */
+    SingleServer,
+}
 interface IWebSessionData {
     sessionId?: string;
     userId: number;
@@ -39,7 +50,8 @@ interface IWebSessionData {
 }
 
 class WebSession {
-    public localUserMode = false;
+    /** Which run mode is used for this session? */
+    public runMode = RunMode.Normal;
 
     private cookies = new Cookies();
     private shellProfile: IShellProfile = {
@@ -130,6 +142,14 @@ class WebSession {
             profileId: -1,
             userId: -1,
             moduleSessionId: {},
+        };
+
+        this.shellProfile = {
+            description: "",
+            id: -1,
+            name: "",
+            userId: -1,
+            options: {},
         };
     }
 

@@ -210,3 +210,6 @@ class HTTPWebSocketsHandler(SimpleHTTPRequestHandler):
 
     def log_message(self, format, *args):
         logger.debug(format % args, sensitive=self.is_local_session)
+
+    def get_cache(self):
+        return self.server.cache # type: ignore

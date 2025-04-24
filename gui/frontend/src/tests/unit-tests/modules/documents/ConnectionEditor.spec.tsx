@@ -64,7 +64,7 @@ describe("ConnectionEditor tests", (): void => {
     let folder: IFolderPath;
 
     const credentials = getDbCredentials();
-    const dataModel = new ConnectionDataModel();
+    const dataModel = new ConnectionDataModel(false);
 
     const options: IMySQLConnectionOptions = {
         scheme: MySQLConnectionScheme.MySQL,

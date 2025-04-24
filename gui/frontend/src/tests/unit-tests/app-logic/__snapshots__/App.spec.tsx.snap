@@ -177,6 +177,7 @@ exports[`Application tests Application readiness 1`] = `
                     }
                   >
                     <Input
+                      autoFocus={true}
                       id="loginUsername"
                       onChange={[Function]}
                       onConfirm={[Function]}

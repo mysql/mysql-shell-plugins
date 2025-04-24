@@ -237,6 +237,13 @@ export class OciDataModel {
         this.#subscribers.delete(subscriber);
     }
 
+    /** Empties the data model and resets it to uninitialized. */
+    public clear(): void {
+        this.#initialized = false;
+        this.#profiles.length = 0;
+        this.#compartmentCache.clear();
+    }
+
     /** Loads the list of profiles from the backend. */
     public async updateProfiles(): Promise<void> {
         const profiles = await this.#shellSession.mhs.getMdsConfigProfiles();

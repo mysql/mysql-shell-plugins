@@ -35,7 +35,7 @@ import { connectionDetailsMock1, webviewProviderMock1, webviewProviderMock2 } fr
 const dataModelChanged = jest.fn();
 
 describe("OpenDocumentDataModel", () => {
-    let dataModel = new OpenDocumentDataModel();
+    let dataModel = new OpenDocumentDataModel(false);
     dataModel.subscribe(dataModelChanged);
 
     beforeAll(() => {
@@ -190,7 +190,7 @@ describe("OpenDocumentDataModel", () => {
         expect(connections).toHaveLength(1);
         expect(connections[0].id).toBe(pageId);
 
-        dataModel = new OpenDocumentDataModel();
+        dataModel = new OpenDocumentDataModel(false);
 
         checkNoUiWarningsOrErrors();
     });

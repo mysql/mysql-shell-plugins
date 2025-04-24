@@ -30,7 +30,7 @@ import { CellComponent, ColumnDefinition, RowComponent } from "tabulator-tables"
 
 import { ui } from "../../../app-logic/UILayer.js";
 import { DbSystem, LoadBalancer } from "../../../communication/Oci.js";
-import { Accordion, IAccordionProperties } from "../../../components/ui/Accordion/Accordion.js";
+import { Accordion, IAccordionProperties, type IAccordionSection } from "../../../components/ui/Accordion/Accordion.js";
 import type { AccordionSection } from "../../../components/ui/Accordion/AccordionSection.js";
 import { Button } from "../../../components/ui/Button/Button.js";
 import { Codicon } from "../../../components/ui/Codicon.js";
@@ -59,6 +59,7 @@ import { BastionLifecycleState } from "../../../oci-typings/oci-bastion/lib/mode
 import { Assets } from "../../../supplement/Assets.js";
 import { appParameters, requisitions } from "../../../supplement/Requisitions.js";
 import { DBType } from "../../../supplement/ShellInterface/index.js";
+import { RunMode, webSession } from "../../../supplement/WebSession.js";
 import { EditorLanguage } from "../../../supplement/index.js";
 import { convertErrorToString, uuid } from "../../../utilities/helpers.js";
 import { EnabledState } from "../../mrs/mrs-helpers.js";
@@ -214,8 +215,14 @@ interface ISideBarTreeItems {
 interface IDocumentSideBarState extends IComponentState {
     treeItems: ISideBarTreeItems;
 
-    editing?: string;     // If editing an editor's caption is active then this field holds its id.
-    tempCaption?: string; // Keeps the new caption of an editor while it is being edited.
+    /** If editing an editor's caption is active then this field holds its id. */
+    editing?: string;
+
+    /** Keeps the new caption of an editor while it is being edited. */
+    tempCaption?: string;
+
+    /** Set when the default connection is being opened (in single server mode). */
+    defaultOpening: boolean;
 }
 
 export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, IDocumentSideBarState> {
@@ -271,7 +278,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     private connectionSectionRef = createRef<AccordionSection>();
     private ociSectionRef = createRef<AccordionSection>();
 
-    // > 0 if a data model refresh is running. In this case ignore all incomming data model changes
+    // > 0 if a data model refresh is running. In this case ignore all incoming data model changes
     // (we are the source of them in this case).
     private refreshRunning = 0;
 
@@ -284,6 +291,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 connectionTreeItems: [],
                 ociTreeItems: [],
             },
+            defaultOpening: false,
         };
 
         this.addHandledProperties("selectedEntry", "markedSchema", "savedSectionState", "onSelectConnectionItem",
@@ -300,10 +308,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             context.connectionsDataModel.subscribe(this.connectionDataModelChanged);
             context.documentDataModel.subscribe(this.documentDataModelChanged);
 
-            const [treeItems, changed] = this.updateRootTreeItems(context);
-            if (changed) {
-                this.setState({ treeItems });
-            }
+            this.updateTreesFromContext();
         }
     }
 
@@ -318,6 +323,28 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     }
 
     public override componentDidUpdate(prevProps: IDocumentSideBarProperties): void {
+        if (webSession.runMode === RunMode.SingleServer) {
+            const { defaultOpening } = this.state;
+            const context = this.context as DocumentContextType;
+            if (!defaultOpening && context) {
+                const firstConnection = context.connectionsDataModel.connections[0];
+                if (!context.documentDataModel.isOpen(firstConnection.details)) {
+                    setTimeout(() => {
+                        const row = this.connectionTableRef.current?.getRows()[0];
+                        if (row) {
+                            row.treeExpand();
+                        }
+                    }, 500);
+
+                    this.setState({ defaultOpening: true });
+                    this.openNewNotebook(firstConnection);
+
+                    // Do not update the trees yet. Instead wait for the new notebook to be opened.
+                    return;
+                }
+            }
+        }
+
         const { markedSchema, selectedOpenDocument } = this.props;
 
         // Check for data model changes and update our trees.
@@ -346,8 +373,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 rows?.forEach((row) => {
                     row.select();
                 });
-            } else {
-                // No selection or the overview was given, so select the overview.
+            } else if (treeItems.openDocumentTreeItems.length > 0) {
+                // No selection or the overview was given, so select the overview (if visible at all).
                 const item = treeItems.openDocumentTreeItems[0];
                 const rows = this.documentTableRef.current?.searchAllRows("id", item.id);
                 rows?.forEach((row) => {
@@ -373,117 +400,131 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
         const title = appParameters.embedded ? "MYSQL SHELL GUI" : "MYSQL SHELL WORKBENCH";
 
+        const accordionSections: IAccordionSection[] = [{
+            id: "documentSection",
+            caption: "OPEN EDITORS",
+            stretch: false,
+            minSize: 70,
+            maxSize: 400,
+            resizable: true,
+            expanded: documentSectionState.expanded,
+            initialSize: documentSectionState.size,
+            dimmed: editing != null,
+            actions: [
+                {
+                    icon: Codicon.NewFile,
+                    command: {
+                        command: "addConsole",
+                        tooltip: "Add new console",
+                        title: "Add new console",
+                    },
+                }],
+            content: this.renderDocumentsTree(context.documentDataModel.roots),
+        }];
+
+        const connectionSection: IAccordionSection = {
+            ref: this.connectionSectionRef,
+            id: "connectionSection",
+            caption: "DATABASE CONNECTIONS",
+            stretch: true,
+            expanded: connectionSectionState.expanded,
+            initialSize: connectionSectionState.size ?? 500,
+            resizable: true,
+            minSize: 100,
+            actions: [],
+            content: this.renderConnectionsTree(context.connectionsDataModel.connections),
+        };
+
+        accordionSections.push(connectionSection);
+
+        if (webSession.runMode === RunMode.SingleServer) {
+            connectionSection.actions!.push({
+                icon: Codicon.CollapseAll,
+                command: {
+                    command: "msg.collapseAll",
+                    tooltip: "Collapse Connection Node",
+                    title: "Collapse Connection Node",
+                },
+            });
+        } else {
+            connectionSection.actions!.push({
+                icon: Codicon.Add,
+                command: {
+                    command: "msg.addConnection",
+                    tooltip: "Create New DB Connection",
+                    title: "Create New DB Connection",
+                },
+            }, {
+                icon: Codicon.Refresh,
+                command: {
+                    command: "msg.refreshConnections",
+                    tooltip: "Refresh the Connection List",
+                    title: "Refresh the Connection List",
+                },
+            }, {
+                icon: Codicon.CollapseAll,
+                command: {
+                    command: "msg.collapseAll",
+                    tooltip: "Collapse All",
+                    title: "Collapse All",
+                },
+            });
+        }
+
+        if (webSession.runMode !== RunMode.SingleServer) {
+            accordionSections.push({
+                ref: this.ociSectionRef,
+                id: "ociSection",
+                caption: "ORACLE CLOUD INFRASTRUCTURE",
+                stretch: true,
+                expanded: ociSectionState.expanded,
+                initialSize: ociSectionState.size,
+                resizable: true,
+                minSize: 100,
+                content: this.renderOciTree(context.ociDataModel.profiles),
+                actions: [{
+                    icon: Codicon.Gear,
+                    command: {
+                        command: "msg.mds.configureOciProfiles",
+                        tooltip: "Configure the OCI Profile list",
+                        title: "Configure the OCI Profile list",
+                    },
+                },
+                {
+                    icon: Codicon.Refresh,
+                    command: {
+                        command: "msg.mds.refreshOciProfiles",
+                        tooltip: "Reload the OCI Profile list",
+                        title: "Reload the OCI Profile list",
+                    },
+                }],
+            });
+        }
+
         return (
             <>
                 <Accordion
                     id="documentSideBar"
                     caption={title}
-                    sections={[
-                        {
-                            id: "documentSection",
-                            caption: "OPEN EDITORS",
-                            stretch: false,
-                            minSize: 70,
-                            maxSize: 400,
-                            resizable: true,
-                            expanded: documentSectionState.expanded,
-                            initialSize: documentSectionState.size,
-                            dimmed: editing != null,
-                            actions: [
-                                {
-                                    icon: Codicon.NewFile,
-                                    command: {
-                                        command: "addConsole",
-                                        tooltip: "Add new console",
-                                        title: "Add new console",
-                                    },
-                                },
-                            ],
-                            content: this.renderDocumentsTree(context.documentDataModel.roots),
-                        },
-                        {
-                            ref: this.connectionSectionRef,
-                            id: "connectionSection",
-                            caption: "DATABASE CONNECTIONS",
-                            stretch: true,
-                            expanded: connectionSectionState.expanded,
-                            initialSize: connectionSectionState.size ?? 500,
-                            resizable: true,
-                            minSize: 100,
-                            actions: [{
-                                icon: Codicon.Add,
-                                command: {
-                                    command: "msg.addConnection",
-                                    tooltip: "Create New DB Connection",
-                                    title: "Create New DB Connection",
-                                },
-                            }, {
-                                icon: Codicon.Refresh,
-                                command: {
-                                    command: "msg.refreshConnections",
-                                    tooltip: "Refresh the Connection List",
-                                    title: "Refresh the Connection List",
-                                },
-                            }, {
-                                icon: Codicon.CollapseAll,
-                                command: {
-                                    command: "msg.collapseAll",
-                                    tooltip: "Collapse All",
-                                    title: "Collapse All",
-                                },
-                            }, {
-                                icon: Codicon.KebabVertical,
-                                tooltip: "More Actions",
-                                choices: [
-                                    {
-                                        icon: Codicon.Bug,
-                                        command: {
-                                            command: "msg.fileBugReport",
-                                            title: "File Bug Report",
-                                        },
-                                    },
-                                ],
-                            }],
-                            content: this.renderConnectionsTree(context.connectionsDataModel.connections),
-                        },
-                        {
-                            ref: this.ociSectionRef,
-                            id: "ociSection",
-                            caption: "ORACLE CLOUD INFRASTRUCTURE",
-                            stretch: true,
-                            expanded: ociSectionState.expanded,
-                            initialSize: ociSectionState.size,
-                            resizable: true,
-                            minSize: 100,
-                            content: this.renderOciTree(context.ociDataModel.profiles),
-                            actions: [{
-                                icon: Codicon.Gear,
-                                command: {
-                                    command: "msg.mds.configureOciProfiles",
-                                    tooltip: "Configure the OCI Profile list",
-                                    title: "Configure the OCI Profile list",
-                                },
+                    actions={[{
+                        icon: Codicon.KebabHorizontal,
+                        tooltip: "More Actions",
+                        choices: [{
+                            icon: Codicon.Account,
+                            command: {
+                                command: "msg.logOut",
+                                title: "Log Out",
                             },
-                            {
-                                icon: Codicon.Refresh,
-                                command: {
-                                    command: "msg.mds.refreshOciProfiles",
-                                    tooltip: "Reload the OCI Profile list",
-                                    title: "Reload the OCI Profile list",
-                                },
-                            }],
                         },
-                        /*{
-                            id: "shellTasksSection",
-                            caption: "MYSQL SHELL TASKS",
-                            stretch: true,
-                            expanded: shellTaskSectionState.expanded ?? false,
-                            initialSize: shellTaskSectionState.size,
-                            resizable: true,
-                            minSize: 100,
-                            content: this.renderShellTasksTree(),
-                        },*/
-                    ]}
+                        {
+                            icon: Codicon.Bug,
+                            command: {
+                                command: "msg.fileBugReport",
+                                title: "File Bug Report",
+                            },
+                        }],
+                    }]}
+                    sections={accordionSections}
 
                     onSectionAction={this.handleSectionAction}
                     onSectionExpand={this.handleSectionExpand}
@@ -500,6 +541,35 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     }
 
     private renderConnectionTreeContextMenus(): ComponentChild {
+        const optionalMenuItems: ComponentChild[] = [];
+        if (webSession.runMode !== RunMode.SingleServer) {
+            optionalMenuItems.push(
+                <MenuItem command={{ title: "Edit DB Connection", command: "msg.editConnection" }} />,
+                <MenuItem command={{ title: "Duplicate this DB Connection", command: "msg.duplicateConnection" }} />,
+                <MenuItem command={{ title: "Delete DB Connection...", command: "msg.removeConnection" }} />,
+                <MenuItem command={{ title: "-", command: "" }} disabled />,
+                <MenuItem
+                    id="showSystemSchemas"
+                    command={{
+                        title: "Show MySQL System Schemas", command: "msg.showSystemSchemasOnConnection",
+                    }}
+                    altCommand={{
+                        title: "Hide MySQL System Schemas", command: "msg.hideSystemSchemasOnConnection",
+                    }}
+                />,
+                <MenuItem command={{ title: "-", command: "" }} disabled />,
+                <MenuItem command={{ title: "Load SQL Script from Disk...", command: "msg.loadScriptFromDisk" }} />,
+                <MenuItem command={{ title: "Load Dump from Disk...", command: "msg.loadDumpFromDisk" }} disabled />,
+                <MenuItem command={{ title: "-", command: "" }} disabled />,
+                <MenuItem
+                    command={{
+                        title: "Open New MySQL Shell Console for this Connection",
+                        command: "msg.newSessionUsingConnection",
+                    }} />,
+                <MenuItem command={{ title: "-", command: "" }} disabled />,
+            );
+        }
+
         return (
             <>
                 <Menu
@@ -511,29 +581,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 >
                     <MenuItem command={{ title: "Open New Database Connection", command: "msg.openConnection" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Edit DB Connection", command: "msg.editConnection" }} />
-                    <MenuItem command={{ title: "Duplicate this DB Connection", command: "msg.duplicateConnection" }} />
-                    <MenuItem command={{ title: "Delete DB Connection...", command: "msg.removeConnection" }} />
-                    <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem
-                        id="showSystemSchemas"
-                        command={{
-                            title: "Show MySQL System Schemas", command: "msg.showSystemSchemasOnConnection",
-                        }}
-                        altCommand={{
-                            title: "Hide MySQL System Schemas", command: "msg.hideSystemSchemasOnConnection",
-                        }}
-                    />
-                    <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem command={{ title: "Load SQL Script from Disk...", command: "msg.loadScriptFromDisk" }} />
-                    <MenuItem command={{ title: "Load Dump from Disk...", command: "msg.loadDumpFromDisk" }} disabled />
-                    <MenuItem command={{ title: "-", command: "" }} disabled />
-                    <MenuItem
-                        command={{
-                            title: "Open New MySQL Shell Console for this Connection",
-                            command: "msg.newSessionUsingConnection",
-                        }} />
-                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    {optionalMenuItems}
                     <MenuItem
                         command={{ title: "Browse the MySQL REST Service Documentation", command: "msg.mrs.docs" }}
                     />
@@ -1421,7 +1469,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 }
 
                 if (data.dataModelEntry.details.enabled === EnabledState.PrivateOnly) {
-                    // Need a separate check for private items, as we have to show them dimmed regardl
+                    // Need a separate check for private items, as we have to show them dimmed regardless
                     // of the overlay they use.
                     dimEntry = true;
                 }
@@ -1510,16 +1558,12 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     data-tooltip="Open New Connection using Notebook"
                     imageOnly
                     onClick={() => {
-                        void requisitions.execute("openDocument", {
-                            connection: connection.details,
-                            documentDetails: {
-                                id: uuid(),
-                                type: OdmEntityType.Notebook,
-                                caption: connection.caption,
-                                language: "msg",
-                            },
-                            force: true,
-                        });
+                        const { onConnectionTreeCommand } = this.props;
+                        void onConnectionTreeCommand({
+                            title: "Open New Connection using Notebook",
+                            command: "msg.openConnection",
+                            arguments: ["notebook"],
+                        }, connection);
                     }}
                 >
                     <Icon src={Assets.db.runNotebookIcon} data-tooltip="inherit" />
@@ -1530,16 +1574,12 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     data-tooltip="Open New Connection using SQL Script"
                     imageOnly
                     onClick={() => {
-                        void requisitions.execute("openDocument", {
-                            connection: connection.details,
-                            documentDetails: {
-                                id: uuid(),
-                                type: OdmEntityType.Script,
-                                caption: "SQL Script",
-                                language: connection.details.dbType === DBType.MySQL ? "mysql" : "sql",
-                            },
-                            force: true,
-                        });
+                        const { onConnectionTreeCommand } = this.props;
+                        void onConnectionTreeCommand({
+                            title: "Open New Connection using Notebook",
+                            command: "msg.openConnection",
+                            arguments: ["script"],
+                        }, connection);
                     }}
                 >
                     <Icon src={Assets.db.runScriptIcon} data-tooltip="inherit" />
@@ -1609,6 +1649,32 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         return host;
     };
 
+    private openNewNotebook(entry: ConnectionDataModelEntry): void {
+        const connection = entry.connection;
+        void requisitions.execute("openDocument", {
+            connection: connection.details,
+            documentDetails: {
+                id: uuid(),
+                type: OdmEntityType.Notebook,
+                caption: connection.caption,
+                language: "msg",
+            },
+        });
+    }
+
+    private openNewScript(entry: ConnectionDataModelEntry): void {
+        const connection = entry.connection;
+        void requisitions.execute("openDocument", {
+            connection: connection.details,
+            documentDetails: {
+                id: uuid(),
+                type: OdmEntityType.Script,
+                caption: "SQL Script",
+                language: connection.details.dbType === DBType.MySQL ? "mysql" : "sql",
+            },
+        });
+    }
+
     private documentTreeCellFormatter = (cell: CellComponent): string | HTMLElement => {
         const data = cell.getData() as IDocumentTreeItem;
 
@@ -1666,8 +1732,10 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     imageOnly
                     onClick={() => {
                         void requisitions.execute("closeDocument",
-                            { connectionId: pageEntry.parent!.details.id, documentId: data.dataModelEntry.id,
-                                pageId: pageEntry.id });
+                            {
+                                connectionId: pageEntry.parent!.details.id, documentId: data.dataModelEntry.id,
+                                pageId: pageEntry.id,
+                            });
                     }}
                 >
                     <Icon src={Codicon.Close} data-tooltip="inherit" />

@@ -440,6 +440,7 @@ export interface IWebSessionData {
     requestState: { msg: string; };
     sessionUuid?: string;
     localUserMode: boolean;
+	singleServerMode: boolean;
     activeProfile: IShellProfile;
 }
 

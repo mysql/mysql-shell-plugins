@@ -85,8 +85,8 @@ describe("DBConnectionTab tests", (): void => {
     model.setValue(content);
 
     let launcher: MySQLShellLauncher;
-    const connectionsDataModel = new ConnectionDataModel(); // No need to initialize the data model.
-    const documentDataModel = new OpenDocumentDataModel();
+    const connectionsDataModel = new ConnectionDataModel(false); // No need to initialize the data model.
+    const documentDataModel = new OpenDocumentDataModel(false);
 
     const wp = new ExecutionWorkerPool();
     const eps: IEditorPersistentState = {
@@ -106,6 +106,7 @@ describe("DBConnectionTab tests", (): void => {
         documents: [],
         documentStates: [edState],
         mleEnabled: false,
+        isCloudInstance: false,
         activeEntry: "SQLEditor",
         graphData: {
             timestamp: new Date().getTime(),

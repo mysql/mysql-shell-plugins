@@ -657,6 +657,24 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
               }
             }
           >
+            <Container
+              className="actions"
+              crossAlignment="center"
+              mainAlignment="flex-end"
+              orientation="row"
+            >
+              <div
+                className="msg container fixedScrollbar actions"
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "flexWrap": undefined,
+                    "justifyContent": "flex-end",
+                  }
+                }
+              />
+            </Container>
             <SplitContainer
               className="accordionContent"
               onPaneResized={[Function]}
@@ -1426,13 +1444,14 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                       >
                         <Container
                           className="msg section expanded"
+                          crossAlignment="stretch"
                           id="schemaSection"
                           innerRef={
                             {
                               "current": <div
                                 class="msg container fixedScrollbar section expanded"
                                 id="schemaSection"
-                                style="flex-direction: column;"
+                                style="flex-direction: column; align-items: stretch;"
                               >
                                 <div
                                   class="msg container fixedScrollbar title"
@@ -1487,7 +1506,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                             id="schemaSection"
                             style={
                               {
-                                "alignItems": undefined,
+                                "alignItems": "stretch",
                                 "flexDirection": "column",
                                 "flexWrap": undefined,
                                 "justifyContent": undefined,
@@ -1715,13 +1734,14 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                       >
                         <Container
                           className="msg section expanded"
+                          crossAlignment="stretch"
                           id="historySection"
                           innerRef={
                             {
                               "current": <div
                                 class="msg container fixedScrollbar section expanded"
                                 id="historySection"
-                                style="flex-direction: column;"
+                                style="flex-direction: column; align-items: stretch;"
                               >
                                 <div
                                   class="msg container fixedScrollbar title"
@@ -1766,7 +1786,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                             id="historySection"
                             style={
                               {
-                                "alignItems": undefined,
+                                "alignItems": "stretch",
                                 "flexDirection": "column",
                                 "flexWrap": undefined,
                                 "justifyContent": undefined,
@@ -2004,13 +2024,14 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                       >
                         <Container
                           className="msg section expanded"
+                          crossAlignment="stretch"
                           id="tablesSection"
                           innerRef={
                             {
                               "current": <div
                                 class="msg container fixedScrollbar section expanded"
                                 id="tablesSection"
-                                style="flex-direction: column;"
+                                style="flex-direction: column; align-items: stretch;"
                               >
                                 <div
                                   class="msg container fixedScrollbar title"
@@ -2069,7 +2090,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                             id="tablesSection"
                             style={
                               {
-                                "alignItems": undefined,
+                                "alignItems": "stretch",
                                 "flexDirection": "column",
                                 "flexWrap": undefined,
                                 "justifyContent": undefined,
@@ -2267,13 +2288,14 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                       >
                         <Container
                           className="msg section expanded"
+                          crossAlignment="stretch"
                           id="docsSection"
                           innerRef={
                             {
                               "current": <div
                                 class="msg container fixedScrollbar section expanded"
                                 id="docsSection"
-                                style="flex-direction: column;"
+                                style="flex-direction: column; align-items: stretch;"
                               >
                                 <div
                                   class="msg container fixedScrollbar title"
@@ -2318,7 +2340,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                             id="docsSection"
                             style={
                               {
-                                "alignItems": undefined,
+                                "alignItems": "stretch",
                                 "flexDirection": "column",
                                 "flexWrap": undefined,
                                 "justifyContent": undefined,
@@ -2487,13 +2509,14 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                       >
                         <Container
                           className="msg section expanded"
+                          crossAlignment="stretch"
                           id="modelSection"
                           innerRef={
                             {
                               "current": <div
                                 class="msg container fixedScrollbar section expanded"
                                 id="modelSection"
-                                style="flex-direction: column;"
+                                style="flex-direction: column; align-items: stretch;"
                               >
                                 <div
                                   class="msg container fixedScrollbar title"
@@ -2559,7 +2582,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                             id="modelSection"
                             style={
                               {
-                                "alignItems": undefined,
+                                "alignItems": "stretch",
                                 "flexDirection": "column",
                                 "flexWrap": undefined,
                                 "justifyContent": undefined,
@@ -2818,13 +2841,14 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                       >
                         <Container
                           className="msg section"
+                          crossAlignment="stretch"
                           id="advancedModelSection"
                           innerRef={
                             {
                               "current": <div
                                 class="msg container fixedScrollbar section"
                                 id="advancedModelSection"
-                                style="flex-direction: column;"
+                                style="flex-direction: column; align-items: stretch;"
                               >
                                 <div
                                   class="msg container fixedScrollbar title"
@@ -2999,7 +3023,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                             id="advancedModelSection"
                             style={
                               {
-                                "alignItems": undefined,
+                                "alignItems": "stretch",
                                 "flexDirection": "column",
                                 "flexWrap": undefined,
                                 "justifyContent": undefined,
@@ -3508,13 +3532,14 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                       >
                         <Container
                           className="msg section"
+                          crossAlignment="stretch"
                           id="promptSection"
                           innerRef={
                             {
                               "current": <div
                                 class="msg container fixedScrollbar section"
                                 id="promptSection"
-                                style="flex-direction: column;"
+                                style="flex-direction: column; align-items: stretch;"
                               >
                                 <div
                                   class="msg container fixedScrollbar title"
@@ -3574,7 +3599,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                             id="promptSection"
                             style={
                               {
-                                "alignItems": undefined,
+                                "alignItems": "stretch",
                                 "flexDirection": "column",
                                 "flexWrap": undefined,
                                 "justifyContent": undefined,
@@ -3761,13 +3786,14 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                       >
                         <Container
                           className="msg section"
+                          crossAlignment="stretch"
                           id="languageSection"
                           innerRef={
                             {
                               "current": <div
                                 class="msg container fixedScrollbar section"
                                 id="languageSection"
-                                style="flex-direction: column;"
+                                style="flex-direction: column; align-items: stretch;"
                               >
                                 <div
                                   class="msg container fixedScrollbar title"
@@ -3870,7 +3896,7 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                             id="languageSection"
                             style={
                               {
-                                "alignItems": undefined,
+                                "alignItems": "stretch",
                                 "flexDirection": "column",
                                 "flexWrap": undefined,
                                 "justifyContent": undefined,

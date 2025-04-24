@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,10 +28,13 @@ import "./Accordion.css";
 import { ComponentChild, createRef, type RefObject } from "preact";
 
 import type { Command } from "../../../data-models/data-model-types.js";
+import { KeyboardKeys } from "../../../utilities/helpers.js";
 import { Codicon } from "../Codicon.js";
 import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
 import { Container, ContentAlignment, Orientation } from "../Container/Container.js";
+import { Icon } from "../Icon/Icon.js";
 import { Label } from "../Label/Label.js";
+import { MenuItem, type IMenuItemProperties } from "../Menu/MenuItem.js";
 import { ISplitterPane, ISplitterPaneSizeInfo, SplitContainer } from "../SplitContainer/SplitContainer.js";
 import { AccordionItem } from "./AccordionItem.js";
 import { AccordionSection, IAccordionSectionProperties } from "./AccordionSection.js";
@@ -109,6 +112,9 @@ export interface IAccordionProperties extends IComponentProperties {
     singleExpand?: boolean;
     sectionClosedSize?: number;
 
+    /** Icons shown in the title bar, beside the main caption. */
+    actions?: IAccordionAction[];
+
     sections: IAccordionSection[];
 
     onSectionExpand?: (props: IAccordionProperties, sectionId: string, expanded: boolean) => void;
@@ -129,12 +135,12 @@ export class Accordion extends ComponentBase<IAccordionProperties> {
     public constructor(props: IAccordionProperties) {
         super(props);
 
-        this.addHandledProperties("caption", "footer", "singleExpand", "sections", "onSectionExpand",
+        this.addHandledProperties("caption", "footer", "singleExpand", "sections", "actions", "onSectionExpand",
             "sectionClosedSize", "onSectionAction", "onSectionResize");
     }
 
     public render(): ComponentChild {
-        const { caption, footer, sections, sectionClosedSize } = this.props;
+        const { actions, caption, footer, sections, sectionClosedSize } = this.props;
 
         const className = this.getEffectiveClassNames(["accordion"]);
 
@@ -181,7 +187,53 @@ export class Accordion extends ComponentBase<IAccordionProperties> {
                 mainAlignment={ContentAlignment.Start}
                 {...this.unhandledProperties}
             >
-                {caption && <Label className="title">{caption}</Label>}
+                <Container
+                    className="actions"
+                    mainAlignment={ContentAlignment.End}
+                    crossAlignment={ContentAlignment.Center}
+                >
+                    {caption && <Label className="title">{caption}</Label>}
+                    {
+                        actions?.map((action: IAccordionAction, index) => {
+                            if (!action.choices) {
+                                return <Icon
+                                    src={action.icon}
+                                    id={action.command?.command ?? String(index)}
+                                    key={String(index)}
+                                    className="accordionAction"
+                                    data-tooltip={action.command?.tooltip}
+                                    tabIndex={0}
+                                    onKeyPress={this.handleActionKeyPress.bind(this, action.command)}
+                                    onClick={this.handleActionClick.bind(this, action.command)}
+                                />;
+                            } else {
+                                return (
+                                    <MenuItem // Render a menu item here, not a menu (to an icon).
+                                        key={String(index)}
+                                        command={{ title: "", command: "" }}
+                                        icon={action.icon}
+                                        data-tooltip={action.tooltip}
+                                        subMenuShowOnClick={true}
+                                        onSubMenuOpen={this.handleActionMenuOpen}
+                                        onSubMenuClose={this.handleActionMenuClose}
+                                        onItemClick={this.handleActionMenuClick}
+                                    >
+                                        {
+                                            action.choices?.map((value: IAccordionActionChoice) => {
+                                                return <MenuItem
+                                                    key={value.command.command}
+                                                    command={value.command}
+                                                    icon={value.icon}
+                                                />;
+                                            })
+                                        }
+                                    </MenuItem>
+                                );
+                            }
+                        })
+                    }
+                </Container>
+
                 <SplitContainer
                     ref={this.containerRef}
                     className="accordionContent"
@@ -221,5 +273,44 @@ export class Accordion extends ComponentBase<IAccordionProperties> {
         const { onSectionResize } = this.props;
 
         onSectionResize?.(this.props, info);
+    };
+
+    private handleActionClick = (command: Command | undefined, e: MouseEvent | KeyboardEvent): void => {
+        e.stopPropagation();
+
+        const { onSectionAction } = this.props;
+        onSectionAction?.(command);
+    };
+
+    private handleActionKeyPress = (command: Command | undefined, e: KeyboardEvent): void => {
+        if (e.key === KeyboardKeys.Space || e.key === KeyboardKeys.Enter) {
+            e.stopPropagation();
+
+            const { onSectionAction } = this.props;
+            onSectionAction?.(command);
+        }
+    };
+
+    private handleActionMenuClick = (props: Readonly<IMenuItemProperties>): void => {
+        const { onSectionAction } = this.props;
+
+        onSectionAction?.(props.command);
+    };
+
+    private handleActionMenuOpen = (): void => {
+        /*
+        // Clicking on a sub menu item removes the focus from the section title with the actions from which the menu
+        // was triggered. This in turn hides the action bar (because this is how actions work).
+        // Without that item the submenu has no anchor anymore and moves to the top/left corner.
+        // We use a dedicated CSS class to prevent this behavior when the submenu is visible.
+        if (this.sectionRef?.current) {
+            this.sectionRef.current.classList.add("nohide");
+        }*/
+    };
+
+    private handleActionMenuClose = (): void => {
+        /*if (this.sectionRef?.current) {
+            this.sectionRef.current.classList.remove("nohide");
+        }*/
     };
 }

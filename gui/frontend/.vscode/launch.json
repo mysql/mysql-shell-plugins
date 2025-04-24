@@ -38,13 +38,13 @@
             "type": "chrome",
             "request": "launch",
             "name": "Launch MSG on Chrome - Single Server",
-            "url": "https://localhost:3001",
+            "url": "http://localhost:3001",
             "webRoot": "${workspaceFolder}/src",
             "userDataDir": "${workspaceRoot}/.vscode/chrome",
             "sourceMaps": true,
-            "sourceMapPathOverrides": {},
             "runtimeArgs": [
-                "--allow-insecure-localhost"
+                "--allow-insecure-localhost",
+                //"--app=data:,"
             ]
         },
         {

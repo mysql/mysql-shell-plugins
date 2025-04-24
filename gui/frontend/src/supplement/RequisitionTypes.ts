@@ -412,6 +412,7 @@ export interface IRequestTypeMap {
     "socketStateChanged": (connected: boolean) => Promise<boolean>;
     "webSessionStarted": (data: IWebSessionData) => Promise<boolean>;
     "userAuthenticated": (activeProfile: IShellProfile) => Promise<boolean>;
+    "userLoggedOut": SimpleCallback;
 
     "profileLoaded": SimpleCallback;
     "changeProfile": (id: string | number) => Promise<boolean>;
@@ -495,7 +496,7 @@ export interface IRequestTypeMap {
     "editorLoadNotebook": (details?: { content: string, standalone: boolean; }) => Promise<boolean>;
 
     /** Sent when a document is to be closed. */
-    "closeDocument": (details: { connectionId?: number; documentId: string; pageId?: string }) => Promise<boolean>;
+    "closeDocument": (details: { connectionId?: number; documentId: string; pageId?: string; }) => Promise<boolean>;
 
     /** Triggered when an execution context changes its loading state (pending, loading, waiting, idle). */
     "editorContextStateChanged": (id: string) => Promise<boolean>;
@@ -560,8 +561,10 @@ export interface IRequestTypeMap {
     "showAbout": SimpleCallback;
     "showThemeEditor": SimpleCallback;
     "showPreferences": SimpleCallback;
-    "showPage": (data: { connectionId?: number; editor?: InitialEditor; suppressAbout?: boolean;
-        pageId?: string; }) => Promise<boolean>;
+    "showPage": (data: {
+        connectionId?: number; editor?: InitialEditor; suppressAbout?: boolean;
+        pageId?: string;
+    }) => Promise<boolean>;
 
     "openDocument": (data: IDocumentOpenData) => Promise<boolean>;
 

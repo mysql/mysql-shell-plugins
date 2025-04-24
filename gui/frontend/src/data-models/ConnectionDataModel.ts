@@ -34,8 +34,8 @@ import { EnabledState } from "../modules/mrs/mrs-helpers.js";
 import { requisitions } from "../supplement/Requisitions.js";
 import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { type IConnectionDetails } from "../supplement/ShellInterface/index.js";
-import { webSession } from "../supplement/WebSession.js";
+import { DBType, type IConnectionDetails } from "../supplement/ShellInterface/index.js";
+import { RunMode, webSession } from "../supplement/WebSession.js";
 import { convertErrorToString, uuid } from "../utilities/helpers.js";
 import { compareVersionStrings, formatBytes } from "../utilities/string-helpers.js";
 import { ConnectionEntryImpl } from "./ConnectionEntryImpl.js";
@@ -138,7 +138,7 @@ export enum CdmEntityType {
     /** An auth app in MRS. */
     MrsAuthApp,
 
-    /** The group holding all MRS service refences listed to a specific auth app entry. */
+    /** The group holding all MRS service references listed to a specific auth app entry. */
     MrsAuthAppServiceGroup,
 
     /** A reference to an MRS service which is listed under an auth app entry. */
@@ -625,10 +625,11 @@ export class ConnectionDataModel implements ICdmUpdater {
     /**
      * Creates a new instance of the connection data model.
      *
+     * @param singleServerMode Set to true if the data model should only create a temporary connection to the server.
      * @param refreshTime The time in milliseconds to wait between refreshing the MRS routers, when auto refresh
      *                    is enabled.
      */
-    public constructor(refreshTime = 10000) {
+    public constructor(private singleServerMode: boolean, refreshTime = 10000) {
         this.routerRefreshTime = refreshTime;
     }
 
@@ -685,6 +686,18 @@ export class ConnectionDataModel implements ICdmUpdater {
      */
     public unsubscribe(subscriber: DataModelSubscriber<ConnectionDataModelEntry>): void {
         this.subscribers.delete(subscriber);
+    }
+
+    /** Empties the data model and resets it to uninitialized. */
+    public clear(): void {
+        this.connections.forEach((e) => {
+            if (e.isOpen) {
+                void e.close();
+            }
+        });
+        this.connections.length = 0;
+        this.#initialized = false;
+        this.notifySubscribers([{ action: "clear" }]);
     }
 
     /**
@@ -1009,7 +1022,7 @@ export class ConnectionDataModel implements ICdmUpdater {
      * @returns The new connection entry.
      */
     public createConnectionEntry(details: IConnectionDetails): ICdmConnectionEntry {
-        return new ConnectionEntryImpl(details.caption, details, this);
+        return new ConnectionEntryImpl(details.caption, details, this, webSession.runMode !== RunMode.SingleServer);
     }
 
     /**
@@ -1096,6 +1109,24 @@ export class ConnectionDataModel implements ICdmUpdater {
             this.#initialized = false;
             this.connections.length = 0;
             actions.push({ action: "clear" });
+        } else if (this.singleServerMode) {
+            if (this.connections.length === 0) {
+                // In single server mode we only have one connection, with no details.
+                // The back will ignore the values and open a connection to a server, configure in the
+                // startup details.
+                const details: IConnectionDetails = {
+                    id: 0,
+                    dbType: DBType.MySQL,
+                    caption: "MySQL AI Server",
+                    description: "",
+                    options: {},
+                };
+
+                const connection = new ConnectionEntryImpl(details.caption, details, this,
+                    webSession.runMode !== RunMode.SingleServer);
+                this.connections.push(connection);
+                actions.push({ action: "add", entry: connection });
+            }
         } else {
             try {
                 const detailList = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId);
@@ -1112,7 +1143,8 @@ export class ConnectionDataModel implements ICdmUpdater {
                             // as new entries in our current list.
                             for (let i = 0; i < right; ++i) {
                                 const details = detailList[i];
-                                const connection = new ConnectionEntryImpl(details.caption, details, this);
+                                const connection = new ConnectionEntryImpl(details.caption, details, this,
+                                    webSession.runMode !== RunMode.SingleServer);
                                 this.connections.splice(left, 0, connection);
                             }
 
@@ -1151,7 +1183,8 @@ export class ConnectionDataModel implements ICdmUpdater {
                     ++left;
 
                     const details = detailList.shift()!;
-                    const connection = new ConnectionEntryImpl(details.caption, details, this);
+                    const connection = new ConnectionEntryImpl(details.caption, details, this,
+                        webSession.runMode !== RunMode.SingleServer);
                     this.connections.push(connection);
                     actions.push({ action: "add", entry: connection });
                 }

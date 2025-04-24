@@ -380,6 +380,18 @@ export const registerSettings = (): void => {
                 ["SQL", "sql", "Supported in all code editors"],
             ],
         });
+    registerSetting( // Will be optionally hidden in the settings editor.
+        "dbEditor.defaultEditor",
+        "Default Editor",
+        "Select the type of the first editor when opening a DB connection.",
+        "choice", "notebook", false,
+        {
+            choices: [
+                ["DB Notebook", "notebook", "A multi-language editor with embedded results"],
+                ["MySQL Script", "script", "A single-language script editor (MySQL)"],
+            ],
+        });
+
     registerSetting(
         "dbEditor.useMinimap",
         "Use the minimap if globally enabled",

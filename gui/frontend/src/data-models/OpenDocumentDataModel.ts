@@ -256,7 +256,7 @@ export class OpenDocumentDataModel {
     #appProviders = new Map<IWebviewProvider, IOdmAppProviderEntry>();
     #subscribers = new Set<DataModelSubscriber<OpenDocumentDataModelEntry>>();
 
-    public constructor() {
+    public constructor(private singleServerMode: boolean) {
         this.#defaultProvider = this.createAppProviderEntry("MySQL Shell") as IOdmAppDefaultProviderEntry;
     }
 
@@ -282,18 +282,18 @@ export class OpenDocumentDataModel {
             return [...this.#appProviders.values()];
         }
 
-        if (this.#defaultProvider.shellSessionRoot.sessions.length === 0) {
-            return [
-                this.#defaultProvider.connectionOverview,
-                ...this.#defaultProvider.connectionPages,
-                ...this.#defaultProvider.documentPages];
+        const roots: OpenDocumentDataModelEntry[] = [];
+        if (!this.singleServerMode) {
+            roots.push(this.#defaultProvider.connectionOverview);
         }
 
-        return [
-            this.#defaultProvider.connectionOverview,
-            ...this.#defaultProvider.connectionPages,
-            ...this.#defaultProvider.documentPages,
-            this.#defaultProvider.shellSessionRoot];
+        roots.push(...this.#defaultProvider.connectionPages, ...this.#defaultProvider.documentPages);
+
+        if (this.#defaultProvider.shellSessionRoot.sessions.length > 0) {
+            roots.push(this.#defaultProvider.shellSessionRoot);
+        }
+
+        return roots;
     }
 
     public get overview(): IOdmConnectionOverviewEntry {
@@ -316,6 +316,13 @@ export class OpenDocumentDataModel {
      */
     public unsubscribe(subscriber: DataModelSubscriber<OpenDocumentDataModelEntry>): void {
         this.#subscribers.delete(subscriber);
+    }
+
+    /** Empties the data model and resets it to uninitialized. */
+    public clear(): void {
+        this.#appProviders.clear();
+        this.#defaultProvider = this.createAppProviderEntry("MySQL Shell") as IOdmAppDefaultProviderEntry;
+        this.notifySubscribers([{ action: "clear" }]);
     }
 
     /**
@@ -651,14 +658,14 @@ export class OpenDocumentDataModel {
             } else {
                 const editorIndex = page.documents.findIndex((item) => {
                     return item.id === data.id;
-            });
+                });
 
-            // Ignore the editor if it is not found.
-            if (editorIndex !== -1) {
-                const removed = page.documents.splice(editorIndex, 1);
-                actions.push({ action: "remove", entry: removed[0] });
+                // Ignore the editor if it is not found.
+                if (editorIndex !== -1) {
+                    const removed = page.documents.splice(editorIndex, 1);
+                    actions.push({ action: "remove", entry: removed[0] });
+                }
             }
-        }
 
             // Remove the connection if it has no documents left.
             if (page.documents.length === 0) {

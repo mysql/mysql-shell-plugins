@@ -65,10 +65,11 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
 
     #currentSchema: string = "";
 
-    public constructor(name: string, details: IConnectionDetails, initializer: ICdmUpdater) {
+    public constructor(name: string, details: IConnectionDetails, updater: ICdmUpdater,
+        private showLakehouseNavigator: boolean) {
         this.caption = name;
         this.details = details;
-        this.updater = initializer;
+        this.updater = updater;
     }
 
     public get connection(): ICdmConnectionEntry {
@@ -163,7 +164,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
     }
 
     public async duplicate(): Promise<ICdmConnectionEntry> {
-        const newEntry = new ConnectionEntryImpl(this.caption, this.details, this.updater);
+        const newEntry = new ConnectionEntryImpl(this.caption, this.details, this.updater, this.showLakehouseNavigator);
         await newEntry.initialize();
 
         return newEntry;
@@ -401,6 +402,8 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         } else {
             this.mrsEntry = undefined;
         }
+
+        callback?.("");
     }
 
     /**
@@ -480,30 +483,34 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         };
         performanceDashboardCommand.arguments.push(performanceDashboardPage);
 
-        const lakehouseNavigatorCommand = {
-            title: "Show Lakehouse Navigator",
-            command: "msg.showLakehouseNavigator",
-            arguments: [undefined, "Lakehouse Navigator"] as unknown[],
-        };
+        parent.pages.push(serverStatusPage, clientConnectionsPage, performanceDashboardPage);
 
-        const lakehouseNavigatorPage: ICdmAdminPageEntry = {
-            parent,
-            id: uuid(),
-            type: CdmEntityType.AdminPage,
-            state: {
-                isLeaf: true,
-                initialized: true,
-                expanded: true,
-                expandedOnce: true,
-            },
-            caption: "Lakehouse Navigator",
-            pageType: "lakehouseNavigator",
-            command: lakehouseNavigatorCommand,
-            connection: parent.parent,
-            getChildren: () => { return []; },
-        };
-        lakehouseNavigatorCommand.arguments.push(lakehouseNavigatorPage);
+        if (this.showLakehouseNavigator) {
+            const lakehouseNavigatorCommand = {
+                title: "Show Lakehouse Navigator",
+                command: "msg.showLakehouseNavigator",
+                arguments: [undefined, "Lakehouse Navigator"] as unknown[],
+            };
 
-        parent.pages.push(serverStatusPage, clientConnectionsPage, performanceDashboardPage, lakehouseNavigatorPage);
+            const lakehouseNavigatorPage: ICdmAdminPageEntry = {
+                parent,
+                id: uuid(),
+                type: CdmEntityType.AdminPage,
+                state: {
+                    isLeaf: true,
+                    initialized: true,
+                    expanded: true,
+                    expandedOnce: true,
+                },
+                caption: "Lakehouse Navigator",
+                pageType: "lakehouseNavigator",
+                command: lakehouseNavigatorCommand,
+                connection: parent.parent,
+                getChildren: () => { return []; },
+            };
+            lakehouseNavigatorCommand.arguments.push(lakehouseNavigatorPage);
+
+            parent.pages.push(lakehouseNavigatorPage);
+        }
     }
 }

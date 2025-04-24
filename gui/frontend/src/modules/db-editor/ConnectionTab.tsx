@@ -62,6 +62,7 @@ import {
 } from "../../supplement/RequisitionTypes.js";
 import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
+import { RunMode, webSession } from "../../supplement/WebSession.js";
 import {
     EditorLanguage, IScriptRequest, ISqlPageRequest, convertRows, generateColumnInfo,
     getColumnsMetadataForEmptyResultSet,
@@ -2058,11 +2059,12 @@ Execute \\help or \\? for help;`;
             const temp = parts[0].toLowerCase();
             switch (temp) {
                 case "\\about": {
-                    if (savedState.heatWaveEnabled) {
+                    if (webSession.runMode === RunMode.SingleServer) {
                         await context?.addResultData({
-                            type: "about",
-                            title: "HeatWave Chat",
+                            type: "about", title: "MySQL AI", info: "Machine Learning and GenAI Solution",
                         }, { resultId: "" });
+                    } else if (savedState.heatWaveEnabled) {
+                        await context?.addResultData({ type: "about", title: "HeatWave Chat" }, { resultId: "" });
                     } else {
                         const isMac = navigator.userAgent.includes("Macintosh");
                         const content = ConnectionTab.aboutMessage.replace("%modifier%", isMac ? "Cmd" : "Ctrl");

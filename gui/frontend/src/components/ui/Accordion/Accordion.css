@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -40,14 +40,16 @@
 }
 
 .msg.accordion .title {
+    height: 35px;
     font-size: 0.75rem;
-    padding: 5px 5px 5px 20px;
+    padding: 13px 5px 5px 18px;
 
     color: var(--sideBarTitle-foreground);
     background-color: var(--sideBarTitle-background);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-right: auto;
 }
 
 .msg.accordion .section > .title {
@@ -80,6 +82,7 @@
 .msg.accordion .splitHost > .section > .title {
     flex: 0 0 22px;
     padding: 0 3px;
+    width: 100%;
     cursor: pointer;
     vertical-align: middle;
 
