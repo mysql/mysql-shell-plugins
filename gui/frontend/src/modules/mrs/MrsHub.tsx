@@ -139,7 +139,7 @@ export class MrsHub extends ComponentBase {
         try {
             const backend = connection.backend;
 
-            const statusBarItem = ui.createStatusBarItem();
+            let statusBarItem = ui.createStatusBarItem();
             let dialogRequest;
             let status;
             try {
@@ -181,13 +181,19 @@ export class MrsHub extends ComponentBase {
 
             const data = result as IMrsConfigurationDialogData;
 
-            if (!status.serviceConfigured) {
-                // If the metadata schema is not configured yet, configure it
-                await backend.mrs.configure(data.enabled, true, undefined, data.version);
-            } else {
-                // If the metadata schema is configured, update the config and perform updates if requested
-                await backend.mrs.configure(data.enabled, data.performUpdate ?? false, JSON.stringify(data.options),
-                    data.version);
+            statusBarItem = ui.createStatusBarItem();
+            try {
+                statusBarItem.text = "$(loading~spin) Configuring MRS ...";
+                if (!status.serviceConfigured) {
+                    // If the metadata schema is not configured yet, configure it
+                    await backend.mrs.configure(data.enabled, true, undefined, data.version);
+                } else {
+                    // If the metadata schema is configured, update the config and perform updates if requested
+                    await backend.mrs.configure(data.enabled, data.performUpdate ?? false, JSON.stringify(data.options),
+                        data.version);
+                }
+            } finally {
+                statusBarItem.dispose();
             }
 
             // If admin username and password have been specified, create MRS Auth App and user

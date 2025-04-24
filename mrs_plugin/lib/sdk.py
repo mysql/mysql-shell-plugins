@@ -120,6 +120,8 @@ def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=Fal
     sdk_data = lib.services.get_service_sdk_data(
         session, service.get("id"), binary_formatter=binary_formatter
     )
+    if sdk_data is None:
+        return ""
 
     # Process Template String
     code = substitute_service_in_template(
@@ -707,6 +709,9 @@ def substitute_objects_in_template(
 
 
 def get_datatype_mapping(db_datatype, sdk_language):
+    if db_datatype is None:
+        db_datatype = "text"
+
     db_datatype = db_datatype.lower()
     if sdk_language == "TypeScript":
         if db_datatype.startswith(("tinyint(1)", "bit(1)")):

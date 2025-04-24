@@ -496,11 +496,22 @@ def crud_mapping(crud_operations):
 
 def get_sdk_service_data(session, service_id, binary_formatter=None):
     sql = """
-        CALL `mysql_rest_service_metadata`.`sdk_service_data`(?)
+        SELECT COUNT(*) > 0 AS available
+        FROM information_schema.routines
+        WHERE routine_name = 'sdk_service_data'
+            AND routine_type = 'PROCEDURE'
+            AND routine_schema = 'mysql_rest_service_metadata'
     """
 
-    return (
-        core.MrsDbExec(sql, binary_formatter=binary_formatter)
-        .exec(session, [service_id])
-        .first
-    )
+    if core.MrsDbExec(sql).exec(session).first["available"]:
+        sql = """
+            CALL `mysql_rest_service_metadata`.`sdk_service_data`(?)
+        """
+
+        return (
+            core.MrsDbExec(sql, binary_formatter=binary_formatter)
+            .exec(session, [service_id])
+            .first
+        )
+    else:
+        return None

@@ -119,6 +119,11 @@ export class MrsConfigurationDialog extends AwaitableValueEditDialog {
             const showUpdateSelection = !request.parameters?.init && !request.parameters?.isCloudInstance
                 && status.serviceUpgradeable;
 
+            // Ensure that the version is actually in the list of available versions.
+            if (!versions.includes(values.version)) {
+                versions.push(values.version);
+            }
+
             const mainSection: IDialogSection = {
                 caption: request.title,
                 values: {

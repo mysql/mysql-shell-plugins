@@ -293,6 +293,8 @@ Execute \\help or \\? for help;`;
     // that doesn't work in this component.
     private documentDataModel: OpenDocumentDataModel | undefined;
 
+    private mrsSdkUpdateRequired: boolean = false;
+
     public constructor(props: IConnectionTabProperties) {
         super(props);
 
@@ -1086,6 +1088,7 @@ Execute \\help or \\? for help;`;
         let errorCount = 0;
         const startTime = Date.now();
         let jsStartLine = 0;
+        this.mrsSdkUpdateRequired = false;
 
         if (options.source) {
             const sql = (await context.getStatementAtPosition(options.source))?.text;
@@ -1133,6 +1136,14 @@ Execute \\help or \\? for help;`;
                     } // Else ignore the error and continue.
                 }
             }
+        }
+
+        if (this.mrsSdkUpdateRequired) {
+            // Enforce a refresh of the MRS Sdk Cache
+            this.cachedMrsServiceSdk.schemaMetadataVersion = undefined;
+            void this.updateMrsServiceSdkCache().then(() => {
+                void requisitions.executeRemote("refreshConnection", undefined);
+            });
         }
 
         // If MLE is enabled, collect all stack trace, console.log() output and all errors.
@@ -1847,11 +1858,7 @@ Execute \\help or \\? for help;`;
 
             case QueryType.RestUse:
             case QueryType.Rest: {
-                // Enforce a refresh of the MRS Sdk Cache
-                this.cachedMrsServiceSdk.schemaMetadataVersion = undefined;
-                void this.updateMrsServiceSdkCache().then(() => {
-                    void requisitions.executeRemote("refreshConnection", undefined);
-                });
+                this.mrsSdkUpdateRequired = true;
 
                 break;
             }
@@ -1969,9 +1976,9 @@ Execute \\help or \\? for help;`;
                             }
                         }
 
-                        code += this.cachedMrsServiceSdk.baseClasses + "\n" +
-                            await connection.backend.mrs.getSdkServiceClasses(
-                                serviceMetadata.id, "TypeScript", true, this.cachedMrsServiceSdk.serviceUrl);
+                        const serviceCode = await connection.backend.mrs.getSdkServiceClasses(
+                            serviceMetadata.id, "TypeScript", true, this.cachedMrsServiceSdk.serviceUrl);
+                        code += this.cachedMrsServiceSdk.baseClasses + "\n" + serviceCode;
 
                         // Update this.cachedMrsServiceSdk
                         this.cachedMrsServiceSdk.code = code;
@@ -1984,10 +1991,13 @@ Execute \\help or \\? for help;`;
                         this.scriptRef.current?.addOrUpdateExtraLib(
                             this.cachedMrsServiceSdk.code, `mrsServiceSdk.d.ts`);
 
-                        const action = firstLoad ? "loaded" : ("refreshed (v" + String(libVersionNotebook) + ")");
-                        const authInfo = authenticated ? " User authenticated." : "";
-                        void ui.setStatusBarMessage(`MRS SDK for ${serviceMetadata.hostCtx} has been ` +
-                            `${action}.${authInfo}`);
+                        if (serviceCode !== "") {
+                            const action = firstLoad
+                                ? "loaded" : ("refreshed (v" + String(libVersionNotebook) + ")");
+                            const authInfo = authenticated ? " User authenticated." : "";
+                            void ui.setStatusBarMessage(`MRS SDK for ${serviceMetadata.hostCtx} has been ` +
+                                `${action}.${authInfo}`);
+                        }
                     }
                     statusBarItem.dispose();
                 } else if (serviceMetadata.metadataVersion !== undefined) {
