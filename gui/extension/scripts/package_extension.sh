@@ -227,6 +227,12 @@ for d in packaging/mysql-shell/*; do
         fi
         strip_oci_package $OCIPATH
 
+        echo "Wipe out bundled plugins"
+        rm -Rf shell/lib/mysqlsh/plugins/gui_plugin
+        rm -Rf shell/lib/mysqlsh/plugins/mds_plugin
+        rm -Rf shell/lib/mysqlsh/plugins/mrs_plugin
+        rm -Rf shell/lib/mysqlsh/plugins/msm_plugin
+
         echo "Copy plugins"
         cp -RL $HOME/.mysqlsh/plugins/gui_plugin shell/lib/mysqlsh/plugins/.
         cp -RL $HOME/.mysqlsh/plugins/mds_plugin shell/lib/mysqlsh/plugins/.

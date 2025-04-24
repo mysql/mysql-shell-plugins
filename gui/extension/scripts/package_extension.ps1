@@ -103,20 +103,29 @@ Copy-Item -Path $(Join-Path $routerLocation "bin") -Destination $(Join-Path $ext
 Copy-Item -Path $(Join-Path $routerLocation "lib") -Destination $(Join-Path $extensionFolder "router" "lib") -Recurse
 Write-host "DONE"
 
+$mrs_plugin_path = Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "mrs_plugin"
+$mds_plugin_path = Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "mds_plugin"
+$msm_plugin_path = Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "msm_plugin"
+$gui_plugin_path = Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin"
+
 Write-host "Adding MRS plugin..." -NoNewLine
-Copy-Item -Path $(Join-Path $shellPluginsFolder "mrs_plugin") -Destination $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "mrs_plugin") -Recurse
+Remove-Item -Path $mrs_plugin_path -Recurse -Force -ErrorAction SilentlyContinue
+Copy-Item -Path $(Join-Path $shellPluginsFolder "mrs_plugin") -Destination $mrs_plugin_path -Recurse
 Write-host "DONE"
 
 Write-host "Adding MDS plugin..." -NoNewLine
-Copy-Item -Path $(Join-Path $shellPluginsFolder "mds_plugin") -Destination $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "mds_plugin") -Recurse
+Remove-Item -Path $mds_plugin_path -Recurse -Force -ErrorAction SilentlyContinue
+Copy-Item -Path $(Join-Path $shellPluginsFolder "mds_plugin") -Destination $mds_plugin_path -Recurse
 Write-host "DONE"
 
 Write-host "Adding MSM plugin..." -NoNewLine
-Copy-Item -Path $(Join-Path $shellPluginsFolder "msm_plugin") -Destination $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "msm_plugin") -Recurse
+Remove-Item -Path $msm_plugin_path -Recurse -Force -ErrorAction SilentlyContinue
+Copy-Item -Path $(Join-Path $shellPluginsFolder "msm_plugin") -Destination $msm_plugin_path -Recurse
 Write-host "DONE"
 
 Write-host "Adding GUI plugin backend ..." -NoNewLine 
-Copy-Item -Path $guiPluginBackend -Destination $(Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin") -Recurse
+Remove-Item -Path $gui_plugin_path -Recurse -Force -ErrorAction SilentlyContinue
+Copy-Item -Path $guiPluginBackend -Destination $gui_plugin_path -Recurse
 Write-host "DONE"
 
 Write-host "Adding GUI plugin frontend ..." -NoNewLine 

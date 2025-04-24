@@ -132,7 +132,7 @@ await ws.sendAndValidate({
     {
         "request_state": {
             "type": "ERROR",
-            "msg": ws.matchRegexp("RuntimeError: Cancelled"),
+            "msg": ws.matchRegexp("Cancelled"),
             "source": "MSG",
             "code": 1
         },
@@ -225,7 +225,7 @@ await ws.sendAndValidate({
     {
         "request_state": {
             "type": "ERROR",
-            "msg": ws.matchRegexp("RuntimeError: Cancelled"),
+            "msg": ws.matchRegexp("Cancelled"),
             "source": "MSG",
             "code": 1
         },

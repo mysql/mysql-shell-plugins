@@ -1,6 +1,6 @@
 # MySQL Shell for VS Code Change Log
 
-## Changes in 1.19.8+9.2.0
+## Changes in 1.19.8+9.3.0
 
 ### Additions
 
@@ -8,6 +8,7 @@
 - Added MRS REST document update() and delete() functions for Client SDK
 - Added logout functionality to Client SDK
 - Added support for MRS REST routines returning asynchronous tasks
+- Updating MySQL Shell to 9.3.0
 
 ### Fixes
 
