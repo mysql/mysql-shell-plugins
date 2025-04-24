@@ -95,7 +95,7 @@ export class DocumentCommandHandler {
     #initialDisplayOfOpenEditorsView = true;
     #displayDbConnectionOverviewWhenConnected = false;
 
-    #openDocumentsModel = new OpenDocumentDataModel();
+    #openDocumentsModel = new OpenDocumentDataModel(false);
 
     // Set when the handler triggers a document selection, which causes the a bounce back from the web app
     // in which a document was selected. This flag is used to prevent the re-selection of the last selected item.

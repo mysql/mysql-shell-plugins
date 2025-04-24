@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -22,11 +22,12 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import hashlib
-import os
 import json
-from gui_plugin.core.Error import MSGException
-import gui_plugin.core.Error as Error
+import os
 import secrets
+
+import gui_plugin.core.Error as Error
+from gui_plugin.core.Error import MSGException
 
 ALL_USERS_GROUP_ID = 1
 LOCAL_USERNAME = "LocalAdministrator"
@@ -98,7 +99,7 @@ def add_user_role(db, user_id, role):
     return db.get_last_row_id()
 
 
-def create_user(db, username, password, role=None, allowed_hosts=None):
+def create_user(db, username, password, role=None, allowed_hosts=None, single_server_user=False):
     """Creates a new user account
 
     Args:
@@ -106,6 +107,7 @@ def create_user(db, username, password, role=None, allowed_hosts=None):
         username (str): The name of the user
         password (str): The user's password
         allowed_hosts (str): Allowed hosts that user can connect from, optional
+        single_server_user (bool): If True, the user is created as a single server user with no password
 
     Returns:
         Returns the ID of the created user account.
@@ -116,19 +118,22 @@ def create_user(db, username, password, role=None, allowed_hosts=None):
     if len(search) > 0:
         raise MSGException(Error.USER_CREATE, "User already exists.")
 
-    salt = os.urandom(32).hex()
-
-    password_hash = hashlib.pbkdf2_hmac(
-        'sha256', password.encode(), salt.encode(), 100000).hex()
+    if single_server_user:
+        stored_password = "authenticated-by-mysql-server"
+    else:
+        salt = os.urandom(32).hex()
+        password_hash = hashlib.pbkdf2_hmac(
+            'sha256', password.encode(), salt.encode(), 100000).hex()
+        stored_password = password_hash + salt
 
     if allowed_hosts:
         db.execute("INSERT INTO user(name, password_hash, allowed_hosts) "
                    "VALUES(?, ?, ?)",
-                   (username, password_hash + salt, allowed_hosts))
+                   (username, stored_password, allowed_hosts))
     else:
         db.execute("INSERT INTO user(name, password_hash) "
                    "VALUES(?, ?)",
-                   (username, password_hash + salt))
+                   (username, stored_password))
 
     user_id = db.get_last_row_id()
 

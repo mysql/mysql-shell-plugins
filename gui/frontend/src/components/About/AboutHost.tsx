@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -52,13 +52,13 @@ export class AboutHost extends ComponentBase<IAboutHostProperties, IAboutHostSta
     }
 
     public render(): ComponentChild {
-        const { title } = this.props;
+        const { title, info } = this.props;
 
         const instructions = `Execute \\chat for natural language chat mode.\n`
             + `Execute \\sql to switch to SQL, \\js to JS and \\ts to TypeScript.\n`
-            + `Execute \\help or \\? for help;`;
+            + `Execute \\help or \\? for help; `;
 
-        const info = `Querying your HeatWave Data using SQL, natural language or TypeScript/JavaScript.`;
+        const infoToShow = info ?? `Querying your HeatWave Data using SQL, natural language or TypeScript/JavaScript.`;
 
         return (
             <Container className="aboutResultPanel"
@@ -74,7 +74,7 @@ export class AboutHost extends ComponentBase<IAboutHostProperties, IAboutHostSta
                     <Icon src={Codicon.CommentDiscussion} />
                     <Label>{title}</Label>
                 </Container>
-                <Label className="info" caption={info} />
+                <Label className="info" caption={infoToShow} />
                 <Label caption={instructions} className="instructions" />
             </Container>
         );

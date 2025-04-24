@@ -32,7 +32,7 @@ import { IThemeChangeData } from "../components/Theming/ThemeManager.js";
 import { TooltipProvider } from "../components/ui/Tooltip/Tooltip.js";
 import { appParameters, requisitions } from "../supplement/Requisitions.js";
 import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
-import { webSession } from "../supplement/WebSession.js";
+import { RunMode, webSession } from "../supplement/WebSession.js";
 import { ApplicationHost } from "./ApplicationHost.js";
 import { ErrorBoundary } from "./ErrorBoundary.js";
 import { ProfileSelector } from "./ProfileSelector.js";
@@ -93,7 +93,10 @@ export class App extends Component<{}, IAppState> {
 
         requisitions.register("webSessionStarted", (data) => {
             webSession.sessionId = data.sessionUuid;
-            webSession.localUserMode = data.localUserMode ?? false;
+            webSession.runMode = data.localUserMode ? RunMode.LocalUser : RunMode.Normal;
+            if (data.singleServerMode) {
+                webSession.runMode = RunMode.SingleServer;
+            }
 
             // TODO: remove the check for the recover message and instead handle the session user name via
             //       session storage. Requires individual solutions for both, standalone and embedded use.
@@ -101,7 +104,7 @@ export class App extends Component<{}, IAppState> {
             // Session recovery is not supported in tests, so remove the else branch from test coverage.
             // istanbul ignore else
             if (webSession.userName === "" && data.requestState.msg !== "Session recovered") {
-                if (webSession.localUserMode) {
+                if (webSession.runMode === RunMode.LocalUser) {
                     ShellInterface.users.authenticate("LocalAdministrator", "").then((profile) => {
                         if (profile) {
                             // Detour via requisitions for the rest of the profile processing as we need the same
@@ -138,6 +141,16 @@ export class App extends Component<{}, IAppState> {
                 webSession.loadProfile(this.defaultProfile);
                 this.setState({ loginInProgress: false });
             }
+
+            return Promise.resolve(true);
+        });
+
+        requisitions.register("userLoggedOut", async (): Promise<boolean> => {
+            await ShellInterface.users.logout();
+
+            this.defaultProfile = undefined;
+            webSession.clearSessionData();
+            this.setState({ loginInProgress: true });
 
             return Promise.resolve(true);
         });

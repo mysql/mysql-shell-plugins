@@ -64,7 +64,7 @@ import { DynamicSymbolTable } from "../../script-execution/DynamicSymbolTable.js
 import { EditorLanguage, IExecutionContext, INewEditorRequest } from "../../supplement/index.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { webSession } from "../../supplement/WebSession.js";
+import { RunMode, webSession } from "../../supplement/WebSession.js";
 import { convertErrorToString, loadFileAsText, selectFile, uuid } from "../../utilities/helpers.js";
 import { MrsHub } from "../mrs/MrsHub.js";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
@@ -214,21 +214,23 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
         this.workerPool = new ExecutionWorkerPool();
 
-        this.connectionsDataModel = new ConnectionDataModel();
+        this.connectionsDataModel = new ConnectionDataModel(webSession.runMode === RunMode.SingleServer);
         this.connectionsDataModel.autoRouterRefresh = false;
 
         // The document data model does not need to be initialized. It's built dynamically.
-        this.documentDataModel = new OpenDocumentDataModel();
+        this.documentDataModel = new OpenDocumentDataModel(webSession.runMode === RunMode.SingleServer);
 
         // Ditto for the shell task data model.
         this.shellTaskDataModel = new ShellTaskDataModel();
 
         this.ociDataModel = new OciDataModel();
 
-        void Promise.all([
-            this.connectionsDataModel.initialize(),
-            this.ociDataModel.initialize(),
-        ]).then(() => {
+        const promises: Array<Promise<void>> = [this.connectionsDataModel.initialize()];
+        if (webSession.runMode !== RunMode.SingleServer) {
+            promises.push(this.ociDataModel.initialize());
+        }
+
+        void Promise.all(promises).then(() => {
             this.setState({ loading: false });
         });
 
@@ -506,7 +508,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             });
             actualSelection = "progress";
 
-        } else {
+        } else if (webSession.runMode !== RunMode.SingleServer) {
+            // Don't render the overview, if we can only have a single connection.
             const overview = (
                 <Container
                     id="overviewHost"
@@ -790,8 +793,9 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         });
     };
 
-    private showPage = async (data: { connectionId?: number; suppressAbout?: boolean; editor?: InitialEditor;
-        pageId?: string; }): Promise<boolean> => {
+    private showPage = async (data: {
+        connectionId?: number; suppressAbout?: boolean; editor?: InitialEditor; pageId?: string; force?: boolean;
+    }): Promise<boolean> => {
         const { connectionTabs, selectedPage } = this.state;
 
         let connection: ICdmConnectionEntry | undefined;
@@ -812,7 +816,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
         const doShowPage = (): Promise<boolean> => {
             if (connection) {
-                return this.activateConnectionTab(connection, false, data.suppressAbout ?? false,
+                return this.activateConnectionTab(connection, data.force ?? false, data.suppressAbout ?? false,
                     data.editor ?? "default");
             }
 
@@ -1274,7 +1278,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             if (connection.details.settings && connection.details.settings.defaultEditor) {
                 useNotebook = connection.details.settings.defaultEditor === DBConnectionEditorType.DbNotebook;
             } else {
-                useNotebook = true;
+                useNotebook = Settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
             }
 
             // Get the execution history entries for this connection, but only fetch the first 30 chars of the code
@@ -1739,7 +1743,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     };
 
     private handleCloseDocument = async (
-        details: { connectionId?: number, documentId: string, pageId?: string }): Promise<boolean> => {
+        details: { connectionId?: number, documentId: string, pageId?: string; }): Promise<boolean> => {
         const { connectionTabs } = this.state;
 
         const tab = connectionTabs.find((tab) => {
@@ -1801,8 +1805,10 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         return Promise.resolve(false);
     };
 
-    private handleSelectDocument = async (details: { connectionId?: number, documentId: string;
-        pageId?: string; }): Promise<boolean> => {
+    private handleSelectDocument = async (details: {
+        connectionId?: number, documentId: string;
+        pageId?: string;
+    }): Promise<boolean> => {
         let document;
         if (!details.connectionId) {
             document = this.documentDataModel.findDocument(undefined, details.documentId, details.pageId);
@@ -1876,8 +1882,10 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         if (tab) {
             this.setState({ selectedPage: tabId });
 
-            requisitions.executeRemote("selectConnectionTab", { connectionId: tab.connection.details.id,
-                pageId: tab.dataModelEntry.id });
+            requisitions.executeRemote("selectConnectionTab", {
+                connectionId: tab.connection.details.id,
+                pageId: tab.dataModelEntry.id,
+            });
         } else {
             const docTab = documentTabs.find((entry) => {
                 return entry.dataModelEntry.id === tabId;
@@ -2025,8 +2033,10 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
             if (tab?.dataModelEntry) {
                 connectionState.activeEntry = documentId;
-                requisitions.executeRemote("selectDocument", { connectionId: tab.connection.details.id, documentId,
-                    pageId: tab.dataModelEntry.id });
+                requisitions.executeRemote("selectDocument", {
+                    connectionId: tab.connection.details.id, documentId,
+                    pageId: tab.dataModelEntry.id,
+                });
 
                 this.forceUpdate();
             }
@@ -2034,8 +2044,10 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             // Even if the active page does not change, we have to notify the remote side.
             // Otherwise there's no notification when the user switches between multiple tabs.
             requisitions.executeRemote("selectDocument",
-                { connectionId: tab.connection.details.id, documentId: details.document.id,
-                    pageId: tab.dataModelEntry.id });
+                {
+                    connectionId: tab.connection.details.id, documentId: details.document.id,
+                    pageId: tab.dataModelEntry.id,
+                });
         }
     };
 
@@ -2182,7 +2194,10 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         switch (command.command) {
             case "msg.openConnection": {
                 if (connection) {
-                    await this.showPage({ connectionId, pageId });
+                    const initialEditor = (command.arguments && command.arguments.length > 0)
+                        ? command.arguments[0]
+                        : undefined;
+                    await this.showPage({ connectionId, pageId, force: true, editor: initialEditor as InitialEditor });
                 }
 
                 break;
@@ -2220,6 +2235,19 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
             case "addConsole": {
                 void this.activateShellTab(uuid());
+
+                break;
+            }
+
+            case "msg.logOut": {
+                this.connectionsDataModel.clear();
+                this.documentDataModel.clear();
+                this.ociDataModel.clear();
+
+                // No need to manually close any connection. The data models take care to close when they are cleared.
+                this.setState({ connectionTabs: [], documentTabs: [], shellSessionTabs: [] });
+
+                void requisitions.execute("userLoggedOut", {});
 
                 break;
             }
@@ -2827,12 +2855,14 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 Execute "\\sql" to switch to SQL mode, "\\ts" to switch to TypeScript mode.
 
 GLOBAL FUNCTIONS
-    - \`print(value: any): void\`
+    - \`print(value)\`
       Send a value to the output area.
-    - \`runSql(code: string, callback?: (res: IResultSetRow[]) => void), params?: unknown): void\`
-      Run the given query.
-    - \`function runSqlIterative(code: string, callback?: (res: IResultSetData) => void, params?: unknown): void\`
-      Run the given query and process the rows iteratively.
+    - \`async runSql(code, params?), params?)\`
+      Run the given query and wait for the returned promise to resolve when done.
+    - \`runSqlWithCallback(sql, callback?, params?)\`
+      Run the query and process the rows in the given callback, once all are received.
+    - \`runSqlIterative(sql: string, callback?: (res: unknown) => void, params?: unknown): void\`
+      Run the given query and process the rows iteratively as they arrive.
 `;
             }
 
@@ -2843,10 +2873,12 @@ Execute "\\sql" to switch to SQL mode, "\\js" to switch to JavaScript mode.
 GLOBAL FUNCTIONS
     - \`print(value: unknown): void\`
       Send a value to the output area.
-    - \`runSql(code: string, callback?: (res: IResultSetRow[]) => void), params?: unknown[]): void\`
-      Run the given query.
-    - \`function runSqlIterative(code: string, callback?: (res: IResultSetData) => void, params?: unknown[]): void\`
-      Run the given query and process the rows iteratively.
+    - \`async runSql(code: string, params?: unknown), params?: unknown[]): Promise<unkown>\`
+      Run the given query and wait for the returned promise to resolve when done.
+    - \`runSqlWithCallback(sql: string, callback?: (res: unknown) => void, params?: unknown): void\`
+    Run the query and process the rows in the given callback, once all are received.
+    - \`runSqlIterative(sql: string, callback?: (res: unknown) => void, params?: unknown): void\`
+      Run the given query and process the rows iteratively as they arrive.
 `;
             }
 
@@ -2857,7 +2889,8 @@ Execute "\\js" to switch to JavaScript mode, "\\ts" to switch to TypeScript mode
 Use ? as placeholders, provide values in comments.
 EXAMPLES
     SELECT * FROM user
-    WHERE name = ? /*=mike*/`;
+    WHERE name = ? /*=mike*/
+`;
             }
 
             default:

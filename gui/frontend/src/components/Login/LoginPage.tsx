@@ -99,6 +99,7 @@ export class LoginPage extends ComponentBase<{}, ILoginPageState> {
                             placeholder="Username"
                             spellCheck={false}
                             value={userName}
+                            autoFocus={true}
                             onChange={this.handleInput}
                             onConfirm={this.login}
                         />

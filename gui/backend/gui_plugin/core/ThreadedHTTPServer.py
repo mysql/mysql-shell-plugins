@@ -24,7 +24,10 @@ from http.server import HTTPServer
 from socketserver import ThreadingMixIn
 from typing import Optional
 
+from gui_plugin.core.Cache import AutoTTLConnectionCache
+
 from gui_plugin.core.BackendDbLogger import BackendDbLogger
+
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
@@ -33,6 +36,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     single_server: Optional[str] = None
     host: Optional[str] = None
     port: Optional[int] = None
+    cache = AutoTTLConnectionCache()
 
     def serve_forever(self, _=0.5):
         """This is the main http server loop"""
@@ -41,6 +45,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
         while not self.stopped:
             self.handle_request()
 
+        self.cache.stop()
         BackendDbLogger.close()
 
     def force_stop(self):

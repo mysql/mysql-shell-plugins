@@ -41,8 +41,6 @@ import {
 
 const dataModelChanged = jest.fn();
 
-// Some variables to configure the mock functions during tests:
-
 jest.mock("../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js", () => {
     return {
         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -122,6 +120,9 @@ jest.mock("../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js", () =>
                         return Promise.resolve(routerServiceData);
                     },
                     listAuthApps: (): Promise<IMrsAuthAppData[]> => {
+                        return Promise.resolve(authAppsData);
+                    },
+                    listAppServices: (_appId?: string): Promise<IMrsServiceData[]> => {
                         return Promise.resolve([]);
                     },
                 },
@@ -163,7 +164,7 @@ jest.mock("../../../supplement/ShellInterface/ShellInterfaceCore.js", () => {
 });
 
 describe("ConnectionDataModel", () => {
-    const dataModel = new ConnectionDataModel(500);
+    const dataModel = new ConnectionDataModel(false, 500);
     dataModel.subscribe(dataModelChanged);
 
     beforeAll(async () => {
@@ -320,6 +321,16 @@ describe("ConnectionDataModel", () => {
         expect(connections[1].schemaEntries[1].tables.members[5].connection).toBe(connections[1]);
         expect(connections[1].schemaEntries[1].tables.members[5].triggers.members).toHaveLength(2);
         expect(connections[1].schemaEntries[1].tables.members[5].columns.members).toHaveLength(2);
+
+        checkNoUiWarningsOrErrors();
+    });
+
+    it.only("MRS auth apps", async () => {
+        cdmMockState.haveMockConnectionResponse = true;
+        await dataModel.reloadConnections();
+        const connections = dataModel.connections;
+        await connections[0].refresh?.();
+
 
         checkNoUiWarningsOrErrors();
     });

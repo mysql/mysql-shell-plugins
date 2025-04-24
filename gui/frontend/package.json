@@ -4,7 +4,8 @@
     "publisher": "Oracle",
     "type": "module",
     "scripts": {
-        "launch-shell-web-server": "bash ./scripts/launch-shell-webserver.sh",
+        "launch-single-user": "bash ./scripts/launch-shell-webserver.sh 1234",
+        "launch-single-server": "bash ./scripts/launch-shell-webserver.sh localhost:3306",
         "launch-shell-web-server-win": "call ./scripts/launch-shell-webserver.cmd",
         "launch-dev-server": "vite",
         "build": "bash ./scripts/production-build.sh && tsc -p tsconfig.json",

@@ -36,7 +36,7 @@ import * as path from "path";
 
 import { appParameters, requisitions } from "../../supplement/Requisitions.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
-import { webSession } from "../../supplement/WebSession.js";
+import { RunMode, webSession } from "../../supplement/WebSession.js";
 import { LogLevel, MySQLShellLauncher } from "../../utilities/MySQLShellLauncher.js";
 import { uiLayerMock } from "./__mocks__/UILayerMock.js";
 
@@ -495,12 +495,12 @@ export const setupShellForTests = (showOutput: boolean, handleEvents = true,
         if (handleEvents) {
             requisitions.register("webSessionStarted", (data) => {
                 webSession.sessionId = data.sessionUuid;
-                webSession.localUserMode = data.localUserMode ?? false;
+                webSession.runMode = data.localUserMode ? RunMode.LocalUser : RunMode.Normal;
 
                 // Session recovery is not supported in tests, so remove the else branch from test coverage.
                 // istanbul ignore else
                 if (webSession.userName === "") {
-                    if (webSession.localUserMode) {
+                    if (webSession.runMode === RunMode.LocalUser) {
                         void ShellInterface.users.authenticate("LocalAdministrator", "")
                             .then((profile) => {
                                 if (showOutput) {
@@ -849,7 +849,7 @@ export const createBackend = async (): Promise<ShellInterfaceSqlEditor> => {
     expect(folder.id).toBeGreaterThan(-1);
 
     testConnection.id = (await ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId,
-            testConnection, folder.id) ?? [-1, -1, -1])[0];
+        testConnection, folder.id) ?? [-1, -1, -1])[0];
     expect(testConnection.id).toBeGreaterThan(-1);
 
     const backend = new ShellInterfaceSqlEditor();

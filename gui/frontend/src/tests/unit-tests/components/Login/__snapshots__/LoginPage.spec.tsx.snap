@@ -175,6 +175,7 @@ exports[`Login Page Tests Render Test 1`] = `
                 }
               >
                 <Input
+                  autoFocus={true}
                   id="loginUsername"
                   onChange={[Function]}
                   onConfirm={[Function]}

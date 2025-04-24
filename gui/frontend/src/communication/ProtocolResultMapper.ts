@@ -38,5 +38,6 @@ export interface IProtocolResults extends IProtocolGuiResults, IProtocolMdsResul
     "native": INativeShellResponse;
 
     [Protocol.UserAuthenticate]: { activeProfile: IShellProfile; };
+    [Protocol.LogOut]: {};
     [Protocol.PromptReply]: {};
 }

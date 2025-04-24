@@ -32,7 +32,7 @@ import { ShellTask } from "../../frontend/src/shell-tasks/ShellTask.js";
 import { Settings } from "../../frontend/src/supplement/Settings/Settings.js";
 import { ISettingCategory, settingCategories } from "../../frontend/src/supplement/Settings/SettingsRegistry.js";
 import { DBType } from "../../frontend/src/supplement/ShellInterface/index.js";
-import { webSession } from "../../frontend/src/supplement/WebSession.js";
+import { RunMode, webSession } from "../../frontend/src/supplement/WebSession.js";
 
 import { printChannelOutput, taskOutputChannel } from "./extension.js";
 import { ShellTasksTreeDataProvider } from "./tree-providers/ShellTreeProvider/ShellTasksTreeProvider.js";
@@ -96,7 +96,7 @@ export class ExtensionHost {
     #connectionsDataModel: ConnectionDataModel;
 
     public constructor(public context: ExtensionContext) {
-        this.#connectionsDataModel = new ConnectionDataModel();
+        this.#connectionsDataModel = new ConnectionDataModel(false);
         void this.#connectionsDataModel.initialize(); // Async init, but don't wait.
 
         this.connectionsProvider = new ConnectionsTreeDataProvider(this.#connectionsDataModel);
@@ -109,10 +109,10 @@ export class ExtensionHost {
         requisitions.register("settingsChanged", this.updateVscodeSettings);
         requisitions.register("webSessionStarted", (data) => {
             webSession.sessionId = data.sessionUuid;
-            webSession.localUserMode = data.localUserMode ?? false;
+            webSession.runMode = data.localUserMode ? RunMode.LocalUser : RunMode.Normal;
 
             if (webSession.userName === "") {
-                if (webSession.localUserMode) {
+                if (data.localUserMode) {
                     ShellInterface.users.authenticate("LocalAdministrator", "").then((profile) => {
                         if (profile) {
                             void this.onAuthentication(profile);

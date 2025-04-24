@@ -101,17 +101,36 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
         }
       }
     >
-      <Label
-        className="title"
+      <Container
+        className="actions"
+        crossAlignment="center"
+        mainAlignment="flex-end"
+        orientation="row"
       >
-        <label
-          className="msg label title"
-          data-tooltip="expand"
-          style={{}}
+        <div
+          className="msg container fixedScrollbar actions"
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "flexWrap": undefined,
+              "justifyContent": "flex-end",
+            }
+          }
         >
-          SIDEBAR TITLE
-        </label>
-      </Label>
+          <Label
+            className="title"
+          >
+            <label
+              className="msg label title"
+              data-tooltip="expand"
+              style={{}}
+            >
+              SIDEBAR TITLE
+            </label>
+          </Label>
+        </div>
+      </Container>
       <SplitContainer
         className="accordionContent"
         onPaneResized={[Function]}
@@ -295,13 +314,14 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                 >
                   <Container
                     className="msg section"
+                    crossAlignment="stretch"
                     id="first"
                     innerRef={
                       {
                         "current": <div
                           class="msg container fixedScrollbar section"
                           id="first"
-                          style="flex-direction: column;"
+                          style="flex-direction: column; align-items: stretch;"
                         >
                           <div
                             class="msg container fixedScrollbar title"
@@ -377,7 +397,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                       id="first"
                       style={
                         {
-                          "alignItems": undefined,
+                          "alignItems": "stretch",
                           "flexDirection": "column",
                           "flexWrap": undefined,
                           "justifyContent": undefined,
@@ -609,13 +629,14 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                 >
                   <Container
                     className="msg section expanded"
+                    crossAlignment="stretch"
                     id="second"
                     innerRef={
                       {
                         "current": <div
                           class="msg container fixedScrollbar section expanded"
                           id="second"
-                          style="flex-direction: column;"
+                          style="flex-direction: column; align-items: stretch;"
                         >
                           <div
                             class="msg container fixedScrollbar title"
@@ -712,7 +733,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                       id="second"
                       style={
                         {
-                          "alignItems": undefined,
+                          "alignItems": "stretch",
                           "flexDirection": "column",
                           "flexWrap": undefined,
                           "justifyContent": undefined,
@@ -992,13 +1013,14 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                 >
                   <Container
                     className="msg section expanded"
+                    crossAlignment="stretch"
                     id="third"
                     innerRef={
                       {
                         "current": <div
                           class="msg container fixedScrollbar section expanded"
                           id="third"
-                          style="flex-direction: column;"
+                          style="flex-direction: column; align-items: stretch;"
                         >
                           <div
                             class="msg container fixedScrollbar title"
@@ -1074,7 +1096,7 @@ exports[`Accordion component tests Test accordion output (Snapshot) 1`] = `
                       id="third"
                       style={
                         {
-                          "alignItems": undefined,
+                          "alignItems": "stretch",
                           "flexDirection": "column",
                           "flexWrap": undefined,
                           "justifyContent": undefined,
