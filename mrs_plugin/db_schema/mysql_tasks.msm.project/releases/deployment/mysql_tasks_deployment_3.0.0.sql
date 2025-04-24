@@ -28,13 +28,13 @@
 -- -----------------------------------------------------------------------------
 -- This script contains the current development version of the database schema
 -- `mysql_tasks`
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 -- #############################################################################
 -- MSM Section 010: Server Variable Settings
 -- -----------------------------------------------------------------------------
 -- Set server variables, remember their state to be able to restore accordingly.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
@@ -46,7 +46,7 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,'
 -- MSM Section 110: Database Schema Creation
 -- -----------------------------------------------------------------------------
 -- CREATE SCHEMA statement.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 CREATE SCHEMA IF NOT EXISTS `mysql_tasks`
   DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
@@ -57,7 +57,7 @@ CREATE SCHEMA IF NOT EXISTS `mysql_tasks`
 -- Create the `${schema_name}`.`msm_schema_version` VIEW and initialize it with
 -- the version 0, 0, 0 which indicates the ongoing creation processes of the
 -- `${schema_name}` database schema.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 CREATE OR REPLACE SQL SECURITY INVOKER
 VIEW `mysql_tasks`.`msm_schema_version` (
@@ -74,7 +74,7 @@ SELECT 0, 0, 0;
 -- ROLEs and GRANTs are defined in the MSM Section 170: Authorization.
 -- -----------------------------------------------------------------------------
 -- CREATE TABLE statements and standard INSERTs.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 -- -----------------------------------------------------
 -- Table `mysql_tasks`.`config`
@@ -181,7 +181,7 @@ CREATE TABLE IF NOT EXISTS `mysql_tasks`.`task_log_impl` (
 -- -----------------------------------------------------------------------------
 -- All other schema object definitions (VIEWS, PROCEDUREs, FUNCTIONs, TRIGGERs,
 -- EVENTS, ...).
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 DELIMITER %%
 
@@ -200,7 +200,7 @@ END%%
 
 -- -------------------------------------------------------------------------
 -- Trigger `mysql_tasks`.`config_BEFORE_UPDATE`
--- Ensures "maximumHeatwaveLoadingTasks" <= "maximumPreparedStmtAsyncTasks"
+-- Ensures 'maximumHeatwaveLoadingTasks' <= 'maximumPreparedStmtAsyncTasks'
 -- -------------------------------------------------------------------------
 DROP TRIGGER IF EXISTS `mysql_tasks`.`config_BEFORE_UPDATE`%%
 CREATE TRIGGER  `mysql_tasks`.`config_BEFORE_UPDATE`
@@ -237,8 +237,8 @@ BEGIN
   }', NEW.data) THEN
       -- Raise an error if validation fails
       SIGNAL SQLSTATE '45000'
-      SET MESSAGE_TEXT = "Incorrect value for column 'data' not conforming to "
-        "the JSON schema";
+      SET MESSAGE_TEXT = 'Incorrect value for column `data` not conforming to '
+        'the JSON schema';
   END IF;
 
   IF JSON_EXTRACT(NEW.data, '$.limits.maximumHeatwaveLoadingTasks') >
@@ -337,9 +337,9 @@ CREATE FUNCTION `mysql_tasks`.`extract_username`(
   RETURNS VARCHAR(32)
   DETERMINISTIC CONTAINS SQL
   SQL SECURITY INVOKER
-  COMMENT "
+  COMMENT '
     Extract username from a string holding MySQL username@hostname
-  "
+  '
 BEGIN
   RETURN (
     LEFT(
@@ -1302,7 +1302,7 @@ CREATE PROCEDURE `mysql_tasks`.`create_app_task`(
   IN `data_json_schema` JSON, IN `log_data_json_schema` JSON,
   OUT `task_id` VARCHAR(36))
 SQL SECURITY INVOKER
-COMMENT "
+COMMENT '
   Creates an application task and returns its UUID.
   Parameters:
   - app_user_id: application user id to filter the list on
@@ -1310,8 +1310,8 @@ COMMENT "
   - task_type: type for the task
   - data: JSON field holding additional task data
   - data_json_schema: JSON schema for the data field
-  - log_data_json_schema: JSON schema for task log's data filed
-  - OUT task_id: UUID of the created task"
+  - log_data_json_schema: JSON schema for task log data filed
+  - OUT task_id: UUID of the created task'
 BEGIN
   SET task_id = UUID();
   CALL `mysql_tasks`.`create_app_task_with_id`(
@@ -1334,7 +1334,7 @@ CREATE PROCEDURE `mysql_tasks`.`create_app_task_with_id`(
   IN `task_id` VARCHAR(36), IN `name` VARCHAR(255), IN `task_type` VARCHAR(45),
   IN `data` JSON, IN `data_json_schema` JSON, IN `log_data_json_schema` JSON)
 SQL SECURITY INVOKER
-COMMENT "
+COMMENT '
   Creates an application task given its UUID.
   Parameters:
   - app_user_id: application user id to filter the list on
@@ -1343,14 +1343,14 @@ COMMENT "
   - task_type: type for the task
   - data: JSON field holding additional task data
   - data_json_schema: JSON schema for the data field
-  - log_data_json_schema: JSON schema for task log's data filed"
+  - log_data_json_schema: JSON schema for task log data filed'
 BEGIN
   -- insert entry into task table
   INSERT INTO `mysql_tasks`.`task_i`(`id`, `app_user_id`, `server_uuid`,
     `name`, `connection_id`, `task_type`, `data`,
     `data_json_schema`, `log_data_json_schema`)
   VALUES (UUID_TO_BIN(task_id, 1), app_user_id, UUID_TO_BIN(@@server_uuid, 1),
-    `name`, CONNECTION_ID(), task_type, `data`,
+    `name`, CONNECTION_ID(), `task_type`, `data`,
     `data_json_schema`, `log_data_json_schema`);
 
   IF `data_json_schema` IS NOT NULL AND
@@ -1629,7 +1629,7 @@ BEGIN
     AND e.EVENT_COMMENT LIKE 'mysql_tasks_schema_version=%';
 
   SET version_string = SUBSTRING_INDEX(
-    event_cmnt, 'mysql_tasks_schema_version=', -1); -- Get the part after "="
+    event_cmnt, 'mysql_tasks_schema_version=', -1); -- Get the part after '='
   SET major = CAST(SUBSTRING_INDEX(version_string, '.', 1) AS UNSIGNED);
   SET minor = CAST(
     SUBSTRING_INDEX(
@@ -1721,7 +1721,7 @@ BEGIN
   -- user() and current_user() are different when invoked through an event
   IF (SELECT COUNT(*)>0 FROM `performance_schema`.`events_statements_current`
       WHERE thread_id=PS_CURRENT_THREAD_ID() AND
-      event_name="statement/scheduler/event") THEN
+      event_name='statement/scheduler/event') THEN
     SIGNAL SQLSTATE '45000'
       SET MESSAGE_TEXT = 'Invoking the procedure from a MySQL EVENT is not '
         'supported';
@@ -1787,36 +1787,36 @@ BEGIN
   IF JSON_CONTAINS_PATH(
       data_json_schema, 'one', '$.properties.mysqlMetadata') THEN
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'data_json_schema must not'
-      ' contain a reserved property "mysqlMetadata".', MYSQL_ERRNO = 1108;
+      ' contain a reserved property ''mysqlMetadata''.', MYSQL_ERRNO = 1108;
   END IF;
 
   SET internal_data_json_schema = JSON_OBJECT(
-    "type", "object",
-    "properties", JSON_OBJECT(
-      "mysqlMetadata", JSON_OBJECT(
-        "type", "object",
-        "properties", JSON_OBJECT(
-          "events", JSON_OBJECT(
-            "type", "array",
-            "items", JSON_OBJECT(
-              "type", "string"
+    'type', 'object',
+    'properties', JSON_OBJECT(
+      'mysqlMetadata', JSON_OBJECT(
+        'type', 'object',
+        'properties', JSON_OBJECT(
+          'events', JSON_OBJECT(
+            'type', 'array',
+            'items', JSON_OBJECT(
+              'type', 'string'
             ),
-            "minItems", 1,
-            "uniqueItems", true
+            'minItems', 1,
+            'uniqueItems', true
           ),
-          "autoGc", JSON_OBJECT(
-            "type", "boolean"
+          'autoGc', JSON_OBJECT(
+            'type', 'boolean'
           )
         ),
-        "required", JSON_ARRAY("events", "autoGc")
+        'required', JSON_ARRAY('events', 'autoGc')
       )
     ),
-    "required", JSON_ARRAY("mysqlMetadata")
+    'required', JSON_ARRAY('mysqlMetadata')
   );
 
   -- merge the provided schema and the internal schema
   SET data_json_schema = COALESCE(
-    data_json_schema, JSON_OBJECT("required", JSON_ARRAY()));
+    data_json_schema, JSON_OBJECT('required', JSON_ARRAY()));
   SELECT JSON_UNQUOTE(JSON_MERGE_PRESERVE(
     JSON_EXTRACT(internal_data_json_schema, '$.required'),
     JSON_EXTRACT(data_json_schema, '$.required')
@@ -1840,19 +1840,19 @@ BEGIN
   FROM `mysql_tasks`.`msm_schema_version` INTO task_mgmt_version;
 
   SET internal_data = JSON_OBJECT(
-    "mysqlMetadata", JSON_OBJECT(
-      "events", IF (progress_monitor_sql_statements IS NULL,
+    'mysqlMetadata', JSON_OBJECT(
+      'events', IF (progress_monitor_sql_statements IS NULL,
                   JSON_ARRAY(event_name),
                   JSON_ARRAY(event_name, progress_event_name)
                 ),
-      "autoGc", true
+      'autoGc', true
     )
   );
 
   -- make sure reserved property is not used
   IF JSON_CONTAINS_PATH(task_data, 'one', '$.mysqlMetadata') THEN
     SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'task_data must not contain a'
-        ' reserved property "mysqlMetadata".', MYSQL_ERRNO = 1108;
+        ' reserved property ''mysqlMetadata''.', MYSQL_ERRNO = 1108;
   END IF;
 
   -- merge the provided task data and the internal metadata
@@ -1881,9 +1881,9 @@ BEGIN
   SET @eventSql = CONCAT(
     'CREATE EVENT ', event_name, ' ',
     'ON SCHEDULE AT NOW() ON COMPLETION NOT PRESERVE ENABLE ',
-    'COMMENT "mysql_tasks_schema_version=', task_mgmt_version, '" ',
+    'COMMENT ''mysql_tasks_schema_version=', task_mgmt_version, ''' ',
     'DO BEGIN ',
-    'DECLARE initiate_name TEXT DEFAULT "task_runner_event"; ',
+    'DECLARE initiate_name TEXT DEFAULT ''task_runner_event''; ',
     'DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN ',
     '  GET DIAGNOSTICS CONDITION 1',
     '     @p1 = RETURNED_SQLSTATE,',
@@ -1891,8 +1891,8 @@ BEGIN
     '     @p3 = MESSAGE_TEXT; ',
     '  CALL `mysql_tasks`.`stop_task_monitor`(',
           QUOTE(progress_event_name), ', ', QUOTE(task_id), '); ',
-    '  CALL `mysql_tasks`.`add_task_log`("',
-          task_id, '", CONCAT("Error: ", @p3), NULL, 100, "ERROR"); ',
+    '  CALL `mysql_tasks`.`add_task_log`(',
+          QUOTE(task_id), ', CONCAT(''Error: '', @p3), NULL, 100, ''ERROR''); ',
     '  IF @mysql_tasks_initiated <=> initiate_name THEN ',
     '    SET @mysql_tasks_initiated = NULL; ',
     '  END IF; ',
@@ -1901,7 +1901,7 @@ BEGIN
     'IF @mysql_tasks_initiated IS NULL THEN ',
     '  SET @mysql_tasks_initiated = initiate_name; ',
     'END IF; ',
-    'SET @task_id ="', task_id, '"; SET @task_result = NULL; ',
+    'SET @task_id =', QUOTE(task_id), '; SET @task_result = NULL; ',
 
     'CALL `mysql_tasks`.`create_app_task_with_id`(',
       IF(app_user_id IS NULL, 'NULL', QUOTE(app_user_id)),
@@ -1921,14 +1921,14 @@ BEGIN
     '); '
 
     'CALL `mysql_tasks`.`add_task_log`(',
-      '@task_id, "Event execution started...", NULL, 0, "RUNNING"); ',
+      '@task_id, ''Event execution started...'', NULL, 0, ''RUNNING''); ',
     sql_statements,
 
     'CALL `mysql_tasks`.`stop_task_monitor`(',
       QUOTE(progress_event_name), ', ', QUOTE(task_id), '); ',
     'CALL `mysql_tasks`.`add_task_log`(',
-      '@task_id, "Execution finished.", ',
-      'CAST(@task_result AS JSON), 100, "COMPLETED"); ',
+      '@task_id, ''Execution finished.'', ',
+      'CAST(@task_result AS JSON), 100, ''COMPLETED''); ',
     'SET @task_id = NULL; SET @task_result = NULL; ',
     'IF @mysql_tasks_initiated <=> initiate_name THEN ',
     '  SET @mysql_tasks_initiated = NULL; ',
@@ -2034,17 +2034,17 @@ BEGIN
     SET @eventSql = CONCAT(
       'CREATE EVENT ', event_name, ' ',
       'ON SCHEDULE AT NOW() ON COMPLETION NOT PRESERVE ENABLE ',
-      'COMMENT "mysql_tasks_schema_version=', task_mgmt_version, '" ',
+      'COMMENT ''mysql_tasks_schema_version=', task_mgmt_version, ''' ',
       'DO BEGIN ',
       'DECLARE do_run BOOLEAN DEFAULT TRUE; ',
-      'DECLARE initiate_name TEXT DEFAULT "task_monitor_event"; ',
+      'DECLARE initiate_name TEXT DEFAULT ''task_monitor_event''; ',
       'DECLARE lock_name VARCHAR(64) DEFAULT ', QUOTE(RIGHT(event_name,64)),';',
 
       'DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN ',
       '  GET DIAGNOSTICS CONDITION 1 ',
       '   @p1 = RETURNED_SQLSTATE, @p2 = MYSQL_ERRNO, @p3 = MESSAGE_TEXT; ',
       '  CALL `mysql_tasks`.`add_task_log`(',
-          QUOTE(task_id),', CONCAT("Error: ", @p3), NULL, 100, "ERROR"); ',
+          QUOTE(task_id),', CONCAT(''Error: '', @p3), NULL, 100, ''ERROR''); ',
       '  IF @mysql_tasks_initiated <=> initiate_name THEN ',
       '    SET @mysql_tasks_initiated = NULL; ',
       '  END IF; ',
@@ -2061,11 +2061,11 @@ BEGIN
       'IF (GET_LOCK(lock_name, 60) <=> 1 AND ',
       '(SELECT COUNT(*)>0 FROM information_schema.events ise ',
       '   WHERE CONCAT(mysql_tasks.quote_identifier(ise.event_schema), ',
-      '   ".", mysql_tasks.quote_identifier(ise.event_name)) = ',
+      '   ''.'', mysql_tasks.quote_identifier(ise.event_name)) = ',
           QUOTE(event_name), ')) THEN ',
       '  CALL `mysql_tasks`.`add_task_log`(@task_id, ',
-      '     "Progress monitor started.", ',
-      '     JSON_OBJECT("connection_id", CONNECTION_ID()), 0, "RUNNING"); ',
+      '     ''Progress monitor started.'', ',
+      '     JSON_OBJECT(''connection_id'', CONNECTION_ID()), 0, ''RUNNING''); ',
       'END IF; ',
       'WHILE IS_USED_LOCK(lock_name) <=> CONNECTION_ID() DO ',
       '  DO RELEASE_LOCK(lock_name); ',
@@ -2074,7 +2074,7 @@ BEGIN
       -- if at any time event gets killed, terminate its while loop
       'WHILE (SELECT COUNT(*)>0 FROM information_schema.events ise ',
       '   WHERE CONCAT(mysql_tasks.quote_identifier(ise.event_schema), ',
-      '   ".", mysql_tasks.quote_identifier(ise.event_name)) = ',
+      '   ''.'', mysql_tasks.quote_identifier(ise.event_name)) = ',
           QUOTE(event_name), ') DO ',
          sql_statements,
       '  DO SLEEP(', refresh_period, '); ',
@@ -2340,13 +2340,41 @@ BEGIN
   END IF;
 END%%
 
+-- -----------------------------------------------------
+-- Procedure `mysql_tasks`.`msm_instance_demoted`
+-- Disable system events before replication switchover.
+-- -----------------------------------------------------
+DROP PROCEDURE IF EXISTS `mysql_tasks`.`msm_instance_demoted`%%
+CREATE PROCEDURE `mysql_tasks`.`msm_instance_demoted`()
+SQL SECURITY INVOKER
+COMMENT 'This procedure needs to be called on a primary instance in an InnoDB
+  Cluster setup before it is demoted to become a secondary.'
+BEGIN
+  ALTER EVENT `mysql_tasks`.`task_cleanup` DISABLE;
+  ALTER EVENT `mysql_tasks`.`task_gc` DISABLE;
+END%%
+
+-- -----------------------------------------------------
+-- Procedure `mysql_tasks`.`msm_instance_promoted`
+-- Enable system events after replication switchover/failover.
+-- -----------------------------------------------------
+DROP PROCEDURE IF EXISTS `mysql_tasks`.`msm_instance_promoted`%%
+CREATE PROCEDURE `mysql_tasks`.`msm_instance_promoted`()
+SQL SECURITY INVOKER
+COMMENT 'This procedure needs to be called on an instance in an InnoDB
+  Cluster setup when it is promoted to become the primary.'
+BEGIN
+  ALTER EVENT `mysql_tasks`.`task_cleanup` ENABLE;
+  ALTER EVENT `mysql_tasks`.`task_gc` ENABLE;
+END%%
+
 DELIMITER ;
 
 -- #############################################################################
 -- MSM Section 170: Authorization
 -- -----------------------------------------------------------------------------
 -- This section is used to define the ROLEs and GRANT statements.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 -- Create ROLEs and assign privileges using GRANT statements
 
@@ -2360,7 +2388,7 @@ GRANT SELECT, INSERT, DELETE, EXECUTE ON `mysql_tasks`.* TO
   'mysql_task_admin';
 GRANT SELECT ON `performance_schema`.`events_statements_current` TO
   'mysql_task_admin';
-GRANT SELECT ON `performance_schema`.`global_variables` TO `mysql_task_admin`;
+GRANT SELECT ON `performance_schema`.`global_variables` TO 'mysql_task_admin';
 
 -- GRANTS for mysql_task_user
 GRANT SELECT ON `mysql_tasks`.`config` TO 'mysql_task_user';
@@ -2427,7 +2455,7 @@ GRANT SELECT ON `performance_schema`.`events_statements_current` TO
 -- MSM Section 910: Database Schema Version
 -- -----------------------------------------------------------------------------
 -- Setting the correct database schema version.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 CREATE OR REPLACE SQL SECURITY INVOKER
 VIEW `mysql_tasks`.`msm_schema_version` (
@@ -2438,7 +2466,7 @@ SELECT 3, 0, 0;
 -- MSM Section 920: Server Variable Restoration
 -- -----------------------------------------------------------------------------
 -- Restore the modified server variables to their original state.
--- -----------------------------------------------------------------------------
+-- #############################################################################
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
