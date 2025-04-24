@@ -28,6 +28,10 @@ import os
 from zipfile import ZipFile
 import pathlib
 import copy
+import json
+import shutil
+from datetime import datetime
+import mysqlsh
 
 
 def prompt_for_url_context_root(default=None):
@@ -558,7 +562,6 @@ def get_service_create_statement(session, service: dict,
     output = []
     result = []
     service_linked_auth_apps = []
-
     service_linked_auth_apps = auth_apps.get_auth_apps(session, service["id"])
 
     # create the service
@@ -613,7 +616,6 @@ def get_service_create_statement(session, service: dict,
 def store_service_create_statement(session, service: dict,
         file_path: str, zip: bool,
         include_database_endpoints: bool=False, include_static_endpoints: bool = False, include_dynamic_endpoints: bool=False):
-
     file_content = get_service_create_statement(session, service,
         include_database_endpoints, include_static_endpoints, include_dynamic_endpoints)
 
@@ -629,14 +631,111 @@ def store_service_create_statement(session, service: dict,
         os.remove(file_path)
 
 
+def store_project(session, destination: str, services: list, schemas: list, project_settings: dict, create_zip: bool):
+    config = {
+        "name": project_settings["name"],
+        "version": project_settings["version"],
+        "restServices": [],
+        "schemas": [],
+        "creationDate": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    }
+
+    if project_settings["publisher"]:
+        config["publisher"] = project_settings["publisher"]
+
+    if project_settings["description"]:
+        config["description"] = project_settings["description"]
+
+    # remove the ".zip" from the destination to create the temp directory
+    temp_dir = destination[:-4] if create_zip and destination.endswith(".zip") else destination
+
+    os.makedirs(temp_dir, exist_ok=True)
+
+    # copy icon if set to do so
+    if project_settings["icon_path"]:
+        config["icon"] = f"appIcon{os.path.splitext(project_settings["icon_path"])[1]}"
+        icon_target_path = os.path.join(temp_dir, config["icon"])
+        shutil.copy(project_settings["icon_path"], icon_target_path)
+
+    for service_data in services:
+        service = get_service(session, url_context_root=service_data["name"])
+
+        # create the path by removing the '/' in the service request path
+        target_file_name = f"{service_data["name"][1:]}.service.mrs.sql"
+        file_path = os.path.join(temp_dir, target_file_name)
+
+        store_service_create_statement(session, service,
+                                        file_path,
+                                        False,
+                                        service_data["include_database_endpoints"],
+                                        service_data["include_static_endpoints"],
+                                        service_data["include_dynamic_endpoints"])
+        config["restServices"].append({
+            "serviceName": service_data["name"],
+            "fileName": target_file_name,
+        })
+
+
+    for schema_data in schemas:
+        schema_target = os.path.join(temp_dir, schema_data['name'])
+        schema_format = None
+        schema_relative_path = core.make_string_valid_for_filesystem(schema_data['name'])
+
+        if schema_data["file_path"]:
+            # The schema dump already exists, so we just need to copy it
+            if os.path.isdir(schema_data["file_path"]):
+                schema_format = "folder"
+
+                shutil.copytree(schema_data["file_path"], schema_target)
+            else:
+                schema_target = f"{schema_target}.sql"
+                schema_relative_path = f"{schema_relative_path}.sql"
+                schema_format = "sqlFile"
+
+                shutil.copy(schema_data["file_path"], schema_target)
+        else:
+            # Create a schema dump into the target directory
+            schema_format = "dump"
+
+            # Set the mysqlsh session to the one that was given
+            if "shell.Object" in str(type(session)):
+                mysqlsh.globals.shell.set_session(session)
+            else:
+                mysqlsh.globals.shell.set_session(session.session)
+            mysqlsh.globals.util.dump_schemas(
+                [schema_data["name"]],
+                f"file://{schema_target}",
+                {
+                    "skipUpgradeChecks": True,
+                    "showProgress": False,
+                })
+
+        config["schemas"].append({
+            "schemaName": schema_data["name"],
+            "path": schema_relative_path,
+            "format": schema_format # sqlFile or folder or dump
+        })
+
+    with open(os.path.join(temp_dir, "mrs.package.json"), "w") as f:
+        json.dump(config, f, indent=4)
+
+    if create_zip:
+        zf = ZipFile(destination, "w")
+        for dirname, subdirs, files in os.walk(temp_dir):
+            for filename in files:
+                zip_filename = os.path.join(dirname, filename)[len(temp_dir) + 1:] # truncate the base directory
+                zf.write(os.path.join(dirname, filename), arcname=zip_filename)
+        zf.close()
+
+        shutil.rmtree(temp_dir)
+
+
 def get_service_sdk_data(session, service_id, binary_formatter=None):
     return database.get_sdk_service_data(
         session, service_id, binary_formatter=binary_formatter
     )
 
 def clone_service(session, service, new_url_context_root, dev_list):
-    dump_initial = dump.get_service_dump(session, service["id"])
-
     new_service = copy.deepcopy(service)
 
     # Cleanup the existing data to properly insert it again
@@ -669,12 +768,6 @@ def clone_service(session, service, new_url_context_root, dev_list):
     # Clone the content sets
     for content_set in content_sets.get_content_sets(session, service["id"]):
         content_sets.clone_content_set(session, content_set, new_service_id)
-
-    dump_final = dump.get_service_dump(session, new_service_id)
-
-    # assert dump_initial, dump_final
-
-    # print(f"------------------->\n{dump_initial}\n\n{dump_final}")
 
     return
 

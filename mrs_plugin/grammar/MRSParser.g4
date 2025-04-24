@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
- * 
+ *
  * This program is free software; you can redistribute it and/or modify it under the terms of the
  * GNU General Public License, version 2.0, as published by the Free Software Foundation.
- * 
+ *
  * This program is designed to work with certain software (including but not limited to OpenSSL)
  * that is licensed under separate terms, as designated in a particular file or component or in
  * included license documentation. The authors of MySQL hereby grant you an additional permission to
@@ -11,7 +11,7 @@
  * included with MySQL. This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
  * PURPOSE. See the GNU General Public License, version 2.0, for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with this program; if
  * not, write to the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA
@@ -19,7 +19,7 @@
 
 /*
  // TODO:
- 
+
  = errors should include an error code
  */
 
@@ -72,6 +72,7 @@ mrsStatement:
     | dropRestUserStatement
     | dropRestRoleStatement
     | dumpRestServiceStatement
+    | dumpRestProjectStatement
     | grantRestRoleStatement
     | grantRestPrivilegeStatement
     | revokeRestPrivilegeStatement
@@ -878,7 +879,56 @@ dumpRestServiceStatement:
     ) ENDPOINTS_SYMBOL TO_SYMBOL (ZIP_SYMBOL)? directoryFilePath
 ;
 
+dumpRestProjectStatement:
+    DUMP_SYMBOL REST_SYMBOL PROJECT_SYMBOL
+    restProjectName VERSION_SYMBOL restProjectVersion
+    (dumpRestProjectService)+
+    (dumpRestProjectDatabaseSchema)*
+    (dumpRestProjectSettings)?
+    TO_SYMBOL (ZIP_SYMBOL)? directoryFilePath
+;
+
 // Named identifiers ========================================================
+
+dumpRestProjectService:
+    SERVICE_SYMBOL serviceRequestPath
+        INCLUDING_SYMBOL ((DATABASE_SYMBOL (AND_SYMBOL STATIC_SYMBOL (AND_SYMBOL DYNAMIC_SYMBOL)?)?) | ALL_SYMBOL) ENDPOINTS_SYMBOL
+;
+
+dumpRestProjectDatabaseSchema:
+    DATABASE_SYMBOL schemaName (FROM_SYMBOL restProjectDatabaseSchemaFilePath)?
+;
+
+dumpRestProjectSettings: (
+        ICON_SYMBOL FROM_SYMBOL restProjectIconFilePath
+        | DESCRIPTION_SYMBOL restProjectDescription
+        | PUBLISHER_SYMBOL restProjectPublisher
+    )+
+;
+
+restProjectName:
+    textStringLiteral
+;
+
+restProjectDatabaseSchemaFilePath:
+    textStringLiteral
+;
+
+restProjectIconFilePath:
+    textStringLiteral
+;
+
+restProjectDescription:
+    textStringLiteral
+;
+
+restProjectPublisher:
+    textStringLiteral
+;
+
+restProjectVersion:
+    textStringLiteral
+;
 
 serviceRequestPath:
     serviceDevelopersIdentifier? requestPathIdentifier

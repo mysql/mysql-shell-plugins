@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -35,5 +35,11 @@ sed -i '' 's/147"/177"/g' showCreateRestViewStatement.svg
 sed -i '' 's/131"/151"/g' showCreateRestProcedureStatement.svg
 
 sed -i '' 's/147"/177"/g' showCreateRestAuthAppStatement.svg
+
+sed -i '' 's/147"/177"/g' showCreateRestContentSetStatement.svg
+
+sed -i '' 's/131"/177"/g' showRestGrantsStatement.svg
+
+sed -i '' 's/147"/177"/g' dumpRestProjectService.svg
 
 echo "SVG files have been patched."

@@ -282,7 +282,7 @@ def add_auth_app(session, service_id, auth_vendor_id, app_name, description, url
                 core.insert(table="service_has_auth_app", values={
                     "service_id": service_id,
                     "auth_app_id": auth_app_id,
-                }).dump.exec(session)
+                }).exec(session)
 
         return auth_app_id
 

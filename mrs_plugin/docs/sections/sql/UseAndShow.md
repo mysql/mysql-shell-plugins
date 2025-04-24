@@ -285,7 +285,6 @@ showCreateRestContentSetStatement:
 showCreateRestContentSetStatement ::=
 ![showCreateRestContentSetStatement](../../images/sql/showCreateRestContentSetStatement.svg "showCreateRestContentSetStatement")
 
-
 ## SHOW CREATE REST CONTENT FILE
 
 Shows the CREATE SQL statement corresponding to the given content file.
@@ -303,7 +302,6 @@ showCreateRestContentFileStatement:
 
 showCreateRestContentFileStatement ::=
 ![showCreateRestContentFileStatement](../../images/sql/showCreateRestContentFileStatement.svg "showCreateRestContentFileStatement")
-
 
 ## SHOW REST AUTH APPS
 
@@ -566,7 +564,6 @@ showRestRolesStatement:
 
 showRestRolesStatement ::=
 ![showRestRolesStatement](../../images/sql/showRestRolesStatement.svg "showRestRolesStatement")
-
 
 ## SHOW REST GRANTS
 
