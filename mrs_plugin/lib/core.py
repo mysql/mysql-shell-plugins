@@ -1133,6 +1133,21 @@ def convert_snake_to_camel_case(snake_str):
 def convert_to_snake_case(str):
     return re.sub(r"(?<!^)(?=[A-Z])", "_", str).lower()
 
+def has_any(str, group):
+    if str and group:
+        return any(elem in group for elem in str)
+    return False
+
+
+def validate_path_for_filesystem(path):
+    if path and has_any(path, "<>:\"|?*"):
+        raise Exception(f"The supplied path '{path}' contains invalid characters.")
+
+def make_string_valid_for_filesystem(str, invalid_characters = "<>:\"/\\|?*"):
+    for invalid_character in invalid_characters:
+        str = str.replace(invalid_character, "")
+    return str
+
 
 def unquote(name):
     # TODO- remove this, it doesn't work

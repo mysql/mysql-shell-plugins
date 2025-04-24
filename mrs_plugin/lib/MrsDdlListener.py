@@ -28,6 +28,7 @@ from mrs_plugin.lib.mrs_parser import MRSParser
 from mrs_plugin.lib.MrsDdlExecutorInterface import MrsDdlExecutorInterface
 import re
 import json
+import os
 
 
 def get_text_without_quotes(txt):
@@ -2079,25 +2080,81 @@ class MrsDdlListener(MRSListener):
 
     # ------------------------------------------------------------------------------------------------------------------
     # DUMP REST SERVICE
-
     def enterDumpRestServiceStatement(self, ctx):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "DUMP REST SERVICE",
-            "destination_path": get_text_without_quotes(
-                ctx.directoryFilePath().getText()
-            ),
+            "directory_file_path": os.path.expanduser(
+                get_text_without_quotes(ctx.directoryFilePath().getText())),
             "include_database_endpoints": ctx.DATABASE_SYMBOL() is not None
-            or ctx.ALL_SYMBOL() is not None,
+                or ctx.ALL_SYMBOL() is not None,
             "include_static_endpoints": ctx.STATIC_SYMBOL() is not None
-            or ctx.ALL_SYMBOL() is not None,
+                or ctx.ALL_SYMBOL() is not None,
             "include_dynamic_endpoints": ctx.DYNAMIC_SYMBOL() is not None
-            or ctx.ALL_SYMBOL() is not None,
+                or ctx.ALL_SYMBOL() is not None,
             "zip": ctx.ZIP_SYMBOL() is not None,
         }
 
     def exitDumpRestServiceStatement(self, ctx):
         self.mrs_ddl_executor.dumpRestService(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # DUMP REST PROJECT
+    def enterDumpRestProjectStatement(self, ctx:MRSParser.DumpRestProjectStatementContext):
+        self.mrs_object = {
+            "line": ctx.start.line,
+            "current_operation": "DUMP REST PROJECT",
+            "services": [],
+            "schemas": [],
+            "directory_file_path": os.path.expanduser(
+                get_text_without_quotes(ctx.directoryFilePath().getText())),
+            "zip": ctx.ZIP_SYMBOL() is not None,
+        }
+
+    def enterDumpRestProjectService(self, ctx):
+        all = ctx.ALL_SYMBOL() is not None
+        name = lib.core.make_string_valid_for_filesystem(ctx.serviceRequestPath().getText(), "<>:\"|?*")
+
+        self.mrs_object["services"].append({
+            "name": name,
+            "include_database_endpoints": ctx.DATABASE_SYMBOL() is not None or all,
+            "include_static_endpoints": ctx.STATIC_SYMBOL() is not None or all,
+            "include_dynamic_endpoints": ctx.DYNAMIC_SYMBOL() is not None or all,
+        })
+
+
+    def enterDumpRestProjectDatabaseSchema(self, ctx):
+        file_path = get_text_without_quotes(ctx.restProjectDatabaseSchemaFilePath().getText()) \
+            if ctx.restProjectDatabaseSchemaFilePath() else None
+        name = get_text_without_quotes(ctx.schemaName().getText())
+        name = lib.core.make_string_valid_for_filesystem(name)
+
+        lib.core.validate_path_for_filesystem(file_path)
+
+        self.mrs_object["schemas"].append({
+            "name": name,
+            "file_path": os.path.expanduser(file_path) if file_path else None,
+        })
+
+    def enterRestProjectIconFilePath(self, ctx):
+        icon_file_path = get_text_without_quotes(ctx.textStringLiteral().getText())
+        lib.core.validate_path_for_filesystem(icon_file_path)
+        self.mrs_object["icon_file_path"] = os.path.expanduser(icon_file_path)
+
+    def enterRestProjectDescription(self, ctx):
+        self.mrs_object["description"] = get_text_without_quotes(ctx.textStringLiteral().getText())
+
+    def enterRestProjectPublisher(self, ctx):
+        self.mrs_object["publisher"] = get_text_without_quotes(ctx.textStringLiteral().getText())
+
+    def enterRestProjectName(self, ctx):
+        self.mrs_object["project_name"] = get_text_without_quotes(ctx.textStringLiteral().getText())
+
+    def enterRestProjectVersionIdentifier(self, ctx):
+        self.mrs_object["version"] = get_text_without_quotes(ctx.textStringLiteral().getText())
+
+    def exitDumpRestProjectStatement(self, ctx:MRSParser.DumpRestProjectStatementContext):
+        self.mrs_ddl_executor.dumpRestProject(self.mrs_object)
 
 
 class MrsDdlErrorListener(antlr4.error.ErrorListener.ErrorListener):

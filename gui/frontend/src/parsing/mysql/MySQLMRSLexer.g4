@@ -1136,6 +1136,10 @@ DUMP_SYMBOL:        D U M P;
 ZIP_SYMBOL:         Z I P;
 SCRIPT_SYMBOL:      S C R I P T;
 STATIC_SYMBOL:      S T A T I C;
+PROJECT_SYMBOL:     P R O J E C T;
+VERSION_SYMBOL:     V E R S I O N;
+ICON_SYMBOL:        I C O N;
+PUBLISHER_SYMBOL:   P U B L I S H E R;
 
 //----------------- GraphQL --------------------------------------------------------------------------------------------
 

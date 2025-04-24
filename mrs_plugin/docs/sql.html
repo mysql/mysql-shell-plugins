@@ -154,7 +154,7 @@
                     <div class="bookToc">
                         <br>
                         <h3>MySQL REST Service - SQL
-Reference 1.19.14+9.3.1</h3>
+Reference 1.19.15+9.3.1</h3>
                                                 <ul>
                                                 <li><a
                                                 href="#introduction"
@@ -517,6 +517,24 @@ Reference 1.19.14+9.3.1</h3>
                                                 class="toc-section-number">6.22</span>
                                                 SHOW REST
                                                 GRANTS</a></li>
+                                                </ul></li>
+                                                <li><a href="#dump"
+                                                id="toc-dump"><span
+                                                class="toc-section-number">7</span>
+                                                DUMP</a>
+                                                <ul>
+                                                <li><a
+                                                href="#dump-rest-project"
+                                                id="toc-dump-rest-project"><span
+                                                class="toc-section-number">7.1</span>
+                                                DUMP REST
+                                                PROJECT</a></li>
+                                                <li><a
+                                                href="#dump-rest-service"
+                                                id="toc-dump-rest-service"><span
+                                                class="toc-section-number">7.2</span>
+                                                DUMP REST
+                                                SERVICE</a></li>
                                                 </ul></li>
                                                 </ul>
                                             </div>
@@ -3665,6 +3683,121 @@ roleService:
                 src="sections/sql/../../images/sql/showRestGrantsStatement.svg"
                 title="showRestGrantsStatement"
                 alt="showRestGrantsStatement" /></p>
+                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is designed to work with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have either included with
+                the program or referenced in the documentation.
+
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="7" id="dump"><span
+                class="header-section-number">7</span> DUMP</h1>
+                <h2 data-number="7.1" id="dump-rest-project"><span
+                class="header-section-number">7.1</span> DUMP REST
+                PROJECT</h2>
+                <p>An existing REST service can be dumped as REST
+                project by using the <code>DUMP REST PROJECT</code>
+                statement.</p>
+                <p><strong><em>SYNTAX</em></strong></p>
+                <pre class="antlr"><code>dumpRestProjectStatement:
+    DUMP REST PROJECT
+    restProjectName VERSION restProjectVersion
+    (dumpRestProjectService)+
+    (dumpRestProjectDatabaseSchema)*
+    (dumpRestProjectSettings)?
+    TO (ZIP)? directoryFilePath
+;
+
+dumpRestProjectService:
+    SERVICE serviceRequestPath
+        INCLUDING ((DATABASE (AND STATIC (AND DYNAMIC)?)?) | ALL) ENDPOINTS
+;
+
+dumpRestProjectDatabaseSchema:
+    DATABASE schemaName (FROM restProjectDatabaseSchemaFilePath)?
+;
+
+dumpRestProjectSettings: (
+        ICON FROM restProjectIconFilePath
+        | DESCRIPTION restProjectDescription
+        | PUBLISHER restProjectPublisher
+    )+
+;</code></pre>
+                <p>dumpRestProjectStatement ::= <img
+                src="sections/sql/../../images/sql/dumpRestProjectStatement.svg"
+                title="dumpRestProjectStatement"
+                alt="dumpRestProjectStatement" /></p>
+                <p>dumpRestProjectService ::= <img
+                src="sections/sql/../../images/sql/dumpRestProjectService.svg"
+                title="dumpRestProjectService"
+                alt="dumpRestProjectService" /></p>
+                <p>dumpRestProjectDatabaseSchema ::= <img
+                src="sections/sql/../../images/sql/dumpRestProjectDatabaseSchema.svg"
+                title="dumpRestProjectDatabaseSchema"
+                alt="dumpRestProjectDatabaseSchema" /></p>
+                <p>dumpRestProjectSettings ::= <img
+                src="sections/sql/../../images/sql/dumpRestProjectSettings.svg"
+                title="dumpRestProjectSettings"
+                alt="dumpRestProjectSettings" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example dumps the REST service with the
+                request path <code>/myService</code> to a REST project,
+                including the database schema <code>sakila</code> it is
+                based on.</p>
+                <div class="sourceCode" id="cb125"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb125-1"><a href="#cb125-1" aria-hidden="true" tabindex="-1"></a><span class="fu">DUMP</span> REST PROJECT myServiceProject VERSION <span class="st">&#39;1.0.0&#39;</span></span>
+<span id="cb125-2"><a href="#cb125-2" aria-hidden="true" tabindex="-1"></a>    SERVICE <span class="op">/</span>myService <span class="kw">INCLUDING</span> <span class="kw">ALL</span> ENDPOINTS</span>
+<span id="cb125-3"><a href="#cb125-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">DATABASE</span> <span class="st">&#39;sakila&#39;</span></span>
+<span id="cb125-4"><a href="#cb125-4" aria-hidden="true" tabindex="-1"></a>    DESCRIPTION <span class="st">&#39;My first REST project&#39;</span></span>
+<span id="cb125-5"><a href="#cb125-5" aria-hidden="true" tabindex="-1"></a>    PUBLISHER <span class="st">&#39;Oracle&#39;</span></span>
+<span id="cb125-6"><a href="#cb125-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">TO</span> ZIP <span class="st">&#39;~/myServiceProject.zip&#39;</span>;</span></code></pre></div>
+                <h2 data-number="7.2" id="dump-rest-service"><span
+                class="header-section-number">7.2</span> DUMP REST
+                SERVICE</h2>
+                <p>An existing REST service can be dumped to disk by
+                using the <code>DUMP REST SERVICE</code> statement. This
+                dump does not include the database schema that it is
+                based on. To create a fully consistent dump that also
+                includes the database schema, please use the
+                <code>DUMP REST PROJECT</code> statement instead.</p>
+                <pre class="antlr"><code>dumpRestServiceStatement:
+    DUMP REST SERVICE serviceRequestPath AS (
+        SQL
+    )? SCRIPT INCLUDING (
+        (
+            DATABASE (
+                AND STATIC (
+                    AND DYNAMIC
+                )?
+            )?
+        )
+        | ALL
+    ) ENDPOINTS TO (ZIP)? directoryFilePath
+;</code></pre>
+                <p>dumpRestServiceStatement ::= <img
+                src="sections/sql/../../images/sql/dumpRestServiceStatement.svg"
+                title="dumpRestServiceStatement"
+                alt="dumpRestServiceStatement" /></p>
+                <p><strong><em>Examples</em></strong></p>
+                <p>The following example dumps the REST service with the
+                request path <code>/myService</code>.</p>
+                <div class="sourceCode" id="cb127"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb127-1"><a href="#cb127-1" aria-hidden="true" tabindex="-1"></a><span class="fu">DUMP</span> REST SERVICE <span class="op">/</span>myService <span class="kw">AS</span> SQL SCRIPT <span class="kw">INCLUDING</span> <span class="kw">ALL</span> ENDPOINTS <span class="kw">TO</span> ZIP <span class="st">&#39;~/myService.zip&#39;</span>;</span></code></pre></div>
                 <p>Copyright (c) 2023, 2025, Oracle and/or its
                 affiliates.</p>
             </div>

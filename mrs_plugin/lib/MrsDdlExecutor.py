@@ -25,7 +25,7 @@ import mrs_plugin.lib as lib
 from mrs_plugin.lib.MrsDdlExecutorInterface import MrsDdlExecutorInterface
 import json
 import re
-from mysqlsh import globals, DBError
+from mysqlsh import globals, DBError # type: ignore
 from datetime import datetime
 import base64
 import os
@@ -2019,6 +2019,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         self.current_operation = mrs_object.pop("current_operation")
         if_exists = mrs_object.pop("if_exists")
 
+
         caption = mrs_object.get("name")
         any_service = mrs_object.get("any_service", False)
         if not any_service:
@@ -3219,14 +3220,16 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         include_database_endpoints = mrs_object["include_database_endpoints"]
         include_static_endpoints = mrs_object["include_static_endpoints"]
         include_dynamic_endpoints = mrs_object["include_dynamic_endpoints"]
+
+
         try:
             service = lib.services.get_service(self.session, url_context_root=mrs_object["url_context_root"])
 
             lib.services.store_service_create_statement(self.session, service,
-                                                        mrs_object.get("destination_path"), mrs_object.get("zip", False),
+                                                        mrs_object.get("directory_file_path"), mrs_object.get("zip", False),
                                                         include_database_endpoints, include_static_endpoints, include_dynamic_endpoints)
 
-            result = [{"DUMP REST SERVICE ": f"Result stored in '{mrs_object["destination_path"]}'"}]
+            result = [{"DUMP REST SERVICE ": f"Result stored in '{mrs_object["directory_file_path"]}'"}]
 
             self.results.append(
                 {
@@ -3247,6 +3250,63 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "line": mrs_object.get("line"),
                     "type": "error",
                     "message": f"Failed to execute DUMP REST SERVICE `{service.get("name", "unknown")}`. {e}",
+                    "operation": self.current_operation,
+                }
+            )
+            raise
+
+    def dumpRestProject(self, mrs_object: dict):
+        timer = Timer()
+
+        self.current_operation: str = mrs_object.pop("current_operation")
+        project_name: str = mrs_object.get("project_name")
+        version: str = mrs_object.get("version")
+        destination: str = mrs_object.get("directory_file_path")
+        create_zip: bool = mrs_object.get("zip", False)
+
+        services: list = mrs_object.get("services")
+        schemas: list = mrs_object.get("schemas")
+
+        icon_path: str | None = mrs_object.get("icon_file_path")
+        description: str | None = mrs_object.get("description")
+        publisher: str | None = mrs_object.get("publisher")
+
+        try:
+            lib.core.validate_path_for_filesystem(destination)
+            lib.services.store_project(self.session,
+                                       destination=destination,
+                                       services=services,
+                                       schemas=schemas,
+                                       project_settings={
+                                           "name": project_name,
+                                           "icon_path": icon_path,
+                                           "description": description,
+                                           "publisher": publisher,
+                                           "version": version
+                                       },
+                                       create_zip=create_zip)
+
+            result = [{"DUMP REST PROJECT ": f"Result stored in '{mrs_object["directory_file_path"]}'"}]
+
+            self.results.append(
+                {
+                    "statementIndex": len(self.results) + 1,
+                    "line": mrs_object.get("line"),
+                    "type": "success",
+                    "operation": self.current_operation,
+                    "id": project_name,
+                    "result": result,
+                    "executionTime": timer.elapsed(),
+                }
+            )
+
+        except Exception as e:
+            self.results.append(
+                {
+                    "statementIndex": len(self.results) + 1,
+                    "line": mrs_object.get("line"),
+                    "type": "error",
+                    "message": f"Failed to execute DUMP REST PROJECT `{project_name}`. {e}",
                     "operation": self.current_operation,
                 }
             )

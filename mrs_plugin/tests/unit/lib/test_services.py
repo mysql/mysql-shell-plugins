@@ -22,6 +22,11 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import pytest
+import tempfile
+import os
+import json
+import zipfile
+
 from mrs_plugin import lib
 from mrs_plugin.tests.unit.helpers import ServiceCT, TableContents
 from lib.core import MrsDbSession
@@ -208,3 +213,120 @@ def test_change_service(phone_book, table_contents):
     assert service_table.same_as_snapshot
     assert auth_app_table.same_as_snapshot
 
+def test_service_as_project(phone_book, table_contents):
+    session = phone_book["session"]
+    services = [
+        {
+            "name": "/test",
+            "include_database_endpoints": False,
+            "include_static_endpoints": False,
+            "include_dynamic_endpoints": False,
+        }
+    ]
+
+    schemas = [
+        {
+            "name": "PhoneBook",
+            "file_path": None,
+        },
+        {
+            "name": "MobilePhoneBook",
+            "file_path": None,
+        }
+    ]
+
+    project_settings = {
+        "name": "testProject",
+        "icon_path": None,
+        "description": "This is a test project",
+        "publisher": "Oracle",
+        "version": "1.0.0"
+    }
+
+    # Test storing the project into a directory
+    with tempfile.TemporaryDirectory() as directory:
+        project_settings["icon_path"] = os.path.join(directory, "icon1.svg")
+        project_file_path = os.path.join(directory, "mrs.package.json")
+        test_service_path = os.path.join(directory, "test.service.mrs.sql")
+        phone_book_schema_dir = os.path.join(directory, "PhoneBook")
+        mobile_phone_book_schema_dir = os.path.join(directory, "MobilePhoneBook")
+
+        with open(project_settings["icon_path"], "w") as iconFile:
+            iconFile.write(" ")
+
+        lib.services.store_project(session, directory, services, schemas, project_settings, False)
+
+        assert os.path.isfile(project_file_path)
+        with open(project_file_path, "r") as f:
+            data = json.load(f)
+
+            assert data == {
+                "name": project_settings["name"],
+                "version": project_settings["version"],
+                "restServices": [{"fileName": "test.service.mrs.sql", "serviceName": "/test"}],
+                "schemas": [
+                    {"path": "PhoneBook", "schemaName": "PhoneBook", "format": "dump"},
+                    {"path": "MobilePhoneBook", "schemaName": "MobilePhoneBook", "format": "dump"},
+                ],
+                "creationDate": data["creationDate"],
+                "publisher": project_settings["publisher"],
+                "description": project_settings["description"],
+                "icon": "appIcon.svg"
+            }
+
+        assert os.path.isfile(test_service_path)
+        assert os.path.isdir(phone_book_schema_dir)
+        assert os.path.isdir(mobile_phone_book_schema_dir)
+
+    # Test storing the project into a zip file
+    with tempfile.TemporaryDirectory(delete=False) as directory:
+        project_settings["icon_path"] = os.path.join(directory, "icon1.svg")
+        project_file_path = os.path.join(directory, "mrs.package.json")
+        test_service_path = os.path.join(directory, "test.service.mrs.sql")
+        phone_book_schema_dir = os.path.join(directory, "PhoneBook")
+        mobile_phone_book_schema_dir = os.path.join(directory, "MobilePhoneBook")
+
+        with open(project_settings["icon_path"], "w") as iconFile:
+            iconFile.write(" ")
+
+        # project_settings = {
+        #     "name": "testProject",
+        #     "icon_path": icon_path,
+        #     "description": "This is a test project",
+        #     "publisher": "MRS Team",
+        #     "version": "1.0.0"
+        # }
+
+        zip_path = os.path.join(directory, "project.mrs.zip")
+        lib.services.store_project(session, zip_path, services, schemas, project_settings, True)
+
+        assert os.path.isfile(zip_path)
+
+        assert zipfile.is_zipfile(zip_path)
+
+        with zipfile.ZipFile(zip_path) as myzip:
+            assert zipfile.Path(myzip, "mrs.package.json").is_file
+            with myzip.open("mrs.package.json") as f:
+                data = json.load(f)
+
+                # project_settings["iconPath"] = "appIcon.svg"
+                # project_settings["creationDate"] = data["creationDate"]
+                # project_settings["services"] = [{"fileName": "test.service.mrs.sql", "serviceName": "/test"}]
+                # project_settings["schemas"] = [
+                #     {"fileName": "PhoneBook", "schemaName": "PhoneBook"},
+                #     {"fileName": "MobilePhoneBook", "schemaName": "MobilePhoneBook"},
+                # ]
+
+                assert data == {
+                    "name": project_settings["name"],
+                    "version": project_settings["version"],
+                    "restServices": [{"fileName": "test.service.mrs.sql", "serviceName": "/test"}],
+                    "schemas": [
+                        {"path": "PhoneBook", "schemaName": "PhoneBook", "format": "dump"},
+                        {"path": "MobilePhoneBook", "schemaName": "MobilePhoneBook", "format": "dump"},
+                    ],
+                    "creationDate": data["creationDate"],
+                    "publisher": project_settings["publisher"],
+                    "description": project_settings["description"],
+                    "icon": "appIcon.svg"
+                }

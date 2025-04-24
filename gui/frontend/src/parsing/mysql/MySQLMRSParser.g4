@@ -5307,6 +5307,10 @@ identifierKeywordsUnambiguous:
         | ZIP_SYMBOL
         | SCRIPT_SYMBOL
         | STATIC_SYMBOL
+        | PROJECT_SYMBOL
+        | VERSION_SYMBOL
+        | ICON_SYMBOL
+        | PUBLISHER_SYMBOL
         | AT_INOUT_SYMBOL
         | AT_IN_SYMBOL
         | AT_OUT_SYMBOL
@@ -5816,6 +5820,7 @@ mrsStatement:
     | dropRestUserStatement
     | dropRestRoleStatement
     | dumpRestServiceStatement
+    | dumpRestProjectStatement
     | grantRestRoleStatement
     | grantRestPrivilegeStatement
     | revokeRestPrivilegeStatement
@@ -6622,7 +6627,56 @@ dumpRestServiceStatement:
     ) ENDPOINTS_SYMBOL TO_SYMBOL (ZIP_SYMBOL)? directoryFilePath
 ;
 
+dumpRestProjectStatement:
+    DUMP_SYMBOL REST_SYMBOL PROJECT_SYMBOL
+    projectName VERSION_SYMBOL projectVersionIdentifier
+    (dumpProjectServiceSegment)+
+    (dumpProjectDatabaseSchemaSegment)*
+    (projectSettings)?
+    TO_SYMBOL (ZIP_SYMBOL)? directoryFilePath
+;
+
 // Named identifiers ========================================================
+
+dumpProjectServiceSegment:
+    SERVICE_SYMBOL serviceRequestPath
+        INCLUDING_SYMBOL ((DATABASE_SYMBOL (AND_SYMBOL STATIC_SYMBOL (AND_SYMBOL DYNAMIC_SYMBOL)?)?) | ALL_SYMBOL) ENDPOINTS_SYMBOL
+;
+
+dumpProjectDatabaseSchemaSegment:
+    DATABASE_SYMBOL schemaName (FROM_SYMBOL schemaFilePath)?
+;
+
+projectSettings: (
+        ICON_SYMBOL FROM_SYMBOL projectIconFilePath
+        | DESCRIPTION_SYMBOL projectDescription
+        | PUBLISHER_SYMBOL projectPublisher
+    )+
+;
+
+projectName:
+    textStringLiteral
+;
+
+schemaFilePath:
+    textStringLiteral
+;
+
+projectIconFilePath:
+    textStringLiteral
+;
+
+projectDescription:
+    textStringLiteral
+;
+
+projectPublisher:
+    textStringLiteral
+;
+
+projectVersionIdentifier:
+    textStringLiteral
+;
 
 serviceRequestPath:
     serviceDevelopersIdentifier? requestPathIdentifier

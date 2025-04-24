@@ -36,4 +36,6 @@ Please also see
 
 !include sections/sql/UseAndShow.md
 
+!include sections/sql/Dump.md
+
 Copyright (c) 2023, 2025, Oracle and/or its affiliates.
