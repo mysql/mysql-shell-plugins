@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -177,6 +177,18 @@ export class Settings {
         return Promise.resolve(true);
     };
 
+    private static userLoggedOut = (): Promise<boolean> => {
+        this.values = {
+            theming: {
+                themes: [],
+                currentTheme: "Auto",
+            },
+        };
+        this.dirty = false;
+
+        return requisitions.execute("settingsChanged", undefined);
+    };
+
     private static restartAutoSaveTimeout(): void {
         if (this.saveTimer) {
             clearInterval(this.saveTimer);
@@ -194,6 +206,7 @@ export class Settings {
         setTimeout(() => {
             requisitions.register("profileLoaded", Settings.mergeProfileValues);
             requisitions.register("applicationWillFinish", Settings.applicationWillFinish);
+            requisitions.register("userLoggedOut", Settings.userLoggedOut);
         }, 0);
     }
 }

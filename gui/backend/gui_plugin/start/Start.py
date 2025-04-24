@@ -207,6 +207,7 @@ def web_server(port=None, secure=None, webrootpath=None,
             logger.info(f"\tPort: {port}")
             logger.info(f"\tSecure: {'version' in dir(server.socket)}")
             logger.info(f"\tWebroot: {webrootpath}")
+            logger.info(f"\tAccept remote connections: {accept_remote_connections}")
             if server.single_instance_token is not None:
                 mode = 'Single user'
             elif server.single_server is not None:

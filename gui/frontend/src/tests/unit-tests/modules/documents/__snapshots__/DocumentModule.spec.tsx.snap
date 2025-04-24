@@ -9,9 +9,11 @@ exports[`Document module tests Test DocumentModule instantiation 1`] = `
         "notifySubscribers": [Function],
         "refreshMrsRoutersTimer": undefined,
         "routerRefreshTime": 10000,
+        "singleServerMode": false,
         "subscribers": Set {},
       },
       "documentDataModel": OpenDocumentDataModel {
+        "singleServerMode": false,
         "updateSessions": [Function],
       },
       "ociDataModel": OciDataModel {

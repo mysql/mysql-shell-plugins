@@ -42,5 +42,6 @@ export interface IProtocolParameters extends IProtocolGuiParameters, IProtocolMd
     "native": INativeShellRequest;
 
     [Protocol.UserAuthenticate]: { username: string; password: string; };
+    [Protocol.LogOut]: {};
     [Protocol.PromptReply]: { requestId: string; type: ShellPromptResponseType; reply: string; moduleSessionId: string; };
 }

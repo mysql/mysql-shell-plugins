@@ -27,7 +27,7 @@
 import { ComponentChild } from "preact";
 
 import { appParameters, requisitions } from "../supplement/Requisitions.js";
-import { webSession } from "../supplement/WebSession.js";
+import { RunMode, webSession } from "../supplement/WebSession.js";
 
 import { SettingsEditor } from "../components/SettingsEditor/SettingsEditor.js";
 import { DialogHost } from "./DialogHost.js";
@@ -88,10 +88,12 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
             this.aboutStatusItem.tooltip = "Show About";
             this.aboutStatusItem.command = "application:toggleAbout";
 
-            this.debuggerStatusItem = ui.createStatusBarItem(StatusBarAlignment.Right, 8);
-            this.debuggerStatusItem.text = "$(debug)";
-            this.debuggerStatusItem.tooltip = "Toggle Communication Debugger";
-            this.debuggerStatusItem.command = "application:toggleDebugger";
+            if (webSession.runMode === RunMode.LocalUser && !appParameters.embedded) {
+                this.debuggerStatusItem = ui.createStatusBarItem(StatusBarAlignment.Right, 8);
+                this.debuggerStatusItem.text = "$(debug)";
+                this.debuggerStatusItem.tooltip = "Toggle Communication Debugger";
+                this.debuggerStatusItem.command = "application:toggleDebugger";
+            }
         }
 
         void requisitions.execute("applicationDidStart", undefined);
@@ -120,7 +122,7 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
 
         let content = pages;
         let allowDebugger = false;
-        if (webSession.localUserMode && !appParameters.embedded &&
+        if (webSession.runMode === RunMode.LocalUser && !appParameters.embedded &&
             (!appParameters.testsRunning || appParameters.launchWithDebugger)) {
             allowDebugger = true;
 
@@ -158,7 +160,7 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
         }
 
         return (
-            <Container className="applicationHost">
+            <Container className="applicationHost" orientation={Orientation.TopDown}>
                 {content}
                 <DialogHost />
             </Container>

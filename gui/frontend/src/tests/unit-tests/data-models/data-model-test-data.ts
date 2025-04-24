@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -31,6 +31,7 @@ import type {
 import type { IWebviewProvider } from "../../../supplement/RequisitionTypes.js";
 import { DBConnectionEditorType, DBType, type IConnectionDetails } from "../../../supplement/ShellInterface/index.js";
 
+/** Some variables to configure the mock functions during tests: */
 export const cdmMockState = {
     mockConnectedLoaded: false,
     haveMockConnectionResponse: false,
@@ -99,6 +100,7 @@ export const openConnectionDataMock1: IOpenConnectionData = {
         version: "9.1.0",
         heatWaveAvailable: false,
         mleAvailable: false,
+        isCloudInstance: false,
     },
 };
 

@@ -14,7 +14,7 @@
         "jest.disabledWorkspaceFolders": [
             "VSCode Extension"
         ],
-        "typescript.tsdk": "Shell GUI Frontend/node_modules/typescript/lib",
+        "typescript.tsdk": "node_modules/typescript/lib",
         "files.exclude": {
             "**/app-wrapper": true
         }

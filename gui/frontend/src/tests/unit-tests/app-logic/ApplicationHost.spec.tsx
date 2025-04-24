@@ -30,7 +30,7 @@ import { mount, shallow } from "enzyme";
 import { ApplicationHost } from "../../../app-logic/ApplicationHost.js";
 import { DialogResponseClosure, DialogType, IDialogResponse } from "../../../app-logic/general-types.js";
 import { appParameters, requisitions } from "../../../supplement/Requisitions.js";
-import { webSession } from "../../../supplement/WebSession.js";
+import { RunMode, webSession } from "../../../supplement/WebSession.js";
 
 import { registerUiLayer } from "../../../app-logic/UILayer.js";
 import { CommunicationDebugger } from "../../../components/CommunicationDebugger/CommunicationDebugger.js";
@@ -172,7 +172,7 @@ describe("Application host tests", () => {
     });
 
     it("Debugger State Switches", async () => {
-        webSession.localUserMode = true;
+        webSession.runMode = RunMode.LocalUser;
         appParameters.embedded = false;
 
         const component = mount<ApplicationHost>(

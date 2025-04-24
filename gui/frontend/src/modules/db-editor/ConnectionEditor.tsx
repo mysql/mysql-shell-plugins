@@ -47,9 +47,11 @@ import { Label } from "../../components/ui/Label/Label.js";
 import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator.js";
 import type { ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
 import { requisitions } from "../../supplement/Requisitions.js";
+import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
 import { DBConnectionEditorType, DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
+import { RunMode, webSession } from "../../supplement/WebSession.js";
 import { convertErrorToString } from "../../utilities/helpers.js";
 import { basename, filterInt } from "../../utilities/string-helpers.js";
 import { DocumentContext, type DocumentContextType } from "./index.js";
@@ -523,6 +525,16 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
         const description = "A new Database Connection";
 
+        let defaultEditor = DBConnectionEditorType.DbNotebook;
+        if (webSession.runMode === RunMode.SingleServer) {
+            // In single server mode take the default editor from the settings.
+            defaultEditor = Settings.get("dbEditor.defaultEditor", "notebook") === "notebook"
+                ? DBConnectionEditorType.DbNotebook
+                : DBConnectionEditorType.DbScript;
+        } else if (details?.settings?.defaultEditor) {
+            defaultEditor = details.settings.defaultEditor;
+        }
+
         details = details ?? { // Default for new connections is MySQL.
             id: -1,
             dbType: DBType.MySQL,
@@ -536,7 +548,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 scheme: MySQLConnectionScheme.MySQL,
             },
             settings: {
-                defaultEditor: DBConnectionEditorType.DbNotebook,
+                defaultEditor,
             },
         };
 
@@ -579,8 +591,6 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 host: "localhost",
             };
         }
-
-        const defaultEditor = details.settings?.defaultEditor ?? DBConnectionEditorType.DbNotebook;
 
         const informationSection: IDialogSection = {
             values: {

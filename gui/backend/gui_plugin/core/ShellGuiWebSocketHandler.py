@@ -59,6 +59,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
     _single_server_conn_id = None
     _thread_context = None
     _active_profile_id = None
+    _new_single_server_user_created = False
 
     def _is_shell_object(self, object):
         return type(object).__name__ in ['Dict', 'List']
@@ -109,11 +110,13 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                                            json_message.get('request_id'))
         elif request == 'logout':
             if self.is_authenticated:
-                self._session_user_id = None
+                if self.single_server is not None:
+                    self.logout_single_server_user()
+                else:
+                    self._session_user_id = None
                 self.send_response_message('OK',
-                                           f'User successfully logged out.',
+                                           'User successfully logged out.',
                                            json_message.get('request_id'))
-
             else:
                 self.send_response_message('ERROR',
                                            'This session is not '
@@ -283,6 +286,14 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         self._response_thread.start()
 
     def on_ws_closed(self):
+        self.teardown()
+
+        if self.single_server is not None:
+            self.single_server_cleanup()
+
+        logger.info("Websocket closed")
+
+    def teardown(self):
         # if the database connection for this thread was opened, close it
         if self._db:
             if self.session_uuid:
@@ -297,8 +308,6 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
         if self._response_thread.is_alive():
             self._response_thread.join()
-
-        logger.info("Websocket closed")
 
     def on_ws_sending_message(self, message):
         json_message = json.loads(message)
@@ -489,7 +498,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         request_id = json_msg.get('request_id')
         username = json_msg.get('username')
         if username.startswith("ssu:"):
-            raise Exception('Single server user authentication not supported')
+            raise RuntimeError('Single server user authentication not supported')
         try:
             if self.is_local_session:
                 if username != gui.users.backend.LOCAL_USERNAME:  # type: ignore
@@ -680,8 +689,19 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                 if "request_id" in f_args:
                     raise Exception(
                         f'Argument request_id not allowed for function: {cmd}.')
+
                 if "be_session" in f_args:
                     kwargs.update({"be_session": self.db})
+
+                if "db_connection_id" in f_args and self.single_server is not None:
+                    if self._single_server_conn_id is None:
+                        if self.session_uuid in self.get_cache():
+                            self._single_server_conn_id = self.get_cache()[
+                                self.session_uuid][1]
+                            del self.get_cache()[
+                                self.session_uuid]
+
+                    kwargs.update({"db_connection_id": self._single_server_conn_id})
 
             if "interactive" in f_args:
                 kwargs.update({"interactive": False})
@@ -877,7 +897,8 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
             if user_id is None:
                 user_id = gui.users.backend.create_user(  # type: ignore
-                    self.db, username, "", "Administrator")
+                    self.db, username, "", "Administrator", "localhost", True)
+                self._new_single_server_user_created = True
 
             with self.db_tx() as db:
                 db.execute('UPDATE session SET user_id=? WHERE uuid=?',
@@ -904,10 +925,12 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         request_id = json_msg.get('request_id')
         username = json_msg.get('username')
         password = json_msg.get('password')
+        hashed_session_id = hashlib.sha256(str(self.session_id).encode()).hexdigest()
+        single_server_connection_name = f"Single MySQL Server ({hashed_session_id})"
 
         connection = {
             "db_type": "MySQL",
-            "caption": "Single MySQL Server",
+            "caption": single_server_connection_name,
             "description": "Connection to Single MySQL Server",
             "options": {
                 "scheme": "mysql",
@@ -930,23 +953,26 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             connections = gui.db_connections.list_db_connections(  # type: ignore
                 self._active_profile_id)
             for connection in connections:
-                if connection['caption'] == "Single MySQL Server":
+                if connection['caption'] == single_server_connection_name:
                     self._single_server_conn_id = connection['id']
                     break
 
             if self._single_server_conn_id is None:
-                self._single_server_conn_id = gui.db_connections.add_db_connection(  # type: ignore
-                    self.session_user_id, connection)[0]
+                self._single_server_conn_id = self.add_single_server_connection(connection)
 
             gui.shell.start_session(self._single_server_conn_id)  # type: ignore
 
-            values = {"active_profile": self._active_profile_id}
+            default_profile = gui.users.get_default_profile(  # type: ignore
+                self._session_user_id, self.db)
+            values = {"active_profile": default_profile}
 
             self.send_response_message('OK',
                                     f'User {username} was '
                                     f'successfully authenticated.',
                                     request_id, values)
         else:
+            if self._new_single_server_user_created:
+                gui.users.delete_user("ssu:" + username)  # type: ignore
             self._session_user_id = None
             self._session_user_personal_group_id = None
             self._active_profile_id = None
@@ -964,6 +990,31 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
         if not new_session.completion_event.has_errors:  # type: ignore
             new_session.close()
+            conn_string = f"{connection['options']['user']}@{self.single_server}"
+            mysqlsh.globals.shell.store_credential(
+                conn_string, password)  # type: ignore
             return True
 
         return False
+
+    def single_server_remove_connection(self):
+        if self._single_server_conn_id is not None:
+            gui.db_connections.remove_db_connection(  # type: ignore
+                self._active_profile_id, self._single_server_conn_id)
+            self._single_server_conn_id = None
+
+    def single_server_cleanup(self):
+        self._thread_context = None
+        self.get_cache()[self.session_uuid] = (
+            self._active_profile_id, self._single_server_conn_id)  # type: ignore
+
+        self._single_server_conn_id = None
+
+    def logout_single_server_user(self):
+        self.single_server_remove_connection()
+
+        self._session_user_id = None
+
+    def add_single_server_connection(self, connection):
+        return gui.db_connections.add_db_connection(  # type: ignore
+            self._session_user_id, connection)[0]

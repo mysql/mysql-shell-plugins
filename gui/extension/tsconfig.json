@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "useDefineForClassFields": true,
         "declaration": false,
         "module": "Node16",
         "moduleResolution": "Node16",
@@ -29,5 +30,5 @@
         "test-resources",
         "tests",
         "packaging"
-    ]
+    ],
 }

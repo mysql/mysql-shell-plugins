@@ -40,6 +40,7 @@ import { Label } from "../ui/Label/Label.js";
 import { Search, type ISearchProperties, type ISearchValues } from "../ui/Search/Search.js";
 import { TreeGrid, type ITreeGridOptions } from "../ui/TreeGrid/TreeGrid.js";
 import { SettingsEditorList } from "./SettingsEditorList.js";
+import { RunMode, webSession } from "../../supplement/WebSession.js";
 
 interface ISettingsEditorState extends IComponentState {
     settingsTree: ISettingCategory[];
@@ -49,6 +50,7 @@ interface ISettingsEditorState extends IComponentState {
     searchValues: ISearchValues;
     foundEntries: number;
     showAdvancedSettings: boolean;
+    hiddenIds: string[];
 }
 
 /** A dialog to edit user and application settings. */
@@ -64,7 +66,13 @@ export class SettingsEditor extends ComponentBase<{}, ISettingsEditorState> {
         super(props);
 
         const settingsTree = settingCategories.children!;
-        const [, filteredTree] = this.filterSettingsTree(settingsTree, false);
+        const hiddenIds: string[] = [];
+        if (webSession.runMode === RunMode.SingleServer) {
+            // This setting is only used in single server mode, where we only have one, non-editable connection.
+            hiddenIds.push("dbEditor.defaultEditor");
+        }
+
+        const [, filteredTree] = this.filterSettingsTree(settingsTree, false, hiddenIds);
 
         this.state = {
             settingsTree,
@@ -75,6 +83,7 @@ export class SettingsEditor extends ComponentBase<{}, ISettingsEditorState> {
             },
             foundEntries: -1,
             showAdvancedSettings: false,
+            hiddenIds,
         };
     }
 
@@ -285,7 +294,7 @@ export class SettingsEditor extends ComponentBase<{}, ISettingsEditorState> {
         return filter;
     };
 
-    private filterSettingsTree(settingsTree: ISettingCategory[], showAdvanced: boolean,
+    private filterSettingsTree(settingsTree: ISettingCategory[], showAdvanced: boolean, ignoreList: string[],
         filter?: RegExp): [number, ISettingCategory[]] {
         let foundEntries = -1;
         const filteredTree: ISettingCategory[] = [];
@@ -315,7 +324,7 @@ export class SettingsEditor extends ComponentBase<{}, ISettingsEditorState> {
             }
 
             category.values.forEach((child) => {
-                if (!child.advanced || showAdvanced) {
+                if (!ignoreList.includes(child.id) && (!child.advanced || showAdvanced)) {
                     if (!filter || child.title.match(filter) || child.description.match(filter)) {
                         ++foundEntries;
                         result.values.push(child);
@@ -346,10 +355,10 @@ export class SettingsEditor extends ComponentBase<{}, ISettingsEditorState> {
     private runFilterTimer(): void {
         // The timer must have been stopped already, if it was running.
         this.filterTimer = setTimeout(() => {
-            const { settingsTree, searchValues, showAdvancedSettings } = this.state;
+            const { settingsTree, searchValues, showAdvancedSettings, hiddenIds } = this.state;
             const filter = this.generateSearchFilter(searchValues);
             const [foundEntries, filteredTree] =
-                this.filterSettingsTree(settingsTree, showAdvancedSettings, filter);
+                this.filterSettingsTree(settingsTree, showAdvancedSettings, hiddenIds, filter);
             this.setState({
                 foundEntries: filter ? foundEntries : -1,
                 filteredTree,
