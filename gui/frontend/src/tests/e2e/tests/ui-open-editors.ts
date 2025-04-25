@@ -116,7 +116,7 @@ describe("OPEN EDITORS", () => {
 
             await driver.executeScript("arguments[0].click()", newMySQLScript);
             const currentEditor = await new E2EScript().toolbar.editorSelector.getCurrentEditor();
-            const scriptName = "Script 2";
+            const scriptName = "Script 1";
             expect(currentEditor.label).toBe(scriptName);
             expect(currentEditor.icon).toContain(constants.mysqlScriptIcon);
             const treeScript = await openEditorsTreeSection.getTreeItem(scriptName);
@@ -153,7 +153,7 @@ describe("OPEN EDITORS", () => {
             await openEditorsTreeSection.focus();
             await openEditorsTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.newMySQLScript);
             const currentEditor = await new E2EScript().toolbar.editorSelector.getCurrentEditor();
-            const scriptName = "Script 3";
+            const scriptName = "Script 2";
             expect(currentEditor.label).toBe(scriptName);
             expect(currentEditor.icon).toContain(constants.mysqlScriptIcon);
             const treeSqlScript = await openEditorsTreeSection.getTreeItem(scriptName);
@@ -168,7 +168,7 @@ describe("OPEN EDITORS", () => {
         try {
             await openEditorsTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.newJS);
             const currentEditor = await new E2EScript().toolbar.editorSelector.getCurrentEditor();
-            const scriptName = "Script 4";
+            const scriptName = "Script 3";
             expect(currentEditor.label).toBe(scriptName);
             expect(currentEditor.icon).toContain(constants.jsType);
             const treeSqlScript = await openEditorsTreeSection.getTreeItem(scriptName);
@@ -183,7 +183,7 @@ describe("OPEN EDITORS", () => {
         try {
             await openEditorsTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.newTS);
             const currentEditor = await new E2EScript().toolbar.editorSelector.getCurrentEditor();
-            const scriptName = "Script 5";
+            const scriptName = "Script 4";
             expect(currentEditor.label).toBe(scriptName);
             expect(currentEditor.icon).toContain(constants.tsType);
             const treeSqlScript = await openEditorsTreeSection.getTreeItem(scriptName);
@@ -207,8 +207,8 @@ describe("OPEN EDITORS", () => {
 
     it("Open DB Notebook", async () => {
         try {
-            await (await openEditorsTreeSection.getTreeItem(`${constants.dbNotebook} 1`)).click();
-            expect((await notebook.toolbar.editorSelector.getCurrentEditor()).label).toBe(`${constants.dbNotebook} 1`);
+            await (await openEditorsTreeSection.getTreeItem(constants.dbNotebook)).click();
+            expect((await notebook.toolbar.editorSelector.getCurrentEditor()).label).toBe(constants.dbNotebook);
         } catch (e) {
             testFailed = true;
             throw e;

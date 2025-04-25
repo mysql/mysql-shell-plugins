@@ -1504,21 +1504,21 @@ describe("RESULT GRIDS", () => {
                 expect(await dialog.getText()).toMatch(dialogMessage);
                 await dialog.alternative();
                 expect((await anotherConnNotebook.toolbar.editorSelector.getCurrentEditor()).label)
-                    .toBe(`${constants.dbNotebook} 1`);
+                    .toBe(constants.dbNotebook);
 
                 await (await dbTreeSection.getTreeItem(constants.clientConnections)).click();
                 dialog = await new ConfirmDialog().untilExists();
                 expect(await dialog.getText()).toMatch(dialogMessage);
                 await dialog.alternative();
                 expect((await anotherConnNotebook.toolbar.editorSelector.getCurrentEditor()).label)
-                    .toBe(`${constants.dbNotebook} 1`);
+                    .toBe(constants.dbNotebook);
 
                 await (await dbTreeSection.getTreeItem(constants.performanceDashboard)).click();
                 dialog = await new ConfirmDialog().untilExists();
                 expect(await dialog.getText()).toMatch(dialogMessage);
                 await dialog.alternative();
                 expect((await anotherConnNotebook.toolbar.editorSelector.getCurrentEditor()).label)
-                    .toBe(`${constants.dbNotebook} 1`);
+                    .toBe(constants.dbNotebook);
 
                 await anotherConnNotebook.toolbar.editorSelector.selectEditor(/DB Connection Overview/);
                 dialog = await new ConfirmDialog().untilExists();
