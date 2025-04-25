@@ -98,7 +98,7 @@ describe("NOTEBOOKS", () => {
 
         let cleanEditor = false;
         let testFailed = false;
-        const destFile = `${process.cwd()}/${globalConn.caption} - ${constants.dbNotebook} 1.mysql-notebook`;
+        const destFile = `${process.cwd()}/${globalConn.caption} - ${constants.dbNotebook}.mysql-notebook`;
 
         afterEach(async () => {
             if (testFailed) {
