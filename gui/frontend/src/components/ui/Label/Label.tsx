@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -245,6 +245,7 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
                         key={index}
                         className={className ? className : undefined}
                         style={style}
+                        data-tooltip={"inherit"}
                     >
                         {value.content}
                     </span >
@@ -259,6 +260,12 @@ export class Label extends ComponentBase<ILabelProperties, ILabelState> {
                 const lastChild = this.labelRef.current?.lastChild;
                 if (lastChild instanceof HTMLElement && lastChild.tagName === "BR") {
                     lastChild.remove();
+                }
+                if (this.labelRef.current?.children) {
+                    const children = this.labelRef.current.getElementsByTagName("*");
+                    Array.from(children).forEach((child) => {
+                        child.setAttribute("data-tooltip", "inherit");
+                    });
                 }
             });
         }

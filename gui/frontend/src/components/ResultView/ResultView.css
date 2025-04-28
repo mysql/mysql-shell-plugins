@@ -72,9 +72,11 @@
     margin-right: 4px;
 }
 
+.msg.outputHost .commandIndex,
 .msg.resultHost .resultTabview .outputHost .commandIndex {
     color: var(--resultStatus-foreground);
-    margin-right: 4px;
+    margin-left: 4px;
+    margin-right: 3px;
 }
 
 .msg.resultHost .resultTabview .outputHost > .labelHost {

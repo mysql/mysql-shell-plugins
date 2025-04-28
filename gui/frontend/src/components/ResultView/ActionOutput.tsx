@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -126,7 +126,7 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
                     type={entry.type}
                     style={{ gridColumn: `span ${columnSpan}` }}
                     tabIndex={index === undefined ? -1 : 0}
-                    data-tooltip={undefined}
+                    data-tooltip={entry.tooltip}
                     onClick={this.handleLabelClick}
                 />);
             }
@@ -264,7 +264,7 @@ export class ActionOutput extends ComponentBase<IActionOutputProperties> {
             }
 
             if (text.length > 0) {
-                requisitions.writeToClipboard(text);
+                requisitions.writeToClipboard(text.replaceAll(/\u00A0/g, " "));
             }
         }
     };
