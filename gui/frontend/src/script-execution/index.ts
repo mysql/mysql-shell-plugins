@@ -103,6 +103,9 @@ export interface ITextResultEntry {
     resultId?: string;
 
     content: string;
+
+    /** A optional tooltip to be displayed on the result entry text */
+    tooltip?: string;
 }
 
 export interface ITextResult {

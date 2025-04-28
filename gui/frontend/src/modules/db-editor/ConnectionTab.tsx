@@ -247,6 +247,8 @@ export interface IQueryExecutionOptions {
 
     /** The names of all columns that are part of the primary key in the table, if the query is updatable. */
     pkColumns?: string[];
+
+    errorCallback?: (errorMessage: string) => Promise<void>;
 }
 
 /** Metadata for the MRS SDK of the current MRS Service. */
@@ -1318,6 +1320,7 @@ Execute \\help or \\? for help;`;
                     updatable: result.updatable,
                     fullTableName: result.fullTableName,
                     pkColumns,
+                    errorCallback: options.errorCallback,
                 });
             } else {
                 await this.doExecution({
@@ -1332,6 +1335,7 @@ Execute \\help or \\? for help;`;
                     oldResultId,
                     showAsText: options.asText ?? false,
                     updatable: false,
+                    errorCallback: options.errorCallback,
                 });
             }
         }
@@ -1559,8 +1563,10 @@ Execute \\help or \\? for help;`;
                 }
             } else {
                 content = reason as string;
-
             }
+
+            // Remove function name
+            content = content.replaceAll(" ClassicSession.run_sql:", "");
 
             switch (code) {
                 case 1201: {
@@ -1601,6 +1607,11 @@ Execute \\help or \\? for help;`;
                 }
 
                 default:
+            }
+
+            // If a specific error callback was given, execute that before adding the error output
+            if (options.errorCallback) {
+                await options.errorCallback(content);
             }
 
             this.addTimedResult(options.context, {
@@ -2057,6 +2068,25 @@ Execute \\help or \\? for help;`;
     private handleExecution = async (context: ExecutionContext, options: IScriptExecutionOptions): Promise<boolean> => {
         const { workerPool, savedState, connection } = this.props;
 
+        // Store this execution in the ExecutionHistory list for the connection in the backend database
+        const storeHistoryEntry = async (connection: ICdmConnectionEntry | undefined, code: string, language: string,
+            savedState: IConnectionPresentationState) => {
+            if (connection && connection.backend) {
+                try {
+                    await connection.backend?.addExecutionHistoryEntry(connection.details.id, code,
+                        language);
+
+                    // Reset the currentExecutionHistoryIndex
+                    savedState.currentExecutionHistoryIndex = 0;
+
+                    this.forceUpdate();
+                } catch (error) {
+                    const message = convertErrorToString(error);
+                    void ui.showErrorMessage(`Unable to create execution history entry. Error: ${message}`, {});
+                }
+            }
+        };
+
         const command = context.code?.trim() ?? "";
         if (command.length === 0) {
             return false;
@@ -2101,27 +2131,22 @@ Execute \\help or \\? for help;`;
                     return true;
                 }
 
+                case "\\nl": {
+                    const nlQuery = command.substring(parts[0].length + 1);
+                    await this.executeNlQuery(context, options, nlQuery);
+
+                    await storeHistoryEntry(connection, `\\nl ${nlQuery}`, "sql", savedState);
+
+                    return true;
+                }
+
                 default:
             }
         }
 
         await context.clearResult();
 
-        // Store this execution in the ExecutionHistory list for the connection in the backend database
-        if (connection && connection.backend) {
-            try {
-                await connection.backend?.addExecutionHistoryEntry(connection.details.id, context.code,
-                    context.language);
-
-                // Reset the currentExecutionHistoryIndex
-                savedState.currentExecutionHistoryIndex = 0;
-
-                this.forceUpdate();
-            } catch (error) {
-                const message = convertErrorToString(error);
-                void ui.showErrorMessage(`Unable to create execution history entry. Error: ${message}`, {});
-            }
-        }
+        await storeHistoryEntry(connection, context.code, context.language, savedState);
 
         switch (context.language) {
             case "javascript":
@@ -2177,6 +2202,155 @@ Execute \\help or \\? for help;`;
         }
 
         return true;
+    };
+
+    private executeNlQuery = async (context: ExecutionContext, options: IScriptExecutionOptions,
+        query: string): Promise<void> => {
+        const { connection } = this.props;
+
+        if (connection?.backend === undefined) {
+            return;
+        }
+
+        await context?.clearResult();
+        if (!query) {
+            await context?.addResultData({
+                type: "text",
+                text: [{
+                    type: MessageType.Info,
+                    content: "Please specify a natural language query.\nSyntax: \\nl <query>\n",
+                    language: "ansi",
+                }],
+            }, { resultId: "", replaceData: true });
+
+            return;
+        }
+
+        await context?.addResultData({
+            type: "text",
+            text: [{
+                type: MessageType.Info,
+                content: "Generating SQL for natural language query...\n",
+                language: "ansi",
+            }],
+        }, { resultId: "", replaceData: true });
+
+        const sql = `CALL sys.NL_SQL(?, @nl_out, '{` +
+            (connection?.currentSchema !== undefined
+                ? `"schemas": ["${connection.currentSchema}"], `
+                : "")
+            + `"execute": false}')`;
+
+        context.executionStarts();
+        try {
+            try {
+                void await connection.backend.execute(sql, [query], undefined);
+                const result = await connection.backend.execute("SELECT @nl_out");
+
+                if (result) {
+                    const rows = result.rows as string[][];
+                    if (rows && rows.length > 0 && rows[0].length > 0) {
+                        const nlResult = JSON.parse(rows[0][0]);
+                        if (!nlResult) {
+                            throw new Error(`The natural language query ${query} could not be processed.`);
+                        }
+                        const isValidSql = nlResult.is_sql_valid as boolean;
+                        const schemaList = nlResult.schemas as string[];
+                        const tableList = nlResult.tables as string[];
+                        let sqlQuery = nlResult.sql_query as string;
+
+                        // Add linebreaks
+                        sqlQuery = sqlQuery.replaceAll(
+                            /("[^"]*"|'[^']*')|\b(FROM|WHERE|ORDER|HAVING|GROUP|LIMIT)\b/g,
+                            ($0, $1: string, $2: string) => {
+                                return ($1 === undefined) ? `\n${$2}` : String($1);
+                            });
+                        sqlQuery = sqlQuery.replaceAll(
+                            /("[^"]*"|'[^']*')|\b(INNER JOIN|JOIN|AND|OR)\b/g,
+                            ($0, $1: string, $2: string) => {
+                                return ($1 === undefined) ? `\n    ${$2}` : String($1);
+                            });
+
+                        await context?.clearResult();
+                        await context?.addResultData({
+                            type: "text",
+                            text: [{
+                                type: MessageType.Info,
+                                content: sqlQuery,
+                                language: isValidSql ? "sql" : "ansi",
+                                tooltip: `Schema` + (
+                                    schemaList.length > 1 ? "s" : ""
+                                ) + `: ${schemaList.join(", ")};\n`
+                                    + `Table` + (
+                                        tableList.length > 1 ? "s" : ""
+                                    ) + `: ${tableList.join(", ")}`,
+                            }],
+                        }, { resultId: "" });
+
+                        if (sqlQuery.toLowerCase().startsWith("select")) {
+                            options = {
+                                ...options,
+                                errorCallback: async (_errorMessage) => {
+                                    await context?.clearResult();
+                                    await context?.addResultData({
+                                        type: "text",
+                                        text: [{
+                                            type: MessageType.Info,
+                                            content: "The generated SQL produced the following error. " +
+                                                "You may try correcting the query or modify the prompt.\n",
+                                            language: "ansi",
+                                        }],
+                                    }, { resultId: "" });
+
+                                    this.notebookRef.current?.insertScriptText("mysql", sqlQuery);
+                                },
+                            };
+
+                            await this.executeQuery(context as SQLExecutionContext,
+                                0, 0, 1024, options, sqlQuery ?? "");
+                        } else if (!isValidSql) {
+                            await context?.addResultData({
+                                type: "text",
+                                text: [{
+                                    type: MessageType.Info,
+                                    content: "Please verify and execute the generated SQL manually.",
+                                    language: "ansi",
+                                }],
+                            }, { resultId: "" });
+
+                            this.notebookRef.current?.insertScriptText("mysql", sqlQuery);
+                        }
+
+                    }
+                }
+            } catch (e) {
+                const msg = String(e);
+
+                await context?.clearResult();
+                if (msg.includes("PROCEDURE sys.NL_SQL does not exist")) {
+                    await context?.addResultData({
+                        type: "text",
+                        text: [{
+                            type: MessageType.Info,
+                            content: "Please connect to a HeatWave instance that supports " +
+                                "NL-to-SQL functionality.",
+                            language: "ansi",
+                        }],
+                    }, { resultId: "" });
+                } else {
+                    await context?.addResultData({
+                        type: "text",
+                        text: [{
+                            type: MessageType.Info,
+                            content: String(e),
+                            language: "ansi",
+                        }],
+                    }, { resultId: "" });
+                }
+            }
+        } finally {
+            context.executionEnded();
+        }
     };
 
     private handleContextLanguageChange = (context: ExecutionContext, language: EditorLanguage): void => {
