@@ -416,6 +416,12 @@ export class ExecutionContext implements IExecutionContext {
         }
     }
 
+    public executionEnded(): void {
+        if (!this.disposed) {
+            this.presentation.executionEnded();
+        }
+    }
+
     /**
      * Replaces the current content of the presentation with the given data. This method is usually used
      * to restore a previously saved data set.

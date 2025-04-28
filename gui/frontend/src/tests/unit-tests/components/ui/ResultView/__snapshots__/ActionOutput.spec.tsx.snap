@@ -63,7 +63,9 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
               style="grid-column: span 2;"
               tabindex="-1"
             >
-              <span>
+              <span
+                data-tooltip="inherited"
+              >
                 Lorem ipsum dolor sit amet
               </span>
             </label>
@@ -117,6 +119,7 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
             tabIndex={-1}
           >
             <span
+              data-tooltip="inherited"
               style={
                 {
                   "backgroundColor": undefined,

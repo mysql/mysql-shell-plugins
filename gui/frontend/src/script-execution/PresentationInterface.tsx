@@ -354,9 +354,9 @@ export class PresentationInterface {
                     break;
                 }
             }
-
-            this.renderResults();
         }
+
+        this.renderResults();
     }
 
     public async removeResult(): Promise<void> {
@@ -384,6 +384,15 @@ export class PresentationInterface {
         } else {
             this.changeLoadingState(initialState);
         }
+    }
+
+    public executionEnded(): void {
+        if (this.waitTimer) {
+            clearTimeout(this.waitTimer);
+            this.waitTimer = null;
+        }
+
+        this.changeLoadingState(LoadingState.Idle);
     }
 
     /**

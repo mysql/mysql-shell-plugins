@@ -11,6 +11,7 @@ exports[`Label component test Label with ansi formatting 1`] = `
     style={{}}
   >
     <span
+      data-tooltip="inherited"
       style={
         {
           "backgroundColor": undefined,
