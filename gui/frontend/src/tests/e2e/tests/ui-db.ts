@@ -1350,6 +1350,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("DB Connection - Open New Database Connection", async () => {
             try {
+                await tabContainer.closeAllTabs();
                 await dbTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.openNewDatabaseConnection);
                 await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait15seconds);
             } catch (e) {
@@ -1358,7 +1359,7 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
-        it.skip("DB Connection - Edit MySQL connection", async () => {
+        it("DB Connection - Edit MySQL connection", async () => {
             try {
                 await dbTreeSection.clickToolbarButton(constants.collapseAll);
                 const localConn = Object.assign({}, globalConn);
@@ -1374,7 +1375,7 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
-        it.skip("DB Connection - Duplicate this MySQL connection", async () => {
+        it("DB Connection - Duplicate this MySQL connection", async () => {
             try {
                 const dupConn = Object.assign({}, globalConn);
                 dupConn.caption = dup;
@@ -1388,7 +1389,7 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
-        it.skip("DB Connection - Delete DB connection", async () => {
+        it("DB Connection - Delete DB connection", async () => {
             try {
                 await dbTreeSection.focus();
                 await dbTreeSection.openContextMenuAndSelect(dup, constants.deleteDBConnection);
@@ -1402,7 +1403,7 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
-        it.skip("DB Connection - Show MySQL System Schemas", async () => {
+        it("DB Connection - Show MySQL System Schemas", async () => {
             try {
                 await dbTreeSection.expandTreeItem(globalConn);
                 await dbTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.showMySQLSystemSchemas);
@@ -1413,7 +1414,7 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
-        it.skip("DB Connection - Open MySQL Shell Console for this connection", async () => {
+        it("DB Connection - Open MySQL Shell Console for this connection", async () => {
             try {
                 await dbTreeSection.openContextMenuAndSelect(globalConn.caption!,
                     constants.openNewMySQLShellConsoleForThisConnection);
@@ -1433,7 +1434,7 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
-        it.skip("Schema - Set as Current Database Schema", async () => {
+        it("Schema - Set as Current Database Schema", async () => {
             try {
                 await dbTreeSection.focus();
                 await dbTreeSection.expandTreeItem(globalConn);
@@ -1477,7 +1478,7 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
-        it.skip("Schema - Send to SQL Editor", async () => {
+        it("Schema - Send to SQL Editor", async () => {
             try {
                 await dbTreeSection.focus();
                 await tabContainer.closeAllTabs();
@@ -1501,7 +1502,7 @@ describe("DATABASE CONNECTIONS", () => {
             }
         });
 
-        it.skip("Table - Select Rows", async () => {
+        it("Table - Select Rows", async () => {
             try {
                 await dbTreeSection.expandTree([
                     (globalConn.basic as interfaces.IConnBasicMySQL).schema!,
