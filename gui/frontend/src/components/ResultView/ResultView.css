@@ -119,10 +119,6 @@
 
 .msg.resultHost .resultView .tabulator .tabulator-row {
     padding: 0;
-    max-height: 100px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
 }
 
 .msg.resultHost .resultView .tabulator .tabulator-row.added {
