@@ -345,24 +345,32 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                         id="default"
                       />
                       <DropdownItem
-                        caption="Llama 3"
+                        caption="llama3-8b-instruct-v1"
                         id="llama3-8b-instruct-v1"
                       />
                       <DropdownItem
-                        caption="Mistral"
+                        caption="mistral-7b-instruct-v1"
                         id="mistral-7b-instruct-v1"
                       />
                       <DropdownItem
-                        caption="OCI GenAI - Cohere+ (added cost)"
-                        id="cohere.command-r-plus"
+                        caption="cohere.command-r-08-2024 (added cost)"
+                        id="cohere.command-r-08-2024"
                       />
                       <DropdownItem
-                        caption="OCI GenAI - Cohere (added cost)"
-                        id="cohere.command-r-16k"
+                        caption="cohere.command-r-plus-08-2024 (added cost)"
+                        id="cohere.command-r-plus-08-2024"
                       />
                       <DropdownItem
-                        caption="OCI GenAI - Llama 3 Large (added cost)"
-                        id="meta.llama-3-70b-instruct"
+                        caption="meta.llama-3.1-405b-instruct (added cost)"
+                        id="meta.llama-3.1-405b-instruct"
+                      />
+                      <DropdownItem
+                        caption="meta.llama-3.2-90b-vision-instruct (added cost)"
+                        id="meta.llama-3.2-90b-vision-instruct"
+                      />
+                      <DropdownItem
+                        caption="meta.llama-3.3-70b-instruct (added cost)"
+                        id="meta.llama-3.3-70b-instruct"
                       />
                     </Dropdown>
                   </Container>
@@ -954,24 +962,32 @@ exports[`ChatOptions Standard Rendering (snapshot) 1`] = `
                               id="default"
                             />
                             <DropdownItem
-                              caption="Llama 3"
+                              caption="llama3-8b-instruct-v1"
                               id="llama3-8b-instruct-v1"
                             />
                             <DropdownItem
-                              caption="Mistral"
+                              caption="mistral-7b-instruct-v1"
                               id="mistral-7b-instruct-v1"
                             />
                             <DropdownItem
-                              caption="OCI GenAI - Cohere+ (added cost)"
-                              id="cohere.command-r-plus"
+                              caption="cohere.command-r-08-2024 (added cost)"
+                              id="cohere.command-r-08-2024"
                             />
                             <DropdownItem
-                              caption="OCI GenAI - Cohere (added cost)"
-                              id="cohere.command-r-16k"
+                              caption="cohere.command-r-plus-08-2024 (added cost)"
+                              id="cohere.command-r-plus-08-2024"
                             />
                             <DropdownItem
-                              caption="OCI GenAI - Llama 3 Large (added cost)"
-                              id="meta.llama-3-70b-instruct"
+                              caption="meta.llama-3.1-405b-instruct (added cost)"
+                              id="meta.llama-3.1-405b-instruct"
+                            />
+                            <DropdownItem
+                              caption="meta.llama-3.2-90b-vision-instruct (added cost)"
+                              id="meta.llama-3.2-90b-vision-instruct"
+                            />
+                            <DropdownItem
+                              caption="meta.llama-3.3-70b-instruct (added cost)"
+                              id="meta.llama-3.3-70b-instruct"
                             />
                           </Dropdown>
                         </Container>

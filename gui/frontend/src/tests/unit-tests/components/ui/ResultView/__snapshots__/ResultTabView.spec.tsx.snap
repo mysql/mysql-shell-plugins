@@ -271,7 +271,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                           tabindex="-1"
                         >
                           <span
-                            data-tooltip="inherited"
+                            data-tooltip="inherit"
                           >
                             Message 1
                           </span>
@@ -286,7 +286,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                           tabindex="-1"
                         >
                           <span
-                            data-tooltip="inherited"
+                            data-tooltip="inherit"
                           >
                             Message 2
                           </span>
@@ -383,7 +383,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                               tabindex="-1"
                             >
                               <span
-                                data-tooltip="inherited"
+                                data-tooltip="inherit"
                               >
                                 Message 1
                               </span>
@@ -398,7 +398,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                               tabindex="-1"
                             >
                               <span
-                                data-tooltip="inherited"
+                                data-tooltip="inherit"
                               >
                                 Message 2
                               </span>
@@ -453,7 +453,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                             tabIndex={-1}
                           >
                             <span
-                              data-tooltip="inherited"
+                              data-tooltip="inherit"
                               style={
                                 {
                                   "backgroundColor": undefined,
@@ -493,7 +493,7 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
                             tabIndex={-1}
                           >
                             <span
-                              data-tooltip="inherited"
+                              data-tooltip="inherit"
                               style={
                                 {
                                   "backgroundColor": undefined,

@@ -72,6 +72,7 @@ export interface IChatOptionsState extends IComponentState {
 
 export interface IChatOptionsProperties extends IComponentProperties {
     savedState: IChatOptionsState;
+    connectionVersion?: number;
     currentSchema?: string;
     genAiStatus?: IMdsChatStatus;
 
@@ -102,7 +103,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
     }
 
     public render(): ComponentChild {
-        const { savedState, currentSchema, genAiStatus } = this.props;
+        const { savedState, connectionVersion, currentSchema, genAiStatus } = this.props;
         const { options, sectionStates, chatQueryHistory } = savedState;
 
         const tables: ITag[] = [];
@@ -133,6 +134,39 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
         const modelOptions = options?.modelOptions;
 
         const languageSupportEnabled = genAiStatus?.languageSupport;
+
+        const modelDropdownItems = [
+            <DropdownItem id="default" caption="Default" />,
+            <DropdownItem id="llama3-8b-instruct-v1"
+                caption="llama3-8b-instruct-v1" />,
+            <DropdownItem id="mistral-7b-instruct-v1"
+                caption="mistral-7b-instruct-v1" />,
+        ];
+
+        if ((connectionVersion ?? 0) >= 90301) {
+            modelDropdownItems.push(
+                <DropdownItem id="mistral-7b-instruct-v3"
+                    caption="mistral-7b-instruct-v3" />,
+                <DropdownItem id="llama3.1-8b-instruct-v1"
+                    caption="llama3.1-8b-instruct-v1" />,
+                <DropdownItem id="llama3.2-1b-instruct-v1"
+                    caption="llama3.2-1b-instruct-v1" />,
+                <DropdownItem id="llama3.2-3b-instruct-v1"
+                    caption="llama3.2-3b-instruct-v1" />,
+            );
+        }
+        modelDropdownItems.push(
+            <DropdownItem id="cohere.command-r-08-2024"
+                caption="cohere.command-r-08-2024 (added cost)" />,
+            <DropdownItem id="cohere.command-r-plus-08-2024"
+                caption="cohere.command-r-plus-08-2024 (added cost)" />,
+            <DropdownItem id="meta.llama-3.1-405b-instruct"
+                caption="meta.llama-3.1-405b-instruct (added cost)" />,
+            <DropdownItem id="meta.llama-3.2-90b-vision-instruct"
+                caption="meta.llama-3.2-90b-vision-instruct (added cost)" />,
+            <DropdownItem id="meta.llama-3.3-70b-instruct"
+                caption="meta.llama-3.3-70b-instruct (added cost)" />,
+        );
 
         return (
             <Container className={this.getEffectiveClassNames(["chatOptionsPanel"])} orientation={Orientation.TopDown}>
@@ -385,15 +419,7 @@ export class ChatOptions extends ComponentBase<IChatOptionsProperties, IChatOpti
                                         <Dropdown className="scopeModel"
                                             selection={savedState.options?.modelOptions?.modelId ?? "default"}
                                             onSelect={this.handleModelIdChange}>
-                                            <DropdownItem id="default" caption="Default" />
-                                            <DropdownItem id="llama3-8b-instruct-v1" caption="Llama 3" />
-                                            <DropdownItem id="mistral-7b-instruct-v1" caption="Mistral" />
-                                            <DropdownItem id="cohere.command-r-plus"
-                                                caption="OCI GenAI - Cohere+ (added cost)" />
-                                            <DropdownItem id="cohere.command-r-16k"
-                                                caption="OCI GenAI - Cohere (added cost)" />
-                                            <DropdownItem id="meta.llama-3-70b-instruct"
-                                                caption="OCI GenAI - Llama 3 Large (added cost)" />
+                                            {modelDropdownItems}
                                         </Dropdown>
                                     </Container>
                                     {languageSupportEnabled &&
