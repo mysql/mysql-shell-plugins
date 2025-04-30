@@ -64,7 +64,7 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
               tabindex="-1"
             >
               <span
-                data-tooltip="inherited"
+                data-tooltip="inherit"
               >
                 Lorem ipsum dolor sit amet
               </span>
@@ -119,7 +119,7 @@ exports[`Action Output Tests Action Full Rendering 1`] = `
             tabIndex={-1}
           >
             <span
-              data-tooltip="inherited"
+              data-tooltip="inherit"
               style={
                 {
                   "backgroundColor": undefined,
