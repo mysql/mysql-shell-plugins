@@ -490,6 +490,7 @@ Execute \\help or \\? for help;`;
                                         content: chatOptionsExpanded ? (
                                             <ChatOptions savedState={savedState.chatOptionsState}
                                                 genAiStatus={genAiStatus}
+                                                connectionVersion={connection.details.version}
                                                 onChatOptionsStateChange={this.updateChatOptionsState}
                                                 onAction={this.handleChatAction}
                                                 currentSchema={connection.currentSchema} />) : undefined,
