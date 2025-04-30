@@ -7,6 +7,7 @@ ${license}
 -- `${schema_name}`
 -- #############################################################################
 
+
 -- #############################################################################
 -- MSM Section 010: Server Variable Settings
 -- -----------------------------------------------------------------------------
@@ -29,6 +30,8 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,'
 CREATE SCHEMA IF NOT EXISTS `${schema_name}`
     DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
+USE `${schema_name}`;
+
 
 -- #############################################################################
 -- MSM Section 120: Database Schema Version Creation Indication
@@ -39,7 +42,7 @@ CREATE SCHEMA IF NOT EXISTS `${schema_name}`
 -- #############################################################################
 
 CREATE OR REPLACE SQL SECURITY INVOKER
-VIEW `${schema_name}`.`msm_schema_version` (
+VIEW `msm_schema_version` (
     `major`,`minor`,`patch`) AS
 SELECT 0, 0, 0;
 
@@ -165,9 +168,10 @@ DELIMITER ;
 -- Setting the correct database schema version.
 -- #############################################################################
 
+USE `${schema_name}`;
+
 CREATE OR REPLACE SQL SECURITY INVOKER
-VIEW `${schema_name}`.`msm_schema_version` (
-    `major`,`minor`,`patch`) AS
+VIEW `msm_schema_version` (`major`,`minor`,`patch`) AS
 SELECT ${version_comma_str};
 
 

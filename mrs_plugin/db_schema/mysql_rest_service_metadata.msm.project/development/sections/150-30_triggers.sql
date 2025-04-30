@@ -4,8 +4,8 @@
 
 DELIMITER %%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`router_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`router_AFTER_INSERT_AUDIT_LOG` AFTER INSERT ON `router` FOR EACH ROW
+DROP TRIGGER IF EXISTS `router_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `router_AFTER_INSERT_AUDIT_LOG` AFTER INSERT ON `router` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
         table_name, dml_type, old_row_data, new_row_data, old_row_id, new_row_id, changed_by, changed_at)
@@ -23,8 +23,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`router_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`router_AFTER_UPDATE_AUDIT_LOG` AFTER UPDATE ON `router` FOR EACH ROW
+DROP TRIGGER IF EXISTS `router_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `router_AFTER_UPDATE_AUDIT_LOG` AFTER UPDATE ON `router` FOR EACH ROW
 BEGIN
     IF (COALESCE(OLD.options, '') <> COALESCE(NEW.options, '')) THEN
         INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -46,14 +46,14 @@ BEGIN
     END IF;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`url_host_BEFORE_DELETE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`url_host_BEFORE_DELETE` BEFORE DELETE ON `url_host` FOR EACH ROW
+DROP TRIGGER IF EXISTS `url_host_BEFORE_DELETE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `url_host_BEFORE_DELETE` BEFORE DELETE ON `url_host` FOR EACH ROW
 BEGIN
 	DELETE FROM `mysql_rest_service_metadata`.`url_host_alias` WHERE `url_host_id` = OLD.`id`;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`service_BEFORE_INSERT`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`service_BEFORE_INSERT` BEFORE INSERT ON `service` FOR EACH ROW
+DROP TRIGGER IF EXISTS `service_BEFORE_INSERT`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `service_BEFORE_INSERT` BEFORE INSERT ON `service` FOR EACH ROW
 BEGIN
     # Check if the full service request_path (including the optional developer setting) already exists
     IF NEW.enabled = TRUE THEN
@@ -84,8 +84,8 @@ BEGIN
     END IF;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`service_BEFORE_UPDATE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`service_BEFORE_UPDATE` BEFORE UPDATE ON `service` FOR EACH ROW
+DROP TRIGGER IF EXISTS `service_BEFORE_UPDATE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `service_BEFORE_UPDATE` BEFORE UPDATE ON `service` FOR EACH ROW
 BEGIN
     # Check if the full service request_path (including the optional developer setting) already exists,
     # but only when the service is enabled and either of those values was actually changed
@@ -120,8 +120,8 @@ BEGIN
     END IF;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`service_BEFORE_DELETE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`service_BEFORE_DELETE` BEFORE DELETE ON `service` FOR EACH ROW
+DROP TRIGGER IF EXISTS `service_BEFORE_DELETE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `service_BEFORE_DELETE` BEFORE DELETE ON `service` FOR EACH ROW
 BEGIN
 	# Since FKs do not fire the triggers on the related tables, manually trigger the DELETEs
 	DELETE FROM `mysql_rest_service_metadata`.`content_set` WHERE `service_id` = OLD.`id`;
@@ -132,8 +132,8 @@ BEGIN
     DELETE FROM `mysql_rest_service_metadata`.`mrs_user_group` WHERE `specific_to_service_id` = OLD.`id`;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`db_schema_BEFORE_INSERT`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`db_schema_BEFORE_INSERT` BEFORE INSERT ON `db_schema` FOR EACH ROW
+DROP TRIGGER IF EXISTS `db_schema_BEFORE_INSERT`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `db_schema_BEFORE_INSERT` BEFORE INSERT ON `db_schema` FOR EACH ROW
 BEGIN
 	SET @service_path := (SELECT CONCAT(COALESCE(se.in_development->>'$.developers', ''), h.name, se.url_context_root) AS path
 		FROM `mysql_rest_service_metadata`.service se
@@ -147,8 +147,8 @@ BEGIN
     END IF;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`db_schema_BEFORE_UPDATE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`db_schema_BEFORE_UPDATE` BEFORE UPDATE ON `db_schema` FOR EACH ROW
+DROP TRIGGER IF EXISTS `db_schema_BEFORE_UPDATE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `db_schema_BEFORE_UPDATE` BEFORE UPDATE ON `db_schema` FOR EACH ROW
 BEGIN
 	IF (NEW.request_path <> OLD.request_path OR NEW.service_id <> OLD.service_id) THEN
 		SET @service_path := (SELECT CONCAT(COALESCE(se.in_development->>'$.developers', ''), h.name, se.url_context_root) AS path
@@ -164,14 +164,14 @@ BEGIN
     END IF;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`db_schema_BEFORE_DELETE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`db_schema_BEFORE_DELETE` BEFORE DELETE ON `db_schema` FOR EACH ROW
+DROP TRIGGER IF EXISTS `db_schema_BEFORE_DELETE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `db_schema_BEFORE_DELETE` BEFORE DELETE ON `db_schema` FOR EACH ROW
 BEGIN
 	DELETE FROM `mysql_rest_service_metadata`.`db_object` WHERE `db_schema_id` = OLD.`id`;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`db_object_BEFORE_INSERT`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`db_object_BEFORE_INSERT` BEFORE INSERT ON `db_object` FOR EACH ROW
+DROP TRIGGER IF EXISTS `db_object_BEFORE_INSERT`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `db_object_BEFORE_INSERT` BEFORE INSERT ON `db_object` FOR EACH ROW
 BEGIN
     SET @schema_path := (SELECT CONCAT(COALESCE(se.in_development->>'$.developers', ''), h.name, se.url_context_root, sc.request_path) AS path
         FROM `mysql_rest_service_metadata`.db_schema sc
@@ -187,8 +187,8 @@ BEGIN
     END IF;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`db_object_BEFORE_UPDATE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`db_object_BEFORE_UPDATE` BEFORE UPDATE ON `db_object` FOR EACH ROW
+DROP TRIGGER IF EXISTS `db_object_BEFORE_UPDATE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `db_object_BEFORE_UPDATE` BEFORE UPDATE ON `db_object` FOR EACH ROW
 BEGIN
     IF (NEW.request_path <> OLD.request_path OR NEW.db_schema_id <> OLD.db_schema_id) THEN
         SET @schema_path := (SELECT CONCAT(COALESCE(se.in_development->>'$.developers', ''), h.name, se.url_context_root, sc.request_path) AS path
@@ -206,27 +206,27 @@ BEGIN
     END IF;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`db_object_BEFORE_DELETE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`db_object_BEFORE_DELETE` BEFORE DELETE ON `db_object` FOR EACH ROW
+DROP TRIGGER IF EXISTS `db_object_BEFORE_DELETE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `db_object_BEFORE_DELETE` BEFORE DELETE ON `db_object` FOR EACH ROW
 BEGIN
     DELETE FROM `mysql_rest_service_metadata`.`mrs_db_object_row_group_security` WHERE `db_object_id` = OLD.`id`;
     DELETE FROM `mysql_rest_service_metadata`.`object` WHERE `db_object_id` = OLD.`id`;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`auth_vendor_BEFORE_DELETE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`auth_vendor_BEFORE_DELETE` BEFORE DELETE ON `auth_vendor` FOR EACH ROW
+DROP TRIGGER IF EXISTS `auth_vendor_BEFORE_DELETE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `auth_vendor_BEFORE_DELETE` BEFORE DELETE ON `auth_vendor` FOR EACH ROW
 BEGIN
 	DELETE FROM `mysql_rest_service_metadata`.`auth_app` WHERE `auth_vendor_id` = OLD.`id`;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`auth_app_BEFORE_DELETE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`auth_app_BEFORE_DELETE` BEFORE DELETE ON `auth_app` FOR EACH ROW
+DROP TRIGGER IF EXISTS `auth_app_BEFORE_DELETE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `auth_app_BEFORE_DELETE` BEFORE DELETE ON `auth_app` FOR EACH ROW
 BEGIN
 	DELETE FROM `mysql_rest_service_metadata`.`mrs_user` WHERE `auth_app_id` = OLD.`id`;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_BEFORE_INSERT`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`mrs_user_BEFORE_INSERT` BEFORE INSERT ON `mrs_user` FOR EACH ROW
+DROP TRIGGER IF EXISTS `mrs_user_BEFORE_INSERT`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `mrs_user_BEFORE_INSERT` BEFORE INSERT ON `mrs_user` FOR EACH ROW
 BEGIN
 	IF NEW.name IS NOT NULL AND (SELECT COUNT(*) FROM `mysql_rest_service_metadata`.`mrs_user` AS u
 		WHERE UPPER(u.name) = UPPER(NEW.name) AND u.auth_app_id = NEW.auth_app_id AND NEW.id <> u.id) > 0
@@ -248,8 +248,8 @@ BEGIN
     END IF;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_BEFORE_UPDATE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`mrs_user_BEFORE_UPDATE` BEFORE UPDATE ON `mrs_user` FOR EACH ROW
+DROP TRIGGER IF EXISTS `mrs_user_BEFORE_UPDATE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `mrs_user_BEFORE_UPDATE` BEFORE UPDATE ON `mrs_user` FOR EACH ROW
 BEGIN
 	IF NEW.name IS NOT NULL AND (SELECT COUNT(*) FROM `mysql_rest_service_metadata`.`mrs_user` AS u
 		WHERE UPPER(u.name) = UPPER(NEW.name) AND u.auth_app_id = NEW.auth_app_id AND NEW.id <> u.id) > 0
@@ -271,16 +271,16 @@ BEGIN
     END IF;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_BEFORE_DELETE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`mrs_user_BEFORE_DELETE` BEFORE DELETE ON `mrs_user` FOR EACH ROW
+DROP TRIGGER IF EXISTS `mrs_user_BEFORE_DELETE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `mrs_user_BEFORE_DELETE` BEFORE DELETE ON `mrs_user` FOR EACH ROW
 BEGIN
 	DELETE FROM `mysql_rest_service_metadata`.`mrs_user_hierarchy` WHERE `user_id` = OLD.`id` OR `reporting_to_user_id` = OLD.`id`;
     DELETE FROM `mysql_rest_service_metadata`.`mrs_user_has_role` WHERE `user_id` = OLD.`id`;
     DELETE FROM `mysql_rest_service_metadata`.`mrs_user_has_group` WHERE `user_id` = OLD.`id`;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`content_set_BEFORE_INSERT`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`content_set_BEFORE_INSERT` BEFORE INSERT ON `content_set` FOR EACH ROW
+DROP TRIGGER IF EXISTS `content_set_BEFORE_INSERT`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `content_set_BEFORE_INSERT` BEFORE INSERT ON `content_set` FOR EACH ROW
 BEGIN
 	SET @service_path := (SELECT CONCAT(COALESCE(se.in_development->>'$.developers', ''), h.name, se.url_context_root) AS path
 		FROM `mysql_rest_service_metadata`.service se
@@ -294,8 +294,8 @@ BEGIN
     END IF;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`content_set_BEFORE_UPDATE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`content_set_BEFORE_UPDATE` BEFORE UPDATE ON `content_set` FOR EACH ROW
+DROP TRIGGER IF EXISTS `content_set_BEFORE_UPDATE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `content_set_BEFORE_UPDATE` BEFORE UPDATE ON `content_set` FOR EACH ROW
 BEGIN
 	IF (NEW.request_path <> OLD.request_path OR NEW.service_id <> OLD.service_id) THEN
 		SET @service_path := (SELECT CONCAT(COALESCE(se.in_development->>'$.developers', ''), h.name, se.url_context_root) AS path
@@ -311,8 +311,8 @@ BEGIN
     END IF;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`content_set_BEFORE_DELETE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`content_set_BEFORE_DELETE` BEFORE DELETE ON `content_set` FOR EACH ROW
+DROP TRIGGER IF EXISTS `content_set_BEFORE_DELETE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `content_set_BEFORE_DELETE` BEFORE DELETE ON `content_set` FOR EACH ROW
 BEGIN
 	DELETE FROM `mysql_rest_service_metadata`.`content_file`
 	WHERE `content_set_id` = OLD.`id`;
@@ -320,8 +320,8 @@ BEGIN
 	WHERE `content_set_id` = OLD.`id`;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`content_file_BEFORE_INSERT`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`content_file_BEFORE_INSERT` BEFORE INSERT ON `content_file` FOR EACH ROW
+DROP TRIGGER IF EXISTS `content_file_BEFORE_INSERT`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `content_file_BEFORE_INSERT` BEFORE INSERT ON `content_file` FOR EACH ROW
 BEGIN
     SET @content_set_path := (SELECT CONCAT(h.name, se.url_context_root, co.request_path) AS path
         FROM `mysql_rest_service_metadata`.content_set co
@@ -337,8 +337,8 @@ BEGIN
     END IF;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`content_file_BEFORE_UPDATE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`content_file_BEFORE_UPDATE` BEFORE UPDATE ON `content_file` FOR EACH ROW
+DROP TRIGGER IF EXISTS `content_file_BEFORE_UPDATE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `content_file_BEFORE_UPDATE` BEFORE UPDATE ON `content_file` FOR EACH ROW
 BEGIN
     IF (NEW.request_path <> OLD.request_path OR NEW.content_set_id <> OLD.content_set_id) THEN
         SET @content_set_path := (SELECT CONCAT(h.name, se.url_context_root, co.request_path) AS path
@@ -356,8 +356,8 @@ BEGIN
     END IF;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_role_BEFORE_DELETE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`mrs_role_BEFORE_DELETE` BEFORE DELETE ON `mrs_role` FOR EACH ROW
+DROP TRIGGER IF EXISTS `mrs_role_BEFORE_DELETE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `mrs_role_BEFORE_DELETE` BEFORE DELETE ON `mrs_role` FOR EACH ROW
 BEGIN
 	DELETE FROM `mysql_rest_service_metadata`.`mrs_user_has_role` WHERE `role_id` = OLD.`id`;
     -- Workaround to fix issue with recursive delete
@@ -368,56 +368,56 @@ BEGIN
     DELETE FROM `mysql_rest_service_metadata`.`mrs_user_group_has_role` WHERE `role_id` = OLD.`id`;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_hierarchy_type_BEFORE_DELETE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`mrs_user_hierarchy_type_BEFORE_DELETE` BEFORE DELETE ON `mrs_user_hierarchy_type` FOR EACH ROW
+DROP TRIGGER IF EXISTS `mrs_user_hierarchy_type_BEFORE_DELETE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `mrs_user_hierarchy_type_BEFORE_DELETE` BEFORE DELETE ON `mrs_user_hierarchy_type` FOR EACH ROW
 BEGIN
 	DELETE FROM `mysql_rest_service_metadata`.`mrs_user_hierarchy` WHERE `user_hierarchy_type_id` = OLD.`id`;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_group_BEFORE_DELETE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`mrs_user_group_BEFORE_DELETE` BEFORE DELETE ON `mrs_user_group` FOR EACH ROW
+DROP TRIGGER IF EXISTS `mrs_user_group_BEFORE_DELETE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `mrs_user_group_BEFORE_DELETE` BEFORE DELETE ON `mrs_user_group` FOR EACH ROW
 BEGIN
 	DELETE FROM `mysql_rest_service_metadata`.`mrs_user_has_group` WHERE `user_group_id` = OLD.`id`;
     DELETE FROM `mysql_rest_service_metadata`.`mrs_user_group_hierarchy` WHERE `user_group_id` = OLD.`id` OR `parent_group_id` = OLD.`id`;
     DELETE FROM `mysql_rest_service_metadata`.`mrs_user_group_has_role` WHERE `user_group_id` = OLD.`id`;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_group_hierarchy_type_BEFORE_DELETE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`mrs_group_hierarchy_type_BEFORE_DELETE` BEFORE DELETE ON `mrs_group_hierarchy_type` FOR EACH ROW
+DROP TRIGGER IF EXISTS `mrs_group_hierarchy_type_BEFORE_DELETE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `mrs_group_hierarchy_type_BEFORE_DELETE` BEFORE DELETE ON `mrs_group_hierarchy_type` FOR EACH ROW
 BEGIN
 	DELETE FROM `mysql_rest_service_metadata`.`mrs_user_group_hierarchy` WHERE `group_hierarchy_type_id` = OLD.`id`;
     DELETE FROM `mysql_rest_service_metadata`.`mrs_db_object_row_group_security` WHERE `group_hierarchy_type_id` = OLD.`id`;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`router_BEFORE_DELETE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`router_BEFORE_DELETE` BEFORE DELETE ON `router` FOR EACH ROW
+DROP TRIGGER IF EXISTS `router_BEFORE_DELETE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `router_BEFORE_DELETE` BEFORE DELETE ON `router` FOR EACH ROW
 BEGIN
 	DELETE FROM `mysql_rest_service_metadata`.`router_status` WHERE `router_id` = OLD.`id`;
     DELETE FROM `mysql_rest_service_metadata`.`router_general_log` WHERE `router_id` = OLD.`id`;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`router_session_BEFORE_DELETE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`router_session_BEFORE_DELETE` BEFORE DELETE ON `router_session` FOR EACH ROW
+DROP TRIGGER IF EXISTS `router_session_BEFORE_DELETE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `router_session_BEFORE_DELETE` BEFORE DELETE ON `router_session` FOR EACH ROW
 BEGIN
 	DELETE FROM `mysql_rest_service_metadata`.`router_general_log` WHERE `router_session_id` = OLD.`id`;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`object_BEFORE_DELETE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`object_BEFORE_DELETE` BEFORE DELETE ON `object` FOR EACH ROW
+DROP TRIGGER IF EXISTS `object_BEFORE_DELETE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `object_BEFORE_DELETE` BEFORE DELETE ON `object` FOR EACH ROW
 BEGIN
 	DELETE FROM `mysql_rest_service_metadata`.`object_field` WHERE `object_id` = OLD.`id`;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`object_field_BEFORE_DELETE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`object_field_BEFORE_DELETE` BEFORE DELETE ON `object_field` FOR EACH ROW
+DROP TRIGGER IF EXISTS `object_field_BEFORE_DELETE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `object_field_BEFORE_DELETE` BEFORE DELETE ON `object_field` FOR EACH ROW
 BEGIN
 	SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 	DELETE FROM `mysql_rest_service_metadata`.`object_reference` WHERE `id` = OLD.`represents_reference_id`;
     SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`content_set_has_obj_def_AFTER_DELETE`%%
-CREATE DEFINER = CURRENT_USER TRIGGER `mysql_rest_service_metadata`.`content_set_has_obj_def_AFTER_DELETE` AFTER DELETE ON `content_set_has_obj_def` FOR EACH ROW
+DROP TRIGGER IF EXISTS `content_set_has_obj_def_AFTER_DELETE`%%
+CREATE DEFINER = CURRENT_USER TRIGGER `content_set_has_obj_def_AFTER_DELETE` AFTER DELETE ON `content_set_has_obj_def` FOR EACH ROW
 BEGIN
 	DELETE FROM `mysql_rest_service_metadata`.`db_object` dbo
     WHERE OLD.kind = "Script" AND dbo.id = OLD.db_object_id;

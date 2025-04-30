@@ -5,11 +5,11 @@
 DELIMITER %%
 
 -- -----------------------------------------------------------------------------
--- CREATE PROCEDURE `mysql_rest_service_metadata`.`msm_instance_demoted`
+-- CREATE PROCEDURE `msm_instance_demoted`
 -- -----------------------------------------------------------------------------
 
-DROP PROCEDURE IF EXISTS `mysql_rest_service_metadata`.`msm_instance_demoted`%%
-CREATE PROCEDURE `mysql_rest_service_metadata`.`msm_instance_demoted`()
+DROP PROCEDURE IF EXISTS `msm_instance_demoted`%%
+CREATE PROCEDURE `msm_instance_demoted`()
 SQL SECURITY DEFINER
 COMMENT 'This procedure needs to be called on a primary instance in an InnoDB Cluster setup before it is demoted to
     become a secondary.'
@@ -20,11 +20,11 @@ BEGIN
 END%%
 
 -- -----------------------------------------------------------------------------
--- CREATE PROCEDURE `mysql_rest_service_metadata`.`msm_instance_promoted`
+-- CREATE PROCEDURE `msm_instance_promoted`
 -- -----------------------------------------------------------------------------
 
-DROP PROCEDURE IF EXISTS `mysql_rest_service_metadata`.`msm_instance_promoted`%%
-CREATE PROCEDURE `mysql_rest_service_metadata`.`msm_instance_promoted`()
+DROP PROCEDURE IF EXISTS `msm_instance_promoted`%%
+CREATE PROCEDURE `msm_instance_promoted`()
 SQL SECURITY DEFINER
 COMMENT 'This procedure needs to be called on an instance in an InnoDB Cluster setup when it is promoted to
     become the primary.'
@@ -39,12 +39,12 @@ END%%
 -- CREATE FUNCTIONs
 -- -----------------------------------------------------------------------------
 
-DROP FUNCTION IF EXISTS `mysql_rest_service_metadata`.`get_sequence_id`%%
-CREATE FUNCTION `mysql_rest_service_metadata`.`get_sequence_id`() RETURNS BINARY(16) SQL SECURITY INVOKER NOT DETERMINISTIC NO SQL
+DROP FUNCTION IF EXISTS `get_sequence_id`%%
+CREATE FUNCTION `get_sequence_id`() RETURNS BINARY(16) SQL SECURITY INVOKER NOT DETERMINISTIC NO SQL
 RETURN UUID_TO_BIN(UUID(), 1)%%
 
-DROP FUNCTION IF EXISTS `mysql_rest_service_metadata`.`valid_request_path`%%
-CREATE FUNCTION `mysql_rest_service_metadata`.`valid_request_path`(path VARCHAR(255))
+DROP FUNCTION IF EXISTS `valid_request_path`%%
+CREATE FUNCTION `valid_request_path`(path VARCHAR(255))
 RETURNS TINYINT(1) NOT DETERMINISTIC READS SQL DATA
 BEGIN
     SET @valid := (SELECT COUNT(*) = 0 AS valid FROM
@@ -99,8 +99,8 @@ END%%
 -- CREATE PROCEDUREs
 -- -----------------------------------------------------------------------------
 
-DROP PROCEDURE IF EXISTS `mysql_rest_service_metadata`.`dump_audit_log`%%
-CREATE PROCEDURE `mysql_rest_service_metadata`.`dump_audit_log`()
+DROP PROCEDURE IF EXISTS `dump_audit_log`%%
+CREATE PROCEDURE `dump_audit_log`()
 SQL SECURITY DEFINER
 COMMENT 'The dump_audit_log procedure allows the audit_log table to be exported to a file
     Please note that the secure_file_priv global variable must be set for this to work in the my.ini / my.cnf file
@@ -153,8 +153,8 @@ END%%
 
 -- Procedure to fetch all table columns as well as references to related tables
 
-DROP PROCEDURE IF EXISTS `mysql_rest_service_metadata`.`table_columns_with_references`%%
-CREATE PROCEDURE `mysql_rest_service_metadata`.`table_columns_with_references`(
+DROP PROCEDURE IF EXISTS `table_columns_with_references`%%
+CREATE PROCEDURE `table_columns_with_references`(
     p_schema_name VARCHAR(64), p_table_name VARCHAR(64))
 BEGIN
     SELECT f.*, js.json_schema_def FROM (
@@ -290,8 +290,8 @@ END%%
 -- sub-daily data is kept for 7 days, then down-sampled to 1 day samples
 -- daily data is kept indefinitely
 
-DROP PROCEDURE IF EXISTS mysql_rest_service_metadata.router_status_downsample%%
-CREATE PROCEDURE mysql_rest_service_metadata.router_status_downsample(
+DROP PROCEDURE IF EXISTS `router_status_downsample`%%
+CREATE PROCEDURE `router_status_downsample`(
     time TIMESTAMP,
     router_version VARCHAR(12),
     status_variables JSON,
@@ -318,7 +318,7 @@ here:BEGIN
             )) vars;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
     DECLARE EXIT HANDLER FOR SQLEXCEPTION BEGIN
-        DROP TABLE IF EXISTS `mysql_rest_service_metadata`.`aggregated`;
+        DROP TABLE IF EXISTS `aggregated`;
         RESIGNAL;
     END;
 
@@ -394,8 +394,8 @@ here:BEGIN
     COMMIT;
 END%%
 
-DROP PROCEDURE IF EXISTS mysql_rest_service_metadata.router_status_do_cleanup%%
-CREATE PROCEDURE mysql_rest_service_metadata.router_status_do_cleanup(time TIMESTAMP)
+DROP PROCEDURE IF EXISTS `router_status_do_cleanup`%%
+CREATE PROCEDURE `router_status_do_cleanup`(time TIMESTAMP)
     SQL SECURITY INVOKER
 BEGIN
     DECLARE version VARCHAR(12);
@@ -468,8 +468,8 @@ BEGIN
 END%%
 
 
-DROP PROCEDURE IF EXISTS mysql_rest_service_metadata.sdk_service_data%%
-CREATE PROCEDURE mysql_rest_service_metadata.sdk_service_data(IN service_id BINARY(16))
+DROP PROCEDURE IF EXISTS `sdk_service_data`%%
+CREATE PROCEDURE `sdk_service_data`(IN service_id BINARY(16))
 BEGIN
     DECLARE service_res JSON;
     DECLARE schema_id BINARY(16);
