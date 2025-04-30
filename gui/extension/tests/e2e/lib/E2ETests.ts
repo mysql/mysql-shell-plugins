@@ -50,6 +50,9 @@ export class E2ETests {
     /** The MySQL port used by the deployed sandbox for REST services*/
     public static mysqlPortRest = "3307";
 
+    /** The MySQL port used by the deployed sandbox for ROUTER services*/
+    public static mysqlPortRouter = "3309";
+
     /** The MySQL deployed sandbox directory */
     public static mysqlSandboxDir = process.cwd();
 
@@ -254,7 +257,7 @@ export class E2ETests {
         this.checkMySql();
         this.setShellBinary();
 
-        // DEPLOY 2 MYSQL SANDBOX INSTANCES
+        // DEPLOY 3 MYSQL SANDBOX INSTANCES
         this.runShellCommand([
             "--",
             "dba",
@@ -274,7 +277,18 @@ export class E2ETests {
             `--sandbox-dir=${this.mysqlSandboxDir}`,
         ]);
 
-        E2ELogger.success(`MySQL Sandbox REST instance deployed successfully on port ${this.mysqlPortRest}`);
+        E2ELogger.success(`MySQL Sandbox instance deployed successfully on port ${this.mysqlPortRest}`);
+
+        this.runShellCommand([
+            "--",
+            "dba",
+            "deploy-sandbox-instance",
+            this.mysqlPortRouter,
+            `--password=${process.env.DBROOTPASSWORD}`,
+            `--sandbox-dir=${this.mysqlSandboxDir}`,
+        ]);
+
+        E2ELogger.success(`MySQL Sandbox instance deployed successfully on port ${this.mysqlPortRouter}`);
 
         // RUN SQL CONFIGURATIONS
         const feSqlFiles = join("..", "..", "..", "..", "gui", "frontend", "src", "tests", "e2e", "sql");
@@ -286,41 +300,35 @@ export class E2ETests {
             return join(extSqlFiles, item);
         }));
 
-        // eslint-disable-next-line max-len
-        const connUri = `root:${process.env.DBROOTPASSWORD}@localhost:${this.mysqlPort}`;
-        const connUriRest = `root:${process.env.DBROOTPASSWORD}@localhost:${this.mysqlPortRest}`;
+        const mysqlPorts = [
+            this.mysqlPort,
+            this.mysqlPortRest,
+            this.mysqlPortRouter,
+        ];
 
-        const sakilaSchema = sqlFiles.filter((item) => {
-            return item.includes("sakila");
-        });
-
-        this.runShellCommand([connUri, "--file", sakilaSchema[0]]);
-        E2ELogger.success(`Installed sakila schema successfully`);
-
-        for (const file of sqlFiles) {
-            if (!file.includes("sakila")) {
-                this.runShellCommand([connUri, "--file", file]);
+        for (const port of mysqlPorts) {
+            for (const file of sqlFiles) {
+                this.runShellCommand(
+                    [`root:${process.env.DBROOTPASSWORD}@localhost:${port}`,
+                        "--file",
+                        file]);
                 E2ELogger.success(`Executed SQL file ${file} successfully`);
             }
         }
 
-        this.runShellCommand([connUriRest, "--file", sakilaSchema[0]]);
-        E2ELogger.success(`Installed sakila schema successfully on REST instance`);
-
-        for (const file of sqlFiles) {
-            if (file.includes("users") || file.includes("world")) {
-                this.runShellCommand([connUriRest, "--file", file]);
-                E2ELogger.success(`Executed SQL file ${file} successfully on REST instance`);
-            }
-        }
-
         // INSTALL MLE ON SERVER 3308
+        const connUri = `root:${process.env.DBROOTPASSWORD}@localhost:${this.mysqlPort}`;
         this.runShellCommand([connUri, "--sql", "-e", `INSTALL COMPONENT "file://component_mle";`]);
         E2ELogger.success(`Installed MLE component`);
 
-        // INSTALL THE REST SCHEMA ON SERVER 3307
-        this.runShellCommand([connUriRest, "--py", "-e", "mrs.configure()"]);
-        E2ELogger.success(`MRS was configured successfully`);
+        // CONFIGURE REST
+        for (const port of [this.mysqlPortRest, this.mysqlPortRouter]) {
+            this.runShellCommand([
+                `root:${process.env.DBROOTPASSWORD}@localhost:${port}`,
+                "--py", "-e", "mrs.configure()",
+            ]);
+            E2ELogger.success(`MRS was configured successfully on MySQL instance ${port}`);
+        }
 
         // CREATE THE OCI CONFIG FILE
         const ociConfigFile = `
@@ -367,6 +375,7 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         process.env.SSL_CERTIFICATES_PATH = join(process.cwd(), this.mysqlPort, "sandboxdata");
         process.env.MYSQL_PORT = this.mysqlPort;
         process.env.MYSQL_REST_PORT = this.mysqlPortRest;
+        process.env.MYSQL_ROUTER_PORT = this.mysqlPortRouter;
         process.env.DBUSERNAME1 = "clientqa";
         process.env.DBPASSWORD1 = "dummy";
         process.env.DBUSERNAME2 = "shell";

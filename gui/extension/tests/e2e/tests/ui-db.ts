@@ -1377,7 +1377,7 @@ describe("DATABASE CONNECTIONS", () => {
         it("Load SQL Script from Disk", async () => {
 
             const e2eScript = new E2EScript();
-            const script = "sakila_cst.sql";
+            const script = "2_sakila_cst.sql";
             const destFile = join(constants.workspace, "gui", "frontend", "src", "tests", "e2e", "sql", script);
             await dbTreeSection.openContextMenuAndSelect(globalConn.caption, constants.loadScriptFromDisk);
             await Workbench.setInputPath(destFile);

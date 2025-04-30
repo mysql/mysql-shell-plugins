@@ -83,7 +83,7 @@ describe("Router", () => {
         basic: {
             hostname: "localhost",
             username: String(process.env.DBUSERNAME1),
-            port: parseInt(process.env.MYSQL_REST_PORT, 10),
+            port: parseInt(process.env.MYSQL_ROUTER_PORT, 10),
             schema: "sakila",
             password: String(process.env.DBPASSWORD1),
         },

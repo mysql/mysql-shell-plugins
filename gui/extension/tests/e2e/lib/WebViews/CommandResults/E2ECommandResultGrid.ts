@@ -239,15 +239,24 @@ export class E2ECommandResultGrid extends E2ECommandResult {
         };
 
         if (method === constants.editButton) {
-            await this.edit();
-
             const tableColumns: string[] = [];
             for (const key of this.columnsMap.keys()) {
                 tableColumns.push(key);
             }
 
-            await driver.wait(this.untilIsEditing(cells[0].rowNumber, tableColumns[0]),
-                constants.wait1second * 5);
+            await driver.wait(async () => {
+                try {
+                    await this.edit();
+                    await driver.wait(this.untilIsEditing(cells[0].rowNumber, tableColumns[0]),
+                        constants.wait1second * 3);
+
+                    return true;
+                } catch (e) {
+                    if (!(e instanceof error.TimeoutError)) {
+                        throw e;
+                    }
+                }
+            }, constants.wait1second * 10, `Could not start editing row ${cells[0].rowNumber}`);
 
             for (let i = 0; i <= cells.length - 1; i++) {
                 await driver.wait(async () => {
@@ -1534,50 +1543,37 @@ export class E2ECommandResultGrid extends E2ECommandResult {
      * @returns A promise resolving when the field is cleared
      */
     private focusCell = async (rowNumber: number, columnName: string): Promise<void> => {
-        const rows = await this.resultContext.findElements(gridLocator.row.exists);
-        const maxTabs = rows.length * Array.from(this.columnsMap.keys()).length;
 
-        let activeElement: WebElement | undefined;
-        const isFocused = async () => {
-            await driver.wait(async () => {
-                activeElement = await driver.switchTo().activeElement();
+        const isCellFocused = async (row: number, column: string): Promise<boolean> => {
+            const refCell = await this.getCell(row, column);
+            const focusedCell = await driver.switchTo().activeElement();
 
-                return (await activeElement.getAttribute("class")).includes("tabulator-cell");
-            }, constants.wait1second * 3, `The focused element should be result grid cell`);
-
-            const refCell = await this.getCell(rowNumber, columnName);
-
-            return (await refCell.getAttribute("tabulator-field")) ===
-                (await activeElement.getAttribute("tabulator-field"));
+            if ((await focusedCell.getAttribute("class")).includes("tabulator-cell")) {
+                return (await refCell.getAttribute("tabulator-field")) ===
+                    (await focusedCell.getAttribute("tabulator-field"));
+            } else {
+                await driver.executeScript(
+                    "arguments[0].click();",
+                    await driver.findElement(locator.notebook.codeEditor.editor.currentLine));
+                await this.startFocus();
+            }
         };
 
-        for (let i = 0; i <= maxTabs - 1; i++) {
-            try {
-                if (await isFocused()) {
-                    return;
-                } else {
-                    if (Os.isWindows()) {
-                        await driver.actions().keyDown(Key.TAB).keyUp(Key.TAB).perform();
-                    } else {
-                        await keyboard.type(nutKey.Tab);
-                    }
-                    await driver.sleep(500);
-                }
-            } catch (e) {
-                if (String(e).includes("The focused element should be result grid cell")) {
-                    await driver.executeScript(
-                        "arguments[0].click();",
-                        await driver.findElement(locator.notebook.codeEditor.editor.currentLine));
-                    await this.startFocus();
-                    i = 0;
-                } else {
-                    throw e;
-                }
-            }
+        const maxTries = 5;
+        let tryNbr = 0;
 
+        while (!(await isCellFocused(rowNumber, columnName)) && tryNbr <= maxTries) {
+            if (Os.isWindows()) {
+                await driver.actions().keyDown(Key.TAB).keyUp(Key.TAB).perform();
+            } else {
+                await keyboard.type(nutKey.Tab);
+            }
+            tryNbr++;
         }
 
-        throw new Error(`Could not focus on cell ${columnName} on row ${rowNumber}`);
+        if (!(await isCellFocused(rowNumber, columnName))) {
+            throw new Error(`Could not focus on cell ${columnName} on row ${rowNumber}`);
+        }
     };
 
     /**

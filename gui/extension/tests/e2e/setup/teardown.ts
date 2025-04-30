@@ -30,58 +30,37 @@ import { E2ELogger } from "../lib/E2ELogger";
 E2ETests.setTestSuite("DB");
 E2ETests.setShellBinary();
 
-try {
+const mysqlPorts = [E2ETests.mysqlPort, E2ETests.mysqlPortRest, E2ETests.mysqlPortRouter];
+
+for (const mysqlPort of mysqlPorts) {
+
+    try {
+        E2ETests.runShellCommand([
+            "--",
+            "dba",
+            "kill-sandbox-instance",
+            mysqlPort,
+            `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
+        ]);
+
+        E2ELogger.success(`Killed MySQL instance successfully for port ${mysqlPort}`);
+    } catch (e) {
+        if (!String(e).includes("Unable to find pid file")) {
+            // eslint-disable-next-line no-unsafe-finally
+            throw e;
+        }
+        E2ELogger.success(`MySQL PID file not found for port ${mysqlPort}. Continuing...`);
+    }
+
     E2ETests.runShellCommand([
         "--",
         "dba",
-        "kill-sandbox-instance",
-        E2ETests.mysqlPort,
+        "delete-sandbox-instance",
+        mysqlPort,
         `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
     ]);
+    E2ELogger.success(`Deleted MySQL instance successfully for port ${mysqlPort}`);
 
-    E2ELogger.success("Killed MySQL sandbox instance successfully");
-} catch (e) {
-    if (!String(e).includes("Unable to find pid file")) {
-        // eslint-disable-next-line no-unsafe-finally
-        throw e;
-    }
-    E2ELogger.success("MySQL PID file not found. Continuing...");
 }
-
-try {
-    E2ETests.runShellCommand([
-        "--",
-        "dba",
-        "kill-sandbox-instance",
-        E2ETests.mysqlPortRest,
-        `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
-    ]);
-
-    E2ELogger.success("Killed MySQL sandbox instance successfully for REST instance");
-} catch (e) {
-    if (!String(e).includes("Unable to find pid file")) {
-        // eslint-disable-next-line no-unsafe-finally
-        throw e;
-    }
-    E2ELogger.success("MySQL PID file not found for REST instance. Continuing...");
-}
-
-E2ETests.runShellCommand([
-    "--",
-    "dba",
-    "delete-sandbox-instance",
-    E2ETests.mysqlPort,
-    `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
-]);
-E2ELogger.success("Deleted MySQL sandbox instance successfully");
-
-E2ETests.runShellCommand([
-    "--",
-    "dba",
-    "delete-sandbox-instance",
-    E2ETests.mysqlPortRest,
-    `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
-]);
-E2ELogger.success("Deleted MySQL sandbox instance successfully for REST instance");
 
 E2ETests.generateReport();

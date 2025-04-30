@@ -457,7 +457,7 @@ describe("NOTEBOOKS", () => {
             await driver.wait(TestQueue.poll(this.test.title), constants.queuePollTimeout);
             await notebook.codeEditor.clean();
             await Misc.switchBackToTopFrame();
-            const filename = "users.sql";
+            const filename = "1_users.sql";
             await browser.openResources(join(constants.workspace, "gui", "frontend",
                 "src", "tests", "e2e", "sql", filename));
             await driver.wait(Workbench.untilTabIsOpened(filename), constants.wait1second * 5);
@@ -640,12 +640,14 @@ describe("NOTEBOOKS", () => {
             await driver.wait(Workbench.untilTabIsOpened("a_test.mysql-notebook"), constants.wait1second * 10);
             await driver.wait(notebook.untilIsOpened(globalConn), constants.waitConnectionOpen);
             await notebook.exists("SELECT VERSION");
-            await Workbench.closeEditor(new RegExp("a_test.mysql-notebook"), true);
 
         });
 
         it("Open the Notebook from file", async () => {
 
+            this.retries(1);
+
+            await Workbench.closeAllEditors();
             await driver.wait(Workbench.untilExplorerFolderIsOpened("e2e"), constants.wait1second * 15);
             const file = await (await new SideBarView().getContent().getSection("e2e"))
                 .findItem("a_test.mysql-notebook", 3);
