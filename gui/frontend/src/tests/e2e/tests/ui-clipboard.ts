@@ -768,7 +768,7 @@ describe("CLIPBOARD", () => {
         it("Copy paste into notebook", async () => {
             try {
                 await notebook.codeEditor.clean();
-                const filename = "users.sql";
+                const filename = "1_users.sql";
                 const destFile = join(process.cwd(), "src", "tests", "e2e", "sql", filename);
                 await dbTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.loadSQLScriptFromDisk);
                 await Misc.uploadFile(destFile);

@@ -158,6 +158,50 @@ describe("MySQL REST Service", () => {
             await fs.rm(destDumpSdk, { force: true, recursive: true });
         });
 
+        it("Browse the MySQL REST Service Documentation", async () => {
+
+            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.browseRESTDocs);
+            try {
+                await driver.wait(async () => {
+                    await Misc.switchBackToTopFrame();
+                    await Misc.switchToFrame();
+                    const titles = await driver.findElements(locator.mrsDocumentation.title);
+                    for (const title of titles) {
+                        if ((await title.getText()).includes("MRS Developer's Guide")) {
+                            return true;
+                        }
+                    }
+                }, constants.wait1second * 5, "Could not find the title 'MRS Developer's Guide'");
+            } finally {
+                await Workbench.closeEditor(new RegExp(constants.mrsDocs));
+            }
+        });
+
+        it("Disable MySQL REST Service", async () => {
+
+            await dbTreeSection.expandTreeItem(constants.mysqlRestService);
+            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.disableRESTService);
+            await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
+            await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully"),
+                constants.wait1second * 20);
+            await dbTreeSection.clickToolbarButton(constants.reloadConnections);
+            await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar);
+            expect(await dbTreeSection.treeItemHasRedMark(constants.mysqlRestService)).to.equals(true);
+
+        });
+
+        it("Enable MySQL REST Service", async () => {
+
+            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.enableRESTService);
+            await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
+            await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully"),
+                constants.wait1second * 20);
+            await dbTreeSection.clickToolbarButton(constants.reloadConnections);
+            await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar);
+            expect(await dbTreeSection.treeItemHasRedMark(constants.mysqlRestService)).to.equals(false);
+
+        });
+
         it("Create a Rest Service", async () => {
             await dbTreeSection.focus();
             const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
@@ -171,11 +215,9 @@ describe("MySQL REST Service", () => {
         });
 
         it("Set as Current", async () => {
-
             await dbTreeSection.setCurrentRestService(service1.servicePath);
             await driver.wait(dbTreeSection.untilTreeItemIsDefault(service1.servicePath),
                 constants.wait1second * 5, "REST Service tree item did not became default");
-
         });
 
         it("Copy to clipboard - Create Statements", async function () {
@@ -1394,26 +1436,6 @@ describe("MySQL REST Service", () => {
             await Workbench.dismissNotifications();
         });
 
-        after(async function () {
-            try {
-                await dbTreeSection.openContextMenuAndSelect(new RegExp(service5.servicePath),
-                    constants.deleteRESTService);
-
-                const ntf = await Workbench
-                    .getNotification(`Are you sure the MRS service ${service5.servicePath} should be deleted`, false);
-                await Workbench.clickOnNotificationButton(ntf, "Yes");
-                await driver.wait(Workbench.untilNotificationExists("The MRS service has been deleted successfully"),
-                    constants.wait1second * 5);
-
-                await driver.wait(async () => {
-                    return !(await dbTreeSection.treeItemExists(service5.servicePath));
-                }, constants.wait1second * 3, `Item ${service5.servicePath} should not exist on the tree`);
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-        });
-
         it("Add User", async () => {
 
             await (await dbTreeSection.getTreeItem(service5.servicePath)).collapse();
@@ -1577,74 +1599,6 @@ describe("MySQL REST Service", () => {
             await driver.wait(async () => {
                 return !(await dbTreeSection.treeItemExists(userToDelete));
             }, constants.wait1second * 3, `Item ${userToDelete} should not exist on the tree`);
-        });
-
-    });
-
-    describe("Other MySQL Rest Service Operations", () => {
-
-        beforeEach(async function () {
-            await Os.appendToExtensionLog(String(this.currentTest.title) ?? process.env.TEST_SUITE);
-            try {
-                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar,
-                    `${constants.dbTreeSection} is still loading`);
-                await Workbench.dismissNotifications();
-            } catch (e) {
-                await Misc.processFailure(this);
-                throw e;
-            }
-        });
-
-        afterEach(async function () {
-            if (this.currentTest.state === "failed") {
-                await Misc.processFailure(this);
-            }
-
-            await Workbench.dismissNotifications();
-        });
-
-        it("Browse the MySQL REST Service Documentation", async () => {
-
-            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.browseRESTDocs);
-            try {
-                await driver.wait(async () => {
-                    await Misc.switchBackToTopFrame();
-                    await Misc.switchToFrame();
-                    const titles = await driver.findElements(locator.mrsDocumentation.title);
-                    for (const title of titles) {
-                        if ((await title.getText()).includes("MRS Developer's Guide")) {
-                            return true;
-                        }
-                    }
-                }, constants.wait1second * 5, "Could not find the title 'MRS Developer's Guide'");
-            } finally {
-                await Workbench.closeEditor(new RegExp(constants.mrsDocs));
-            }
-        });
-
-        it("Disable MySQL REST Service", async () => {
-
-            await dbTreeSection.expandTreeItem(constants.mysqlRestService);
-            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.disableRESTService);
-            await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
-            await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully"),
-                constants.wait1second * 20);
-            await dbTreeSection.clickToolbarButton(constants.reloadConnections);
-            await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar);
-            expect(await dbTreeSection.treeItemHasRedMark(constants.mysqlRestService)).to.equals(true);
-
-        });
-
-        it("Enable MySQL REST Service", async () => {
-
-            await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.enableRESTService);
-            await Workbench.setInputPassword((globalConn.basic as interfaces.IConnBasicMySQL).password);
-            await driver.wait(Workbench.untilNotificationExists("MySQL REST Service configured successfully"),
-                constants.wait1second * 20);
-            await dbTreeSection.clickToolbarButton(constants.reloadConnections);
-            await driver.wait(dbTreeSection.untilIsNotLoading(), constants.waitSectionNoProgressBar);
-            expect(await dbTreeSection.treeItemHasRedMark(constants.mysqlRestService)).to.equals(false);
-
         });
 
     });

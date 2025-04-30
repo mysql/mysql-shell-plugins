@@ -129,7 +129,7 @@ describe("OPEN EDITORS", () => {
 
     it("Icon - Load SQL Script from Disk", async () => {
         try {
-            const sqlScript = "users.sql";
+            const sqlScript = "1_users.sql";
             const treeOpenEditorsGlobalConn = await openEditorsTreeSection.getTreeItem(globalConn.caption!);
             const loadScriptFromDisk = await treeOpenEditorsGlobalConn.getActionButton(
                 constants.loadSQLScriptFromDisk);
