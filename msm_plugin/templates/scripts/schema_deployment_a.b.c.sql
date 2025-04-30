@@ -30,6 +30,8 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,'
 CREATE SCHEMA IF NOT EXISTS `${schema_name}`
     DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
+USE `${schema_name}`;
+
 
 -- #############################################################################
 -- MSM Section 330: Creation of Helpers
@@ -57,6 +59,8 @@ ${section_230_creation_of_update_helpers}
 -- process and will be dropped afterwards.
 -- #############################################################################
 
+USE `${schema_name}`;
+
 DELIMITER %%
 
 -- ### MSM-LOOP-START:UPDATABLE-VERSIONS(indent=4) - Update Non-Idempotent
@@ -66,9 +70,8 @@ DELIMITER %%
 -- Stored procedure to update TABLEs and VIEWs
 -- from version ${version_from} to ${version_to}
 -- -----------------------------------------------------------------------------
-DROP PROCEDURE IF EXISTS
-    `${schema_name}`.`msm_update_${version_from}_to_${version_to}`%%
-CREATE PROCEDURE `${schema_name}`.`msm_update_${version_from}_to_${version_to}`()
+DROP PROCEDURE IF EXISTS `msm_update_${version_from}_to_${version_to}`%%
+CREATE PROCEDURE `msm_update_${version_from}_to_${version_to}`()
 SQL SECURITY INVOKER
 BEGIN
 ${section_240_non_idempotent_schema_object_changes_and_all_drops}
@@ -80,9 +83,8 @@ END%%
 -- -----------------------------------------------------------------------------
 -- Stored procedure to install schema TABLEs for version ${version_target}
 -- -----------------------------------------------------------------------------
-DROP PROCEDURE IF EXISTS
-    `${schema_name}`.`msm_create_${version_target}`%%
-CREATE PROCEDURE `${schema_name}`.`msm_create_${version_target}`()
+DROP PROCEDURE IF EXISTS `msm_create_${version_target}`%%
+CREATE PROCEDURE `msm_create_${version_target}`()
 SQL SECURITY INVOKER
 BEGIN
 ${section_140_non_idempotent_schema_objects}
@@ -95,9 +97,8 @@ END%%
 -- schema TABLEs
 -- -----------------------------------------------------------------------------
 
-DROP PROCEDURE IF EXISTS
-    `${schema_name}`.`msm_create_or_update`%%
-CREATE PROCEDURE `${schema_name}`.`msm_create_or_update`()
+DROP PROCEDURE IF EXISTS `msm_create_or_update`%%
+CREATE PROCEDURE `msm_create_or_update`()
 SQL SECURITY INVOKER
 BEGIN
     DECLARE item_count INT;
@@ -202,18 +203,20 @@ DELIMITER ;
 -- Execute the installation/upgrade procedure for schema tables
 -- -----------------------------------------------------------------------------
 
-CALL `${schema_name}`.`msm_create_or_update`();
+CALL `msm_create_or_update`();
 
 -- -----------------------------------------------------------------------------
 -- Drop the stored procedures used for schema TABLE installation and updates.
 -- -----------------------------------------------------------------------------
 
 -- ### MSM-LOOP-START:UPDATABLE-VERSIONS - Update Non-Idempotent
-DROP PROCEDURE `${schema_name}`.`msm_update_${version_from}_to_${version_to}`;
+USE `${schema_name}`;
+DROP PROCEDURE `msm_update_${version_from}_to_${version_to}`;
 ${section_260_removal_of_update_helpers}
 -- ### MSM-LOOP-END:UPDATABLE-VERSIONS - Update Non-Idempotent
-DROP PROCEDURE `${schema_name}`.`msm_create_${version_target}`;
-DROP PROCEDURE `${schema_name}`.`msm_create_or_update`;
+USE `${schema_name}`;
+DROP PROCEDURE `msm_create_${version_target}`;
+DROP PROCEDURE `msm_create_or_update`;
 
 
 -- #############################################################################
@@ -237,6 +240,8 @@ ${section_150_idempotent_schema_objects}
 -- This section is used to define or update ROLEs and GRANTs.
 -- #############################################################################
 
+USE `${schema_name}`;
+
 DELIMITER %%
 
 -- ### MSM-LOOP-START:UPDATABLE-VERSIONS(indent=4) - Authorization
@@ -246,8 +251,8 @@ DELIMITER %%
 -- Stored procedure to perform the authorization changes from version ${version_from}
 -- to ${version_to}
 -- -----------------------------------------------------------------------------
-DROP PROCEDURE IF EXISTS `${schema_name}`.`msm_auth_${version_from}_to_${version_to}`%%
-CREATE PROCEDURE `${schema_name}`.`msm_auth_${version_from}_to_${version_to}`()
+DROP PROCEDURE IF EXISTS `msm_auth_${version_from}_to_${version_to}`%%
+CREATE PROCEDURE `msm_auth_${version_from}_to_${version_to}`()
 SQL SECURITY INVOKER
 BEGIN
 ${section_270_authorization}
@@ -259,8 +264,8 @@ END%%
 -- -----------------------------------------------------------------------------
 -- Stored procedure to setup authorization for version ${version_target}
 -- -----------------------------------------------------------------------------
-DROP PROCEDURE IF EXISTS `${schema_name}`.`msm_auth_${version_target}`%%
-CREATE PROCEDURE `${schema_name}`.`msm_auth_${version_target}`()
+DROP PROCEDURE IF EXISTS `msm_auth_${version_target}`%%
+CREATE PROCEDURE `msm_auth_${version_target}`()
 SQL SECURITY INVOKER
 BEGIN
 ${section_170_authorization}
@@ -271,8 +276,8 @@ END%%
 -- -----------------------------------------------------------------------------
 -- Stored procedure to setup authorization
 -- -----------------------------------------------------------------------------
-DROP PROCEDURE IF EXISTS `${schema_name}`.`msm_auth`%%
-CREATE PROCEDURE `${schema_name}`.`msm_auth`()
+DROP PROCEDURE IF EXISTS `msm_auth`%%
+CREATE PROCEDURE `msm_auth`()
 SQL SECURITY INVOKER
 BEGIN
     DECLARE version_str VARCHAR(255);
@@ -299,18 +304,20 @@ DELIMITER ;
 -- Execute the installation/upgrade procedure to setup authorization
 -- -----------------------------------------------------------------------------
 
-CALL `${schema_name}`.`msm_auth`();
+CALL `msm_auth`();
 
 -- -----------------------------------------------------------------------------
 -- Drop the stored procedures used for authorization setup and updates.
 -- -----------------------------------------------------------------------------
 
 -- ### MSM-LOOP-START:UPDATABLE-VERSIONS - Update Non-Idempotent
-DROP PROCEDURE `${schema_name}`.`msm_auth_${version_from}_to_${version_to}`;
+USE `${schema_name}`;
+DROP PROCEDURE `msm_auth_${version_from}_to_${version_to}`;
 ${section_260_removal_of_update_helpers}
 -- ### MSM-LOOP-END:UPDATABLE-VERSIONS - Update Non-Idempotent
-DROP PROCEDURE `${schema_name}`.`msm_auth_${version_target}`;
-DROP PROCEDURE `${schema_name}`.`msm_auth`;
+USE `${schema_name}`;
+DROP PROCEDURE `msm_auth_${version_target}`;
+DROP PROCEDURE `msm_auth`;
 
 
 -- #############################################################################
@@ -333,9 +340,10 @@ ${section_190_removal_of_helpers}
 -- Setting the correct database schema version
 -- #############################################################################
 
+USE `${schema_name}`;
+
 CREATE OR REPLACE SQL SECURITY INVOKER
-VIEW `${schema_name}`.`msm_schema_version` (
-    `major`,`minor`,`patch`) AS
+VIEW `msm_schema_version` (`major`,`minor`,`patch`) AS
 SELECT ${version_comma_str};
 
 

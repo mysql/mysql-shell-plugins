@@ -6,14 +6,14 @@
 -- View `mysql_rest_service_metadata`.`mrs_user_schema_version`
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE SQL SECURITY INVOKER
-VIEW `mysql_rest_service_metadata`.`mrs_user_schema_version` (
+VIEW `mrs_user_schema_version` (
     major, minor, patch) AS
 SELECT 4, 0, 0;
 
 -- -----------------------------------------------------------------------------
 -- View `mysql_rest_service_metadata`.`object_fields_with_references`
 -- -----------------------------------------------------------------------------
-CREATE OR REPLACE SQL SECURITY INVOKER VIEW `mysql_rest_service_metadata`.`object_fields_with_references` AS
+CREATE OR REPLACE SQL SECURITY INVOKER VIEW `object_fields_with_references` AS
 WITH RECURSIVE obj_fields (
     caption, lev, position, id, represents_reference_id, parent_reference_id, object_id,
     name, db_column, enabled,
@@ -65,7 +65,7 @@ SELECT * FROM obj_fields;
 -- View `mysql_rest_service_metadata`.`router_services`
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE SQL SECURITY INVOKER
-VIEW `mysql_rest_service_metadata`.`router_services` AS
+VIEW `router_services` AS
 SELECT r.id AS router_id, r.router_name, r.address, r.attributes->>'$.developer' AS router_developer,
     s.id as service_id, h.name AS service_url_host_name,
     s.url_context_root AS service_url_context_root,

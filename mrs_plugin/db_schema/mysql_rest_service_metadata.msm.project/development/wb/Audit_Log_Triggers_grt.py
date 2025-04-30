@@ -298,16 +298,15 @@ def Audit_Log_Triggers():
 
     sql_script = """-- -----------------------------------------------------
 -- Create audit_log triggers
---
 
 """
 
-    sql_script += "DELIMITER $$\n"
-    trigger_footer = """
+    sql_script += f"DELIMITER %%\n\n"
+    trigger_footer = f"""
         SESSION_USER(),
         CURRENT_TIMESTAMP
     );
-END$$"""
+END%%"""
 
     # Loop over all schema tables
     for table in schema.tables:
@@ -323,18 +322,18 @@ END$$"""
         insert_header += """, changed_by, changed_at)
     VALUES ("""
         insert_trigger = (
-            f'DROP TRIGGER IF EXISTS `{schema.name}`.`{table.name}_AFTER_INSERT_AUDIT_LOG`$$\n'
-            f'CREATE TRIGGER `{schema.name}`.`{table.name}_AFTER_INSERT_AUDIT_LOG`\n'
+            f'DROP TRIGGER IF EXISTS `{table.name}_AFTER_INSERT_AUDIT_LOG`%%\n'
+            f'CREATE TRIGGER `{table.name}_AFTER_INSERT_AUDIT_LOG`\n'
             f'    AFTER INSERT ON `{table.name}` FOR EACH ROW\nBEGIN{insert_header}\n'
             f'{" ":8}"{table.name}", \n{" ":8}"INSERT", \n{" ":8}NULL,\n{" ":8}JSON_OBJECT(\n')
         update_trigger = (
-            f'DROP TRIGGER IF EXISTS `{schema.name}`.`{table.name}_AFTER_UPDATE_AUDIT_LOG`$$\n'
-            f'CREATE TRIGGER `{schema.name}`.`{table.name}_AFTER_UPDATE_AUDIT_LOG`\n'
+            f'DROP TRIGGER IF EXISTS `{table.name}_AFTER_UPDATE_AUDIT_LOG`%%\n'
+            f'CREATE TRIGGER `{table.name}_AFTER_UPDATE_AUDIT_LOG`\n'
             f'    AFTER UPDATE ON `{table.name}` FOR EACH ROW\nBEGIN{insert_header}\n'
             f'{" ":8}"{table.name}", \n{" ":8}"UPDATE", \n{" ":8}JSON_OBJECT(\n')
         delete_trigger = (
-            f'DROP TRIGGER IF EXISTS `{schema.name}`.`{table.name}_AFTER_DELETE_AUDIT_LOG`$$\n'
-            f'CREATE TRIGGER `{schema.name}`.`{table.name}_AFTER_DELETE_AUDIT_LOG`\n'
+            f'DROP TRIGGER IF EXISTS `{table.name}_AFTER_DELETE_AUDIT_LOG`%%\n'
+            f'CREATE TRIGGER `{table.name}_AFTER_DELETE_AUDIT_LOG`\n'
             f'    AFTER DELETE ON `{table.name}` FOR EACH ROW\nBEGIN{insert_header}\n'
             f'{" ":8}"{table.name}", \n{" ":8}"DELETE", \n{" ":8}JSON_OBJECT(\n')
         old_rows = ""
@@ -367,7 +366,7 @@ END$$"""
 
         sql_script += insert_trigger + "\n\n" + update_trigger + "\n\n" + delete_trigger + "\n\n"
 
-    sql_script += "DELIMITER ;\n\n"
+    sql_script += "DELIMITER ;\n"
 
     # Check if the script is already registered in the model
     scripts = grt.root.wb.doc.physicalModels[0].scripts
