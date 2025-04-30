@@ -170,15 +170,15 @@ export class MsmCommandHandler {
                             return;
                         }
 
-                        const nextVersionInt = version.split(".").map((n) => {
-                            return parseInt(n, 10);
-                        });
-                        nextVersionInt[2] += 1;
+                        // const nextVersionInt = version.split(".").map((n) => {
+                        //     return parseInt(n, 10);
+                        // });
+                        // nextVersionInt[2] += 1;
 
                         const nextVersion = await window.showInputBox({
                             title: "MSM - Prepare Release - Next Version for Development",
                             prompt: "Please enter the next version to used for development.",
-                            value: nextVersionInt.join("."),
+                            value: version, //nextVersionInt.join("."),
                             ignoreFocusOut: true,
                             validateInput: validateVersionInput,
                         });

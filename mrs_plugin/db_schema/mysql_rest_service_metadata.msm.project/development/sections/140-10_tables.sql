@@ -1,5 +1,5 @@
 -- Copyright (c) 2021, 2025, Oracle and/or its affiliates.
--- Fri Apr 11 15:56:50 2025
+-- Wed Apr 30 12:25:31 2025
 -- Model: New Model    Version: 1.0
 -- MySQL Workbench Forward Engineering
 
@@ -11,20 +11,11 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,N
 -- Schema mysql_rest_service_metadata
 -- -----------------------------------------------------
 -- Holds metadata information for the MySQL REST Service.
-DROP SCHEMA IF EXISTS `mysql_rest_service_metadata` ;
 
 -- -----------------------------------------------------
--- Schema mysql_rest_service_metadata
---
--- Holds metadata information for the MySQL REST Service.
+-- Table `url_host`
 -- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `mysql_rest_service_metadata` DEFAULT CHARACTER SET utf8 COLLATE utf8_bin ;
-USE `mysql_rest_service_metadata` ;
-
--- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`url_host`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`url_host` (
+CREATE TABLE IF NOT EXISTS `url_host` (
   `id` BINARY(16) NOT NULL,
   `name` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'Specifies the host name of the MRS as represented in the request URLs. Example: example.com',
   `comments` VARCHAR(512) NULL,
@@ -34,9 +25,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`service`
+-- Table `service`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`service` (
+CREATE TABLE IF NOT EXISTS `service` (
   `id` BINARY(16) NOT NULL,
   `parent_id` BINARY(16) NULL,
   `url_host_id` BINARY(16) NOT NULL,
@@ -60,21 +51,21 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`service` (
   INDEX `fk_service_service1_idx` (`parent_id` ASC) VISIBLE,
   CONSTRAINT `fk_service_url_host1`
     FOREIGN KEY (`url_host_id`)
-    REFERENCES `mysql_rest_service_metadata`.`url_host` (`id`)
+    REFERENCES `url_host` (`id`)
     ON DELETE RESTRICT
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_service_service1`
     FOREIGN KEY (`parent_id`)
-    REFERENCES `mysql_rest_service_metadata`.`service` (`id`)
+    REFERENCES `service` (`id`)
     ON DELETE RESTRICT
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`db_schema`
+-- Table `db_schema`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`db_schema` (
+CREATE TABLE IF NOT EXISTS `db_schema` (
   `id` BINARY(16) NOT NULL,
   `service_id` BINARY(16) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
@@ -91,16 +82,16 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`db_schema` (
   INDEX `fk_db_schema_service1_idx` (`service_id` ASC) VISIBLE,
   CONSTRAINT `fk_db_schema_service1`
     FOREIGN KEY (`service_id`)
-    REFERENCES `mysql_rest_service_metadata`.`service` (`id`)
+    REFERENCES `service` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`db_object`
+-- Table `db_object`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`db_object` (
+CREATE TABLE IF NOT EXISTS `db_object` (
   `id` BINARY(16) NOT NULL,
   `db_schema_id` BINARY(16) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
@@ -123,16 +114,16 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`db_object` (
   INDEX `fk_db_objects_db_schema1_idx` (`db_schema_id` ASC) INVISIBLE,
   CONSTRAINT `fk_db_objects_db_schema1`
     FOREIGN KEY (`db_schema_id`)
-    REFERENCES `mysql_rest_service_metadata`.`db_schema` (`id`)
+    REFERENCES `db_schema` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`auth_vendor`
+-- Table `auth_vendor`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`auth_vendor` (
+CREATE TABLE IF NOT EXISTS `auth_vendor` (
   `id` BINARY(16) NOT NULL,
   `name` VARCHAR(65) NOT NULL,
   `validation_url` VARCHAR(255) NULL COMMENT 'URL used to validate the access_token provided by the client. Example: https://graph.facebook.com/debug_token?input_token=%access_token%&access_token=%app_access_token%',
@@ -144,9 +135,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`auth_app`
+-- Table `auth_app`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`auth_app` (
+CREATE TABLE IF NOT EXISTS `auth_app` (
   `id` BINARY(16) NOT NULL,
   `auth_vendor_id` BINARY(16) NOT NULL,
   `name` VARCHAR(45) NOT NULL,
@@ -164,16 +155,16 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`auth_app` (
   UNIQUE INDEX `name_UNIQUE` (`name` ASC) VISIBLE,
   CONSTRAINT `fk_auth_app_auth_vendor1`
     FOREIGN KEY (`auth_vendor_id`)
-    REFERENCES `mysql_rest_service_metadata`.`auth_vendor` (`id`)
+    REFERENCES `auth_vendor` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`mrs_user`
+-- Table `mrs_user`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_user` (
+CREATE TABLE IF NOT EXISTS `mrs_user` (
   `id` BINARY(16) NOT NULL,
   `auth_app_id` BINARY(16) NOT NULL,
   `name` VARCHAR(225) NULL,
@@ -191,16 +182,16 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_user` (
   INDEX `mrs_user_email` (`email` ASC) VISIBLE,
   CONSTRAINT `fk_auth_user_auth_app1`
     FOREIGN KEY (`auth_app_id`)
-    REFERENCES `mysql_rest_service_metadata`.`auth_app` (`id`)
+    REFERENCES `auth_app` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`config`
+-- Table `config`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`config` (
+CREATE TABLE IF NOT EXISTS `config` (
   `id` TINYINT NOT NULL DEFAULT 1,
   `service_enabled` TINYINT NULL,
   `data` JSON NULL,
@@ -209,9 +200,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`redirect`
+-- Table `redirect`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`redirect` (
+CREATE TABLE IF NOT EXISTS `redirect` (
   `id` BINARY(16) NOT NULL,
   `pattern` VARCHAR(1024) NOT NULL,
   `target` VARCHAR(1024) NOT NULL,
@@ -222,9 +213,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`url_host_alias`
+-- Table `url_host_alias`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`url_host_alias` (
+CREATE TABLE IF NOT EXISTS `url_host_alias` (
   `id` BINARY(16) NOT NULL,
   `url_host_id` BINARY(16) NOT NULL,
   `alias` VARCHAR(255) NOT NULL COMMENT 'Specifies additional aliases for the given host, e.g. www.example.com',
@@ -232,16 +223,16 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`url_host_alias` (
   INDEX `fk_url_host_alias_url_host1_idx` (`url_host_id` ASC) VISIBLE,
   CONSTRAINT `fk_url_host_alias_url_host1`
     FOREIGN KEY (`url_host_id`)
-    REFERENCES `mysql_rest_service_metadata`.`url_host` (`id`)
+    REFERENCES `url_host` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`content_set`
+-- Table `content_set`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`content_set` (
+CREATE TABLE IF NOT EXISTS `content_set` (
   `id` BINARY(16) NOT NULL,
   `service_id` BINARY(16) NOT NULL,
   `content_type` ENUM('STATIC', 'SCRIPTS') NOT NULL DEFAULT 'STATIC',
@@ -255,16 +246,16 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`content_set` (
   INDEX `fk_static_content_version_service1_idx` (`service_id` ASC) VISIBLE,
   CONSTRAINT `fk_static_content_version_service1`
     FOREIGN KEY (`service_id`)
-    REFERENCES `mysql_rest_service_metadata`.`service` (`id`)
+    REFERENCES `service` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`content_file`
+-- Table `content_file`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`content_file` (
+CREATE TABLE IF NOT EXISTS `content_file` (
   `id` BINARY(16) NOT NULL,
   `content_set_id` BINARY(16) NOT NULL,
   `request_path` VARCHAR(255) NOT NULL DEFAULT '/',
@@ -277,16 +268,16 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`content_file` (
   INDEX `fk_content_content_set1_idx` (`content_set_id` ASC) VISIBLE,
   CONSTRAINT `fk_content_content_set1`
     FOREIGN KEY (`content_set_id`)
-    REFERENCES `mysql_rest_service_metadata`.`content_set` (`id`)
+    REFERENCES `content_set` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`audit_log`
+-- Table `audit_log`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`audit_log` (
+CREATE TABLE IF NOT EXISTS `audit_log` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `schema_name` VARCHAR(255) NULL,
   `table_name` VARCHAR(255) NOT NULL,
@@ -307,9 +298,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`mrs_role`
+-- Table `mrs_role`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_role` (
+CREATE TABLE IF NOT EXISTS `mrs_role` (
   `id` BINARY(16) NOT NULL,
   `derived_from_role_id` BINARY(16) NULL,
   `specific_to_service_id` BINARY(16) NULL,
@@ -322,21 +313,21 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_role` (
   UNIQUE INDEX `unique_caption_per_service` (`specific_to_service_id` ASC, `caption` ASC) VISIBLE,
   CONSTRAINT `fk_priv_role_priv_role1`
     FOREIGN KEY (`derived_from_role_id`)
-    REFERENCES `mysql_rest_service_metadata`.`mrs_role` (`id`)
+    REFERENCES `mrs_role` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_auth_role_service1`
     FOREIGN KEY (`specific_to_service_id`)
-    REFERENCES `mysql_rest_service_metadata`.`service` (`id`)
+    REFERENCES `service` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`mrs_user_has_role`
+-- Table `mrs_user_has_role`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_user_has_role` (
+CREATE TABLE IF NOT EXISTS `mrs_user_has_role` (
   `user_id` BINARY(16) NOT NULL,
   `role_id` BINARY(16) NOT NULL,
   `comments` VARCHAR(512) NULL,
@@ -346,21 +337,21 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_user_has_role` (
   INDEX `fk_auth_user_has_privilege_role_auth_user1_idx` (`user_id` ASC) VISIBLE,
   CONSTRAINT `fk_auth_user_has_privilege_role_auth_user1`
     FOREIGN KEY (`user_id`)
-    REFERENCES `mysql_rest_service_metadata`.`mrs_user` (`id`)
+    REFERENCES `mrs_user` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_auth_user_has_privilege_role_privilege_role1`
     FOREIGN KEY (`role_id`)
-    REFERENCES `mysql_rest_service_metadata`.`mrs_role` (`id`)
+    REFERENCES `mrs_role` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`mrs_user_hierarchy_type`
+-- Table `mrs_user_hierarchy_type`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_user_hierarchy_type` (
+CREATE TABLE IF NOT EXISTS `mrs_user_hierarchy_type` (
   `id` BINARY(16) NOT NULL,
   `caption` VARCHAR(150) NULL,
   `description` VARCHAR(512) NULL,
@@ -370,16 +361,16 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_user_hierarchy_typ
   INDEX `fk_user_hierarchy_type_service1_idx` (`specific_to_service_id` ASC) VISIBLE,
   CONSTRAINT `fk_user_hierarchy_type_service1`
     FOREIGN KEY (`specific_to_service_id`)
-    REFERENCES `mysql_rest_service_metadata`.`service` (`id`)
+    REFERENCES `service` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`mrs_user_hierarchy`
+-- Table `mrs_user_hierarchy`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_user_hierarchy` (
+CREATE TABLE IF NOT EXISTS `mrs_user_hierarchy` (
   `user_id` BINARY(16) NOT NULL,
   `reporting_to_user_id` BINARY(16) NOT NULL,
   `user_hierarchy_type_id` BINARY(16) NOT NULL,
@@ -389,26 +380,26 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_user_hierarchy` (
   INDEX `fk_user_hierarchy_hierarchy_type1_idx` (`user_hierarchy_type_id` ASC) VISIBLE,
   CONSTRAINT `fk_user_hierarchy_auth_user1`
     FOREIGN KEY (`user_id`)
-    REFERENCES `mysql_rest_service_metadata`.`mrs_user` (`id`)
+    REFERENCES `mrs_user` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_user_hierarchy_auth_user2`
     FOREIGN KEY (`reporting_to_user_id`)
-    REFERENCES `mysql_rest_service_metadata`.`mrs_user` (`id`)
+    REFERENCES `mrs_user` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_user_hierarchy_hierarchy_type1`
     FOREIGN KEY (`user_hierarchy_type_id`)
-    REFERENCES `mysql_rest_service_metadata`.`mrs_user_hierarchy_type` (`id`)
+    REFERENCES `mrs_user_hierarchy_type` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`mrs_privilege`
+-- Table `mrs_privilege`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_privilege` (
+CREATE TABLE IF NOT EXISTS `mrs_privilege` (
   `id` BINARY(16) NOT NULL,
   `role_id` BINARY(16) NOT NULL,
   `crud_operations` SET('CREATE', 'READ', 'UPDATE', 'DELETE') NOT NULL DEFAULT '',
@@ -419,16 +410,16 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_privilege` (
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_priv_on_schema_auth_role1`
     FOREIGN KEY (`role_id`)
-    REFERENCES `mysql_rest_service_metadata`.`mrs_role` (`id`)
+    REFERENCES `mrs_role` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`mrs_user_group`
+-- Table `mrs_user_group`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_user_group` (
+CREATE TABLE IF NOT EXISTS `mrs_user_group` (
   `id` BINARY(16) NOT NULL,
   `specific_to_service_id` BINARY(16) NULL,
   `caption` VARCHAR(45) NULL,
@@ -438,16 +429,16 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_user_group` (
   INDEX `fk_user_group_service1_idx` (`specific_to_service_id` ASC) VISIBLE,
   CONSTRAINT `fk_user_group_service1`
     FOREIGN KEY (`specific_to_service_id`)
-    REFERENCES `mysql_rest_service_metadata`.`service` (`id`)
+    REFERENCES `service` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`mrs_user_group_has_role`
+-- Table `mrs_user_group_has_role`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_user_group_has_role` (
+CREATE TABLE IF NOT EXISTS `mrs_user_group_has_role` (
   `user_group_id` BINARY(16) NOT NULL,
   `role_id` BINARY(16) NOT NULL,
   `options` JSON NULL,
@@ -456,21 +447,21 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_user_group_has_rol
   INDEX `fk_user_group_has_auth_role_user_group1_idx` (`user_group_id` ASC) VISIBLE,
   CONSTRAINT `fk_user_group_has_auth_role_user_group1`
     FOREIGN KEY (`user_group_id`)
-    REFERENCES `mysql_rest_service_metadata`.`mrs_user_group` (`id`)
+    REFERENCES `mrs_user_group` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_user_group_has_auth_role_auth_role1`
     FOREIGN KEY (`role_id`)
-    REFERENCES `mysql_rest_service_metadata`.`mrs_role` (`id`)
+    REFERENCES `mrs_role` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`mrs_user_has_group`
+-- Table `mrs_user_has_group`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_user_has_group` (
+CREATE TABLE IF NOT EXISTS `mrs_user_has_group` (
   `user_id` BINARY(16) NOT NULL,
   `user_group_id` BINARY(16) NOT NULL,
   `comments` VARCHAR(512) NULL,
@@ -480,21 +471,21 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_user_has_group` (
   INDEX `fk_auth_user_has_user_group_auth_user1_idx` (`user_id` ASC) VISIBLE,
   CONSTRAINT `fk_auth_user_has_user_group_auth_user1`
     FOREIGN KEY (`user_id`)
-    REFERENCES `mysql_rest_service_metadata`.`mrs_user` (`id`)
+    REFERENCES `mrs_user` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_auth_user_has_user_group_user_group1`
     FOREIGN KEY (`user_group_id`)
-    REFERENCES `mysql_rest_service_metadata`.`mrs_user_group` (`id`)
+    REFERENCES `mrs_user_group` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`mrs_group_hierarchy_type`
+-- Table `mrs_group_hierarchy_type`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_group_hierarchy_type` (
+CREATE TABLE IF NOT EXISTS `mrs_group_hierarchy_type` (
   `id` BINARY(16) NOT NULL,
   `caption` VARCHAR(150) NULL,
   `description` VARCHAR(512) NULL,
@@ -504,9 +495,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`mrs_user_group_hierarchy`
+-- Table `mrs_user_group_hierarchy`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_user_group_hierarchy` (
+CREATE TABLE IF NOT EXISTS `mrs_user_group_hierarchy` (
   `user_group_id` BINARY(16) NOT NULL,
   `parent_group_id` BINARY(16) NOT NULL,
   `group_hierarchy_type_id` BINARY(16) NOT NULL,
@@ -518,26 +509,26 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_user_group_hierarc
   INDEX `fk_user_group_hierarchy_group_hierarchy_type1_idx` (`group_hierarchy_type_id` ASC) VISIBLE,
   CONSTRAINT `fk_user_group_has_user_group_user_group1`
     FOREIGN KEY (`user_group_id`)
-    REFERENCES `mysql_rest_service_metadata`.`mrs_user_group` (`id`)
+    REFERENCES `mrs_user_group` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_user_group_has_user_group_user_group2`
     FOREIGN KEY (`parent_group_id`)
-    REFERENCES `mysql_rest_service_metadata`.`mrs_user_group` (`id`)
+    REFERENCES `mrs_user_group` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_user_group_hierarchy_group_hierarchy_type1`
     FOREIGN KEY (`group_hierarchy_type_id`)
-    REFERENCES `mysql_rest_service_metadata`.`mrs_group_hierarchy_type` (`id`)
+    REFERENCES `mrs_group_hierarchy_type` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`mrs_db_object_row_group_security`
+-- Table `mrs_db_object_row_group_security`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_db_object_row_group_security` (
+CREATE TABLE IF NOT EXISTS `mrs_db_object_row_group_security` (
   `db_object_id` BINARY(16) NOT NULL,
   `group_hierarchy_type_id` BINARY(16) NOT NULL,
   `row_group_ownership_column` VARCHAR(255) NOT NULL,
@@ -549,21 +540,21 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`mrs_db_object_row_grou
   PRIMARY KEY (`db_object_id`, `group_hierarchy_type_id`),
   CONSTRAINT `fk_table1_db_object1`
     FOREIGN KEY (`db_object_id`)
-    REFERENCES `mysql_rest_service_metadata`.`db_object` (`id`)
+    REFERENCES `db_object` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_db_object_row_security_group_hierarchy_type1`
     FOREIGN KEY (`group_hierarchy_type_id`)
-    REFERENCES `mysql_rest_service_metadata`.`mrs_group_hierarchy_type` (`id`)
+    REFERENCES `mrs_group_hierarchy_type` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`router`
+-- Table `router`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`router` (
+CREATE TABLE IF NOT EXISTS `router` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'The ID of the router instance that uniquely identifies the router on this MySQL REST Service setup.',
   `router_name` VARCHAR(255) NOT NULL COMMENT 'A user specified name for an instance of the router. Should default to address:port, where port is the http server port of the router. Set via --name during router bootstrap.',
   `address` VARCHAR(255) CHARACTER SET 'ascii' COLLATE 'ascii_general_ci' NOT NULL COMMENT 'Network address of the host the Router is running on. Set via --report--host during bootstrap.',
@@ -579,9 +570,9 @@ COMMENT = 'no_audit_log';
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`router_status`
+-- Table `router_status`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`router_status` (
+CREATE TABLE IF NOT EXISTS `router_status` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `router_id` INT UNSIGNED NOT NULL,
   `status_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'The time the status was reported',
@@ -599,7 +590,7 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`router_status` (
   INDEX `status_time` (`status_time` ASC) VISIBLE,
   CONSTRAINT `fk_router_status_router1`
     FOREIGN KEY (`router_id`)
-    REFERENCES `mysql_rest_service_metadata`.`router` (`id`)
+    REFERENCES `router` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
@@ -607,9 +598,9 @@ COMMENT = 'no_audit_log';
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`router_session`
+-- Table `router_session`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`router_session` (
+CREATE TABLE IF NOT EXISTS `router_session` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` BINARY(16) NOT NULL,
   `service_id` BINARY(16) NOT NULL,
@@ -620,9 +611,9 @@ COMMENT = 'no_audit_log';
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`router_general_log`
+-- Table `router_general_log`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`router_general_log` (
+CREATE TABLE IF NOT EXISTS `router_general_log` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `router_id` INT UNSIGNED NOT NULL,
   `router_session_id` INT UNSIGNED NULL,
@@ -641,12 +632,12 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`router_general_log` (
   INDEX `router_log_thread_id` (`thread_id` ASC) VISIBLE,
   CONSTRAINT `fk_router_general_log_router1`
     FOREIGN KEY (`router_id`)
-    REFERENCES `mysql_rest_service_metadata`.`router` (`id`)
+    REFERENCES `router` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_router_general_log_router_session1`
     FOREIGN KEY (`router_session_id`)
-    REFERENCES `mysql_rest_service_metadata`.`router_session` (`id`)
+    REFERENCES `router_session` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
@@ -654,9 +645,9 @@ COMMENT = 'no_audit_log';
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`object`
+-- Table `object`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`object` (
+CREATE TABLE IF NOT EXISTS `object` (
   `id` BINARY(16) NOT NULL,
   `db_object_id` BINARY(16) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
@@ -671,16 +662,16 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`object` (
   INDEX `row_ownership_object_idx` (`row_ownership_field_id` ASC) VISIBLE,
   CONSTRAINT `fk_result_db_object1`
     FOREIGN KEY (`db_object_id`)
-    REFERENCES `mysql_rest_service_metadata`.`db_object` (`id`)
+    REFERENCES `db_object` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`object_reference`
+-- Table `object_reference`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`object_reference` (
+CREATE TABLE IF NOT EXISTS `object_reference` (
   `id` BINARY(16) NOT NULL,
   `reduce_to_value_of_field_id` BINARY(16) NULL COMMENT 'If set to an object_field, this reference will be reduced to the value of the given field. Example: \"films\": [ { \"categories\": [ \"Thriller\", \"Action\"] } ] instead of \"films\": [ { \"categories\": [ { \"name\": \"Thriller\" }, { \"name\": \"Action\" } ] } ],',
   `row_ownership_field_id` BINARY(16) NULL,
@@ -696,9 +687,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`object_field`
+-- Table `object_field`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`object_field` (
+CREATE TABLE IF NOT EXISTS `object_field` (
   `id` BINARY(16) NOT NULL,
   `object_id` BINARY(16) NOT NULL,
   `parent_reference_id` BINARY(16) NULL,
@@ -721,26 +712,26 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`object_field` (
   INDEX `fk_result_property_result_reference2_idx` (`represents_reference_id` ASC) VISIBLE,
   CONSTRAINT `fk_properties_result1`
     FOREIGN KEY (`object_id`)
-    REFERENCES `mysql_rest_service_metadata`.`object` (`id`)
+    REFERENCES `object` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_result_property_result_reference1`
     FOREIGN KEY (`parent_reference_id`)
-    REFERENCES `mysql_rest_service_metadata`.`object_reference` (`id`)
+    REFERENCES `object_reference` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_result_property_result_reference2`
     FOREIGN KEY (`represents_reference_id`)
-    REFERENCES `mysql_rest_service_metadata`.`object_reference` (`id`)
+    REFERENCES `object_reference` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`service_has_auth_app`
+-- Table `service_has_auth_app`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`service_has_auth_app` (
+CREATE TABLE IF NOT EXISTS `service_has_auth_app` (
   `service_id` BINARY(16) NOT NULL,
   `auth_app_id` BINARY(16) NOT NULL,
   `options` JSON NULL,
@@ -749,21 +740,21 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`service_has_auth_app` 
   INDEX `fk_service_has_auth_app_service1_idx` (`service_id` ASC) VISIBLE,
   CONSTRAINT `fk_service_has_auth_app_service1`
     FOREIGN KEY (`service_id`)
-    REFERENCES `mysql_rest_service_metadata`.`service` (`id`)
+    REFERENCES `service` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_service_has_auth_app_auth_app1`
     FOREIGN KEY (`auth_app_id`)
-    REFERENCES `mysql_rest_service_metadata`.`auth_app` (`id`)
+    REFERENCES `auth_app` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`content_set_has_obj_def`
+-- Table `content_set_has_obj_def`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`content_set_has_obj_def` (
+CREATE TABLE IF NOT EXISTS `content_set_has_obj_def` (
   `content_set_id` BINARY(16) NOT NULL,
   `db_object_id` BINARY(16) NOT NULL,
   `kind` ENUM('Script', 'BeforeCreate', 'BeforeRead', 'BeforeUpdate', 'BeforeDelete', 'AfterCreate', 'AfterRead', 'AfterUpdate', 'AfterDelete') NOT NULL,
@@ -780,21 +771,21 @@ CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`content_set_has_obj_de
   INDEX `content_set_has_obj_dev_method_type` (`kind` ASC) VISIBLE,
   CONSTRAINT `fk_content_set_has_db_object_content_set1`
     FOREIGN KEY (`content_set_id`)
-    REFERENCES `mysql_rest_service_metadata`.`content_set` (`id`)
+    REFERENCES `content_set` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_content_set_has_db_object_db_object1`
     FOREIGN KEY (`db_object_id`)
-    REFERENCES `mysql_rest_service_metadata`.`db_object` (`id`)
+    REFERENCES `db_object` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mysql_rest_service_metadata`.`audit_log_status`
+-- Table `audit_log_status`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `mysql_rest_service_metadata`.`audit_log_status` (
+CREATE TABLE IF NOT EXISTS `audit_log_status` (
   `id` TINYINT NOT NULL,
   `last_dump_at` TIMESTAMP NULL,
   `data` JSON NULL,

@@ -35,7 +35,7 @@ MRS relies on a dedicated audit log table that tracks all changes to the MRS met
 
 Instead of having to manually adjust the triggers for every change to the metadata schema, a MySQL Workbench script is used to generate the `Audit Log Triggers` SQL script instead.
 
-Install the `./mysql_rest_service_metadata.msm.project/development/wb/Audit_Log_Triggers_grt.py` script in `~/Library/Application Support/MySQL/Workbench/modules/Audit_Log_Triggers_grt.py` and in `~/Library/Application Support/MySQL/Workbench/scripts/` on MacOS. Use the corresponding paths on Linux and Windows.
+Install the `./mysql_rest_service_metadata.msm.project/development/wb/Audit_Log_Triggers_grt.py` script in `~/Library/Application Support/MySQL/Workbench/modules/Audit_Log_Triggers_grt.py` on MacOS. Use the corresponding paths on Linux and Windows.
 
 ## Generating the defaultStaticContent for config.data
 
@@ -60,7 +60,7 @@ $ brew link --force gettext
 1. Open the `./mysql_rest_service_metadata.msm.project/development/wb/mysql_rest_service_metadata.mwb` file in MySQL Workbench, make the required changes to the model.
 2. If there are changes to a table tracked in the audit log (check the existing `TRIGGER`s), select `Scripting > Run Script File > Audit_Log_Triggers_grt.py` to re-generate the embedded `Audit Log Triggers` SQL script.
 3. Save the model.
-4. Select `File > Export > Forward Engineer SQL CREATE Script...` and store in `./mysql_rest_service_metadata.msm.project/development/sections/140-10_tables.sql`.
+4. Select `File > Export > Forward Engineer SQL CREATE Script...`, make sure only the two options "Omit Schema Qualifier in Object Names" and "Don't create view placeholder tables" are checked and store in `./mysql_rest_service_metadata.msm.project/development/sections/140-10_tables.sql`.
 5. If the triggers have been updated, go to the MySQL Model tab sheet and open the `SQL Scripts` section. Double-click on the `Audit Log Triggers` script, select and copy the contents of that script. Open the `mysql_rest_service_metadata.msm.project/development/sections/150-40_audit_log_triggers.sql` file and replace its content with the one from the clipboard.
 6. Update other files in the `./mysql_rest_service_metadata.msm.project/development/sections/` directory as needed.
 7. In VS Code, right click on the `./mysql_rest_service_metadata.msm.project` folder and select `MySQL Schema Management > Prepare Release`. This will create the release file and in the `./mysql_rest_service_metadata.msm.project/releases/versions/` folder, as well as an update script in the `./mysql_rest_service_metadata.msm.project/releases/updates/` folder. The new files will be opened in VS Code for review.

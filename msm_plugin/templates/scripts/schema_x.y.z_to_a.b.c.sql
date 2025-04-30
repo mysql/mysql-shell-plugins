@@ -29,9 +29,10 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,'
 -- update processes of the database schema.
 -- #############################################################################
 
+USE `${schema_name}`;
+
 CREATE OR REPLACE SQL SECURITY INVOKER
-VIEW `${schema_name}`.`msm_schema_version` (
-    `major`,`minor`,`patch`) AS
+VIEW `msm_schema_version` (`major`,`minor`,`patch`) AS
 SELECT 0, 0, 0;
 
 
@@ -153,9 +154,10 @@ DELIMITER ;
 -- Setting the correct database schema version.
 -- #############################################################################
 
+USE `${schema_name}`;
+
 CREATE OR REPLACE SQL SECURITY INVOKER
-VIEW `${schema_name}`.`msm_schema_version` (
-    `major`,`minor`,`patch`) AS
+VIEW `msm_schema_version` (`major`,`minor`,`patch`) AS
 SELECT ${version_comma_str};
 
 

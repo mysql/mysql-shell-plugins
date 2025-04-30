@@ -4,8 +4,8 @@
 
 DELIMITER %%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`db_schema_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`db_schema_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `db_schema_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `db_schema_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `db_schema` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -34,8 +34,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`db_schema_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`db_schema_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `db_schema_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `db_schema_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `db_schema` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -76,8 +76,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`db_schema_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`db_schema_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `db_schema_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `db_schema_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `db_schema` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -106,8 +106,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`service_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`service_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `service_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `service_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `service` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -141,8 +141,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`service_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`service_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `service_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `service_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `service` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -193,8 +193,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`service_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`service_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `service_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `service_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `service` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -228,8 +228,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`db_object_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`db_object_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `db_object_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `db_object_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `db_object` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -264,8 +264,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`db_object_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`db_object_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `db_object_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `db_object_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `db_object` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -318,8 +318,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`db_object_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`db_object_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `db_object_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `db_object_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `db_object` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -354,8 +354,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `mrs_user` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -381,8 +381,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `mrs_user` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -417,8 +417,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `mrs_user` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -444,8 +444,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`auth_vendor_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`auth_vendor_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `auth_vendor_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `auth_vendor_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `auth_vendor` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -468,8 +468,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`auth_vendor_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`auth_vendor_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `auth_vendor_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `auth_vendor_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `auth_vendor` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -498,8 +498,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`auth_vendor_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`auth_vendor_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `auth_vendor_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `auth_vendor_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `auth_vendor` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -522,8 +522,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`auth_app_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`auth_app_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `auth_app_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `auth_app_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `auth_app` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -552,8 +552,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`auth_app_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`auth_app_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `auth_app_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `auth_app_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `auth_app` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -594,8 +594,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`auth_app_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`auth_app_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `auth_app_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `auth_app_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `auth_app` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -624,8 +624,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`config_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`config_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `config_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `config_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `config` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -645,8 +645,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`config_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`config_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `config_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `config_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `config` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -669,8 +669,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`config_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`config_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `config_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `config_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `config` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -690,8 +690,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`redirect_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`redirect_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `redirect_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `redirect_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `redirect` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -713,8 +713,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`redirect_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`redirect_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `redirect_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `redirect_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `redirect` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -741,8 +741,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`redirect_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`redirect_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `redirect_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `redirect_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `redirect` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -764,8 +764,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`url_host_alias_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`url_host_alias_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `url_host_alias_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `url_host_alias_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `url_host_alias` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -785,8 +785,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`url_host_alias_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`url_host_alias_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `url_host_alias_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `url_host_alias_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `url_host_alias` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -809,8 +809,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`url_host_alias_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`url_host_alias_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `url_host_alias_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `url_host_alias_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `url_host_alias` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -830,8 +830,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`url_host_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`url_host_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `url_host_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `url_host_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `url_host` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -851,8 +851,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`url_host_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`url_host_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `url_host_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `url_host_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `url_host` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -875,8 +875,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`url_host_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`url_host_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `url_host_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `url_host_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `url_host` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -896,8 +896,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`content_file_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`content_file_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `content_file_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `content_file_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `content_file` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -921,8 +921,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`content_file_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`content_file_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `content_file_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `content_file_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `content_file` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -953,8 +953,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`content_file_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`content_file_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `content_file_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `content_file_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `content_file` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -978,8 +978,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`content_set_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`content_set_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `content_set_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `content_set_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `content_set` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1005,8 +1005,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`content_set_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`content_set_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `content_set_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `content_set_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `content_set` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1041,8 +1041,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`content_set_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`content_set_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `content_set_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `content_set_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `content_set` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1068,8 +1068,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_role_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_role_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_role_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_role_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `mrs_role` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1092,8 +1092,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_role_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_role_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_role_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_role_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `mrs_role` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1122,8 +1122,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_role_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_role_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_role_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_role_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `mrs_role` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1146,8 +1146,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_has_role_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_has_role_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_has_role_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_has_role_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `mrs_user_has_role` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1168,8 +1168,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_has_role_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_has_role_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_has_role_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_has_role_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `mrs_user_has_role` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1194,8 +1194,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_has_role_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_has_role_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_has_role_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_has_role_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `mrs_user_has_role` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1216,8 +1216,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_hierarchy_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_hierarchy_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_hierarchy_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_hierarchy_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `mrs_user_hierarchy` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1238,8 +1238,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_hierarchy_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_hierarchy_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_hierarchy_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_hierarchy_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `mrs_user_hierarchy` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1264,8 +1264,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_hierarchy_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_hierarchy_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_hierarchy_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_hierarchy_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `mrs_user_hierarchy` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1286,8 +1286,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_hierarchy_type_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_hierarchy_type_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_hierarchy_type_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_hierarchy_type_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `mrs_user_hierarchy_type` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1309,8 +1309,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_hierarchy_type_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_hierarchy_type_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_hierarchy_type_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_hierarchy_type_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `mrs_user_hierarchy_type` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1337,8 +1337,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_hierarchy_type_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_hierarchy_type_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_hierarchy_type_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_hierarchy_type_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `mrs_user_hierarchy_type` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1360,8 +1360,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_privilege_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_privilege_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_privilege_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_privilege_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `mrs_privilege` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1385,8 +1385,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_privilege_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_privilege_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_privilege_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_privilege_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `mrs_privilege` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1417,8 +1417,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_privilege_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_privilege_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_privilege_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_privilege_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `mrs_privilege` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1442,8 +1442,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_group_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_group_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_group_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_group_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `mrs_user_group` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1465,8 +1465,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_group_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_group_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_group_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_group_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `mrs_user_group` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1493,8 +1493,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_group_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_group_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_group_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_group_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `mrs_user_group` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1516,8 +1516,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_group_has_role_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_group_has_role_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_group_has_role_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_group_has_role_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `mrs_user_group_has_role` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1537,8 +1537,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_group_has_role_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_group_has_role_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_group_has_role_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_group_has_role_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `mrs_user_group_has_role` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1561,8 +1561,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_group_has_role_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_group_has_role_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_group_has_role_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_group_has_role_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `mrs_user_group_has_role` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1582,8 +1582,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_has_group_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_has_group_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_has_group_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_has_group_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `mrs_user_has_group` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1604,8 +1604,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_has_group_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_has_group_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_has_group_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_has_group_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `mrs_user_has_group` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1630,8 +1630,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_has_group_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_has_group_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_has_group_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_has_group_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `mrs_user_has_group` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1652,8 +1652,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_group_hierarchy_type_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_group_hierarchy_type_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_group_hierarchy_type_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_group_hierarchy_type_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `mrs_group_hierarchy_type` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1674,8 +1674,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_group_hierarchy_type_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_group_hierarchy_type_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_group_hierarchy_type_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_group_hierarchy_type_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `mrs_group_hierarchy_type` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1700,8 +1700,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_group_hierarchy_type_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_group_hierarchy_type_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_group_hierarchy_type_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_group_hierarchy_type_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `mrs_group_hierarchy_type` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1722,8 +1722,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_group_hierarchy_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_group_hierarchy_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_group_hierarchy_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_group_hierarchy_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `mrs_user_group_hierarchy` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1745,8 +1745,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_group_hierarchy_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_group_hierarchy_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_group_hierarchy_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_group_hierarchy_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `mrs_user_group_hierarchy` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1773,8 +1773,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_user_group_hierarchy_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_user_group_hierarchy_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_user_group_hierarchy_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_user_group_hierarchy_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `mrs_user_group_hierarchy` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1796,8 +1796,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_db_object_row_group_security_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_db_object_row_group_security_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_db_object_row_group_security_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_db_object_row_group_security_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `mrs_db_object_row_group_security` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1820,8 +1820,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_db_object_row_group_security_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_db_object_row_group_security_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_db_object_row_group_security_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_db_object_row_group_security_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `mrs_db_object_row_group_security` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1850,8 +1850,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`mrs_db_object_row_group_security_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`mrs_db_object_row_group_security_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `mrs_db_object_row_group_security_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `mrs_db_object_row_group_security_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `mrs_db_object_row_group_security` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1874,8 +1874,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`object_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`object_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `object_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `object_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `object` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1901,8 +1901,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`object_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`object_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `object_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `object_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `object` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1937,8 +1937,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`object_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`object_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `object_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `object_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `object` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1964,8 +1964,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`object_field_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`object_field_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `object_field_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `object_field_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `object_field` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -1998,8 +1998,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`object_field_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`object_field_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `object_field_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `object_field_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `object_field` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -2048,8 +2048,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`object_field_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`object_field_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `object_field_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `object_field_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `object_field` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -2082,8 +2082,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`object_reference_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`object_reference_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `object_reference_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `object_reference_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `object_reference` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -2108,8 +2108,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`object_reference_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`object_reference_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `object_reference_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `object_reference_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `object_reference` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -2142,8 +2142,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`object_reference_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`object_reference_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `object_reference_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `object_reference_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `object_reference` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -2168,8 +2168,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`service_has_auth_app_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`service_has_auth_app_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `service_has_auth_app_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `service_has_auth_app_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `service_has_auth_app` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -2189,8 +2189,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`service_has_auth_app_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`service_has_auth_app_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `service_has_auth_app_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `service_has_auth_app_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `service_has_auth_app` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -2213,8 +2213,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`service_has_auth_app_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`service_has_auth_app_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `service_has_auth_app_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `service_has_auth_app_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `service_has_auth_app` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -2234,8 +2234,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`content_set_has_obj_def_AFTER_INSERT_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`content_set_has_obj_def_AFTER_INSERT_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `content_set_has_obj_def_AFTER_INSERT_AUDIT_LOG`%%
+CREATE TRIGGER `content_set_has_obj_def_AFTER_INSERT_AUDIT_LOG`
     AFTER INSERT ON `content_set_has_obj_def` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -2261,8 +2261,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`content_set_has_obj_def_AFTER_UPDATE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`content_set_has_obj_def_AFTER_UPDATE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `content_set_has_obj_def_AFTER_UPDATE_AUDIT_LOG`%%
+CREATE TRIGGER `content_set_has_obj_def_AFTER_UPDATE_AUDIT_LOG`
     AFTER UPDATE ON `content_set_has_obj_def` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
@@ -2297,8 +2297,8 @@ BEGIN
     );
 END%%
 
-DROP TRIGGER IF EXISTS `mysql_rest_service_metadata`.`content_set_has_obj_def_AFTER_DELETE_AUDIT_LOG`%%
-CREATE TRIGGER `mysql_rest_service_metadata`.`content_set_has_obj_def_AFTER_DELETE_AUDIT_LOG`
+DROP TRIGGER IF EXISTS `content_set_has_obj_def_AFTER_DELETE_AUDIT_LOG`%%
+CREATE TRIGGER `content_set_has_obj_def_AFTER_DELETE_AUDIT_LOG`
     AFTER DELETE ON `content_set_has_obj_def` FOR EACH ROW
 BEGIN
     INSERT INTO `mysql_rest_service_metadata`.`audit_log` (
