@@ -1327,7 +1327,7 @@ describe("DATABASE CONNECTIONS", () => {
             try {
                 await tabContainer.closeAllTabs();
                 const script = new E2EScript();
-                const sqlScript = "sakila_cst.sql";
+                const sqlScript = "2_sakila_cst.sql";
                 const destFile = join(process.cwd(), "src", "tests", "e2e", "sql", sqlScript);
                 await dbTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.loadSQLScriptFromDisk);
                 await Misc.uploadFile(destFile);

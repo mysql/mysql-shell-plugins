@@ -33,10 +33,10 @@ import typing
 VERBOSE = True
 THIS_FILE_PATH = pathlib.Path(os.path.realpath(__file__))
 WORKING_DIR = THIS_FILE_PATH.parent.absolute()
-SAKILA_SQL_PATH = WORKING_DIR.joinpath("sql", "sakila_cst.sql")
-WORLD_SQL_PATH = WORKING_DIR.joinpath("sql", "world_x_cst.sql")
-USERS_PATH = WORKING_DIR.joinpath("sql", "users.sql")
-PROCEDURES_PATH = WORKING_DIR.joinpath("sql", "procedures.sql")
+SAKILA_SQL_PATH = WORKING_DIR.joinpath("sql", "2_sakila_cst.sql")
+WORLD_SQL_PATH = WORKING_DIR.joinpath("sql", "3_world_x_cst.sql")
+USERS_PATH = WORKING_DIR.joinpath("sql", "1_users.sql")
+PROCEDURES_PATH = WORKING_DIR.joinpath("sql", "4_procedures.sql")
 REPO_ROOT = THIS_FILE_PATH.parent.parent.parent.parent.parent.parent.absolute()
 
 TOKEN = "1234test"
