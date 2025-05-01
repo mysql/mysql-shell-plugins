@@ -2237,7 +2237,7 @@ Execute \\help or \\? for help;`;
         }, { resultId: "", replaceData: true });
 
         const sql = `CALL sys.NL_SQL(?, @nl_out, '{` +
-            (connection?.currentSchema !== undefined
+            ((connection?.currentSchema !== undefined && connection?.currentSchema !== "")
                 ? `"schemas": ["${connection.currentSchema}"], `
                 : "")
             + `"execute": false}')`;
