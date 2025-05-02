@@ -622,7 +622,9 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         let testsToDisable: string[];
 
         if (process.env.DISABLE_TESTS.includes(",")) {
-            testsToDisable = process.env.DISABLE_TESTS.split(",");
+            testsToDisable = process.env.DISABLE_TESTS.split(",").map((item) => {
+                return item.trim();
+            });
         } else {
             testsToDisable = [process.env.DISABLE_TESTS];
         }
@@ -637,7 +639,7 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
 
                 if (testFile.match(new RegExp(test)) !== null) {
 
-                    let log = `[INF] `;
+                    let log = "";
 
                     if (testFile.match(new RegExp(`describe\\("${test}"`)) !== null) {
                         log += `Test Suite`;
@@ -653,6 +655,53 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
                     E2ELogger.info(`${log} "${test}" on file "${file}" was DISABLED`);
                     break;
                 }
+            }
+        }
+    };
+
+    /**
+     * Kills and removes the sandbox directories of running MySQL Server instances running on ports 3307, 3308 and 3309
+     */
+    public static killAndDeleteMySQLInstances = (): void => {
+        E2ETests.setTestSuite("DB");
+        E2ETests.setShellBinary();
+
+        const mysqlPorts = [E2ETests.mysqlPort, E2ETests.mysqlPortRest, E2ETests.mysqlPortRouter];
+
+        for (const mysqlPort of mysqlPorts) {
+
+            try {
+                E2ETests.runShellCommand([
+                    "--",
+                    "dba",
+                    "kill-sandbox-instance",
+                    mysqlPort,
+                    `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
+                ]);
+
+                E2ELogger.success(`Killed MySQL instance successfully for port ${mysqlPort}`);
+            } catch (e) {
+                if (!String(e).includes("Unable to find pid file")) {
+                    throw e;
+                }
+                E2ELogger.success(`MySQL instance on port ${mysqlPort} not found. Continuing...`);
+            }
+
+            try {
+                E2ETests.runShellCommand([
+                    "--",
+                    "dba",
+                    "delete-sandbox-instance",
+                    mysqlPort,
+                    `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
+                ]);
+                E2ELogger.success(`Deleted MySQL instance successfully for port ${mysqlPort}`);
+            }
+            catch (e) {
+                if (!String(e).includes("does not exist")) {
+                    throw e;
+                }
+                E2ELogger.success(`Sandbox instance on port ${mysqlPort} not found. Continuing...`);
             }
         }
     };
