@@ -199,7 +199,7 @@ def configure(session=None, enable_mrs: bool = None, options: str = None,
                             session=session,
                             script_name="HeatWave Default Endpoints",
                             sql_file_path=lib.core.script_path(
-                                "internal", "default_heatwave_endpoints",
+                                "scripts", "default_heatwave_endpoints",
                                 "heatwave_rest_service_1.0.0.sql"))
         else:
             schema_changed = False

@@ -1493,13 +1493,12 @@ def deploy_schema(
         lib.core.write_to_msm_schema_update_log(
             "INFO",
             f"Starting deployment of database schema `{schema_name}` using "
-            f"version {version} requested but the schema is already on the "
-            "requested version. No changes required.")
+            f"version {version} ...")
     else:
         lib.core.write_to_msm_schema_update_log(
             "INFO",
             f"Starting update of database schema `{schema_name}` version "
-            f"{schema_version} to version {version}.")
+            f"{schema_version} to version {version} ...")
 
     # Perform dump if the schema exists
     backup_available = False
