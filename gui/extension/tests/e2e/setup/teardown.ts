@@ -24,43 +24,6 @@
  */
 
 import { E2ETests } from "../lib/E2ETests";
-import { E2ELogger } from "../lib/E2ELogger";
 
-// THIS SCRIPT ASSUMES THAT A MYSQL SERVER SANDBOX INSTANCE HAS BEEN DEPLOYED BEFORE
-E2ETests.setTestSuite("DB");
-E2ETests.setShellBinary();
-
-const mysqlPorts = [E2ETests.mysqlPort, E2ETests.mysqlPortRest, E2ETests.mysqlPortRouter];
-
-for (const mysqlPort of mysqlPorts) {
-
-    try {
-        E2ETests.runShellCommand([
-            "--",
-            "dba",
-            "kill-sandbox-instance",
-            mysqlPort,
-            `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
-        ]);
-
-        E2ELogger.success(`Killed MySQL instance successfully for port ${mysqlPort}`);
-    } catch (e) {
-        if (!String(e).includes("Unable to find pid file")) {
-            // eslint-disable-next-line no-unsafe-finally
-            throw e;
-        }
-        E2ELogger.success(`MySQL PID file not found for port ${mysqlPort}. Continuing...`);
-    }
-
-    E2ETests.runShellCommand([
-        "--",
-        "dba",
-        "delete-sandbox-instance",
-        mysqlPort,
-        `--sandbox-dir=${E2ETests.mysqlSandboxDir}`,
-    ]);
-    E2ELogger.success(`Deleted MySQL instance successfully for port ${mysqlPort}`);
-
-}
-
+E2ETests.killAndDeleteMySQLInstances();
 E2ETests.generateReport();

@@ -978,7 +978,10 @@ describe("DATABASE CONNECTIONS", () => {
                 `The current editor name should be ${constants.perfDash}`)
                 .to.equals(constants.perfDash);
 
-            expect(await mysqlAdministration.performanceDashboard.tabExists(constants.perfDashServerTab)).to.be.true;
+            await driver.wait(async () => {
+                return mysqlAdministration.performanceDashboard.tabExists(constants.perfDashServerTab);
+            }, constants.wait1second * 5, `${constants.perfDashServerTab} tab was not found`);
+
             expect(await mysqlAdministration.performanceDashboard.tabExists(constants.perfDashMLETab)).to.be.true;
             expect(await mysqlAdministration.performanceDashboard.tabIsSelected(constants.perfDashServerTab))
                 .to.be.true;
