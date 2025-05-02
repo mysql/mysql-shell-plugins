@@ -74,7 +74,7 @@ export class AboutHost extends ComponentBase<IAboutHostProperties, IAboutHostSta
                     <Icon src={Codicon.CommentDiscussion} />
                     <Label>{title}</Label>
                 </Container>
-                <Label className="info" caption={infoToShow} />
+                <Label className="titleInfo" caption={infoToShow} />
                 <Label caption={instructions} className="instructions" />
             </Container>
         );
