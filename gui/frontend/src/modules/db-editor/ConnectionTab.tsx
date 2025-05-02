@@ -2325,7 +2325,7 @@ Execute \\help or \\? for help;`;
                     }
                 }
             } catch (e) {
-                const msg = String(e);
+                const msg = String(e).replace(/^(Error: Error: )+/, "");
 
                 await context?.clearResult();
                 if (msg.includes("PROCEDURE sys.NL_SQL does not exist")) {
@@ -2343,7 +2343,8 @@ Execute \\help or \\? for help;`;
                         type: "text",
                         text: [{
                             type: MessageType.Info,
-                            content: String(e),
+                            content: "The generated SQL query could not be executed. Please check the SQL below and "
+                                + `fix the error '${msg}'.`,
                             language: "ansi",
                         }],
                     }, { resultId: "" });
