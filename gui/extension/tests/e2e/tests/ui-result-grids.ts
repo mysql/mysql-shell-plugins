@@ -868,10 +868,6 @@ describe("RESULT GRIDS", () => {
 
         it("Edit a result grid using the keyboard", async () => {
 
-            if (Os.isWindows()) {
-                return;
-            }
-
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor
                 .execute("select * from sakila.result_sets;") as E2ECommandResultGrid;
@@ -915,12 +911,14 @@ describe("RESULT GRIDS", () => {
 
         it("Edit a result grid using the Start Editing button", async () => {
 
-            this.retries(1);
-
             await notebook.codeEditor.clean();
             const result = await notebook.codeEditor
                 .execute("select * from sakila.result_sets;") as E2ECommandResultGrid;
             expect(result.status).to.match(/OK/);
+
+            if (Os.isWindows()) {
+                await driver.sleep(3000);
+            }
 
             await result.editCells([
                 { rowNumber: 0, columnName: "text_field", value: "other edited" },
