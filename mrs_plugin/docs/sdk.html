@@ -5,11 +5,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>MRS SDK Reference</title>
+    <title>MySQL REST Service - SDK Reference</title>
     <link rel="shortcut icon" href="images/favicon.png" type="image/x-icon">
         <link rel="stylesheet" href="style/style.css">
                 <!-- cSpell:ignore pagetitle -->
-    <title>MRS SDK Reference</title>
+    <title>MySQL REST Service - SDK Reference</title>
     <style type="text/css">
         code {
             white-space: pre;
@@ -153,7 +153,8 @@
                 <nav class="section-nav">
                     <div class="bookToc">
                         <br>
-                        <h3>MRS SDK Reference </h3>
+                        <h3>MySQL REST Service - SDK
+Reference 1.19.11+9.3.1</h3>
                                                 <ul>
                                                 <li><a
                                                 href="#introduction-to-the-mrs-sdk"
@@ -416,8 +417,8 @@
         <div class="content">
             <div class="header" id="document-top">
                 <h1>
-                    <div class="iconBig bookIcon"></div>&nbsp;MRS SDK
-Reference
+                    <div class="iconBig bookIcon"></div>&nbsp;MySQL REST
+Service - SDK Reference
                 </h1>
             </div>
             <div class="main">
@@ -1097,26 +1098,24 @@ Reference
                 than a specified amount of time to finish can be done,
                 in TypeScript, as follows:</p>
                 <div class="sourceCode" id="cb17"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> task <span class="op">=</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">inventoryInStock</span><span class="op">.</span><span class="fu">start</span>({ pInventoryId<span class="op">:</span> <span class="dv">1</span> })<span class="op">;</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> startedAt <span class="op">=</span> <span class="bu">Date</span><span class="op">.</span><span class="fu">now</span>()<span class="op">;</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> timeout <span class="op">=</span> <span class="dv">10000</span><span class="op">;</span> <span class="co">// 10 seconds</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="cf">await</span> (<span class="kw">const</span> report <span class="op">=</span> task<span class="op">.</span><span class="fu">watch</span>()) {</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (report<span class="op">.</span><span class="at">status</span> <span class="op">===</span> <span class="st">&quot;RUNNING&quot;</span> <span class="op">&amp;&amp;</span> <span class="bu">Date</span><span class="op">.</span><span class="fu">now</span>() <span class="op">-</span> startedAt <span class="op">&gt;</span> timeout) {</span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> task<span class="op">.</span><span class="fu">kill</span>()<span class="op">;</span></span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (report<span class="op">.</span><span class="at">status</span> <span class="op">===</span> <span class="st">&quot;CANCELLED&quot;</span>) {</span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// this block is executed after the task is killed</span></span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(report<span class="op">.</span><span class="at">message</span>)<span class="op">;</span></span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> task <span class="op">=</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">inventoryInStock</span><span class="op">.</span><span class="fu">start</span>({ pInventoryId<span class="op">:</span> <span class="dv">1</span> }<span class="op">,</span> { timeout<span class="op">:</span> <span class="dv">10000</span> })<span class="op">;</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="cf">await</span> (<span class="kw">const</span> report <span class="kw">of</span> task<span class="op">.</span><span class="fu">watch</span>()) {</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (report<span class="op">.</span><span class="at">status</span> <span class="op">===</span> <span class="st">&quot;TIMEOUT&quot;</span>) {</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> task<span class="op">.</span><span class="fu">kill</span>()<span class="op">;</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (report<span class="op">.</span><span class="at">status</span> <span class="op">===</span> <span class="st">&quot;CANCELLED&quot;</span>) {</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// this block is executed after the task is killed</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(report<span class="op">.</span><span class="at">message</span>)<span class="op">;</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
                 <p>Getting the actual result produced by the REST
                 routine can be done as follows:</p>
                 <div class="sourceCode" id="cb18"><pre
                 class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> task <span class="op">=</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">inventoryInStock</span><span class="op">.</span><span class="fu">start</span>({ pInventoryId<span class="op">:</span> <span class="dv">1</span> })<span class="op">;</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="cf">await</span> (<span class="kw">const</span> report <span class="op">=</span> task<span class="op">.</span><span class="fu">watch</span>()) {</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="cf">await</span> (<span class="kw">const</span> report <span class="kw">of</span> task<span class="op">.</span><span class="fu">watch</span>()) {</span>
 <span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (report<span class="op">.</span><span class="at">status</span> <span class="op">===</span> <span class="st">&quot;COMPLETED&quot;</span>) {</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(report<span class="op">.</span><span class="at">result</span>)<span class="op">;</span> <span class="co">// true</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(report<span class="op">.</span><span class="at">data</span>)<span class="op">;</span> <span class="co">// true</span></span>
 <span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  }</span>
 <span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
                 <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
@@ -3642,7 +3641,7 @@ Reference
                 class="header-section-number">13.4.1.3</span> Reference
                 (call)</h4>
                 <div class="sourceCode" id="cb96"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb96-1"><a href="#cb96-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">call</span> (noteUpdateParams<span class="op">?:</span> IMyServiceMrsNotesNoteUpdateParams<span class="op">,</span> options<span class="op">?:</span> IMrsTaskExecutionOptions<span class="op">&lt;</span><span class="dt">object</span><span class="op">,</span> IMrsProcedureResult<span class="op">&lt;</span>IMyServiceMrsNotesNoteUpdateParamsOut<span class="op">,</span> IMyServiceMrsNotesNoteUpdateResultSet<span class="op">&gt;&gt;</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>IMrsProcedureResult<span class="op">&lt;</span>IMyServiceMrsNotesNoteUpdateParamsOut<span class="op">,</span> IMyServiceMrsNotesNoteUpdateResultSet<span class="op">&gt;&gt;</span> {</span>
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb96-1"><a href="#cb96-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">call</span> (noteUpdateParams<span class="op">?:</span> IMyServiceMrsNotesNoteUpdateParams<span class="op">,</span> options<span class="op">?:</span> IMrsTaskRunOptions<span class="op">&lt;</span><span class="dt">object</span><span class="op">,</span> IMrsProcedureResult<span class="op">&lt;</span>IMyServiceMrsNotesNoteUpdateParamsOut<span class="op">,</span> IMyServiceMrsNotesNoteUpdateResultSet<span class="op">&gt;&gt;</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>IMrsProcedureResult<span class="op">&lt;</span>IMyServiceMrsNotesNoteUpdateParamsOut<span class="op">,</span> IMyServiceMrsNotesNoteUpdateResultSet<span class="op">&gt;&gt;</span> {</span>
 <span id="cb96-2"><a href="#cb96-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
 <span id="cb96-3"><a href="#cb96-3" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb96-4"><a href="#cb96-4" aria-hidden="true" tabindex="-1"></a></span>
@@ -3656,29 +3655,30 @@ Reference
 <span id="cb96-12"><a href="#cb96-12" aria-hidden="true" tabindex="-1"></a>    userId<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
 <span id="cb96-13"><a href="#cb96-13" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb96-14"><a href="#cb96-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb96-15"><a href="#cb96-15" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsTaskWatchOptions {</span>
+<span id="cb96-15"><a href="#cb96-15" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsTaskStartOptions {</span>
 <span id="cb96-16"><a href="#cb96-16" aria-hidden="true" tabindex="-1"></a>    refreshRate<span class="op">?:</span> <span class="dt">number</span><span class="op">;</span></span>
-<span id="cb96-17"><a href="#cb96-17" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb96-18"><a href="#cb96-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb96-19"><a href="#cb96-19" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsTaskExecutionOptions<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> <span class="kw">extends</span> IMrsTaskWatchOptions {</span>
-<span id="cb96-20"><a href="#cb96-20" aria-hidden="true" tabindex="-1"></a>    progress<span class="op">?:</span> (report<span class="op">:</span> IMrsRunningTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span>) <span class="kw">=&gt;</span> <span class="bu">Promise</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;;</span></span>
-<span id="cb96-21"><a href="#cb96-21" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb96-22"><a href="#cb96-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb96-23"><a href="#cb96-23" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsRunningTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
-<span id="cb96-24"><a href="#cb96-24" aria-hidden="true" tabindex="-1"></a>    data<span class="op">:</span> MrsTaskStatusUpdate<span class="op">;</span></span>
-<span id="cb96-25"><a href="#cb96-25" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;RUNNING&quot;</span><span class="op">;</span></span>
-<span id="cb96-26"><a href="#cb96-26" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
-<span id="cb96-27"><a href="#cb96-27" aria-hidden="true" tabindex="-1"></a>    progress<span class="op">:</span> <span class="dt">number</span><span class="op">;</span></span>
-<span id="cb96-28"><a href="#cb96-28" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb96-29"><a href="#cb96-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb96-30"><a href="#cb96-30" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> IMyServiceMrsNotesNoteUpdateParamsOut <span class="op">=</span> <span class="dt">never</span><span class="op">;</span></span>
-<span id="cb96-31"><a href="#cb96-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb96-32"><a href="#cb96-32" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> IMyServiceMrsNotesNoteUpdateResultSet <span class="op">=</span> JsonObject<span class="op">;</span></span>
-<span id="cb96-33"><a href="#cb96-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb96-34"><a href="#cb96-34" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsProcedureResult<span class="op">&lt;</span>OutParams<span class="op">,</span> ResultSet<span class="op">&gt;</span> {</span>
-<span id="cb96-35"><a href="#cb96-35" aria-hidden="true" tabindex="-1"></a>    outParameters<span class="op">?:</span> OutParams<span class="op">;</span></span>
-<span id="cb96-36"><a href="#cb96-36" aria-hidden="true" tabindex="-1"></a>    resultSets<span class="op">:</span> ResultSet[]<span class="op">;</span></span>
-<span id="cb96-37"><a href="#cb96-37" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb96-17"><a href="#cb96-17" aria-hidden="true" tabindex="-1"></a>    timeout<span class="op">?:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb96-18"><a href="#cb96-18" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb96-19"><a href="#cb96-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb96-20"><a href="#cb96-20" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsTaskRunOptions<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> <span class="kw">extends</span> IMrsTaskStartOptions {</span>
+<span id="cb96-21"><a href="#cb96-21" aria-hidden="true" tabindex="-1"></a>    progress<span class="op">?</span>(report<span class="op">:</span> IMrsRunningTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;;</span></span>
+<span id="cb96-22"><a href="#cb96-22" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb96-23"><a href="#cb96-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb96-24"><a href="#cb96-24" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsRunningTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
+<span id="cb96-25"><a href="#cb96-25" aria-hidden="true" tabindex="-1"></a>    data<span class="op">:</span> MrsTaskStatusUpdate<span class="op">;</span></span>
+<span id="cb96-26"><a href="#cb96-26" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;RUNNING&quot;</span><span class="op">;</span></span>
+<span id="cb96-27"><a href="#cb96-27" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb96-28"><a href="#cb96-28" aria-hidden="true" tabindex="-1"></a>    progress<span class="op">:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb96-29"><a href="#cb96-29" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb96-30"><a href="#cb96-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb96-31"><a href="#cb96-31" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> IMyServiceMrsNotesNoteUpdateParamsOut <span class="op">=</span> <span class="dt">never</span><span class="op">;</span></span>
+<span id="cb96-32"><a href="#cb96-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb96-33"><a href="#cb96-33" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> IMyServiceMrsNotesNoteUpdateResultSet <span class="op">=</span> JsonObject<span class="op">;</span></span>
+<span id="cb96-34"><a href="#cb96-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb96-35"><a href="#cb96-35" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsProcedureResult<span class="op">&lt;</span>OutParams<span class="op">,</span> ResultSet<span class="op">&gt;</span> {</span>
+<span id="cb96-36"><a href="#cb96-36" aria-hidden="true" tabindex="-1"></a>    outParameters<span class="op">?:</span> OutParams<span class="op">;</span></span>
+<span id="cb96-37"><a href="#cb96-37" aria-hidden="true" tabindex="-1"></a>    resultSets<span class="op">:</span> ResultSet[]<span class="op">;</span></span>
+<span id="cb96-38"><a href="#cb96-38" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
                 <h4 data-number="13.4.1.4" id="example-call"><span
                 class="header-section-number">13.4.1.4</span> Example
                 (call)</h4>
@@ -3687,76 +3687,30 @@ Reference
 <span id="cb97-2"><a href="#cb97-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb97-3"><a href="#cb97-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()<span class="op">;</span></span>
 <span id="cb97-4"><a href="#cb97-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb97-5"><a href="#cb97-5" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span> {</span>
-<span id="cb97-6"><a href="#cb97-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// update the title of a note with a given id</span></span>
-<span id="cb97-7"><a href="#cb97-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">noteUpdate</span><span class="op">.</span><span class="fu">call</span>({ noteId<span class="op">:</span> note<span class="op">.</span><span class="at">id</span><span class="op">,</span> title<span class="op">:</span> <span class="st">&quot;hello world&quot;</span> })<span class="op">;</span></span>
-<span id="cb97-8"><a href="#cb97-8" aria-hidden="true" tabindex="-1"></a>} <span class="cf">catch</span> (err) {</span>
-<span id="cb97-9"><a href="#cb97-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// catch errors produced by the routine</span></span>
-<span id="cb97-10"><a href="#cb97-10" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb97-5"><a href="#cb97-5" aria-hidden="true" tabindex="-1"></a><span class="co">// update the title of a note with a given id</span></span>
+<span id="cb97-6"><a href="#cb97-6" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">noteUpdate</span><span class="op">.</span><span class="fu">call</span>({ noteId<span class="op">:</span> note<span class="op">.</span><span class="at">id</span><span class="op">,</span> title<span class="op">:</span> <span class="st">&quot;hello world&quot;</span> })<span class="op">;</span></span>
+<span id="cb97-7"><a href="#cb97-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb97-8"><a href="#cb97-8" aria-hidden="true" tabindex="-1"></a><span class="co">// execute a function for each progress status update</span></span>
+<span id="cb97-9"><a href="#cb97-9" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> progress <span class="op">=</span> (report) <span class="kw">=&gt;</span> {</span>
+<span id="cb97-10"><a href="#cb97-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(report<span class="op">.</span><span class="at">progress</span>)</span>
+<span id="cb97-11"><a href="#cb97-11" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span>
+<span id="cb97-12"><a href="#cb97-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb97-13"><a href="#cb97-13" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">noteUpdate</span><span class="op">.</span><span class="fu">call</span>({ noteId<span class="op">:</span> note<span class="op">.</span><span class="at">id</span><span class="op">,</span> title<span class="op">:</span> <span class="st">&quot;hello world&quot;</span> }<span class="op">,</span> { progress })<span class="op">;</span></span></code></pre></div>
                 <h3 data-number="13.4.2" id="start"><span
                 class="header-section-number">13.4.2</span> start</h3>
                 <p><code>start</code> is used to start a REST routine
                 (<code>FUNCTION</code> or <code>PROCEDURE</code>) with
-                an associated Async Task. The first and only parameter
-                of the command is an <code>object</code> containing the
-                set of <code>IN</code>/<code>INOUT</code> parameters
-                (and corresponding values) as specified by the database
-                routine.</p>
-                <h4 data-number="13.4.2.1" id="return-type-start"><span
-                class="header-section-number">13.4.2.1</span> Return
-                Type (start)</h4>
-                <p>A <a href="#task">Task</a> instance.</p>
-                <h4 data-number="13.4.2.2" id="reference-start"><span
-                class="header-section-number">13.4.2.2</span> Reference
+                an associated Async Task. The first parameter of the
+                command is an <code>object</code> containing the set of
+                <code>IN</code>/<code>INOUT</code> parameters (and
+                corresponding values) as specified by the database
+                routine. The second and last parameter of the command is
+                an <code>object</code> with a set of routine execution
+                constraint options.</p>
+                <h4 data-number="13.4.2.1" id="options-start"><span
+                class="header-section-number">13.4.2.1</span> Options
                 (start)</h4>
-                <div class="sourceCode" id="cb98"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb98-1"><a href="#cb98-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">start</span>(params<span class="op">?:</span> IMyServiceMrsNotesNoteUpdateParams)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>MrsTask<span class="op">&lt;</span><span class="dt">object</span><span class="op">,</span> IMrsProcedureResult<span class="op">&lt;</span>IMyServiceMrsNotesNoteUpdateParamsOut<span class="op">,</span> IMyServiceMrsNotesNoteUpdateResultSet<span class="op">&gt;&gt;&gt;</span> {</span>
-<span id="cb98-2"><a href="#cb98-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
-<span id="cb98-3"><a href="#cb98-3" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb98-4"><a href="#cb98-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb98-5"><a href="#cb98-5" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMyServiceMrsNotesNoteUpdateParams {</span>
-<span id="cb98-6"><a href="#cb98-6" aria-hidden="true" tabindex="-1"></a>    tags<span class="op">?:</span> JsonValue<span class="op">;</span></span>
-<span id="cb98-7"><a href="#cb98-7" aria-hidden="true" tabindex="-1"></a>    lockedDown<span class="op">?:</span> <span class="dt">boolean</span><span class="op">;</span></span>
-<span id="cb98-8"><a href="#cb98-8" aria-hidden="true" tabindex="-1"></a>    noteId<span class="op">?:</span> <span class="dt">number</span><span class="op">;</span></span>
-<span id="cb98-9"><a href="#cb98-9" aria-hidden="true" tabindex="-1"></a>    title<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
-<span id="cb98-10"><a href="#cb98-10" aria-hidden="true" tabindex="-1"></a>    content<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
-<span id="cb98-11"><a href="#cb98-11" aria-hidden="true" tabindex="-1"></a>    pinned<span class="op">?:</span> <span class="dt">boolean</span><span class="op">;</span></span>
-<span id="cb98-12"><a href="#cb98-12" aria-hidden="true" tabindex="-1"></a>    userId<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
-<span id="cb98-13"><a href="#cb98-13" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb98-14"><a href="#cb98-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb98-15"><a href="#cb98-15" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> IMyServiceMrsNotesNoteUpdateParamsOut <span class="op">=</span> <span class="dt">never</span><span class="op">;</span></span>
-<span id="cb98-16"><a href="#cb98-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb98-17"><a href="#cb98-17" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> IMyServiceMrsNotesNoteUpdateResultSet <span class="op">=</span> JsonObject<span class="op">;</span></span>
-<span id="cb98-18"><a href="#cb98-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb98-19"><a href="#cb98-19" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsProcedureResult<span class="op">&lt;</span>OutParams<span class="op">,</span> ResultSet<span class="op">&gt;</span> {</span>
-<span id="cb98-20"><a href="#cb98-20" aria-hidden="true" tabindex="-1"></a>    outParameters<span class="op">?:</span> OutParams<span class="op">;</span></span>
-<span id="cb98-21"><a href="#cb98-21" aria-hidden="true" tabindex="-1"></a>    resultSets<span class="op">:</span> ResultSet[]<span class="op">;</span></span>
-<span id="cb98-22"><a href="#cb98-22" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-                <h4 data-number="13.4.2.3" id="example-start"><span
-                class="header-section-number">13.4.2.3</span> Example
-                (start)</h4>
-                <div class="sourceCode" id="cb99"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb99-1"><a href="#cb99-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&#39;./myService.mrs.sdk/myService&#39;</span><span class="op">;</span></span>
-<span id="cb99-2"><a href="#cb99-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb99-3"><a href="#cb99-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()<span class="op">;</span></span>
-<span id="cb99-4"><a href="#cb99-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb99-5"><a href="#cb99-5" aria-hidden="true" tabindex="-1"></a><span class="co">// update the title of a note with a given id</span></span>
-<span id="cb99-6"><a href="#cb99-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> task <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">noteUpdate</span><span class="op">.</span><span class="fu">start</span>({ noteId<span class="op">:</span> note<span class="op">.</span><span class="at">id</span><span class="op">,</span> title<span class="op">:</span> <span class="st">&quot;hello world&quot;</span> })<span class="op">;</span></span></code></pre></div>
-                <h2 data-number="13.5" id="task"><span
-                class="header-section-number">13.5</span> Task</h2>
-                <h3 data-number="13.5.1" id="watch"><span
-                class="header-section-number">13.5.1</span> watch</h3>
-                <p><code>watch</code> is used to monitor the status of a
-                REST routine (<code>FUNCTION</code> or
-                <code>PROCEDURE</code>) with an associated Async Task.
-                The first and only parameter of the command is an
-                <code>object</code> that contains customizable
-                monitoring options.</p>
-                <h4 data-number="13.5.1.1" id="options-watch"><span
-                class="header-section-number">13.5.1.1</span> Options
-                (watch)</h4>
                 <table>
-                <caption>Task Options (watch)</caption>
                 <colgroup>
                 <col style="width: 25%" />
                 <col style="width: 25%" />
@@ -3777,63 +3731,136 @@ Reference
                 <td>number (&gt;=500)</td>
                 <td>No</td>
                 <td>Time (ms) to wait for retrieving the next progress
-                report.</td>
+                report (default 2000).</td>
+                </tr>
+                <tr class="even">
+                <td>timeout</td>
+                <td>number</td>
+                <td>No</td>
+                <td>Time (ms) to wait for the routine to produce a
+                result.</td>
                 </tr>
                 </tbody>
                 </table>
-                <h4 data-number="13.5.1.2" id="return-type-watch"><span
-                class="header-section-number">13.5.1.2</span> Return
+                <h4 data-number="13.4.2.2" id="return-type-start"><span
+                class="header-section-number">13.4.2.2</span> Return
+                Type (start)</h4>
+                <p>A <a href="#task">Task</a> instance.</p>
+                <h4 data-number="13.4.2.3" id="reference-start"><span
+                class="header-section-number">13.4.2.3</span> Reference
+                (start)</h4>
+                <div class="sourceCode" id="cb98"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb98-1"><a href="#cb98-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">start</span>(params<span class="op">?:</span> IMyServiceMrsNotesNoteUpdateParams<span class="op">,</span> options<span class="op">?:</span> IMrsTaskStartOptions)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>MrsTask<span class="op">&lt;</span><span class="dt">object</span><span class="op">,</span> IMrsProcedureResult<span class="op">&lt;</span>IMyServiceMrsNotesNoteUpdateParamsOut<span class="op">,</span> IMyServiceMrsNotesNoteUpdateResultSet<span class="op">&gt;&gt;&gt;</span> {</span>
+<span id="cb98-2"><a href="#cb98-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
+<span id="cb98-3"><a href="#cb98-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb98-4"><a href="#cb98-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb98-5"><a href="#cb98-5" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMyServiceMrsNotesNoteUpdateParams {</span>
+<span id="cb98-6"><a href="#cb98-6" aria-hidden="true" tabindex="-1"></a>    tags<span class="op">?:</span> JsonValue<span class="op">;</span></span>
+<span id="cb98-7"><a href="#cb98-7" aria-hidden="true" tabindex="-1"></a>    lockedDown<span class="op">?:</span> <span class="dt">boolean</span><span class="op">;</span></span>
+<span id="cb98-8"><a href="#cb98-8" aria-hidden="true" tabindex="-1"></a>    noteId<span class="op">?:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb98-9"><a href="#cb98-9" aria-hidden="true" tabindex="-1"></a>    title<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb98-10"><a href="#cb98-10" aria-hidden="true" tabindex="-1"></a>    content<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb98-11"><a href="#cb98-11" aria-hidden="true" tabindex="-1"></a>    pinned<span class="op">?:</span> <span class="dt">boolean</span><span class="op">;</span></span>
+<span id="cb98-12"><a href="#cb98-12" aria-hidden="true" tabindex="-1"></a>    userId<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb98-13"><a href="#cb98-13" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb98-14"><a href="#cb98-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb98-15"><a href="#cb98-15" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> IMyServiceMrsNotesNoteUpdateParamsOut <span class="op">=</span> <span class="dt">never</span><span class="op">;</span></span>
+<span id="cb98-16"><a href="#cb98-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb98-17"><a href="#cb98-17" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> IMyServiceMrsNotesNoteUpdateResultSet <span class="op">=</span> JsonObject<span class="op">;</span></span>
+<span id="cb98-18"><a href="#cb98-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb98-19"><a href="#cb98-19" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsProcedureResult<span class="op">&lt;</span>OutParams<span class="op">,</span> ResultSet<span class="op">&gt;</span> {</span>
+<span id="cb98-20"><a href="#cb98-20" aria-hidden="true" tabindex="-1"></a>    outParameters<span class="op">?:</span> OutParams<span class="op">;</span></span>
+<span id="cb98-21"><a href="#cb98-21" aria-hidden="true" tabindex="-1"></a>    resultSets<span class="op">:</span> ResultSet[]<span class="op">;</span></span>
+<span id="cb98-22"><a href="#cb98-22" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb98-23"><a href="#cb98-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb98-24"><a href="#cb98-24" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsTaskStartOptions {</span>
+<span id="cb98-25"><a href="#cb98-25" aria-hidden="true" tabindex="-1"></a>    refreshRate<span class="op">?:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb98-26"><a href="#cb98-26" aria-hidden="true" tabindex="-1"></a>    timeout<span class="op">?:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb98-27"><a href="#cb98-27" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <h4 data-number="13.4.2.4" id="example-start"><span
+                class="header-section-number">13.4.2.4</span> Example
+                (start)</h4>
+                <div class="sourceCode" id="cb99"><pre
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb99-1"><a href="#cb99-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&#39;./myService.mrs.sdk/myService&#39;</span><span class="op">;</span></span>
+<span id="cb99-2"><a href="#cb99-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb99-3"><a href="#cb99-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()<span class="op">;</span></span>
+<span id="cb99-4"><a href="#cb99-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb99-5"><a href="#cb99-5" aria-hidden="true" tabindex="-1"></a><span class="co">// update the title of a note with a given id</span></span>
+<span id="cb99-6"><a href="#cb99-6" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> task <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">noteUpdate</span><span class="op">.</span><span class="fu">start</span>({ noteId<span class="op">:</span> note<span class="op">.</span><span class="at">id</span><span class="op">,</span> title<span class="op">:</span> <span class="st">&quot;hello world&quot;</span> })<span class="op">;</span></span>
+<span id="cb99-7"><a href="#cb99-7" aria-hidden="true" tabindex="-1"></a><span class="co">// check for status updates every 1 second</span></span>
+<span id="cb99-8"><a href="#cb99-8" aria-hidden="true" tabindex="-1"></a>task <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">noteUpdate</span><span class="op">.</span><span class="fu">start</span>({ noteId<span class="op">:</span> note<span class="op">.</span><span class="at">id</span><span class="op">,</span> title<span class="op">:</span> <span class="st">&quot;hello world&quot;</span> }<span class="op">,</span> { refreshRate<span class="op">:</span> <span class="dv">1000</span> })<span class="op">;</span></span>
+<span id="cb99-9"><a href="#cb99-9" aria-hidden="true" tabindex="-1"></a><span class="co">// cancel the execution after 5 seconds</span></span>
+<span id="cb99-10"><a href="#cb99-10" aria-hidden="true" tabindex="-1"></a>task <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">noteUpdate</span><span class="op">.</span><span class="fu">start</span>({ noteId<span class="op">:</span> note<span class="op">.</span><span class="at">id</span><span class="op">,</span> title<span class="op">:</span> <span class="st">&quot;hello world&quot;</span> }<span class="op">,</span> { timeout<span class="op">:</span> <span class="dv">5000</span> })<span class="op">;</span></span></code></pre></div>
+                <h2 data-number="13.5" id="task"><span
+                class="header-section-number">13.5</span> Task</h2>
+                <h3 data-number="13.5.1" id="watch"><span
+                class="header-section-number">13.5.1</span> watch</h3>
+                <p><code>watch</code> is used to monitor the status of a
+                REST routine (<code>FUNCTION</code> or
+                <code>PROCEDURE</code>) with an associated Async
+                Task.</p>
+                <h4 data-number="13.5.1.1" id="return-type-watch"><span
+                class="header-section-number">13.5.1.1</span> Return
                 Type (watch)</h4>
                 <p>An <a
                 href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncGenerator">AsyncGenerator</a>
                 instance which produces status update reports with
                 details about the execution context of the REST
                 routine.</p>
-                <h4 data-number="13.5.1.3" id="reference-watch"><span
-                class="header-section-number">13.5.1.3</span> Reference
+                <h4 data-number="13.5.1.2" id="reference-watch"><span
+                class="header-section-number">13.5.1.2</span> Reference
                 (watch)</h4>
                 <div class="sourceCode" id="cb100"><pre
-                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb100-1"><a href="#cb100-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">watch</span>(params<span class="op">?:</span> IMrsTaskWatchOptions)<span class="op">:</span> AsyncGenerator<span class="op">&lt;</span></span>
+                class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb100-1"><a href="#cb100-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">watch</span>()<span class="op">:</span> AsyncGenerator<span class="op">&lt;</span></span>
 <span id="cb100-2"><a href="#cb100-2" aria-hidden="true" tabindex="-1"></a>    IMrsTaskReport<span class="op">&lt;</span><span class="dt">object</span><span class="op">,</span> IMrsProcedureResult<span class="op">&lt;</span>IMyServiceMrsNotesNoteUpdateParamsOut<span class="op">,</span> IMyServiceMrsNotesNoteUpdateResultSet<span class="op">&gt;&gt;&gt;</span> {</span>
 <span id="cb100-3"><a href="#cb100-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
 <span id="cb100-4"><a href="#cb100-4" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb100-5"><a href="#cb100-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb100-6"><a href="#cb100-6" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsTaskWatchOptions {</span>
-<span id="cb100-7"><a href="#cb100-7" aria-hidden="true" tabindex="-1"></a>    refreshRate<span class="op">?:</span> <span class="dt">number</span><span class="op">;</span></span>
-<span id="cb100-8"><a href="#cb100-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb100-6"><a href="#cb100-6" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> IMyServiceMrsNotesNoteUpdateParamsOut <span class="op">=</span> <span class="dt">never</span><span class="op">;</span></span>
+<span id="cb100-7"><a href="#cb100-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb100-8"><a href="#cb100-8" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> IMyServiceMrsNotesNoteUpdateResultSet <span class="op">=</span> JsonObject<span class="op">;</span></span>
 <span id="cb100-9"><a href="#cb100-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb100-10"><a href="#cb100-10" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> IMyServiceMrsNotesNoteUpdateParamsOut <span class="op">=</span> <span class="dt">never</span><span class="op">;</span></span>
-<span id="cb100-11"><a href="#cb100-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb100-12"><a href="#cb100-12" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> IMyServiceMrsNotesNoteUpdateResultSet <span class="op">=</span> JsonObject<span class="op">;</span></span>
-<span id="cb100-13"><a href="#cb100-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb100-14"><a href="#cb100-14" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsProcedureResult<span class="op">&lt;</span>OutParams<span class="op">,</span> ResultSet<span class="op">&gt;</span> {</span>
-<span id="cb100-15"><a href="#cb100-15" aria-hidden="true" tabindex="-1"></a>    outParameters<span class="op">?:</span> OutParams<span class="op">;</span></span>
-<span id="cb100-16"><a href="#cb100-16" aria-hidden="true" tabindex="-1"></a>    resultSets<span class="op">:</span> ResultSet[]</span>
-<span id="cb100-17"><a href="#cb100-17" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb100-18"><a href="#cb100-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb100-19"><a href="#cb100-19" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsRunningTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
-<span id="cb100-20"><a href="#cb100-20" aria-hidden="true" tabindex="-1"></a>    data<span class="op">:</span> MrsTaskStatusUpdate<span class="op">;</span></span>
-<span id="cb100-21"><a href="#cb100-21" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;RUNNING&quot;</span><span class="op">;</span></span>
-<span id="cb100-22"><a href="#cb100-22" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
-<span id="cb100-23"><a href="#cb100-23" aria-hidden="true" tabindex="-1"></a>    progress<span class="op">:</span> <span class="dt">number</span><span class="op">;</span></span>
-<span id="cb100-24"><a href="#cb100-24" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb100-25"><a href="#cb100-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb100-26"><a href="#cb100-26" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsCompletedTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
-<span id="cb100-27"><a href="#cb100-27" aria-hidden="true" tabindex="-1"></a>    result<span class="op">:</span> MrsTaskResult<span class="op">;</span></span>
-<span id="cb100-28"><a href="#cb100-28" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;COMPLETED&quot;</span><span class="op">;</span></span>
-<span id="cb100-29"><a href="#cb100-29" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
-<span id="cb100-30"><a href="#cb100-30" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb100-31"><a href="#cb100-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb100-32"><a href="#cb100-32" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsCancelledTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
-<span id="cb100-33"><a href="#cb100-33" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;CANCELLED&quot;</span><span class="op">;</span></span>
-<span id="cb100-34"><a href="#cb100-34" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
-<span id="cb100-35"><a href="#cb100-35" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb100-36"><a href="#cb100-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb100-37"><a href="#cb100-37" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> IMrsTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> <span class="op">=</span> IMrsRunningTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> <span class="op">|</span></span>
-<span id="cb100-38"><a href="#cb100-38" aria-hidden="true" tabindex="-1"></a>    IMrsCompletedTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> <span class="op">|</span></span>
-<span id="cb100-39"><a href="#cb100-39" aria-hidden="true" tabindex="-1"></a>    IMrsCancelledTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;;</span></span></code></pre></div>
-                <h4 data-number="13.5.1.4" id="example-watch"><span
-                class="header-section-number">13.5.1.4</span> Example
+<span id="cb100-10"><a href="#cb100-10" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsProcedureResult<span class="op">&lt;</span>OutParams<span class="op">,</span> ResultSet<span class="op">&gt;</span> {</span>
+<span id="cb100-11"><a href="#cb100-11" aria-hidden="true" tabindex="-1"></a>    outParameters<span class="op">?:</span> OutParams<span class="op">;</span></span>
+<span id="cb100-12"><a href="#cb100-12" aria-hidden="true" tabindex="-1"></a>    resultSets<span class="op">:</span> ResultSet[]</span>
+<span id="cb100-13"><a href="#cb100-13" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb100-14"><a href="#cb100-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb100-15"><a href="#cb100-15" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsRunningTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
+<span id="cb100-16"><a href="#cb100-16" aria-hidden="true" tabindex="-1"></a>    data<span class="op">:</span> MrsTaskStatusUpdate<span class="op">;</span></span>
+<span id="cb100-17"><a href="#cb100-17" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;RUNNING&quot;</span><span class="op">;</span></span>
+<span id="cb100-18"><a href="#cb100-18" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb100-19"><a href="#cb100-19" aria-hidden="true" tabindex="-1"></a>    progress<span class="op">:</span> <span class="dt">number</span><span class="op">;</span></span>
+<span id="cb100-20"><a href="#cb100-20" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb100-21"><a href="#cb100-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb100-22"><a href="#cb100-22" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsCompletedTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
+<span id="cb100-23"><a href="#cb100-23" aria-hidden="true" tabindex="-1"></a>    data<span class="op">:</span> MrsTaskResult<span class="op">;</span></span>
+<span id="cb100-24"><a href="#cb100-24" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;COMPLETED&quot;</span><span class="op">;</span></span>
+<span id="cb100-25"><a href="#cb100-25" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb100-26"><a href="#cb100-26" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb100-27"><a href="#cb100-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb100-28"><a href="#cb100-28" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsCancelledTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
+<span id="cb100-29"><a href="#cb100-29" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;CANCELLED&quot;</span><span class="op">;</span></span>
+<span id="cb100-30"><a href="#cb100-30" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb100-31"><a href="#cb100-31" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb100-32"><a href="#cb100-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb100-33"><a href="#cb100-33" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsErrorTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
+<span id="cb100-34"><a href="#cb100-34" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;ERROR&quot;</span><span class="op">;</span></span>
+<span id="cb100-35"><a href="#cb100-35" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb100-36"><a href="#cb100-36" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb100-37"><a href="#cb100-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb100-38"><a href="#cb100-38" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> IMrsTimedOutTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> {</span>
+<span id="cb100-39"><a href="#cb100-39" aria-hidden="true" tabindex="-1"></a>    status<span class="op">:</span> <span class="st">&quot;TIMEOUT&quot;</span><span class="op">;</span></span>
+<span id="cb100-40"><a href="#cb100-40" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb100-41"><a href="#cb100-41" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb100-42"><a href="#cb100-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb100-43"><a href="#cb100-43" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> IMrsTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span> <span class="op">=</span></span>
+<span id="cb100-44"><a href="#cb100-44" aria-hidden="true" tabindex="-1"></a>    IMrsRunningTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span></span>
+<span id="cb100-45"><a href="#cb100-45" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> IMrsCompletedTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span></span>
+<span id="cb100-46"><a href="#cb100-46" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> IMrsCancelledTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span></span>
+<span id="cb100-47"><a href="#cb100-47" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> IMrsErrorTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;</span></span>
+<span id="cb100-48"><a href="#cb100-48" aria-hidden="true" tabindex="-1"></a>    <span class="op">|</span> IMrsTimedOutTaskReport<span class="op">&lt;</span>MrsTaskStatusUpdate<span class="op">,</span> MrsTaskResult<span class="op">&gt;;</span></span></code></pre></div>
+                <h4 data-number="13.5.1.3" id="example-watch"><span
+                class="header-section-number">13.5.1.3</span> Example
                 (watch)</h4>
                 <div class="sourceCode" id="cb101"><pre
                 class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb101-1"><a href="#cb101-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { MyService } <span class="im">from</span> <span class="st">&#39;./myService.mrs.sdk/myService&#39;</span><span class="op">;</span></span>
@@ -3844,15 +3871,13 @@ Reference
 <span id="cb101-6"><a href="#cb101-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> task <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">noteUpdate</span><span class="op">.</span><span class="fu">start</span>({ noteId<span class="op">:</span> note<span class="op">.</span><span class="at">id</span><span class="op">,</span> title<span class="op">:</span> <span class="st">&quot;hello world&quot;</span> })<span class="op">;</span></span>
 <span id="cb101-7"><a href="#cb101-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb101-8"><a href="#cb101-8" aria-hidden="true" tabindex="-1"></a><span class="co">// assuming it is a long-running operation, watch for status updates</span></span>
-<span id="cb101-9"><a href="#cb101-9" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span> {</span>
-<span id="cb101-10"><a href="#cb101-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="cf">await</span> (<span class="kw">const</span> report <span class="kw">of</span> task<span class="op">.</span><span class="fu">watch</span>()) {</span>
-<span id="cb101-11"><a href="#cb101-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (report<span class="op">.</span><span class="at">status</span> <span class="op">===</span> <span class="st">&quot;RUNNING&quot;</span>) {</span>
-<span id="cb101-12"><a href="#cb101-12" aria-hidden="true" tabindex="-1"></a>            <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(report<span class="op">.</span><span class="at">progress</span>)<span class="op">;</span></span>
-<span id="cb101-13"><a href="#cb101-13" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb101-9"><a href="#cb101-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="cf">await</span> (<span class="kw">const</span> report <span class="kw">of</span> task<span class="op">.</span><span class="fu">watch</span>()) {</span>
+<span id="cb101-10"><a href="#cb101-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (report<span class="op">.</span><span class="at">status</span> <span class="op">===</span> <span class="st">&quot;RUNNING&quot;</span>) {</span>
+<span id="cb101-11"><a href="#cb101-11" aria-hidden="true" tabindex="-1"></a>        <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(report<span class="op">.</span><span class="at">progress</span>)<span class="op">;</span></span>
+<span id="cb101-12"><a href="#cb101-12" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> <span class="cf">if</span> (report<span class="op">.</span><span class="at">status</span> <span class="op">===</span> <span class="st">&quot;ERROR&quot;</span>) {</span>
+<span id="cb101-13"><a href="#cb101-13" aria-hidden="true" tabindex="-1"></a>        <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(report<span class="op">.</span><span class="at">message</span>)<span class="op">;</span></span>
 <span id="cb101-14"><a href="#cb101-14" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb101-15"><a href="#cb101-15" aria-hidden="true" tabindex="-1"></a>} <span class="cf">catch</span> (err) {</span>
-<span id="cb101-16"><a href="#cb101-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">// catch errors produced by the task or by the routine itself</span></span>
-<span id="cb101-17"><a href="#cb101-17" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb101-15"><a href="#cb101-15" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
                 <h3 data-number="13.5.2" id="kill"><span
                 class="header-section-number">13.5.2</span> kill</h3>
                 <p><code>kill</code> is used to kill the underlying
@@ -3873,22 +3898,17 @@ Reference
 <span id="cb103-2"><a href="#cb103-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb103-3"><a href="#cb103-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myService <span class="op">=</span> <span class="kw">new</span> <span class="fu">MyService</span>()<span class="op">;</span></span>
 <span id="cb103-4"><a href="#cb103-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb103-5"><a href="#cb103-5" aria-hidden="true" tabindex="-1"></a><span class="co">// update the title of a note with a given id</span></span>
-<span id="cb103-6"><a href="#cb103-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> task <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">noteUpdate</span><span class="op">.</span><span class="fu">start</span>({ noteId<span class="op">:</span> note<span class="op">.</span><span class="at">id</span><span class="op">,</span> title<span class="op">:</span> <span class="st">&quot;hello world&quot;</span> })<span class="op">;</span></span>
-<span id="cb103-7"><a href="#cb103-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> startedAt <span class="op">=</span> <span class="bu">Date</span><span class="op">.</span><span class="fu">now</span>()<span class="op">;</span></span>
-<span id="cb103-8"><a href="#cb103-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb103-9"><a href="#cb103-9" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span> {</span>
-<span id="cb103-10"><a href="#cb103-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">// assuming it is a long-running operation, kill the task if it takes more than 10 seconds to finish</span></span>
-<span id="cb103-11"><a href="#cb103-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="cf">await</span> (<span class="kw">const</span> report <span class="kw">of</span> task<span class="op">.</span><span class="fu">watch</span>()) {</span>
-<span id="cb103-12"><a href="#cb103-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (report<span class="op">.</span><span class="at">status</span> <span class="op">===</span> <span class="st">&quot;RUNNING&quot;</span> <span class="op">&amp;&amp;</span> <span class="bu">Date</span><span class="op">.</span><span class="fu">now</span>() <span class="op">-</span> startedAt <span class="op">&gt;</span> <span class="dv">10000</span>) {</span>
-<span id="cb103-13"><a href="#cb103-13" aria-hidden="true" tabindex="-1"></a>            <span class="cf">await</span> task<span class="op">.</span><span class="fu">kill</span>()<span class="op">;</span></span>
-<span id="cb103-14"><a href="#cb103-14" aria-hidden="true" tabindex="-1"></a>        } <span class="cf">else</span> <span class="cf">if</span> (report<span class="op">.</span><span class="at">status</span> <span class="op">===</span> <span class="st">&quot;CANCELLED&quot;</span>) {</span>
-<span id="cb103-15"><a href="#cb103-15" aria-hidden="true" tabindex="-1"></a>            <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(report<span class="op">.</span><span class="at">message</span>)<span class="op">;</span></span>
-<span id="cb103-16"><a href="#cb103-16" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb103-17"><a href="#cb103-17" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb103-18"><a href="#cb103-18" aria-hidden="true" tabindex="-1"></a>} <span class="cf">catch</span> (err) {</span>
-<span id="cb103-19"><a href="#cb103-19" aria-hidden="true" tabindex="-1"></a>    <span class="co">// stop the generator and catch errors produced by the task or by the routine itself</span></span>
-<span id="cb103-20"><a href="#cb103-20" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb103-5"><a href="#cb103-5" aria-hidden="true" tabindex="-1"></a><span class="co">// update the title of a note with a given id, kill the task if it takes more than 10 seconds to finish</span></span>
+<span id="cb103-6"><a href="#cb103-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> task <span class="op">=</span> <span class="cf">await</span> myService<span class="op">.</span><span class="at">mrsNotes</span><span class="op">.</span><span class="at">noteUpdate</span><span class="op">.</span><span class="fu">start</span>({ noteId<span class="op">:</span> note<span class="op">.</span><span class="at">id</span><span class="op">,</span> title<span class="op">:</span> <span class="st">&quot;hello world&quot;</span> }<span class="op">,</span> { timeout<span class="op">:</span> <span class="dv">10000</span> })<span class="op">;</span></span>
+<span id="cb103-7"><a href="#cb103-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb103-8"><a href="#cb103-8" aria-hidden="true" tabindex="-1"></a><span class="co">// assuming it is a long-running operation, kill the task if it takes more than 10 seconds to finish</span></span>
+<span id="cb103-9"><a href="#cb103-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="cf">await</span> (<span class="kw">const</span> report <span class="kw">of</span> task<span class="op">.</span><span class="fu">watch</span>()) {</span>
+<span id="cb103-10"><a href="#cb103-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (report<span class="op">.</span><span class="at">status</span> <span class="op">===</span> <span class="st">&quot;TIMEOUT&quot;</span>) {</span>
+<span id="cb103-11"><a href="#cb103-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">await</span> task<span class="op">.</span><span class="fu">kill</span>()<span class="op">;</span></span>
+<span id="cb103-12"><a href="#cb103-12" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> <span class="cf">if</span> (report<span class="op">.</span><span class="at">status</span> <span class="op">===</span> <span class="st">&quot;CANCELLED&quot;</span>) {</span>
+<span id="cb103-13"><a href="#cb103-13" aria-hidden="true" tabindex="-1"></a>        <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(report<span class="op">.</span><span class="at">message</span>)<span class="op">;</span></span>
+<span id="cb103-14"><a href="#cb103-14" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb103-15"><a href="#cb103-15" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
                 <!-- Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify

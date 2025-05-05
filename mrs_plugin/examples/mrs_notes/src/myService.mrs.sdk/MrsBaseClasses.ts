@@ -88,11 +88,14 @@ export class MrsBaseSession {
     public gtid?: string;
 
     protected loginState: IMrsLoginState = {};
+    protected deauthPath: string;
 
     public constructor(
         protected serviceUrl: string,
         protected authPath = "/authentication",
         protected defaultTimeout = 8000) {
+        this.authPath = `${authPath}/login`;
+        this.deauthPath = `${authPath}/logout`;
         // --- MySQL Shell for VS Code Extension Only --- Begin
         try {
             // Try to get global mrsLoginResult values when already authenticated in the DB NoteBook
@@ -163,7 +166,7 @@ export class MrsBaseSession {
             const requestPath = typeof input === "string" ? input : (input as unknown as IFetchInput<T>).input;
 
             // Check if the current session has expired
-            if (response.status === 401 && !requestPath.endsWith("/authentication/login")) {
+            if (response.status === 401 && !requestPath.endsWith(this.authPath)) {
                 throw new Error(`Not authenticated. Please authenticate first before accessing the ` +
                     `path ${this.serviceUrl ?? ""}${input}.`);
             }
@@ -205,7 +208,7 @@ export class MrsBaseSession {
         if (authApp !== undefined) {
             try {
                 const response = await this.doFetch({
-                    input: `${this.authPath}/login`,
+                    input: this.authPath,
                     method: "POST",
                     body: {
                         username,
@@ -266,7 +269,7 @@ export class MrsBaseSession {
         const nonce = this.hex(crypto.getRandomValues(new Uint8Array(10)));
 
         const challenge: IAuthChallenge = await (await this.doFetch({
-            input: `${this.authPath}/login`,
+            input: this.authPath,
             method: "POST",
             body: {
                 authApp,
@@ -301,7 +304,7 @@ export class MrsBaseSession {
 
             try {
                 const response = await this.doFetch({
-                    input: `${this.authPath}/login`,
+                    input: this.authPath,
                     method: "POST",
                     body: {
                         clientProof,
@@ -345,6 +348,19 @@ export class MrsBaseSession {
             };
         }
     };
+
+    public async logout(): Promise<void> {
+        if (this.accessToken === undefined) {
+            throw new Error("No user is currently authenticated.");
+        }
+
+        await this.doFetch({
+            input: this.deauthPath,
+            method: "POST",
+        });
+
+        delete this.accessToken;
+    }
 
     private readonly hex = (arrayBuffer: Uint8Array): string => {
         return Array.from(new Uint8Array(arrayBuffer))
@@ -917,12 +933,14 @@ class MrsJSON {
 /**
  * @template T The set of fields of a given database object that should be part of the result set.
  */
-class MrsSimplifiedObjectResponse<T> {
-    #json:  T & JsonObject;
+class MrsSimplifiedObjectResponse<Input, ResourceIdFieldNames extends string[], Output> {
     #hypermediaProperties = ["_metadata", "links"];
 
-    public constructor (json: T & JsonObject) {
-        this.#json = json;
+    public constructor (
+        private readonly json: Output & JsonObject,
+        private readonly schema: MrsBaseSchema,
+        private readonly requestPath: string,
+        private readonly primaryKeys?: ResourceIdFieldNames) {
     }
 
     /**
@@ -932,11 +950,12 @@ class MrsSimplifiedObjectResponse<T> {
      * @returns An abstraction of the database object item without hypermedia-related properties.
      */
     public getInstance () {
-        return new Proxy(this.#json, {
+        return new Proxy(this.json, {
             deleteProperty: (target, p) => {
                 const property = String(p);
+                const isPrimaryKey = this.primaryKeys !== undefined && this.primaryKeys.includes(property);
 
-                if (this.#hypermediaProperties.indexOf(property) > -1) {
+                if (this.#hypermediaProperties.indexOf(property) > -1 || isPrimaryKey) {
                     throw new Error(`The "${property}" property cannot be deleted.`);
                 }
 
@@ -945,21 +964,23 @@ class MrsSimplifiedObjectResponse<T> {
                 return true;
             },
 
-            get: (target: MrsResourceObject<T> & { [key: symbol]: unknown }, key) => {
-                if (key !== "toJSON") {
-                    return target[key];
+            get: (target: MrsResourceObject<Output> & { [key: symbol]: unknown }, key) => {
+                if (key === "toJSON") {
+                    return this.deserialize.bind(this);
                 }
 
-                // .toJSON()
-                return () => {
-                    // We want to change a copy of the underlying json object, not the reference to the original one.
-                    const partial = { ...this.#json as Omit<MrsResourceObject<T>, "links" | "_metadata"> };
-                    delete partial.links;
-                    // eslint-disable-next-line no-underscore-dangle
-                    delete partial._metadata;
+                // primaryKeys only contains items if the "UPDATE" CRUD operation is enabled
+                // and there are, in fact, primary keys
+                if (key === "update" && this.primaryKeys !== undefined && this.primaryKeys.length) {
+                    return this.update.bind(this);
+                }
 
-                    return partial;
-                };
+                // same as above
+                if (key === "delete" && this.primaryKeys !== undefined && this.primaryKeys.length) {
+                    return this.delete.bind(this);
+                }
+
+                return target[key];
             },
 
             has: (target, p) => {
@@ -980,8 +1001,9 @@ class MrsSimplifiedObjectResponse<T> {
 
             set: (target, p, newValue) => {
                 const property = String(p);
+                const isPrimaryKey = this.primaryKeys !== undefined && this.primaryKeys.includes(property);
 
-                if (this.#hypermediaProperties.indexOf(property) > -1) {
+                if (this.#hypermediaProperties.indexOf(property) > -1 || isPrimaryKey) {
                     throw new Error(`The "${property}" property cannot be changed.`);
                 }
 
@@ -992,16 +1014,53 @@ class MrsSimplifiedObjectResponse<T> {
             },
         });
     }
+
+    private async delete(): Promise<void> {
+        const queryFilter: Record<string, unknown> = {};
+
+        // the proxy already guarantees that the primaryKeys property is always defined
+        for (const key of this.primaryKeys as ResourceIdFieldNames) {
+            queryFilter[key] = this.json[key];
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        const request = new MrsBaseObjectDelete(
+            this.schema, this.requestPath, { where: queryFilter });
+        const _ = await request.fetch();
+
+        return;
+    }
+
+    private deserialize(): Omit<MrsResourceObject<Output>, "links" | "_metadata"> {
+        // We want to change a copy of the underlying json object, not the reference to the original one.
+        const partial = { ...this.json as Omit<MrsResourceObject<Output>, "links" | "_metadata"> };
+        delete partial.links;
+        // eslint-disable-next-line no-underscore-dangle
+        delete partial._metadata;
+
+        return partial;
+    }
+
+    private async update(): Promise<MrsResourceObject<Output>> {
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        const request = new MrsBaseObjectUpdate<Input, ResourceIdFieldNames, Output>(
+            // the proxy already guarantees that the primaryKeys property is always defined
+            this.schema, this.requestPath, { data: this.json as Input }, this.primaryKeys as ResourceIdFieldNames);
+        const response = await request.fetch();
+
+        return response;
+    }
 }
 
 /**
  * @template T The set of fields of a given database object that should be part of the result set.
  */
-class MrsSimplifiedCollectionObjectResponse<T> {
-    #json: IMrsResourceCollectionData<T>;
-
-    public constructor (json: IMrsResourceCollectionData<T>) {
-        this.#json = json;
+class MrsSimplifiedCollectionObjectResponse<Input, ResourceIdFieldNames extends string[]> {
+    public constructor (
+        private readonly json: IMrsResourceCollectionData<Input>,
+        private readonly schema: MrsBaseSchema,
+        private readonly requestPath: string,
+        private readonly primaryKeys?: ResourceIdFieldNames) {
     }
 
     /**
@@ -1011,13 +1070,13 @@ class MrsSimplifiedCollectionObjectResponse<T> {
      * @returns A list of the database object items without hypermedia-related properties.
      */
     public getInstance () {
-        return new Proxy(this.#json, {
+        return new Proxy(this.json, {
             deleteProperty: (_, p) => {
                 throw new Error(`The "${String(p)}" property cannot be deleted.`);
             },
 
-            get: (target: IMrsResourceCollectionData<T> & { [key: symbol]: unknown }, key,
-                receiver: IMrsResourceCollectionData<T>) => {
+            get: (target: IMrsResourceCollectionData<Input> & { [key: symbol]: unknown }, key,
+                receiver: IMrsResourceCollectionData<Input>) => {
                 if (key !== "toJSON" && key !== "items") {
                     return target[key];
                 }
@@ -1033,7 +1092,8 @@ class MrsSimplifiedCollectionObjectResponse<T> {
 
                 // .items
                 return target.items.map((item) => {
-                    const resource = new MrsSimplifiedObjectResponse(item);
+                    const resource = new MrsSimplifiedObjectResponse(
+                        item, this.schema, this.requestPath, this.primaryKeys);
 
                     return resource.getInstance();
                 });
@@ -1061,7 +1121,7 @@ class MrsSimplifiedCollectionObjectResponse<T> {
  * because it is not used by "findAll()" or "findFirst()", both of which, also create an instance of MrsBaseObjectQuery.
  * Creates an object that represents an MRS GET request.
  */
-export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> {
+export class MrsBaseObjectQuery<Item, Filterable, Iterable = never, ResourceIdFieldNames extends string[] = never> {
     private where?: MrsRequestFilter<Filterable>;
     private exclude: string[] = [];
     private include: string[] = [];
@@ -1072,7 +1132,8 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> {
     public constructor(
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
-        options?: IFindOptions<Item, Filterable, Iterable>) {
+        options?: IFindOptions<Item, Filterable, Iterable>,
+        private readonly primaryKeys?: ResourceIdFieldNames) {
         if (options === undefined) {
             return;
         }
@@ -1153,7 +1214,8 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> {
         });
 
         const responseBody: IMrsResourceCollectionData<Item> = await response.json();
-        const collection = new MrsSimplifiedCollectionObjectResponse(responseBody);
+        const collection = new MrsSimplifiedCollectionObjectResponse(
+            responseBody, this.schema, this.requestPath, this.primaryKeys);
 
         return collection.getInstance();
     };
@@ -1245,11 +1307,12 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable={}> {
     };
 }
 
-export class MrsBaseObjectCreate<Input, Output> {
+export class MrsBaseObjectCreate<Input, Output, ResourceIdFieldNames extends string[] = never> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
-        protected options: ICreateOptions<Input>) {
+        protected options: ICreateOptions<Input>,
+        protected primaryKeys?: ResourceIdFieldNames) {
     }
 
     public fetch = async (): Promise<MrsResourceObject<Output>> => {
@@ -1264,17 +1327,18 @@ export class MrsBaseObjectCreate<Input, Output> {
         // eslint-disable-next-line no-underscore-dangle
         this.schema.service.session.gtid = responseBody._metadata.gtid;
 
-        const resource = new MrsSimplifiedObjectResponse(responseBody);
+        const resource = new MrsSimplifiedObjectResponse(
+            responseBody, this.schema, this.requestPath, this.primaryKeys);
 
         return resource.getInstance();
     };
 }
 
-export class MrsBaseObjectDelete<T> {
+export class MrsBaseObjectDelete<Filterable> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
-        protected options: IDeleteOptions<T, { many: true }>) {
+        protected options: IDeleteOptions<Filterable, { many: true }>) {
     }
 
     public fetch = async (): Promise<IMrsDeleteResult> => {
@@ -1335,7 +1399,8 @@ export class MrsBaseObjectUpdate<Input, ResourceIdFieldNames extends string[], O
         // eslint-disable-next-line no-underscore-dangle
         this.schema.service.session.gtid = responseBody._metadata.gtid;
 
-        const resource = new MrsSimplifiedObjectResponse(responseBody);
+        const resource = new MrsSimplifiedObjectResponse(
+            responseBody, this.schema, this.requestPath, this.primaryKeys);
 
         return resource.getInstance();
     };
@@ -1363,7 +1428,8 @@ class MrsBaseObjectCall<Input, Output extends IMrsCommonRoutineResponse> {
         // eslint-disable-next-line no-underscore-dangle
         this.schema.service.session.gtid = responseBody._metadata?.gtid;
 
-        const resource = new MrsSimplifiedObjectResponse(responseBody);
+        const resource = new MrsSimplifiedObjectResponse(
+            responseBody, this.schema, this.requestPath);
 
         return resource.getInstance();
     }
@@ -1382,7 +1448,7 @@ export class MrsBaseObjectProcedureCall<InParams, OutParams, ResultSet extends J
         const response = await super.fetch();
 
         response.resultSets = response.resultSets.map((resultSet) => {
-            return (new MrsSimplifiedObjectResponse(resultSet)).getInstance();
+            return (new MrsSimplifiedObjectResponse(resultSet, this.schema, this.requestPath)).getInstance();
         });
 
         return response;
@@ -1511,6 +1577,10 @@ export class MrsBaseService {
         return response;
     }
 
+    public async deauthenticate (): Promise<void> {
+        return this.session.logout();
+    }
+
     public async getMetadata (): Promise<JsonObject> {
         const response = await this.session.doFetch({ input: `/_metadata` });
         const metadata = await response.json() as JsonObject;
@@ -1553,11 +1623,12 @@ export class MrsBaseObject {
     }
 }
 
-export interface IMrsTaskWatchOptions {
+export interface IMrsTaskStartOptions {
     refreshRate?: number;
+    timeout?: number;
 }
 
-export interface IMrsTaskExecutionOptions<MrsTaskStatusUpdate, MrsTaskResult> extends IMrsTaskWatchOptions {
+export interface IMrsTaskRunOptions<MrsTaskStatusUpdate, MrsTaskResult> extends IMrsTaskStartOptions {
     progress?: (report: IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>) => Promise<void>;
 }
 
@@ -1577,14 +1648,14 @@ interface IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult> {
 }
 
 export interface IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
-    extends Omit<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>, "data" | "status"> {
+    extends IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult> {
     data: MrsTaskStatusUpdate
     status: "RUNNING"
 }
 
 interface IMrsCompletedTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
-    extends Omit<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>, "data" | "progress" | "status"> {
-    result: MrsTaskResult
+    extends Omit<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>, "progress" | "status"> {
+    data: MrsTaskResult
     status: "COMPLETED"
 }
 
@@ -1593,9 +1664,22 @@ interface IMrsCancelledTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
     status: "CANCELLED"
 }
 
-export type IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult> = IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult> |
-IMrsCompletedTaskReport<MrsTaskStatusUpdate, MrsTaskResult> |
-IMrsCancelledTaskReport<MrsTaskStatusUpdate, MrsTaskResult>;
+interface IMrsErrorTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    extends Omit<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>, "data" | "progress"> {
+    status: "ERROR"
+}
+
+interface IMrsTimedOutTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    extends Omit<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>, "data" | "progress" | "status"> {
+    status: "TIMEOUT"
+}
+
+export type IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult> =
+    IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    | IMrsCompletedTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    | IMrsCancelledTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    | IMrsErrorTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    | IMrsTimedOutTaskReport<MrsTaskStatusUpdate, MrsTaskResult>;
 
 export class MrsBaseTaskStart<MrsTaskInputParameters> {
     public constructor(
@@ -1619,16 +1703,16 @@ export class MrsBaseTaskStart<MrsTaskInputParameters> {
     }
 }
 
-export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
+class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
     public constructor(
-        private schema: MrsBaseSchema,
-        private requestPath: string,
-        private taskId: string,
-        private options: IMrsTaskExecutionOptions<MrsTaskStatusUpdate, MrsTaskResult> = { refreshRate: 2000 }) {
+        private readonly schema: MrsBaseSchema,
+        private readonly requestPath: string,
+        protected readonly task: MrsTask<MrsTaskStatusUpdate, MrsTaskResult>,
+        private readonly options: IMrsTaskRunOptions<MrsTaskStatusUpdate, MrsTaskResult> = { refreshRate: 2000 }) {
     }
 
     async #getStatus(): Promise<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>> {
-        const input = `${this.schema.requestPath}${this.requestPath}/${this.taskId}`;
+        const input = `${this.schema.requestPath}${this.requestPath}/${this.task.id}`;
         const response = await this.schema.service.session.doFetch({
             input,
             method: "GET",
@@ -1641,31 +1725,31 @@ export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
     }
 
     public async* submit(): AsyncGenerator<IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult>> {
-        let lastCheck = Date.now();
-        let statusUpdate: IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>;
-
-        const { refreshRate = 2000, progress } = this.options;
+        const startedAt = Date.now();
+        const { refreshRate = 2000, progress, timeout } = this.options;
 
         if (refreshRate < 500) {
             throw new Error("Refresh rate needs to be greater than or equal to 500ms.");
         }
 
-        let i = 0;
-
         while (true) {
-            const now = Date.now();
-            const delta = now - lastCheck;
-
-            // the first status report should be retrieved immediately
-            if (i !== 0 && delta < refreshRate) {
-                continue;
+            if (timeout !== undefined && Date.now() - startedAt > timeout) {
+                return yield { message: `The timeout of ${timeout} ms has been exceeded.`, status: "TIMEOUT" };
             }
 
-            statusUpdate = await this.#getStatus();
-            lastCheck = now;
+            const statusUpdate = await this.#getStatus();
 
-            if (statusUpdate.status !== "RUNNING") {
-                break;
+            if (statusUpdate.status === "ERROR" || statusUpdate.status === "CANCELLED") {
+                const { message, status } = statusUpdate;
+
+                return yield { message, status };
+            }
+
+            if (statusUpdate.status === "COMPLETED") {
+                const { message, status } = statusUpdate;
+                const data = statusUpdate.data as MrsTaskResult;
+
+                return yield { data, message, status };
             }
 
             const runningTaskReport = statusUpdate as IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>;
@@ -1675,23 +1759,36 @@ export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
             }
 
             yield runningTaskReport;
-            i++;
+
+            // Ensure potential future status updates are retrieved in subsequent event loop iterations to avoid CPU
+            // churn
+            await new Promise((resolve) => {
+                setTimeout(resolve, refreshRate);
+            });
         }
+    }
+}
 
-        if (statusUpdate.status === "ERROR") {
-            throw new Error(statusUpdate.message);
+
+export class MrsBaseTaskRun<MrsTaskStatusUpdate, MrsTaskResult>
+    extends MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
+    // @ts-expect-error undefined is never returned because all non-exception cases are handled in the loop
+    public async execute(): Promise<MrsTaskResult> {
+        const errorEvents = ["ERROR", "CANCELLED", "TIMEOUT"];
+
+        for await (const response of super.submit()) {
+            if (errorEvents.includes(response.status)) {
+                if (response.status === "TIMEOUT") {
+                    await this.task.kill();
+                }
+
+                throw new Error(response.message);
+            }
+
+            if (response.status === "COMPLETED") {
+                return response.data;
+            }
         }
-
-        if (statusUpdate.status === "CANCELLED") {
-            const { message, status } = statusUpdate;
-
-            return { message, status };
-        }
-
-        const { message, status } = statusUpdate;
-        const result = statusUpdate.data as MrsTaskResult;
-
-        return { result, message, status };
     }
 }
 
@@ -1699,7 +1796,8 @@ export class MrsTask<MrsTaskStatusUpdate, MrsTaskResult> {
     public constructor(
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
-        public readonly id: string) {
+        public readonly id: string,
+        private readonly options?: IMrsTaskRunOptions<MrsTaskStatusUpdate, MrsTaskResult>) {
     }
 
     public async kill(): Promise<void> {
@@ -1713,10 +1811,10 @@ export class MrsTask<MrsTaskStatusUpdate, MrsTaskResult> {
         return;
     }
 
-    public async* watch(options?: IMrsTaskWatchOptions): AsyncGenerator<
+    public async* watch(): AsyncGenerator<
     IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult>, void, unknown> {
         const request = new MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult>(
-            this.schema, this.requestPath, this.id, options);
+            this.schema, this.requestPath, this, this.options);
         for await (const response of request.submit()) {
             yield response;
         }
