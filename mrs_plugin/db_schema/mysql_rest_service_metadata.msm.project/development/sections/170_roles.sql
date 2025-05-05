@@ -299,7 +299,7 @@ GRANT SELECT ON `mysql_rest_service_metadata`.`router_services`
     TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
 
 -- -----------------------------------------------------
--- Procedures
+-- Procedures and Functions
 
 -- `mysql_rest_service_metadata`.`get_sequence_id`
 
@@ -307,9 +307,16 @@ GRANT EXECUTE ON FUNCTION `mysql_rest_service_metadata`.`get_sequence_id`
     TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider', 'mysql_rest_service_data_provider';
 
 -- `mysql_rest_service_metadata`.`table_columns_with_references`
-GRANT EXECUTE
-    ON PROCEDURE `mysql_rest_service_metadata`.`table_columns_with_references`
+GRANT EXECUTE ON PROCEDURE `mysql_rest_service_metadata`.`table_columns_with_references`
     TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
+
+-- `mysql_rest_service_metadata`.`sdk_service_data`
+GRANT EXECUTE ON PROCEDURE `mysql_rest_service_metadata`.`sdk_service_data`
+    TO 'mysql_rest_service_admin', 'mysql_rest_service_schema_admin', 'mysql_rest_service_dev', 'mysql_rest_service_meta_provider';
+
+-- `mysql_rest_service_metadata`.`restore_roles`
+GRANT EXECUTE ON PROCEDURE `mysql_rest_service_metadata`.`restore_roles`
+    TO 'mysql_rest_service_admin';
 
 
 -- -----------------------------------------------------

@@ -1,5 +1,13 @@
 # Database Schema Change Log for `mysql_rest_service_metadata`
 
+## 4.1.2
+
+- Added missing privileges for `restore_roles` and `sdk_service_data` PROCEDURE
+
+## 4.1.1
+
+- Changed whole schema to use a USE statement and not fully qualified database object names in order to allow the schema to be ignore during replication
+
 ## 4.1.0
 
 - Added `restore_roles` PROCEDURE to restore all ROLEs used by MRS
