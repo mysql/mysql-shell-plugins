@@ -1756,13 +1756,13 @@ export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
         if (statusUpdate.status === "CANCELLED") {
             const { message, status } = statusUpdate;
 
-            return { message, status };
+            return yield { message, status };
         }
 
         const { message, status } = statusUpdate;
         const result = statusUpdate.data as MrsTaskResult;
 
-        return { result, message, status };
+        yield { result, message, status };
     }
 }
 

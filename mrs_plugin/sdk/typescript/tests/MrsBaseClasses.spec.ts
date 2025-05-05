@@ -1954,9 +1954,11 @@ describe("MRS SDK API", () => {
                 await iterator.next();
                 vi.advanceTimersByTime(2000);
 
-                const { value, done } = await iterator.next();
+                let { value, done } = await iterator.next();
                 expect(value).toHaveProperty("status", "COMPLETED");
                 expect(value).toHaveProperty("result", result);
+
+                ({ done } = await iterator.next())
                 expect(done).toBeTruthy();
             });
 
@@ -2028,9 +2030,11 @@ describe("MRS SDK API", () => {
                 await iterator.next();
                 vi.advanceTimersByTime(2000);
 
-                const { value, done } = await iterator.next();
+                let { value, done } = await iterator.next();
                 expect(value).toHaveProperty("status", "CANCELLED");
                 expect(value).toHaveProperty("message", message);
+
+                ({ done } = await iterator.next())
                 expect(done).toBeTruthy();
             });
 
