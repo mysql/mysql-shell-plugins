@@ -419,7 +419,8 @@
 
 .msg.connectionTabHost .resultHost .copyButton,
 .zoneHost > .renderTarget > .resultHost .copyButton,
-.zoneHost > .renderTarget > .outputHost .copyButton {
+.zoneHost > .renderTarget > .outputHost .copyButton,
+#resultPaneHost > .renderTarget >.resultHost .copyButton {
     display: none;
     position: absolute;
     align-self: flex-end;
@@ -435,7 +436,8 @@
 
 .msg.connectionTabHost .resultHost:hover .copyButton,
 .zoneHost > .renderTarget > .resultHost:hover .copyButton,
-.zoneHost > .renderTarget > .outputHost:hover .copyButton {
+.zoneHost > .renderTarget > .outputHost:hover .copyButton,
+#resultPaneHost > .renderTarget >.resultHost .copyButton {
     display: block;
 }
 
