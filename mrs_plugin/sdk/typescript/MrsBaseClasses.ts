@@ -953,7 +953,7 @@ class MrsSimplifiedObjectResponse<Input, ResourceIdFieldNames extends string[], 
         return new Proxy(this.json, {
             deleteProperty: (target, p) => {
                 const property = String(p);
-                const isPrimaryKey = this.primaryKeys && this.primaryKeys.indexOf(property) > 0;
+                const isPrimaryKey = this.primaryKeys !== undefined && this.primaryKeys.includes(property);
 
                 if (this.#hypermediaProperties.indexOf(property) > -1 || isPrimaryKey) {
                     throw new Error(`The "${property}" property cannot be deleted.`);
@@ -971,12 +971,12 @@ class MrsSimplifiedObjectResponse<Input, ResourceIdFieldNames extends string[], 
 
                 // primaryKeys only contains items if the "UPDATE" CRUD operation is enabled
                 // and there are, in fact, primary keys
-                if (key === "update" && this.primaryKeys?.length) {
+                if (key === "update" && this.primaryKeys !== undefined && this.primaryKeys.length) {
                     return this.update.bind(this);
                 }
 
                 // same as above
-                if (key === "delete" && this.primaryKeys?.length) {
+                if (key === "delete" && this.primaryKeys !== undefined && this.primaryKeys.length) {
                     return this.delete.bind(this);
                 }
 
@@ -1001,7 +1001,7 @@ class MrsSimplifiedObjectResponse<Input, ResourceIdFieldNames extends string[], 
 
             set: (target, p, newValue) => {
                 const property = String(p);
-                const isPrimaryKey = this.primaryKeys && this.primaryKeys.indexOf(property) > 0;
+                const isPrimaryKey = this.primaryKeys !== undefined && this.primaryKeys.includes(property);
 
                 if (this.#hypermediaProperties.indexOf(property) > -1 || isPrimaryKey) {
                     throw new Error(`The "${property}" property cannot be changed.`);
@@ -1623,12 +1623,13 @@ export class MrsBaseObject {
     }
 }
 
-export interface IMrsTaskWatchOptions {
+export interface IMrsTaskStartOptions {
     refreshRate?: number;
+    timeout?: number;
 }
 
-export interface IMrsTaskExecutionOptions<MrsTaskStatusUpdate, MrsTaskResult> extends IMrsTaskWatchOptions {
-    progress?: (report: IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>) => Promise<void>;
+export interface IMrsTaskRunOptions<MrsTaskStatusUpdate, MrsTaskResult> extends IMrsTaskStartOptions {
+    progress?(report: IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>): Promise<void>;
 }
 
 interface IMrsTaskStartResponse {
@@ -1647,14 +1648,14 @@ interface IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult> {
 }
 
 export interface IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
-    extends Omit<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>, "data" | "status"> {
+    extends IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult> {
     data: MrsTaskStatusUpdate
     status: "RUNNING"
 }
 
 interface IMrsCompletedTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
-    extends Omit<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>, "data" | "progress" | "status"> {
-    result: MrsTaskResult
+    extends Omit<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>, "progress" | "status"> {
+    data: MrsTaskResult
     status: "COMPLETED"
 }
 
@@ -1663,10 +1664,22 @@ interface IMrsCancelledTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
     status: "CANCELLED"
 }
 
+interface IMrsErrorTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    extends Omit<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>, "data" | "progress"> {
+    status: "ERROR"
+}
+
+interface IMrsTimedOutTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    extends Omit<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>, "data" | "progress" | "status"> {
+    status: "TIMEOUT"
+}
+
 export type IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult> =
     IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
     | IMrsCompletedTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
-    | IMrsCancelledTaskReport<MrsTaskStatusUpdate, MrsTaskResult>;
+    | IMrsCancelledTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    | IMrsErrorTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    | IMrsTimedOutTaskReport<MrsTaskStatusUpdate, MrsTaskResult>;
 
 export class MrsBaseTaskStart<MrsTaskInputParameters> {
     public constructor(
@@ -1692,14 +1705,14 @@ export class MrsBaseTaskStart<MrsTaskInputParameters> {
 
 export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
     public constructor(
-        private schema: MrsBaseSchema,
-        private requestPath: string,
-        private taskId: string,
-        private options: IMrsTaskExecutionOptions<MrsTaskStatusUpdate, MrsTaskResult> = { refreshRate: 2000 }) {
+        private readonly schema: MrsBaseSchema,
+        private readonly requestPath: string,
+        protected readonly task: MrsTask<MrsTaskStatusUpdate, MrsTaskResult>,
+        private readonly options: IMrsTaskRunOptions<MrsTaskStatusUpdate, MrsTaskResult> = { refreshRate: 2000 }) {
     }
 
     async #getStatus(): Promise<IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>> {
-        const input = `${this.schema.requestPath}${this.requestPath}/${this.taskId}`;
+        const input = `${this.schema.requestPath}${this.requestPath}/${this.task.id}`;
         const response = await this.schema.service.session.doFetch({
             input,
             method: "GET",
@@ -1712,31 +1725,30 @@ export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
     }
 
     public async* submit(): AsyncGenerator<IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult>> {
-        let lastCheck = Date.now();
-        let statusUpdate: IMrsTaskStatusUpdateResponse<MrsTaskStatusUpdate, MrsTaskResult>;
-
-        const { refreshRate = 2000, progress } = this.options;
-
-        if (refreshRate < 500) {
-            throw new Error("Refresh rate needs to be greater than or equal to 500ms.");
-        }
-
-        let i = 0;
+        const startedAt = Date.now();
+        const { refreshRate = 2000, progress, timeout } = this.options;
 
         while (true) {
-            const now = Date.now();
-            const delta = now - lastCheck;
-
-            // the first status report should be retrieved immediately
-            if (i !== 0 && delta < refreshRate) {
-                continue;
+            if (timeout !== undefined && Date.now() - startedAt > timeout) {
+                // a client-side timeout should not close the producer
+                yield { message: `The timeout of ${timeout} ms has been exceeded.`, status: "TIMEOUT" };
             }
 
-            statusUpdate = await this.#getStatus();
-            lastCheck = now;
+            const statusUpdate = await this.#getStatus();
 
-            if (statusUpdate.status !== "RUNNING") {
-                break;
+            if (statusUpdate.status === "ERROR" || statusUpdate.status === "CANCELLED") {
+                // these are both final status reports so they should close the producer
+                const { message, status } = statusUpdate;
+
+                return yield { message, status };
+            }
+
+            if (statusUpdate.status === "COMPLETED") {
+                // also a final status report that should close the producer
+                const { message, status } = statusUpdate;
+                const data = statusUpdate.data as MrsTaskResult;
+
+                return yield { data, message, status };
             }
 
             const runningTaskReport = statusUpdate as IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>;
@@ -1746,23 +1758,36 @@ export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
             }
 
             yield runningTaskReport;
-            i++;
+
+            // Ensure potential future status updates are retrieved in subsequent event loop iterations to avoid CPU
+            // churn
+            await new Promise((resolve) => {
+                setTimeout(resolve, refreshRate);
+            });
         }
+    }
+}
 
-        if (statusUpdate.status === "ERROR") {
-            throw new Error(statusUpdate.message);
+
+export class MrsBaseTaskRun<MrsTaskStatusUpdate, MrsTaskResult>
+    extends MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
+    // @ts-expect-error undefined is never returned because all non-exception cases are handled in the loop
+    public async execute(): Promise<MrsTaskResult> {
+        const errorEvents = ["ERROR", "CANCELLED", "TIMEOUT"];
+
+        for await (const response of super.submit()) {
+            if (errorEvents.includes(response.status)) {
+                if (response.status === "TIMEOUT") {
+                    await this.task.kill();
+                }
+
+                throw new Error(response.message);
+            }
+
+            if (response.status === "COMPLETED") {
+                return response.data;
+            }
         }
-
-        if (statusUpdate.status === "CANCELLED") {
-            const { message, status } = statusUpdate;
-
-            return yield { message, status };
-        }
-
-        const { message, status } = statusUpdate;
-        const result = statusUpdate.data as MrsTaskResult;
-
-        yield { result, message, status };
     }
 }
 
@@ -1770,7 +1795,11 @@ export class MrsTask<MrsTaskStatusUpdate, MrsTaskResult> {
     public constructor(
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
-        public readonly id: string) {
+        public readonly id: string,
+        private readonly options: IMrsTaskRunOptions<MrsTaskStatusUpdate, MrsTaskResult> = { refreshRate: 2000 }) {
+        if (typeof options.refreshRate !== "number" || options.refreshRate < 500) {
+            throw new Error("Refresh rate needs to be a number greater than or equal to 500ms.");
+        }
     }
 
     public async kill(): Promise<void> {
@@ -1784,10 +1813,10 @@ export class MrsTask<MrsTaskStatusUpdate, MrsTaskResult> {
         return;
     }
 
-    public async* watch(options?: IMrsTaskWatchOptions): AsyncGenerator<
+    public async* watch(): AsyncGenerator<
     IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult>, void, unknown> {
         const request = new MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult>(
-            this.schema, this.requestPath, this.id, options);
+            this.schema, this.requestPath, this, this.options);
         for await (const response of request.submit()) {
             yield response;
         }

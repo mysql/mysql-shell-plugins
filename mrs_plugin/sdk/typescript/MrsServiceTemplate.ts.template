@@ -34,9 +34,10 @@ import {
     MrsBaseObjectFunctionCall,
     // --- importFunctionCallOnlyEnd
     // --- importTaskRunOnlyStart
-    IMrsTaskExecutionOptions,
+    IMrsTaskRunOptions,
+    IMrsTaskStartOptions,
     MrsBaseTaskStart,
-    MrsBaseTaskWatch,
+    MrsBaseTaskRun,
     MrsTask,
     // --- importTaskRunOnlyEnd
     // --- importUpdateOnlyStart
@@ -184,24 +185,21 @@ class ${obj_class_name}Object extends MrsBaseObject {
     };
     // --- crudProcedureCallOnlyEnd
     // --- crudProcedureTaskRunOnlyStart
-    async start(${obj_name}Params?: I${obj_param_interface}): Promise<MrsTask<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>> {
+    async start(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskStartOptions): Promise<MrsTask<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>> {
         const request = new MrsBaseTaskStart<I${obj_param_interface}>(
             this.schema, this.requestPath, ${obj_name}Params);
         const response = await request.submit();
 
-        return new MrsTask(this.schema, this.requestPath, response.taskId);
+        return new MrsTask(this.schema, this.requestPath, response.taskId, options);
     }
 
-    async call(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskExecutionOptions<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>): Promise<IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}> | undefined> {
+    async call(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskRunOptions<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>): Promise<IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>> {
         const task = await this.start(${obj_name}Params);
-        const request = new MrsBaseTaskWatch<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>(
-            this.schema, this.requestPath, task.id, options);
+        const poll = new MrsBaseTaskRun<object, IMrsProcedureResult<I${obj_param_interface}Out, ${obj_meta_interface}>>(
+            this.schema, this.requestPath, task, options);
+        const response = await poll.execute();
 
-        for await (const response of request.submit()) {
-            if (response.status === "COMPLETED") {
-                return response.result;
-            }
-        }
+        return response;
     };
     // --- crudProcedureTaskRunOnlyEnd
     // --- crudFunctionCallOnlyStart
@@ -214,24 +212,21 @@ class ${obj_class_name}Object extends MrsBaseObject {
     };
     // --- crudFunctionCallOnlyEnd
     // --- crudFunctionTaskRunOnlyStart
-    async start(${obj_name}Params?: I${obj_param_interface}): Promise<MrsTask<object, ${obj_function_result_datatype}>> {
+    async start(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskStartOptions): Promise<MrsTask<object, IMrsFunctionJsonResponse<${obj_function_result_datatype}>>> {
         const request = new MrsBaseTaskStart<I${obj_param_interface}>(
             this.schema, this.requestPath, ${obj_name}Params);
         const response = await request.submit();
 
-        return new MrsTask(this.schema, this.requestPath, response.taskId);
+        return new MrsTask(this.schema, this.requestPath, response.taskId, options);
     }
 
-    async call(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskExecutionOptions<object, ${obj_function_result_datatype}>): Promise<${obj_function_result_datatype} | undefined> {
+    async call(${obj_name}Params?: I${obj_param_interface}, options?: IMrsTaskRunOptions<object, ${obj_function_result_datatype}>): Promise<${obj_function_result_datatype}> {
         const task = await this.start(${obj_name}Params);
-        const request = new MrsBaseTaskWatch<object, ${obj_function_result_datatype}>(
-            this.schema, this.requestPath, task.id, options);
+        const poll = new MrsBaseTaskRun<object, IMrsFunctionJsonResponse<${obj_function_result_datatype}>>(
+            this.schema, this.requestPath, task, options);
+        const response = await poll.execute();
 
-        for await (const response of request.submit()) {
-            if (response.status === "COMPLETED") {
-                return response.result;
-            }
-        }
+        return response.result;
     };
     // --- crudFunctionTaskRunOnlyEnd
 
