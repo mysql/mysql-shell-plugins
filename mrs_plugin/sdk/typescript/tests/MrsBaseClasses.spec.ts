@@ -31,6 +31,7 @@ import {
     IMrsProcedureJsonResponse, MrsBaseObjectProcedureCall, JsonObject, MrsAuthenticate, MrsBaseObject,
     MrsBaseTaskStart, MrsBaseTaskWatch,
     MrsTask,
+    MrsBaseTaskRun,
 } from "../MrsBaseClasses";
 
 // fixtures
@@ -111,11 +112,18 @@ class FetchMock {
 
         return this;
     }
+
+    public static clear () {
+        if (FetchMock.singleton !== undefined && FetchMock.singleton.#calls.length > 0) {
+            FetchMock.singleton.#calls = [];
+        }
+    }
 }
 
 describe("MRS SDK API", () => {
     beforeEach(() => {
         vi.restoreAllMocks();
+        FetchMock.clear();
     });
 
     describe("when authenticating a user", () => {
@@ -1858,11 +1866,18 @@ describe("MRS SDK API", () => {
         const input = { name: "friend" };
 
         beforeEach(() => {
-            vi.useFakeTimers({ now: Date.now(), toFake: ["Date"] });
+            vi.useFakeTimers();
         });
 
         afterEach(() => {
             vi.useRealTimers();
+        });
+
+        describe("creating an asynchronous task", () => {
+            it("fails if the refresh rate is not equal to or greater than 500ms", () => {
+                expect(() => new MrsTask(schema, "/baz", "qux", { timeout: 400 }))
+                    .toThrowError("Refresh rate needs to be a number greater than or equal to 500ms.");
+            });
         });
 
         describe("while it is running", () => {
@@ -1881,28 +1896,30 @@ describe("MRS SDK API", () => {
 
             it("retrieves an update every 2 seconds by omission", async () => {
                 const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
-                const task = await startTaskRequest.submit();
-                expect(task.taskId).to.equal(taskId);
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                expect(startedTaskId).to.equal(taskId);
+                const task = new MrsTask<object, IProcResult>(schema, "/baz", startedTaskId);
                 const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
-                    schema, "/baz", task.taskId);
+                    schema, "/baz", task);
 
                 const iterator = watchTaskRequest.submit();
                 expect((await iterator.next()).value).toHaveProperty("status", "RUNNING");
-                vi.advanceTimersByTime(2000);
+                void vi.advanceTimersByTimeAsync(2000);
                 expect((await iterator.next()).value).toHaveProperty("status", "RUNNING");
             });
 
             it("executes a given progress callback every 2 seconds by omission", async () => {
                 const progress = vi.fn();
                 const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
-                const task = await startTaskRequest.submit();
-                expect(task.taskId).to.equal(taskId);
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                expect(startedTaskId).to.equal(taskId);
+                const task = new MrsTask<object, IProcResult>(schema, "/baz", startedTaskId);
                 const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
-                    schema, "/baz", task.taskId, { progress });
+                    schema, "/baz", task, { progress });
 
                 const iterator = watchTaskRequest.submit();
                 const { value: value1 } = await iterator.next();
-                vi.advanceTimersByTime(2000);
+                void vi.advanceTimersByTimeAsync(2000);
                 const { value: value2 } = await iterator.next();
                 expect(progress).toHaveBeenCalledTimes(2);
                 expect(progress).toHaveBeenNthCalledWith(1, value1);
@@ -1912,14 +1929,15 @@ describe("MRS SDK API", () => {
             it("retrieves an update after every given amount of time", async () => {
                 const refreshRate = 1000;
                 const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
-                const task = await startTaskRequest.submit();
-                expect(task.taskId).to.equal(taskId);
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                expect(startedTaskId).to.equal(taskId);
+                const task = new MrsTask<object, IProcResult>(schema, "/baz", startedTaskId);
                 const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
-                    schema, "/baz", task.taskId, { refreshRate });
+                    schema, "/baz", task, { refreshRate });
 
                 const iterator = watchTaskRequest.submit();
                 expect((await iterator.next()).value).toHaveProperty("status", "RUNNING");
-                vi.advanceTimersByTime(refreshRate);
+                void vi.advanceTimersByTimeAsync(refreshRate);
                 expect((await iterator.next()).value).toHaveProperty("status", "RUNNING");
             });
 
@@ -1927,14 +1945,15 @@ describe("MRS SDK API", () => {
                 const progress = vi.fn();
                 const refreshRate = 1000;
                 const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
-                const task = await startTaskRequest.submit();
-                expect(task.taskId).to.equal(taskId);
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                expect(startedTaskId).to.equal(taskId);
+                const task = new MrsTask<object, IProcResult>(schema, "/baz", startedTaskId);
                 const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
-                    schema, "/baz", task.taskId, { progress, refreshRate });
+                    schema, "/baz", task, { progress, refreshRate });
 
                 const iterator = watchTaskRequest.submit();
                 const { value: value1 } = await iterator.next();
-                vi.advanceTimersByTime(refreshRate);
+                void vi.advanceTimersByTimeAsync(refreshRate);
                 const { value: value2 } = await iterator.next();
                 expect(progress).toHaveBeenCalledTimes(2);
                 expect(progress).toHaveBeenNthCalledWith(1, value1);
@@ -1943,50 +1962,40 @@ describe("MRS SDK API", () => {
 
             it("stops retrieving updates when it finishes", async () => {
                 const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
-                const task = await startTaskRequest.submit();
-                expect(task.taskId).to.equal(taskId);
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                expect(startedTaskId).to.equal(taskId);
+                const task = new MrsTask<object, IProcResult>(schema, "/baz", startedTaskId);
                 const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
-                    schema, "/baz", task.taskId);
+                    schema, "/baz", task);
 
                 const iterator = watchTaskRequest.submit();
                 await iterator.next();
-                vi.advanceTimersByTime(2000);
+                void vi.advanceTimersByTimeAsync(2000);
                 await iterator.next();
-                vi.advanceTimersByTime(2000);
+                void vi.advanceTimersByTimeAsync(2000);
 
-                let { value, done } = await iterator.next();
+                const { value } = await iterator.next();
                 expect(value).toHaveProperty("status", "COMPLETED");
-                expect(value).toHaveProperty("result", result);
+                expect(value).toHaveProperty("data", result);
 
-                ({ done } = await iterator.next())
+                const { done } = await iterator.next();
                 expect(done).toBeTruthy();
             });
 
             it("does not execute a given progress callback when it finishes", async () => {
                 const progress = vi.fn();
                 const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
-                const task = await startTaskRequest.submit();
-                expect(task.taskId).to.equal(taskId);
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                expect(startedTaskId).to.equal(taskId);
+                const task = new MrsTask<object, IProcResult>(schema, "/baz", startedTaskId);
                 const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
-                    schema, "/baz", task.taskId, { progress });
+                    schema, "/baz", task, { progress });
 
                 for await (const _ of watchTaskRequest.submit()) {
-                    vi.advanceTimersByTime(4000);
+                    void vi.advanceTimersByTimeAsync(4000);
                 }
 
                 expect(progress).toHaveBeenCalledTimes(2);
-            });
-
-            it("fails to retrieve updates in an interval below 0.5 seconds", async () => {
-                const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
-                const task = await startTaskRequest.submit();
-                expect(task.taskId).to.equal(taskId);
-                const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
-                    schema, "/baz", task.taskId, { refreshRate: 200 });
-
-                const iterator = watchTaskRequest.submit();
-                await expect(async () => { await iterator.next(); }).rejects.toThrowError(
-                    "Refresh rate needs to be greater than or equal to 500ms.");
             });
         });
 
@@ -2021,41 +2030,43 @@ describe("MRS SDK API", () => {
 
             it("stops retrieving status updates", async () => {
                 const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
-                const task = await startTaskRequest.submit();
-                expect(task.taskId).to.equal(taskId);
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                expect(startedTaskId).to.equal(taskId);
+                const task = new MrsTask<object, IProcResult>(schema, "/baz", startedTaskId);
                 const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
-                    schema, "/baz", task.taskId);
+                    schema, "/baz", task);
 
                 const iterator = watchTaskRequest.submit();
                 await iterator.next();
-                vi.advanceTimersByTime(2000);
+                void vi.advanceTimersByTimeAsync(2000);
 
-                let { value, done } = await iterator.next();
+                const { value } = await iterator.next();
                 expect(value).toHaveProperty("status", "CANCELLED");
                 expect(value).toHaveProperty("message", message);
 
-                ({ done } = await iterator.next())
+                const { done } = await iterator.next();
                 expect(done).toBeTruthy();
             });
 
             it("does not execute a given progress callback", async () => {
                 const progress = vi.fn();
                 const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
-                const task = await startTaskRequest.submit();
-                expect(task.taskId).to.equal(taskId);
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                expect(startedTaskId).to.equal(taskId);
+                const task = new MrsTask<object, IProcResult>(schema, "/baz", startedTaskId);
                 const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
-                    schema, "/baz", task.taskId, { progress });
+                    schema, "/baz", task, { progress });
 
                 const iterator = watchTaskRequest.submit();
                 await iterator.next();
-                vi.advanceTimersByTime(2000);
+                void vi.advanceTimersByTimeAsync(2000);
                 await iterator.next();
 
                 expect(progress).toHaveBeenCalledOnce();
             });
         });
 
-        describe("when it fails", () => {
+        describe("when it fails with an error", () => {
             const message = "There was an error...";
 
             beforeEach(() => {
@@ -2068,18 +2079,118 @@ describe("MRS SDK API", () => {
                     .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
             });
 
-            it("propagates the error back to the application", async () => {
+            it("stops retrieving status updates when watching the task", async () => {
                 const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
-                const task = await startTaskRequest.submit();
-                expect(task.taskId).to.equal(taskId);
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                expect(startedTaskId).to.equal(taskId);
+                const task = new MrsTask<object, IProcResult>(schema, "/baz", startedTaskId);
                 const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
-                    schema, "/baz", task.taskId);
+                    schema, "/baz", task);
 
                 const iterator = watchTaskRequest.submit();
                 await iterator.next();
-                vi.advanceTimersByTime(2000);
-                await expect(async () => { await iterator.next(); }).rejects
+                void vi.advanceTimersByTimeAsync(2000);
+
+                const { value } = await iterator.next();
+                expect(value).toHaveProperty("status", "ERROR");
+                expect(value).toHaveProperty("message", message);
+
+                const { done } = await iterator.next();
+                expect(done).toBeTruthy();
+            });
+
+            it("fails with an error when running the routine", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                expect(startedTaskId).to.equal(taskId);
+                const task = new MrsTask<object, IProcResult>(schema, "/baz", startedTaskId);
+                const pollTaskRequest = new MrsBaseTaskRun<object, IProcResult>(
+                    schema, "/baz", task);
+
+                void vi.advanceTimersByTimeAsync(2000);
+
+                await expect(async () => { await pollTaskRequest.execute(); }).rejects
                     .toThrowError(message);
+            });
+        });
+
+        describe("when it does not produce a result after a given time", () => {
+            const timeout = 3000;
+            const message = `The timeout of ${timeout} ms has been exceeded.`
+
+            beforeEach(() => {
+                FetchMock
+                    .push({ matchUrl: `/foo/bar/baz/${taskId}`, response: JSON.stringify({ status: "RUNNING" }) })
+                    .push({ matchUrl: `/foo/bar/baz/${taskId}`, response: JSON.stringify({ status: "RUNNING" }) })
+                    .push({ matchUrl: "/foo/bar/baz", response: JSON.stringify({ taskId }) });
+            });
+
+            it("produces a timeout event", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                expect(startedTaskId).to.equal(taskId);
+                const task = new MrsTask<object, IProcResult>(schema, "/baz", startedTaskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
+                    schema, "/baz", task, { timeout: 3000 });
+
+                const iterator = watchTaskRequest.submit();
+                await iterator.next();
+                void vi.advanceTimersByTimeAsync(2000);
+                await iterator.next();
+                void vi.advanceTimersByTimeAsync(2000);
+                const { value } = await iterator.next();
+                expect(value).toHaveProperty("status", "TIMEOUT");
+                expect(value).toHaveProperty("message", message);
+            });
+
+            it("does not stop retrieving status updates when watching the task", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                expect(startedTaskId).to.equal(taskId);
+                const task = new MrsTask<object, IProcResult>(schema, "/baz", startedTaskId);
+                const watchTaskRequest = new MrsBaseTaskWatch<object, IProcResult>(
+                    schema, "/baz", task, { timeout: 3000 });
+
+                const iterator = watchTaskRequest.submit();
+                await iterator.next();
+                void vi.advanceTimersByTimeAsync(2000);
+                await iterator.next();
+                void vi.advanceTimersByTimeAsync(2000);
+                const { done } = await iterator.next();
+                expect(done).toBeFalsy();
+            });
+
+            it("fails with an error when running the routine", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                expect(startedTaskId).to.equal(taskId);
+                const task = new MrsTask<object, IProcResult>(schema, "/baz", startedTaskId);
+                const pollTaskRequest = new MrsBaseTaskRun<object, IProcResult>(
+                    schema, "/baz", task, { timeout: 3000 });
+
+                void vi.advanceTimersByTimeAsync(4000);
+
+                await expect(async () => { await pollTaskRequest.execute(); }).rejects
+                    .toThrowError(message);
+            });
+
+            it("kills the task when running the routine", async () => {
+                const startTaskRequest = new MrsBaseTaskStart<{ name: string }>(schema, "/baz", input);
+                const { taskId: startedTaskId } = await startTaskRequest.submit();
+                expect(startedTaskId).to.equal(taskId);
+                const task = new MrsTask<object, IProcResult>(schema, "/baz", startedTaskId);
+                const pollTaskRequest = new MrsBaseTaskRun<object, IProcResult>(
+                    schema, "/baz", task, { timeout: 3000 });
+
+                void vi.advanceTimersByTimeAsync(4000);
+
+                try {
+                    await pollTaskRequest.execute();
+                } catch {
+                    expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz/${taskId}`, expect.objectContaining({
+                        method: "DELETE",
+                    }));
+                }
             });
         });
     });

@@ -741,7 +741,7 @@ A JSON object containing the result produced by the routine (including `OUT`/`IN
 #### Reference (call)
 
 ```TypeScript
-async function call (noteUpdateParams?: IMyServiceMrsNotesNoteUpdateParams, options?: IMrsTaskExecutionOptions<object, IMrsProcedureResult<IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>>): Promise<IMrsProcedureResult<IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>> {
+async function call (noteUpdateParams?: IMyServiceMrsNotesNoteUpdateParams, options?: IMrsTaskRunOptions<object, IMrsProcedureResult<IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>>): Promise<IMrsProcedureResult<IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>> {
     // ...
 }
 
@@ -755,12 +755,13 @@ interface IMyServiceMrsNotesNoteUpdateParams {
     userId?: string;
 }
 
-interface IMrsTaskWatchOptions {
+interface IMrsTaskStartOptions {
     refreshRate?: number;
+    timeout?: number;
 }
 
-interface IMrsTaskExecutionOptions<MrsTaskStatusUpdate, MrsTaskResult> extends IMrsTaskWatchOptions {
-    progress?: (report: IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>) => Promise<void>;
+interface IMrsTaskRunOptions<MrsTaskStatusUpdate, MrsTaskResult> extends IMrsTaskStartOptions {
+    progress?(report: IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>): Promise<void>;
 }
 
 interface IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult> {
@@ -787,17 +788,27 @@ import { MyService } from './myService.mrs.sdk/myService';
 
 const myService = new MyService();
 
-try {
-    // update the title of a note with a given id
-    await myService.mrsNotes.noteUpdate.call({ noteId: note.id, title: "hello world" });
-} catch (err) {
-    // catch errors produced by the routine
-}
+// update the title of a note with a given id
+await myService.mrsNotes.noteUpdate.call({ noteId: note.id, title: "hello world" });
+
+// execute a function for each progress status update
+const progress = (report) => {
+    console.log(report.progress)
+};
+
+await myService.mrsNotes.noteUpdate.call({ noteId: note.id, title: "hello world" }, { progress });
 ```
 
 ### start
 
-`start` is used to start a REST routine (`FUNCTION` or `PROCEDURE`) with an associated Async Task. The first and only parameter of the command is an `object` containing the set of `IN`/`INOUT` parameters (and corresponding values) as specified by the database routine.
+`start` is used to start a REST routine (`FUNCTION` or `PROCEDURE`) with an associated Async Task. The first parameter of the command is an `object` containing the set of `IN`/`INOUT` parameters (and corresponding values) as specified by the database routine. The second and last parameter of the command is an `object` with a set of routine execution constraint options.
+
+#### Options (start)
+
+| Name | Type | Required | Description
+|---|---|---|---
+| refreshRate | number (>=500) | No | Time (ms) to wait for retrieving the next progress report (default 2000).
+| timeout | number | No | Time (ms) to wait for the routine to produce a result.
 
 #### Return Type (start)
 
@@ -806,7 +817,7 @@ A [Task](#task) instance.
 #### Reference (start)
 
 ```TypeScript
-async function start(params?: IMyServiceMrsNotesNoteUpdateParams): Promise<MrsTask<object, IMrsProcedureResult<IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>>> {
+async function start(params?: IMyServiceMrsNotesNoteUpdateParams, options?: IMrsTaskStartOptions): Promise<MrsTask<object, IMrsProcedureResult<IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>>> {
     // ...
 }
 
@@ -828,6 +839,11 @@ interface IMrsProcedureResult<OutParams, ResultSet> {
     outParameters?: OutParams;
     resultSets: ResultSet[];
 }
+
+interface IMrsTaskStartOptions {
+    refreshRate?: number;
+    timeout?: number;
+}
 ```
 
 #### Example (start)
@@ -838,22 +854,18 @@ import { MyService } from './myService.mrs.sdk/myService';
 const myService = new MyService();
 
 // update the title of a note with a given id
-const task = await myService.mrsNotes.noteUpdate.start({ noteId: note.id, title: "hello world" });
+let task = await myService.mrsNotes.noteUpdate.start({ noteId: note.id, title: "hello world" });
+// check for status updates every 1 second
+task = await myService.mrsNotes.noteUpdate.start({ noteId: note.id, title: "hello world" }, { refreshRate: 1000 });
+// cancel the execution after 5 seconds
+task = await myService.mrsNotes.noteUpdate.start({ noteId: note.id, title: "hello world" }, { timeout: 5000 });
 ```
 
 ## Task
 
 ### watch
 
-`watch` is used to monitor the status of a REST routine (`FUNCTION` or `PROCEDURE`) with an associated Async Task. The first and only parameter of the command is an `object` that contains customizable monitoring options.
-
-#### Options (watch)
-
-| Name | Type | Required | Description
-|---|---|---|---
-| refreshRate | number (>=500) | No | Time (ms) to wait for retrieving the next progress report.
-
-: Task Options (watch)
+`watch` is used to monitor the status of a REST routine (`FUNCTION` or `PROCEDURE`) with an associated Async Task.
 
 #### Return Type (watch)
 
@@ -862,13 +874,9 @@ An [AsyncGenerator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 #### Reference (watch)
 
 ```TypeScript
-async function watch(params?: IMrsTaskWatchOptions): AsyncGenerator<
+async function watch(): AsyncGenerator<
     IMrsTaskReport<object, IMrsProcedureResult<IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>>> {
     // ...
-}
-
-interface IMrsTaskWatchOptions {
-    refreshRate?: number;
 }
 
 type IMyServiceMrsNotesNoteUpdateParamsOut = never;
@@ -888,7 +896,7 @@ interface IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult> {
 }
 
 interface IMrsCompletedTaskReport<MrsTaskStatusUpdate, MrsTaskResult> {
-    result: MrsTaskResult;
+    data: MrsTaskResult;
     status: "COMPLETED";
     message: string;
 }
@@ -898,9 +906,22 @@ interface IMrsCancelledTaskReport<MrsTaskStatusUpdate, MrsTaskResult> {
     message: string;
 }
 
-type IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult> = IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult> |
-    IMrsCompletedTaskReport<MrsTaskStatusUpdate, MrsTaskResult> |
-    IMrsCancelledTaskReport<MrsTaskStatusUpdate, MrsTaskResult>;
+interface IMrsErrorTaskReport<MrsTaskStatusUpdate, MrsTaskResult> {
+    status: "ERROR";
+    message: string;
+}
+
+interface IMrsTimedOutTaskReport<MrsTaskStatusUpdate, MrsTaskResult> {
+    status: "TIMEOUT";
+    message: string;
+}
+
+type IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult> =
+    IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    | IMrsCompletedTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    | IMrsCancelledTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    | IMrsErrorTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
+    | IMrsTimedOutTaskReport<MrsTaskStatusUpdate, MrsTaskResult>;
 ```
 
 #### Example (watch)
@@ -914,14 +935,12 @@ const myService = new MyService();
 const task = await myService.mrsNotes.noteUpdate.start({ noteId: note.id, title: "hello world" });
 
 // assuming it is a long-running operation, watch for status updates
-try {
-    for await (const report of task.watch()) {
-        if (report.status === "RUNNING") {
-            console.log(report.progress);
-        }
+for await (const report of task.watch()) {
+    if (report.status === "RUNNING") {
+        console.log(report.progress);
+    } else if (report.status === "ERROR") {
+        console.log(report.message);
     }
-} catch (err) {
-    // catch errors produced by the task or by the routine itself
 }
 ```
 
@@ -944,20 +963,15 @@ import { MyService } from './myService.mrs.sdk/myService';
 
 const myService = new MyService();
 
-// update the title of a note with a given id
-const task = await myService.mrsNotes.noteUpdate.start({ noteId: note.id, title: "hello world" });
-const startedAt = Date.now();
+// update the title of a note with a given id, kill the task if it takes more than 10 seconds to finish
+const task = await myService.mrsNotes.noteUpdate.start({ noteId: note.id, title: "hello world" }, { timeout: 10000 });
 
-try {
-    // assuming it is a long-running operation, kill the task if it takes more than 10 seconds to finish
-    for await (const report of task.watch()) {
-        if (report.status === "RUNNING" && Date.now() - startedAt > 10000) {
-            await task.kill();
-        } else if (report.status === "CANCELLED") {
-            console.log(report.message);
-        }
+// assuming it is a long-running operation, kill the task if it takes more than 10 seconds to finish
+for await (const report of task.watch()) {
+    if (report.status === "TIMEOUT") {
+        await task.kill();
+    } else if (report.status === "CANCELLED") {
+        console.log(report.message);
     }
-} catch (err) {
-    // stop the generator and catch errors produced by the task or by the routine itself
 }
 ```

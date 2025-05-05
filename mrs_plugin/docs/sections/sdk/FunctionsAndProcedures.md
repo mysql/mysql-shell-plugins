@@ -76,12 +76,10 @@ Additionally, the SDK produces a `start()` command, which starts the task and al
 Starting the task and cancelling it if takes longer than a specified amount of time to finish can be done, in TypeScript, as follows:
 
 ```TypeScript
-const task = myService.sakila.inventoryInStock.start({ pInventoryId: 1 });
-const startedAt = Date.now();
-const timeout = 10000; // 10 seconds
+const task = myService.sakila.inventoryInStock.start({ pInventoryId: 1 }, { timeout: 10000 });
 
-for await (const report = task.watch()) {
-  if (report.status === "RUNNING" && Date.now() - startedAt > timeout) {
+for await (const report of task.watch()) {
+  if (report.status === "TIMEOUT") {
     await task.kill();
   } else if (report.status === "CANCELLED") {
     // this block is executed after the task is killed
@@ -95,9 +93,9 @@ Getting the actual result produced by the REST routine can be done as follows:
 ```TypeScript
 const task = myService.sakila.inventoryInStock.start({ pInventoryId: 1 });
 
-for await (const report = task.watch()) {
+for await (const report of task.watch()) {
   if (report.status === "COMPLETED") {
-    console.log(report.result); // true
+    console.log(report.data); // true
   }
 }
 ```
