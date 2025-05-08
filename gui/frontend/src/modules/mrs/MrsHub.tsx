@@ -190,7 +190,7 @@ export class MrsHub extends ComponentBase {
                 } else {
                     // If the metadata schema is configured, update the config and perform updates if requested
                     await backend.mrs.configure(data.enabled, data.performUpdate ?? false, JSON.stringify(data.options),
-                        data.version);
+                        data.version, connection.details.isCloudInstance ? "HeatWave" : undefined);
                 }
             } finally {
                 statusBarItem.dispose();

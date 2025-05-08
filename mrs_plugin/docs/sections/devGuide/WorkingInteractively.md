@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -65,7 +65,7 @@ ts> mrs.getStatus();
 }
 ```
 
-Once a current REST service is set, the [MRS TypeScript Client API](sdk.html) for this service is automatically generated on-the-fly and made available to TypeScript code blocks on the DB Notebooks.
+Once a current REST service is set, the [MRS TypeScript Client API](sdk.html#document-top) for this service is automatically generated on-the-fly and made available to TypeScript code blocks on the DB Notebooks.
 
 The current REST service object be directly accessed via a global variable using the same name as listed by the `mrs.getStatus()` function in the `serviceName` property. The `serviceName` is directly derived from the REST service's `url context root` path by converting it to `camel case` and removing all slashes `/`. E.g. a REST service with the `url context root` of `/myService` will be accessible as `myService`.
 
@@ -133,7 +133,7 @@ ts> myService.sakila.city.findFirst();
 }
 ```
 
-The fields can be filtered and a conditional `where` clause can be added. Please refer to the [MRS SDK Client API](sdk.html) documentation for more information.
+The fields can be filtered and a conditional `where` clause can be added. Please refer to the [MRS SDK Client API](sdk.html#document-top) documentation for more information.
 
 ```ts
 ts> myService.sakila.city.findMany({select: ["city", "cityId"], where: {city: {$like: "NE%"}}});

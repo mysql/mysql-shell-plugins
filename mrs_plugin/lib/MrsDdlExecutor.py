@@ -340,9 +340,9 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     "line": mrs_object.get("line"),
                     "type": "success",
                     "message": (
-                        f"REST metadata updated successfully."
+                        f"REST metadata configured successfully."
                         if (status.get("schema_changed", False) is True)
-                        else f"REST Metadata configured successfully."
+                        else f"REST Metadata updated successfully."
                     ),
                     "operation": self.current_operation,
                     "executionTime": timer.elapsed(),
