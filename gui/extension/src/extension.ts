@@ -353,6 +353,8 @@ export const activate = (context: ExtensionContext): void => {
         const extensionShellDir = join(context.extensionPath, "shell");
         const extensionRouterDir = join(context.extensionPath, "router");
 
+        outputChannel.appendLine(`Performing extension update to ${currentVersion}.`);
+
         // Reset extended attributes on macOS
         if (osName === "darwin") {
             if (existsSync(extensionShellDir)) {
@@ -398,16 +400,21 @@ export const activate = (context: ExtensionContext): void => {
                 // Create a direct link to the mysqlsh binary in the shell extension folder on MacOS/Linux
                 const mysqlshLinkPath = join(shellHomeDir, "mysqlsh");
                 const mysqlRouterLinkPath = join(shellHomeDir, "mysqlrouter");
-                if (existsSync(mysqlshLinkPath)) {
+                try {
                     unlinkSync(mysqlshLinkPath);
+                } catch {
+                    // Remove existing symlink in any case
                 }
-                if (existsSync(mysqlRouterLinkPath)) {
+                try {
                     unlinkSync(mysqlRouterLinkPath);
+                } catch {
+                    // Remove existing symlink in any case
                 }
                 symlinkSync(join(extensionShellDir, "bin", "mysqlsh"), mysqlshLinkPath, "file");
                 if (existsSync(extensionRouterDir)) {
                     symlinkSync(join(extensionRouterDir, "bin", "mysqlrouter"), mysqlRouterLinkPath, "file");
                 }
+                outputChannel.appendLine(`Updated symlinks to MySQL Shell and Router binaries in "${shellHomeDir}".`);
             } else {
                 // Create a mysqlsh.bat that calls the mysqlsh binary located in the shell extension folder on Windows
                 let shellBatFilePath = join(shellHomeDir, "mysqlsh.bat");
@@ -427,12 +434,19 @@ export const activate = (context: ExtensionContext): void => {
 
                 // Link the shell home folder as .mysqlsh-gui into the user's home folder to mimic MacOS/Linux
                 const shellUserHomeDir = join(homedir(), ".mysqlsh-gui");
-                if (existsSync(shellUserHomeDir)) {
+                try {
                     unlinkSync(shellUserHomeDir);
+                } catch {
+                    // Remove existing symlink in any case
                 }
                 symlinkSync(shellHomeDir, shellUserHomeDir, "junction");
+
+                outputChannel.appendLine(
+                    `Updated batch file wrappers for MySQL Shell and Router binaries in "${shellUserHomeDir}".`);
             }
         }
+    } else {
+        outputChannel.appendLine(`Starting extension version ${currentVersion}.`);
     }
 
     // Check if this is the initial run of the MySQL Shell extension after installation
