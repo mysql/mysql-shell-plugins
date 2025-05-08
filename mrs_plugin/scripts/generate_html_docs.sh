@@ -14,12 +14,18 @@ cd $ROOTPATH/docs
 
 # Generate the docs
 echo "Generating HTML docs ..."
-pandoc index.md -f markdown -t html -s -o $ROOTPATH/docs/index.html --template=$ROOTPATH/docs/templates/mysql_docs.html --toc --toc-depth=2 --metadata title="MRS Developer's Guide" --variable=template_css:style/style.css --filter pandoc-include --number-sections -V version="$version"
-pandoc restApi.md -f markdown -t html -s -o $ROOTPATH/docs/restApi.html --template=$ROOTPATH/docs/templates/mysql_docs.html --toc --toc-depth=2 --metadata title="MRS Core REST APIs" --variable=template_css:style/style.css --filter pandoc-include --number-sections -V version="$version"
-pandoc sdk.md -f markdown -t html -s -o $ROOTPATH/docs/sdk.html --template=$ROOTPATH/docs/templates/mysql_docs.html --toc --toc-depth=2 --metadata title="MRS SDK Reference" --variable=template_css:style/style.css --filter pandoc-include --number-sections -V version="$version"
-pandoc sql.md -f markdown -t html -s -o $ROOTPATH/docs/sql.html --template=$ROOTPATH/docs/templates/mysql_docs.html --toc --toc-depth=2 --metadata title="MRS SQL Reference" --variable=template_css:style/style.css --filter pandoc-include --number-sections -V version="$version"
+pandoc index.md -f markdown -t html -s -o $ROOTPATH/docs/index.html --template=$ROOTPATH/docs/templates/mysql_docs.html --toc --toc-depth=2 --metadata title="MySQL REST Service - Reference Manual" --variable=template_css:style/style.css --filter pandoc-include --number-sections -V version="$version"
+pandoc quickstart.md -f markdown -t html -s -o $ROOTPATH/docs/quickstart.html --template=$ROOTPATH/docs/templates/mysql_docs.html --toc --toc-depth=2 --metadata title="MySQL REST Service - Quickstart Guide" --variable=template_css:style/style.css --filter pandoc-include --number-sections -V version="$version"
+pandoc restApi.md -f markdown -t html -s -o $ROOTPATH/docs/restApi.html --template=$ROOTPATH/docs/templates/mysql_docs.html --toc --toc-depth=2 --metadata title="MySQL REST Service - Core REST APIs" --variable=template_css:style/style.css --filter pandoc-include --number-sections -V version="$version"
+pandoc sdk.md -f markdown -t html -s -o $ROOTPATH/docs/sdk.html --template=$ROOTPATH/docs/templates/mysql_docs.html --toc --toc-depth=2 --metadata title="MySQL REST Service - SDK Reference" --variable=template_css:style/style.css --filter pandoc-include --number-sections -V version="$version"
+pandoc sql.md -f markdown -t html -s -o $ROOTPATH/docs/sql.html --template=$ROOTPATH/docs/templates/mysql_docs.html --toc --toc-depth=2 --metadata title="MySQL REST Service - SQL Reference" --variable=template_css:style/style.css --filter pandoc-include --number-sections -V version="$version"
 
 echo "Generating Accessibility docs ..."
 pandoc index_one_page.md -f markdown -t html -s -o $ROOTPATH/docs/index_one_page.html --template=$ROOTPATH/docs/templates/mysql_docs_one_page.html --toc --toc-depth=2 --metadata title="MySQL REST Service - Reference Manual" --variable=template_css:style/style_one_page.css --filter pandoc-include --number-sections -V version="$version"
 
 sed -i '' 's#".*\.\.\/docs\/#".\/#g' $ROOTPATH/docs/index.html
+
+# Fix one-page links
+
+sed -i '' 's/sql\.html//g' $ROOTPATH/docs/index_one_page.html
+sed -i '' 's/sdk\.html//g' $ROOTPATH/docs/index_one_page.html

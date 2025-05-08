@@ -57,7 +57,7 @@ export class ShellInterfaceMrs {
     }
 
     public async configure(enableMrs?: boolean, updateIfAvailable?: boolean, options?: string,
-        version?: string): Promise<void> {
+        version?: string, edition?: string): Promise<void> {
         await MessageScheduler.get.sendRequest({
             requestType: ShellAPIMrs.MrsConfigure,
             parameters: {
@@ -67,6 +67,7 @@ export class ShellInterfaceMrs {
                     updateIfAvailable,
                     options,
                     version,
+                    edition,
                 },
             },
             caseConversionIgnores: ["options"],

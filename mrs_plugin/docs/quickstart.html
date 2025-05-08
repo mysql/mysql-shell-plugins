@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.-->
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MySQL REST Service - Quickstart Guide</title>
+    <link rel="shortcut icon" href="images/favicon.png" type="image/x-icon">
+        <link rel="stylesheet" href="style/style.css">
+                <!-- cSpell:ignore pagetitle -->
+    <title>MySQL REST Service - Quickstart Guide</title>
+    <style type="text/css">
+        code {
+            white-space: pre;
+        }
+    </style>
+        <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            window.visibleItems = [];
+            window.lastVisible = null;
+            const observer = new IntersectionObserver((entries) => {
+                // Add active css class to first match
+                entries.forEach((entry) => {
+                    const id = entry.target.getAttribute('id');
+                    const querySel = document.querySelector(`nav li a[href="#` + id + `"]`);
+                    if (querySel) {
+                        const el = querySel.parentElement;
+                        if (entry.isIntersecting) {
+                            if (!window.visibleItems.includes(el)) {
+                                if (window.visibleItems.length === 0 && window.lastVisible !== null) {
+                                    window.lastVisible.classList.remove('active');
+                                    window.lastVisible = el;
+                                }
+                                if (window.lastVisible === null) {
+                                    window.lastVisible = el;
+                                }
+                                window.visibleItems.push(el);
+                            }
+                            if (!el.classList.contains('active')) {
+                                el.classList.add('active');
+                            }
+                            history.pushState({}, "", "#" + id);
+                        } else {
+                            if (window.visibleItems.includes(el)) {
+                                if (window.visibleItems.length === 1) {
+                                    window.lastVisible = el;
+                                } else {
+                                    el.classList.remove('active');
+                                }
+                                const index = window.visibleItems.indexOf(el);
+                                if (index > -1) {
+                                    window.visibleItems.splice(index, 1);
+                                }
+                                if (window.lastVisible === el && window.visibleItems.length > 0) {
+                                    window.lastVisible === window.visibleItems[0];
+                                }
+                            }
+                        }
+                    }
+                });
+            }/*, { threshold: 0.1, rootMargin: '0px 0px -100% 0px', root: document.body }*/);
+            // Track all h that have an `id` applied
+            document.querySelectorAll('.content h1[id],h2[id]').forEach((section) => {
+                observer.observe(section);
+            });
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+
+            if (typeof acquireVsCodeApi === "function") {
+                document.vscode = acquireVsCodeApi();
+
+                const addVsCodeDecorations = () => {
+                    const addVsActionBtn = (e, command, caption) => {
+                        const d = document.createElement("button");
+
+                        d.innerHTML = '<i class="arrow right"></i><p>' + caption + '</p>';
+                        d.onclick = () => {
+                            document.vscode.postMessage({ command, path: e.innerHTML });
+                        }
+                        e.parentNode.insertBefore(d, e.nextSibling)
+                    }
+
+                    document.querySelectorAll("code").forEach((e) => {
+                        if (e.innerHTML.endsWith(".sql")) {
+                            addVsActionBtn(e, "openSqlFile", "Open in MySQL Shell");
+                        } else if (e.innerHTML.endsWith(".mrs.json")) {
+                            addVsActionBtn(e, "loadMrsDump", "Load MRS Dump");
+                        } else if (e.innerHTML.startsWith("VSCodeProject:") > 0) {
+                            e.innerHTML = e.innerHTML.slice("VSCodeProject:".length);
+                            addVsActionBtn(e, "saveProject", "Save Project");
+                        }
+                    });
+                }
+
+                addVsCodeDecorations();
+            } else {
+                document.querySelectorAll("code").forEach((e) => {
+                    if (e.innerHTML.startsWith("VSCodeProject:") > 0) {
+                        e.innerHTML = e.innerHTML.slice("VSCodeProject:".length);
+                    }
+                });
+            }
+        });
+
+        // Handle the message inside the webview
+        window.addEventListener('message', event => {
+
+            const message = event.data; // The JSON data our extension sent
+
+            switch (message.command) {
+                case 'goToId':
+                    if (message.id) {
+                        window.location = "#" + message.id;
+                    }
+
+                    break;
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <div class="page">
+        <div class="sidebar">
+            <div class="bookOverview">
+                <h1>MySQL REST Service</h1>
+                <h2>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="index.html#document-top">Reference Manual</a>
+                </h2>
+                <!--<h2>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="quickstart.html#document-top">Quickstart Guide</a>
+                </h2>-->
+                <h2>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="sql.html#document-top">SQL Reference</a>
+                </h2>
+                <h2>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="restApi.html#document-top">Core REST APIs</a>
+                </h2>
+                <h2>
+                    <div class="icon bookIcon"></div>&nbsp;<a href="sdk.html#document-top">SDK Reference</a>
+                </h2>
+            </div>
+            <div class="sidebarContent">
+                <nav class="section-nav">
+                    <div class="bookToc">
+                        <br>
+                        <h3>MySQL REST Service - Quickstart
+Guide 1.19.10+9.3.1</h3>
+                                                <ul>
+                                                <li><a
+                                                href="#quickstart-introduction"
+                                                id="toc-quickstart-introduction"><span
+                                                class="toc-section-number">1</span>
+                                                Quickstart
+                                                Introduction</a></li>
+                                                <li><a
+                                                href="#setting-up-the-mysql-rest-service"
+                                                id="toc-setting-up-the-mysql-rest-service"><span
+                                                class="toc-section-number">2</span>
+                                                Setting up the MySQL
+                                                REST Service</a></li>
+                                                <li><a
+                                                href="#using-the-rest-sql-extension-to-define-rest-endpoints"
+                                                id="toc-using-the-rest-sql-extension-to-define-rest-endpoints"><span
+                                                class="toc-section-number">3</span>
+                                                Using the REST SQL
+                                                extension to define REST
+                                                endpoints</a></li>
+                                                <li><a
+                                                href="#using-the-mysql-shell-for-vs-code-extension"
+                                                id="toc-using-the-mysql-shell-for-vs-code-extension"><span
+                                                class="toc-section-number">4</span>
+                                                Using the MySQL Shell
+                                                for VS Code
+                                                extension</a></li>
+                                                <li><a
+                                                href="#accessing-the-rest-endpoints"
+                                                id="toc-accessing-the-rest-endpoints"><span
+                                                class="toc-section-number">5</span>
+                                                Accessing the REST
+                                                endpoints</a></li>
+                                                </ul>
+                                            </div>
+                </nav>
+            </div>
+        </div>
+        <div class="content">
+            <div class="header" id="document-top">
+                <h1>
+                    <div class="iconBig bookIcon"></div>&nbsp;MySQL REST
+Service - Quickstart Guide
+                </h1>
+            </div>
+            <div class="main">
+                <p>This book provides a hands-on approach to learning
+                how to use the MySQL REST service. It shows how to set
+                up and work with REST endpoints for MySQL database
+                objects.</p>
+                <p><strong>Chapter Overview</strong></p>
+                <ul>
+                <li><a href="#introduction">What is the MySQL REST
+                Service</a></li>
+                <li><a href="#setup">Setting up the MySQL REST
+                Service</a></li>
+                <li><a href="#restSql">Using the REST SQL extension to
+                define REST endpoints</a></li>
+                <li><a href="#shellUi">Using the MySQL Shell for VS Code
+                extension</a></li>
+                <li><a href="#restEndpoints">Accessing the REST
+                endpoints</a></li>
+                </ul>
+                <hr />
+                <p>Please also see</p>
+                <ul>
+                <li><strong><a href="index.html">MySQL REST Service -
+                Reference Manual</a></strong> - This book contains the
+                documentation for the MySQL REST Service (MRS).</li>
+                <li><strong><a href="restApi.html">MySQL REST Service -
+                Core REST APIs</a></strong> - This book provides
+                examples of using the MySQL REST Service queries and
+                other operations against tables and views after you have
+                REST-enabled them.</li>
+                <li><strong><a href="sql.html">MySQL REST Service - SQL
+                Reference</a></strong> - This book discusses the MySQL
+                REST Service SQL Extension.</li>
+                <li><strong><a href="sdk.html">MySQL REST Service - SDK
+                Reference</a></strong> - This book explains how to work
+                with the MRS Software Development Kit and discusses the
+                Client APIs.</li>
+                </ul>
+                <hr />
+                <!-- Copyright (c) 2025, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is designed to work with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have either included with
+                the program or referenced in the documentation.
+
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="1" id="quickstart-introduction"><span
+                class="header-section-number">1</span> Quickstart
+                Introduction</h1>
+                <p>Welcome to the MySQL REST Service (MRS). It provides
+                a fast and powerful way to serve JSON documents to
+                client applications via a HTTPS REST interface.</p>
+                <p>To learn more about the MySQL REST Service please
+                check out the <a
+                href="index.html#introduction">Developer Guide</a></p>
+                <!-- Copyright (c) 2025, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is designed to work with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have either included with
+                the program or referenced in the documentation.
+
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="2"
+                id="setting-up-the-mysql-rest-service"><span
+                class="header-section-number">2</span> Setting up the
+                MySQL REST Service</h1>
+                <p>Tbd.</p>
+                <!-- Copyright (c) 2025, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is designed to work with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have either included with
+                the program or referenced in the documentation.
+
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="3"
+                id="using-the-rest-sql-extension-to-define-rest-endpoints"><span
+                class="header-section-number">3</span> Using the REST
+                SQL extension to define REST endpoints</h1>
+                <p>Tbd.</p>
+                <!-- Copyright (c) 2025, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is designed to work with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have either included with
+                the program or referenced in the documentation.
+
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="4"
+                id="using-the-mysql-shell-for-vs-code-extension"><span
+                class="header-section-number">4</span> Using the MySQL
+                Shell for VS Code extension</h1>
+                <p>Tbd.</p>
+                <!-- Copyright (c) 2025, Oracle and/or its affiliates.
+
+                This program is free software; you can redistribute it and/or modify
+                it under the terms of the GNU General Public License, version 2.0,
+                as published by the Free Software Foundation.
+
+                This program is designed to work with certain software (including
+                but not limited to OpenSSL) that is licensed under separate terms, as
+                designated in a particular file or component or in included license
+                documentation.  The authors of MySQL hereby grant you an additional
+                permission to link the program and your derivative works with the
+                separately licensed software that they have either included with
+                the program or referenced in the documentation.
+
+                This program is distributed in the hope that it will be useful,  but
+                WITHOUT ANY WARRANTY; without even the implied warranty of
+                MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+                the GNU General Public License, version 2.0, for more details.
+
+                You should have received a copy of the GNU General Public License
+                along with this program; if not, write to the Free Software Foundation, Inc.,
+                51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+                <h1 data-number="5"
+                id="accessing-the-rest-endpoints"><span
+                class="header-section-number">5</span> Accessing the
+                REST endpoints</h1>
+                <p>Tbd.</p>
+                <p>Copyright (c) 2025, Oracle and/or its affiliates.</p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

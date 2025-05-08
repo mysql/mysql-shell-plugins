@@ -1,8 +1,8 @@
 ---
-title: MySQL REST Service - Developer's Guide
+title: MySQL REST Service - Reference Manual
 ---
 
-This book explains how to install and configure the MySQL REST Service (MRS) as well as how to access the data through REST calls.
+This book contains the documentation for the MySQL REST Service (MRS).
 
 __Chapter Overview__
 
@@ -28,7 +28,7 @@ Please also see
 
 !include sections/devGuide/Introduction.md
 
-!include sections/devGuide/DeploymentArchitecture.md
+!include sections/devGuide/Architecture.md
 
 !include sections/devGuide/Configuration.md
 

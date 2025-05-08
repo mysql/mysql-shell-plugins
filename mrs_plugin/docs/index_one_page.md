@@ -7,7 +7,7 @@ title: MySQL REST Service - Reference Manual
 This book explains how to install and configure the MySQL REST Service (MRS) as well as how to access the data through REST calls.
 
 - [MRS Introduction](#introduction-to-the-mysql-rest-service)
-- [MRS Deployment Architecture](#deployment-architecture)
+- [MRS Deployment Architecture](#architecture)
 - [MRS Configuration](#configuring-mysql-rest-service)
 - [Adding REST Services and Database Objects](#adding-rest-services-and-database-objects)
 - [GUI Interfaces for REST Service Configuration](#working-interactively-with-rest-services)
@@ -70,7 +70,7 @@ This document explains how to work with the MRS Software Development Kit and dis
 
 !include sections/devGuide/Introduction.md
 
-!include sections/devGuide/DeploymentArchitecture.md
+!include sections/devGuide/Architecture.md
 
 !include sections/devGuide/Configuration.md
 

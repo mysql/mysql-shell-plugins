@@ -167,11 +167,11 @@ describe("MySQL REST Service", () => {
                     await Misc.switchToFrame();
                     const titles = await driver.findElements(locator.mrsDocumentation.title);
                     for (const title of titles) {
-                        if ((await title.getText()).includes("MRS Developer's Guide")) {
+                        if ((await title.getText()).includes("MySQL REST Service - Reference Manual")) {
                             return true;
                         }
                     }
-                }, constants.wait1second * 5, "Could not find the title 'MRS Developer's Guide'");
+                }, constants.wait1second * 5, "Could not find the title 'MySQL REST Service - Reference Manual'");
             } finally {
                 await Workbench.closeEditor(new RegExp(constants.mrsDocs));
             }

@@ -682,7 +682,7 @@ The `CREATE REST DATA MAPPING VIEW` statement is used to add REST endpoints for 
 
 The structure of the served JSON documents is defined using an [extended GraphQL syntax](#defining-the-graphql-definition-for-a-rest-view). This allows to define even complex REST data mapping views in a simple and human readable way. Please see the corresponding [GraphQL section](#defining-the-graphql-definition-for-a-rest-view) about how to design the GraphQL definition for a REST data mapping view.
 
-Please see the MRS Developer's Guide to learn more about [JSON data mapping views](index.html#json-data-mapping-views).
+Please see the MRS Reference Manual to learn more about [JSON data mapping views](index.html#json-data-mapping-views).
 
 **_SYNTAX_**
 
