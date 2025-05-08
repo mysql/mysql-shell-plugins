@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -21,7 +21,39 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
 
-# Deployment Architecture
+# Architecture
+
+## Building Blocks
+
+The MySQL REST Service consists of the following components:
+
+- A MySQL Solution (Heatwave, MySQL InnoDB ClusterSet, a standalone MySQL Server, etc.)
+  - Serving a metadata schema `mysql_rest_service_metadata` that holds the MRS configuration.
+  - Serving the REST applications' data.
+- MySQL Router
+  - One or many MySQL Router instances to serve the HTTPS REST interface.
+  - Either running in developer or production mode.
+- MySQL Shell / MySQL Shell for VS Code
+  - Support for the REST SQL extension, to configure and manage REST endpoints via REST SQL commands.
+  - Support for managing MRS through a graphical user interface (GUI) embedded inside VS Code.
+  - Generation of Client SDKs for given REST service.
+
+## Development Setup
+
+When working with the MySQL REST Service it is important to separate between two different types of setups.
+
+1. A local development setup used to develop new REST services.
+   - A local MySQL Shell installation to connect to and execute REST SQL extension commands.
+   - A local MySQL Router installation, running in developer mode.
+2. The production deployment that serves REST services that have been published.
+   - The MySQL solution serving the metadata schema as well as the REST applications' data.
+   - MySQL Router instance(s) running in production mode.
+
+Each of those setups serves a different set of REST services, depending on the REST services' current [lifecycle](#rest-service-lifecycle-management) states.
+
+The recommended way to configure a MySQL REST Service development setup is to use [VS Code](https://code.visualstudio.com/) or [VSCodium](https://vscodium.com/) with the [MySQL Shell for VS Code](https://marketplace.visualstudio.com/items?itemName=Oracle.mysql-shell-for-vs-code) extension installed. This will simplify things like HTTPS certificate installation and bootstrapping the MySQL Router in development mode.
+
+## Production Deployments
 
 MySQL REST Service (MRS) can be deployed in many different ways depending on the individual project requirements.
 

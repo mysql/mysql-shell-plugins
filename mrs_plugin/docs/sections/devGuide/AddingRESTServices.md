@@ -23,13 +23,31 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 # Adding REST Services and Database Objects
 
-MRS supports the setup of a large number individual REST services.
+The MySQL REST Service supports the creation of a large number individual REST services.
 
-Each REST service has its own settings for URL path, host name, supported protocols, authentication options, and other settings. A service can expose a selected list of database schemas and objects.
+Each REST service has its own settings for URL path, authentication options, and other settings. A REST service can expose a selected list of REST schemas and REST objects, mapping to database schemas and objects.
 
-It is possible to perform an individual setup for each application and it is advised to setup an separate REST service for each application.
+It is advised to setup an separate REST service for each application that consumes a set of REST endpoints.
 
-**_Preconditions for Adding a REST Service_**
+## REST Service Lifecycle Management
+
+REST services can be placed in a number of different states during their lifecycle.
+
+### Development State
+
+When a new REST service is created, it will be only visible to developers. During this development state, REST schemas and object can be added, privileges be granted, the REST endpoints can be tested.
+
+In order to access the REST services in development state, a MySQL Router instance needs to be bootstrapped in developer mode. This type of setup is called a [MySQL REST Service development setup](#development-setup).
+
+### Published State
+
+Once a REST service is ready to be published, the corresponding flag can be set on the REST service. This makes the REST service accessible by all authenticated clients.
+
+### Disabled State
+
+Should a REST service be retired, it can be disabled by setting the corresponding flag on the REST service.
+
+## Preconditions for Adding a REST Service
 
 Before setting up a new REST service, ensure that the following preconditions are met:
 

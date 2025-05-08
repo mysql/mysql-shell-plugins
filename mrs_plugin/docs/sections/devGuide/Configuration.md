@@ -57,7 +57,7 @@ Note: The MySQL user that is used to connect to the MySQL Solution must have MyS
 
 ### MRS Configuration Using MySQL Shell for VS Code
 
-1. Start VS Code, install the MySQL Shell for VS Code extension, and then add a database connection to the MySQL setup.
+1. Start VS Code, install the MySQL Shell for VS Code extension, and then add a DB Connection to the MySQL solution that should be configured for the MySQL REST Service.
 
 2. Right-click the connection in the DATABASE CONNECTIONS view and select Configure Instance for MySQL REST Service Support.
 
@@ -67,24 +67,135 @@ The MRS metadata schema has now been configured.
 
 ### MRS Configuration Using MySQL Shell
 
-Open a terminal, start MySQL Shell, and connect to the MySQL setup.
+The MySQL REST Service metadata schema can be configured from the MySQL Shell on the command line after connecting to the MySQL solution.
+
+Please note that a MySQL user with `ALL PRIVILEGES` and `WITH GRANT OPTION` needs to be used to configure the MySQL REST Service metadata schema. It is common practice to use the `root` MySQL user or a dedicated `dba` MySQL user to perform this operation.
+
+To configure the metadata schema the REST SQL extension [`CONFIGURE REST METADATA` statement](sql.html#configure-rest-metadata) is used.
+
+**_Example_**
+
+The following example connects to a local MySQL Server instance using a `dba` MySQL user account and configures the MySQL REST Service metadata schema.
 
 ```bash
-mysqlsh dba@localhost
+$ mysqlsh dba@localhost
+MySQL Shell 9.3.0
+
+MySQL> localhost:3306> SQL> CONFIGURE REST METADATA;
+Query OK, 0 rows affected (0.3998 sec)
+REST metadata configured successfully.
 ```
 
-Configure the metadata schema using the MRS plugin by executing `mrs.configure()`.
+After executing the `CONFIGURE REST METADATA` statement the MRS metadata schema has now been configured.
+
+### Removing the MRS Metadata Schema
+
+If the MySQL REST Service support should be removed, the MySQL REST Service metadata schema can be dropped using the `DROP SCHEMA mysql_rest_service_metadata;` statement.
+
+Please note that a MySQL user account with required privileges to drop the `mysql_rest_service_metadata` has to be used.
+
+**_Example_**
+
+The following example connects to a local MySQL Server instance using a `dba` MySQL user account and drops the MySQL REST Service metadata schema.
 
 ```bash
-MySQL> localhost:33060+> JS> mrs.configure()
-MySQL Rest Data Service configuration.
+$ mysqlsh dba@localhost
+MySQL Shell 9.3.0
 
-Checking MRS metadata schema and version...
-Creating MRS metadata schema...
-The MRS metadata is well configured, no changes performed.
+MySQL> localhost:3306> SQL> DROP SCHEMA mysql_rest_service_metadata;
+Query OK, 38 rows affected (0.0770 sec)
 ```
 
-The MRS metadata schema has now been configured.
+## Granting Users Access to the MySQL REST Service
+
+After the MySQL REST Service metadata schema has been configured, access to this schema needs to be granted to all MySQL users who should be able to work with the MySQL REST Service.
+
+In addition, access to application data which should be exposed via REST endpoints needs to be granted to MRS data provider role. This will allow the MySQL REST Service to serve the required data.
+
+### MRS User Roles
+
+The MySQL REST Service supports a multi-tiered access model that allows the correct role to be assigned to each MySQL users working with the service.
+
+The following MySQL roles can be assigned to MySQL user accounts.
+
+| Access Level | MySQL Role Name | Description
+| --- | --- | -----
+| Root | - | MySQL Users with `ALL PRIVILEGES`, like the MySQL default `root` user, have full access to all features
+| REST Service Admin | `mysql_rest_service_admin` | MySQL users that are granted the 'mysql_rest_service_admin' role have full access to all features
+| REST Schema Admin | `mysql_rest_service_schema_admin` | The 'mysql_rest_service_schema_admin' role allows MySQL users to add new REST schemas and endpoints to an existing REST service
+| REST Service Developer | `mysql_rest_service_dev` | REST Service Developers are allowed to define new REST endpoints for existing REST schemas
+| REST Service User | `mysql_rest_service_user` | Any MySQL user that should be able to access REST endpoints needs to be granted the 'mysql_rest_service_user' role.
+
+: MRS User Roles
+
+The MySQL [GRANT](https://dev.mysql.com/doc/refman/en/grant.html) statement can be used to assign the given MySQL role to a MySQL user.
+
+Please note that the MySQL role needs to be made active for the MySQL user's current session. This can be done by using the MySQL [SET ROLE](https://dev.mysql.com/doc/refman/en/set-role.html) statement. To properly work with the MySQL Shell for VS Code extension, the MySQL role needs to included in the MySQL user's DEFAULT roles, that can be set via the [SET DEFAULT ROLE](https://dev.mysql.com/doc/refman/en/set-default-role.html) statement.
+
+**_Example_**
+
+The following example [GRANTs](https://dev.mysql.com/doc/refman/en/grant.html) the `mysql_rest_service_admin` role to the `dba` MySQL user and ensures all MySQL roles, including the new `mysql_rest_service_admin` role, are made active when the MySQL user connects.
+
+```bash
+MySQL> localhost:3306> SQL> GRANT 'mysql_rest_service_admin' TO 'dba'@'%';
+Query OK, 0 rows affected (0.0010 sec)
+MySQL> localhost:3306> SQL> SET DEFAULT ROLE ALL TO 'dba'@'%';
+Query OK, 0 rows affected (0.0012 sec)
+```
+
+### MRS Provider Roles
+
+In addition to the MRS user roles outline above, two additional roles are part of the MySQL REST Service. They are used by the actual MySQL Router/Server MRS components to operate the MySQL REST Service.
+
+| Access Level | MySQL Role Name | Description
+| --- | --- | -----
+| Metadata Schema Read-Only | `mysql_rest_service_meta_provider` | The metadata provide role is used by the MySQL Router/Server MRS component to identify the REST services that need to be served.
+| Application Data Access | `mysql_rest_service_data_provider` | The data provide role is used by the MySQL Router/Server MRS component to read(/write) the application data that should be served by the REST services. This applies to all REST users authenticated via the 'MRS' `REST AUTH VENDOR` as well as all OAuth2 vendors. REST Users authenticated via the 'MySQL Internal' vendor use their own privileges.
+
+: MRS Provider Roles
+
+When a REST endpoint has been defined, it is essential to ensure the required privileges to access the database schema objects have been granted to the `mysql_rest_service_data_provider` role.
+
+- For REST views exposing a database table or view, the required privileges are automatically granted.
+- For REST procedures and REST functions the `EXECUTE` privilege is automatically granted. Should the database procedure access other procedures or schema objects, a manual GRANT statement for the `mysql_rest_service_data_provider` role needs to be executed.
+
+**_Example_**
+
+The following example shows how to expose a database procedure `test.my_procedure` that calls a nested database procedure `test.my_sub_procedure`.
+
+The SQL script first creates the two procedures and then defines the `/myService/test/myProcedure` REST endpoint. The `EXECUTE` privilege on `test.my_procedure` is automatically assigned. But the REST endpoint would still raise an error as it misses the `EXECUTE` privilege on `test.my_sub_procedure`.
+
+Finally, the `GRANT` statement assigns the `EXECUTE` privilege on the `test.my_sub_procedure` to the `mysql_rest_service_data_provider` role. Now, the REST endpoint is fully functional.
+
+```sql
+CREATE SCHEMA IF NOT EXISTS `test`;
+
+DELIMITER %%
+DROP PROCEDURE IF EXISTS `test`.`my_procedure`%%
+CREATE PROCEDURE `test`.`my_procedure`(IN arg1 INTEGER, OUT arg2 INTEGER)
+SQL SECURITY DEFINER
+NOT DETERMINISTIC
+BEGIN
+    CALL `test`.`my_sub_procedure`(arg1, arg2);
+END%%
+
+DROP PROCEDURE IF EXISTS `test`.`my_sub_procedure`%%
+CREATE PROCEDURE `test`.`my_sub_procedure`(IN arg1 INTEGER, OUT arg2 INTEGER)
+SQL SECURITY DEFINER
+NOT DETERMINISTIC
+BEGIN
+    SET arg2 = arg1 * 2;
+END%%
+DELIMITER ;
+
+CREATE OR REPLACE REST SERVICE /myService;
+CREATE REST SCHEMA /test ON SERVICE /myService FROM test;
+CREATE REST PROCEDURE /myProcedure
+    ON SERVICE /myService SCHEMA /test
+    AS `test`.`my_procedure`;
+
+GRANT EXECUTE ON PROCEDURE `test`.`my_sub_procedure` TO 'mysql_rest_service_data_provider';
+```
 
 ## Bootstrapping and Running MySQL Routers with MRS Support
 

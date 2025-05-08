@@ -4,13 +4,14 @@
 
 ### Additions
 
--
+- Removed popup menu items to enable/disable the MySQL REST Service. This is now handled in the configuration dialog.
 
 ### Fixes
 
 - BUG#37919552 Rest Routine with Async Task does not return a result in the TypeScript SDK
 - BUG#37926204 Unable to generate MRS SDK without extra privileges
--
+- Improved MRS Documentation
+- Fixed and issue that prevented the extension to properly start up after and update in some cases
 
 ## Changes in 1.19.9+9.3.1
 

@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -27,7 +27,7 @@ This section provides examples of using the MySQL REST Service queries and other
 
 The examples in this section provide an insight into the direct, low-level REST API calls that can be made against the MySQL REST Service. They can be used to gain a deep understanding of how MRS works.
 
-When developing an application with MRS, it is recommended to use a higher-level MRS Software Development Kit (SDK) instead. Please check if a [SDK](sdk.html) has already been made available for your programming language and platform.
+When developing an application with MRS, it is recommended to use a higher-level MRS Software Development Kit (SDK) instead. Please check if a [SDK](sdk.html#document-top) has already been made available for your programming language and platform.
 
 ## About MRS RESTful Web Services
 

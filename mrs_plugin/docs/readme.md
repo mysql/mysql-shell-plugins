@@ -84,12 +84,8 @@ Alternatively, the `update-html-docs` NPM script can be run.
 
 To build the documentation manually, invoke the following command to generate the index.html page from `mrs_plugin/docs`:
 
-    pandoc index.md -f markdown -t html -s -o index.html --template=templates/mysql_docs.html --toc --toc-depth=2 --metadata title="MRS Developer's Guide" --variable=template_css:style/style.css --filter pandoc-include --number-sections
+    pandoc index.md -f markdown -t html -s -o index.html --template=templates/mysql_docs.html --toc --toc-depth=2 --metadata title="MySQL REST Service - Reference Manual" --variable=template_css:style/style.css --filter pandoc-include --number-sections
 
-    pandoc restApi.md -f markdown -t html -s -o restApi.html --template=templates/mysql_docs.html --toc --toc-depth=2 --metadata title="MRS Core REST APIs" --variable=template_css:style/style.css --filter pandoc-include --number-sections
-
-    pandoc sdk.md -f markdown -t html -s -o sdk.html --template=templates/mysql_docs.html --toc --toc-depth=2 --metadata title="MRS SDK Reference" --variable=template_css:style/style.css --filter pandoc-include --number-sections
-
-    pandoc sql.md -f markdown -t html -s -o sql.html --template=templates/mysql_docs.html --toc --toc-depth=2 --metadata title="MRS SQL Reference" --variable=template_css:style/style.css --filter pandoc-include --number-sections
+Repeat this for all other sections.
 
 The style.css file is expected to be placed in a `dist/style/` folder.

@@ -124,7 +124,7 @@ The `ALTER REST DATA MAPPING VIEW` statement is used to alter existing REST data
 
 Please see the corresponding [GraphQL section](#defining-the-graphql-definition-for-a-rest-view) about how to design the GraphQL definition for a REST data mapping view.
 
-Please see the MRS Developer's Guide to learn more about [JSON data mapping views](index.html#rest-views).
+Please see the MRS Reference Manual to learn more about [JSON data mapping views](index.html#rest-views).
 
 **_SYNTAX_**
 
