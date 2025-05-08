@@ -26,7 +26,10 @@
 import { ui } from "../app-logic/UILayer.js";
 import type { Mutable } from "../app-logic/general-types.js";
 import type { IMySQLConnectionOptions } from "../communication/MySQL.js";
-import type { IOpenConnectionData, IShellPasswordFeedbackRequest } from "../communication/ProtocolGui.js";
+import type {
+    IOpenConnectionData,
+    IShellPasswordFeedbackRequest,
+} from "../communication/ProtocolGui.js";
 import type { ISqliteConnectionOptions } from "../communication/Sqlite.js";
 import { ShellPromptHandler } from "../modules/common/ShellPromptHandler.js";
 import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
@@ -39,7 +42,7 @@ import {
     type ICdmRestRouterGroupEntry,
 } from "./ConnectionDataModel.js";
 import { createDataModelEntryState } from "./data-model-helpers.js";
-import type { ICdmUpdater, IDataModelEntryState, ProgressCallback } from "./data-model-types.js";
+import type { ICdmAccessManager, IDataModelEntryState, ProgressCallback } from "./data-model-types.js";
 
 export type ConnectionReadyCallback = (entry: ICdmConnectionEntry, progress?: ProgressCallback) => void;
 
@@ -59,17 +62,17 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
     public adminEntry?: ICdmAdminEntry;
 
     private open: boolean = false;
-    private updater: ICdmUpdater;
+    private accessManager: ICdmAccessManager;
 
     private ignoreMrsUpgrade: boolean = false;
 
     #currentSchema: string = "";
 
-    public constructor(name: string, details: IConnectionDetails, updater: ICdmUpdater,
+    public constructor(name: string, details: IConnectionDetails, updater: ICdmAccessManager,
         private showLakehouseNavigator: boolean) {
         this.caption = name;
         this.details = details;
-        this.updater = updater;
+        this.accessManager = updater;
     }
 
     public get connection(): ICdmConnectionEntry {
@@ -109,14 +112,14 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                     this.open = await this.openConnection(callback);
                     if (this.open) {
                         await this.updateChildren(callback);
-                        await this.updater.updateEntry(this, callback);
+                        await this.accessManager.updateEntry(this, callback);
                     }
                 } else {
                     // If the path is not ok then we might have to create the DB file first.
                     try {
                         await ShellInterface.core.createDatabaseFile(options.dbFile);
                         await this.updateChildren(callback);
-                        await this.updater.updateEntry(this, callback);
+                        await this.accessManager.updateEntry(this, callback);
                     } catch (reason) {
                         const error = new Error("DB Creation Error", { cause: reason });
                         if (callback) {
@@ -132,7 +135,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                 this.open = await this.openConnection(callback);
                 if (this.open) {
                     await this.updateChildren(callback);
-                    await this.updater.updateEntry(this, callback);
+                    await this.accessManager.updateEntry(this, callback);
                 }
             }
 
@@ -158,13 +161,14 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         }
 
         await this.updateChildren(callback);
-        await this.updater.updateEntry(this, callback);
+        await this.accessManager.updateEntry(this, callback);
 
         return true;
     }
 
     public async duplicate(): Promise<ICdmConnectionEntry> {
-        const newEntry = new ConnectionEntryImpl(this.caption, this.details, this.updater, this.showLakehouseNavigator);
+        const newEntry = new ConnectionEntryImpl(this.caption, this.details, this.accessManager,
+            this.showLakehouseNavigator);
         await newEntry.initialize();
 
         return newEntry;
@@ -196,11 +200,14 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
         // Generate an own request ID, as we may need that for reply requests from the backend.
         const requestId = uuid();
         let connectionData: IOpenConnectionData | undefined;
-        await this.backend.openConnection(this.details.id, requestId, ((response, requestId) => {
+
+        const credentials = await this.accessManager.getCredentials();
+        await this.backend.openConnection(this.details.id, requestId, credentials, ((response, requestId) => {
             if (typeof response.result === "string") {
                 callback?.(response.result);
             } else if (!ShellPromptHandler.handleShellPrompt(response.result as IShellPasswordFeedbackRequest,
-                requestId, this.backend)) {
+                requestId, this.backend, !credentials)) {
+                // Don't save the password in the backend, if we stored in the frontend.
                 connectionData = response.result as IOpenConnectionData;
             }
         }));
@@ -373,7 +380,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                                 getChildren: () => { return authAppGroup.authApps; },
                             };
                             authAppGroup.refresh = (callback?: ProgressCallback) => {
-                                return this.updater.updateEntry(authAppGroup, callback);
+                                return this.accessManager.updateEntry(authAppGroup, callback);
                             };
 
                             mrsEntry.authAppGroup = authAppGroup;
@@ -387,7 +394,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
                             };
 
                             mrsEntry.refresh = (callback?: ProgressCallback) => {
-                                return this.updater.updateEntry(mrsEntry as ICdmRestRootEntry, callback);
+                                return this.accessManager.updateEntry(mrsEntry as ICdmRestRootEntry, callback);
                             };
 
                             this.mrsEntry = mrsEntry as ICdmRestRootEntry;

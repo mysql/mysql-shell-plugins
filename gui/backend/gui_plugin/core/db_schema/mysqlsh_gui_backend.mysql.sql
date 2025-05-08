@@ -577,7 +577,7 @@ ENGINE = InnoDB
 -- View `schema_version`
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `schema_version` ;
-CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 19;
+CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 20;
 
 -- -----------------------------------------------------
 -- Data for table `data_category`
@@ -604,6 +604,7 @@ INSERT INTO `privilege` (`id`, `privilege_type_id`, `name`, `access_pattern`) VA
 INSERT INTO `privilege` (`id`, `privilege_type_id`, `name`, `access_pattern`) VALUES (3, 1, 'Access to common gui extension objects', 'gui\\.(modules|sql_editor)\\.\\w*');
 INSERT INTO `privilege` (`id`, `privilege_type_id`, `name`, `access_pattern`) VALUES (4, 2, 'Access to all web gui modules except shell', '\\b(?!shell\\b)\\w+');
 INSERT INTO `privilege` (`id`, `privilege_type_id`, `name`, `access_pattern`) VALUES (5, 1, 'Access to selected gui.users functions', 'gui\\.users\\.(get_gui_module_list|list_profiles|get_profile|add_profile|get_default_profile|set_default_profile|set_web_session_profile)');
+INSERT INTO `privilege` (`id`, `privilege_type_id`, `name`, `access_pattern`) VALUES (6, 1, 'Limited access for Single Server Mode', '^(?!gui\.shell\.)[^.]+\.[^.]+\.[^.]+$');
 
 COMMIT;
 
@@ -625,6 +626,7 @@ START TRANSACTION;
 INSERT INTO `role` (`id`, `name`, `description`) VALUES (1, 'Administrator', 'Administrator with full access');
 INSERT INTO `role` (`id`, `name`, `description`) VALUES (2, 'Poweruser', 'Web user with full access');
 INSERT INTO `role` (`id`, `name`, `description`) VALUES (3, 'User', 'Web user with full access expect to the shell module');
+INSERT INTO `role` (`id`, `name`, `description`) VALUES (4, 'Single Server User', 'Single Server User with limited access');
 
 COMMIT;
 
@@ -639,6 +641,7 @@ INSERT INTO `role_has_privilege` (`role_id`, `privilege_id`) VALUES (2, 2);
 INSERT INTO `role_has_privilege` (`role_id`, `privilege_id`) VALUES (2, 3);
 INSERT INTO `role_has_privilege` (`role_id`, `privilege_id`) VALUES (3, 3);
 INSERT INTO `role_has_privilege` (`role_id`, `privilege_id`) VALUES (3, 4);
+INSERT INTO `role_has_privilege` (`role_id`, `privilege_id`) VALUES (4, 6);
 
 COMMIT;
 

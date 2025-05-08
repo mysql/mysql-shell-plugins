@@ -29,6 +29,7 @@ import gui_plugin as gui
 
 class AutoTTLConnectionCache:
     def __init__(self, ttl_seconds=3600, max_size=1000, cleanup_interval=1):
+        self.clean_func = None
         self.ttl = ttl_seconds
         self.max_size = max_size
         self.cleanup_interval = cleanup_interval
@@ -98,10 +99,27 @@ class AutoTTLConnectionCache:
             now = time.time()
             return sum(1 for _, ts in self._cache.values() if now - ts <= self.ttl)
 
+    def set_clean_func(self, func):
+        """
+        Set a function to be called when the cache is cleared.
+        The function should take no arguments and return nothing.
+        """
+        self.clean_func = func
+
     def clear(self):
+        """
+        Clear the cache and call the clean function if set.
+        """
         with self._lock:
             self._cache.clear()
 
     def stop(self):
+        """
+        Stop the cleaner thread and call the clean function if set.
+        """
         self._stop_event.set()
         self._cleaner_thread.join()
+
+    def clean(self):
+        if self.clean_func is not None:
+            self.clean_func()

@@ -35,13 +35,13 @@ import { requisitions } from "../supplement/Requisitions.js";
 import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType, type IConnectionDetails } from "../supplement/ShellInterface/index.js";
-import { RunMode, webSession } from "../supplement/WebSession.js";
+import { RunMode, webSession, type ILoginCredentials } from "../supplement/WebSession.js";
 import { convertErrorToString, uuid } from "../utilities/helpers.js";
 import { compareVersionStrings, formatBytes } from "../utilities/string-helpers.js";
 import { ConnectionEntryImpl } from "./ConnectionEntryImpl.js";
 import { createDataModelEntryState } from "./data-model-helpers.js";
 import {
-    type AdminPageType, type Command, type DataModelSubscriber, type ICdmUpdater, type IDataModelEntryState,
+    type AdminPageType, type Command, type DataModelSubscriber, type ICdmAccessManager, type IDataModelEntryState,
     type ISubscriberActionType, type ProgressCallback, type SubscriberAction,
 } from "./data-model-types.js";
 
@@ -610,7 +610,7 @@ export type ConnectionDataModelEntry =
     | ICdmRestContentFileEntry
     | ICdmRestDbObjectEntry;
 
-export class ConnectionDataModel implements ICdmUpdater {
+export class ConnectionDataModel implements ICdmAccessManager {
     public readonly connections: ICdmConnectionEntry[] = [];
 
     private subscribers = new Set<DataModelSubscriber<ConnectionDataModelEntry>>();
@@ -1052,7 +1052,8 @@ export class ConnectionDataModel implements ICdmUpdater {
             id = data.details.id;
             details = data.details;
         } else {
-            details = data as IConnectionDetails;
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+            details = data as IConnectionDetails; // ESLint is wrong here.
             id = details.id;
         }
 
@@ -1093,6 +1094,10 @@ export class ConnectionDataModel implements ICdmUpdater {
                 return Promise.resolve(true);
             }
         }
+    }
+
+    public async getCredentials(): Promise<ILoginCredentials | undefined> {
+        return webSession.decryptCredentials();
     }
 
     /**

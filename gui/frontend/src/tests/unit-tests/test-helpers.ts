@@ -501,17 +501,16 @@ export const setupShellForTests = (showOutput: boolean, handleEvents = true,
                 // istanbul ignore else
                 if (webSession.userName === "") {
                     if (webSession.runMode === RunMode.LocalUser) {
-                        void ShellInterface.users.authenticate("LocalAdministrator", "")
-                            .then((profile) => {
-                                if (showOutput) {
-                                    console.log("Shell connection established and user authenticated");
-                                }
+                        void ShellInterface.users.authenticate("LocalAdministrator", "").then((profile) => {
+                            if (showOutput) {
+                                console.log("Shell connection established and user authenticated");
+                            }
 
-                                if (profile) {
-                                    webSession.loadProfile(profile);
-                                    void requisitions.execute("userAuthenticated", profile);
-                                }
-                            });
+                            if (profile) {
+                                webSession.loadProfile(profile);
+                                void requisitions.execute("userAuthenticated", profile);
+                            }
+                        });
                     }
                 } else {
                     webSession.loadProfile(data.activeProfile);

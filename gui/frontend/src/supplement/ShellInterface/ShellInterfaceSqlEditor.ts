@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { webSession } from "../WebSession.js";
+import { webSession, type ILoginCredentials } from "../WebSession.js";
 import { Settings } from "../Settings/Settings.js";
 import { MessageScheduler, DataCallback } from "../../communication/MessageScheduler.js";
 import { IPromptReplyBackend, ShellPromptResponseType, Protocol } from "../../communication/Protocol.js";
@@ -117,13 +117,15 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
      *
      * @param dbConnectionId The id of the db connection.
      * @param requestId The ID to use for the request sent to the backend.
+     * @param credentials The credentials to use for the connection. If not specified, then the user will be prompted
+     *                    for the credentials (unless they are cached in the backend).
      * @param callback The callback for intermediate results. If not specified, then response errors will throw
      *                 an exception.
      *
      * @returns A promise resolving an empty result if a callback was given (in which case the results are passed to
      *          the callback)
      */
-    public async openConnection(dbConnectionId: number, requestId?: string,
+    public async openConnection(dbConnectionId: number, requestId?: string, credentials?: ILoginCredentials,
         callback?: DataCallback<ShellAPIGui.GuiSqlEditorOpenConnection>):
         Promise<IOpenConnectionData | IShellPasswordFeedbackRequest | IStatusData | undefined> {
         const moduleSessionId = this.moduleSessionId;
@@ -131,7 +133,7 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
             const response = await MessageScheduler.get.sendRequest({
                 requestId,
                 requestType: ShellAPIGui.GuiSqlEditorOpenConnection,
-                parameters: { args: { moduleSessionId, dbConnectionId } },
+                parameters: { args: { moduleSessionId, dbConnectionId, password: credentials?.password } },
                 onData: callback,
             });
 

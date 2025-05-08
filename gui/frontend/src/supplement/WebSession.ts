@@ -29,6 +29,7 @@ import { ShellInterface } from "./ShellInterface/ShellInterface.js";
 import { Cookies } from "./Storage/Cookies.js";
 import { ui } from "../app-logic/UILayer.js";
 import { convertErrorToString } from "../utilities/helpers.js";
+import { arrayBufferToBase64, base64ToArrayBuffer } from "../utilities/string-helpers.js";
 
 /** Determines what conditions are used when running the app. The UI will change based on that.  */
 export enum RunMode {
@@ -47,6 +48,16 @@ interface IWebSessionData {
     userName: string;
     profileId: number;
     moduleSessionId: { [key: string]: string; };
+}
+
+export interface ILoginCredentials {
+    userName: string;
+    password: string;
+}
+
+interface IEncryptedCredentials {
+    iv: number[];
+    data: number[];
 }
 
 class WebSession {
@@ -78,7 +89,6 @@ class WebSession {
 
     public set userId(userId: number) {
         this.sessionData.userId = userId;
-        this.writeSessionData();
     }
 
     public get userName(): string {
@@ -87,7 +97,6 @@ class WebSession {
 
     public set userName(name: string) {
         this.sessionData.userName = name;
-        this.writeSessionData();
     }
 
     /**
@@ -189,8 +198,6 @@ class WebSession {
         this.sessionData.profileId = newProfile.id;
         this.sessionData.userId = newProfile.userId;
 
-        this.writeSessionData();
-
         void requisitions.execute("profileLoaded", undefined);
     }
 
@@ -210,9 +217,88 @@ class WebSession {
 
     }
 
-    private writeSessionData(): void {
-        if (!process.env.VSCODE_PID) {
-            //sessionStorage.setItem("session", JSON.stringify(this.sessionData));
+    /**
+     * Encrypts the given credentials and stores them in session storage, available only for the current session.
+     *
+     * @param credentials The credentials to encrypt.
+     */
+    public async encryptCredentials(credentials: ILoginCredentials): Promise<void> {
+        const key = await this.authKey;
+        if (!key) {
+            return;
+        }
+
+        // Encrypt the credentials with a random init vector.
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key,
+            new TextEncoder().encode(JSON.stringify(credentials)),
+        );
+
+        // Store both, the encrypted credentials and the init vector in session storage.
+        const encryptedCredentials: IEncryptedCredentials = {
+            iv: Array.from(iv),
+            data: Array.from(new Uint8Array(encrypted)),
+        };
+        sessionStorage.setItem("creds", JSON.stringify(encryptedCredentials));
+    }
+
+    /**
+     * Decrypts the credentials stored in session storage.
+     *
+     * @returns The decrypted credentials or undefined if no credentials are stored.
+     */
+    public async decryptCredentials(): Promise<ILoginCredentials | undefined> {
+        const key = await this.authKey;
+        if (!key) {
+            return;
+        }
+
+        const stored = sessionStorage.getItem("creds");
+        if (!stored) {
+            return undefined;
+        }
+
+        try {
+            const { iv, data } = JSON.parse(stored) as IEncryptedCredentials;
+            const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv: new Uint8Array(iv) },
+                key, new Uint8Array(data));
+
+            return JSON.parse(new TextDecoder().decode(decrypted)) as ILoginCredentials;
+        } catch (e) {
+            return undefined;
+        }
+    }
+
+    public clearCredentials(): void {
+        sessionStorage.removeItem("creds");
+    }
+
+    private get authKey(): Promise<CryptoKey | undefined> {
+        if (appParameters.inExtension) { // sessionStorage is not available in the extension.
+            return Promise.resolve(undefined);
+        }
+
+        const stringKey = sessionStorage.getItem("encryptionKey");
+        if (!stringKey) {
+            return Promise.resolve(undefined);
+        }
+
+        const rawKey = base64ToArrayBuffer(stringKey);
+
+        return crypto.subtle.importKey("raw", rawKey, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
+    }
+
+    static {
+        // Generate our auth key for encrypting credentials. But not when we are running tests or in the extension.
+        // This is because JSDOM has no support for crypto.sublte and the extension does not support session storage.
+        if (!appParameters.testsRunning && !appParameters.inExtension && !sessionStorage.getItem("encryptionKey")) {
+            void crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"])
+                .then((key) => {
+                    void crypto.subtle.exportKey("raw", key).then((rawKey) => {
+                        const base64Key = arrayBufferToBase64(rawKey);
+                        sessionStorage.setItem("encryptionKey", base64Key);
+                    });
+                });
         }
     }
 }
