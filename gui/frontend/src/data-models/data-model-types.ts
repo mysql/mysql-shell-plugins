@@ -23,8 +23,9 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import type { ConnectionDataModelEntry } from "./ConnectionDataModel.js";
 import type { IDictionary } from "../app-logic/general-types.js";
+import type { ILoginCredentials } from "../supplement/WebSession.js";
+import type { ConnectionDataModelEntry } from "./ConnectionDataModel.js";
 
 /** A list of names for schemas we consider being system schemas. */
 export const systemSchemas = new Set(["mysql", "mysql_innodb_cluster_metadata", "mysql_rest_service_metadata"]);
@@ -63,8 +64,14 @@ export type AdminPageType = "serverStatus" | "clientConnections" | "performanceD
 export type ProgressCallback = (result?: string | Error) => void;
 
 /** Provides a hook for data model entries which are implemented in their own file. */
-export interface ICdmUpdater {
+export interface ICdmAccessManager {
+    /** Updates all sub elements of the given entry (e.g. tables in a connection). */
     updateEntry(entry: ConnectionDataModelEntry, callback?: ProgressCallback): Promise<boolean>;
+    /**
+     * @returns the credentials of the currently logged in user (if any). Credentials are usually only stored in single
+     * server mode.
+     */
+    getCredentials(): Promise<ILoginCredentials | undefined>;
 }
 
 export type SubscriberAction = "add" | "remove" | "update" | "clear";

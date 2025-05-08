@@ -327,17 +327,21 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             const { defaultOpening } = this.state;
             const context = this.context as DocumentContextType;
             if (!defaultOpening && context) {
+                this.setState({ defaultOpening: true });
+
                 const firstConnection = context.connectionsDataModel.connections[0];
                 if (!context.documentDataModel.isOpen(firstConnection.details)) {
-                    setTimeout(() => {
-                        const row = this.connectionTableRef.current?.getRows()[0];
-                        if (row) {
-                            row.treeExpand();
-                        }
-                    }, 500);
+                    // Open the first connection and wait for it to finish that.
+                    void firstConnection.refresh?.().then(() => {
+                        setTimeout(() => {
+                            const row = this.connectionTableRef.current?.getRows()[0];
+                            if (row) {
+                                row.treeExpand();
+                            }
+                        }, 500);
 
-                    this.setState({ defaultOpening: true });
-                    this.openNewNotebook(firstConnection);
+                        this.openNewNotebook(firstConnection);
+                    });
 
                     // Do not update the trees yet. Instead wait for the new notebook to be opened.
                     return;
@@ -410,17 +414,20 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             expanded: documentSectionState.expanded,
             initialSize: documentSectionState.size,
             dimmed: editing != null,
-            actions: [
-                {
-                    icon: Codicon.NewFile,
-                    command: {
-                        command: "addConsole",
-                        tooltip: "Add new console",
-                        title: "Add new console",
-                    },
-                }],
+            actions: [],
             content: this.renderDocumentsTree(context.documentDataModel.roots),
         }];
+
+        if (webSession.runMode !== RunMode.SingleServer) {
+            accordionSections[0].actions!.push({
+                icon: Codicon.NewFile,
+                command: {
+                    command: "addConsole",
+                    tooltip: "Add new console",
+                    title: "Add new console",
+                },
+            });
+        }
 
         const connectionSection: IAccordionSection = {
             ref: this.connectionSectionRef,

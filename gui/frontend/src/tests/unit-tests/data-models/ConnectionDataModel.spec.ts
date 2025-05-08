@@ -29,7 +29,7 @@ import type {
     IMrsServiceData, IMrsStatusData, IMrsUserData,
 } from "../../../communication/ProtocolMrs.js";
 import { ConnectionDataModel, type ConnectionDataModelEntry } from "../../../data-models/ConnectionDataModel.js";
-import { webSession } from "../../../supplement/WebSession.js";
+import { webSession, type ILoginCredentials } from "../../../supplement/WebSession.js";
 import { sleep } from "../../../utilities/helpers.js";
 import { uiLayerMock } from "../__mocks__/UILayerMock.js";
 import { checkNoUiWarningsOrErrors } from "../test-helpers.js";
@@ -48,7 +48,7 @@ jest.mock("../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js", () =>
             return {
                 startSession: jest.fn(),
                 closeSession: jest.fn(),
-                openConnection: (id: string, requestId: string,
+                openConnection: (id: string, requestId: string, credentials: ILoginCredentials | undefined,
                     callback: (response: OpenConnectionResponse, resultId: string) => void) => {
                     callback({
                         result: cdmMockState.haveMockConnectionResponse ? openConnectionDataMock1 : undefined,
@@ -282,7 +282,7 @@ describe("ConnectionDataModel", () => {
         webSession.profile.id = 1;
     });
 
-    it.only("Refreshing entries", async () => {
+    it("Refreshing entries", async () => {
         // Refresh all children of the connections recursively.
         cdmMockState.haveMockConnectionResponse = true;
 
@@ -325,7 +325,7 @@ describe("ConnectionDataModel", () => {
         checkNoUiWarningsOrErrors();
     });
 
-    it.only("MRS auth apps", async () => {
+    it("MRS auth apps", async () => {
         cdmMockState.haveMockConnectionResponse = true;
         await dataModel.reloadConnections();
         const connections = dataModel.connections;

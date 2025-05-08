@@ -43,6 +43,7 @@ import { Icon } from "../ui/Icon/Icon.js";
 import { IInputChangeProperties, Input } from "../ui/Input/Input.js";
 import { Label } from "../ui/Label/Label.js";
 import { Message } from "../ui/Message/Message.js";
+import { webSession } from "../../supplement/WebSession.js";
 
 interface ILoginPageState extends IComponentState {
     userName: string;
@@ -141,7 +142,9 @@ export class LoginPage extends ComponentBase<{}, ILoginPageState> {
         ShellInterface.users.authenticate(userName, password).then((profile) => {
             this.setState({ errorMessage: "" });
             if (profile) {
-                void requisitions.execute("userAuthenticated", profile);
+                void webSession.encryptCredentials({ userName, password }).then(() => {
+                    void requisitions.execute("userAuthenticated", profile);
+                });
             }
         }).catch((reason) => {
             if (reason instanceof ResponseError) {

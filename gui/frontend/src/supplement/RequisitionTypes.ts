@@ -411,7 +411,13 @@ export interface IRequestTypeMap {
     "applicationWillFinish": SimpleCallback;
     "socketStateChanged": (connected: boolean) => Promise<boolean>;
     "webSessionStarted": (data: IWebSessionData) => Promise<boolean>;
-    "userAuthenticated": (activeProfile: IShellProfile) => Promise<boolean>;
+
+    /**
+     * Called when the user has been authenticated. The `details` parameter contains the active profile and
+     * the credentials used for authentication.
+     */
+    "userAuthenticated": (profile: IShellProfile) => Promise<boolean>;
+
     "userLoggedOut": SimpleCallback;
 
     "profileLoaded": SimpleCallback;

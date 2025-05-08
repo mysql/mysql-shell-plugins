@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -268,6 +268,30 @@ export const convertHexToBase64 = (hex: string): string => {
     const bufString = buffer.toString("base64");
 
     return bufString;
+};
+
+/**
+ * Converts the given array buffer to a base64 encoded string.
+ *
+ * @param buffer The array buffer to convert.
+ *
+ * @returns The base64 encoded string for use in serialization.
+ */
+export const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+    return btoa(String.fromCharCode(...new Uint8Array(buffer)));
+};
+
+/**
+ * Converts the given base64 encoded string to an array buffer.
+ *
+ * @param base64 The base64 encoded string to convert.
+ *
+ * @returns The array buffer.
+ */
+export const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
+    const binary = atob(base64);
+
+    return Uint8Array.from(binary, (c) => { return c.charCodeAt(0); }).buffer;
 };
 
 /**

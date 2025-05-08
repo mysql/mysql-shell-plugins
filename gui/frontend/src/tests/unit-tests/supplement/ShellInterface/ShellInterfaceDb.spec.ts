@@ -23,6 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { registerUiLayer } from "../../../../app-logic/UILayer.js";
 import { MySQLConnectionScheme } from "../../../../communication/MySQL.js";
 import { IShellDbConnection } from "../../../../communication/ProtocolGui.js";
 import { ResponseError } from "../../../../communication/ResponseError.js";
@@ -31,6 +32,7 @@ import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInter
 import { ShellInterfaceDb } from "../../../../supplement/ShellInterface/ShellInterfaceDb.js";
 import { webSession } from "../../../../supplement/WebSession.js";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";
+import { uiLayerMock } from "../../__mocks__/UILayerMock.js";
 
 import { getDbCredentials, ITestDbCredentials, setupShellForTests } from "../../test-helpers.js";
 
@@ -43,7 +45,9 @@ describe("ShellInterfaceDb Tests", () => {
     let testConnection: IConnectionDetails;
 
     beforeAll(async () => {
-        launcher = await setupShellForTests(false, true, "DEBUG3");
+        registerUiLayer(uiLayerMock);
+
+        launcher = await setupShellForTests(false, true, "DEBUG2");
 
         // Create a connection for our tests.
         credentials = getDbCredentials();

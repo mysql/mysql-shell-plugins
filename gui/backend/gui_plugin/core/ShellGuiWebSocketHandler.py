@@ -22,6 +22,7 @@
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 import base64
+import copy
 import datetime
 import hashlib
 import inspect
@@ -572,7 +573,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
                 WHERE u_r.user_id = ? AND p.privilege_type_id = 1''',
                 (self.session_user_id,)).fetch_all()
             for row in res:
-                p = re.compile(row[1])
+                p = re.compile(row['access_pattern'])
                 m = p.match(cmd)
                 if not m:
                     raise Exception(f'This user account has no privileges to '
@@ -897,7 +898,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
             if user_id is None:
                 user_id = gui.users.backend.create_user(  # type: ignore
-                    self.db, username, "", "Administrator", "localhost", True)
+                    self.db, username, "", "Single Server User", "localhost", True)
                 self._new_single_server_user_created = True
 
             with self.db_tx() as db:
@@ -919,6 +920,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             self.send_response_message('ERROR', error_msg, request_id)
 
     def setup_single_server(self, json_msg):
+        self.get_cache().set_clean_func(self.delete_cached_connections)
         con_string = self.single_server.split(':')
         server = con_string[0]
         port = con_string[1]
@@ -935,7 +937,6 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
             "options": {
                 "scheme": "mysql",
                 "user": username,
-                "password": password,
                 "host": server,
                 "port": port
             }}
@@ -949,18 +950,16 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         current_thread = threading.current_thread()
         setattr(current_thread, 'get_context', self.get_context)
 
-        if self.authenticate_single_server_user(connection, password):
+        if self.authenticate_single_server_user(copy.deepcopy(connection), password):
             connections = gui.db_connections.list_db_connections(  # type: ignore
                 self._active_profile_id)
-            for connection in connections:
-                if connection['caption'] == single_server_connection_name:
-                    self._single_server_conn_id = connection['id']
+            for conn in connections:
+                if conn['caption'] == single_server_connection_name:
+                    self._single_server_conn_id = conn['id']
                     break
 
             if self._single_server_conn_id is None:
                 self._single_server_conn_id = self.add_single_server_connection(connection)
-
-            gui.shell.start_session(self._single_server_conn_id)  # type: ignore
 
             default_profile = gui.users.get_default_profile(  # type: ignore
                 self._session_user_id, self.db)
@@ -984,15 +983,14 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         return self._thread_context
 
     def authenticate_single_server_user(self, connection, password):
-        new_session = DbModuleSession()
+        mysqlsh.globals.shell.delete_all_credentials()
+
+        new_session = DbModuleSession(skip_confirmation_message=True)
         new_session.open_connection(connection, password)
         new_session.completion_event.wait()  # type: ignore
 
         if not new_session.completion_event.has_errors:  # type: ignore
             new_session.close()
-            conn_string = f"{connection['options']['user']}@{self.single_server}"
-            mysqlsh.globals.shell.store_credential(
-                conn_string, password)  # type: ignore
             return True
 
         return False
@@ -1017,4 +1015,10 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
 
     def add_single_server_connection(self, connection):
         return gui.db_connections.add_db_connection(  # type: ignore
-            self._session_user_id, connection)[0]
+            self._active_profile_id, connection)[0]
+
+    def delete_cached_connections(self):
+        for key in self.get_cache():
+            profile_id, connection_id = self.get_cache()[key]
+            gui.db_connections.remove_db_connection(  # type: ignore
+                profile_id, connection_id, self.db)
