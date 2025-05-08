@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -38,7 +38,7 @@ const isShellPromptResult = (response?: unknown): response is IShellFeedbackRequ
 
 
 const isStatusCodeData = (response?: unknown): response is IStatusData => {
-    return (response as IStatusData).result !== undefined && typeof((response as IStatusData).result) === "string";
+    return (response as IStatusData).result !== undefined && typeof ((response as IStatusData).result) === "string";
 };
 
 /**
@@ -51,7 +51,7 @@ const isStatusCodeData = (response?: unknown): response is IStatusData => {
 export const openSqlEditorConnection = async (sqlEditor: ShellInterfaceSqlEditor, connectionId: number,
     progress?: (message: string) => void): Promise<void> => {
 
-    await sqlEditor.openConnection(connectionId, undefined, (data, requestId) => {
+    await sqlEditor.openConnection(connectionId, undefined, undefined, (data, requestId) => {
         const result = data.result;
         if (isShellPromptResult(result)) {
             if (result.type === "password") {

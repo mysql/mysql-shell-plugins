@@ -45,12 +45,13 @@ export class ShellPromptHandler {
      * @param result The result to examine.
      * @param requestId The request ID for which this result was returned.
      * @param backend The backend to be used to send the reply to.
+     * @param canSavePassword True, if the password can be saved, otherwise false.
      * @param payload Any value to be passed on to the dialog and ultimately to the receiver of the dialog result.
      *
      * @returns True, if the result is a prompt request, otherwise false (and the result is not handled).
      */
     public static handleShellPrompt(result: IShellResultType | undefined, requestId: string,
-        backend: IPromptReplyBackend, payload?: IDictionary): boolean {
+        backend: IPromptReplyBackend, canSavePassword: boolean = true, payload?: IDictionary): boolean {
         if (this.isShellPromptResult(result)) {
             switch (result.type) {
                 case "password": {
@@ -70,6 +71,11 @@ export class ShellPromptHandler {
                 }
 
                 case "confirm": {
+                    if (result.prompt?.startsWith("Save password") && !canSavePassword) {
+                        void backend.sendReply(requestId, ShellPromptResponseType.Cancel, "");
+                        break;
+                    }
+
                     const accept = result.yes ?? "Yes";
                     const refuse = result.no ?? "No";
                     const alternative = result.alt;

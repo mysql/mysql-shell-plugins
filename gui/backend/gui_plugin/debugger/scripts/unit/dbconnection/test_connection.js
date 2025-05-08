@@ -167,16 +167,6 @@ await ws.sendAndValidate({
         }
     },
     {
-        "request_id": originalRequestId,
-        "request_state": {
-            "type": "PENDING",
-            "msg": ""
-        },
-        "result": {
-            "module_session_id": ws.lastModuleSessionId
-        }
-    },
-    {
         "request_id": ws.lastGeneratedRequestId,
         "request_state": {
             "type": "OK",
@@ -185,22 +175,6 @@ await ws.sendAndValidate({
         "done": true
     }
 ])
-
-await ws.sendAndValidate({
-    "request": "execute",
-    "request_id": originalRequestId,
-    "command": "gui.db.close_session",
-    "args": {
-        "module_session_id": ws.lastModuleSessionId
-    }
-}, [{
-    "request_id": ws.lastGeneratedRequestId,
-    "request_state": {
-        "type": "OK",
-        "msg": ""
-    },
-    "done": true
-}])
 
 await ws.sendAndValidate({
     "request": "execute",

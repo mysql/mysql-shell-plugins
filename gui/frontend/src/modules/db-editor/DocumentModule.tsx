@@ -342,21 +342,24 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     public override render(): ComponentChild {
         const {
             selectedPage, connectionTabs, documentTabs, shellSessionTabs, sidebarState, showSidebar, showTabs, loading,
-            progressMessage } = this.state;
+            progressMessage,
+        } = this.state;
 
         let sqlIcon = Assets.file.mysqlIcon;
         const isEmbedded = appParameters.embedded;
 
         // Generate the main toolbar items based on the current display mode.
         const toolbarItems: IToolbarItems = { navigation: [], execution: [], editor: [], auxiliary: [] };
-        const dropDownItems = [
-            <DropdownItem
+        const dropDownItems = [];
+
+        if (webSession.runMode !== RunMode.SingleServer) {
+            dropDownItems.push(<DropdownItem
                 id={this.documentDataModel.overview.id}
                 key={this.documentDataModel.overview.id}
                 caption="DB Connection Overview"
                 picture={<Icon src={Assets.documents.overviewPageIcon} />}
-            />,
-        ];
+            />);
+        }
 
         let selectedEntry: string | undefined;
         connectionTabs.forEach((info: IConnectionTab) => {
@@ -2243,6 +2246,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 this.connectionsDataModel.clear();
                 this.documentDataModel.clear();
                 this.ociDataModel.clear();
+                webSession.clearCredentials();
 
                 // No need to manually close any connection. The data models take care to close when they are cleared.
                 this.setState({ connectionTabs: [], documentTabs: [], shellSessionTabs: [] });

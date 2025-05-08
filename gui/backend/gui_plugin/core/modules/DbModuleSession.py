@@ -1,4 +1,4 @@
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License, version 2.0,
@@ -23,6 +23,7 @@
 
 import os
 import threading
+from time import sleep
 
 import mysqlsh
 
@@ -48,7 +49,7 @@ def check_service_database_session(func):
 
 
 class DbModuleSession(ModuleSession):
-    def __init__(self, reconnection_mode=ReconnectionMode.STANDARD):
+    def __init__(self, reconnection_mode=ReconnectionMode.STANDARD, skip_confirmation_message=False):
         super().__init__()
         self._db_type = None
         self._connection_options = None
@@ -56,6 +57,11 @@ class DbModuleSession(ModuleSession):
         self._bastion_options = None
         self._reconnection_mode = reconnection_mode
         self.completion_event = None
+        self._skip_confirmation_message = skip_confirmation_message
+        self._connect_again = False
+
+        context = get_context()
+        self._single_server_mode = context.web_handler.single_server is not None if context else False
 
     def __del__(self):
         self.close()
@@ -188,6 +194,17 @@ class DbModuleSession(ModuleSession):
         except Exception as ex:
             self.completion_event.add_error(ex)
 
+        sleep(1)
+
+        if self._single_server_mode and self._connect_again:
+            del self._connection_options["password"]
+
+            try:
+                self.connect()
+            except Exception as ex:
+                self.completion_event.add_error(ex)
+
+
     def connect(self):
         session_id = "ServiceSession-" + self.web_session.session_uuid
         self._db_service_session = DbSessionFactory.create(
@@ -238,21 +255,25 @@ class DbModuleSession(ModuleSession):
         return self._prompt_replied, self._prompt_reply
 
     def on_connected(self, db_session):
-        data = Response.pending("Connection was successfully opened.", {"result": {
-            "module_session_id": self._module_session_id,
-            "info": db_session.info(),
-            "default_schema": db_session.get_default_schema()
-        }})
-        self.send_command_response(self._current_request_id, data)
+        if not self._skip_confirmation_message:
+            data = Response.pending("Connection was successfully opened.", {"result": {
+                "module_session_id": self._module_session_id,
+                "info": db_session.info(),
+                "default_schema": db_session.get_default_schema()
+            }})
+            self.send_command_response(self._current_request_id, data)
         self.completion_event.set()
 
     def on_fail_connecting(self, exc):
-        logger.exception(exc)
+        if self._single_server_mode and "Access denied for user" in str(exc):
+                self._connect_again = True
+        else:
+            logger.exception(exc)
 
-        self.close_connection(True)
+            self.close_connection(True)
 
-        self.completion_event.add_error(exc)
-        self.completion_event.set()
+            self.completion_event.add_error(exc)
+            self.completion_event.set()
 
     def cancel_request(self, request_id):
         raise NotImplementedError()
