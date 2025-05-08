@@ -662,14 +662,6 @@
                 "title": "Configure MySQL REST Service"
             },
             {
-                "command": "msg.mrs.enableMySQLRestService",
-                "title": "Enable MySQL REST Service"
-            },
-            {
-                "command": "msg.mrs.disableMySQLRestService",
-                "title": "Disable MySQL REST Service"
-            },
-            {
                 "command": "msg.mrs.showPrivateItems",
                 "title": "Show Private Items"
             },
@@ -1695,22 +1687,6 @@
                     "group": "2_msg@1"
                 },
                 {
-                    "command": "msg.mrs.enableMySQLRestService",
-                    "when": "viewItem == mrs",
-                    "group": "3_msg@1"
-                },
-                {
-                    "command": "msg.mrs.disableMySQLRestService",
-                    "when": "viewItem == mrs",
-                    "group": "3_msg@2"
-                },
-                {
-                    "command": "msg.mrs.showPrivateItems",
-                    "alt": "msg.mrs.hidePrivateItems",
-                    "when": "viewItem == mrs",
-                    "group": "4_msg@1"
-                },
-                {
                     "command": "msg.mrs.bootstrapLocalRouter",
                     "when": "viewItem == mrs",
                     "group": "5_msg@1"
@@ -1731,9 +1707,15 @@
                     "group": "5_msg@4"
                 },
                 {
-                    "command": "msg.mrs.docs",
+                    "command": "msg.mrs.showPrivateItems",
+                    "alt": "msg.mrs.hidePrivateItems",
                     "when": "viewItem == mrs",
                     "group": "6_msg@1"
+                },
+                {
+                    "command": "msg.mrs.docs",
+                    "when": "viewItem == mrs",
+                    "group": "9_msg@1"
                 },
                 {
                     "command": "msg.mrs.docs",
