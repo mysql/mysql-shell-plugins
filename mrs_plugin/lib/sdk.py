@@ -29,6 +29,7 @@ import re
 from string import Template
 import json
 from base64 import b64decode
+import mysqlsh
 
 
 SDK_PYTHON_DATACLASS_TEMPLATE = '''@dataclass(init=False, repr=True)
@@ -117,11 +118,16 @@ def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=Fal
             return bool.from_bytes(b64decode(base64str.split(":")[-1]))
         return base64str
 
-    sdk_data = lib.services.get_service_sdk_data(
-        session, service.get("id"), binary_formatter=binary_formatter
-    )
-    if sdk_data is None:
-        return ""
+    try:
+        sdk_data = lib.services.get_service_sdk_data(
+            session, service.get("id"), binary_formatter=binary_formatter
+        )
+    except mysqlsh.DBError as e:
+        if e.code != 1370:
+            raise e
+        # we should make a clear distinction for the case where we cannot retrieve
+        # sdk data because the user is missing "EXECUTE" permissions (BUG#)
+        sdk_data = None
 
     # Process Template String
     code = substitute_service_in_template(
@@ -130,7 +136,9 @@ def generate_service_sdk(service, sdk_language, session, prepare_for_runtime=Fal
         sdk_language=sdk_language,
         session=session,
         service_url=service_url,
-        service_data=sdk_data.get("service_res", {}),
+        # service_data should be None if it couldn't be retrieved beforehand (BUG#)
+        # otherwise, if there are no services, it should be an empty dictionary
+        service_data=None if sdk_data is None else sdk_data.get("service_res", {}),
     )
 
     code = substitute_imports_in_template(
@@ -263,7 +271,7 @@ def substitute_service_in_template(service, template, sdk_language, session, ser
         sdk_language=sdk_language,
         session=session,
         service_url=service_url,
-        schemas=service_data.get("db_schemas", []),
+        schemas=None if service_data is None else service_data.get("db_schemas", []),
     )
 
     template = code.get("template")
@@ -322,6 +330,9 @@ def substitute_schemas_in_template(
         flags=re.DOTALL | re.MULTILINE,
     )
 
+    # BUG#37926204 Get database schemas if they have not been retrieved beforehand
+    db_schemas = lib.schemas.query_schemas(session, service_id=service.get("id")) if schemas is None else schemas
+
     enabled_crud_ops = set()
     required_datatypes = set()
     requires_auth = False
@@ -333,7 +344,7 @@ def substitute_schemas_in_template(
         schema_template = loop.group(1)
 
         filled_temp = ""
-        for schema in schemas:
+        for schema in db_schemas:
             # TODO: Implement support for MRS Scripts
             if schema.get("schema_type") == "SCRIPT_MODULE":
                 continue
@@ -351,7 +362,7 @@ def substitute_schemas_in_template(
                     sdk_language=sdk_language,
                     session=session,
                     service_url=service_url,
-                    db_objs=schema.get("db_objects", [])
+                    db_objs=None if schemas is None else schema.get("db_objects", [])
                 )
 
                 schema_template_with_obj_filled = code.get("template")
@@ -448,6 +459,9 @@ def substitute_objects_in_template(
         flags=re.DOTALL | re.MULTILINE,
     )
 
+    # BUG#37926204 Get database objects if they have not been retrieved beforehand
+    db_objects = lib.db_objects.query_db_objects(session, schema_id=schema.get("id")) if db_objs is None else db_objs
+
     crud_ops = [
         "Create",
         "Read",
@@ -477,7 +491,7 @@ def substitute_objects_in_template(
         existing_identifiers = []
 
         filled_temp = ""
-        for db_obj in db_objs:
+        for db_obj in db_objects:
             name = generate_identifier(
                 value=db_obj.get("request_path"),
                 sdk_language=sdk_language,
@@ -501,16 +515,18 @@ def substitute_objects_in_template(
             obj_meta_interfaces = []
             db_object_crud_ops = ""
 
-            # Get SDK objects
-            objects = db_obj.get("objects")
+            # BUG#37926204 Get SDK objects if they have not been retrieved beforehand
+            objects = lib.db_objects.get_objects(
+                session, db_object_id=db_obj.get("id")) if db_obj.get("objects") is None else db_obj.get("objects")
 
             # Loop over all objects and build interfaces
             for obj in objects:
                 if requires_auth is False:
                     requires_auth |= db_obj.get("requires_auth") == 1
 
-                # Get fields
-                fields = obj.get("fields")
+                # BUG#37926204 Get object fields if they have not been retrieved beforehand
+                fields = lib.db_objects.get_object_fields_with_references(
+                    session=session, object_id=obj.get("id")) if obj.get("fields") is None else obj.get("fields")
 
                 for field in fields:
                     if field.get("lev") == 1:
@@ -564,7 +580,11 @@ def substitute_objects_in_template(
                 # the corresponding SDK commands should be enabled.
                 if not object_is_routine(db_obj):
                     # READ is always enabled
-                    db_object_crud_ops = db_obj.get("crud_operations", "READ").split(",")
+                    db_object_crud_ops = db_obj.get("crud_operations", "READ")
+                    # If db_objects results from calling lib.db_objects.get_objects, the value of the "crud_operations"
+                    # key is already a list, if it results from calling lib.services.get_service_sdk_data, the value
+                    # is a comma-separated string (BUG#37926204)
+                    db_object_crud_ops = db_object_crud_ops if isinstance(db_object_crud_ops, list) else db_object_crud_ops.split(",")
                     # If this DB Object has unique columns (PK or UNIQUE) allow ReadUnique
                     if len(obj_unique_list) > 0 and "READUNIQUE" not in db_object_crud_ops:
                         db_object_crud_ops.append("READUNIQUE")
@@ -611,7 +631,9 @@ def substitute_objects_in_template(
             if object_is_routine(db_obj, of_type={"FUNCTION"}):
                 obj_function_result_datatype = "unknown"
                 if len(objects) > 1:
-                    fields = objects[1].get("fields")
+                    # BUG#37926204 Get object fields if they have not been retrieved beforehand
+                    fields = lib.db_objects.get_object_fields_with_references(
+                        session=session, object_id=objects[1].get("id")) if objects[1].get("fields") is None else objects[1].get("fields")
 
                     if len(fields) > 0:
                         db_column_info = field.get("db_column")
