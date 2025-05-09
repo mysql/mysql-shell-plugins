@@ -71,6 +71,13 @@ class MrsDdlListener(MRSListener):
     def get_uuid(self):
         return lib.core.convert_id_to_string(lib.core.get_sequence_id(self.session))
 
+    def create_prefix(self, ctx):
+        if ctx.REPLACE_SYMBOL():
+            return "CREATE OR REPLACE"
+        if ctx.EXISTS_SYMBOL():
+            return "CREATE IF NOT EXISTS"
+        return "CREATE"
+
     # ------------------------------------------------------------------------------------------------------------------
     # Common handlers
 
@@ -246,11 +253,9 @@ class MrsDdlListener(MRSListener):
     def enterCreateRestServiceStatement(self, ctx):
         self.mrs_object = {
             "line": ctx.start.line,
-            "current_operation": (
-                "CREATE" if ctx.REPLACE_SYMBOL() is None else "CREATE OR REPLACE"
-            )
-            + " REST SERVICE",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
+            "if_not_exists": ctx.EXISTS_SYMBOL() is not None,
+            "current_operation": self.create_prefix(ctx) + " REST SERVICE",
         }
 
     def enterRestProtocol(self, ctx):
@@ -299,11 +304,9 @@ class MrsDdlListener(MRSListener):
     def enterCreateRestSchemaStatement(self, ctx):
         self.mrs_object = {
             "line": ctx.start.line,
-            "current_operation": (
-                "CREATE" if ctx.REPLACE_SYMBOL() is None else "CREATE OR REPLACE"
-            )
-            + " REST SCHEMA",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
+            "if_not_exists": ctx.EXISTS_SYMBOL() is not None,
+            "current_operation": self.create_prefix(ctx) + " REST SCHEMA",
             "schema_name": get_text_without_quotes(ctx.schemaName().getText()),
             "schema_request_path": (
                 get_text_without_quotes(ctx.schemaRequestPath().getText())
@@ -529,10 +532,9 @@ class MrsDdlListener(MRSListener):
     def enterCreateRestViewStatement(self, ctx):
         self.mrs_object = {
             "line": ctx.start.line,
-            "current_operation": f"""CREATE{
-                '' if ctx.REPLACE_SYMBOL() is None else ' OR REPLACE'
-            } REST VIEW""",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
+            "if_not_exists": ctx.EXISTS_SYMBOL() is not None,
+            "current_operation": self.create_prefix(ctx) + " REST VIEW",
             "id": self.get_uuid(),
             "request_path": get_text_without_quotes(
                 ctx.viewRequestPath().requestPathIdentifier().getText()
@@ -1010,11 +1012,9 @@ class MrsDdlListener(MRSListener):
     def enterCreateRestProcedureStatement(self, ctx):
         self.mrs_object = {
             "line": ctx.start.line,
-            "current_operation": (
-                "CREATE" if ctx.REPLACE_SYMBOL() is None else "CREATE OR REPLACE"
-            )
-            + " REST PROCEDURE",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
+            "if_not_exists": ctx.EXISTS_SYMBOL() is not None,
+            "current_operation": self.create_prefix(ctx) + " REST PROCEDURE",
             "id": self.get_uuid(),
             "request_path": get_text_without_quotes(
                 ctx.procedureRequestPath().getText()
@@ -1142,11 +1142,9 @@ class MrsDdlListener(MRSListener):
     def enterCreateRestFunctionStatement(self, ctx):
         self.mrs_object = {
             "line": ctx.start.line,
-            "current_operation": (
-                "CREATE" if ctx.REPLACE_SYMBOL() is None else "CREATE OR REPLACE"
-            )
-            + " REST FUNCTION",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
+            "if_not_exists": ctx.EXISTS_SYMBOL() is not None,
+            "current_operation": self.create_prefix(ctx) + " REST FUNCTION",
             "id": self.get_uuid(),
             "request_path": get_text_without_quotes(
                 ctx.functionRequestPath().getText()
@@ -1173,11 +1171,9 @@ class MrsDdlListener(MRSListener):
     def enterCreateRestContentSetStatement(self, ctx):
         self.mrs_object = {
             "line": ctx.start.line,
-            "current_operation": (
-                "CREATE" if ctx.REPLACE_SYMBOL() is None else "CREATE OR REPLACE"
-            )
-            + " CONTENT SET",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
+            "if_not_exists": ctx.EXISTS_SYMBOL() is not None,
+            "current_operation": self.create_prefix(ctx) + " CONTENT SET",
             "request_path": get_text_without_quotes(
                 ctx.contentSetRequestPath().getText()
             ),
@@ -1206,11 +1202,9 @@ class MrsDdlListener(MRSListener):
     def enterCreateRestContentFileStatement(self, ctx):
         self.mrs_object = {
             "line": ctx.start.line,
-            "current_operation": (
-                "CREATE" if ctx.REPLACE_SYMBOL() is None else "CREATE OR REPLACE"
-            )
-            + " CONTENT FILE",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
+            "if_not_exists": ctx.EXISTS_SYMBOL() is not None,
+            "current_operation": self.create_prefix(ctx) + " CONTENT FILE",
             "request_path": get_text_without_quotes(
                 ctx.contentFileRequestPath().getText()
             ),
@@ -1239,11 +1233,9 @@ class MrsDdlListener(MRSListener):
     def enterCreateRestAuthAppStatement(self, ctx):
         self.mrs_object = {
             "line": ctx.start.line,
-            "current_operation": (
-                "CREATE" if ctx.REPLACE_SYMBOL() is None else "CREATE OR REPLACE"
-            )
-            + " AUTH APP",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
+            "if_not_exists": ctx.EXISTS_SYMBOL() is not None,
+            "current_operation": self.create_prefix(ctx) + " AUTH APP",
             "name": get_text_without_quotes(ctx.authAppName().getText()),
             "vendor": (
                 get_text_without_quotes(ctx.vendorName().getText())
@@ -1262,11 +1254,9 @@ class MrsDdlListener(MRSListener):
     def enterCreateRestUserStatement(self, ctx):
         self.mrs_object = {
             "line": ctx.start.line,
-            "current_operation": (
-                "CREATE" if ctx.REPLACE_SYMBOL() is None else "CREATE OR REPLACE"
-            )
-            + " USER",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
+            "if_not_exists": ctx.EXISTS_SYMBOL() is not None,
+            "current_operation": self.create_prefix(ctx) + " USER",
             "name": get_text_without_quotes(ctx.userName().getText()),
             "authAppName": get_text_without_quotes(ctx.authAppName().getText()),
             "password": unquoted_node_text_or_none(ctx.userPassword()),
@@ -1284,11 +1274,9 @@ class MrsDdlListener(MRSListener):
     def enterCreateRestRoleStatement(self, ctx):
         self.mrs_object = {
             "line": ctx.start.line,
-            "current_operation": (
-                "CREATE" if ctx.REPLACE_SYMBOL() is None else "CREATE OR REPLACE"
-            )
-            + " ROLE",
             "do_replace": ctx.REPLACE_SYMBOL() is not None,
+            "if_not_exists": ctx.EXISTS_SYMBOL() is not None,
+            "current_operation": self.create_prefix(ctx) + " ROLE",
             "name": get_text_without_quotes(ctx.roleName().getText()),
             "extends": unquoted_node_text_or_none(ctx.parentRoleName()),
             "any_service": ctx.ANY_SYMBOL(),
@@ -1643,6 +1631,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "DROP REST SERVICE",
+            "if_exists": ctx.EXISTS_SYMBOL() is not None,
         }
 
     def exitDropRestServiceStatement(self, ctx):
@@ -1655,6 +1644,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "DROP REST SCHEMA",
+            "if_exists": ctx.EXISTS_SYMBOL() is not None,
             "request_path": get_text_without_quotes(ctx.schemaRequestPath().getText()),
         }
 
@@ -1668,6 +1658,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "DROP REST VIEW",
+            "if_exists": ctx.EXISTS_SYMBOL() is not None,
             "request_path": get_text_without_quotes(ctx.viewRequestPath().getText()),
             "type": "VIEW",
         }
@@ -1682,6 +1673,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "DROP REST PROCEDURE",
+            "if_exists": ctx.EXISTS_SYMBOL() is not None,
             "request_path": get_text_without_quotes(
                 ctx.procedureRequestPath().getText()
             ),
@@ -1698,6 +1690,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "DROP REST FUNCTION",
+            "if_exists": ctx.EXISTS_SYMBOL() is not None,
             "request_path": get_text_without_quotes(
                 ctx.functionRequestPath().getText()
             ),
@@ -1714,6 +1707,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "DROP REST CONTENT SET",
+            "if_exists": ctx.EXISTS_SYMBOL() is not None,
             "request_path": get_text_without_quotes(
                 ctx.contentSetRequestPath().getText()
             ),
@@ -1729,6 +1723,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "DROP REST CONTENT FILE",
+            "if_exists": ctx.EXISTS_SYMBOL() is not None,
             "request_path": get_text_without_quotes(
                 ctx.contentFileRequestPath().getText()
             ),
@@ -1747,6 +1742,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "DROP REST AUTH APP",
+            "if_exists": ctx.EXISTS_SYMBOL() is not None,
             "name": get_text_without_quotes(ctx.authAppName().getText()),
         }
 
@@ -1760,6 +1756,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "DROP REST USER",
+            "if_exists": ctx.EXISTS_SYMBOL() is not None,
             "name": get_text_without_quotes(ctx.userName().getText()),
             "authAppName": get_text_without_quotes(ctx.authAppName().getText()),
         }
@@ -1774,6 +1771,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "DROP REST ROLE",
+            "if_exists": ctx.EXISTS_SYMBOL() is not None,
             "name": get_text_without_quotes(ctx.roleName().getText()),
         }
 
