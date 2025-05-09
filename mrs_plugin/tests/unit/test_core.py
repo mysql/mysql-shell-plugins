@@ -196,3 +196,28 @@ def test_id_to_binary():
     id = "0x1234"
     with pytest.raises(RuntimeError, match=f"The '{context}' has an invalid size."):
         core.id_to_binary(id, context, False)
+
+
+def test_convert_path_to_camel_case():
+    camel_case_name = convert_path_to_camel_case(path="/foo_bar")
+    assert camel_case_name == "fooBar"
+
+    camel_case_name = convert_path_to_camel_case(path="/Foo_Bar")
+    assert camel_case_name == "FooBar"
+
+    camel_case_name = convert_path_to_camel_case(path="/foo")
+    assert camel_case_name == "foo"
+
+    # forcing lowerCamelCase
+    camel_case_name = convert_path_to_camel_case(path="/Foo_Bar", lower=True)
+    assert camel_case_name == "fooBar"
+
+    camel_case_name = convert_path_to_camel_case(path="/Foo_bar", lower=True)
+    assert camel_case_name == "fooBar"
+
+    # handling special characters
+    camel_case_name = convert_path_to_camel_case(path="foo(bar)")
+    assert camel_case_name == "foobar"
+
+    camel_case_name = convert_path_to_camel_case(path="foo(bar)", allowed_special_characters={"(", ")"})
+    assert camel_case_name == "foo(bar)"
