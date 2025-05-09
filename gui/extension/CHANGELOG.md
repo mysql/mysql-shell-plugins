@@ -4,11 +4,12 @@
 
 ### Additions
 
-- 
+-
 
 ### Fixes
 
-- 
+- BUG#37914615 Inconsistent MRS SDK identifiers with PascalCase request path
+-
 
 ## Changes in 1.19.10+9.3.1
 
