@@ -363,7 +363,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def createRestService(self, mrs_object):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
-        do_replace = mrs_object.pop("do_replace")
+        do_replace = mrs_object.pop("do_replace", False)
+        if_not_exists = mrs_object.pop("if_not_exists", False)
         context_root = mrs_object.get("url_context_root", "")
         url_host_name = mrs_object.pop("url_host_name", "")
         line = mrs_object.pop("line", None)
@@ -378,7 +379,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             try:
                 # If the OR REPLACE was specified, check if there is an existing service on the same host
                 # with the same path and delete it.
-                if do_replace is True:
+                if do_replace or if_not_exists:
                     service = lib.services.get_service(
                         url_context_root=context_root,
                         url_host_name=url_host_name,
@@ -392,6 +393,19 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         session=self.session,
                     )
                     if service is not None:
+                        if if_not_exists:
+                            self.results.append(
+                                {
+                                    "statementIndex": len(self.results) + 1,
+                                    "line": line,
+                                    "type": "success",
+                                    "message": f"REST SERVICE `{full_path}` created successfully.",
+                                    "operation": self.current_operation,
+                                    "id": lib.core.convert_id_to_string(service_id),
+                                    "executionTime": timer.elapsed(),
+                                }
+                            )
+                            return
                         lib.services.delete_service(
                             service_id=service.get("id"), session=self.session
                         )
@@ -448,7 +462,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def createRestSchema(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
-        do_replace = mrs_object.pop("do_replace")
+        do_replace = mrs_object.pop("do_replace", False)
+        if_not_exists = mrs_object.pop("if_not_exists", False)
 
         schema_request_path = mrs_object.get("schema_request_path")
         full_path = self.getFullSchemaPath(mrs_object=mrs_object)
@@ -459,13 +474,26 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
                 # If the OR REPLACE was specified, check if there is an existing schema on the same service
                 # and delete it.
-                if do_replace == True:
+                if do_replace or if_not_exists:
                     schema = lib.schemas.get_schema(
                         service_id=service_id,
                         request_path=mrs_object.get("schema_request_path"),
                         session=self.session,
                     )
                     if schema is not None:
+                        if if_not_exists:
+                            self.results.append(
+                                {
+                                    "statementIndex": len(self.results) + 1,
+                                    "line": mrs_object.get("line"),
+                                    "type": "success",
+                                    "message": f"REST SCHEMA `{full_path}` created successfully.",
+                                    "operation": self.current_operation,
+                                    "id": lib.core.convert_id_to_string(schema.get("id")),
+                                    "executionTime": timer.elapsed(),
+                                }
+                            )
+                            return
                         lib.schemas.delete_schema(
                             schema_id=schema.get("id"), session=self.session
                         )
@@ -559,7 +587,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def createRestDbObject(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
-        do_replace = mrs_object.pop("do_replace")
+        do_replace = mrs_object.pop("do_replace", False)
+        if_not_exists = mrs_object.pop("if_not_exists", False)
 
         full_path = self.getFullSchemaPath(
             mrs_object=mrs_object, request_path=mrs_object.get("request_path")
@@ -582,13 +611,26 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
                 # If the OR REPLACE was specified, check if there is an existing db_object on the same schema
                 # and delete it.
-                if do_replace is True:
+                if do_replace or if_not_exists:
                     db_object = lib.db_objects.get_db_object(
                         schema_id=schema_id,
                         request_path=mrs_object.get("request_path"),
                         session=self.session,
                     )
                     if db_object is not None:
+                        if if_not_exists:
+                            self.results.append(
+                                {
+                                    "statementIndex": len(self.results) + 1,
+                                    "line": mrs_object.get("line"),
+                                    "type": "success",
+                                    "message": f"REST {type_caption} `{full_path}` created successfully.",
+                                    "operation": self.current_operation,
+                                    "id": db_object.get("id"),
+                                    "executionTime": timer.elapsed()
+                                }
+                            )
+                            return
                         lib.db_objects.delete_db_object(
                             db_object_id=db_object.get("id"), session=self.session
                         )
@@ -658,7 +700,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def createRestContentSet(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
-        do_replace = mrs_object.pop("do_replace")
+        do_replace = mrs_object.pop("do_replace", False)
+        if_not_exists = mrs_object.pop("if_not_exists", False)
 
         full_path = self.getFullServicePath(
             mrs_object=mrs_object, request_path=mrs_object.get("request_path")
@@ -670,13 +713,25 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
                 # If the OR REPLACE was specified, check if there is an existing content set on the same service
                 # and delete it.
-                if do_replace == True:
+                if do_replace or if_not_exists:
                     content_set = lib.content_sets.get_content_set(
                         service_id=service_id,
                         request_path=mrs_object.get("request_path"),
                         session=self.session,
                     )
                     if content_set is not None:
+                        if if_not_exists:
+                            self.results.append(
+                                {
+                                    "statementIndex": len(self.results) + 1,
+                                    "type": "success",
+                                    "message": f"REST content set `{full_path}` created successfully. {files_added} file(s) added.",
+                                    "operation": self.current_operation,
+                                    "id": content_set.get("id"),
+                                    "executionTime": timer.elapsed(),
+                                }
+                            )
+                            return
                         lib.content_sets.delete_content_set(
                             content_set_ids=[content_set.get("id")],
                             session=self.session,
@@ -728,7 +783,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def createRestContentFile(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
-        do_replace = mrs_object.pop("do_replace")
+        do_replace = mrs_object.pop("do_replace", False)
+        if_not_exists = mrs_object.pop("if_not_exists", False)
 
         full_path = mrs_object.get("request_path")
 
@@ -755,7 +811,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
                 # If the OR REPLACE was specified, check if there is an existing content set on the same service
                 # and delete it.
-                if do_replace == True:
+                if do_replace or if_not_exists:
                     content_file = lib.content_files.get_content_file(
                         content_set_id=content_set.get("id"),
                         request_path=mrs_object.get("request_path"),
@@ -763,6 +819,19 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         session=self.session,
                     )
                     if content_file is not None:
+                        if if_not_exists:
+                            self.results.append(
+                                {
+                                    "statementIndex": len(self.results) + 1,
+                                    "line": mrs_object.get("line"),
+                                    "type": "success",
+                                    "message": f"REST CONTENT FILE `{full_path}` created successfully.",
+                                    "operation": self.current_operation,
+                                    "id": content_file.get("id"),
+                                    "executionTime": timer.elapsed(),
+                                }
+                            )
+                            return
                         lib.content_files.delete_content_file(
                             content_file_ids=[content_file.get("id")],
                             session=self.session,
@@ -818,7 +887,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def createRestAuthApp(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
-        do_replace = mrs_object.pop("do_replace")
+        do_replace = mrs_object.pop("do_replace", False)
+        if_not_exists = mrs_object.pop("if_not_exists", False)
 
         name = mrs_object.get("name")
         full_path = name
@@ -827,11 +897,24 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
             try:
                 # If the OR REPLACE was specified, check if there is an existing content set on the same service
                 # and delete it.
-                if do_replace == True:
+                if do_replace or if_not_exists:
                     auth_app = lib.auth_apps.get_auth_app(
                         name=name, session=self.session
                     )
                     if auth_app is not None:
+                        if if_not_exists:
+                            self.results.append(
+                                {
+                                    "statementIndex": len(self.results) + 1,
+                                    "line": mrs_object.get("line"),
+                                    "type": "success",
+                                    "message": f"REST AUTH APP `{full_path}` created successfully.",
+                                    "operation": self.current_operation,
+                                    "id": lib.core.convert_id_to_string(auth_app.get("id")),
+                                    "executionTime": timer.elapsed(),
+                                }
+                            )
+                            return
                         lib.auth_apps.delete_auth_app(
                             app_id=auth_app.get("id"),
                             session=self.session,
@@ -924,7 +1007,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def createRestUser(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
-        do_replace = mrs_object.pop("do_replace")
+        do_replace = mrs_object.pop("do_replace", False)
+        if_not_exists = mrs_object.pop("if_not_exists", False)
 
         name = mrs_object.get("name")
         authAppName = mrs_object.get("authAppName")
@@ -955,13 +1039,26 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
                 # If the OR REPLACE was specified, check if there is an existing content set on the same service
                 # and delete it.
-                if do_replace == True:
+                if do_replace or if_not_exists:
                     users = lib.users.get_users(
                         auth_app_id=auth_app.get("id"),
                         user_name=name,
                         session=self.session,
                     )
                     if len(users) > 0:
+                        if if_not_exists:
+                            self.results.append(
+                                {
+                                    "statementIndex": len(self.results) + 1,
+                                    "line": mrs_object.get("line"),
+                                    "type": "success",
+                                    "message": f"REST USER `{full_path}` created successfully.",
+                                    "operation": self.current_operation,
+                                    "id": lib.core.convert_id_to_string(user_id),
+                                    "executionTime": timer.elapsed(),
+                                }
+                            )
+                            return
                         lib.users.delete_user_by_id(
                             user_id=users[0].get("id"), session=self.session
                         )
@@ -1005,7 +1102,8 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def createRestRole(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
-        do_replace = mrs_object.pop("do_replace")
+        do_replace = mrs_object.pop("do_replace", False)
+        if_not_exists = mrs_object.pop("if_not_exists", False)
 
         # captions are UNIQUE
         caption = mrs_object.get("name")
@@ -1033,13 +1131,26 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
                 # If the OR REPLACE was specified, check if there is an existing content set on the same service
                 # and delete it.
-                if do_replace == True:
+                if do_replace or if_not_exists:
                     role = lib.roles.get_role(
                         specific_to_service_id=specific_to_service_id,
                         caption=caption,
                         session=self.session,
                     )
                     if role:
+                        if if_not_exists:
+                            self.results.append(
+                                {
+                                    "statementIndex": len(self.results) + 1,
+                                    "line": mrs_object.get("line"),
+                                    "type": "success",
+                                    "message": f"REST ROLE `{caption}` created successfully.",
+                                    "operation": self.current_operation,
+                                    "id": lib.core.convert_id_to_string(role.get("id")),
+                                    "executionTime": timer.elapsed(),
+                                }
+                            )
+                            return
                         lib.roles.delete_role(
                             role_id=role.get("id"), session=self.session
                         )
@@ -1552,6 +1663,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def dropRestService(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
+        if_exists = mrs_object.pop("if_exists")
 
         full_path = self.getFullServicePath(mrs_object=mrs_object)
 
@@ -1567,14 +1679,15 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     ),
                     session=self.session,
                 )
-                if service is None:
-                    raise Exception(
-                        f"The given REST SERVICE `{full_path}` could not be found."
-                    )
+                if service is None and not if_exists:
+                        raise Exception(
+                            f"The given REST SERVICE `{full_path}` could not be found."
+                        )
 
-                lib.services.delete_service(
-                    service_id=service["id"], session=self.session
-                )
+                if service:
+                    lib.services.delete_service(
+                        service_id=service["id"], session=self.session
+                    )
 
                 self.results.append(
                     {
@@ -1583,7 +1696,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         "type": "success",
                         "message": f"REST SERVICE `{full_path}` dropped successfully.",
                         "operation": self.current_operation,
-                        "id": lib.core.convert_id_to_string(service["id"]),
+                        "id": lib.core.convert_id_to_string(service["id"]) if service else None,
                         "executionTime": timer.elapsed(),
                     }
                 )
@@ -1602,6 +1715,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def dropRestSchema(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
+        if_exists = mrs_object.pop("if_exists")
 
         full_path = self.getFullServicePath(
             mrs_object=mrs_object, request_path=mrs_object.get(
@@ -1617,13 +1731,14 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     request_path=mrs_object["request_path"],
                     session=self.session,
                 )
-                if schema is None:
+                if schema is None and not if_exists:
                     raise Exception(
                         f"The given REST SCHEMA `{full_path}` could not be found."
                     )
 
-                lib.schemas.delete_schema(
-                    schema_id=schema["id"], session=self.session)
+                if schema:
+                    lib.schemas.delete_schema(
+                        schema_id=schema["id"], session=self.session)
 
                 self.results.append(
                     {
@@ -1632,7 +1747,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         "type": "success",
                         "message": f"REST SCHEMA `{full_path}` dropped successfully.",
                         "operation": self.current_operation,
-                        "id": lib.core.convert_id_to_string(schema["id"]),
+                        "id": lib.core.convert_id_to_string(schema["id"]) if schema else None,
                         "executionTime": timer.elapsed(),
                     }
                 )
@@ -1653,6 +1768,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         self.current_operation = mrs_object.pop("current_operation")
         request_path = mrs_object.pop("request_path")
         rest_object_type = mrs_object.pop("type")
+        if_exists = mrs_object.pop("if_exists")
 
         full_path = self.getFullSchemaPath(
             mrs_object=mrs_object, request_path=request_path
@@ -1665,14 +1781,15 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 db_object = lib.db_objects.get_db_object(
                     session=self.session, schema_id=schema_id, request_path=request_path
                 )
-                if db_object is None:
+                if db_object is None and not if_exists:
                     raise Exception(
                         f"The given REST {rest_object_type} `{full_path}` could not be found."
                     )
 
-                lib.db_objects.delete_db_object(
-                    session=self.session, db_object_id=db_object.get("id")
-                )
+                if db_object:
+                    lib.db_objects.delete_db_object(
+                        session=self.session, db_object_id=db_object.get("id")
+                    )
 
                 self.results.append(
                     {
@@ -1681,7 +1798,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         "type": "success",
                         "message": f"REST {rest_object_type} `{full_path}` dropped successfully.",
                         "operation": self.current_operation,
-                        "id": lib.core.convert_id_to_string(db_object["id"]),
+                        "id": lib.core.convert_id_to_string(db_object["id"]) if db_object else None,
                         "executionTime": timer.elapsed(),
                     }
                 )
@@ -1701,6 +1818,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
         request_path = mrs_object.get("request_path")
+        if_exists = mrs_object.pop("if_exists")
 
         full_path = self.getFullServicePath(
             mrs_object=mrs_object, request_path=request_path
@@ -1715,14 +1833,15 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     request_path=request_path,
                     session=self.session,
                 )
-                if content_set is None:
+                if content_set is None and not if_exists:
                     raise Exception(
                         f"The given REST CONTENT SET `{full_path}` could not be found."
                     )
 
-                lib.content_sets.delete_content_set(
-                    content_set_ids=[content_set["id"]], session=self.session
-                )
+                if content_set:
+                    lib.content_sets.delete_content_set(
+                        content_set_ids=[content_set["id"]], session=self.session
+                    )
 
                 self.results.append(
                     {
@@ -1731,7 +1850,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         "type": "success",
                         "message": f"REST CONTENT SET `{full_path}` dropped successfully.",
                         "operation": self.current_operation,
-                        "id": lib.core.convert_id_to_string(content_set["id"]),
+                        "id": lib.core.convert_id_to_string(content_set["id"]) if content_set else None,
                         "executionTime": timer.elapsed(),
                     }
                 )
@@ -1752,6 +1871,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         self.current_operation = mrs_object.pop("current_operation")
 
         full_path = mrs_object.get("request_path")
+        if_exists = mrs_object.pop("if_exists")
 
         with lib.core.MrsDbTransaction(self.session):
             try:
@@ -1763,30 +1883,34 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                     service_id=service_id,
                     request_path=mrs_object.get("content_set_path"),
                 )
-                if content_set is None:
+                if content_set is None and not if_exists:
                     raise Exception(
                         f'The REST content set {mrs_object.get("content_set_path")} was not found.'
                     )
 
-                full_path = self.getFullServicePath(
-                    mrs_object=mrs_object,
-                    request_path=content_set.get("request_path")
-                    + mrs_object.get("request_path"),
-                )
+                if content_set:
+                    full_path = self.getFullServicePath(
+                        mrs_object=mrs_object,
+                        request_path=content_set.get("request_path")
+                        + mrs_object.get("request_path"),
+                    )
 
-                content_file = lib.content_files.get_content_file(
-                    content_set_id=content_set.get("id"),
-                    request_path=mrs_object.get("request_path"),
-                    include_file_content=False,
-                    session=self.session,
-                )
-                if content_file is None:
-                    raise Exception(
-                        f"The REST content file {full_path} was not found.")
+                    content_file = lib.content_files.get_content_file(
+                        content_set_id=content_set.get("id"),
+                        request_path=mrs_object.get("request_path"),
+                        include_file_content=False,
+                        session=self.session,
+                    )
+                    if content_file is None and not if_exists:
+                        raise Exception(
+                            f"The REST content file {full_path} was not found.")
+                else:
+                    content_file = None
 
-                lib.content_files.delete_content_file(
-                    content_file_id=content_file["id"], session=self.session
-                )
+                if content_file:
+                    lib.content_files.delete_content_file(
+                        content_file_id=content_file["id"], session=self.session
+                    )
 
                 self.results.append(
                     {
@@ -1795,7 +1919,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         "type": "success",
                         "message": f"REST CONTENT FILE `{full_path}` created successfully.",
                         "operation": self.current_operation,
-                        "id": content_file["id"],
+                        "id": content_file["id"] if content_file else None,
                         "executionTime": timer.elapsed(),
                     }
                 )
@@ -1814,7 +1938,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def dropRestAuthApp(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
-
+        if_exists = mrs_object.pop("if_exists")
         name = mrs_object.get("name")
 
         with lib.core.MrsDbTransaction(self.session):
@@ -1822,15 +1946,16 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                 auth_app = lib.auth_apps.get_auth_app(
                     name=name, session=self.session
                 )
-                if auth_app is None:
+                if auth_app is None and not if_exists:
                     raise Exception(
                         f"The given REST AUTH APP `{name}` could not be found."
                     )
 
-                lib.auth_apps.delete_auth_app(
-                    app_id=auth_app.get("id"),
-                    session=self.session,
-                )
+                if auth_app:
+                    lib.auth_apps.delete_auth_app(
+                        app_id=auth_app.get("id"),
+                        session=self.session,
+                    )
 
                 self.results.append(
                     {
@@ -1839,7 +1964,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         "type": "success",
                         "message": f"REST AUTH APP `{name}` dropped successfully.",
                         "operation": self.current_operation,
-                        "id": lib.core.convert_id_to_string(auth_app["id"]),
+                        "id": lib.core.convert_id_to_string(auth_app["id"]) if auth_app else None,
                         "executionTime": timer.elapsed(),
                     }
                 )
@@ -1858,6 +1983,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def dropRestUser(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
+        if_exists = mrs_object.pop("if_exists")
 
         name = mrs_object.get("name")
         authAppName = mrs_object.get("authAppName")
@@ -1865,25 +1991,27 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
 
         with lib.core.MrsDbTransaction(self.session):
             try:
-                service_id = self.get_given_or_current_service_id(mrs_object)
-
                 auth_app = lib.auth_apps.get_auth_app(
                     name=authAppName, session=self.session
                 )
-                if auth_app is None:
+                if auth_app is None and not if_exists:
                     raise Exception(
                         f"The given REST AUTH APP for {full_path} was not found."
                     )
 
-                users = lib.users.get_users(
-                    auth_app_id=auth_app.get("id"), user_name=name, session=self.session
-                )
-                if len(users) > 0:
-                    lib.users.delete_user_by_id(
-                        user_id=users[0].get("id"), session=self.session
+                if auth_app:
+                    users = lib.users.get_users(
+                        auth_app_id=auth_app.get("id"), user_name=name, session=self.session
                     )
+                    if len(users) > 0:
+                        lib.users.delete_user_by_id(
+                            user_id=users[0].get("id"), session=self.session
+                        )
+                    else:
+                        if not if_exists:
+                            raise Exception("User was not found.")
                 else:
-                    raise Exception("User was not found.")
+                    users = None
 
                 self.results.append(
                     {
@@ -1892,7 +2020,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         "type": "success",
                         "message": f"REST USER `{full_path}` dropped successfully.",
                         "operation": self.current_operation,
-                        "id": lib.core.convert_id_to_string(users[0].get("id")),
+                        "id": lib.core.convert_id_to_string(users[0].get("id")) if users else None,
                         "executionTime": timer.elapsed(),
                     }
                 )
@@ -1911,18 +2039,20 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
     def dropRestRole(self, mrs_object: dict):
         timer = Timer()
         self.current_operation = mrs_object.pop("current_operation")
-
+        if_exists = mrs_object.pop("if_exists")
+        
         caption = mrs_object.get("name")
 
         with lib.core.MrsDbTransaction(self.session):
             try:
                 role = lib.roles.get_role(
                     caption=caption, session=self.session)
+                if not role and not if_exists:
+                        raise Exception(f"Role `{caption}` was not found.")
+                
                 if role:
                     lib.roles.delete_role(
                         role_id=role.get("id"), session=self.session)
-                else:
-                    raise Exception(f"Role `{caption}` was not found.")
 
                 self.results.append(
                     {
@@ -1931,7 +2061,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                         "type": "success",
                         "message": f"REST ROLE `{caption}` dropped successfully.",
                         "operation": self.current_operation,
-                        "id": lib.core.convert_id_to_string(role.get("id")),
+                        "id": lib.core.convert_id_to_string(role.get("id")) if role else None,
                         "executionTime": timer.elapsed(),
                     }
                 )

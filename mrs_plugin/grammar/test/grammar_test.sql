@@ -308,6 +308,7 @@ NEW REQUEST PATH /sakila;
 SHOW REST SCHEMAS;
 
 CREATE OR REPLACE REST AUTH APP "MRS" VENDOR MRS;
+CREATE REST AUTH APP IF NOT EXISTS "MRS" VENDOR MRS;
 
 ALTER REST SERVICE /myTestService
 ADD AUTH APP "MRS";
@@ -334,6 +335,7 @@ ALTER REST USER "mike"@"MRS" OPTIONS {
 select * from mysql_rest_service_metadata.mrs_user;
 
 CREATE OR REPLACE REST ROLE "role1";
+CREATE REST ROLE IF NOT EXISTS "role1";
 CREATE OR REPLACE REST ROLE "role2" EXTENDS "role1";
 -- should cascade and drop role1 and role2
 -- DROP REST ROLE "role1";
@@ -369,12 +371,18 @@ SHOW REST ROLES;
 SHOW REST ROLES ON SERVICE /myTestService;
 
 DROP REST ROLE "role3";
+DROP REST ROLE IF EXISTS "role3";
 DROP REST ROLE "role2";
 DROP REST ROLE "role1";
 
 DROP REST USER "mike"@"MRS";
+DROP REST USER IF EXISTS "mike"@"MRS";
 
 CREATE OR REPLACE REST AUTH APP "MySQL" VENDOR MySQL
+ALLOW NEW USERS TO REGISTER
+DEFAULT ROLE "Full Access";
+
+CREATE REST AUTH APP IF NOT EXISTS "MySQL" VENDOR MySQL
 ALLOW NEW USERS TO REGISTER
 DEFAULT ROLE "Full Access";
 
@@ -390,10 +398,14 @@ SHOW CREATE REST AUTH APP "MySQL";
 ALTER REST SERVICE /myTestService DISABLED;
 
 DROP REST AUTH APP "MRS";
+DROP REST AUTH APP IF EXISTS "MRS";
 
 DROP REST AUTH APP "MySQL";
 
 DROP REST DATA MAPPING VIEW /country
+FROM SERVICE /myTestService SCHEMA /sakila;
+
+DROP REST DATA MAPPING VIEW IF EXISTS /country
 FROM SERVICE /myTestService SCHEMA /sakila;
 
 DROP REST DATA MAPPING VIEW /actor;
@@ -401,10 +413,22 @@ DROP REST DATA MAPPING VIEW /actor;
 DROP REST DATA MAPPING VIEW /actorInfo;
 
 DROP REST PROCEDURE /filmInStock;
+DROP REST PROCEDURE IF EXISTS /filmInStock;
 
 DROP REST CONTENT SET /testContent;
+DROP REST CONTENT SET IF EXISTS /testContent;
 
 CREATE OR REPLACE REST DATA MAPPING VIEW /moviesByLanguage
+ON SERVICE /myTestService SCHEMA /sakila
+AS `sakila`.`language` {
+    id: language_id,
+    name: name,
+    films: film {
+        title: title
+    }
+};
+
+CREATE REST DATA MAPPING VIEW IF NOT EXISTS /moviesByLanguage
 ON SERVICE /myTestService SCHEMA /sakila
 AS `sakila`.`language` {
     id: language_id,
@@ -431,8 +455,19 @@ SHOW CREATE REST FUNCTION /actorFuncNew
 ON SERVICE /myTestService SCHEMA /sakila;
 
 DROP REST FUNCTION /actorFuncNew;
+DROP REST FUNCTION IF EXISTS /actorFuncNew;
 
 CREATE OR REPLACE REST FUNCTION /actorFunc
+    ON SERVICE /myTestService SCHEMA /sakila
+    AS sakila.actor
+    PARAMETERS LocalhostMyServiceSakilaActorFuncParams {
+        s: s @IN
+    }
+    RESULT LocalhostMyServiceSakilaActorFunc {
+        result: result @DATATYPE("char")
+    };
+
+CREATE REST FUNCTION IF NOT EXISTS /actorFunc
     ON SERVICE /myTestService SCHEMA /sakila
     AS sakila.actor
     PARAMETERS LocalhostMyServiceSakilaActorFuncParams {
@@ -445,8 +480,10 @@ CREATE OR REPLACE REST FUNCTION /actorFunc
 DROP REST FUNCTION /actorFunc;
 
 DROP REST SCHEMA /sakila FROM /myTestService;
+DROP REST SCHEMA IF EXISTS /sakila FROM /myTestService;
 
 DROP REST SERVICE /myTestService;
+DROP REST SERVICE IF EXISTS /myTestService;
 
 SHOW REST SERVICES;
 
@@ -557,6 +594,8 @@ CREATE OR REPLACE REST SERVICE /myTest;
 
 CREATE OR REPLACE REST SCHEMA /test ON SERVICE /myTest FROM `test`;
 
+CREATE REST SCHEMA IF NOT EXISTS /test ON SERVICE /myTest FROM `test`;
+
 CREATE OR REPLACE REST DATA MAPPING VIEW /t1
 ON SERVICE /myTest SCHEMA /test
 AS `test`.`t1` {
@@ -630,6 +669,18 @@ CREATE OR REPLACE REST SERVICE /myTest;
 CREATE OR REPLACE REST SCHEMA /test ON SERVICE /myTest FROM `test`;
 
 CREATE OR REPLACE REST PROCEDURE /filmInStock2
+ON SERVICE /myTest SCHEMA /test
+AS sakila.film_in_stock2 FORCE
+PARAMETERS MyServiceSakilaFilmInStockParams {
+    pFilmId: p_film_id @IN,
+    pStoreId: p_store_id @IN,
+    pFilmCount: p_film_count @OUT
+}
+RESULT MyServiceSakilaFilmInStock {
+    inventoryId: inventory_id @DATATYPE("int")
+};
+
+CREATE REST PROCEDURE IF NOT EXISTS /filmInStock2
 ON SERVICE /myTest SCHEMA /test
 AS sakila.film_in_stock2 FORCE
 PARAMETERS MyServiceSakilaFilmInStockParams {
