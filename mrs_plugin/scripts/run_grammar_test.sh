@@ -22,5 +22,22 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
+function check_errors() {
+    grep --color=always -e ^ -e 'Syntax.*' -e 'Error:.*' -e '^ERROR.*' | while read line
+    do
+        echo "$line"
+        if echo $line|grep '^.\[01;31m' > /dev/null; then
+            sleep 5
+        fi
+    done
+}
+
+if test "$SLEEP_ON_ERROR" == 1; then
+    color=check_errors
+else
+    color="grep --color=always -e ^ -e 'Syntax.*' -e 'Error:.*' -e '^ERROR.*'"
+fi
+
 mysqlsh root@localhost --sql -f "./grammar/test/grammar_test_setup.sql"
-mysqlsh root@localhost --sql --interactive=full --log-level=debug3 --verbose=4 -f ./grammar/test/grammar_test.sql 2>&1 | grep --color=always -e ^ -e 'Syntax.*' -e 'Error:.*' -e '^ERROR.*'
+mysqlsh root@localhost --sql --interactive=full --log-level=debug3 --verbose=4 -f ./grammar/test/grammar_test.sql 2>&1 | $color
+
