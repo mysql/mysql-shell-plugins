@@ -972,8 +972,11 @@ def test_generate_identifier():
     value = generate_identifier(value="foo", existing_identifiers=[])
     assert value == "foo"
 
+    value = generate_identifier(value="foo_bar", existing_identifiers=[])
+    assert value == "fooBar"
+
     value = generate_identifier(value="Foo", existing_identifiers=[])
-    assert value == "Foo"
+    assert value == "foo"
 
     value = generate_identifier(value="fooBar", sdk_language="Python", existing_identifiers=[])
     assert value == "foo_bar"

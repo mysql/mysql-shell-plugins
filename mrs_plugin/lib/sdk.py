@@ -433,7 +433,8 @@ def generate_identifier(
     if primitive == "class":
         identifier = f"{lib.core.convert_path_to_pascal_case(value, allowed_special_characters)}"
     elif sdk_language == "TypeScript":
-        identifier = f"{lib.core.convert_path_to_camel_case(value, allowed_special_characters)}"
+        # variable and property names should be lowerCamelCase
+        identifier = f"{lib.core.convert_path_to_camel_case(path=value, allowed_special_characters=allowed_special_characters, lower=True)}"
     elif sdk_language == "Python":
         identifier = f"{lib.core.convert_to_snake_case(lib.core.convert_path_to_camel_case(value, allowed_special_characters))}"
     else:

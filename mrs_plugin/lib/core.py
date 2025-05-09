@@ -1102,12 +1102,14 @@ def uppercase_first_char(s):
 
 
 def convert_path_to_camel_case(
-    path: str, allowed_special_characters: Optional[set[str]] = None
+    path: str, allowed_special_characters: Optional[set[str]] = None, lower: bool = False
 ):
     if not allowed_special_characters:
         allowed_special_characters = set()
     if path.startswith("/"):
         path = path[1:]
+    if lower:
+        path = f"{path[0].lower()}{path[1:]}"
     parts = path.replace("/", "_").split("_")
     s = parts[0] + "".join(uppercase_first_char(x) for x in parts[1:])
     # Only return alphanumeric characters or those in the allow list
