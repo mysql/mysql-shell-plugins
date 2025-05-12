@@ -45,12 +45,12 @@ export class E2ETests {
     public static testSuites: IE2ETestSuite[] = [];
 
     /** The MySQL port used by the deployed sandbox. Defaults to 3308 */
-    public static mysqlPort = "3308";
+    public static mysqlPort = "3307";
 
-    /** The MySQL port used by the deployed sandbox for REST services*/
-    public static mysqlPortRest = "3307";
+    /** The MySQL port used by the deployed sandbox for REST tests*/
+    public static mysqlPortRest = "3308";
 
-    /** The MySQL port used by the deployed sandbox for ROUTER services*/
+    /** The MySQL port used by the deployed sandbox for ROUTER tests*/
     public static mysqlPortRouter = "3309";
 
     /** The MySQL deployed sandbox directory */
@@ -257,78 +257,44 @@ export class E2ETests {
         this.checkMySql();
         this.setShellBinary();
 
-        // DEPLOY 3 MYSQL SANDBOX INSTANCES
-        this.runShellCommand([
-            "--",
-            "dba",
-            "deploy-sandbox-instance",
-            this.mysqlPort,
-            `--password=${process.env.DBROOTPASSWORD}`,
-            `--sandbox-dir=${this.mysqlSandboxDir}`,
-        ]);
-        E2ELogger.success(`MySQL Sandbox instance deployed successfully on port ${this.mysqlPort}`);
+        for (const port of [this.mysqlPort, this.mysqlPortRest, this.mysqlPortRouter]) {
 
-        this.runShellCommand([
-            "--",
-            "dba",
-            "deploy-sandbox-instance",
-            this.mysqlPortRest,
-            `--password=${process.env.DBROOTPASSWORD}`,
-            `--sandbox-dir=${this.mysqlSandboxDir}`,
-        ]);
+            this.runShellCommand([
+                "--",
+                "dba",
+                "deploy-sandbox-instance",
+                port,
+                `--password=${process.env.DBROOTPASSWORD}`,
+                `--sandbox-dir=${this.mysqlSandboxDir}`,
+            ]);
+            E2ELogger.success(`MySQL Sandbox instance deployed successfully on port ${port}`);
 
-        E2ELogger.success(`MySQL Sandbox instance deployed successfully on port ${this.mysqlPortRest}`);
+            const feSqlFiles = join("..", "..", "..", "..", "gui", "frontend", "src", "tests", "e2e", "sql");
+            const extSqlFiles = join(process.cwd(), "sql");
 
-        this.runShellCommand([
-            "--",
-            "dba",
-            "deploy-sandbox-instance",
-            this.mysqlPortRouter,
-            `--password=${process.env.DBROOTPASSWORD}`,
-            `--sandbox-dir=${this.mysqlSandboxDir}`,
-        ]);
+            const sqlFiles = readdirSync(feSqlFiles).map((item) => {
+                return join(feSqlFiles, item);
+            }).concat(readdirSync(extSqlFiles).map((item) => {
+                return join(extSqlFiles, item);
+            }));
 
-        E2ELogger.success(`MySQL Sandbox instance deployed successfully on port ${this.mysqlPortRouter}`);
-
-        // RUN SQL CONFIGURATIONS
-        const feSqlFiles = join("..", "..", "..", "..", "gui", "frontend", "src", "tests", "e2e", "sql");
-        const extSqlFiles = join(process.cwd(), "sql");
-
-        const sqlFiles = readdirSync(feSqlFiles).map((item) => {
-            return join(feSqlFiles, item);
-        }).concat(readdirSync(extSqlFiles).map((item) => {
-            return join(extSqlFiles, item);
-        }));
-
-        const mysqlPorts = [
-            this.mysqlPort,
-            this.mysqlPortRest,
-            this.mysqlPortRouter,
-        ];
-
-        for (const port of mysqlPorts) {
             for (const file of sqlFiles) {
-                this.runShellCommand(
-                    [`root:${process.env.DBROOTPASSWORD}@localhost:${port}`,
-                        "--file",
-                        file]);
+                this.runShellCommand([`root:${process.env.DBROOTPASSWORD}@localhost:${port}`, "--file", file]);
                 E2ELogger.success(`Executed SQL file ${file} successfully`);
             }
         }
 
-        // INSTALL MLE ON SERVER 3308
+        // INSTALL MLE ON SERVER 3307
         const connUri = `root:${process.env.DBROOTPASSWORD}@localhost:${this.mysqlPort}`;
         this.runShellCommand([connUri, "--sql", "-e", `INSTALL COMPONENT "file://component_mle";`]);
         E2ELogger.success(`Installed MLE component`);
 
         // CONFIGURE REST
-        for (const port of [this.mysqlPortRest, this.mysqlPortRouter]) {
-            this.runShellCommand([
-                `root:${process.env.DBROOTPASSWORD}@localhost:${port}`,
-                "--py", "-e", "mrs.configure()",
-            ]);
-            E2ELogger.success(`MRS was configured successfully on MySQL instance ${port}`);
-        }
+        this.runShellCommand([
+            `root:${process.env.DBROOTPASSWORD}@localhost:${this.mysqlPortRouter}`,
+            "--py", "-e", "mrs.configure()",
+        ]);
+        E2ELogger.success(`MRS was configured successfully on MySQL instance ${this.mysqlPortRouter}`);
 
         // CREATE THE OCI CONFIG FILE
         const ociConfigFile = `

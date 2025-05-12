@@ -23,6 +23,7 @@
         "exthost",
         "filelog",
         "flowtype",
+        "gtid",
         "IDBP",
         "informations",
         "innodb",

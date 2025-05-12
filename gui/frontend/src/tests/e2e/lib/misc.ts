@@ -29,6 +29,9 @@ import { driver } from "../lib/driver.js";
 import * as locator from "../lib/locators.js";
 import { E2EToastNotification } from "./E2EToastNotification.js";
 import { IOciProfileConfig } from "./interfaces.js";
+import { E2ENotebook } from "./E2ENotebook.js";
+import { E2EAccordionSection } from "./SideBar/E2EAccordionSection.js";
+import { E2ECommandResultData } from "./CommandResults/E2ECommandResultData.js";
 
 export const feLog = "fe.log";
 export const shellServers = new Map([
@@ -305,5 +308,19 @@ export class Misc {
         }
 
         return ociConfig;
+    };
+
+    /**
+     * Removes the "mysql_rest_schema_metadata" for the given connection caption
+     * @param caption The DB Connection caption
+     *  @returns A promise resolving with the configuration object
+     */
+    public static deleteRestSchema = async (caption: string): Promise<void> => {
+        const result = await new E2ENotebook().codeEditor
+            .execute("DROP SCHEMA IF EXISTS mysql_rest_service_metadata;") as E2ECommandResultData;
+        expect(result.text).toMatch(/OK/);
+
+        const treeDBCaption = await new E2EAccordionSection(constants.dbTreeSection).getTreeItem(caption);
+        await (await treeDBCaption.getActionButton(constants.refreshConnection))!.click();
     };
 }

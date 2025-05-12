@@ -104,7 +104,8 @@ export class DialogHelper {
 
         const field = await dialog.findElement(fieldLocator);
         const fieldValue = await field.getAttribute("value");
-        if (fieldValue.trim() !== "") {
+
+        if (fieldValue && fieldValue.trim() !== "") {
             if (fieldValue !== text) {
                 await this.clearInputField(field);
                 await field.sendKeys(text);

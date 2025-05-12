@@ -20,6 +20,7 @@
  * along with this program; if not, write to the Free Software Foundation, Inc.,s
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 import { By } from "vscode-extension-tester";
 
 export const dbConnectionDialog = {
@@ -511,6 +512,95 @@ export const hwDialog = {
     sqlMode: By.id("sqlMode"),
     excludeList: By.id("excludeList"),
     ok: By.id("ok"),
+};
+
+export const mrsConfigDialog = {
+    exists: By.css("#mrsConfigurationDialog .valueEditDialog"),
+    status: {
+        exists: By.id("enabled"),
+        label: By.css("#enabled label"),
+        selectList: {
+            exists: By.css("#enabledPopup .popup.visible"),
+            item: (itemName: string): By => {
+                return By.id(itemName.replace(/^./, itemName[0].toUpperCase()));
+            },
+        },
+    },
+    currentVersion: {
+        exists: By.css("#version label"),
+        label: By.css("label"),
+        selectList: {
+            exists: By.css("#versionPopup .popup.visible"),
+            allItems: By.css("div"),
+            item: (itemName: string): By => {
+                return By.id(itemName);
+            },
+        },
+    },
+    updateToVersion: {
+        exists: By.id("updateToVersion"),
+        label: By.css("label"),
+        selectList: {
+            exists: By.css(".popup.visible"),
+            allItems: By.css("div"),
+            item: (itemName: string): By => {
+                return By.id(itemName);
+            },
+        },
+    },
+    authentication: {
+        createDefaultApp: By.id("mrsAdminCreation"),
+        username: By.id("mrsAdminUser"),
+        password: By.id("mrsAdminUserPassword"),
+    },
+    authenticationThrottling: {
+        tab: By.id("page0"),
+        preAccountThrottling: {
+            minTimeRequests: By.css("#perAccountMinimumTimeBetweenRequestsInMs input"),
+            maxAttemptsPerMin: By.css("#perAccountMaximumAttemptsPerMinute input"),
+        },
+        perHostThrottling: {
+            minTimeRequests: By.css("#perHostMinimumTimeBetweenRequestsInMs input"),
+            maxAttemptsPerMin: By.css("#perHostMaximumAttemptsPerMinute input"),
+        },
+        blockTimeout: By.css("#blockWhenAttemptsExceededInSeconds input"),
+    },
+    caches: {
+        tab: By.id("page1"),
+        endPointResponseCache: By.id("responseCacheMaxCacheSize"),
+        staticFileCache: By.id("fileCacheMaxCacheSize"),
+        gtidCache: By.id("gtidCacheEnable"),
+        refreshRate: By.css("#gtidCacheRefreshRate input"),
+        refreshWhenIncreased: By.css("#gtidCacheRefreshWhenIncreasesBy input"),
+    },
+    redirectsAndStaticContent: {
+        tab: By.id("page2"),
+        endPointResponseCache: {
+            exists: By.id("directoryIndexDirective"),
+            label: By.css("#directoryIndexDirective label"),
+        },
+        grid: {
+            exists: By.id("valueGrid"),
+            key: By.css("div[tabulator-field='key']"),
+            value: By.css("div[tabulator-field='value']"),
+            addEntry: By.id("buttonAddEntry"),
+            removeEntry: By.id("buttonRemoveEntry"),
+        },
+    },
+    options: {
+        tab: By.id("page3"),
+        value: By.id("options"),
+    },
+    ok: By.id("ok"),
+    cancel: By.id("cancel"),
+};
+
+export const parameterDialog = {
+    exists: By.css(".visible.paramDialog"),
+    name: By.id("name"),
+    value: By.id("value"),
+    ok: By.id("ok"),
+    cancel: By.id("cancel"),
 };
 
 export const section = {

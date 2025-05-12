@@ -29,10 +29,11 @@ const results: number[] = [];
 
 const main = async () => {
     try {
-        E2ETests.killAndDeleteMySQLInstances();
         const cliArguments = E2ETests.getCliArguments();
 
         cliArguments.testSuite ? E2ETests.setTestSuite(cliArguments.testSuite) : E2ETests.readTestSuites();
+
+        E2ETests.killAndDeleteMySQLInstances();
 
         for (const testSuite of E2ETests.testSuites) {
             await E2ETests.installTestResources(testSuite);

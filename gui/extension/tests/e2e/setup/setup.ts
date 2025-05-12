@@ -28,7 +28,6 @@ import { E2ETests } from "../lib/E2ETests";
 
 const main = async () => {
     E2ETests.killAndDeleteMySQLInstances();
-    E2ETests.setTestSuite("DB");
 
     if (process.env.DISABLE_TESTS) {
         await E2ETests.disableTests();
