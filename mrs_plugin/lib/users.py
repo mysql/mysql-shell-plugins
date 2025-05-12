@@ -306,11 +306,13 @@ def get_user_roles(session, user_id):
     SELECT ur.user_id, ur.role_id, ur.comments, ur.options as user_role_options,
         r.derived_from_role_id, pr.caption derived_from_role_caption,
         r.specific_to_service_id,
-        r.caption, r.description, r.options
+        r.caption, r.description, r.options,
+        s.url_context_root specific_to_service
     FROM `mysql_rest_service_metadata`.`mrs_user_has_role` ur
     JOIN `mysql_rest_service_metadata`.`mrs_role` r ON ur.role_id = r.id
     LEFT JOIN `mysql_rest_service_metadata`.mrs_role pr
             ON r.derived_from_role_id = pr.id
+    LEFT JOIN `mysql_rest_service_metadata`.`service` s ON s.id = r.specific_to_service_id
     WHERE ur.user_id = (_binary ?)
     """
     return core.MrsDbExec(sql, [user_id]).exec(session).items
@@ -342,8 +344,20 @@ def delete_user_roles(session, user_id, role_id=None):
     core.MrsDbExec(sql, params).exec(session)
 
 
-def format_grant_statement(user: dict, user_role: dict) -> str:
-    return f"""GRANT REST ROLE {core.quote_str(user_role.get("caption"))} TO {core.quote_str(user.get("name"))}@{core.quote_str(user.get("auth_app_name"))}"""
+def format_grant_statement(user: dict, role: dict) -> str:
+    full_user_name = f'{core.quote_user(user["name"])}@{core.quote_auth_app(user["auth_app_name"])}'
+    if role["specific_to_service_id"] is None:
+        role_service = "ON ANY SERVICE"
+    else:
+        role_service = f"ON SERVICE {core.quote_rpath(role['specific_to_service'])}"
+    grant = [f'GRANT REST ROLE {core.quote_role(role["caption"])} {role_service} TO {full_user_name}']
+
+    if role["comments"] is not None:
+        grant.append(f'    COMMENT {core.quote_text(role["comments"])}')
+    if role["user_role_options"] is not None:
+        grant.append(core.format_json_entry("OPTIONS", role.get("user_role_options")))
+
+    return "\n".join(grant) + ";"
 
 
 def get_user_create_statement(session, user, include_all_objects) -> str:
@@ -359,8 +373,16 @@ def get_user_create_statement(session, user, include_all_objects) -> str:
     if user["auth_string"] is not None and user["auth_app_id"] != core.id_to_binary("0x31000000000000000000000000000000", "MySQL App"):
         output.append(f'    IDENTIFIED BY {core.quote_text(user["auth_string"])}')
 
-    if user["options"] is not None:
-        output.append(core.format_json_entry("OPTIONS", user.get("options")))
+    options = user.get("options") or {}
+    if user["email"]:
+        options["email"] = user["email"]
+    if user["vendor_user_id"]:
+        options["vendor_user_id"] = user["vendor_user_id"]
+    if user["mapped_user_id"]:
+        options["mapped_user_id"] = user["mapped_user_id"]
+    if options:
+        output.append(core.format_json_entry("OPTIONS", options))
+
     if user["app_options"] is not None:
         output.append(core.format_json_entry("APP OPTIONS",
                                             user.get("app_options")))
@@ -369,14 +391,9 @@ def get_user_create_statement(session, user, include_all_objects) -> str:
     # Taking care of the user roles
     if include_all_objects:
         for role in get_user_roles(session, user_id=user["id"]):
-            grant = [f'GRANT REST ROLE {core.quote_role(role["caption"])} TO {full_user_name}']
+            grant = format_grant_statement(user, role)
 
-            if role["comments"] is not None:
-                grant.append(f'    COMMENT {core.quote_text(role["comments"])}')
-            if role["user_role_options"] is not None:
-                grant.append(core.format_json_entry("OPTIONS", role.get("user_role_options")))
-
-            result.append("\n".join(grant) + ";")
+            result.append(grant)
 
     return "\n\n".join(result)
 

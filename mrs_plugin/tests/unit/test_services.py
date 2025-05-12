@@ -37,16 +37,13 @@ service_create_statement_include_database_endpoints = """CREATE OR REPLACE REST 
     ADD AUTH APP `MRS Auth App` IF EXISTS;
 
 CREATE REST ROLE `DBA` ON SERVICE /test
-    COMMENT 'Database administrator.'
-    OPTIONS {};
+    COMMENT 'Database administrator.';
 
 CREATE REST ROLE `Maintenance Admin` EXTENDS `DBA` ON SERVICE /test
-    COMMENT 'Maintenance administrator.'
-    OPTIONS {};
+    COMMENT 'Maintenance administrator.';
 
 CREATE REST ROLE `Process Admin` EXTENDS `Maintenance Admin` ON SERVICE /test
-    COMMENT 'Process administrator.'
-    OPTIONS {};
+    COMMENT 'Process administrator.';
 
 CREATE OR REPLACE REST SCHEMA /AnalogPhoneBook ON SERVICE /test
     FROM `AnalogPhoneBook`
@@ -495,3 +492,66 @@ def test_service_selection(phone_book, table_contents):
                                     url_context_root=item.get("url_context_root"),
                                     include_database_endpoints=False, session=phone_book["session"])
             assert sql == item["result"]
+
+
+def test_sql_service_add_authapp(phone_book):
+    session = phone_book["session"]
+
+    session.run_sql('create rest auth app `MyAuthApp` VENDOR `MRS`')
+    session.run_sql('create rest auth app `MyAuthApp2` VENDOR `MRS`')
+    session.run_sql("create rest service /myTestSvc add auth app `MyAuthApp` if exists add auth app `Invalid` if exists")
+    ddl = session.run_sql("show create rest service /myTestSvc").fetch_one()[0]
+    assert ddl == """CREATE OR REPLACE REST SERVICE /myTestSvc
+    OPTIONS {
+        "http": {
+            "allowedOrigin": "auto"
+        },
+        "headers": {
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Credentials": "true"
+        },
+        "logging": {
+            "request": {
+                "body": true,
+                "headers": true
+            },
+            "response": {
+                "body": true,
+                "headers": true
+            },
+            "exceptions": true
+        },
+        "returnInternalErrorDetails": true
+    }
+    ADD AUTH APP `MyAuthApp` IF EXISTS;"""
+    session.run_sql("alter rest service /myTestSvc remove auth app `MyAuthApp` if exists remove auth app `Invalid` if exists add auth app `MyAuthApp2`")
+    ddl = session.run_sql("show create rest service /myTestSvc").fetch_one()[0]
+    assert ddl == """CREATE OR REPLACE REST SERVICE /myTestSvc
+    OPTIONS {
+        "http": {
+            "allowedOrigin": "auto"
+        },
+        "headers": {
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Origin, X-Auth-Token",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Credentials": "true"
+        },
+        "logging": {
+            "request": {
+                "body": true,
+                "headers": true
+            },
+            "response": {
+                "body": true,
+                "headers": true
+            },
+            "exceptions": true
+        },
+        "returnInternalErrorDetails": true
+    }
+    ADD AUTH APP `MyAuthApp2` IF EXISTS;"""
+
+    session.run_sql('drop rest auth app `MyAuthApp`')
+    session.run_sql('drop rest auth app `MyAuthApp2`')
+    session.run_sql("drop rest service /myTestSvc")
