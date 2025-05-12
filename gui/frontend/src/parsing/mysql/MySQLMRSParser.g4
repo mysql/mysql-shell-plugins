@@ -5840,6 +5840,8 @@ mrsStatement:
     | showCreateRestContentSetStatement
     | showCreateRestContentFileStatement
     | showCreateRestAuthAppStatement
+    | showCreateRestRoleStatement
+    | showCreateRestUserStatement
 ;
 
 // Common Definitions =======================================================
@@ -5888,6 +5890,13 @@ serviceSchemaSelector:
 
 serviceSchemaSelectorWildcard:
     (SERVICE_SYMBOL serviceRequestPathWildcard)? DATABASE_SYMBOL schemaRequestPathWildcard
+;
+
+roleService:
+    ON_SYMBOL (
+        ANY_SYMBOL SERVICE_SYMBOL
+        | SERVICE_SYMBOL? serviceRequestPath
+    )
 ;
 
 // CONFIGURE statements =====================================================
@@ -5978,11 +5987,11 @@ userManagementSchema:
 ;
 
 addAuthApp:
-    ADD_SYMBOL AUTH_SYMBOL APP_SYMBOL authAppName
+    ADD_SYMBOL AUTH_SYMBOL APP_SYMBOL authAppName (IF_SYMBOL EXISTS_SYMBOL)?
 ;
 
 removeAuthApp:
-    REMOVE_SYMBOL AUTH_SYMBOL APP_SYMBOL authAppName
+    REMOVE_SYMBOL AUTH_SYMBOL APP_SYMBOL authAppName (IF_SYMBOL EXISTS_SYMBOL)?
 ;
 
 // - CREATE REST SCHEMA -----------------------------------------------------
@@ -6242,12 +6251,7 @@ createRestRoleStatement:
         | CREATE_SYMBOL REST_SYMBOL ROLE_SYMBOL (
             IF_SYMBOL NOT_SYMBOL EXISTS_SYMBOL
         )?
-    ) roleName (EXTENDS_SYMBOL parentRoleName)? (
-        ON_SYMBOL (
-            ANY_SYMBOL SERVICE_SYMBOL
-            | SERVICE_SYMBOL? serviceRequestPath
-        )
-    )? restRoleOptions?
+    ) roleName (EXTENDS_SYMBOL parentRoleName)? roleService? restRoleOptions?
 ;
 
 restRoleOptions: (jsonOptions | comments)+
@@ -6415,7 +6419,7 @@ dropRestUserStatement:
 ;
 
 dropRestRoleStatement:
-    DROP_SYMBOL REST_SYMBOL ROLE_SYMBOL (IF_SYMBOL EXISTS_SYMBOL)? roleName
+    DROP_SYMBOL REST_SYMBOL ROLE_SYMBOL (IF_SYMBOL EXISTS_SYMBOL)? roleName roleService?
 ;
 
 // GRANT statements ===========================================================
@@ -6428,7 +6432,7 @@ grantRestPrivilegeStatement:
                 OBJECT_SYMBOL objectRequestPathWildcard
             )?
         )
-    )? TO_SYMBOL roleName
+    )? TO_SYMBOL roleName roleService?
 ;
 
 privilegeList:
@@ -6444,8 +6448,8 @@ privilegeName:
 ;
 
 grantRestRoleStatement:
-    GRANT_SYMBOL REST_SYMBOL ROLE_SYMBOL roleName TO_SYMBOL userName AT_SIGN_SYMBOL authAppName
-        comments?
+    GRANT_SYMBOL REST_SYMBOL ROLE_SYMBOL roleName roleService? TO_SYMBOL userName AT_SIGN_SYMBOL
+        authAppName comments?
 ;
 
 // REVOKE statements ===========================================================
@@ -6458,11 +6462,12 @@ revokeRestPrivilegeStatement:
                 OBJECT_SYMBOL objectRequestPathWildcard
             )?
         )
-    )? FROM_SYMBOL roleName
+    )? FROM_SYMBOL roleName roleService?
 ;
 
 revokeRestRoleStatement:
-    REVOKE_SYMBOL REST_SYMBOL ROLE_SYMBOL roleName FROM_SYMBOL userName AT_SIGN_SYMBOL authAppName
+    REVOKE_SYMBOL REST_SYMBOL ROLE_SYMBOL roleName roleService? FROM_SYMBOL userName AT_SIGN_SYMBOL
+        authAppName
 ;
 
 // USE statements ===========================================================
@@ -6539,7 +6544,12 @@ showRestRolesStatement:
 ;
 
 showRestGrantsStatement:
-    SHOW_SYMBOL REST_SYMBOL GRANTS_SYMBOL FOR_SYMBOL roleName
+    SHOW_SYMBOL REST_SYMBOL GRANTS_SYMBOL FOR_SYMBOL roleName (
+        (ON_SYMBOL | FROM_SYMBOL) (
+            ANY_SYMBOL SERVICE_SYMBOL
+            | SERVICE_SYMBOL? serviceRequestPath
+        )
+    )?
 ;
 
 showCreateRestServiceStatement:
@@ -6589,6 +6599,14 @@ showCreateRestAuthAppStatement:
     SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL AUTH_SYMBOL APP_SYMBOL authAppName
 ;
 
+showCreateRestRoleStatement:
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL ROLE_SYMBOL roleName roleService?
+;
+
+showCreateRestUserStatement:
+    SHOW_SYMBOL CREATE_SYMBOL REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL authAppName
+;
+
 dumpRestServiceStatement:
     DUMP_SYMBOL REST_SYMBOL SERVICE_SYMBOL serviceRequestPath AS_SYMBOL (
         SQL_SYMBOL
@@ -6615,7 +6633,7 @@ newServiceRequestPath:
 ;
 
 serviceRequestPathWildcard:
-    serviceDevelopersIdentifier? requestPathIdentifierWithWildcard
+    requestPathIdentifierWithWildcard
 ;
 
 schemaRequestPath:

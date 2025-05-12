@@ -119,7 +119,7 @@ def test_grant_revoke_sql(phone_book, table_contents: TableContents):
         ) as qr:
             for priv in ["UPDATE", "DELETE", "CREATE", "READ", "CREATE,READ"]:
                 session.run_sql(f"GRANT REST {priv} ON SERVICE `*` SCHEMA `*` OBJECT `*` TO `role1`")
-                qr.expect_added([{"REST grants for role1": f"GRANT REST {priv} ON SERVICE `*` SCHEMA `*` OBJECT `*` TO `role1`"}])
+                qr.expect_added([{"REST grants for role1": f"GRANT REST {priv} ON SERVICE `*` SCHEMA `*` OBJECT `*` TO `role1` ON SERVICE /myService"}])
                 session.run_sql(f"REVOKE REST {priv} ON SERVICE `*` SCHEMA `*` OBJECT `*` FROM `role1`")
                 qr.expect_added([])
 
@@ -144,7 +144,7 @@ def test_grant_revoke_sql(phone_book, table_contents: TableContents):
                         bad_role = role in k_bad_roles
                         role_ = rand_case(role)
                         sql = f"GRANT REST {rand_case(privs)} {path} TO '{role_}'"
-                        normalized_sql = f'GRANT REST {privs} {norm_path} TO `{role}`'
+                        normalized_sql = f'GRANT REST {privs} {norm_path} TO `{role}` ON SERVICE {default_service}'
                         if (s is None and o is not None):
                             with pytest.raises(Exception) as exc_info:
                                 session.run_sql(sql)
@@ -183,7 +183,7 @@ def test_grant_revoke_sql(phone_book, table_contents: TableContents):
                         for role in k_roles:
                             sql = f"GRANT REST {rand_case(privs)} {path} TO '{role}'"
                             normalized_sql = (
-                                f'GRANT REST {final_privs} {norm_path} TO `{role}`'
+                                f'GRANT REST {final_privs} {norm_path} TO `{role}` ON SERVICE {default_service}'
                             )
                             if (s is None and o is not None):
                                 with pytest.raises(Exception) as exc_info:
@@ -216,7 +216,7 @@ def test_grant_revoke_sql(phone_book, table_contents: TableContents):
                         for role in k_roles:
                             sql = f"REVOKE REST {rand_case(privs)} {path} FROM '{role}'"
                             expected_sql = (
-                                f'GRANT REST {final_privs} {norm_path} TO `{role}`'
+                                f'GRANT REST {final_privs} {norm_path} TO `{role}` ON SERVICE {default_service}'
                             )
                             if (s is None and o is not None):
                                 with pytest.raises(Exception) as exc_info:

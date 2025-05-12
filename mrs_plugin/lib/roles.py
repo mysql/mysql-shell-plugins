@@ -29,6 +29,7 @@ k_role_query = """
     SELECT r.id, r.derived_from_role_id, pr.caption derived_from_role_caption,
             r.specific_to_service_id,
             CONCAT(h.name, s.url_context_root) AS specific_to_service_request_path,
+            s.url_context_root specific_to_service,
             r.caption, r.description, r.options
         FROM `mysql_rest_service_metadata`.mrs_role r
         LEFT JOIN `mysql_rest_service_metadata`.mrs_role pr
@@ -116,7 +117,12 @@ def get_granted_roles(
     return core.MrsDbExec(sql, params).exec(session).items
 
 
-def get_role(session, role_id=None, specific_to_service_id=None, caption=None):
+def get_role(
+    session,
+    role_id=None,
+    specific_to_service_id=None,
+    caption=None,
+):
     # If a role_id is given, look that one up
     if role_id is not None:
         sql = k_role_query + " WHERE r.id = ?"
@@ -126,9 +132,11 @@ def get_role(session, role_id=None, specific_to_service_id=None, caption=None):
     if caption is not None:
         sql = k_role_query + " WHERE r.caption = ?"
         params = [caption]
-        if specific_to_service_id:
-            sql += " AND (r.specific_to_service_id IS NULL OR r.specific_to_service_id = ?)"
+        if specific_to_service_id is not None:
+            sql += " AND r.specific_to_service_id = ?"
             params.append(specific_to_service_id)
+        else:
+            sql += " AND r.specific_to_service_id IS NULL"
 
         return core.MrsDbExec(sql, params).exec(session).first
 
@@ -206,7 +214,7 @@ def get_role_privileges(
     role_id=None,
     service_path=core.NotSet,
     schema_path=core.NotSet,
-    object_path=core.NotSet
+    object_path=core.NotSet,
 ):
     md_version = core.get_mrs_schema_version_int(session)
     if md_version < 40000:
@@ -234,12 +242,7 @@ def get_role_privilege(session, privilege_id=None):
 
 
 def add_role_privilege(
-    session,
-    role_id,
-    privileges,
-    service_path=None,
-    schema_path=None,
-    object_path=None
+    session, role_id, privileges, service_path=None, schema_path=None, object_path=None
 ):
     md_version = core.get_mrs_schema_version_int(session)
     if md_version < 40000:
@@ -250,7 +253,7 @@ def add_role_privilege(
         role_id=role_id,
         service_path=service_path,
         schema_path=schema_path,
-        object_path=object_path
+        object_path=object_path,
     )
     if privs:
         priv = privs[0]
@@ -343,7 +346,7 @@ def delete_role_privilege(
     return found
 
 
-def format_role_grant_statement(grant: dict) -> str:
+def format_role_grant_statement(grant: dict, role: dict) -> str:
     service = grant.get("service_path")
     schema = grant.get("schema_path")
     object = grant.get("object_path")
@@ -370,25 +373,24 @@ def format_role_grant_statement(grant: dict) -> str:
         object = core.quote_rpath(object)
         where.append(f"OBJECT {object}")
 
-    return f"""GRANT REST {",".join(grant.get("crud_operations"))} ON {" ".join(where)} TO {core.quote_role(grant.get('role_name'))}"""
+    if role["specific_to_service"] is not None:
+        role_service = f"ON SERVICE {core.quote_rpath(role['specific_to_service'])}"
+    else:
+        role_service = f"ON ANY SERVICE"
+
+    return f"""GRANT REST {",".join(grant.get("crud_operations"))} ON {" ".join(where)} TO {core.quote_role(grant.get('role_name'))} {role_service}"""
 
 
 def get_role_create_statement(session, role) -> str:
     output = []
     stmt = f'CREATE REST ROLE {core.quote_role(role["caption"])}'
-
-    if role["derived_from_role_id"] is not None:
-        parent_role = get_role(
-            session, role_id=role["derived_from_role_id"])
-
-        # if parent_role is None:
-        #     raise Exception("Role derives from an invalid role.")
-
-        stmt += f' EXTENDS {core.quote_role(parent_role["caption"])}'
+    if role["derived_from_role_caption"] is not None:
+        stmt += f' EXTENDS {core.quote_role(role["derived_from_role_caption"])}'
 
     if role["specific_to_service_id"] is not None:
         service = services.get_service(
-            session, service_id=role["specific_to_service_id"])
+            session, service_id=role["specific_to_service_id"]
+        )
 
         # if service is None:
         #     raise Exception(
@@ -403,7 +405,7 @@ def get_role_create_statement(session, role) -> str:
     if role.get("description") is not None:
         output.append(f'    COMMENT {core.quote_text(role["description"])}')
 
-    output.append(core.format_json_entry("OPTIONS", role["options"]))
+    if role.get("options"):
+        output.append(core.format_json_entry("OPTIONS", role["options"]))
 
     return "\n".join(output) + ";"
-

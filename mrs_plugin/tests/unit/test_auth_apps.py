@@ -281,7 +281,7 @@ CREATE OR REPLACE REST USER `user1`@`MyAuthApp`
         "key2": "value2"
     };
 
-GRANT REST ROLE `Full Access` TO `user1`@`MyAuthApp`
+GRANT REST ROLE `Full Access` ON ANY SERVICE TO `user1`@`MyAuthApp`
     COMMENT 'Comment for user role';"""
 
     session = phone_book["session"]
@@ -299,7 +299,7 @@ GRANT REST ROLE `Full Access` TO `user1`@`MyAuthApp`
         auth_apps = lib.auth_apps.get_auth_apps(session, None)
         assert len(auth_apps) == 3
 
-        user_init = get_default_user_init(auth_app_id, name="user1", auth_string=None, options={"key1": "value1"}, app_options={"key2": "value2"})
+        user_init = get_default_user_init(auth_app_id, name="user1", email=None, auth_string=None, options={"key1": "value1"}, app_options={"key2": "value2"})
 
         with UserCT(session, **user_init) as user_id:
 

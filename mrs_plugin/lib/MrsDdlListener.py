@@ -171,8 +171,15 @@ class MrsDdlListener(MRSListener):
             ctx.requestPathIdentifier().getText()
         )
 
+    def enterRoleService(self, ctx):
+        self.mrs_object["any_service"] = ctx.ANY_SYMBOL() is not None
+        if ctx.serviceRequestPath():
+            self.mrs_object["url_context_root"] = get_text_without_quotes(
+                ctx.serviceRequestPath().getText()
+            )
+
     def enterServiceRequestPathWildcard(self, ctx):
-        self.mrs_object["url_context_root"] = get_text_without_quotes(
+        self.mrs_object["url_context_root_pattern"] = get_text_without_quotes(
             ctx.requestPathIdentifierWithWildcard().getText()
         )
 
@@ -192,7 +199,7 @@ class MrsDdlListener(MRSListener):
         )
 
     def enterAllowNewUsersToRegister(self, ctx):
-        self.mrs_object["limit_to_registered_users"] = not ctx.NOT_SYMBOL() is None
+        self.mrs_object["limit_to_registered_users"] = ctx.NOT_SYMBOL() is not None
 
     def enterDefaultRole(self, ctx):
         self.mrs_object["default_role"] = get_text_without_quotes(
@@ -216,12 +223,22 @@ class MrsDdlListener(MRSListener):
 
     def enterAddAuthApp(self, ctx):
         add_auth_apps = self.mrs_object.get("add_auth_apps", [])
-        add_auth_apps.append(get_text_without_quotes(ctx.authAppName().getText()))
+        add_auth_apps.append(
+            {
+                "auth_app": get_text_without_quotes(ctx.authAppName().getText()),
+                "if_exists": ctx.EXISTS_SYMBOL(),
+            }
+        )
         self.mrs_object["add_auth_apps"] = add_auth_apps
 
     def enterRemoveAuthApp(self, ctx):
         add_auth_apps = self.mrs_object.get("remove_auth_apps", [])
-        add_auth_apps.append(get_text_without_quotes(ctx.authAppName().getText()))
+        add_auth_apps.append(
+            {
+                "auth_app": get_text_without_quotes(ctx.authAppName().getText()),
+                "if_exists": ctx.EXISTS_SYMBOL(),
+            }
+        )
         self.mrs_object["remove_auth_apps"] = add_auth_apps
 
     # ==================================================================================================================
@@ -1279,7 +1296,6 @@ class MrsDdlListener(MRSListener):
             "current_operation": self.create_prefix(ctx) + " ROLE",
             "name": get_text_without_quotes(ctx.roleName().getText()),
             "extends": unquoted_node_text_or_none(ctx.parentRoleName()),
-            "any_service": ctx.ANY_SYMBOL(),
         }
 
     def exitCreateRestRoleStatement(self, ctx):
@@ -1902,6 +1918,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "SHOW REST AUTH APPS",
+            "any_service": ctx.ANY_SYMBOL(),
         }
 
     def exitShowRestAuthAppsStatement(self, ctx):
@@ -1930,6 +1947,7 @@ class MrsDdlListener(MRSListener):
             "line": ctx.start.line,
             "current_operation": "SHOW REST GRANTS",
             "role": get_text_without_quotes(ctx.roleName().getText()),
+            "any_service": ctx.ANY_SYMBOL(),
         }
 
     def exitShowRestGrantsStatement(self, ctx):
@@ -2030,21 +2048,54 @@ class MrsDdlListener(MRSListener):
         self.mrs_ddl_executor.showCreateRestAuthApp(self.mrs_object)
 
     # ------------------------------------------------------------------------------------------------------------------
+    # SHOW CREATE REST ROLE
+
+    def enterShowCreateRestRoleStatement(self, ctx):
+        self.mrs_object = {
+            "line": ctx.start.line,
+            "current_operation": "SHOW CREATE REST ROLE",
+            "name": get_text_without_quotes(ctx.roleName().getText()),
+        }
+
+    def exitShowCreateRestRoleStatement(self, ctx):
+        self.mrs_ddl_executor.showCreateRestRole(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # SHOW CREATE REST USER
+
+    def enterShowCreateRestUserStatement(self, ctx):
+        self.mrs_object = {
+            "line": ctx.start.line,
+            "current_operation": "SHOW CREATE REST USER",
+            "name": get_text_without_quotes(ctx.userName().getText()),
+            "auth_app_name": get_text_without_quotes(ctx.authAppName().getText()),
+        }
+
+    def exitShowCreateRestUserStatement(self, ctx):
+        self.mrs_ddl_executor.showCreateRestUser(self.mrs_object)
+
+    # ------------------------------------------------------------------------------------------------------------------
     # DUMP REST SERVICE
 
     def enterDumpRestServiceStatement(self, ctx):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "DUMP REST SERVICE",
-            "destination_path": get_text_without_quotes(ctx.directoryFilePath().getText()),
-            "include_database_endpoints": ctx.DATABASE_SYMBOL() is not None or ctx.ALL_SYMBOL() is not None,
-            "include_static_endpoints": ctx.STATIC_SYMBOL() is not None or ctx.ALL_SYMBOL() is not None,
-            "include_dynamic_endpoints": ctx.DYNAMIC_SYMBOL() is not None or ctx.ALL_SYMBOL() is not None,
+            "destination_path": get_text_without_quotes(
+                ctx.directoryFilePath().getText()
+            ),
+            "include_database_endpoints": ctx.DATABASE_SYMBOL() is not None
+            or ctx.ALL_SYMBOL() is not None,
+            "include_static_endpoints": ctx.STATIC_SYMBOL() is not None
+            or ctx.ALL_SYMBOL() is not None,
+            "include_dynamic_endpoints": ctx.DYNAMIC_SYMBOL() is not None
+            or ctx.ALL_SYMBOL() is not None,
             "zip": ctx.ZIP_SYMBOL() is not None,
         }
 
     def exitDumpRestServiceStatement(self, ctx):
         self.mrs_ddl_executor.dumpRestService(self.mrs_object)
+
 
 class MrsDdlErrorListener(antlr4.error.ErrorListener.ErrorListener):
     def __init__(self, errors):
