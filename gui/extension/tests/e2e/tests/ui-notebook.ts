@@ -24,7 +24,7 @@
  */
 import fs from "fs/promises";
 import { expect } from "chai";
-import { ActivityBar, Condition, InputBox, Key, until, SideBarView, error } from "vscode-extension-tester";
+import { ActivityBar, Condition, InputBox, Key, until, SideBarView, error, WebElement } from "vscode-extension-tester";
 import { join } from "path";
 import clipboard from "clipboardy";
 import { browser, driver, Misc } from "../lib/Misc";
@@ -371,9 +371,24 @@ describe("NOTEBOOKS", () => {
             await notebook.codeEditor.languageSwitch("\\sql ");
             const result1 = await notebook.codeEditor.execute("select version();", true) as E2ECommandResultGrid;
             expect(result1.status).to.match(/1 record retrieved/);
-            const cell = result1.resultContext
-                .findElement(locator.notebook.codeEditor.editor.result.grid.row.cell.exists);
-            const cellText = await cell.getText();
+
+            let cell: WebElement;
+            let cellText: string;
+
+            await driver.wait(async () => {
+                try {
+                    cell = result1.resultContext
+                        .findElement(locator.notebook.codeEditor.editor.result.grid.row.cell.exists);
+                    cellText = await cell.getText();
+
+                    return true;
+                } catch (e) {
+                    if (!(e instanceof error.StaleElementReferenceError)) {
+                        throw e;
+                    }
+                }
+            }, constants.wait1second * 3, "Could not get the cell text");
+
             const server = cellText.match(/(\d+).(\d+).(\d+)/g)[0];
             const digits = server.split(".");
             let serverVer = digits[0];

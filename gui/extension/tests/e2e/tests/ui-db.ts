@@ -905,7 +905,7 @@ describe("DATABASE CONNECTIONS", () => {
                 basic: {
                     hostname: "localhost",
                     username: String(process.env.DBUSERNAME1),
-                    port: parseInt(process.env.MYSQL_REST_PORT, 10),
+                    port: parseInt(process.env.MYSQL_ROUTER_PORT, 10),
                     schema: "sakila",
                     password: String(process.env.DBPASSWORD1),
                 },
@@ -1459,7 +1459,7 @@ describe("DATABASE CONNECTIONS", () => {
             await dbTreeSection.focus();
             await dbTreeSection.expandTreeItem(globalConn.caption, globalConn);
 
-            await dbTreeSection.openContextMenuAndSelect(dumpSchemaToDisk, constants.dropSchema, undefined);
+            await dbTreeSection.openContextMenuAndSelect(dumpSchemaToDisk, constants.dropSchema);
             await Workbench.pushDialogButton(`Drop ${dumpSchemaToDisk}`);
             await Workbench.getNotification(`The object ${dumpSchemaToDisk} has been dropped successfully.`);
 
@@ -1518,7 +1518,7 @@ describe("DATABASE CONNECTIONS", () => {
 
         it("Drop Schema", async () => {
 
-            await dbTreeSection.openContextMenuAndSelect(schemaToDrop, constants.dropSchema, undefined);
+            await dbTreeSection.openContextMenuAndSelect(schemaToDrop, constants.dropSchema);
             const ntfs = await new extWorkbench().getNotifications();
 
             if (ntfs.length > 0) {

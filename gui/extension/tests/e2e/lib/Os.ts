@@ -178,7 +178,8 @@ export class Os {
      */
     public static appendToExtensionLog = async (value: string): Promise<void> => {
         value = `-------------------------${value}-----------------------------------\r\n`;
-        await fs.appendFile(await Os.getExtensionLogFile(), value);
+        const fileContent = await fs.readFile(await Os.getExtensionLogFile());
+        await fs.writeFile(await Os.getExtensionLogFile(), `${fileContent.toString()}\r\n${value}`);
     };
 
     /**

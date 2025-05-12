@@ -296,7 +296,7 @@ def main() -> None:
             executor.environment, tmp_dirname, argv.db_port, True))
         executor.add_task(task_utils.SetMySQLServerTask(
             executor.environment, tmp_dirname, "2207"))
-        executor.add_task(task_utils.InstallMRSSchema(executor.environment, "2207"))
+
         executor.add_task(task_utils.ClearCredentials(executor.environment))
         executor.add_task(task_utils.DisableTests)
         executor.add_task(NPMScript(executor.environment, "e2e-tests-run", [f"--maxWorkers={MAX_WORKERS}"]))

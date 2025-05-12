@@ -42,6 +42,7 @@ import { E2EToastNotification } from "../lib/E2EToastNotification.js";
 import { ConfirmDialog } from "../lib/Dialogs/ConfirmationDialog.js";
 import { E2ETreeItem } from "../lib/SideBar/E2ETreeItem.js";
 import { GenericDialog } from "../lib/Dialogs/GenericDialog.js";
+import { ConfigRestServiceDialog } from "../lib/Dialogs/ConfigRestServiceDialog.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -62,6 +63,7 @@ const globalConn: interfaces.IDBConnection = {
 const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
 
 let testFailed = false;
+const notebook = new E2ENotebook();
 
 describe("MYSQL REST SERVICE", () => {
 
@@ -76,13 +78,11 @@ describe("MYSQL REST SERVICE", () => {
             await dbTreeSection.createDatabaseConnection(globalConn);
             await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption!), constants.wait3seconds);
             await (await new E2EDatabaseConnectionOverview().getConnection(globalConn.caption!)).click();
-            await driver.wait(new E2ENotebook().untilIsOpened(globalConn), constants.wait10seconds);
+            await driver.wait(notebook.untilIsOpened(globalConn), constants.wait10seconds);
             Os.deleteShellCredentials();
 
             await dbTreeSection.expandTreeItem(globalConn);
             await dbTreeSection.openContextMenuAndSelect(globalConn.caption!, constants.showSystemSchemas);
-
-            await dbTreeSection.expandTreeItem(constants.mysqlRestService);
         } catch (e) {
             await Misc.storeScreenShot("beforeAll_MysqlRESTService");
             throw e;
@@ -93,6 +93,218 @@ describe("MYSQL REST SERVICE", () => {
         await Os.writeFELogs(basename(__filename), driver.manage().logs());
         await driver.close();
         await driver.quit();
+    });
+
+
+    describe("Rest Service Configuration", () => {
+
+        beforeEach(async () => {
+            try {
+                await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
+                    `${constants.dbTreeSection} is still loading`);
+                await Misc.dismissNotifications();
+            } catch (e) {
+                await Misc.storeScreenShot("beforeEach_RestServiceConfig");
+                throw e;
+            }
+        });
+
+        afterEach(async () => {
+            if (testFailed) {
+                testFailed = false;
+                await Misc.storeScreenShot();
+            }
+
+            await Misc.dismissNotifications();
+        });
+
+        it("Add new Configuration with Authentication App", async () => {
+            try {
+                const mrsConfig: interfaces.IRestServiceConfig = {
+                    status: "disabled",
+                    authentication: {
+                        createDefaultApp: true,
+                        username: "newApp",
+                        password: "Guidev!1",
+                    },
+                };
+
+                await dbTreeSection.openContextMenuAndSelect(globalConn.caption!,
+                    constants.configureInstanceForRestService);
+                await ConfigRestServiceDialog.set(mrsConfig);
+                const notification = await new E2EToastNotification().create(undefined, constants.wait25seconds);
+                expect(notification!.message).toBe("MySQL REST Service configured successfully.");
+
+                await driver.wait(dbTreeSection.untilTreeItemExists(constants.mysqlRestService),
+                    constants.wait3seconds);
+                await dbTreeSection.expandTreeItem(constants.mysqlRestService);
+                await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);
+                expect(await dbTreeSection.existsTreeItem("MRS")).toBe(true);
+                expect(await dbTreeSection.existsTreeItem("MySQL")).toBe(true);
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
+        it("Add new Configuration without Authentication app", async () => {
+            try {
+
+                const mrsConfig: interfaces.IRestServiceConfig = {
+                    status: "enabled",
+                    authentication: {
+                        createDefaultApp: false,
+                    },
+                };
+
+                await Misc.deleteRestSchema(globalConn.caption!);
+                await dbTreeSection.openContextMenuAndSelect(globalConn.caption!,
+                    constants.configureInstanceForRestService);
+                await ConfigRestServiceDialog.set(mrsConfig);
+                const notification = await new E2EToastNotification().create(undefined, constants.wait25seconds);
+                expect(notification!.message).toBe("MySQL REST Service configured successfully.");
+
+                await driver.wait(dbTreeSection.untilTreeItemExists(constants.mysqlRestService),
+                    constants.wait5seconds);
+                await dbTreeSection.expandTreeItem(constants.mysqlRestService);
+                await dbTreeSection.expandTreeItem(constants.restAuthenticationApps);
+                expect(await dbTreeSection.existsTreeItem("MRS")).toBe(false);
+                expect(await dbTreeSection.existsTreeItem("MySQL")).toBe(true);
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
+        it("Edit existing configuration", async () => {
+            try {
+                const config: interfaces.IRestServiceConfig = {
+                    status: "enabled",
+                    authentication: {
+                        createDefaultApp: false,
+                    },
+                };
+
+                await Misc.deleteRestSchema(globalConn.caption!);
+                await dbTreeSection.openContextMenuAndSelect(globalConn.caption!,
+                    constants.configureInstanceForRestService);
+                await ConfigRestServiceDialog.set(config);
+
+                let notification = await new E2EToastNotification().create();
+                expect(notification!.message).toBe("MySQL REST Service configured successfully.");
+
+                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService,
+                    constants.configureRestService);
+
+                const mrsConfig: interfaces.IRestServiceConfig = {
+                    status: "Disabled",
+                    authenticationThrottling: {
+                        preAccountThrottling: {
+                            minTimeBetweenRequests: "800",
+                            maxAttemptsPerMinute: "250",
+                        },
+                        perHostThrottling: {
+                            minTimeBetweenRequests: "210",
+                            maxAttemptsPerMinute: "303",
+                        },
+                        throttlingGeneral: {
+                            blockTimeout: "155",
+                        },
+                    },
+                    caches: {
+                        endPointResponseCache: "3M",
+                        staticFileCache: "5M",
+                        gtidCache: true,
+                        refreshRate: "15",
+                        refreshWhenIncreased: "110",
+                    },
+                    redirectsStaticContent: {
+                        endPointResponseCacheOptions: [{
+                            name: "ack1",
+                            value: "test",
+                        },
+                        {
+                            name: "ack2",
+                            value: "test",
+                        }],
+                        defaultRedirects: [{
+                            name: "ack1",
+                            value: "test",
+                        },
+                        {
+                            name: "ack2",
+                            value: "test",
+                        }],
+                    },
+                    options: `{"key11":"value12"}`,
+                };
+
+                await ConfigRestServiceDialog.set(mrsConfig);
+                notification = await new E2EToastNotification().create();
+                expect(notification!.message).toBe("MySQL REST Service configured successfully.");
+
+                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService,
+                    constants.configureRestService);
+                const newConfig = await ConfigRestServiceDialog.get();
+                expect(mrsConfig.status).toBe(newConfig.status);
+                expect(mrsConfig.authenticationThrottling!.preAccountThrottling)
+                    .toStrictEqual(newConfig.authenticationThrottling!.preAccountThrottling);
+                expect(mrsConfig.authenticationThrottling!.perHostThrottling)
+                    .toStrictEqual(newConfig.authenticationThrottling!.perHostThrottling);
+                expect(mrsConfig.authenticationThrottling!.throttlingGeneral)
+                    .toStrictEqual(newConfig.authenticationThrottling!.throttlingGeneral);
+                expect(mrsConfig.caches).toStrictEqual(newConfig.caches);
+
+                for (const option of mrsConfig.redirectsStaticContent!.endPointResponseCacheOptions!) {
+                    expect(newConfig.redirectsStaticContent!.endPointResponseCacheOptions).toContainEqual(option);
+                }
+
+                for (const option of mrsConfig.redirectsStaticContent!.defaultRedirects!) {
+                    expect(newConfig.redirectsStaticContent!.defaultRedirects).toContainEqual(option);
+                }
+
+                expect(mrsConfig.options).toBe(newConfig.options);
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
+        it("Upgrade MRS version", async () => {
+            try {
+                await Misc.deleteRestSchema(globalConn.caption!);
+                await dbTreeSection.openContextMenuAndSelect(globalConn.caption!,
+                    constants.configureInstanceForRestService);
+                const msrVersions = (await ConfigRestServiceDialog.getMRSVersions()).reverse();
+                let mrsConfig: interfaces.IRestServiceConfig = {
+                    currentVersion: msrVersions[0],
+                    authentication: {
+                        createDefaultApp: false,
+                    },
+                };
+
+                await ConfigRestServiceDialog.set(mrsConfig);
+                let notification = await new E2EToastNotification().create();
+                expect(notification!.message).toBe("MySQL REST Service configured successfully.");
+
+                for (const mrsVersion of msrVersions.slice(1)) {
+                    mrsConfig = {
+                        updateToVersion: mrsVersion,
+                    };
+
+                    await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService,
+                        constants.configureRestService);
+                    await ConfigRestServiceDialog.set(mrsConfig);
+                    notification = await new E2EToastNotification().create();
+                    expect(notification!.message).toBe("MySQL REST Service configured successfully.");
+                    await notification!.close();
+                }
+            } catch (e) {
+                testFailed = true;
+                throw e;
+            }
+        });
+
     });
 
     describe("MySQL Rest Service Context menu", () => {
@@ -130,10 +342,20 @@ describe("MYSQL REST SERVICE", () => {
             ],
         };
 
+        beforeAll(async () => {
+            try {
+                await dbTreeSection.expandTreeItem(constants.mysqlRestService);
+            } catch (e) {
+                await Misc.storeScreenShot("beforeAll_Rest_Services");
+                throw e;
+            }
+        });
+
         beforeEach(async () => {
             try {
                 await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
                     `${constants.dbTreeSection} is still loading`);
+                await Misc.dismissNotifications();
             } catch (e) {
                 await Misc.storeScreenShot("beforeEach_ServiceContextMenus");
                 throw e;
@@ -145,59 +367,24 @@ describe("MYSQL REST SERVICE", () => {
                 testFailed = false;
                 await Misc.storeScreenShot();
             }
-
-            await Misc.dismissNotifications();
         });
 
-
-        it("Disable MySQL REST Service", async () => {
-            try {
-                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.disableRESTService);
-
-                await driver.wait(async () => {
-                    await dbTreeSection.clickToolbarButton(constants.refreshConnectionList);
-                    await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
-                        `${constants.dbTreeSection} is still loading`);
-                    const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
-
-                    return (await treeMySQLRestService.hasRedMark()) === true;
-                }, constants.wait5seconds, "MySQL REST Service was not disabled");
-
-                const notification = await new E2EToastNotification().create();
-                expect(notification!.message).toBe("MySQL REST Service configured successfully.");
-                await notification!.close();
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
-        });
-
-        it("Enable MySQL REST Service", async () => {
-            try {
-
-                await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.enableRESTService);
-                await driver.wait(async () => {
-                    await dbTreeSection.clickToolbarButton(constants.refreshConnectionList);
-                    await driver.wait(dbTreeSection.untilIsNotLoading(), constants.wait20seconds,
-                        `${constants.dbTreeSection} is still loading`);
-                    const treeMySQLRestService = await dbTreeSection.getTreeItem(constants.mysqlRestService);
-
-                    return (await treeMySQLRestService.hasRedMark()) === false;
-                }, constants.wait5seconds, "MySQL REST Service was not enabled");
-                const notification = await new E2EToastNotification().create();
-                expect(notification!.message).toBe("MySQL REST Service configured successfully.");
-                await notification!.close();
-            } catch (e) {
-                testFailed = true;
-                throw e;
-            }
-        });
 
         it("Show Private Items", async () => {
             try {
+                let notification = await new E2EToastNotification().create().catch(() => { return undefined; });
+
+                if (notification && notification.message === "MySQL REST Service configured successfully.") {
+                    await driver.wait(async () => {
+                        await Misc.dismissNotifications();
+
+                        return (await Misc.getToastNotifications()).length === 0;
+                    }, constants.wait5seconds, "Could not close unwanted notifications");
+                }
+
                 await dbTreeSection.openContextMenuAndSelect(constants.mysqlRestService, constants.addRESTService);
                 await RestServiceDialog.set(service);
-                let notification = await new E2EToastNotification().create();
+                notification = await new E2EToastNotification().create();
                 expect(notification!.message).toBe("The MRS service has been created.");
                 await notification!.close();
 
@@ -300,8 +487,6 @@ describe("MYSQL REST SERVICE", () => {
             enabled: true,
             default: false,
             settings: {
-                mrsAdminUser: "testUser",
-                mrsAdminPassword: "MySQLR0cks!",
                 comments: "testing",
             },
             authentication: {
