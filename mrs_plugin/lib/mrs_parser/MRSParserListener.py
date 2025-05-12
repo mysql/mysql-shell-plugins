@@ -125,6 +125,15 @@ class MRSParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by MRSParser#roleService.
+    def enterRoleService(self, ctx:MRSParser.RoleServiceContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#roleService.
+    def exitRoleService(self, ctx:MRSParser.RoleServiceContext):
+        pass
+
+
     # Enter a parse tree produced by MRSParser#configureRestMetadataStatement.
     def enterConfigureRestMetadataStatement(self, ctx:MRSParser.ConfigureRestMetadataStatementContext):
         pass
@@ -1013,6 +1022,24 @@ class MRSParserListener(ParseTreeListener):
 
     # Exit a parse tree produced by MRSParser#showCreateRestAuthAppStatement.
     def exitShowCreateRestAuthAppStatement(self, ctx:MRSParser.ShowCreateRestAuthAppStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#showCreateRestRoleStatement.
+    def enterShowCreateRestRoleStatement(self, ctx:MRSParser.ShowCreateRestRoleStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#showCreateRestRoleStatement.
+    def exitShowCreateRestRoleStatement(self, ctx:MRSParser.ShowCreateRestRoleStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by MRSParser#showCreateRestUserStatement.
+    def enterShowCreateRestUserStatement(self, ctx:MRSParser.ShowCreateRestUserStatementContext):
+        pass
+
+    # Exit a parse tree produced by MRSParser#showCreateRestUserStatement.
+    def exitShowCreateRestUserStatement(self, ctx:MRSParser.ShowCreateRestUserStatementContext):
         pass
 
 
