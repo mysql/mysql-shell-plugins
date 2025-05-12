@@ -324,3 +324,5 @@ export const addNewAuthenticationApp = "Add New Authentication App";
 export const unlinkRestAuthenticationApp = "Unlink REST Authentication App...";
 export const linkRestAuthenticationApp = "Link REST Authentication App...";
 export const linkRestAuthenticationAppToRestService = "Link REST Authentication App to REST Service...";
+export const configureInstanceForRestService = "Configure Instance for MySQL REST Service Support";
+export const configureRestService = "Configure MySQL REST Service";

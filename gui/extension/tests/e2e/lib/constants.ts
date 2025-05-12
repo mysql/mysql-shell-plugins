@@ -236,7 +236,8 @@ export const loadScriptFromDisk = "Load SQL Script from Disk...";
 export const loadDumpFromDisk = "Load Dump from Disk...";
 export const openShellConnection = "Open New MySQL Shell Console for this Connection";
 export const browseRESTDocs = "Browse the MySQL REST Service Documentation";
-export const configureREST = "Configure Instance for MySQL REST Service Support";
+export const configureInstanceForRestService = "Configure Instance for MySQL REST Service Support";
+export const configureRestService = "Configure MySQL REST Service";
 export const setCurrentDBSchema = "Set As Current Database Schema";
 export const dumpToDisk = "Dump to Disk";
 export const databaseSchemaDump = "Database Schema Dump";
@@ -363,7 +364,7 @@ export const dbConnectionCtxMenu = new Map([
     [loadDumpFromDisk, 8],
     [openShellConnection, 9],
     [browseRESTDocs, 10],
-    [configureREST, 11],
+    [configureInstanceForRestService, 11],
 ]);
 
 export const dbConnectionSqliteCtxMenu = new Map([
@@ -413,6 +414,7 @@ export const eventsCtxMenu = new Map([
 ]);
 
 export const restMainCtxMenu = new Map([
+    [configureRestService, 1],
     [addRESTService, 2],
     [enableRESTService, 3],
     [disableRESTService, 4],

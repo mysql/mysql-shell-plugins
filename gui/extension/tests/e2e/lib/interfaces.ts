@@ -342,6 +342,47 @@ export interface IHeatWaveProfileMatchedDocument {
     segment?: string;
 }
 
+export interface IOption {
+    name: string;
+    value: string;
+}
+
+export interface IRestServiceConfig {
+    status?: string;
+    currentVersion?: string;
+    updateToVersion?: string;
+    authentication?: {
+        createDefaultApp?: boolean;
+        username?: string;
+        password?: string;
+    },
+    authenticationThrottling?: {
+        preAccountThrottling?: {
+            minTimeBetweenRequests?: string;
+            maxAttemptsPerMinute?: string;
+        },
+        perHostThrottling?: {
+            minTimeBetweenRequests?: string;
+            maxAttemptsPerMinute?: string;
+        },
+        throttlingGeneral?: {
+            blockTimeout?: string;
+        },
+    };
+    caches?: {
+        endPointResponseCache?: string;
+        staticFileCache?: string;
+        gtidCache?: boolean;
+        refreshRate?: string;
+        refreshWhenIncreased?: string;
+    }
+    redirectsStaticContent?: {
+        endPointResponseCacheOptions?: IOption[];
+        defaultRedirects?: IOption[];
+    };
+    options?: string;
+}
+
 export const isMySQLConnection = (obj: unknown): obj is IConnBasicMySQL => {
     return (obj as IConnBasicMySQL).hostname !== undefined;
 };

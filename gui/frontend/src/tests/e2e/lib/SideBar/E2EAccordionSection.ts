@@ -30,10 +30,7 @@ import * as interfaces from "../interfaces.js";
 import { DatabaseConnectionDialog } from "../Dialogs/DatabaseConnectionDialog.js";
 import { driver } from "../driver.js";
 import { E2ETreeItem } from "./E2ETreeItem.js";
-import { ConfirmDialog } from "../Dialogs/ConfirmationDialog.js";
 import { PasswordDialog } from "../Dialogs/PasswordDialog.js";
-import { Misc } from "../misc.js";
-import { E2EToastNotification } from "../E2EToastNotification.js";
 
 /**
  * This class represents the Accordion section element and its related functions
@@ -794,35 +791,6 @@ export class E2EAccordionSection {
         return new Condition(`for ${caption} to have children`, async () => {
             return (await this.getTreeItemChildren(caption)).length > 0;
         });
-    };
-
-    /**
-     * Configures the Rest Service for this tree item
-     * @param caption The tree item caption
-     * @param dbConnection The database connection
-     * @returns A promise resolving when the rest service is configured
-     */
-    public configureMySQLRestService = async (
-        caption: string,
-        dbConnection: interfaces.IDBConnection): Promise<void> => {
-        await this.openContextMenuAndSelect(caption, constants.configureInstanceForMySQLRestServiceSupport);
-
-        const dialog = await new ConfirmDialog().untilExists();
-        await dialog.accept();
-
-        await driver.wait(async () => {
-            if (await PasswordDialog.exists()) {
-                await PasswordDialog.setCredentials(dbConnection);
-            }
-
-            if ((await Misc.getToastNotifications()).length > 0) {
-                const notification = await new E2EToastNotification().create();
-                expect(notification!.message).toBe("MySQL REST Service configured successfully.");
-                await notification!.close();
-
-                return true;
-            }
-        }, constants.wait10seconds, `Could not configure Rest Service for ${dbConnection.caption}`);
     };
 
     /**
