@@ -599,7 +599,8 @@ def substitute_objects_in_template(
                     else:
                         db_object_crud_ops = ["FUNCTIONCALL"]
                 else:
-                    required_datatypes.add("IMrsProcedureResult")
+                    if sdk_language == "TypeScript":
+                        required_datatypes.add("IMrsProcedureResult")
                     options = db_obj.get("options")
                     if options is not None and options.get("mysqlTask") is not None:
                         db_object_crud_ops = ["PROCEDURETASKRUN"]
