@@ -76,6 +76,7 @@ The following resources can be accessed from a service namespace:
 
 The following options are supported when creating a service:
 
+- [base_url](#base_url)
 - [verify_tls_cert](#verify_tls_cert)
 
 The following commands can be accessed from a service object:
@@ -87,6 +88,21 @@ The following commands can be accessed from a service object:
   - [get_auth_apps()](#get_auth_apps)
   - [authenticate()](#authenticate)
   - [deauthenticate()](#deauthenticate)
+
+### base_url
+
+`base_url` is a service constructor option that allows you to customize the service URL.
+
+```py
+from sdk.python import MyService
+
+domain = "my_domain"
+port = 8443
+
+my_service = MyService(base_url=f"https://{domain}:{port}/myService")
+```
+
+By default, `base_url` corresponds to the URL specified when the Python SDK was exported/dumped.
 
 ### verify_tls_cert
 
