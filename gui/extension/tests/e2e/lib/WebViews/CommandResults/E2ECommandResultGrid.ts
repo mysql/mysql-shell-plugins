@@ -24,16 +24,16 @@
  */
 
 import { WebElement, until, Key, Condition, error, Button, Origin } from "selenium-webdriver";
-import { driver } from "../../Misc";
-import * as constants from "../../constants.js";
-import * as interfaces from "../../interfaces.js";
-import * as locator from "../../locators.js";
-import { Os } from "../../Os.js";
-import { E2ECommandResult } from "./E2ECommandResult.js";
-import { ConfirmDialog } from "../Dialogs/ConfirmationDialog.js";
-import { E2ECodeEditor } from "../E2ECodeEditor.js";
 import clipboard from "clipboardy";
 import { keyboard, Key as nutKey } from "@nut-tree-fork/nut-js";
+import { driver } from "../../Misc";
+import * as constants from "../../constants";
+import * as interfaces from "../../interfaces";
+import * as locator from "../../locators";
+import { Os } from "../../Os";
+import { E2ECommandResult } from "./E2ECommandResult";
+import { ConfirmDialog } from "../Dialogs/ConfirmationDialog";
+import { E2ECodeEditor } from "../E2ECodeEditor";
 import { E2ELogger } from "../../E2ELogger";
 
 const gridLocator = locator.notebook.codeEditor.editor.result.grid;

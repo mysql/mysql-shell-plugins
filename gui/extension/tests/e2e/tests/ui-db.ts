@@ -51,7 +51,7 @@ import { TestQueue } from "../lib/TestQueue";
 import { E2EMySQLAdministration } from "../lib/WebViews/MySQLAdministration/E2EMySQLAdministration";
 import { E2ECommandResultGrid } from "../lib/WebViews/CommandResults/E2ECommandResultGrid";
 import { E2ECommandResultData } from "../lib/WebViews/CommandResults/E2ECommandResultData";
-import { PasswordDialog } from "../lib/WebViews/Dialogs/PasswordDialog.js";
+import { PasswordDialog } from "../lib/WebViews/Dialogs/PasswordDialog";
 import { E2ELogger } from "../lib/E2ELogger";
 
 describe("DATABASE CONNECTIONS", () => {

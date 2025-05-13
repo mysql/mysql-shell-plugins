@@ -31,7 +31,7 @@ import { E2EToolbar } from "./E2EToolbar";
 import { PasswordDialog } from "./Dialogs/PasswordDialog";
 import { E2ECommandResultData } from "./CommandResults/E2ECommandResultData";
 import { E2ECommandResultGrid } from "./CommandResults/E2ECommandResultGrid";
-import { Workbench } from "../Workbench.js";
+import { Workbench } from "../Workbench";
 
 /**
  * This class represents the Script page

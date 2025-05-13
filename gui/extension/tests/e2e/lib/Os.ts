@@ -131,55 +131,14 @@ export class Os {
     };
 
     /**
-     * Gets the MySQL Shell for VS Code log file
-     * @returns A promise resolving with the location of the log file
-     */
-    public static getExtensionLogFile = async (): Promise<string> => {
-
-        const logsFolder = join(
-            process.env.TEST_RESOURCES_PATH,
-            `test-resources-${process.env.TEST_SUITE}`,
-            "settings",
-            "logs",
-        );
-
-        const searchFile = async (directory: string, fileName: string): Promise<string | undefined> => {
-            const files = await fs.readdir(directory);
-
-            for (const file of files) {
-                const filePath = join(directory, file);
-
-                const fileStat = await fs.stat(filePath);
-
-                if (fileStat.isDirectory()) {
-                    const fileSearch = await searchFile(filePath, fileName);
-
-                    if (fileSearch) {
-                        return fileSearch;
-                    }
-                } else if (file.endsWith(fileName)) {
-                    return filePath;
-                }
-            }
-        };
-
-        const file = await searchFile(logsFolder, constants.feLogFile);
-
-        if (file) {
-            return file;
-        } else {
-            throw new Error(`Could not find '${constants.feLogFile}' on ${logsFolder}`);
-        }
-    };
-
-    /**
      * Appends a value to the extension logs folder
      * @param value The value to append
      */
     public static appendToExtensionLog = async (value: string): Promise<void> => {
-        value = `-------------------------${value}-----------------------------------\r\n`;
-        const fileContent = await fs.readFile(await Os.getExtensionLogFile());
-        await fs.writeFile(await Os.getExtensionLogFile(), `${fileContent.toString()}\r\n${value}`);
+        value = `-------------------------TEST NAME: ${value}-----------------------------------\r\n\r\n`;
+        const extensionLogFile = await this.getExtensionLogFile();
+        const fileContent = await fs.readFile(extensionLogFile);
+        await fs.writeFile(extensionLogFile, `${fileContent.toString()}\r\n${value}`);
     };
 
     /**
@@ -427,7 +386,52 @@ export class Os {
             }
 
         });
+    };
 
+    /**
+     * Gets the MySQL Shell for VS Code log file
+     * @returns A promise resolving with the location of the log file
+     */
+    public static getExtensionLogFile = async (): Promise<string> => {
+
+        const logsFolder = join(
+            process.env.TEST_RESOURCES_PATH,
+            `test-resources-${String(process.env.TEST_SUITE).toUpperCase()}`,
+            "settings",
+            "logs",
+        );
+
+        const logDirs: string[] = [];
+
+        const setOutputLoggingDirs = async (directory: string): Promise<string | undefined> => {
+            const items = await fs.readdir(directory);
+
+            for (const item of items) {
+                const itemPath = join(directory, item);
+
+                const fileStat = await fs.stat(itemPath);
+
+                if (fileStat.isDirectory()) {
+                    if (itemPath.includes("output_logging")) {
+                        logDirs.push(itemPath);
+                    } else {
+                        const dirSearch = await setOutputLoggingDirs(itemPath);
+
+                        if (dirSearch) {
+                            return dirSearch;
+                        }
+                    }
+                }
+            }
+        };
+
+        await setOutputLoggingDirs(logsFolder);
+
+        if (logDirs.length > 0) {
+            return join(logDirs[logDirs.length - 1], "1-MySQL Shell for VS Code.log");
+        } else {
+            throw new Error(`Could not find the output_logging folder at ${logsFolder}`);
+        }
     };
 }
 

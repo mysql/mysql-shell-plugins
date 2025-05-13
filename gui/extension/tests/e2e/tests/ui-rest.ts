@@ -77,13 +77,12 @@ describe("MySQL REST Service", () => {
     const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
 
     before(async function () {
-
         await Misc.loadDriver();
         try {
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
+            await Os.appendToExtensionLog("beforeAll Rest");
             await Workbench.toggleBottomBar(false);
             Misc.removeDatabaseConnections();
-
             await dbTreeSection.clickToolbarButton(constants.reloadConnections);
             await dbTreeSection.createDatabaseConnection(globalConn);
             await driver.wait(dbTreeSection.untilTreeItemExists(globalConn.caption), constants.waitForTreeItem);
