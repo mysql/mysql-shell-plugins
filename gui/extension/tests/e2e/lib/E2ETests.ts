@@ -35,6 +35,7 @@ import { get } from "https";
 import { ExTester } from "vscode-extension-tester";
 import { IE2ECli, IE2ETestSuite } from "./interfaces";
 import { E2ELogger } from "./E2ELogger";
+import { Os } from "./Os";
 
 /**
  * This class aggregates the functions that are used on the tests setup script
@@ -249,6 +250,19 @@ export class E2ETests {
     };
 
     /**
+     * Removes the logs folder for a test suite
+     * @param testSuite The test suite
+     */
+    public static removeLogs = async (testSuite: IE2ETestSuite): Promise<void> => {
+        const logsFolderPath = join(testSuite.testResources, "settings", "logs");
+        const folderItems = await fs.readdir(logsFolderPath);
+
+        for (const item of folderItems) {
+            await fs.rm(join(logsFolderPath, item), { recursive: true });
+        }
+    };
+
+    /**
      * Executes the setup to run the e2e tests
      */
     public static setup = (): void => {
@@ -374,6 +388,9 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         const routerConfigsFolder = join(process.env.TEST_RESOURCES_PATH, `mysqlsh-${testSuite.name}`, "plugin_data",
             "mrs_plugin", "router_configs");
         rmSync(routerConfigsFolder, { force: true, recursive: true });
+
+        // REMOVE LOGS
+        await this.removeLogs(testSuite);
 
         // RUN THE TESTS
         const result = await this.executeTests(testSuite, log);
@@ -866,59 +883,14 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
     };
 
     /**
-     * Gets the MySQL Shell for VS Code log file
-     * @param testSuite The Test suite
-     * @returns A promise resolving with the location of the log file
-     */
-    private static getExtensionLogFile = async (testSuite: IE2ETestSuite): Promise<string> => {
-
-        const logsFolder = join(
-            testSuite.testResources,
-            "settings",
-            "logs",
-        );
-
-        const searchFile = async (directory: string, fileName: string): Promise<string | undefined> => {
-            const files = await fs.readdir(directory);
-
-            for (const file of files) {
-                const filePath = join(directory, file);
-
-                const fileStat = await fs.stat(filePath);
-
-                if (fileStat.isDirectory()) {
-                    const fileSearch = await searchFile(filePath, fileName);
-
-                    if (fileSearch) {
-                        return fileSearch;
-                    }
-                } else if (file.endsWith(fileName)) {
-                    return filePath;
-                }
-            }
-        };
-
-        const file = await searchFile(logsFolder, "1-MySQL Shell for VS Code.log");
-
-        if (file) {
-            return file;
-        } else {
-            throw new Error(`Could not find '1-MySQL Shell for VS Code.log' on ${logsFolder}`);
-        }
-    };
-
-    /**
      * Prepares the extension logs to be exported on jenkins, by renaming the log files according with the test suite
      * @param testSuite The test suite
      * @returns A promise resolving when the logs are prepared
      */
     private static exportExtensionLogsToWorkspace = async (testSuite: IE2ETestSuite): Promise<void> => {
-        const logFile = await this.getExtensionLogFile(testSuite);
+        const logFile = await Os.getExtensionLogFile();
 
         // rename the file
-        await fs.rename(logFile, `${testSuite.name}_output_tab.log`);
-
-        // copy to workspace
-        await fs.copyFile(`${testSuite.name}_output_tab.log`, join(process.cwd(), `${testSuite.name}_output_tab.log`));
+        await fs.rename(logFile, join(process.cwd(), `${testSuite.name}_output_tab.log`));
     };
 }

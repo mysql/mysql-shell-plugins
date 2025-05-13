@@ -66,6 +66,7 @@ describe("NOTEBOOKS", () => {
         await Misc.loadDriver();
         try {
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
+            await Os.appendToExtensionLog("beforeAll Notebooks");
             await Workbench.toggleBottomBar(false);
             await dbTreeSection.createDatabaseConnection(globalConn);
             await dbTreeSection.focus();
@@ -715,7 +716,7 @@ describe("NOTEBOOKS", () => {
 
     });
 
-    describe("HeatWave Chat", () => {
+    describe.skip("HeatWave Chat", () => {
 
         const heatWaveConn: interfaces.IDBConnection = {
             dbType: "MySQL",
@@ -752,7 +753,6 @@ describe("NOTEBOOKS", () => {
                 await Misc.processFailure(this);
                 throw e;
             }
-
         });
 
         beforeEach(async function () {

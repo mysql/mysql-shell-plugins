@@ -21,18 +21,18 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 import { until, WebElement, Workbench as extWorkbench, NotificationType, Condition } from "vscode-extension-tester";
-import { driver, Misc } from "../Misc.js";
-import * as constants from "../constants.js";
-import * as locator from "../locators.js";
-import { E2ECodeEditor } from "./E2ECodeEditor.js";
-import { E2EToolbar } from "./E2EToolbar.js";
-import * as interfaces from "../interfaces.js";
-import { PasswordDialog } from "./Dialogs/PasswordDialog.js";
-import { E2ECommandResultGrid } from "./CommandResults/E2ECommandResultGrid.js";
-import { E2ECommandResultData } from "./CommandResults/E2ECommandResultData.js";
-import * as errors from "../errors.js";
-import { Workbench } from "../Workbench.js";
-import { ConfirmDialog } from "./Dialogs/ConfirmationDialog.js";
+import { driver, Misc } from "../Misc";
+import * as constants from "../constants";
+import * as locator from "../locators";
+import { E2ECodeEditor } from "./E2ECodeEditor";
+import { E2EToolbar } from "./E2EToolbar";
+import * as interfaces from "../interfaces";
+import { PasswordDialog } from "./Dialogs/PasswordDialog";
+import { E2ECommandResultGrid } from "./CommandResults/E2ECommandResultGrid";
+import { E2ECommandResultData } from "./CommandResults/E2ECommandResultData";
+import * as errors from "../errors";
+import { Workbench } from "../Workbench";
+import { ConfirmDialog } from "./Dialogs/ConfirmationDialog";
 
 /**
  * This class aggregates the functions that perform operations inside notebooks

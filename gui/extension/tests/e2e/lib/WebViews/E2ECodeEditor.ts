@@ -22,12 +22,12 @@
  */
 
 import { error, Key, until, WebElement, Condition } from "vscode-extension-tester";
-import * as constants from "../constants.js";
-import * as locator from "../locators.js";
+import * as constants from "../constants";
+import * as locator from "../locators";
 import { driver, Misc } from "../Misc";
-import { Os } from "../Os.js";
-import { E2ECommandResultGrid } from "./CommandResults/E2ECommandResultGrid.js";
-import { E2ECommandResultData } from "./CommandResults/E2ECommandResultData.js";
+import { Os } from "../Os";
+import { E2ECommandResultGrid } from "./CommandResults/E2ECommandResultGrid";
+import { E2ECommandResultData } from "./CommandResults/E2ECommandResultData";
 
 /**
  * This class represents the code editor that exist on notebooks, scripts or shell consoles
