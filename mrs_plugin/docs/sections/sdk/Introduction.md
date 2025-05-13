@@ -27,7 +27,7 @@ The MySQL REST Service offers a Software Development Kit (SDK) that simplifies t
 
 The SDK features a Client API that is specifically generated for each MRS REST Service and therefore offers the best possible support for each REST project.
 
-Currently, support for TypeScript and Python is available. Support for other languages is planned.
+Currently, support for TypeScript and Python is available. Support for other languages is planned. Each language-specific SDK has its own individual and independent version number. Versioning follows the rules specified by [Semantic Versioning 2.0.0](https://semver.org/).
 
 Most of the usage examples present in this guide are written in TypeScript. For specific details about the SDK for a different language, please check the corresponding API reference docs.
 

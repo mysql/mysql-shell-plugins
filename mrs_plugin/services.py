@@ -32,8 +32,8 @@ from pathlib import Path
 import os
 import shutil
 import json
+import tomllib
 import datetime
-import base64
 
 
 def verify_value_keys(**kwargs):
@@ -975,6 +975,7 @@ def dump_sdk_service_files(**kwargs):
     mrs_config["serviceUrl"] = options.get("service_url", mrs_config.get("serviceUrl"))
     mrs_config["addAppBaseClass"] = options.get("add_app_base_class", mrs_config.get("addAppBaseClass"))
     mrs_config["dbConnectionUri"] = options.get("db_connection_uri", mrs_config.get("dbConnectionUri"))
+    mrs_config["version"] = options.get("version", mrs_config.get("version"))
 
     mrs_config["generationDate"] = datetime.datetime.now(
         datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
@@ -1007,9 +1008,26 @@ def dump_sdk_service_files(**kwargs):
         if sdk_language == "TypeScript":
             file_type = "ts"
             base_classes_file = os.path.join(directory, "MrsBaseClasses.ts")
+            metadata = Path(
+                os.path.dirname(os.path.abspath(__file__)),
+                "sdk",
+                sdk_language.lower(),
+                "package.json",
+            ).read_text()
+            version = json.loads(metadata).get("version")
+
         elif sdk_language == "Python":
             file_type = "py"
             base_classes_file = os.path.join(directory, "mrs_base_classes.py")
+            metadata = Path(
+                os.path.dirname(os.path.abspath(__file__)),
+                "sdk",
+                sdk_language.lower(),
+                "pyproject.toml",
+            ).read_text()
+            version = tomllib.loads(metadata).get("project").get("version")
+
+        mrs_config["version"] = version
 
         base_classes = get_sdk_base_classes(
             sdk_language=sdk_language, session=session)
