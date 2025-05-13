@@ -28,7 +28,7 @@ import { BottomBarPanel, ActivityBar, until, SideBarView, CustomTreeSection } fr
 import { expect } from "chai";
 import { driver, Misc } from "../lib/Misc";
 import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection";
-import { Os } from "../lib/Os.js";
+import { Os } from "../lib/Os";
 import { Workbench } from "../lib/Workbench";
 import * as constants from "../lib/constants";
 import * as interfaces from "../lib/interfaces";
@@ -57,10 +57,10 @@ describe("OPEN EDITORS", () => {
     const openEditorsTreeSection = new E2EAccordionSection(constants.openEditorsTreeSection);
 
     before(async function () {
-
         await Misc.loadDriver();
         try {
             await driver.wait(Workbench.untilExtensionIsReady(), constants.waitForExtensionReady);
+            await Os.appendToExtensionLog("beforeAll Open editors");
             const activityBare = new ActivityBar();
             await (await activityBare.getViewControl(constants.extensionName))?.openView();
             await Workbench.dismissNotifications();

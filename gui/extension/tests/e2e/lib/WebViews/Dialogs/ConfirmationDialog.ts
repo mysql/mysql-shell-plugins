@@ -24,9 +24,9 @@
  */
 
 import { WebElement, until } from "selenium-webdriver";
-import { driver } from "../../Misc.js";
-import * as locator from "../../locators.js";
-import * as constants from "../../constants.js";
+import { driver } from "../../Misc";
+import * as locator from "../../locators";
+import * as constants from "../../constants";
 
 /**
  * This class aggregates the functions that perform confirm dialog related operations

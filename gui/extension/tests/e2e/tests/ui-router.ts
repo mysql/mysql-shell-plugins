@@ -25,16 +25,16 @@
 
 import * as fs from "fs/promises";
 import { expect } from "chai";
+import { hostname } from "os";
+import { existsSync } from "fs";
+import { Os } from "../lib/Os";
 import { driver, Misc } from "../lib/Misc";
 import { E2EAccordionSection } from "../lib/SideBar/E2EAccordionSection";
-import { Os } from "../lib/Os";
 import { Workbench } from "../lib/Workbench";
 import { DatabaseConnectionOverview } from "../lib/WebViews/DatabaseConnectionOverview";
-import { hostname } from "os";
 import * as constants from "../lib/constants";
 import * as interfaces from "../lib/interfaces";
 import { E2ENotebook } from "../lib/WebViews/E2ENotebook";
-import { existsSync } from "fs";
 import { RestServiceDialog } from "../lib/WebViews/Dialogs/RestServiceDialog";
 import { RestSchemaDialog } from "../lib/WebViews/Dialogs/RestSchemaDialog";
 import { RestObjectDialog } from "../lib/WebViews/Dialogs/RestObjectDialog";

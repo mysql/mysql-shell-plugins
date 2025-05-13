@@ -25,10 +25,10 @@
 
 import { WebElement, Condition, until } from "selenium-webdriver";
 import { driver } from "../../Misc";
-import * as constants from "../../constants.js";
-import * as locator from "../../locators.js";
-import { E2ECommandResult } from "./E2ECommandResult.js";
-import * as interfaces from "../../interfaces.js";
+import * as constants from "../../constants";
+import * as locator from "../../locators";
+import { E2ECommandResult } from "./E2ECommandResult";
+import * as interfaces from "../../interfaces";
 
 const resultLocator = locator.notebook.codeEditor.editor.result;
 
