@@ -52,12 +52,12 @@ Most of the examples in this guide are written in TypeScript. If you want more d
 | | [updateMany](#view-updatemany-ts) | [update_many](#view-update_many-py) | Updates several documents on a REST view endpoint.
 | Document | [update](#document-update-ts) | [update](#document-update-py) | Updates a REST document that was fetched before.
 | | [delete](#document-delete-ts) | [delete](#document-delete-py) | Deletes a REST document that was fetched before.
-| Function | [call](#function-call-ts) | call | Calls a REST function.
-| | [start](#function-start-ts) | start |  Calls an async REST function and returns a task.
-| Procedure | [call](#procedure-call-ts) | call | Calls a REST procedure.
-| | [start](#procedure-start-ts) | start |  Calls an async REST procedure and returns a task.
-| Task | [watch](#task-watch-ts) | watch | Watches a Task for progress and result.
-| | [kill](#task-kill-ts) | kill | Terminates an async REST function or REST procedure call.
+| Function | [call](#function-call-ts) | [call](#function-call-py) | Calls a REST function.
+| | [start](#function-start-ts) | [start](#function-start-py) |  Calls an async REST function and returns a task.
+| Procedure | [call](#procedure-call-ts) | [call](#procedure-call-py) | Calls a REST procedure.
+| | [start](#procedure-start-ts) | [start](#procedure-start-py) |  Calls an async REST procedure and returns a task.
+| Task | [watch](#task-watch-ts) | [watch](#task-watch-py) | Watches a Task for progress and result.
+| | [kill](#task-kill-ts) | [kill](#task-kill-py) | Terminates an async REST function or REST procedure call.
 
 : SDK Cheat Sheet
 

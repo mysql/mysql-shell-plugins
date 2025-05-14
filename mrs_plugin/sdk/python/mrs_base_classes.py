@@ -20,6 +20,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+
+# pylint: disable=too-few-public-methods,missing-class-docstring
 """Core logic for the MRS Python SDK is implemented in this module."""
 
 from __future__ import annotations
@@ -37,9 +39,12 @@ import ssl
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
+import time
 from typing import (
     TYPE_CHECKING,
     Any,
+    AsyncGenerator,
+    Awaitable,
     Callable,
     Generic,
     Literal,
@@ -60,6 +65,15 @@ from typing import (
 import typing
 from urllib.parse import urlencode, quote
 from urllib.request import HTTPError, Request, urlopen
+
+
+####################################################################################
+#                                CONSTANTS
+####################################################################################
+DEFAULT_REFRESH_RATE = 2.0
+"""Deault refresh rate. Value represented in seconds."""
+MIN_ALLOWED_REFRESH_RATE = 0.5
+"""Minimum allowed refresh rate. Value represented in seconds."""
 
 
 ####################################################################################
@@ -126,10 +140,27 @@ class DeauthenticationError(MrsError):
     _default_msg = "Deauthentication failed"
 
 
+class MrsTaskExecutionError(MrsError):
+    """Raised when task reports an execution error."""
+
+    _default_msg = "The task reported an underlying execution error."
+
+
+class MrsTaskExecutionCancelledError(MrsError):
+    """Raised when task reports the task has been cancelled."""
+
+    _default_msg = "The task reported the execution was cancelled."
+
+
+class MrsTaskTimeOutError(MrsError):
+    """Raised when a task times out."""
+
+    _default_msg = "Reached maximum time to wait for the execution to complete."
+
+
 ####################################################################################
 #                          Client-side representations
 ####################################################################################
-# pylint: disable=too-few-public-methods
 # JSON data type
 JsonPrimitive = bool | float | int | str | None
 JsonObject = Mapping[str, "JsonValue"]
@@ -355,6 +386,7 @@ ResultSetDetails = TypeVar("ResultSetDetails", bound=Mapping)
 IMrsFunctionResult = TypeVar(
     "IMrsFunctionResult", bound=str | int | float | bool | JsonValue | "DateOrTime"
 )
+IMrsTaskResult = TypeVar("IMrsTaskResult", bound=Any)
 
 
 class AuthApp(TypedDict):
@@ -363,6 +395,101 @@ class AuthApp(TypedDict):
 
 
 type AuthApps = list[AuthApp]
+
+
+class IMrsTaskStatusUpdateResponse(TypedDict):
+
+    data: Optional[dict[str, Any]]
+    status: Literal["RUNNING", "COMPLETED", "ERROR", "CANCELLED"]
+    message: str
+    progress: int
+
+
+class IMrsCompletedTaskReportDetails(Generic[IMrsTaskResult], TypedDict):
+
+    data: IMrsTaskResult
+    status: Literal["COMPLETED"]
+    message: str
+    progress: int
+
+
+@dataclass(init=False, repr=True)
+class IMrsCompletedTaskReport(Generic[IMrsTaskResult]):
+    data: IMrsTaskResult
+    message: str
+    status: Literal["COMPLETED"] = "COMPLETED"
+
+    def __init__(
+        self,
+        status_update: IMrsCompletedTaskReportDetails[IMrsTaskResult],
+        result_type_hint_struct: RoutineResponseTypeHintStruct,
+    ):
+        data: Any = None
+        if status_update["data"].get("out_parameters") is not None:
+            data = IMrsProcedureResponse[Any, Any](
+                data=cast(
+                    IMrsProcedureResponseDetails[Any, Any], status_update["data"]
+                ),
+                type_hint_struct=cast(
+                    ProcedureResponseTypeHintStruct, result_type_hint_struct
+                ),
+            )
+        else:
+            data = {
+                "result": MrsJSONDataDecoder.convert_field_value(
+                    status_update["data"]["result"],
+                    dst_type=cast(
+                        FunctionResponseTypeHintStruct, result_type_hint_struct
+                    )["result"],
+                )
+            }
+
+        self.data = cast(IMrsTaskResult, data)
+        self.message = status_update["message"]
+
+
+@dataclass(init=False, repr=True)
+class IMrsRunningTaskReport:
+    message: str
+    progress: int
+    status: Literal["RUNNING"] = "RUNNING"
+
+    def __init__(self, status_update: IMrsTaskStatusUpdateResponse):
+        self.message = status_update["message"]
+        self.progress = status_update["progress"]
+
+
+@dataclass(init=False, repr=True)
+class IMrsCancelledTaskReport:
+    message: str
+    status: Literal["CANCELLED"] = "CANCELLED"
+
+    def __init__(self, status_update: IMrsTaskStatusUpdateResponse):
+        self.message = status_update["message"]
+
+
+@dataclass(init=False, repr=True)
+class IMrsErrorTaskReport:
+    message: str
+    status: Literal["ERROR"] = "ERROR"
+
+    def __init__(self, status_update: IMrsTaskStatusUpdateResponse):
+        self.message = status_update["message"]
+
+
+@dataclass(init=False, repr=True)
+class IMrsTimeoutTaskReport:
+    message: str = "Task execution has reached the specified timeout"
+    status: Literal["TIMEOUT"] = "TIMEOUT"
+
+
+IMrsTaskReport = (
+    IMrsRunningTaskReport
+    | IMrsCompletedTaskReport[IMrsTaskResult]
+    | IMrsCancelledTaskReport
+    | IMrsErrorTaskReport
+    | IMrsTimeoutTaskReport
+)
 
 
 ####################################################################################
@@ -674,6 +801,11 @@ class ProcedureResponseTypeHintStruct(TypedDict):
     result_sets: Optional[dict[str, TypeAlias]]
 
 
+RoutineResponseTypeHintStruct = (
+    FunctionResponseTypeHintStruct | ProcedureResponseTypeHintStruct
+)
+
+
 class IMrsProcedureResponseDetails(
     Generic[IMrsProcedureOutParameters, IMrsProcedureResultSet], TypedDict
 ):
@@ -746,6 +878,24 @@ class MrsProcedureResultSet(
 
         for key in MrsDocumentBase._reserved_keys:
             self.__dict__.update({key: data.get(key)})
+
+
+class IMrsTaskStartOptions(TypedDict, total=False):
+
+    refresh_rate: float  # seconds scale
+    timeout: Optional[float]  # seconds scale
+
+
+class IMrsTaskCallOptions(IMrsTaskStartOptions, total=False):
+
+    progress: Callable[[IMrsRunningTaskReport], Awaitable[None]]
+
+
+class IMrsTaskStartResponse(TypedDict):
+
+    task_id: str
+    message: str
+    status_url: str
 
 
 class AuthenticateOptions(TypedDict):
@@ -1087,22 +1237,23 @@ class MrsDataDownstreamConverter:
             typed_dict: A type alias - It must be an alias of a `typing.TypedDict` type.
 
         Returns:
-            The original object with fields converted.
+            A copy of the original object with fields converted.
         """
+        obj_copy = {}
         for field_name, field_type in typing.get_type_hints(typed_dict).items():
             if isinstance(obj, dict):
-                obj[field_name] = MrsDataDownstreamConverter.convert(
+                obj_copy[field_name] = MrsDataDownstreamConverter.convert(
                     value=obj[field_name], dst_type=field_type
                 )
             else:
                 setattr(
-                    obj,
+                    obj_copy,
                     field_name,
                     MrsDataDownstreamConverter.convert(
                         value=getattr(obj, field_name), dst_type=field_type
                     ),
                 )
-        return obj
+        return obj_copy
 
     @staticmethod
     def _convert_date_or_time(
@@ -1577,6 +1728,406 @@ class MrsBaseObjectFunctionCall(
         return MrsJSONDataDecoder.convert_field_value(
             response["result"], dst_type=self._result_type_hint_struct["result"]
         )
+
+
+####################################################################################
+#                                 REST Tasks
+####################################################################################
+class MrsBaseTaskWatch(Generic[IMrsTaskResult]):
+
+    def __init__(
+        self,
+        schema: MrsBaseSchema,
+        request_path: str,
+        task_id: str,
+        result_type_hint_struct: RoutineResponseTypeHintStruct,
+        options: IMrsTaskCallOptions,
+    ) -> None:
+        """MrsBaseTaskWatch.
+
+        Args:
+            schema: Instance of the corresponding MRS schema
+            request_path: The base endpoint to the resource (function).
+            task_id: Number to identify the process on the router end.
+            options: command options. See hint `IMrsTaskCallOptions`.
+            result_type_hint: Client type(s) to convert the response/result (object) to.
+        """
+        self._schema: MrsBaseSchema = schema
+        self._request_path: str = request_path
+        self._task_id: str = task_id
+        self._result_type_hint_struct: RoutineResponseTypeHintStruct = (
+            result_type_hint_struct
+        )
+        self._options: IMrsTaskCallOptions = options
+
+    async def __get_status(self) -> IMrsTaskStatusUpdateResponse:
+        """Gets a report status."""
+        headers = {"Accept": "application/json"}
+        access_token = self._schema._service._session.get("access_token")
+
+        if access_token:
+            headers["Authorization"] = f"Bearer {access_token}"
+
+        req = Request(
+            url=f"{self._request_path}/{self._task_id}",
+            headers=headers,
+            method="GET",
+        )
+        response = await asyncio.to_thread(
+            urlopen, req, context=self._schema._service.tls_context
+        )
+
+        return cast(
+            IMrsTaskStatusUpdateResponse,
+            json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys),
+        )
+
+    def __get_remaining_time(
+        self, timeout: Optional[float], initial_time: float
+    ) -> Optional[float]:
+        """Gets how much time is left before reaching the timeout."""
+        return (
+            timeout
+            if timeout is None
+            else max(0, timeout - (time.perf_counter() - initial_time))
+        )
+
+    async def submit(self) -> AsyncGenerator[IMrsTaskReport[IMrsTaskResult], None]:
+        """Gets a client-side representation of a status update,
+        which we refer to as IMrsTaskReport."""
+        status_update: IMrsRunningTaskReport | IMrsTaskStatusUpdateResponse = (
+            IMrsTaskStatusUpdateResponse(
+                data={}, status="RUNNING", message="", progress=0
+            )
+        )
+
+        # Once 'TIMEOUT' event is reported, the timeout will be enforced no more!
+        timeout_triggered = False
+
+        initial_time = time.perf_counter()
+        refresh_rate = self._options.get("refresh_rate", DEFAULT_REFRESH_RATE)
+        timeout = self._options.get("timeout")
+        progress = self._options.get("progress")
+        while True:
+            # the first status report should be retrieved immediately
+            try:
+                status_update = await asyncio.wait_for(
+                    self.__get_status(),
+                    timeout=(
+                        self.__get_remaining_time(timeout, initial_time)
+                        if not timeout_triggered
+                        else None
+                    ),
+                )
+
+                # previous request didn't timeout, so we handle response
+                if status_update["status"] != "RUNNING":
+                    break
+
+                status_update = IMrsRunningTaskReport(status_update)
+                if progress:
+                    await progress(status_update)
+                yield status_update
+
+                # let's sleep and resume when `refresh_rate` secs have gone by,
+                # or when the timeout is reached.
+                await asyncio.wait_for(
+                    asyncio.sleep(refresh_rate),
+                    timeout=(
+                        self.__get_remaining_time(timeout, initial_time)
+                        if not timeout_triggered
+                        else None
+                    ),
+                )
+            except asyncio.TimeoutError:
+                if not timeout_triggered:
+                    timeout_triggered = True
+                    yield IMrsTimeoutTaskReport()
+
+        if status_update["status"] == "ERROR":
+            yield IMrsErrorTaskReport(status_update)
+        elif status_update["status"] == "CANCELLED":
+            yield IMrsCancelledTaskReport(status_update)
+        elif status_update["status"] == "COMPLETED":
+            yield IMrsCompletedTaskReport[IMrsTaskResult](
+                cast(IMrsCompletedTaskReportDetails, status_update),
+                self._result_type_hint_struct,
+            )
+
+
+class MrsTask(Generic[IMrsTaskResult]):
+
+    def __init__(
+        self,
+        schema: MrsBaseSchema,
+        request_path: str,
+        task_id: str,
+        options: IMrsTaskCallOptions,
+        result_type_hint_struct: RoutineResponseTypeHintStruct,
+    ) -> None:
+        """MrsTask.
+
+        Args:
+            schema: Instance of the corresponding MRS schema
+            request_path: The base endpoint to the resource (function).
+            task_id: Number to identify the process on the router end.
+            options: command options. See hint `IMrsTaskCallOptions`.
+            result_type_hint: Client type(s) to convert the response/result (object) to.
+        """
+        self._schema: MrsBaseSchema = schema
+        self._request_path: str = request_path
+        self._task_id: str = task_id
+        self._options: IMrsTaskCallOptions = options
+        self._result_type_hint_struct: RoutineResponseTypeHintStruct = (
+            result_type_hint_struct
+        )
+
+        if options.get("refresh_rate", DEFAULT_REFRESH_RATE) < MIN_ALLOWED_REFRESH_RATE:
+            raise ValueError(
+                f"Refresh rate must be greater than or equal to {MIN_ALLOWED_REFRESH_RATE:.2f} seconds."
+            )
+
+    async def watch(self) -> AsyncGenerator[IMrsTaskReport[IMrsTaskResult], None]:
+        """Gets a client-side representation of a status update,
+        which we refer to as IMrsTaskReport."""
+        request = MrsBaseTaskWatch[IMrsTaskResult](
+            schema=self._schema,
+            request_path=self._request_path,
+            task_id=self._task_id,
+            result_type_hint_struct=self._result_type_hint_struct,
+            options=self._options,
+        )
+        async for response in request.submit():
+            yield response
+
+    async def kill(self) -> None:
+        """Terminates the task execution."""
+        headers = {"Accept": "application/json"}
+        access_token = self._schema._service._session.get("access_token")
+
+        if access_token:
+            headers["Authorization"] = f"Bearer {access_token}"
+
+        req = Request(
+            url=f"{self._request_path}/{self._task_id}",
+            headers=headers,
+            method="DELETE",
+        )
+        _ = await asyncio.to_thread(
+            urlopen, req, context=self._schema._service.tls_context
+        )
+
+        return
+
+
+class MrsBaseTaskStartFunction(
+    Generic[IMrsRoutineInParameters, IMrsFunctionResult],
+    MrsBaseObjectRoutineCall[
+        IMrsRoutineInParameters, IMrsTaskStartResponse, FunctionResponseTypeHintStruct
+    ],
+):
+
+    def __init__(
+        self,
+        schema: MrsBaseSchema,
+        request_path: str,
+        options: IMrsTaskStartOptions,
+        parameters: IMrsRoutineInParameters,
+        result_type_hint_struct: FunctionResponseTypeHintStruct,
+    ) -> None:
+        """MrsBaseTaskStartFunction.
+
+        Args:
+            schema: Instance of the corresponding MRS schema
+            request_path: The base endpoint to the resource (function).
+            options: command options. See hint `IMrsTaskStartOptions`.
+            parameters: Dictionary representing the input parameters of the routine.
+            result_type_hint: Client type(s) to convert the response/result (object) to.
+        """
+        super().__init__(schema, request_path, parameters, result_type_hint_struct)
+        self._options: IMrsTaskStartOptions = options
+
+    async def submit(self) -> MrsTask[IMrsFunctionResult]:  # type: ignore[override]
+        """Starts async task."""
+        response = await super().submit()
+        return MrsTask[IMrsFunctionResult](
+            schema=self._schema,
+            request_path=self._request_path,
+            task_id=response["task_id"],
+            options=cast(IMrsTaskCallOptions, self._options),
+            result_type_hint_struct=self._result_type_hint_struct,
+        )
+
+
+class MrsBaseTaskStartProcedure(
+    Generic[
+        IMrsRoutineInParameters,
+        IMrsProcedureOutParameters,
+        IMrsProcedureResultSet,
+    ],
+    MrsBaseObjectRoutineCall[
+        IMrsRoutineInParameters, IMrsTaskStartResponse, ProcedureResponseTypeHintStruct
+    ],
+):
+
+    def __init__(
+        self,
+        schema: MrsBaseSchema,
+        request_path: str,
+        options: IMrsTaskStartOptions,
+        parameters: IMrsRoutineInParameters,
+        result_type_hint_struct: ProcedureResponseTypeHintStruct,
+    ) -> None:
+        """MrsBaseTaskStartProcedure.
+
+        Args:
+            schema: Instance of the corresponding MRS schema
+            request_path: The base endpoint to the resource (function).
+            options: command options. See hint `IMrsTaskStartOptions`.
+            parameters: Dictionary representing the input parameters of the routine.
+            result_type_hint: Client type(s) to convert the response/result (object) to.
+        """
+        super().__init__(schema, request_path, parameters, result_type_hint_struct)
+        self._options: IMrsTaskStartOptions = options
+
+    async def submit(  # type: ignore[override]
+        self,
+    ) -> MrsTask[
+        IMrsProcedureResponse[IMrsProcedureOutParameters, IMrsProcedureResultSet]
+    ]:
+        """Starts async task."""
+        response = await super().submit()
+        return MrsTask[
+            IMrsProcedureResponse[IMrsProcedureOutParameters, IMrsProcedureResultSet]
+        ](
+            schema=self._schema,
+            request_path=self._request_path,
+            task_id=response["task_id"],
+            options=cast(IMrsTaskCallOptions, self._options),
+            result_type_hint_struct=self._result_type_hint_struct,
+        )
+
+
+class MrsBaseTaskCallFunction(
+    Generic[IMrsRoutineInParameters, IMrsFunctionResult],
+    MrsBaseObjectRoutineCall[
+        IMrsRoutineInParameters, IMrsTaskStartResponse, FunctionResponseTypeHintStruct
+    ],
+):
+
+    def __init__(
+        self,
+        schema: MrsBaseSchema,
+        request_path: str,
+        options: IMrsTaskCallOptions,
+        parameters: IMrsRoutineInParameters,
+        result_type_hint_struct: FunctionResponseTypeHintStruct,
+    ) -> None:
+        """MrsBaseTaskCallFunction.
+
+        Args:
+            schema: Instance of the corresponding MRS schema
+            request_path: The base endpoint to the resource (function).
+            options: command options. See hint `IMrsTaskCallOptions`.
+            parameters: Dictionary representing the input parameters of the routine.
+            result_type_hint: Client type(s) to convert the response/result (object) to.
+        """
+        super().__init__(schema, request_path, parameters, result_type_hint_struct)
+        self._options: IMrsTaskCallOptions = options
+
+    async def submit(self) -> IMrsFunctionResult:  # type: ignore[override]
+        """Calls async task and waits for result."""
+        response = await super().submit()
+        task = MrsTask[IMrsFunctionResponse[IMrsFunctionResult]](
+            schema=self._schema,
+            request_path=self._request_path,
+            task_id=response["task_id"],
+            options=self._options,
+            result_type_hint_struct=self._result_type_hint_struct,
+        )
+
+        async for report in task.watch():
+            if report.status == "COMPLETED":
+                return report.data["result"]
+
+            if report.status == "CANCELLED":
+                raise MrsTaskExecutionCancelledError(msg=report.message)
+
+            if report.status == "ERROR":
+                raise MrsTaskExecutionError(msg=report.message)
+
+            if report.status == "TIMEOUT":
+                await task.kill()
+                raise MrsTaskTimeOutError(msg=report.message)
+
+        # This is not supposed to happen, however,
+        # mypy complains if we don't add a "guard"
+        raise MrsTaskExecutionError(msg="Got an invalid execution report")
+
+
+class MrsBaseTaskCallProcedure(
+    Generic[
+        IMrsRoutineInParameters,
+        IMrsProcedureOutParameters,
+        IMrsProcedureResultSet,
+    ],
+    MrsBaseObjectRoutineCall[
+        IMrsRoutineInParameters, IMrsTaskStartResponse, ProcedureResponseTypeHintStruct
+    ],
+):
+
+    def __init__(
+        self,
+        schema: MrsBaseSchema,
+        request_path: str,
+        options: IMrsTaskCallOptions,
+        parameters: IMrsRoutineInParameters,
+        result_type_hint_struct: ProcedureResponseTypeHintStruct,
+    ) -> None:
+        """MrsBaseTaskCallProcedure.
+
+        Args:
+            schema: Instance of the corresponding MRS schema
+            request_path: The base endpoint to the resource (function).
+            options: command options. See hint `IMrsTaskCallOptions`.
+            parameters: Dictionary representing the input parameters of the routine.
+            result_type_hint: Client type(s) to convert the response/result (object) to.
+        """
+        super().__init__(schema, request_path, parameters, result_type_hint_struct)
+        self._options: IMrsTaskCallOptions = options
+
+    async def submit(  # type: ignore[override]
+        self,
+    ) -> IMrsProcedureResponse[IMrsProcedureOutParameters, IMrsProcedureResultSet]:
+        """Calls async task and waits for result."""
+        response = await super().submit()
+        task = MrsTask[
+            IMrsProcedureResponse[IMrsProcedureOutParameters, IMrsProcedureResultSet]
+        ](
+            schema=self._schema,
+            request_path=self._request_path,
+            task_id=response["task_id"],
+            options=self._options,
+            result_type_hint_struct=self._result_type_hint_struct,
+        )
+
+        async for report in task.watch():
+            if report.status == "COMPLETED":
+                return report.data
+
+            if report.status == "CANCELLED":
+                raise MrsTaskExecutionCancelledError(msg=report.message)
+
+            if report.status == "ERROR":
+                raise MrsTaskExecutionError(msg=report.message)
+
+            if report.status == "TIMEOUT":
+                await task.kill()
+                raise MrsTaskTimeOutError(msg=report.message)
+
+        # This is not supposed to happen, however,
+        # mypy complains if we don't add a "guard"
+        raise MrsTaskExecutionError(msg="Got an invalid execution report")
 
 
 ####################################################################################

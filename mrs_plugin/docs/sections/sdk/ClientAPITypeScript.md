@@ -825,7 +825,7 @@ task = await myService.mrsNotes.noteUpdate.start({ noteId: note.id, title: "hell
 
 ## Procedure.start (TS)
 
-`start` is used to start a REST routine (`FUNCTION` or `PROCEDURE`) with an associated Async Task. Please see [Function.start](#function-start-ts) for more details..
+`start` is used to start a REST routine (`FUNCTION` or `PROCEDURE`) with an associated Async Task. Please see [Function.start](#function-start-ts) for more details.
 
 ## Task.watch (TS)
 
