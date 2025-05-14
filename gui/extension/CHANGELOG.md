@@ -9,8 +9,9 @@
 ### Fixes
 
 - BUG#37914615 Inconsistent MRS SDK identifiers with PascalCase request path
-- BUG#37889775: Import error on generated Python SDK when a procedure is specified
-- BUG#37939054: Cannot customize the service URL when instantiating a service while using the MRS Python SDK
+- BUG#37889775 Import error on generated Python SDK when a procedure is specified
+- BUG#37939054 Cannot customize the service URL when instantiating a service while using the MRS Python SDK
+- BUG#37948319 Unexpected TypeScript SDK file compilation error for REST View with nested fields
 
 ## Changes in 1.19.10+9.3.1
 
