@@ -46,6 +46,15 @@ from .mrs_base_classes import (
     MrsBaseObjectProcedureCall,
     IMrsProcedureResponse,
     # --- importProcedureCallOnlyEnd
+    # --- importTaskRunOnlyStart
+    MrsBaseTaskStartFunction,
+    MrsBaseTaskStartProcedure,
+    MrsBaseTaskCallFunction,
+    MrsBaseTaskCallProcedure,
+    MrsTask,
+    IMrsTaskStartOptions,
+    IMrsTaskCallOptions,
+    # --- importTaskRunOnlyEnd
     Filterable,
     HighOrderOperator,
     IMrsResourceDetails,
@@ -71,7 +80,7 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
         super().__init__(schema=schema, request_path=request_path)
 
     # --- crudFunctionCallOnlyStart
-    async def __call__(self, **parameters: Unpack[I${obj_param_interface}]) -> ${obj_function_result_datatype}:
+    async def call(self, **parameters: Unpack[I${obj_param_interface}]) -> ${obj_function_result_datatype}:
         request = MrsBaseObjectFunctionCall[I${obj_param_interface}, ${obj_function_result_datatype}](
             schema=self._schema,
             request_path=self._request_path,
@@ -82,7 +91,7 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
     # --- crudFunctionCallOnlyEnd
 
     # --- crudProcedureCallOnlyStart
-    async def __call__(
+    async def call(
         self,
         **parameters: Unpack[I${obj_param_interface}]
     ) -> IMrsProcedureResponse[
@@ -104,6 +113,86 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
         )
         return await request.submit()
     # --- crudProcedureCallOnlyEnd
+
+    # --- crudFunctionTaskRunOnlyStart
+    async def start(
+        self,
+        options: IMrsTaskStartOptions,
+        **parameters: Unpack[I${obj_param_interface}]
+    ) -> MrsTask[${obj_function_result_datatype}]:
+        request = MrsBaseTaskStartFunction[I${obj_param_interface}, ${obj_function_result_datatype}](
+            schema=self._schema,
+            request_path=self._request_path,
+            options=options,
+            parameters=parameters,
+            result_type_hint_struct={"result": ${obj_function_result_datatype}},
+        )
+        return await request.submit()
+
+    async def call(
+        self,
+        options: IMrsTaskCallOptions,
+        **parameters: Unpack[I${obj_param_interface}]
+    ) -> ${obj_function_result_datatype}:
+        request = MrsBaseTaskCallFunction[I${obj_param_interface}, ${obj_function_result_datatype}](
+            schema=self._schema,
+            request_path=self._request_path,
+            options=options,
+            parameters=parameters,
+            result_type_hint_struct={"result": ${obj_function_result_datatype}}
+        )
+        return await request.submit()
+    # --- crudFunctionTaskRunOnlyEnd
+
+    # --- crudProcedureTaskRunOnlyStart
+    async def start(
+        self,
+        options: IMrsTaskStartOptions,
+        **parameters: Unpack[I${obj_param_interface}]
+    ) -> MrsTask[IMrsProcedureResponse[
+            I${obj_param_interface}Out,
+            ${obj_meta_interface},
+        ]]:
+        request = MrsBaseTaskStartProcedure[
+            I${obj_param_interface},
+            I${obj_param_interface}Out,
+            ${obj_meta_interface},
+        ](
+            schema=self._schema,
+            request_path=self._request_path,
+            options=options,
+            parameters=parameters,
+            result_type_hint_struct={
+                "out_parameters": I${obj_param_interface}Out,
+                "result_sets": ${obj_procedure_result_set_datatype}
+            }
+        )
+        return await request.submit()
+
+    async def call(
+        self,
+        options: IMrsTaskCallOptions,
+        **parameters: Unpack[I${obj_param_interface}]
+    ) -> IMrsProcedureResponse[
+            I${obj_param_interface}Out,
+            ${obj_meta_interface},
+        ]:
+        request = MrsBaseTaskCallProcedure[
+            I${obj_param_interface},
+            I${obj_param_interface}Out,
+            ${obj_meta_interface},
+        ](
+            schema=self._schema,
+            request_path=self._request_path,
+            options=options,
+            parameters=parameters,
+            result_type_hint_struct={
+                "out_parameters": I${obj_param_interface}Out,
+                "result_sets": ${obj_procedure_result_set_datatype}
+            }
+        )
+        return await request.submit()
+    # --- crudProcedureTaskRunOnlyEnd
 
     # --- crudCreateOnlyStart
     async def create(self, data: INew${obj_class_name}) -> I${obj_class_name}:
