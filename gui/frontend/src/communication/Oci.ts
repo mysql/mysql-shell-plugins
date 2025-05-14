@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,16 +23,23 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+import { type Bastion } from "../oci-typings/oci-bastion/lib/model/bastion.js";
+import { type BastionSummary } from "../oci-typings/oci-bastion/lib/model/bastion-summary.js";
 import {
-    type BastionSummary, type Bastion, type PortForwardingSessionTargetResourceDetails, type Session,
-    type SessionSummary,
-} from "../oci-typings/oci-bastion/lib/model/index.js";
+    type PortForwardingSessionTargetResourceDetails,
+} from "../oci-typings/oci-bastion/lib/model/port-forwarding-session-target-resource-details.js";
+import { type Session } from "../oci-typings/oci-bastion/lib/model/session.js";
+import { type SessionSummary } from "../oci-typings/oci-bastion/lib/model/session-summary.js";
 
-import { Instance, Shape } from "../oci-typings/oci-core/lib/model/index.js";
-import { Compartment } from "../oci-typings/oci-identity/lib/model/index.js";
+import { Instance } from "../oci-typings/oci-core/lib/model/instance.js";
+import { Shape } from "../oci-typings/oci-core/lib/model/shape.js";
+
+import { Compartment } from "../oci-typings/oci-identity/lib/model/compartment.js";
 import { DbSystem } from "../oci-typings/oci-mysql/lib/model/db-system.js";
 import { ShapeSummary } from "../oci-typings/oci-mysql/lib/model/shape-summary.js";
-import { BucketSummary, ListObjects, type ObjectSummary } from "../oci-typings/oci-objectstorage/lib/model/index.js";
+import { BucketSummary } from "../oci-typings/oci-objectstorage/lib/model/bucket-summary.js";
+import { ListObjects } from "../oci-typings/oci-objectstorage/lib/model/list-objects.js";
+import { type ObjectSummary } from "../oci-typings/oci-objectstorage/lib/model/object-summary.js";
 
 export { BastionLifecycleState } from "../oci-typings/oci-bastion/lib/model/bastion-lifecycle-state.js";
 export { LoadBalancer } from "../oci-typings/oci-loadbalancer/lib/model/load-balancer.js";

@@ -8,7 +8,7 @@
         "launch-single-server": "bash ./scripts/launch-shell-webserver.sh localhost:3306",
         "launch-shell-web-server-win": "call ./scripts/launch-shell-webserver.cmd",
         "launch-dev-server": "vite",
-        "build": "bash ./scripts/production-build.sh && tsc -p tsconfig.json",
+        "build": "bash ./scripts/production-build.sh",
         "build-with-maps": "bash ./scripts/production-build.sh true",
         "build-win": "pwsh scripts/production-build.ps1 && tsc -p tsconfig.json",
         "lint": "eslint \"./src/**/*.ts\" \"./src/**/*.tsx\"",

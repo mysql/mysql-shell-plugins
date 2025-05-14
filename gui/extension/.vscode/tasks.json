@@ -13,7 +13,6 @@
             "presentation": {
                 "close": true,
                 "reveal": "never",
-                "revealProblems": "onProblem",
             },
             "isBackground": true,
             "group": "build",
