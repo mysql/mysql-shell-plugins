@@ -12,7 +12,6 @@
             "presentation": {
                 "close": true,
                 "reveal": "never",
-                "revealProblems": "onProblem"
             },
             "runOptions": {
                 "runOn": "folderOpen",
