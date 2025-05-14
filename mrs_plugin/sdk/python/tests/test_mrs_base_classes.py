@@ -26,6 +26,7 @@ import json
 import os
 import ssl
 from dataclasses import asdict, dataclass
+import time
 from typing import (
     Any,
     Callable,
@@ -38,11 +39,12 @@ from typing import (
     cast,
 )
 import typing
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest  # type: ignore[import-not-found]
 
 from ..mrs_base_classes import (
+    MIN_ALLOWED_REFRESH_RATE,
     _MrsDocumentDeleteMixin,
     _MrsDocumentUpdateMixin,
     Authenticating,
@@ -57,8 +59,21 @@ from ..mrs_base_classes import (
     FindFirstOptions,
     FindOptions,
     FindUniqueOptions,
+    FunctionResponseTypeHintStruct,
     HighOrderOperator,
+    IMrsCancelledTaskReport,
+    IMrsCompletedTaskReport,
+    IMrsCompletedTaskReportDetails,
+    IMrsErrorTaskReport,
+    IMrsProcedureResponse,
     IMrsResourceDetails,
+    IMrsRunningTaskReport,
+    IMrsTaskCallOptions,
+    IMrsTaskReport,
+    IMrsTaskStartOptions,
+    IMrsTaskStartResponse,
+    IMrsTaskStatusUpdateResponse,
+    IMrsTimeoutTaskReport,
     IntField,
     MrsBaseObject,
     MrsBaseObjectCreate,
@@ -68,6 +83,10 @@ from ..mrs_base_classes import (
     MrsBaseObjectQuery,
     MrsBaseObjectUpdate,
     MrsBaseSchema,
+    MrsBaseTaskCallFunction,
+    MrsBaseTaskCallProcedure,
+    MrsBaseTaskStartFunction,
+    MrsBaseTaskStartProcedure,
     MrsService,
     MrsDataDownstreamConverter,
     MrsDataUpstreamConverter,
@@ -79,6 +98,9 @@ from ..mrs_base_classes import (
     MrsDocument,
     MrsDocumentNotFoundError,
     MrsBaseSession,
+    MrsTaskExecutionCancelledError,
+    MrsTaskExecutionError,
+    MrsTaskTimeOutError,
     ProcedureResponseTypeHintStruct,
     DeauthenticationError,
     StringField,
@@ -293,7 +315,9 @@ class RestDocumentWithoutIdentifierDetails(IMrsResourceDetails):
 @dataclass(init=False, repr=True)
 class RestDocumentWithoutIdentifier(MrsDocument[RestDocumentWithoutIdentifierData]):
 
-    def __init__(self, schema: MrsBaseSchema, data: RestDocumentWithoutIdentifierData) -> None:
+    def __init__(
+        self, schema: MrsBaseSchema, data: RestDocumentWithoutIdentifierData
+    ) -> None:
         """RestDocumentWithoutIdentifier data class."""
         super().__init__(
             schema,
@@ -309,7 +333,11 @@ class RestDocumentWithoutIdentifier(MrsDocument[RestDocumentWithoutIdentifierDat
 
 @dataclass(init=False, repr=True)
 class UpdatableAndDeletableRestDocumentWithoutIdentifier(
-    _MrsDocumentUpdateMixin[RestDocumentWithoutIdentifierData, RestDocumentWithoutIdentifier, RestDocumentWithoutIdentifierDetails],
+    _MrsDocumentUpdateMixin[
+        RestDocumentWithoutIdentifierData,
+        RestDocumentWithoutIdentifier,
+        RestDocumentWithoutIdentifierDetails,
+    ],
     _MrsDocumentDeleteMixin[RestDocumentWithoutIdentifierData, None],
     RestDocumentWithoutIdentifier,
 ):
@@ -531,7 +559,7 @@ def schema():
 
 
 @pytest.fixture
-def schema_on_service_with_session() -> MrsBaseSchema:
+def schema_with_auth() -> MrsBaseSchema:
     service_url = f"https://localhost:{MRS_SERVICE_PORT}/{MRS_SERVICE_NAME}"
     schema_url = f"{service_url}/{DATABASE}"
     session: MrsBaseSession = {"access_token": ""}
@@ -571,6 +599,7 @@ def urlopen_simulator() -> Callable[[dict], MagicMock]:
         status: int = 200,
         msg: str = "Error",
         headers: dict[str, str] = {"header": "value"},
+        delay: int = 0,
     ) -> MagicMock:
         """urlopen will return whatever 'urlopen_read' is assigned to"""
         simulator = MagicMock()
@@ -579,6 +608,10 @@ def urlopen_simulator() -> Callable[[dict], MagicMock]:
         simulator.status = status
         simulator.msg = msg
         simulator.headers = headers
+
+        if delay > 0.0:
+            delay_func = lambda x: time.sleep(x)
+            simulator.side_effect = delay_func(delay)
 
         return simulator
 
@@ -1387,7 +1420,7 @@ async def test_create_submit(
     data: ActorData,
     urlopen_read: dict[str, Any],
     schema: MrsBaseSchema,
-    schema_on_service_with_session: MrsBaseSchema,
+    schema_with_auth: MrsBaseSchema,
 ):
     """Check `MrsBaseObjectCreate.submit()`."""
     request_path = f"{schema._request_path}/actor"
@@ -1419,7 +1452,7 @@ async def test_create_submit(
 
     # Check authenticated `MrsBaseObjectCreate.submit()`
     request = MrsBaseObjectCreate[ActorData, ActorDetails](
-        schema=schema_on_service_with_session, request_path=request_path, data=data
+        schema=schema_with_auth, request_path=request_path, data=data
     )
 
     _ = await request.submit()
@@ -1470,7 +1503,7 @@ async def test_update_submit(
     data_details: ActorDetails,
     urlopen_read: dict[str, Any],
     schema: MrsBaseSchema,
-    schema_on_service_with_session: MrsBaseSchema,
+    schema_with_auth: MrsBaseSchema,
 ):
     """Check `MrsBaseObjectUpdate.submit()`."""
     data = Actor(schema=schema, data=cast(ActorData, data_details))
@@ -1516,7 +1549,7 @@ async def test_update_submit(
 
     # Check authenticated `MrsBaseObjectUpdate.submit()`
     request = MrsBaseObjectUpdate[Actor, ActorDetails](
-        schema=schema_on_service_with_session,
+        schema=schema_with_auth,
         request_path=request_path,
         data=data,
     )
@@ -1544,34 +1577,186 @@ async def test_update_submit(
 
 
 ####################################################################################
-#                      Test "submit" Method (function-call's backbone)
+#                         Test `MrsBaseObject*Call.submit()`
 ####################################################################################
+_procedure_sample_result_1 = {
+    "result_sets": [
+        {
+            "type": "IMyServiceMyDbProcDateAndTimeResultSet1",
+            "items": [
+                {
+                    "my_timestamp": "2024-09-30 14:59:01",
+                    "my_date": "1993-11-24",
+                    "my_time": "05:00:02.999998",
+                }
+            ],
+            "_metadata": {
+                "columns": [
+                    {"name": "my_timestamp", "type": "DATETIME"},
+                    {"name": "my_date", "type": "DATE"},
+                    {"name": "my_time", "type": "TIME"},
+                ]
+            },
+        },
+        {
+            "type": "IMyServiceMyDbProcDateAndTimeResultSet2",
+            "items": [{"my_datetime": "2016-12-20 01:02:03", "my_year": 1978}],
+            "_metadata": {
+                "columns": [
+                    {"name": "my_datetime", "type": "DATETIME"},
+                    {"name": "my_year", "type": "BIGINT UNSIGNED"},
+                ]
+            },
+        },
+    ],
+    "out_parameters": {
+        "ts": "2023-09-30 14:59:01",
+        "dt": "2016-11-20 01:02:03",
+        "d": "1993-10-24",
+        "t": "03:00:02",
+        "y": "1977",
+    },
+}
+
+
+CallRoutineRequest = (
+    MrsBaseObjectFunctionCall
+    | MrsBaseObjectProcedureCall
+    | MrsBaseTaskCallFunction
+    | MrsBaseTaskCallProcedure
+)
+
+StartAndWatchRoutineRequest = MrsBaseTaskStartFunction | MrsBaseTaskStartProcedure
+
+RoutineRequest = CallRoutineRequest | StartAndWatchRoutineRequest
+
+
+def get_routine_request(
+    routine_type: Literal[
+        "CALL_FUNCTION",
+        "CALL_PROCEDURE",
+        "START_TASK_FUNCTION",
+        "START_TASK_PROCEDURE",
+        "CALL_TASK_FUNCTION",
+        "CALL_TASK_PROCEDURE",
+    ],
+    schema: MrsBaseSchema,
+    request_path: str,
+    in_parameters: dict,
+    in_interface: TypeAlias,
+    out_interface: TypeAlias,
+    rs_interface: TypeAlias,
+    result_type_hint_struct: (
+        ProcedureResponseTypeHintStruct | FunctionResponseTypeHintStruct
+    ),
+    options: Optional[IMrsTaskStartOptions | IMrsTaskCallOptions] = None,
+) -> RoutineRequest:
+    """Factory of routine objects.
+
+    Specify a `routine type` and get one of the supported routine request objects.
+    """
+    if options is None:
+        options = IMrsTaskStartOptions()
+
+    if routine_type == "CALL_FUNCTION":
+        return MrsBaseObjectFunctionCall[in_interface, out_interface](
+            schema=schema,
+            request_path=request_path,
+            parameters=in_parameters,
+            result_type_hint_struct=cast(
+                FunctionResponseTypeHintStruct, result_type_hint_struct
+            ),
+        )
+    elif routine_type == "CALL_PROCEDURE":
+        return MrsBaseObjectProcedureCall[in_interface, out_interface, rs_interface](
+            schema=schema,
+            request_path=request_path,
+            parameters=in_parameters,
+            result_type_hint_struct=cast(
+                ProcedureResponseTypeHintStruct, result_type_hint_struct
+            ),
+        )
+    elif routine_type == "START_TASK_FUNCTION":
+        return MrsBaseTaskStartFunction[in_interface, out_interface](
+            schema=schema,
+            request_path=request_path,
+            options=options,
+            parameters=in_parameters,
+            result_type_hint_struct=cast(
+                FunctionResponseTypeHintStruct, result_type_hint_struct
+            ),
+        )
+    elif routine_type == "START_TASK_PROCEDURE":
+        return MrsBaseTaskStartProcedure[in_interface, out_interface, rs_interface](
+            schema=schema,
+            request_path=request_path,
+            options=options,
+            parameters=in_parameters,
+            result_type_hint_struct=cast(
+                ProcedureResponseTypeHintStruct, result_type_hint_struct
+            ),
+        )
+    elif routine_type == "CALL_TASK_FUNCTION":
+        return MrsBaseTaskCallFunction[in_interface, out_interface](
+            schema=schema,
+            request_path=request_path,
+            options=cast(IMrsTaskCallOptions, options),
+            parameters=in_parameters,
+            result_type_hint_struct=cast(
+                FunctionResponseTypeHintStruct, result_type_hint_struct
+            ),
+        )
+    elif routine_type == "CALL_TASK_PROCEDURE":
+        return MrsBaseTaskCallProcedure[in_interface, out_interface, rs_interface](
+            schema=schema,
+            request_path=request_path,
+            options=cast(IMrsTaskCallOptions, options),
+            parameters=in_parameters,
+            result_type_hint_struct=cast(
+                ProcedureResponseTypeHintStruct, result_type_hint_struct
+            ),
+        )
+
+    raise NotImplementedError(f"Routine type {routine_type} not implemented")
+
+
+# `rs_interface` stands for "result sets interface"
 @pytest.mark.parametrize(
-    "func_name, parameters, urlopen_read, func_params_type, func_result_type",
+    "routine_name, routine_type, in_parameters, urlopen_read, in_interface, out_interface, rs_interface, result_type_hint_struct",
     [
         (
             "sumFunc",  # f(i1, i2) -> i3
-            {"a": 2, "b": 3},
-            {"result": 5},
-            FunctionNamespace.Sample.SumFuncFuncParameters,
-            int,
+            "CALL_FUNCTION",  # routine_type
+            {"a": 2, "b": 3},  # in_parameters
+            {"result": 5},  # urlopen_read
+            FunctionNamespace.Sample.SumFuncFuncParameters,  # in interface
+            int,  # out interface
+            None,  # rs_interface
+            {"result": int},  # result_type_hint_struct
         ),
         (
             "helloFunc",  # f(s) -> s
+            "CALL_FUNCTION",
             {"name": "Rui"},
             {"result": "Hello Rui!"},
             FunctionNamespace.Sample.HelloFuncFuncParameters,
             str,
+            None,  # rs_interface
+            {"result": str},  # result_type_hint_struct
         ),
         (
             "myBirthdayFunc",  # f() -> s
+            "CALL_FUNCTION",
             {},
             {"result": "2024-07-23 00:00:00"},
             FunctionNamespace.Sample.MyBirthdayFuncFuncParameters,
             str,
+            None,  # rs_interface
+            {"result": str},  # result_type_hint_struct
         ),
         (
             "FuncDateAndTimeTs",  # f(ts) -> ts
+            "CALL_FUNCTION",
             {
                 "ts": datetime.datetime(
                     year=1985,
@@ -1585,16 +1770,22 @@ async def test_update_submit(
             {"result": "1985-02-01 01:01:01"},
             FunctionNamespace.DateAndTime.FuncDateAndTimeTsParams,
             DateTime,
+            None,  # rs_interface
+            {"result": DateTime},  # result_type_hint_struct
         ),
         (
             "FuncDateAndTimeD",  # f(d) -> d
+            "CALL_FUNCTION",
             {"d": datetime.date(year=1985, month=1, day=1)},
             {"result": "1985-02-01"},
             FunctionNamespace.DateAndTime.FuncDateAndTimeDParams,
             Date,
+            None,  # rs_interface
+            {"result": Date},  # result_type_hint_struct
         ),
         (
             "FuncDateAndTimeT",  # f(t) -> t
+            "CALL_FUNCTION",
             {
                 "t": datetime.timedelta(
                     days=0, hours=1, minutes=0, seconds=0, microseconds=999999
@@ -1603,80 +1794,22 @@ async def test_update_submit(
             {"result": "03:00:01.999997"},
             FunctionNamespace.DateAndTime.FuncDateAndTimeTParams,
             Optional[Time],
+            None,  # rs_interface
+            {"result": Time},  # result_type_hint_struct
         ),
         (
             "FuncDateAndTimeY",  # f(y) -> y
+            "CALL_FUNCTION",
             {"y": 1999},
             {"result": 2000},
             FunctionNamespace.DateAndTime.FuncDateAndTimeYParams,
             Year,
+            None,  # rs_interface
+            {"result": Year},  # result_type_hint_struct
         ),
-    ],
-)
-async def test_function_call_submit(
-    mock_urlopen: MagicMock,
-    urlopen_simulator: MagicMock,
-    mock_create_default_context: MagicMock,
-    func_name: str,
-    parameters: dict,
-    urlopen_read: dict,
-    func_params_type: TypeAlias,
-    mock_request_class: MagicMock,
-    schema: MrsBaseSchema,
-    schema_on_service_with_session: MrsBaseSchema,
-    func_result_type: TypeAlias,
-):
-    """Check `MrsBaseObjectFunctionCall.submit()`."""
-    request_path = f"{schema._request_path}/{func_name}"
-    request = MrsBaseObjectFunctionCall[func_params_type, func_result_type](
-        schema=schema,
-        request_path=request_path,
-        parameters=cast(func_params_type, parameters),  # type: ignore
-        result_type_hint_struct={"result": func_result_type},
-    )
-
-    mock_urlopen.return_value = urlopen_simulator(urlopen_read=urlopen_read)
-    mock_create_default_context.return_value = ssl.create_default_context()
-
-    assert await request.submit() == MrsJSONDataDecoder.convert_field_value(
-        value=urlopen_read["result"], dst_type=func_result_type
-    )
-
-    mock_request_class.assert_called_once_with(
-        url=request_path,
-        headers={"Accept": "application/json"},
-        data=json.dumps(obj=parameters, cls=MrsJSONDataEncoder).encode(),
-        method="POST",
-    )
-    mock_urlopen.assert_called_once()
-
-    # Check authenticated `MrsBaseObjectFunctionCall.submit()`
-    request = MrsBaseObjectFunctionCall[func_params_type, func_result_type](
-        schema=schema_on_service_with_session,
-        request_path=request_path,
-        parameters=cast(func_params_type, parameters),  # type: ignore
-        result_type_hint_struct={"result": func_result_type},
-    )
-
-    _ = await request.submit()
-
-    mock_request_class.assert_called_with(
-        url=request_path,
-        headers={"Accept": "application/json", "Authorization": "Bearer foo"},
-        data=json.dumps(obj=parameters, cls=MrsJSONDataEncoder).encode(),
-        method="POST",
-    )
-    assert mock_urlopen.call_count == 2
-
-
-####################################################################################
-#                      Test "submit" Method (procedure-call's backbone)
-####################################################################################
-@pytest.mark.parametrize(
-    "proc_name, parameters, urlopen_read, in_interface, out_interface, result_sets_interface, result_type_hint_struct",
-    [
         (
             "ProcDateAndTime",
+            "CALL_PROCEDURE",
             {
                 "ts": datetime.datetime.fromisoformat("2023-08-30 14:59:01"),
                 "dt": datetime.datetime.fromisoformat("2016-10-20 01:02:03"),
@@ -1684,46 +1817,7 @@ async def test_function_call_submit(
                 "t": datetime.timedelta(days=0, hours=1, microseconds=999999),
                 "y": 1976,
             },
-            {
-                "result_sets": [
-                    {
-                        "type": "IMyServiceMyDbProcDateAndTimeResultSet1",
-                        "items": [
-                            {
-                                "my_timestamp": "2024-09-30 14:59:01",
-                                "my_date": "1993-11-24",
-                                "my_time": "05:00:02.999998",
-                            }
-                        ],
-                        "_metadata": {
-                            "columns": [
-                                {"name": "my_timestamp", "type": "DATETIME"},
-                                {"name": "my_date", "type": "DATE"},
-                                {"name": "my_time", "type": "TIME"},
-                            ]
-                        },
-                    },
-                    {
-                        "type": "IMyServiceMyDbProcDateAndTimeResultSet2",
-                        "items": [
-                            {"my_datetime": "2016-12-20 01:02:03", "my_year": 1978}
-                        ],
-                        "_metadata": {
-                            "columns": [
-                                {"name": "my_datetime", "type": "DATETIME"},
-                                {"name": "my_year", "type": "BIGINT UNSIGNED"},
-                            ]
-                        },
-                    },
-                ],
-                "out_parameters": {
-                    "ts": "2023-09-30 14:59:01",
-                    "dt": "2016-11-20 01:02:03",
-                    "d": "1993-10-24",
-                    "t": "03:00:02",
-                    "y": "1977",
-                },
-            },
+            _procedure_sample_result_1,
             IMyServiceMrsTestsProcDateAndTimeParams,
             IMyServiceMrsTestsProcDateAndTimeParamsOut,
             IMyServiceMrsTestsProcDateAndTimeResultSet,
@@ -1737,6 +1831,7 @@ async def test_function_call_submit(
         ),
         (
             "TwiceProc",  # p(number) -> 2*number
+            "CALL_PROCEDURE",
             {"number": 13},
             {"result_sets": [], "out_parameters": {"number_twice": 26}},
             TwiceProcParams,
@@ -1746,6 +1841,7 @@ async def test_function_call_submit(
         ),
         (
             "MirrorProc",  # p(string) -> reversed string
+            "CALL_PROCEDURE",
             {"channel": "roma"},
             {"result_sets": [], "out_parameters": {"channel": "amor"}},
             MirrorProcParams,
@@ -1755,6 +1851,7 @@ async def test_function_call_submit(
         ),
         (
             "SampleProc",
+            "CALL_PROCEDURE",
             {"arg1": "", "arg2": "foo"},
             {
                 "result_sets": [
@@ -1791,79 +1888,937 @@ async def test_function_call_submit(
         ),
     ],
 )
-async def test_procedure_call_submit(
+async def test_routine_call(
+    schema: MrsBaseSchema,
+    mock_request_class: MagicMock,
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    proc_name: str,
-    parameters: dict,
+    routine_name: str,
+    routine_type: Literal[
+        "CALL_FUNCTION",
+        "CALL_PROCEDURE",
+    ],
+    in_parameters: dict,
     urlopen_read: dict,
     in_interface: TypeAlias,
     out_interface: TypeAlias,
-    result_sets_interface: TypeAlias,
-    mock_request_class: MagicMock,
-    schema: MrsBaseSchema,
-    result_type_hint_struct: ProcedureResponseTypeHintStruct,
+    rs_interface: TypeAlias,
+    result_type_hint_struct: (
+        ProcedureResponseTypeHintStruct | FunctionResponseTypeHintStruct
+    ),
+    schema_with_auth: MrsBaseSchema,
 ):
-    """Check `MrsBaseObjectProcedureCall.submit()`."""
-    request_path = f"{schema._request_path}/{proc_name}"
-    request = MrsBaseObjectProcedureCall[
-        in_interface, out_interface, result_sets_interface
-    ](
-        schema=schema,
-        request_path=request_path,
-        parameters=cast(in_interface, parameters),  # type: ignore
-        result_type_hint_struct=result_type_hint_struct,
-    )
-
-    mock_urlopen.return_value = urlopen_simulator(urlopen_read=urlopen_read)
+    """Check `MrsBaseObject*Call.submit()` and `MrsBaseTaskCall*.submit()`."""
     mock_create_default_context.return_value = ssl.create_default_context()
+    request_path = f"{schema._request_path}/{routine_name}"
+    routine_config = {
+        "routine_type": routine_type,
+        "schema": schema,
+        "request_path": request_path,
+        "in_parameters": in_parameters,
+        "in_interface": in_interface,
+        "out_interface": out_interface,
+        "rs_interface": rs_interface,
+        "result_type_hint_struct": result_type_hint_struct,
+    }
 
-    procedure_result = await request.submit()
-    url_open_read_out_params_converted = (
-        MrsDataDownstreamConverter.convert_obj_fields_from_typed_dict(
-            urlopen_read["out_parameters"],
-            typed_dict=result_type_hint_struct["out_parameters"],
-        )
+    # create request
+    request = cast(
+        CallRoutineRequest,
+        get_routine_request(**routine_config),
     )
-    url_open_read_result_sets_converted = [
-        MrsProcedureResultSet[str, Any, Any](  # type: ignore[misc]
-            result_set,
-            typed_dict=(result_type_hint_struct["result_sets"] or {}).get(
-                result_set["type"]
-            ),
-        )
-        for result_set in urlopen_read["result_sets"]
-    ]
 
-    # Verify fields of output interface
-    for field_name, field_value in url_open_read_out_params_converted.items():
-        assert procedure_result.out_parameters[field_name] == field_value
-        assert isinstance(
-            procedure_result.out_parameters[field_name], field_value.__class__
-        )
-
-    # Verify fields of 'result sets' interface
-    if result_type_hint_struct["result_sets"] is None:
-        assert procedure_result.result_sets == url_open_read_result_sets_converted
-    else:
-        for result_set, exp_result_set in zip(
-            procedure_result.result_sets, url_open_read_result_sets_converted
-        ):
-            for item, exp_item in zip(result_set.items, exp_result_set.items):
-                for field_name in typing.get_type_hints(
-                    result_type_hint_struct["result_sets"][result_set.type]
-                ):
-                    assert item[field_name] == exp_item[field_name]
-                    assert isinstance(item[field_name], exp_item[field_name].__class__)
-
+    # check "call()"
+    mock_urlopen.return_value = urlopen_simulator(
+        urlopen_read=urlopen_read
+    )  # specify data to be returned when calling urlopen()
+    res_of_call = await request.submit()  # "call()"
     mock_request_class.assert_called_once_with(
         url=request_path,
         headers={"Accept": "application/json"},
-        data=json.dumps(obj=parameters, cls=MrsJSONDataEncoder).encode(),
+        data=json.dumps(obj=in_parameters, cls=MrsJSONDataEncoder).encode(),
         method="POST",
     )
     mock_urlopen.assert_called_once()
+
+    # check value returned by call() is the expected
+    if routine_type == "CALL_FUNCTION":
+        assert res_of_call == MrsJSONDataDecoder.convert_field_value(
+            urlopen_read["result"],
+            cast(FunctionResponseTypeHintStruct, result_type_hint_struct)["result"],
+        )
+    else:
+        exp_res_of_proc = IMrsProcedureResponse[Any, Any](
+            data=urlopen_read.copy(),  # type: ignore[arg-type]
+            type_hint_struct=cast(
+                ProcedureResponseTypeHintStruct, result_type_hint_struct
+            ),
+        )
+        assert res_of_call == exp_res_of_proc
+
+    # Check call() plays well with the auth infrastructure
+    routine_config["schema"] = schema_with_auth
+    request = cast(  # create request using an authenticated schema
+        CallRoutineRequest,
+        get_routine_request(**routine_config),
+    )
+
+    _ = await request.submit()
+    mock_request_class.assert_called_with(
+        url=request_path,
+        headers={"Accept": "application/json", "Authorization": "Bearer foo"},
+        data=json.dumps(obj=in_parameters, cls=MrsJSONDataEncoder).encode(),
+        method="POST",
+    )
+    assert mock_urlopen.call_count == 2
+
+
+####################################################################################
+#                    Test `MrsBaseTaskStart*.submit()`
+#                    Test `MrsTask.watch()`
+####################################################################################
+def _get_report_sequence_of_task(
+    status_update_response_seq: list[IMrsTaskStatusUpdateResponse],
+    result_type_hint_struct: (
+        ProcedureResponseTypeHintStruct | FunctionResponseTypeHintStruct
+    ),
+) -> list[IMrsTaskReport]:
+    expected_report_seq: list[IMrsTaskReport] = []
+    for response in status_update_response_seq:
+        report: IMrsTaskReport = IMrsTimeoutTaskReport()
+        if response["status"] == "COMPLETED":
+            report = IMrsCompletedTaskReport(
+                status_update=cast(IMrsCompletedTaskReportDetails, response),
+                result_type_hint_struct=result_type_hint_struct,
+            )
+        elif response["status"] == "RUNNING":
+            report = IMrsRunningTaskReport(response)
+        elif response["status"] == "CANCELLED":
+            report = IMrsCancelledTaskReport(response)
+        elif response["status"] == "ERROR":
+            report = IMrsErrorTaskReport(response)
+        elif response["status"] == "TIMEOUT":
+            # the router does not return a response like this,
+            # I am simply using as a pivot to build a report sequence.
+            # Don't mind it, it is for test purposes.
+            report = IMrsTimeoutTaskReport()
+
+        expected_report_seq.append(report)
+    return expected_report_seq
+
+
+# `rs_interface` stands for "result sets interface"
+@pytest.mark.parametrize(
+    "routine_name, routine_type, in_parameters, urlopen_read, in_interface, out_interface, rs_interface, result_type_hint_struct",
+    [
+        (
+            "sumFunc",  # f(i1, i2) -> i3
+            "START_TASK_FUNCTION",
+            {"a": 2, "b": 3},
+            {
+                "start_response": IMrsTaskStartResponse(
+                    message="Request accepted. Starting to process task.",
+                    status_url="/myService/mrsTests/sumFunc/0b67434a-30ea-11f0-a7f3-00155da81f6b",
+                    task_id="0b67434a-30ea-11f0-a7f3-00155da81f6b",
+                ),
+                "status_update_responses": [
+                    IMrsTaskStatusUpdateResponse(
+                        data={"last_update": "2024-09-30 14:59:01"},
+                        status="RUNNING",
+                        message="progress report",
+                        progress=0,
+                    ),
+                    IMrsTaskStatusUpdateResponse(
+                        data={"last_update": "2024-09-30 15:01:01"},
+                        status="RUNNING",
+                        message="progress report",
+                        progress=55,
+                    ),
+                    IMrsTaskStatusUpdateResponse(
+                        data={"last_update": "2024-09-30 15:03:01"},
+                        status="RUNNING",
+                        message="progress report",
+                        progress=87,
+                    ),
+                    IMrsTaskStatusUpdateResponse(
+                        data={"result": 5},
+                        status="COMPLETED",
+                        message="execution finished",
+                        progress=100,
+                    ),
+                ],
+            },
+            FunctionNamespace.Sample.SumFuncFuncParameters,
+            int,
+            None,  # rs_interface
+            {"result": int},
+        ),
+        (
+            "FuncDateAndTimeD",  # f(d) -> d
+            "START_TASK_FUNCTION",
+            {"d": datetime.date(year=1985, month=1, day=1)},
+            {
+                "start_response": IMrsTaskStartResponse(
+                    message="Request accepted. Starting to process task.",
+                    status_url="/myService/mrsTests/FuncDateAndTimeD/0b67434a-30ea-11f0-a7f3-00155da81f6b",
+                    task_id="0b67434a-30ea-11f0-a7f3-00155da81f6b",
+                ),
+                "status_update_responses": [
+                    IMrsTaskStatusUpdateResponse(
+                        data={"last_update": "2024-09-30 14:59:01"},
+                        status="RUNNING",
+                        message="progress report",
+                        progress=0,
+                    ),
+                    IMrsTaskStatusUpdateResponse(
+                        data={"last_update": "2024-09-30 15:01:01"},
+                        status="RUNNING",
+                        message="progress report",
+                        progress=55,
+                    ),
+                    IMrsTaskStatusUpdateResponse(
+                        data={"last_update": "2024-09-30 15:03:01"},
+                        status="RUNNING",
+                        message="progress report",
+                        progress=87,
+                    ),
+                    IMrsTaskStatusUpdateResponse(
+                        data={"result": "1985-02-01"},
+                        status="COMPLETED",
+                        message="execution finished",
+                        progress=100,
+                    ),
+                ],
+            },
+            FunctionNamespace.DateAndTime.FuncDateAndTimeDParams,
+            Date,
+            None,  # rs_interface
+            {"result": Date},
+        ),
+        (
+            "FuncDateAndTimeT",  # f(t) -> t
+            "START_TASK_FUNCTION",
+            {
+                "t": datetime.timedelta(
+                    days=0, hours=1, minutes=0, seconds=0, microseconds=999999
+                )
+            },
+            {
+                "start_response": IMrsTaskStartResponse(
+                    message="Request accepted. Starting to process task.",
+                    status_url="/myService/mrsTests/FuncDateAndTimeT/0b67434a-30ea-11f0-a7f3-00155da81f6b",
+                    task_id="0b67434a-30ea-11f0-a7f3-00155da81f6b",
+                ),
+                "status_update_responses": [
+                    IMrsTaskStatusUpdateResponse(
+                        data={"last_update": "2024-09-30 14:59:01"},
+                        status="RUNNING",
+                        message="progress report",
+                        progress=10,
+                    ),
+                    IMrsTaskStatusUpdateResponse(
+                        data=None,
+                        status="ERROR",
+                        message="invalid value for t",
+                        progress=100,
+                    ),
+                ],
+            },
+            FunctionNamespace.DateAndTime.FuncDateAndTimeTParams,
+            Optional[Time],
+            None,  # rs_interface
+            {"result": Time},
+        ),
+        (
+            "ProcDateAndTime",
+            "START_TASK_PROCEDURE",
+            {
+                "ts": datetime.datetime.fromisoformat("2023-08-30 14:59:01"),
+                "dt": datetime.datetime.fromisoformat("2016-10-20 01:02:03"),
+                "d": datetime.date.fromisoformat("1993-09-24"),
+                "t": datetime.timedelta(days=0, hours=1, microseconds=999999),
+                "y": 1976,
+            },
+            {
+                "start_response": IMrsTaskStartResponse(
+                    message="Request accepted. Starting to process task.",
+                    status_url="/myService/mrsTests/ProcDateAndTime/0b67434a-30ea-11f0-a7f3-00155da81f6b",
+                    task_id="0b67434a-30ea-11f0-a7f3-00155da81f6b",
+                ),
+                "status_update_responses": [
+                    IMrsTaskStatusUpdateResponse(
+                        data={"last_update": "2024-09-30 14:59:01"},
+                        status="RUNNING",
+                        message="progress report",
+                        progress=0,
+                    ),
+                    IMrsTaskStatusUpdateResponse(
+                        data={"last_update": "2024-09-30 15:01:01"},
+                        status="RUNNING",
+                        message="progress report",
+                        progress=55,
+                    ),
+                    IMrsTaskStatusUpdateResponse(
+                        data={"last_update": "2024-09-30 15:03:01"},
+                        status="RUNNING",
+                        message="progress report",
+                        progress=87,
+                    ),
+                    IMrsTaskStatusUpdateResponse(
+                        data=_procedure_sample_result_1,
+                        status="COMPLETED",
+                        message="execution finished",
+                        progress=100,
+                    ),
+                ],
+            },
+            IMyServiceMrsTestsProcDateAndTimeParams,
+            IMyServiceMrsTestsProcDateAndTimeParamsOut,
+            IMyServiceMrsTestsProcDateAndTimeResultSet,
+            {
+                "out_parameters": IMyServiceMrsTestsProcDateAndTimeParamsOut,
+                "result_sets": {
+                    "IMyServiceMyDbProcDateAndTimeResultSet1": IIMyServiceMyDbProcDateAndTimeResultSet1,
+                    "IMyServiceMyDbProcDateAndTimeResultSet2": IIMyServiceMyDbProcDateAndTimeResultSet2,
+                },
+            },
+        ),
+    ],
+)
+async def test_routine_start_task(
+    schema: MrsBaseSchema,
+    mock_request_class: MagicMock,
+    mock_urlopen: MagicMock,
+    urlopen_simulator: MagicMock,
+    mock_create_default_context: MagicMock,
+    routine_name: str,
+    routine_type: Literal["START_TASK_FUNCTION", "START_TASK_PROCEDURE"],
+    in_parameters: dict,
+    urlopen_read: dict,
+    in_interface: TypeAlias,
+    out_interface: TypeAlias,
+    rs_interface: TypeAlias,
+    result_type_hint_struct: (
+        ProcedureResponseTypeHintStruct | FunctionResponseTypeHintStruct
+    ),
+    schema_with_auth: MrsBaseSchema,
+):
+    """Check `MrsBaseTaskStart*.submit()` and `MrsTask.watch()`."""
+    mock_create_default_context.return_value = ssl.create_default_context()
+    request_path = f"{schema._request_path}/{routine_name}"
+    routine_config = {
+        "routine_type": routine_type,
+        "schema": schema,
+        "request_path": request_path,
+        "in_parameters": in_parameters,
+        "in_interface": in_interface,
+        "out_interface": out_interface,
+        "rs_interface": rs_interface,
+        "result_type_hint_struct": result_type_hint_struct,
+        "options": IMrsTaskStartOptions(refresh_rate=0.5),
+    }
+
+    # create request
+    request = cast(
+        StartAndWatchRoutineRequest,
+        get_routine_request(**routine_config),
+    )
+
+    # check "start()"
+    mock_urlopen.return_value = urlopen_simulator(
+        urlopen_read=urlopen_read["start_response"]
+    )  # specify data to be returned when calling urlopen()
+    task = await request.submit()  # "start()"
+    mock_request_class.assert_called_once_with(
+        url=request_path,
+        headers={"Accept": "application/json"},
+        data=json.dumps(obj=in_parameters, cls=MrsJSONDataEncoder).encode(),
+        method="POST",
+    )
+    mock_urlopen.assert_called_once()
+
+    # check "watch()" while generating the report sequence
+    mock_urlopen.return_value = urlopen_simulator(
+        urlopen_read=urlopen_read["status_update_responses"][0]
+    )
+    report_seq: list[IMrsTaskReport] = []
+    i = 0
+    async for report in task.watch():
+        report_seq.append(report)
+
+        if report.status != "RUNNING":
+            if report.status == "TIMEOUT":
+                # verify kill()
+                await task.kill()
+                mock_request_class.assert_called_with(
+                    url=f"{request_path}/{urlopen_read["start_response"]["task_id"]}",
+                    headers={"Accept": "application/json"},
+                    method="DELETE",
+                )
+            break
+
+        i += 1
+        mock_urlopen.return_value = urlopen_simulator(
+            urlopen_read=urlopen_read["status_update_responses"][i]
+        )
+
+    # check the got report sequence matches the expected one
+    assert report_seq == _get_report_sequence_of_task(
+        urlopen_read["status_update_responses"], result_type_hint_struct
+    )
+
+    # check result of routine
+    if report_seq[-1].status == "COMPLETED":
+        res_of_routine = report_seq[-1].data
+
+        # check the data embedded in the report contains the expected morphology and result value
+        if routine_type == "START_TASK_FUNCTION":
+            exp_value = MrsJSONDataDecoder.convert_field_value(
+                urlopen_read["status_update_responses"][-1]["data"]["result"],
+                cast(FunctionResponseTypeHintStruct, result_type_hint_struct)["result"],
+            )
+            assert res_of_routine["result"] == exp_value
+        elif routine_type == "START_TASK_PROCEDURE":
+            exp_res_of_proc = IMrsProcedureResponse[Any, Any](
+                data=urlopen_read["status_update_responses"][-1]["data"].copy(),  # type: ignore[arg-type]
+                type_hint_struct=cast(
+                    ProcedureResponseTypeHintStruct, result_type_hint_struct
+                ),
+            )
+            assert res_of_routine == exp_res_of_proc
+
+    # Check start() plays well with the auth infrastructure
+    mock_urlopen.return_value = urlopen_simulator(
+        urlopen_read=urlopen_read["start_response"]
+    )
+    routine_config["schema"] = schema_with_auth
+    request = cast(
+        StartAndWatchRoutineRequest,
+        get_routine_request(**routine_config),
+    )
+
+    _ = await request.submit()
+    mock_request_class.assert_called_with(
+        url=request_path,
+        headers={"Accept": "application/json", "Authorization": "Bearer foo"},
+        data=json.dumps(obj=in_parameters, cls=MrsJSONDataEncoder).encode(),
+        method="POST",
+    )
+
+
+####################################################################################
+#                     Test `MrsBaseTaskCall*.submit()`
+#                     Test `MrsTask.kill()`
+####################################################################################
+@pytest.mark.parametrize(
+    "routine_name, routine_type, in_parameters, in_interface, out_interface, rs_interface, result_type_hint_struct, exp_call_result, cases_tested",
+    [
+        (
+            "sumFunc",  # f(i1, i2) -> i3
+            "CALL_TASK_FUNCTION",
+            {"a": 2, "b": 3},
+            FunctionNamespace.Sample.SumFuncFuncParameters,
+            int,
+            None,  # rs_interface
+            {"result": int},
+            5,
+            "COMPLETED,CANCELLED,ERROR,TIMEOUT",
+        ),
+        (
+            "ProcDateAndTime",
+            "CALL_TASK_PROCEDURE",
+            {
+                "ts": datetime.datetime.fromisoformat("2023-08-30 14:59:01"),
+                "dt": datetime.datetime.fromisoformat("2016-10-20 01:02:03"),
+                "d": datetime.date.fromisoformat("1993-09-24"),
+                "t": datetime.timedelta(days=0, hours=1, microseconds=999999),
+                "y": 1976,
+            },
+            IMyServiceMrsTestsProcDateAndTimeParams,
+            IMyServiceMrsTestsProcDateAndTimeParamsOut,
+            IMyServiceMrsTestsProcDateAndTimeResultSet,
+            {
+                "out_parameters": IMyServiceMrsTestsProcDateAndTimeParamsOut,
+                "result_sets": {
+                    "IMyServiceMyDbProcDateAndTimeResultSet1": IIMyServiceMyDbProcDateAndTimeResultSet1,
+                    "IMyServiceMyDbProcDateAndTimeResultSet2": IIMyServiceMyDbProcDateAndTimeResultSet2,
+                },
+            },
+            _procedure_sample_result_1,
+            "COMPLETED,CANCELLED,ERROR,TIMEOUT",
+        ),
+    ],
+)
+async def test_routine_call_task(
+    schema: MrsBaseSchema,
+    mock_request_class: MagicMock,
+    mock_urlopen: MagicMock,
+    urlopen_simulator: MagicMock,
+    mock_create_default_context: MagicMock,
+    routine_name: str,
+    routine_type: Literal[
+        "CALL_TASK_FUNCTION",
+        "CALL_TASK_PROCEDURE",
+    ],
+    in_parameters: dict,
+    in_interface: TypeAlias,
+    out_interface: TypeAlias,
+    rs_interface: TypeAlias,
+    result_type_hint_struct: (
+        ProcedureResponseTypeHintStruct | FunctionResponseTypeHintStruct
+    ),
+    exp_call_result: Any,
+    cases_tested: str,
+):
+    """Test `MrsBaseTaskCall*.submit()`."""
+    mock_create_default_context.return_value = ssl.create_default_context()
+    request_path = f"{schema._request_path}/{routine_name}"
+    routine_config = {
+        "routine_type": routine_type,
+        "schema": schema,
+        "request_path": request_path,
+        "in_parameters": in_parameters,
+        "in_interface": in_interface,
+        "out_interface": out_interface,
+        "rs_interface": rs_interface,
+        "result_type_hint_struct": result_type_hint_struct,
+        "options": IMrsTaskCallOptions(refresh_rate=1.1),
+    }
+    task_id = "0b67434a-30ea-11f0-a7f3-00155da81f6b"
+    status_update_seq: list[IMrsTaskStatusUpdateResponse] = [
+        IMrsTaskStatusUpdateResponse(
+            data={"last_update": "2024-09-30 14:59:01"},
+            status="RUNNING",
+            message="progress report",
+            progress=0,
+        ),
+        IMrsTaskStatusUpdateResponse(
+            data={"last_update": "2024-09-30 13:00:13"},
+            status="RUNNING",
+            message="progress report",
+            progress=78,
+        ),
+    ]
+    final_responses = [
+        IMrsTaskStatusUpdateResponse(
+            data=(
+                {"result": exp_call_result}
+                if routine_type == "CALL_TASK_FUNCTION"
+                else exp_call_result
+            ),
+            status="COMPLETED",
+            message="execution finished",
+            progress=100,
+        ),
+        IMrsTaskStatusUpdateResponse(
+            data=None,
+            status="CANCELLED",
+            message="execution was cancelled",
+            progress=23,
+        ),
+        IMrsTaskStatusUpdateResponse(
+            data=None,
+            status="ERROR",
+            message="execution failed",
+            progress=100,
+        ),
+        IMrsTaskStatusUpdateResponse(
+            data=None,
+            status="TIMEOUT",  # type: ignore[typeddict-item]
+            message="",
+            progress=21,
+        ),  # the router does not return a response like this,
+        # I am simply using as a pivot to build the right report sequence.
+        # Don't mind it, it is for test purposes.
+    ]
+    for final_response in final_responses:
+
+        async def report_seq():
+            for report in _get_report_sequence_of_task(
+                status_update_seq + [final_response], result_type_hint_struct
+            ):
+                yield report
+
+        # rig the start response
+        with patch(
+            "python.mrs_base_classes.MrsBaseObjectRoutineCall.submit"
+        ) as mock_base_routine_submit:
+            mock_base_routine_submit.return_value = IMrsTaskStartResponse(
+                message="Request accepted. Starting to process task.",
+                status_url=f"/myService/mrsTests/{routine_name}/{task_id}",
+                task_id=task_id,
+            )
+            # rig watch()
+            with patch("python.mrs_base_classes.MrsTask.watch") as mock_watch:
+                mock_watch.side_effect = report_seq
+
+                # create request
+                request = cast(
+                    CallRoutineRequest,
+                    get_routine_request(**routine_config),
+                )
+
+                # call()
+                err_map = {
+                    "CANCELLED": MrsTaskExecutionCancelledError,
+                    "ERROR": MrsTaskExecutionError,
+                    "TIMEOUT": MrsTaskTimeOutError,
+                }
+                if final_response["status"] == "COMPLETED":
+                    res_of_call = await request.submit()
+                    # check value returned by call() is the expected
+                    if routine_type == "CALL_TASK_FUNCTION":
+                        assert res_of_call == MrsJSONDataDecoder.convert_field_value(
+                            exp_call_result,
+                            cast(
+                                FunctionResponseTypeHintStruct, result_type_hint_struct
+                            )["result"],
+                        )
+                    else:
+                        exp_res_of_proc = IMrsProcedureResponse[Any, Any](
+                            data=exp_call_result,  # type: ignore[arg-type]
+                            type_hint_struct=cast(
+                                ProcedureResponseTypeHintStruct, result_type_hint_struct
+                            ),
+                        )
+                        assert res_of_call == exp_res_of_proc
+                elif final_response["status"] in err_map:
+
+                    # in case kill() gets executed
+                    mock_urlopen.return_value = urlopen_simulator(urlopen_read={})
+
+                    exp_err = err_map[final_response["status"]]
+                    with pytest.raises(exp_err):
+                        _ = await request.submit()
+                    if exp_err == MrsTaskTimeOutError:
+                        # kill() happened
+                        mock_request_class.assert_called_with(
+                            url=f"{request_path}/{task_id}",
+                            headers={"Accept": "application/json"},
+                            method="DELETE",
+                        )
+
+
+####################################################################################
+#                    Test task options (refresh_rate, timeout)
+#                    Test `MrsTask.kill()`
+####################################################################################
+@pytest.mark.parametrize(
+    "routine_name, routine_type, in_parameters, in_interface, out_interface, rs_interface, result_type_hint_struct, timeout, delay, last_response",
+    [
+        (
+            "sumFunc",  # f(i1, i2) -> i3
+            "START_TASK_FUNCTION",
+            {"a": 2, "b": 3},
+            FunctionNamespace.Sample.SumFuncFuncParameters,
+            int,
+            None,  # rs_interface
+            {"result": int},
+            5.0,  # timeout
+            2.0,  # urlopen() delay
+            IMrsTaskStatusUpdateResponse(
+                data={"result": 5},
+                status="COMPLETED",
+                message="execution finished",
+                progress=100,
+            ),
+        ),
+        (
+            "FuncDateAndTimeD",  # f(d) -> d
+            "START_TASK_FUNCTION",
+            {"d": datetime.date(year=1985, month=1, day=1)},
+            FunctionNamespace.DateAndTime.FuncDateAndTimeDParams,
+            Date,
+            None,  # rs_interface
+            {"result": Date},
+            1.5,  # timeout
+            2.3,  # urlopen() delay
+            IMrsTaskStatusUpdateResponse(
+                data={"result": "1985-02-01"},
+                status="COMPLETED",
+                message="execution finished",
+                progress=100,
+            ),
+        ),
+        (
+            "FuncDateAndTimeD",  # f(d) -> d
+            "START_TASK_FUNCTION",
+            {"d": datetime.date(year=1985, month=1, day=1)},
+            FunctionNamespace.DateAndTime.FuncDateAndTimeDParams,
+            Date,
+            None,  # rs_interface
+            {"result": Date},
+            1.8,  # timeout
+            0.0,  # urlopen() delay
+            IMrsTaskStatusUpdateResponse(
+                data={"last_update": "2024-09-30 15:01:01"},
+                status="RUNNING",
+                message="progress report",
+                progress=55,
+            ),
+        ),
+        (
+            "ProcDateAndTime",
+            "START_TASK_PROCEDURE",
+            {
+                "ts": datetime.datetime.fromisoformat("2023-08-30 14:59:01"),
+                "dt": datetime.datetime.fromisoformat("2016-10-20 01:02:03"),
+                "d": datetime.date.fromisoformat("1993-09-24"),
+                "t": datetime.timedelta(days=0, hours=1, microseconds=999999),
+                "y": 1976,
+            },
+            IMyServiceMrsTestsProcDateAndTimeParams,
+            IMyServiceMrsTestsProcDateAndTimeParamsOut,
+            IMyServiceMrsTestsProcDateAndTimeResultSet,
+            {
+                "out_parameters": IMyServiceMrsTestsProcDateAndTimeParamsOut,
+                "result_sets": {
+                    "IMyServiceMyDbProcDateAndTimeResultSet1": IIMyServiceMyDbProcDateAndTimeResultSet1,
+                    "IMyServiceMyDbProcDateAndTimeResultSet2": IIMyServiceMyDbProcDateAndTimeResultSet2,
+                },
+            },
+            2.2,  # timeout
+            2.2,  # urlopen() delay
+            IMrsTaskStatusUpdateResponse(
+                data=None,
+                status="CANCELLED",
+                message="execution was cancelled",
+                progress=23,
+            ),
+        ),
+    ],
+)
+async def test_routine_start_task_timeout(
+    schema: MrsBaseSchema,
+    mock_request_class: MagicMock,
+    mock_urlopen: MagicMock,
+    urlopen_simulator: MagicMock,
+    mock_create_default_context: MagicMock,
+    routine_name: str,
+    routine_type: Literal["START_TASK_FUNCTION", "START_TASK_PROCEDURE"],
+    in_parameters: dict,
+    in_interface: TypeAlias,
+    out_interface: TypeAlias,
+    rs_interface: TypeAlias,
+    result_type_hint_struct: (
+        ProcedureResponseTypeHintStruct | FunctionResponseTypeHintStruct
+    ),
+    timeout: Optional[float],
+    delay: float,
+    last_response: IMrsTaskStatusUpdateResponse,
+):
+    mock_create_default_context.return_value = ssl.create_default_context()
+    request_path = f"{schema._request_path}/{routine_name}"
+    routine_config = {
+        "routine_type": routine_type,
+        "schema": schema,
+        "request_path": request_path,
+        "in_parameters": in_parameters,
+        "in_interface": in_interface,
+        "out_interface": out_interface,
+        "rs_interface": rs_interface,
+        "result_type_hint_struct": result_type_hint_struct,
+        "options": IMrsTaskStartOptions(refresh_rate=0.5, timeout=timeout),
+    }
+    task_id = "0b67434a-30ea-11f0-a7f3-00155da81f6b"
+
+    # create request
+    request = cast(
+        StartAndWatchRoutineRequest,
+        get_routine_request(**routine_config),
+    )
+
+    # "start()"
+    mock_urlopen.return_value = urlopen_simulator(
+        urlopen_read=IMrsTaskStartResponse(
+            message="Request accepted. Starting to process task.",
+            status_url=f"/myService/mrsTests/{routine_name}/{task_id}",
+            task_id=task_id,
+        )
+    )
+    task = await request.submit()
+
+    # "watch()"
+    kill_called = False
+    kill_calls_cnt = 0
+    mock_urlopen.return_value = urlopen_simulator(
+        urlopen_read=IMrsTaskStatusUpdateResponse(
+            data={"last_update": "2024-09-30 14:59:01"},
+            status="RUNNING",
+            message="progress report",
+            progress=0,
+        )
+    )  # put an arbitrary response to initiate the flow
+    start = end = time.perf_counter()  # records time in seconds
+    async for report in task.watch():
+        if report.status != "RUNNING":
+            if report.status == "TIMEOUT":
+                end = time.perf_counter()
+                # verify kill()
+                await task.kill()
+                mock_request_class.assert_called_with(
+                    url=f"{request_path}/{task_id}",
+                    headers={"Accept": "application/json"},
+                    method="DELETE",
+                )
+                kill_called = True
+                kill_calls_cnt += 1
+
+        # simulate a delay in urlopen() and set a response
+        mock_urlopen.return_value = urlopen_simulator(
+            urlopen_read=(
+                IMrsTaskStatusUpdateResponse(
+                    data=None,
+                    status="CANCELLED",
+                    message="execution was cancelled",
+                    progress=0,
+                )
+                if kill_called
+                else last_response
+            ),
+            delay=delay,
+        )
+
+    if last_response["status"] != "RUNNING":
+        # last response before killing the routine is a "terminal" state,
+        # hence the loop lasts one iteration before rasing a timeout,
+        # in other words, urlopen() is called once before
+        # a timeout is reported, provided `timeout <= delay`.
+        if timeout is None or timeout > delay:
+            assert not kill_called
+        else:
+            # timeout <= delay
+            assert kill_called
+    else:
+        # timeout cannot be None, else it would have been in a loop forever
+        # because the last response (before killing the routine) is not a
+        # "terminal" state. The loop should go on until reaching the
+        # specified timeout. In this case, the `delay` does not matter
+        # because the timeout is guaranteed due to the infinite loop.
+
+        # check timer and timeout are equal.
+        assert abs((end - start) - cast(float, timeout)) <= 1e-1
+        assert kill_called
+
+    if kill_called:
+        assert kill_calls_cnt == 1
+
+
+@pytest.mark.parametrize(
+    "routine_name, routine_type, in_parameters, in_interface, out_interface, rs_interface, result_type_hint_struct, options",
+    [
+        (
+            "sumFunc",  # f(i1, i2) -> i3
+            "START_TASK_FUNCTION",
+            {"a": 2, "b": 3},
+            FunctionNamespace.Sample.SumFuncFuncParameters,
+            int,
+            None,  # rs_interface
+            {"result": int},
+            IMrsTaskStartOptions(refresh_rate=MIN_ALLOWED_REFRESH_RATE - 0.1),
+        ),
+        (
+            "sumFunc",  # f(i1, i2) -> i3
+            "START_TASK_FUNCTION",
+            {"a": 2, "b": 3},
+            FunctionNamespace.Sample.SumFuncFuncParameters,
+            int,
+            None,  # rs_interface
+            {"result": int},
+            IMrsTaskStartOptions(refresh_rate=MIN_ALLOWED_REFRESH_RATE + 1),
+        ),
+        (
+            "ProcDateAndTime",
+            "START_TASK_PROCEDURE",
+            {
+                "ts": datetime.datetime.fromisoformat("2023-08-30 14:59:01"),
+                "dt": datetime.datetime.fromisoformat("2016-10-20 01:02:03"),
+                "d": datetime.date.fromisoformat("1993-09-24"),
+                "t": datetime.timedelta(days=0, hours=1, microseconds=999999),
+                "y": 1976,
+            },
+            IMyServiceMrsTestsProcDateAndTimeParams,
+            IMyServiceMrsTestsProcDateAndTimeParamsOut,
+            IMyServiceMrsTestsProcDateAndTimeResultSet,
+            {
+                "out_parameters": IMyServiceMrsTestsProcDateAndTimeParamsOut,
+                "result_sets": {
+                    "IMyServiceMyDbProcDateAndTimeResultSet1": IIMyServiceMyDbProcDateAndTimeResultSet1,
+                    "IMyServiceMyDbProcDateAndTimeResultSet2": IIMyServiceMyDbProcDateAndTimeResultSet2,
+                },
+            },
+            IMrsTaskStartOptions(refresh_rate=0.123),
+        ),
+    ],
+)
+async def test_routine_task_refresh_rate(
+    schema: MrsBaseSchema,
+    mock_urlopen: MagicMock,
+    urlopen_simulator: MagicMock,
+    mock_create_default_context: MagicMock,
+    routine_name: str,
+    routine_type: Literal[
+        "START_TASK_FUNCTION",
+        "START_TASK_PROCEDURE",
+        "CALL_TASK_FUNCTION",
+        "CALL_TASK_PROCEDURE",
+    ],
+    in_parameters: dict,
+    in_interface: TypeAlias,
+    out_interface: TypeAlias,
+    rs_interface: TypeAlias,
+    result_type_hint_struct: (
+        ProcedureResponseTypeHintStruct | FunctionResponseTypeHintStruct
+    ),
+    options: IMrsTaskStartOptions | IMrsTaskCallOptions,
+):
+    """Invalid refresh rate."""
+    mock_create_default_context.return_value = ssl.create_default_context()
+    request_path = f"{schema._request_path}/{routine_name}"
+    routine_config = {
+        "routine_type": routine_type,
+        "schema": schema,
+        "request_path": request_path,
+        "in_parameters": in_parameters,
+        "in_interface": in_interface,
+        "out_interface": out_interface,
+        "rs_interface": rs_interface,
+        "result_type_hint_struct": result_type_hint_struct,
+        "options": options,
+    }
+    routine_types = (
+        ("START_TASK_FUNCTION", "CALL_TASK_FUNCTION")
+        if "FUNCTION" in routine_type
+        else ("START_TASK_PROCEDURE", "CALL_TASK_PROCEDURE")
+    )
+    task_id = "0b67434a-30ea-11f0-a7f3-00155da81f6b"
+
+    for _type in routine_types:
+        routine_config["routine_type"] = _type
+
+        # create request
+        request = cast(
+            StartAndWatchRoutineRequest,
+            get_routine_request(**routine_config),
+        )
+
+        # check "start()" or "call()"
+        mock_urlopen.return_value = urlopen_simulator(
+            urlopen_read=IMrsTaskStartResponse(
+                message="Request accepted. Starting to process task.",
+                status_url=f"/myService/mrsTests/{routine_name}/{task_id}",
+                task_id=task_id,
+            )
+        )  # specify data to be returned when calling urlopen()
+
+        if options["refresh_rate"] >= MIN_ALLOWED_REFRESH_RATE:
+            # no err expected
+            _ = await request.submit()
+            return
+
+        with pytest.raises(ValueError):
+            _ = await request.submit()
 
 
 ####################################################################################
@@ -2458,7 +3413,7 @@ async def test_dataclass_update(
     data_details: ActorDetails,
     urlopen_read: dict[str, Any],
     schema: MrsBaseSchema,
-    schema_on_service_with_session: MrsBaseSchema,
+    schema_with_auth: MrsBaseSchema,
 ):
     """Check `DataClass.update()`."""
     # Produce table record
@@ -2507,7 +3462,7 @@ async def test_dataclass_update(
 
     # Check authenticated
     document = ActorWithUpdateBehavior(
-        schema=schema_on_service_with_session, data=cast(ActorData, data_details)
+        schema=schema_with_auth, data=cast(ActorData, data_details)
     )
     document.first_name = "Foo"
     await document.update()
@@ -2581,15 +3536,19 @@ async def test_dataclass_delete(
     assert hasattr(document2, "update") == True
     assert hasattr(document2, "delete") == True
 
-    document3 = UpdatableAndDeletableRestDocumentWithoutIdentifier(schema=schema, data={})
+    document3 = UpdatableAndDeletableRestDocumentWithoutIdentifier(
+        schema=schema, data={}
+    )
 
     with pytest.raises(
-        MrsDocumentNotFoundError, match="Unable to update a REST document without the identifier."
+        MrsDocumentNotFoundError,
+        match="Unable to update a REST document without the identifier.",
     ):
         await document3.update()
 
     with pytest.raises(
-        MrsDocumentNotFoundError, match="Unable to delete a REST document without the identifier."
+        MrsDocumentNotFoundError,
+        match="Unable to delete a REST document without the identifier.",
     ):
         await document3.delete()
 
