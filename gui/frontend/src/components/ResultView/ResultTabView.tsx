@@ -893,8 +893,12 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         const { currentResultSet } = this.state;
 
         if (currentResultSet) {
-            let info = this.#editingInfo.get(currentResultSet.resultId);
-            if (!info) {
+            let info: IEditingInfo;
+
+            if (this.#editingInfo.has(currentResultSet.resultId)) {
+                // Already editing, just get the editing info.
+                info = this.#editingInfo.get(currentResultSet.resultId)!;
+            } else {
                 // Not yet editing, initialize the editing info.
                 info = {
                     description: `table ${currentResultSet.fullTableName}`,
@@ -904,7 +908,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                     resultSet: currentResultSet,
                     rowChanges: [],
                     previewActive: false,
-                };
+                } as IEditingInfo;
 
                 this.#editingInfo.set(currentResultSet.resultId, info);
             }
