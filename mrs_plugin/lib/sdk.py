@@ -1326,12 +1326,15 @@ def generate_interfaces(
                             db_obj
                         ):
                             # RESULT
-                            interface_fields.update({field.get("name"): datatype})
+                            relationship = field.get("object_reference").get("reference_mapping").get("kind")
+                            if relationship == "1:n" and sdk_language == "TypeScript":
+                                nested_datatype = f"{datatype}[]"
+                            elif relationship == "1:n" and sdk_language == "Python":
+                                nested_datatype = f"list[{datatype}]"
+                            interface_fields.update({field.get("name"): nested_datatype})
                             # Add all table fields that have allow_filtering set and SP params to the
                             # param_interface_fields
-                            param_interface_fields.update(
-                                {field.get("name"): enhanced_datatype}
-                            )
+                            param_interface_fields.update({field.get("name"): nested_datatype})
 
                     # Call recursive interface generation
                     generate_nested_interfaces(
@@ -1628,7 +1631,7 @@ def generate_nested_interfaces(
                     if not obj_ref.get("unnest"):
                         datatype = f"{class_name}{reference_class_name_postfix + field.get("name")}"
                         # Should use the corresponding nested field type.
-                        interface_fields.update({ field.get("name"): interface_name + field_interface_name })
+                        interface_fields.update({ field.get("name"): f"I{interface_name}" + field_interface_name })
 
                     # If not, do recursive call
                     generate_nested_interfaces(
