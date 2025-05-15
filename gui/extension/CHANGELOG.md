@@ -4,7 +4,10 @@
 
 ### Additions
 
--
+- MRS metadata schema version 4.1.3
+- Added SHOW CREATE REST ROLE statement support
+- Added support for IF NOT EXISTS clause for all relevant REST SQL statements
+- Added supports for IF EXISTS on ADD/REMOVE AUTH APP clause for CREATE/ALTER REST SERVICE
 
 ### Fixes
 
@@ -12,6 +15,7 @@
 - BUG#37889775 Import error on generated Python SDK when a procedure is specified
 - BUG#37939054 Cannot customize the service URL when instantiating a service while using the MRS Python SDK
 - BUG#37948319 Unexpected TypeScript SDK file compilation error for REST View with nested fields
+- Fixes for SQL support for MRS roles
 
 ## Changes in 1.19.10+9.3.1
 

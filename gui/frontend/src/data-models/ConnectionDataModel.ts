@@ -2081,7 +2081,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
         try {
             const backend = mrsRoot.parent.backend;
 
-            callback?.("Loading MRS services and routers");
+            callback?.("Loading MRS services and routers ...");
             const services = await backend.mrs.listServices();
 
             const status = await backend.mrs.status();
@@ -2202,7 +2202,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
             const backend = authAppGroup.connection.backend;
             authAppGroup.authApps.length = 0;
 
-            callback?.("Loading MRS auth apps");
+            callback?.("Loading MRS auth apps ...");
             const authApps = await backend.mrs.listAuthApps();
             for (const authApp of authApps) {
                 const name = authApp.name ?? "unknown";
