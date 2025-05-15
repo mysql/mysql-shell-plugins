@@ -271,6 +271,7 @@ class WebSession {
 
     public clearCredentials(): void {
         sessionStorage.removeItem("creds");
+        this.sessionId = undefined;
     }
 
     private get authKey(): Promise<CryptoKey | undefined> {

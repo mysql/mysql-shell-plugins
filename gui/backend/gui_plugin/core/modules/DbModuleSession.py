@@ -49,7 +49,7 @@ def check_service_database_session(func):
 
 
 class DbModuleSession(ModuleSession):
-    def __init__(self, reconnection_mode=ReconnectionMode.STANDARD, skip_confirmation_message=False):
+    def __init__(self, reconnection_mode=ReconnectionMode.STANDARD, single_server_mode_authentication=False):
         super().__init__()
         self._db_type = None
         self._connection_options = None
@@ -57,7 +57,7 @@ class DbModuleSession(ModuleSession):
         self._bastion_options = None
         self._reconnection_mode = reconnection_mode
         self.completion_event = None
-        self._skip_confirmation_message = skip_confirmation_message
+        self._single_server_mode_authentication = single_server_mode_authentication
         self._connect_again = False
 
         context = get_context()
@@ -194,16 +194,16 @@ class DbModuleSession(ModuleSession):
         except Exception as ex:
             self.completion_event.add_error(ex)
 
-        sleep(1)
+        if not self._single_server_mode_authentication:
+            sleep(1)
 
-        if self._single_server_mode and self._connect_again:
-            del self._connection_options["password"]
+            if self._single_server_mode and self._connect_again:
+                del self._connection_options["password"]
 
-            try:
-                self.connect()
-            except Exception as ex:
-                self.completion_event.add_error(ex)
-
+                try:
+                    self.connect()
+                except Exception as ex:
+                    self.completion_event.add_error(ex)
 
     def connect(self):
         session_id = "ServiceSession-" + self.web_session.session_uuid
@@ -255,7 +255,7 @@ class DbModuleSession(ModuleSession):
         return self._prompt_replied, self._prompt_reply
 
     def on_connected(self, db_session):
-        if not self._skip_confirmation_message:
+        if not self._single_server_mode_authentication:
             data = Response.pending("Connection was successfully opened.", {"result": {
                 "module_session_id": self._module_session_id,
                 "info": db_session.info(),
@@ -265,8 +265,9 @@ class DbModuleSession(ModuleSession):
         self.completion_event.set()
 
     def on_fail_connecting(self, exc):
-        if self._single_server_mode and "Access denied for user" in str(exc):
-                self._connect_again = True
+        if self._single_server_mode and "Access denied for user" in str(exc) \
+            and not self._single_server_mode_authentication:
+            self._connect_again = True
         else:
             logger.exception(exc)
 

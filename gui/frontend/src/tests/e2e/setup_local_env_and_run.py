@@ -126,6 +126,8 @@ class SetEnvironmentVariablesTask:
         for server in self.servers:
             if server.multi_user:
                 self.environment["SHELL_UI_MU_HOSTNAME"] = f"http://localhost:{server.port}"
+            if server.single_server:
+                self.environment["SHELL_UI_SS_HOSTNAME"] = f"http://localhost:{server.port}"
 
         self.environment["SQLITE_PATH_FILE"] = os.path.join(
             self.dir_name,
@@ -281,6 +283,7 @@ def main() -> None:
             task_utils.BEServer(executor.environment, 8008),
             task_utils.BEServer(executor.environment, 8009),
             task_utils.BEServer(executor.environment, 8010, True),
+            task_utils.BEServer(executor.environment, 8011, False, True),
         ]
 
         executor.add_task(SetEnvironmentVariablesTask(

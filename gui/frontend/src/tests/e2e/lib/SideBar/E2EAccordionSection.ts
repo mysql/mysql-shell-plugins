@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { Condition, error, until, WebElement, By } from "selenium-webdriver";
+import { Condition, error, until, WebElement, By, Key } from "selenium-webdriver";
 import * as constants from "../constants.js";
 import * as locator from "../locators.js";
 import * as interfaces from "../interfaces.js";
@@ -177,7 +177,10 @@ export class E2EAccordionSection {
         await driver.wait(async () => {
             try {
                 for (const section of sections) {
-                    section !== this.accordionSectionName ? await this.collapse(section) : await this.expand(section);
+                    if (await this.exists(section)) {
+                        section !== this.accordionSectionName ? await this.collapse(section)
+                            : await this.expand(section);
+                    }
                 }
 
                 return true;
@@ -538,6 +541,73 @@ export class E2EAccordionSection {
         }, constants.wait5seconds, `Could not get the oci element by type`);
 
         return ociLabel;
+    };
+
+    /**
+     * Gets the items on the opened context menu (disabled items are not returned)
+     * @param caption The context menu item
+     * @returns A promise resolving with the context menu items
+     */
+    public getContextMenuItems = async (caption: string): Promise<string[]> => {
+        const action = async () => {
+            await this.openContextMenu(caption);
+
+            const contextMenuLocator = locator.section.tree.element.contextMenu;
+            const items = await driver.wait(until.elementsLocated(contextMenuLocator.item), constants.wait5seconds,
+                "Could not find any context menu items");
+
+            const activeItems = [];
+
+            for (const item of items) {
+                const parentNode: WebElement = await driver.executeScript("return arguments[0].parentNode", item);
+
+                if (!(await parentNode.getAttribute("class")).includes("disabled") && (await item.getText()) !== "") {
+                    activeItems.push(await item.getText());
+                }
+            }
+
+            return activeItems;
+        };
+
+        try {
+            return action();
+        } catch (e) {
+            if (e instanceof error.StaleElementReferenceError) {
+                return action();
+            } else {
+                throw e;
+            }
+        } finally {
+            await driver.actions().keyDown(Key.ESCAPE).keyUp(Key.ESCAPE).perform();
+        }
+    };
+
+    /**
+     * Verifies if a section exists
+     * @param sectionName The section name
+     * @returns A promise resolving with true if the section exists, false otherwise
+     */
+    public exists = async (sectionName?: string): Promise<boolean> => {
+        const section = sectionName ?? this.accordionSectionName;
+
+        switch (section) {
+
+            case constants.dbTreeSection: {
+                return (await driver.findElements(locator.dbTreeSection.exists)).length > 0;
+            }
+
+            case constants.ociTreeSection: {
+                return (await driver.findElements(locator.ociTreeSection.exists)).length > 0;
+            }
+
+            case constants.openEditorsTreeSection: {
+                return (await driver.findElements(locator.openEditorsTreeSection.exists)).length > 0;
+            }
+
+            default: {
+                throw new Error(`Section ${this.accordionSectionName} is not expected to exist on any situation`);
+            }
+        }
     };
 
     /**

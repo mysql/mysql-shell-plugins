@@ -985,7 +985,7 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
     def authenticate_single_server_user(self, connection, password):
         mysqlsh.globals.shell.delete_all_credentials()
 
-        new_session = DbModuleSession(skip_confirmation_message=True)
+        new_session = DbModuleSession(single_server_mode_authentication=True)
         new_session.open_connection(connection, password)
         new_session.completion_event.wait()  # type: ignore
 
@@ -1009,6 +1009,11 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         self._single_server_conn_id = None
 
     def logout_single_server_user(self):
+        if self._db:
+            if self.session_uuid:
+                self.db.execute("UPDATE session SET ended=? WHERE uuid=?",
+                                (datetime.datetime.now(), self.session_uuid))
+
         self.single_server_remove_connection()
 
         self._session_user_id = None

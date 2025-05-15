@@ -133,6 +133,14 @@ export const confirmDialog = {
     cancel: By.id("alternative"),
 };
 
+export const workbench = {
+    openSubmenu: By.css("#documentSideBar .submenu"),
+    submenu: {
+        exists: By.id("Submenu"),
+        item: By.css("#Submenu .menuItem label"),
+    },
+};
+
 export const mrsConfigDialog = {
     exists: By.css("#mrsConfigurationDialog .valueEditDialog"),
     status: {
