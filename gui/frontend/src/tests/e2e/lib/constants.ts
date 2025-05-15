@@ -326,3 +326,5 @@ export const linkRestAuthenticationApp = "Link REST Authentication App...";
 export const linkRestAuthenticationAppToRestService = "Link REST Authentication App to REST Service...";
 export const configureInstanceForRestService = "Configure Instance for MySQL REST Service Support";
 export const configureRestService = "Configure MySQL REST Service";
+export const mysqlAIServer = "MySQL AI Server";
+
