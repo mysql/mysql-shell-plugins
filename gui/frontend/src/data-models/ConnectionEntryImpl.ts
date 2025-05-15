@@ -279,7 +279,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
             }
         }
 
-        callback?.("Determining MRS support");
+        callback?.("Determining MRS support...");
         this.schemaNames = await this.backend.getCatalogObjects("Schema");
 
         // If the MRS metadata schema exists, add the MRS item in the parent entry.

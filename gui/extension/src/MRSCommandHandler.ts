@@ -230,6 +230,15 @@ export class MRSCommandHandler {
                         const connection = entry.connection;
                         await connection.backend?.mrs.setCurrentService(entry.details.id);
                         await commands.executeCommand("msg.refreshConnections");
+
+                        const connectionId = entry.connection.details.id;
+                        const provider = this.#host.currentProvider;
+                        if (provider) {
+                            void provider.runCommand("job", [
+                                { requestType: "showPage", parameter: { connectionId } },
+                                { requestType: "refreshMrsServiceSdk", parameter: {} },
+                            ], "newConnection");
+                        }
                         void ui.showInformationMessage("The MRS service has been set as the new default service.", {});
 
                     } catch (reason) {
@@ -480,8 +489,7 @@ export class MRSCommandHandler {
                         "Export SQL Script Including Database and Static Endpoints Only",
                     ];
 
-                    switch (await window.showQuickPick(dumpOptions))
-                    {
+                    switch (await window.showQuickPick(dumpOptions)) {
                         case dumpOptions[0]: {
                             endpointsType = "all";
                             break;
