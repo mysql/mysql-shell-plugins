@@ -329,11 +329,6 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
 
         writeFileSync(join(process.cwd(), "config"), ociConfigFile);
         E2ELogger.success("OCI Configuration file created successfully");
-
-        // CONVERT LIB TS FILES TO JS
-        const npm = platform() !== "win32" ? "npm" : "npm.cmd";
-        this.runCommand(npm, ["run", "e2e-tests-tsc"]);
-        E2ELogger.success("TS files converted to JS successfully");
         E2ELogger.success("Setup finished !");
     };
 
@@ -713,7 +708,7 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
             process.stdout.write = process.stderr.write = logStream.write.bind(logStream);
         }
 
-        const result = await testSuite.exTester.runTests(`./output/tests/ui-${testSuite.name.toLowerCase()}.js`, {
+        const result = await testSuite.exTester.runTests(`./tests/ui-${testSuite.name.toLowerCase()}.ts`, {
             settings: join(process.cwd(), "setup", "settings.json"),
             offline: true,
             config: join(process.cwd(), "setup", ".mocharc.json"),

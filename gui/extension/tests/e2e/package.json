@@ -17,9 +17,9 @@
     "mochawesome-merge": "4.2.2",
     "mysql2": "3.10.2",
     "sqlite3": "5.1.7",
+    "tsx": "4.19.4",
     "typescript": "5.4.5",
-    "vscode-extension-tester": "8.13.0",
-    "ts-node": "10.9.2"
+    "vscode-extension-tester": "8.13.0"
   },
   "overrides": {
     "@types/node": "20.3.2",
@@ -28,15 +28,14 @@
   },
   "scripts": {
     "e2e-tests-setup-and-run": "mysqlsh --py -f setup_local_env_for_ext_tests_and_run.py",
-    "e2e-tests-setup-and-run-ts": "ts-node setup/setup_and_run.ts",
-    "e2e-tests-install-test-resources": "ts-node setup/install_test_resources.ts",
-    "e2e-tests-run": "ts-node setup/run.ts",
-    "e2e-tests-web-certificate": "ts-node setup/generate_web_certificate.ts",
-    "e2e-tests-setup": "ts-node setup/setup.ts",
-    "e2e-tests-teardown": "ts-node setup/teardown.ts",
-    "e2e-tests-install-extension": "ts-node setup/install_extension.ts",
-    "e2e-tests-copy-extension": "ts-node setup/copy_extension.ts",
-    "e2e-tests-tsc": "tsc",
+    "e2e-tests-setup-and-run-ts": "tsx setup/setup_and_run.ts",
+    "e2e-tests-install-test-resources": "tsx setup/install_test_resources.ts",
+    "e2e-tests-run": "tsx setup/run.ts",
+    "e2e-tests-web-certificate": "tsx setup/generate_web_certificate.ts",
+    "e2e-tests-setup": "tsx setup/setup.ts",
+    "e2e-tests-teardown": "tsx setup/teardown.ts",
+    "e2e-tests-install-extension": "tsx setup/install_extension.ts",
+    "e2e-tests-copy-extension": "tsx setup/copy_extension.ts",
     "e2e-tests-merge": "mochawesome-merge",
     "e2e-tests-report": "marge -f test-report"
   },
