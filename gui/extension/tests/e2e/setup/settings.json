@@ -9,5 +9,8 @@
     "update.mode": "none",
     "update.channel": "none",
     "extensions.autoCheckUpdates": false,
-    "extensions.autoUpdate": false
+    "extensions.autoUpdate": false,
+    "git.autoRepositoryDetection": false,
+    "workbench.remoteIndicator.showExtensionRecommendations": false,
+    "extensions.ignoreRecommendations": true
 }
