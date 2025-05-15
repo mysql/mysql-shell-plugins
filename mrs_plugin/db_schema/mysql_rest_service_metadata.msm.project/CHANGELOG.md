@@ -1,5 +1,9 @@
 # Database Schema Change Log for `mysql_rest_service_metadata`
 
+## 4.1.3
+
+- Fixed wrong time unit when compressing router_status log entries
+
 ## 4.1.2
 
 - Added missing privileges for `restore_roles` and `sdk_service_data` PROCEDURE
