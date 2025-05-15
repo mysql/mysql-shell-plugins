@@ -357,6 +357,8 @@ export class MrsHub extends ComponentBase {
 
                 if (isCurrent) {
                     await backend.mrs.setCurrentService(service.id);
+
+                    void requisitions.execute("refreshMrsServiceSdk", undefined);
                 }
 
                 // Add the auth apps the user selected.

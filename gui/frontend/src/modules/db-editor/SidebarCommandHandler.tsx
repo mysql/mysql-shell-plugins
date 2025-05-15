@@ -226,6 +226,16 @@ export class SidebarCommandHandler {
                     const service = entry as ICdmRestServiceEntry;
                     try {
                         await connection.backend?.mrs.setCurrentService(service.details.id);
+
+                        const connectionId = connection.details.id;
+                        success = await requisitions.execute("job", [
+                            {
+                                requestType: "showPage",
+                                parameter: { connectionId, pageId },
+                            },
+                            { requestType: "refreshMrsServiceSdk", parameter: {} },
+                        ]);
+
                         void ui.showInformationMessage("The MRS service has been set as the new default service.", {});
                         success = true;
                     } catch (reason) {

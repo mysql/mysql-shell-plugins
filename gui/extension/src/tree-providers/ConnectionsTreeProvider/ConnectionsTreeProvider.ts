@@ -357,7 +357,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
                 if (result instanceof Error) {
                     void ui.showErrorMessage(result.message, {});
                 } else if (result) {
-                    void window.setStatusBarMessage(result, 15000);
+                    void window.setStatusBarMessage(result, 2000);
                 }
             });
         } catch (error) {
