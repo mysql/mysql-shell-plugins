@@ -6,5 +6,6 @@
     "html": false,
     "json": true
   },
-  "fullTrace": true
+  "fullTrace": true,
+  "require": "tsx"
 }
