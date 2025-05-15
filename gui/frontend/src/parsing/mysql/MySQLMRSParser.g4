@@ -5914,8 +5914,12 @@ updateIfAvailable:
 // - CREATE REST SERVICE ----------------------------------------------------
 
 createRestServiceStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL SERVICE_SYMBOL serviceRequestPath
-        restServiceOptions?
+    (
+        CREATE_SYMBOL OR_SYMBOL REPLACE_SYMBOL REST_SYMBOL SERVICE_SYMBOL
+        | CREATE_SYMBOL REST_SYMBOL SERVICE_SYMBOL (
+            IF_SYMBOL NOT_SYMBOL EXISTS_SYMBOL
+        )?
+    ) serviceRequestPath restServiceOptions?
 ;
 
 restServiceOptions: (
@@ -5984,7 +5988,12 @@ removeAuthApp:
 // - CREATE REST SCHEMA -----------------------------------------------------
 
 createRestSchemaStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL DATABASE_SYMBOL schemaRequestPath? (
+    (
+        CREATE_SYMBOL OR_SYMBOL REPLACE_SYMBOL REST_SYMBOL DATABASE_SYMBOL
+        | CREATE_SYMBOL REST_SYMBOL DATABASE_SYMBOL (
+            IF_SYMBOL NOT_SYMBOL EXISTS_SYMBOL
+        )?
+    ) schemaRequestPath? (
         ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
     )? FROM_SYMBOL schemaName restSchemaOptions?
 ;
@@ -6002,8 +6011,12 @@ restSchemaOptions: (
 // - CREATE REST VIEW -------------------------------------------------------
 
 createRestViewStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL DATA_SYMBOL? MAPPING_SYMBOL? VIEW_SYMBOL
-        viewRequestPath (ON_SYMBOL serviceSchemaSelector)? AS_SYMBOL qualifiedIdentifier (
+    (
+        CREATE_SYMBOL OR_SYMBOL REPLACE_SYMBOL REST_SYMBOL DATA_SYMBOL? MAPPING_SYMBOL? VIEW_SYMBOL
+        | CREATE_SYMBOL REST_SYMBOL DATA_SYMBOL? MAPPING_SYMBOL? VIEW_SYMBOL (
+            IF_SYMBOL NOT_SYMBOL EXISTS_SYMBOL
+        )?
+    ) viewRequestPath (ON_SYMBOL serviceSchemaSelector)? AS_SYMBOL qualifiedIdentifier (
         CLASS_SYMBOL restObjectName
     )? graphQlCrudOptions? graphQlObj? restObjectOptions?
 ;
@@ -6039,9 +6052,13 @@ restViewAuthenticationProcedure:
 // - CREATE REST PROCEDURE --------------------------------------------------
 
 createRestProcedureStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
-        ON_SYMBOL serviceSchemaSelector
-    )? AS_SYMBOL qualifiedIdentifier FORCE_SYMBOL? (
+    (
+        CREATE_SYMBOL OR_SYMBOL REPLACE_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL
+        | CREATE_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL (
+            IF_SYMBOL NOT_SYMBOL EXISTS_SYMBOL
+        )?
+    ) procedureRequestPath (ON_SYMBOL serviceSchemaSelector)? AS_SYMBOL qualifiedIdentifier
+        FORCE_SYMBOL? (
         PARAMETERS_SYMBOL restObjectName? graphQlObj
     )? restProcedureResult* restObjectOptions?
 ;
@@ -6053,9 +6070,13 @@ restProcedureResult:
 // - CREATE REST FUNCTION ---------------------------------------------------
 
 createRestFunctionStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL FUNCTION_SYMBOL functionRequestPath (
-        ON_SYMBOL serviceSchemaSelector
-    )? AS_SYMBOL qualifiedIdentifier FORCE_SYMBOL? (
+    (
+        CREATE_SYMBOL OR_SYMBOL REPLACE_SYMBOL REST_SYMBOL FUNCTION_SYMBOL
+        | CREATE_SYMBOL REST_SYMBOL FUNCTION_SYMBOL (
+            IF_SYMBOL NOT_SYMBOL EXISTS_SYMBOL
+        )?
+    ) functionRequestPath (ON_SYMBOL serviceSchemaSelector)? AS_SYMBOL qualifiedIdentifier
+        FORCE_SYMBOL? (
         PARAMETERS_SYMBOL restObjectName? graphQlObj
     )? restFunctionResult? restObjectOptions?
 ;
@@ -6067,8 +6088,12 @@ restFunctionResult:
 // - CREATE REST CONTENT SET ------------------------------------------------
 
 createRestContentSetStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL
-        contentSetRequestPath (
+    (
+        CREATE_SYMBOL OR_SYMBOL REPLACE_SYMBOL REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL
+        | CREATE_SYMBOL REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL (
+            IF_SYMBOL NOT_SYMBOL EXISTS_SYMBOL
+        )?
+    ) contentSetRequestPath (
         ON_SYMBOL SERVICE_SYMBOL? serviceRequestPath
     )? (FROM_SYMBOL directoryFilePath)? restContentSetOptions?
 ;
@@ -6098,8 +6123,12 @@ loadScripts:
 // - CREATE REST CONTENT FILE -----------------------------------------------
 
 createRestContentFileStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL CONTENT_SYMBOL FILE_SYMBOL
-        contentFileRequestPath ON_SYMBOL (
+    (
+        CREATE_SYMBOL OR_SYMBOL REPLACE_SYMBOL REST_SYMBOL CONTENT_SYMBOL FILE_SYMBOL
+        | CREATE_SYMBOL REST_SYMBOL CONTENT_SYMBOL FILE_SYMBOL (
+            IF_SYMBOL NOT_SYMBOL EXISTS_SYMBOL
+        )?
+    ) contentFileRequestPath ON_SYMBOL (
         SERVICE_SYMBOL? serviceRequestPath
     )? CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath (
         (FROM_SYMBOL directoryFilePath)
@@ -6117,10 +6146,16 @@ restContentFileOptions: (
 // - CREATE REST AUTH APP ---------------------------------------------------
 
 createRestAuthAppStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL (
-        AUTH_SYMBOL
-        | AUTHENTICATION_SYMBOL
-    ) APP_SYMBOL authAppName VENDOR_SYMBOL (
+    (
+        CREATE_SYMBOL OR_SYMBOL REPLACE_SYMBOL REST_SYMBOL (
+            AUTH_SYMBOL
+            | AUTHENTICATION_SYMBOL
+        ) APP_SYMBOL
+        | CREATE_SYMBOL REST_SYMBOL (
+            AUTH_SYMBOL
+            | AUTHENTICATION_SYMBOL
+        ) APP_SYMBOL (IF_SYMBOL NOT_SYMBOL EXISTS_SYMBOL)?
+    ) authAppName VENDOR_SYMBOL (
         MRS_SYMBOL
         | MYSQL_SYMBOL
         | vendorName
@@ -6171,8 +6206,14 @@ url:
 // - CREATE REST USER -------------------------------------------------------
 
 createRestUserStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL
-        authAppName (IDENTIFIED_SYMBOL BY_SYMBOL userPassword)? userOptions?
+    (
+        CREATE_SYMBOL OR_SYMBOL REPLACE_SYMBOL REST_SYMBOL USER_SYMBOL
+        | CREATE_SYMBOL REST_SYMBOL USER_SYMBOL (
+            IF_SYMBOL NOT_SYMBOL EXISTS_SYMBOL
+        )?
+    ) userName AT_SIGN_SYMBOL authAppName (
+        IDENTIFIED_SYMBOL BY_SYMBOL userPassword
+    )? userOptions?
 ;
 
 userName:
@@ -6196,9 +6237,12 @@ accountLock:
 
 // - CREATE REST ROLE -------------------------------------------------------
 createRestRoleStatement:
-    CREATE_SYMBOL (OR_SYMBOL REPLACE_SYMBOL)? REST_SYMBOL ROLE_SYMBOL roleName (
-        EXTENDS_SYMBOL parentRoleName
-    )? (
+    (
+        CREATE_SYMBOL OR_SYMBOL REPLACE_SYMBOL REST_SYMBOL ROLE_SYMBOL
+        | CREATE_SYMBOL REST_SYMBOL ROLE_SYMBOL (
+            IF_SYMBOL NOT_SYMBOL EXISTS_SYMBOL
+        )?
+    ) roleName (EXTENDS_SYMBOL parentRoleName)? (
         ON_SYMBOL (
             ANY_SYMBOL SERVICE_SYMBOL
             | SERVICE_SYMBOL? serviceRequestPath
@@ -6312,55 +6356,66 @@ alterRestUserStatement:
 // DROP statements ==========================================================
 
 dropRestServiceStatement:
-    DROP_SYMBOL REST_SYMBOL SERVICE_SYMBOL serviceRequestPath
+    DROP_SYMBOL REST_SYMBOL SERVICE_SYMBOL (
+        IF_SYMBOL EXISTS_SYMBOL
+    )? serviceRequestPath
 ;
 
 dropRestSchemaStatement:
-    DROP_SYMBOL REST_SYMBOL DATABASE_SYMBOL schemaRequestPath (
+    DROP_SYMBOL REST_SYMBOL DATABASE_SYMBOL (
+        IF_SYMBOL EXISTS_SYMBOL
+    )? schemaRequestPath (
         FROM_SYMBOL SERVICE_SYMBOL? serviceRequestPath
     )?
 ;
 
 dropRestViewStatement:
-    DROP_SYMBOL REST_SYMBOL DATA_SYMBOL? MAPPING_SYMBOL? VIEW_SYMBOL viewRequestPath (
-        FROM_SYMBOL serviceSchemaSelector
-    )?
+    DROP_SYMBOL REST_SYMBOL DATA_SYMBOL? MAPPING_SYMBOL? VIEW_SYMBOL (
+        IF_SYMBOL EXISTS_SYMBOL
+    )? viewRequestPath (FROM_SYMBOL serviceSchemaSelector)?
 ;
 
 dropRestProcedureStatement:
-    DROP_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL procedureRequestPath (
-        FROM_SYMBOL serviceSchemaSelector
-    )?
+    DROP_SYMBOL REST_SYMBOL PROCEDURE_SYMBOL (
+        IF_SYMBOL EXISTS_SYMBOL
+    )? procedureRequestPath (FROM_SYMBOL serviceSchemaSelector)?
 ;
 
 dropRestFunctionStatement:
-    DROP_SYMBOL REST_SYMBOL FUNCTION_SYMBOL functionRequestPath (
-        FROM_SYMBOL serviceSchemaSelector
-    )?
+    DROP_SYMBOL REST_SYMBOL FUNCTION_SYMBOL (
+        IF_SYMBOL EXISTS_SYMBOL
+    )? functionRequestPath (FROM_SYMBOL serviceSchemaSelector)?
 ;
 
 dropRestContentSetStatement:
-    DROP_SYMBOL REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath (
+    DROP_SYMBOL REST_SYMBOL CONTENT_SYMBOL SET_SYMBOL (
+        IF_SYMBOL EXISTS_SYMBOL
+    )? contentSetRequestPath (
         FROM_SYMBOL SERVICE_SYMBOL? serviceRequestPath
     )?
 ;
 
 dropRestContentFileStatement:
-    DROP_SYMBOL REST_SYMBOL CONTENT_SYMBOL FILE_SYMBOL contentFileRequestPath FROM_SYMBOL (
+    DROP_SYMBOL REST_SYMBOL CONTENT_SYMBOL FILE_SYMBOL (
+        IF_SYMBOL EXISTS_SYMBOL
+    )? contentFileRequestPath FROM_SYMBOL (
         SERVICE_SYMBOL? serviceRequestPath
     )? CONTENT_SYMBOL SET_SYMBOL contentSetRequestPath
 ;
 
 dropRestAuthAppStatement:
-    DROP_SYMBOL REST_SYMBOL (AUTH_SYMBOL | AUTHENTICATION_SYMBOL) APP_SYMBOL authAppName
+    DROP_SYMBOL REST_SYMBOL (AUTH_SYMBOL | AUTHENTICATION_SYMBOL) APP_SYMBOL (
+        IF_SYMBOL EXISTS_SYMBOL
+    )? authAppName
 ;
 
 dropRestUserStatement:
-    DROP_SYMBOL REST_SYMBOL USER_SYMBOL userName AT_SIGN_SYMBOL authAppName
+    DROP_SYMBOL REST_SYMBOL USER_SYMBOL (IF_SYMBOL EXISTS_SYMBOL)? userName AT_SIGN_SYMBOL
+        authAppName
 ;
 
 dropRestRoleStatement:
-    DROP_SYMBOL REST_SYMBOL ROLE_SYMBOL roleName
+    DROP_SYMBOL REST_SYMBOL ROLE_SYMBOL (IF_SYMBOL EXISTS_SYMBOL)? roleName
 ;
 
 // GRANT statements ===========================================================
@@ -6535,9 +6590,18 @@ showCreateRestAuthAppStatement:
 ;
 
 dumpRestServiceStatement:
-    DUMP_SYMBOL REST_SYMBOL SERVICE_SYMBOL serviceRequestPath AS_SYMBOL (SQL_SYMBOL)? SCRIPT_SYMBOL
-    INCLUDING_SYMBOL ((DATABASE_SYMBOL (AND_SYMBOL STATIC_SYMBOL (AND_SYMBOL DYNAMIC_SYMBOL)?)?) | ALL_SYMBOL) ENDPOINTS_SYMBOL
-    TO_SYMBOL (ZIP_SYMBOL)? directoryFilePath
+    DUMP_SYMBOL REST_SYMBOL SERVICE_SYMBOL serviceRequestPath AS_SYMBOL (
+        SQL_SYMBOL
+    )? SCRIPT_SYMBOL INCLUDING_SYMBOL (
+        (
+            DATABASE_SYMBOL (
+                AND_SYMBOL STATIC_SYMBOL (
+                    AND_SYMBOL DYNAMIC_SYMBOL
+                )?
+            )?
+        )
+        | ALL_SYMBOL
+    ) ENDPOINTS_SYMBOL TO_SYMBOL (ZIP_SYMBOL)? directoryFilePath
 ;
 
 // Named identifiers ========================================================
