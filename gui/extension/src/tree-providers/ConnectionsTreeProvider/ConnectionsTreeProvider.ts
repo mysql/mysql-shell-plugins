@@ -32,7 +32,7 @@ import { requisitions } from "../../../../frontend/src/supplement/Requisitions.j
 
 import {
     CdmEntityType, ConnectionDataModelEntry, ICdmRestRootEntry,
-    ICdmSchemaEntry, cdmDbEntityTypes,
+    ICdmSchemaEntry, cdbDbEntityTypeName, cdmDbEntityTypes,
     type ConnectionDataModel, type ICdmConnectionEntry,
 } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 
@@ -504,10 +504,11 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
             return;
         }
 
-        const message = `Do you want to drop the ${entry.type} ${entry.caption}?`;
+        const typeName = cdbDbEntityTypeName.get(entry.type)!;
+        const message = `Do you want to drop the ${typeName} ${entry.caption}?`;
         const okText = `Drop ${entry.caption}`;
-        void ui.showInformationMessage(message, { modal: true, detail: "This operation cannot be reverted!" }, okText,
-            "Cancel").then(async (answer) => {
+        void ui.showInformationMessage(message, { modal: true, detail: "This operation cannot be reverted!" },
+            okText).then(async (answer) => {
                 if (answer === okText) {
                     try {
                         await this.dataModel.removeEntry(entry);
