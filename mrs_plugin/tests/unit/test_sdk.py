@@ -292,12 +292,11 @@ import {
 
 
 def test_generate_function_interface():
-    class_name = "MyServiceSakilaSumFunc"
+    class_name = "MyServiceSakilaSumFuncParams"
     db_obj = {"object_type": "FUNCTION"}
     obj = {
         "id": b"\xbd\x07oC\x91\xaaI\xc4\xdf\xf2\xb7eJ56\xa0",
         "db_object_id": b"\x11\xefE\x1e\x8c\xc5\xc0\x01\xa9\xaa\n\x00'\x00\x00\t",
-        "name": "MyServiceSakilaSumFuncParams",
         "kind": "PARAMETERS",
         "position": 0,
         "sdk_options": None,

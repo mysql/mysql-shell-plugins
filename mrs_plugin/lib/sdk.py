@@ -498,14 +498,14 @@ def substitute_objects_in_template(
                 sdk_language=sdk_language,
                 existing_identifiers=existing_identifiers,
             )
-            class_name = ""
-            obj_class_name = generate_identifier(
+            class_name = generate_identifier(
                 value=f"{schema_request_path}{db_obj.get("request_path")}",
                 primitive="class",
                 existing_identifiers=existing_identifiers,
             )
+            type_alias_name = class_name
             obj_interfaces = ""
-            obj_meta_interface = "I" + obj_class_name + "ResultSet"
+            obj_meta_interface = f"I{class_name}ResultSet"
             obj_param_interface = ""
             getters_setters = ""
             obj_pk_list = []
@@ -574,8 +574,10 @@ def substitute_objects_in_template(
                     obj.get("sdk_options"), sdk_language)
 
                 # Either take the custom interface_name or the default class_name
-                class_name = sdk_lang_options.get(
-                    "class_name", obj_class_name)
+                type_alias_name = sdk_lang_options.get(
+                    "class_name",
+                    obj.get("name") if object_is_routine(db_obj) else class_name,
+                )
 
                 # For database objects other than PROCEDUREs and FUNCTIONS, if there are unique fields,
                 # the corresponding SDK commands should be enabled.
@@ -612,7 +614,7 @@ def substitute_objects_in_template(
                     db_obj,
                     obj,
                     fields,
-                    class_name,
+                    type_alias_name,
                     sdk_language,
                     db_object_crud_ops,
                     obj_endpoint=f"{service_url}{schema.get('request_path')}{db_obj.get("request_path")}",
@@ -625,9 +627,9 @@ def substitute_objects_in_template(
                     obj_interfaces += obj_interfaces_def
 
                 if obj.get("kind") == "PARAMETERS" and object_is_routine(db_obj):
-                    obj_param_interface = f"{class_name}Params"
+                    obj_param_interface = type_alias_name
                 if obj.get("kind") != "PARAMETERS" and object_is_routine(db_obj):
-                    obj_meta_interfaces.append(class_name)
+                    obj_meta_interfaces.append(type_alias_name)
 
             # If the db object is a function, get the return datatype
             obj_function_result_datatype = None
@@ -1573,7 +1575,7 @@ def generate_interfaces(
         # Type definition for the set of IN/INOUT Parameters.
         obj_interfaces.append(
             generate_type_declaration(
-                name=f"{class_name}Params",
+                name=class_name,
                 fields=param_interface_fields,
                 sdk_language=sdk_language,
                 non_mandatory_fields=set(param_interface_fields),
@@ -1586,7 +1588,7 @@ def generate_interfaces(
         # Type definition for the set of OUT/INOUT Parameters.
         obj_interfaces.append(
             generate_type_declaration(
-                name=f"{class_name}ParamsOut",
+                name=f"{class_name}Out",
                 fields=out_params_interface_fields,
                 sdk_language=sdk_language,
                 non_mandatory_fields=set(out_params_interface_fields),
