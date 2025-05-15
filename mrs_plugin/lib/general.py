@@ -27,7 +27,7 @@ import msm_plugin.lib.management as schema_management
 # Define plugin version
 VERSION = "1.19.11"
 
-DB_VERSION = [4, 1, 2]
+DB_VERSION = [4, 1, 3]
 REQUIRED_ROUTER_VERSION = [8, 1, 0]
 SUPPORTED_MAJOR_VERSION = 3
 
