@@ -41,6 +41,9 @@ import { E2ENotificationsCenter } from "../lib/E2ENotificationsCenter.js";
 import { E2EDebugger } from "../lib/E2EDebugger.js";
 import { E2ETabContainer } from "../lib/E2ETabContainer.js";
 import { E2ESettings } from "../lib/E2ESettings.js";
+import { E2ENotebook } from "../lib/E2ENotebook.js";
+import { E2ECommandResultGrid } from "../lib/CommandResults/E2ECommandResultGrid.js";
+import { E2EWorkbench } from "../lib/SideBar/E2EWorkbench.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -488,3 +491,121 @@ describe("Communication Debugger", () => {
 
 });
 
+describe("Single Server Mode", () => {
+
+    let testFailed = false;
+
+    beforeAll(async () => {
+        await loadDriver(true);
+        await driver.get(String(process.env.SHELL_UI_SS_HOSTNAME));
+        await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait10seconds);
+    });
+
+    afterEach(async () => {
+        if (testFailed) {
+            testFailed = false;
+            await Misc.storeScreenShot();
+        }
+    });
+
+    afterAll(async () => {
+        await Os.writeFELogs(basename(__filename), driver.manage().logs());
+        await driver.close();
+        await driver.quit();
+    });
+
+    it("Unsuccessful Login", async () => {
+        try {
+            const login = new E2ELogin();
+            await login.setPassword("client");
+            await login.setPassword("root");
+            await login.login();
+            expect(await login.getError()).toBe("User could not be authenticated.");
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Login", async () => {
+        try {
+            const login = new E2ELogin();
+            await login.setUsername(String(process.env.DBUSERNAME1));
+            await login.setPassword(String(process.env.DBUSERNAME1PWD));
+            await login.login();
+
+            const tabContainer = new E2ETabContainer();
+            await driver.wait(tabContainer.untilTabExists(constants.mysqlAIServer), constants.wait10seconds);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Verify page elements", async () => {
+        try {
+
+            await new E2ENotebook().untilIsOpened({ caption: constants.mysqlAIServer });
+            const openEditorsSection = new E2EAccordionSection(constants.openEditorsTreeSection);
+            expect(await openEditorsSection.existsTreeItem(constants.mysqlAIServer)).toBe(true);
+            expect(await new E2EAccordionSection(constants.ociTreeSection).exists()).toBe(false);
+
+            const dbTreeSection = new E2EAccordionSection(constants.dbTreeSection);
+            expect(await dbTreeSection.existsTreeItem(constants.mysqlAIServer)).toBe(true);
+            await dbTreeSection.expandTreeItem(constants.mysqlAdministrationTreeElement);
+            expect(await dbTreeSection.existsTreeItem(constants.lakeHouseNavigator)).toBe(false);
+
+            expect(await dbTreeSection.getContextMenuItems(constants.mysqlAIServer)).toStrictEqual([
+                constants.openNewDatabaseConnection,
+                constants.browseTheMySQLRestTServiceDocumentation,
+                constants.configureInstanceForMySQLRestServiceSupport,
+            ]);
+
+            expect(await dbTreeSection.getContextMenuItems("sakila")).toStrictEqual([
+                constants.setAsCurrentDatabaseSchema,
+                constants.copyToClipboard.exists,
+                constants.sendToSQLEditor.exists,
+                constants.addSchemaToRestService,
+            ]);
+
+            expect(await dbTreeSection.getDatabaseConnections()).toStrictEqual([{
+                name: constants.mysqlAIServer,
+                isMySQL: true,
+            }]);
+
+            expect((await (await dbTreeSection.get())!
+                .findElements(locator.dbTreeSection.actions.createNewDatabaseConnection)).length).toBe(0);
+            expect((await (await dbTreeSection.get())!
+                .findElements(locator.dbTreeSection.actions.refreshConnections)).length).toBe(0);
+            expect((await (await dbTreeSection.get())!
+                .findElements(locator.dbTreeSection.actions.collapseAll)).length).toBe(1);
+
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Perform a SQL query", async () => {
+        try {
+            const result = await new E2ENotebook().codeEditor
+                .execute("SELECT * from sakila.actor;", true) as E2ECommandResultGrid;
+            expect(result.status).toMatch(/OK/);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+    it("Logout", async () => {
+        try {
+            await new E2EWorkbench().selectFromSubmenu("Log Out");
+            await driver.wait(Misc.untilHomePageIsLoaded(), constants.wait5seconds);
+        } catch (e) {
+            testFailed = true;
+            throw e;
+        }
+    });
+
+
+});

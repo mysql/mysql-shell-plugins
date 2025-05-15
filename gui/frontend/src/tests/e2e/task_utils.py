@@ -688,10 +688,11 @@ class TaskExecutor:
 
 
 class BEServer:
-    def __init__(self, environment: typing.Dict[str, str], port: int, multi_user=False) -> None:
+    def __init__(self, environment: typing.Dict[str, str], port: int, multi_user=False, single_server=False) -> None:
         self.mysqlsh_executable = get_executables("MySQL Shell")
         self.port = port
         self.multi_user = multi_user
+        self.single_server = single_server
         self.server = None
         self.be_log_path = "be.log"
         self.environment = environment
@@ -715,6 +716,8 @@ class BEServer:
 
             if self.multi_user:
                 shell_args.append(f"gui.start.web_server(port={self.port})")
+            elif self.single_server:
+                shell_args.append(f"gui.start.web_server(single_server='localhost:2208', accept_remote_connections=True, port={self.port})")
             else:
                 shell_args.append(
                     f'gui.start.web_server(port={self.port}, single_instance_token="{TOKEN}")')
@@ -727,6 +730,8 @@ class BEServer:
 
             if self.multi_user:
                 to_search = "Mode: Multi-user"
+            elif self.single_server:
+                to_search = "Mode: Single server"
             else:
                 to_search = "Mode: Single user"
 
