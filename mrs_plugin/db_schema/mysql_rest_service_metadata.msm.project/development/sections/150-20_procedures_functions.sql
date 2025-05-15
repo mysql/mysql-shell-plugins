@@ -324,15 +324,15 @@ here:BEGIN
 
     -- target_interval must be either M (60s or 1min) H (60*60s or 1 hour) or D (24*60*60s or 1 day)
     IF target_interval = 'M' THEN
-        SET max_interval = 60;
+        SET max_interval = 60000;
         SET time_point_format = '%Y-%m-%d %H:%i:00';
         SET compress_older_than = DATE_SUB(time, INTERVAL 4 HOUR);
     ELSEIF target_interval = 'H' THEN
-        SET max_interval = 60*60;
+        SET max_interval = 60*60000;
         SET time_point_format = '%Y-%m-%d %H:00:00';
         SET compress_older_than = DATE_SUB(time, INTERVAL 24 HOUR);
     ELSEIF target_interval = 'D' THEN
-        SET max_interval = 24*60*60;
+        SET max_interval = 24*60*60000;
         SET time_point_format = '%Y-%m-%d 00:00:00';
         SET compress_older_than = DATE_SUB(time, INTERVAL 1 DAY);
     ELSE
