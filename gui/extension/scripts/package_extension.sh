@@ -26,12 +26,15 @@
 # darwin-arm64, darwin-x64, win32-x64
 # Usage: package_extension.sh [single-platform]
 #
-# This script assumes you have unpacked GUI, MDS, MRS, MSM plugins into
+# This script assumes you have unpacked GUI, MDS, MRS, MSM plugins into a
+# location defined by the environment variable SHELL_PLUGINS_LOCATION, if the
+# variable is not defined, the default location of $HOME/.mysqlsh/plugins
+# will be used, the following are expected:
 #
-#   $HOME/.mysqlsh/plugins/gui_plugin
-#   $HOME/.mysqlsh/plugins/mds_plugin
-#   $HOME/.mysqlsh/plugins/mrs_plugin
-#   $HOME/.mysqlsh/plugins/msm_plugin
+#   $SHELL_PLUGINS_LOCATION/gui_plugin
+#   $SHELL_PLUGINS_LOCATION/mds_plugin
+#   $SHELL_PLUGINS_LOCATION/mrs_plugin
+#   $SHELL_PLUGINS_LOCATION/msm_plugin
 #
 # Note that if SHELL_VERSION is set in the environment, this script is
 # assumed to be run from PB2 without prompting the user to input the
@@ -131,20 +134,26 @@ function strip_oci_package(){
 
 echo "Starting MySQL Shell for VS Code Extension packaging..."
 
-if [ ! -d "$HOME/.mysqlsh/plugins/gui_plugin" ]; then
-    echo "ERROR: The gui_plugin is missing from ~/.mysqlsh/plugins/"
+# If the shell plugins location is not defined, uses the default
+# location
+if [ ! -v SHELL_PLUGINS_LOCATION ]; then
+    export SHELL_PLUGINS_LOCATION=$HOME/.mysqlsh/plugins
+fi
+
+if [ ! -d "$SHELL_PLUGINS_LOCATION/gui_plugin" ]; then
+    echo "ERROR: The gui_plugin is missing from $SHELL_PLUGINS_LOCATION"
     exit 1
 fi
-if [ ! -d "$HOME/.mysqlsh/plugins/mds_plugin" ]; then
-    echo "ERROR: The mds_plugin is missing from ~/.mysqlsh/plugins/"
+if [ ! -d "$SHELL_PLUGINS_LOCATION/mds_plugin" ]; then
+    echo "ERROR: The mds_plugin is missing from $SHELL_PLUGINS_LOCATION"
     exit 1
 fi
-if [ ! -d "$HOME/.mysqlsh/plugins/mrs_plugin" ]; then
-    echo "ERROR: The mrs_plugin is missing from ~/.mysqlsh/plugins/"
+if [ ! -d "$SHELL_PLUGINS_LOCATION" ]; then
+    echo "ERROR: The mrs_plugin is missing from $SHELL_PLUGINS_LOCATION"
     exit 1
 fi
-if [ ! -d "$HOME/.mysqlsh/plugins/msm_plugin" ]; then
-    echo "ERROR: The msm_plugin is missing from ~/.mysqlsh/plugins/"
+if [ ! -d "$SHELL_PLUGINS_LOCATION" ]; then
+    echo "ERROR: The msm_plugin is missing from $SHELL_PLUGINS_LOCATION"
     exit 1
 fi
 
@@ -234,10 +243,11 @@ for d in packaging/mysql-shell/*; do
         rm -Rf shell/lib/mysqlsh/plugins/msm_plugin
 
         echo "Copy plugins"
-        cp -RL $HOME/.mysqlsh/plugins/gui_plugin shell/lib/mysqlsh/plugins/.
-        cp -RL $HOME/.mysqlsh/plugins/mds_plugin shell/lib/mysqlsh/plugins/.
-        cp -RL $HOME/.mysqlsh/plugins/mrs_plugin shell/lib/mysqlsh/plugins/.
-        cp -RL $HOME/.mysqlsh/plugins/msm_plugin shell/lib/mysqlsh/plugins/.
+
+        cp -RL $SHELL_PLUGINS_LOCATION/gui_plugin shell/lib/mysqlsh/plugins/.
+        cp -RL $SHELL_PLUGINS_LOCATION/mds_plugin shell/lib/mysqlsh/plugins/.
+        cp -RL $SHELL_PLUGINS_LOCATION/mrs_plugin shell/lib/mysqlsh/plugins/.
+        cp -RL $SHELL_PLUGINS_LOCATION/msm_plugin shell/lib/mysqlsh/plugins/.
 
         # Clean *.py[co] files and __pycache__ directories
         find shell/lib/mysqlsh/plugins -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
