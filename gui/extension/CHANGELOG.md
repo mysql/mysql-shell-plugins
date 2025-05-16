@@ -27,6 +27,7 @@
 - BUG#37948319 Unexpected TypeScript SDK file compilation error for REST View with nested fields
 - Fixes for SQL support for MRS roles
 - BUG#37890092 MySQL Date and Time Fields of a result set included in procedure response aren't converted to client types
+- BUG#37959334 Duplicate type aliases with more than one nesting level in the Python SDK
 
 ## Changes in 1.19.10+9.3.1
 
