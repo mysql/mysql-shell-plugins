@@ -125,6 +125,10 @@
     height: 16px;
 }
 
+.msg.accordion .actions > .menuItem {
+    margin-right: 10px;
+}
+
 .msg.accordion .splitHost > .section > .title > .actions > .accordionAction {
     margin: 0 4px;
 }

@@ -74,8 +74,6 @@ exports[`Application host tests Rendering About 1`] = `
                       <div
                         class="msg container fixedScrollbar accordion"
                         id="documentSideBar"
-                        overviewid=""
-                        selectedopendocument=""
                         style="flex-direction: column; justify-content: flex-start;"
                       >
                         <div
@@ -547,7 +545,6 @@ exports[`Application host tests Rendering About 1`] = `
                         onSectionAction={[Function]}
                         onSectionExpand={[Function]}
                         onSectionResize={[Function]}
-                        overviewId=""
                         sections={
                           [
                             {
@@ -741,8 +738,6 @@ exports[`Application host tests Rendering About 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                overviewid=""
-                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <div
@@ -1167,8 +1162,6 @@ exports[`Application host tests Rendering About 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -1575,8 +1568,6 @@ exports[`Application host tests Rendering About 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              overviewid=""
-                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <div
@@ -1921,8 +1912,6 @@ exports[`Application host tests Rendering About 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -2468,8 +2457,6 @@ exports[`Application host tests Rendering About 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                overviewid=""
-                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <div
@@ -2894,8 +2881,6 @@ exports[`Application host tests Rendering About 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -3302,8 +3287,6 @@ exports[`Application host tests Rendering About 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              overviewid=""
-                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <div
@@ -3648,8 +3631,6 @@ exports[`Application host tests Rendering About 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -4365,8 +4346,6 @@ exports[`Application host tests Rendering About 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                overviewid=""
-                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <div
@@ -4791,8 +4770,6 @@ exports[`Application host tests Rendering About 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -5199,8 +5176,6 @@ exports[`Application host tests Rendering About 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              overviewid=""
-                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <div
@@ -5545,8 +5520,6 @@ exports[`Application host tests Rendering About 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -6078,8 +6051,6 @@ exports[`Application host tests Rendering About 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                overviewid=""
-                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <div
@@ -6504,8 +6475,6 @@ exports[`Application host tests Rendering About 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -6912,8 +6881,6 @@ exports[`Application host tests Rendering About 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              overviewid=""
-                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <div
@@ -7258,8 +7225,6 @@ exports[`Application host tests Rendering About 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -7838,21 +7803,16 @@ exports[`Application host tests Rendering About 1`] = `
                             },
                           ]
                         }
-                        selectedOpenDocument=""
                       >
                         <Container
                           className="msg accordion"
                           id="documentSideBar"
                           mainAlignment="flex-start"
                           orientation="column"
-                          overviewId=""
-                          selectedOpenDocument=""
                         >
                           <div
                             className="msg container fixedScrollbar accordion"
                             id="documentSideBar"
-                            overviewId=""
-                            selectedOpenDocument=""
                             style={
                               {
                                 "alignItems": undefined,
@@ -10581,8 +10541,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                       <div
                         class="msg container fixedScrollbar accordion"
                         id="documentSideBar"
-                        overviewid=""
-                        selectedopendocument=""
                         style="flex-direction: column; justify-content: flex-start;"
                       >
                         <div
@@ -11054,7 +11012,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                         onSectionAction={[Function]}
                         onSectionExpand={[Function]}
                         onSectionResize={[Function]}
-                        overviewId=""
                         sections={
                           [
                             {
@@ -11248,8 +11205,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                overviewid=""
-                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <div
@@ -11622,8 +11577,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -12030,8 +11983,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              overviewid=""
-                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <div
@@ -12376,8 +12327,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -12923,8 +12872,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                overviewid=""
-                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <div
@@ -13297,8 +13244,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -13705,8 +13650,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              overviewid=""
-                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <div
@@ -14051,8 +13994,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -14768,8 +14709,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                overviewid=""
-                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <div
@@ -15142,8 +15081,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -15550,8 +15487,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              overviewid=""
-                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <div
@@ -15896,8 +15831,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -16429,8 +16362,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                overviewid=""
-                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <div
@@ -16803,8 +16734,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -17211,8 +17140,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              overviewid=""
-                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <div
@@ -17557,8 +17484,6 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -18137,21 +18062,16 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                             },
                           ]
                         }
-                        selectedOpenDocument=""
                       >
                         <Container
                           className="msg accordion"
                           id="documentSideBar"
                           mainAlignment="flex-start"
                           orientation="column"
-                          overviewId=""
-                          selectedOpenDocument=""
                         >
                           <div
                             className="msg container fixedScrollbar accordion"
                             id="documentSideBar"
-                            overviewId=""
-                            selectedOpenDocument=""
                             style={
                               {
                                 "alignItems": undefined,
@@ -20880,8 +20800,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                       <div
                         class="msg container fixedScrollbar accordion"
                         id="documentSideBar"
-                        overviewid=""
-                        selectedopendocument=""
                         style="flex-direction: column; justify-content: flex-start;"
                       >
                         <div
@@ -21353,7 +21271,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                         onSectionAction={[Function]}
                         onSectionExpand={[Function]}
                         onSectionResize={[Function]}
-                        overviewId=""
                         sections={
                           [
                             {
@@ -21547,8 +21464,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                overviewid=""
-                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <div
@@ -21921,8 +21836,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -22329,8 +22242,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              overviewid=""
-                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <div
@@ -22675,8 +22586,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -23222,8 +23131,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                overviewid=""
-                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <div
@@ -23596,8 +23503,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -24004,8 +23909,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              overviewid=""
-                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <div
@@ -24350,8 +24253,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -25067,8 +24968,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                overviewid=""
-                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <div
@@ -25441,8 +25340,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -25849,8 +25746,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              overviewid=""
-                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <div
@@ -26195,8 +26090,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -26728,8 +26621,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                overviewid=""
-                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <div
@@ -27102,8 +26993,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -27510,8 +27399,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              overviewid=""
-                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <div
@@ -27856,8 +27743,6 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -28436,21 +28321,16 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                             },
                           ]
                         }
-                        selectedOpenDocument=""
                       >
                         <Container
                           className="msg accordion"
                           id="documentSideBar"
                           mainAlignment="flex-start"
                           orientation="column"
-                          overviewId=""
-                          selectedOpenDocument=""
                         >
                           <div
                             className="msg container fixedScrollbar accordion"
                             id="documentSideBar"
-                            overviewId=""
-                            selectedOpenDocument=""
                             style={
                               {
                                 "alignItems": undefined,
@@ -31179,8 +31059,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
                       <div
                         class="msg container fixedScrollbar accordion"
                         id="documentSideBar"
-                        overviewid=""
-                        selectedopendocument=""
                         style="flex-direction: column; justify-content: flex-start;"
                       >
                         <div
@@ -31652,7 +31530,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
                         onSectionAction={[Function]}
                         onSectionExpand={[Function]}
                         onSectionResize={[Function]}
-                        overviewId=""
                         sections={
                           [
                             {
@@ -31846,8 +31723,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                overviewid=""
-                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <div
@@ -32298,8 +32173,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -32706,8 +32579,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              overviewid=""
-                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <div
@@ -33052,8 +32923,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -33599,8 +33468,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                overviewid=""
-                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <div
@@ -34051,8 +33918,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -34459,8 +34324,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              overviewid=""
-                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <div
@@ -34805,8 +34668,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -35522,8 +35383,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                overviewid=""
-                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <div
@@ -35974,8 +35833,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -36382,8 +36239,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              overviewid=""
-                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <div
@@ -36728,8 +36583,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -37261,8 +37114,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                               <div
                                                 class="msg container fixedScrollbar accordion"
                                                 id="documentSideBar"
-                                                overviewid=""
-                                                selectedopendocument=""
                                                 style="flex-direction: column; justify-content: flex-start;"
                                               >
                                                 <div
@@ -37713,8 +37564,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -38121,8 +37970,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                             <div
                                               class="msg container fixedScrollbar accordion"
                                               id="documentSideBar"
-                                              overviewid=""
-                                              selectedopendocument=""
                                               style="flex-direction: column; justify-content: flex-start;"
                                             >
                                               <div
@@ -38467,8 +38314,6 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     <div
                                                       class="msg container fixedScrollbar accordion"
                                                       id="documentSideBar"
-                                                      overviewid=""
-                                                      selectedopendocument=""
                                                       style="flex-direction: column; justify-content: flex-start;"
                                                     >
                                                       <div
@@ -39047,21 +38892,16 @@ exports[`Application host tests Rendering Preferences 1`] = `
                             },
                           ]
                         }
-                        selectedOpenDocument=""
                       >
                         <Container
                           className="msg accordion"
                           id="documentSideBar"
                           mainAlignment="flex-start"
                           orientation="column"
-                          overviewId=""
-                          selectedOpenDocument=""
                         >
                           <div
                             className="msg container fixedScrollbar accordion"
                             id="documentSideBar"
-                            overviewId=""
-                            selectedOpenDocument=""
                             style={
                               {
                                 "alignItems": undefined,
