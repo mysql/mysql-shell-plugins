@@ -32,13 +32,13 @@ Grants REST privileges on endpoint objects to a role.
 ```antlr
 grantRestPrivilegeStatement:
     GRANT REST privilegeList (
-        (ON SERVICE? serviceRequestPath)
+        (ON SERVICE? serviceRequestPathWildcard)
         | (
-            ON serviceSchemaSelector (
-                OBJECT objectRequestPath
+            ON serviceSchemaSelectorWildcard (
+                OBJECT objectRequestPathWildcard
             )?
         )
-    )? TO roleName
+    )? TO roleName roleService?
 ;
 
 privilegeList:
@@ -54,11 +54,11 @@ privilegeName:
 ;
 
 serviceSchemaSelector:
-    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+    (SERVICE serviceRequestPath)? SCHEMA schemaRequestPath
 ;
 
 serviceSchemaSelector:
-    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+    (SERVICE serviceRequestPath)? SCHEMA schemaRequestPath
 ;
 ```
 
@@ -79,8 +79,8 @@ Grants a REST role to a user account.
 
 ```antlr
 grantRestRoleStatement:
-    GRANT REST ROLE roleName TO userName AT_SIGN authAppName
-        comments?
+    GRANT REST ROLE roleName roleService? TO userName AT_SIGN
+        authAppName comments?
 ;
 ```
 
@@ -96,13 +96,13 @@ Revokes privileges on an REST endpoint object from a role.
 ```antlr
 revokeRestPrivilegeStatement:
     REVOKE REST privilegeList (
-        (ON SERVICE? serviceRequestPath)
+        (ON SERVICE? serviceRequestPathWildcard)
         | (
-            ON serviceSchemaSelector (
-                OBJECT objectRequestPath
+            ON serviceSchemaSelectorWildcard (
+                OBJECT objectRequestPathWildcard
             )?
         )
-    )? FROM roleName
+    )? FROM roleName roleService?
 ;
 ```
 
@@ -117,7 +117,8 @@ Revokes a role from a REST user.
 
 ```antlr
 revokeRestRoleStatement:
-    REVOKE REST ROLE roleName FROM userName AT_SIGN authAppName
+    REVOKE REST ROLE roleName roleService? FROM userName AT_SIGN
+        authAppName
 ;
 ```
 

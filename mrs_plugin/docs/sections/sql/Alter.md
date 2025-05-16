@@ -38,6 +38,8 @@ alterRestServiceStatement:
 
 restServiceOptions: (
         enabledDisabled
+        | publishedUnpublished
+        | restProtocol
         | restAuthentication
         | jsonOptions
         | comments
@@ -48,11 +50,11 @@ restServiceOptions: (
 ;
 
 addAuthApp:
-    ADD AUTH APP authAppName
+    ADD AUTH APP authAppName (IF EXISTS)?
 ;
 
 removeAuthApp:
-    REMOVE AUTH APP authAppName
+    REMOVE AUTH APP authAppName (IF EXISTS)?
 ;
 ```
 
@@ -77,6 +79,27 @@ ALTER REST SERVICE /myService
     COMMENT "A simple, improved REST service";
 ```
 
+## ALTER REST AUTH APP
+
+Modifies attributes from an existing authentication app. See [`CREATE REST AUTH APP`](#create-rest-auth-app) for details about supported options.
+
+**_SYNTAX_**
+
+```antlr
+alterRestAuthAppStatement:
+    ALTER REST (
+        AUTH
+        | AUTHENTICATION
+    ) APP authAppName (
+        NEW NAME newAuthAppName
+    )? restAuthAppOptions?
+;
+```
+
+alterRestAuthAppStatement ::=
+![alterRestAuthAppStatement](../../images/sql/alterRestAuthAppStatement.svg "alterRestAuthAppStatement")
+
+
 ## ALTER REST SCHEMA
 
 An existing REST schema can be altered by using the `ALTER REST SCHEMA` statement. It uses the same `restSchemaOptions` as used by the [`CREATE REST SCHEMA`](#create-rest-schema) statement. Please see the discussion of the options there.
@@ -85,7 +108,7 @@ An existing REST schema can be altered by using the `ALTER REST SCHEMA` statemen
 
 ```antlr
 alterRestSchemaStatement:
-    ALTER REST DATABASE schemaRequestPath? (
+    ALTER REST SCHEMA schemaRequestPath? (
         ON SERVICE? serviceRequestPath
     )? (
         NEW REQUEST PATH newSchemaRequestPath
@@ -130,16 +153,15 @@ Please see the MRS Reference Manual to learn more about [JSON data mapping views
 
 ```antlr
 alterRestViewStatement:
-    ALTER REST DATA? MAPPING? VIEW
-        viewRequestPath (ON serviceSchemaSelector)? (
-        NEW REQUEST PATH newViewRequestPath
-    )? (
+    ALTER REST DATA? MAPPING? VIEW viewRequestPath (
+        ON serviceSchemaSelector
+    )? (NEW REQUEST PATH newViewRequestPath)? (
         CLASS restObjectName graphQlCrudOptions? graphQlObj?
     )? restObjectOptions?
 ;
 
 serviceSchemaSelector:
-    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+    (SERVICE serviceRequestPath)? SCHEMA schemaRequestPath
 ;
 
 restObjectOptions: (
@@ -196,7 +218,7 @@ alterRestProcedureStatement:
 ;
 
 serviceSchemaSelector:
-    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+    (SERVICE serviceRequestPath)? SCHEMA schemaRequestPath
 ;
 
 restObjectOptions: (
@@ -240,7 +262,7 @@ alterRestFunctionStatement:
 ;
 
 serviceSchemaSelector:
-    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+    (SERVICE serviceRequestPath)? SCHEMA schemaRequestPath
 ;
 
 restObjectOptions: (
@@ -279,6 +301,10 @@ alterRestContentSetStatement:
     )? (
         NEW REQUEST PATH newContentSetRequestPath
     )? restContentSetOptions?
+;
+
+newContentSetRequestPath:
+    requestPathIdentifier
 ;
 ```
 

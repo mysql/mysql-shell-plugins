@@ -232,9 +232,12 @@ Please note that service will not be published at creation time by default. They
 **_SYNTAX_**
 
 ```antlr
-createRestServiceStatement:
-    CREATE (OR REPLACE)? REST SERVICE serviceRequestPath
-        restServiceOptions?
+createRestServiceStatement:    (
+        CREATE OR REPLACE REST SERVICE
+        | CREATE REST SERVICE (
+            IF NOT EXISTS
+        )?
+    ) serviceRequestPath restServiceOptions?
 ;
 
 serviceRequestPath:
@@ -250,6 +253,7 @@ restServiceOptions: (
         | comments
         | metadata
         | addAuthApp
+        | removeAuthApp
     )+
 ;
 ```
@@ -324,11 +328,13 @@ The `serviceDevelopersIdentifier` will be set automatically when a REST service 
 serviceDevelopersIdentifier:
     serviceDeveloperIdentifier (
         COMMA serviceDeveloperIdentifier
-    )* AT_SIGN?
+    )* AT_SIGN
 ;
 
 requestPathIdentifier:
-    DIV_OPERATOR dottedIdentifier (DIV_OPERATOR dottedIdentifier)?
+    REST_REQUEST_PATH
+    | BACK_TICK_QUOTED_ID
+    | {if AnsiQuotes} DOUBLE_QUOTED_TEXT
 ;
 ```
 
@@ -384,10 +390,7 @@ This setting is used in one place.
 
 ```antlr
 restProtocol:
-    PROTOCOL (
-        HTTP
-        | HTTPS
-    )
+    PROTOCOL (HTTP | HTTPS)
 ;
 ```
 
@@ -399,7 +402,7 @@ REST authentication apps can be linked while creating the REST service or they c
 
 ```antlr
 addAuthApp:
-    ADD AUTH APP authAppName
+    ADD AUTH APP authAppName (IF EXISTS)?
 ;
 ```
 
@@ -537,7 +540,7 @@ The comments can hold a description of the REST service. The maximal length is o
 
 ```antlr
 comments:
-    COMMENT quotedText
+    COMMENT textStringLiteral
 ;
 ```
 
@@ -554,6 +557,25 @@ metadata:
 ;
 ```
 
+## CLONE REST SERVICE
+
+Duplicates the contents of a REST service to a newly created one.
+
+All endpoints and roles belonging to the given service are copied.
+
+**_SYNTAX_**
+
+```antlr
+cloneRestServiceStatement:
+    CLONE REST SERVICE serviceRequestPath NEW REQUEST PATH
+        newServiceRequestPath
+;
+```
+
+cloneRestServiceStatement ::=
+![cloneRestServiceStatement](../../images/sql/cloneRestServiceStatement.svg "cloneRestServiceStatement")
+
+
 ## CREATE REST SCHEMA
 
 The CREATE REST SCHEMA statement is used to create a new or replace an existing REST schema. Each REST schema directly maps to a database schema and allows the database schema objects (tables, views and stored procedures) to be exposed via REST endpoints.
@@ -567,8 +589,12 @@ Each REST schema can have its own options, authentication apps and supports a di
 **_SYNTAX_**
 
 ```antlr
-createRestSchemaStatement:
-    CREATE (OR REPLACE)? REST SCHEMA schemaRequestPath? (
+createRestSchemaStatement:    (
+        CREATE OR REPLACE REST SCHEMA
+        | CREATE REST SCHEMA (
+            IF NOT EXISTS
+        )?
+    ) schemaRequestPath? (
         ON SERVICE? serviceRequestPath
     )? FROM schemaName restSchemaOptions?
 ;
@@ -659,7 +685,7 @@ The comments can hold a description of the REST schema. The maximal length is of
 
 ```antlr
 comments:
-    COMMENT quotedText
+    COMMENT textStringLiteral
 ;
 ```
 
@@ -687,10 +713,12 @@ Please see the MRS Reference Manual to learn more about [JSON data mapping views
 **_SYNTAX_**
 
 ```antlr
-createRestViewStatement:
-    CREATE (OR REPLACE)? REST DATA? MAPPING? VIEW viewRequestPath (
-        ON serviceSchemaSelector
-    )? AS qualifiedIdentifier (
+createRestViewStatement:    (
+        CREATE OR REPLACE REST DATA? MAPPING? VIEW
+        | CREATE REST DATA? MAPPING? VIEW (
+            IF NOT EXISTS
+        )?
+    ) viewRequestPath (ON serviceSchemaSelector)? AS qualifiedIdentifier (
         CLASS restObjectName
     )? graphQlCrudOptions? graphQlObj? restObjectOptions?
 ;
@@ -870,7 +898,10 @@ If this REST data mapping view returns a specific MIME type it can be set via th
 
 ```antlr
 restViewMediaType:
-    MEDIA TYPE (quotedText | AUTODETECT)
+    MEDIA TYPE (
+        textStringLiteral
+        | AUTODETECT
+    )
 ;
 ```
 
@@ -1094,10 +1125,13 @@ The `CREATE REST PROCEDURE` statement is used to add REST endpoints for database
 **_SYNTAX_**
 
 ```antlr
-createRestProcedureStatement:
-    CREATE (OR REPLACE)? REST PROCEDURE procedureRequestPath (
-        ON serviceSchemaSelector
-    )? AS qualifiedIdentifier FORCE? (
+createRestProcedureStatement:    (
+        CREATE OR REPLACE REST PROCEDURE
+        | CREATE REST PROCEDURE (
+            IF NOT EXISTS
+        )?
+    ) procedureRequestPath (ON serviceSchemaSelector)? AS qualifiedIdentifier
+        FORCE? (
         PARAMETERS restObjectName? graphQlObj
     )? restProcedureResult* restObjectOptions?
 ;
@@ -1173,10 +1207,13 @@ The `CREATE REST FUNCTION` statement is used to add REST endpoints for database 
 **_SYNTAX_**
 
 ```antlr
-createRestFunctionStatement:
-    CREATE (OR REPLACE)? REST FUNCTION functionRequestPath (
-        ON serviceSchemaSelector
-    )? AS qualifiedIdentifier FORCE? (
+createRestFunctionStatement:    (
+        CREATE OR REPLACE REST FUNCTION
+        | CREATE REST FUNCTION (
+            IF NOT EXISTS
+        )?
+    ) functionRequestPath (ON serviceSchemaSelector)? AS qualifiedIdentifier
+        FORCE? (
         PARAMETERS restObjectName? graphQlObj
     )? restFunctionResult? restObjectOptions?
 ;
@@ -1228,9 +1265,12 @@ The `CREATE REST CONTENT SET` statement is used to add REST endpoints for static
 **_SYNTAX_**
 
 ```antlr
-createRestContentSetStatement:
-    CREATE (OR REPLACE)? REST CONTENT SET
-        contentSetRequestPath (
+createRestContentSetStatement:    (
+        CREATE OR REPLACE REST CONTENT SET
+        | CREATE REST CONTENT SET (
+            IF NOT EXISTS
+        )?
+    ) contentSetRequestPath (
         ON SERVICE? serviceRequestPath
     )? (FROM directoryFilePath)? restContentSetOptions?
 ;
@@ -1240,6 +1280,8 @@ restContentSetOptions: (
         | authenticationRequired
         | jsonOptions
         | comments
+        | fileIgnoreList
+        | loadScripts
     )+
 ;
 ```
@@ -1249,6 +1291,45 @@ createRestContentSetStatement ::=
 
 restContentSetOptions ::=
 ![restContentSetOptions](../../images/sql/restContentSetOptions.svg "restContentSetOptions")
+
+## CREATE REST CONTENT FILE
+
+Adds a file to a content set.
+
+**_SYNTAX_**
+
+```antlr
+createRestContentFileStatement:    (
+        CREATE OR REPLACE REST CONTENT FILE
+        | CREATE REST CONTENT FILE (
+            IF NOT EXISTS
+        )?
+    ) contentFileRequestPath ON (
+        SERVICE? serviceRequestPath
+    )? CONTENT SET contentSetRequestPath (
+        (FROM directoryFilePath)
+        | (BINARY? CONTENT textStringLiteral)
+    ) restContentFileOptions?
+;
+
+restContentFileOptions: (
+        enabledDisabledPrivate
+        | authenticationRequired
+        | jsonOptions
+    )+
+;
+
+directoryFilePath:
+    textStringLiteral
+;
+```
+
+createRestContentFileStatement ::=
+![createRestContentFileStatement](../../images/sql/createRestContentFileStatement.svg "createRestContentFileStatement")
+
+restContentFileOptions ::=
+![restContentFileOptions](../../images/sql/restContentFileOptions.svg "restContentFileOptions")
+
 
 ## CREATE REST AUTH APP
 
@@ -1261,11 +1342,16 @@ The [CREATE REST SERVICE](#create-rest-service) and [ALTER REST SERVICE](#alter-
 **_SYNTAX_**
 
 ```antlr
-createRestAuthAppStatement:
-    CREATE (OR REPLACE)? REST (
-        AUTH
-        | AUTHENTICATION
-    ) APP authAppName VENDOR (
+createRestAuthAppStatement:    (
+        CREATE OR REPLACE REST (
+            AUTH
+            | AUTHENTICATION
+        ) APP
+        | CREATE REST (
+            AUTH
+            | AUTHENTICATION
+        ) APP (IF NOT EXISTS)?
+    ) authAppName VENDOR (
         MRS
         | MYSQL
         | vendorName
@@ -1290,19 +1376,23 @@ allowNewUsersToRegister:
 ;
 
 defaultRole:
-    DEFAULT ROLE quotedText
+    DEFAULT ROLE textOrIdentifier
 ;
 
 appId:
-    (APP | CLIENT) ID quotedText
+    (APP | CLIENT) ID textStringLiteral
 ;
 
 appSecret:
-    (APP | CLIENT) SECRET quotedText
+    (APP | CLIENT) SECRET textStringLiteral
 ;
 
 url:
-    URL quotedText
+    URL textStringLiteral
+;
+
+authAppName:
+    textOrIdentifier
 ;
 ```
 
@@ -1380,20 +1470,26 @@ The `CREATE REST USER` statement is used to add REST user to a REST authenticati
 **_SYNTAX_**
 
 ```antlr
-createRestUserStatement:
-    CREATE (OR REPLACE)? REST USER userName AT_SIGN
-        authAppName (IDENTIFIED BY userPassword)? userOptions?
+createRestUserStatement:    (
+        CREATE OR REPLACE REST USER
+        | CREATE REST USER (
+            IF NOT EXISTS
+        )?
+    ) userName AT_SIGN authAppName (
+        IDENTIFIED BY userPassword
+    )? userOptions?
 ;
 
 userName:
-    quotedText
+    textOrIdentifier
 ;
 
 userPassword:
-    quotedText
+    textStringLiteral
 ;
 
-userOptions: (accountLock | appOptions | jsonOptions)+
+userOptions:
+ (accountLock | appOptions | jsonOptions)+
 ;
 
 appOptions:
@@ -1401,7 +1497,7 @@ appOptions:
 ;
 
 accountLock:
-    ACCOUNT ( LOCK | UNLOCK )
+    ACCOUNT (LOCK | UNLOCK)
 ;
 
 ```
@@ -1425,13 +1521,16 @@ Creates a REST role to the specified or currently active REST service. Role name
 **_SYNTAX_**
 
 ```antlr
-createRestRoleStatement:
-    CREATE (OR REPLACE)? REST ROLE roleName (
-        EXTENDS parentRoleName
-    )? (ON (ANY SERVICE | SERVICE? serviceRequestPath))? restRoleOptions?
+createRestRoleStatement:    (
+        CREATE OR REPLACE REST ROLE
+        | CREATE REST ROLE (
+            IF NOT EXISTS
+        )?
+    ) roleName (EXTENDS parentRoleName)? roleService? restRoleOptions?
 ;
 
-restRoleOptions: (jsonOptions | comments)+
+restRoleOptions:
+ (jsonOptions | comments)+
 ;
 ```
 

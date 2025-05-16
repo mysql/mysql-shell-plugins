@@ -3011,7 +3011,7 @@ Service - Reference Manual
                 specific user account. That user must also have specific
                 privileges to access that object and execute the desired
                 HTTP method (GET, POST etc).</p>
-                <p>MRS defines 5 discrete types of users according to
+                <p>MRS defines 5 distinct types of users according to
                 the type of activities they’re allowed to perform in a
                 MRS deployment. These users map to 5 MySQL roles created
                 during MRS configuration, which can be granted in any
@@ -3384,6 +3384,25 @@ Service - Reference Manual
 <span id="cb46-31"><a href="#cb46-31" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;editor&quot;</span> <span class="kw">TO</span> <span class="ot">&quot;mike&quot;</span>@<span class="ot">&quot;TestAuthApp&quot;</span>;</span>
 <span id="cb46-32"><a href="#cb46-32" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb46-33"><a href="#cb46-33" aria-hidden="true" tabindex="-1"></a># Now, these three users can login <span class="kw">with</span> <span class="kw">the</span> specified <span class="kw">password</span> via MRS authentication.</span></code></pre></div>
+                <p>By default, roles are specific to a service. The
+                service to which a role belongs to can be specified
+                directly in the <code>CREATE REST ROLE</code> in the
+                statement but if omitted, it will be created in the
+                current default service. Role names only need to be
+                unique within a service:</p>
+                <div class="sourceCode" id="cb47"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;myrole&quot;</span> <span class="kw">ON</span> SERVICE <span class="op">/</span>myOtherService;</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a># <span class="kw">The</span> <span class="kw">role</span> <span class="kw">is</span> created <span class="kw">in</span> service <span class="op">/</span>myTestService, which <span class="kw">is</span> <span class="kw">the</span> <span class="kw">current</span> <span class="kw">default</span></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;myrole&quot;</span>;</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;myrole&quot;</span> <span class="kw">ON</span> SERVICE <span class="op">/</span>myTestService;</span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>SHOW <span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;myrole&quot;</span> <span class="kw">ON</span> SERVICE <span class="op">/</span>myOtherService;</span></code></pre></div>
+                <p>It is also possible to create roles that can be used
+                from any service, by specifying the
+                <code>ON ANY SERVICE</code> clause:</p>
+                <div class="sourceCode" id="cb48"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;globalRole&quot;</span> <span class="kw">ON</span> <span class="kw">ANY</span> SERVICE;</span></code></pre></div>
                 <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -3697,8 +3716,8 @@ Service - Reference Manual
                 <p>Apart from using the MySQL Shell for VS Code
                 extension it is also possible to use the MySQL Shell to
                 upload the MRS Scripts to MRS.</p>
-                <div class="sourceCode" id="cb47"><pre
-                class="sourceCode bash"><code class="sourceCode bash"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="ex">~/.mysqlsh-gui/mysqlsh</span> dba@localhost <span class="at">--sql</span> <span class="at">-e</span> <span class="st">&#39;CREATE OR REPLACE REST CONTENT SET /mrsScriptsContent ON SERVICE /myService FROM &quot;~/path_to_project_folder/mrs_scripts&quot; LOAD SCRIPTS&#39;</span></span></code></pre></div>
+                <div class="sourceCode" id="cb49"><pre
+                class="sourceCode bash"><code class="sourceCode bash"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="ex">~/.mysqlsh-gui/mysqlsh</span> dba@localhost <span class="at">--sql</span> <span class="at">-e</span> <span class="st">&#39;CREATE OR REPLACE REST CONTENT SET /mrsScriptsContent ON SERVICE /myService FROM &quot;~/path_to_project_folder/mrs_scripts&quot; LOAD SCRIPTS&#39;</span></span></code></pre></div>
                 <p>Copyright (c) 2022, 2025, Oracle and/or its
                 affiliates.</p>
             </div>

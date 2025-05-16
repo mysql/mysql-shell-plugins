@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -120,8 +120,8 @@ The `SHOW REST SCHEMAS` statement lists all available REST schemas of the given 
 
 ```antlr
 showRestSchemasStatement:
-    SHOW REST DATABASES (
-        (IN | FROM) SERVICE? serviceRequestPath
+    SHOW REST SCHEMAS (
+        (ON | FROM) SERVICE? serviceRequestPath
     )?
 ;
 ```
@@ -146,12 +146,12 @@ The `SHOW REST DATA MAPPING VIEWS` statement lists all available REST data mappi
 ```antlr
 showRestViewsStatement:
     SHOW REST DATA? MAPPING? VIEWS (
-        (IN | FROM) serviceSchemaSelector
+        (ON | FROM) serviceSchemaSelector
     )?
 ;
 
 serviceSchemaSelector:
-    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+    (SERVICE serviceRequestPath)? SCHEMA schemaRequestPath
 ;
 ```
 
@@ -178,12 +178,12 @@ The `SHOW REST PROCEDURES` statement lists all available REST procedures of the 
 ```antlr
 showRestProceduresStatement:
     SHOW REST PROCEDURES (
-        (IN | FROM) serviceSchemaSelector
+        (ON | FROM) serviceSchemaSelector
     )?
 ;
 
 serviceSchemaSelector:
-    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+    (SERVICE serviceRequestPath)? SCHEMA schemaRequestPath
 ;
 ```
 
@@ -202,12 +202,12 @@ The `SHOW REST FUNCTIONS` statement lists all available REST functions of the gi
 ```antlr
 showRestFunctionsStatement:
     SHOW REST FUNCTIONS (
-        (IN | FROM) serviceSchemaSelector
+        (ON | FROM) serviceSchemaSelector
     )?
 ;
 
 serviceSchemaSelector:
-    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+    (SERVICE serviceRequestPath)? SCHEMA schemaRequestPath
 ;
 ```
 
@@ -234,7 +234,7 @@ The `SHOW REST CONTENT SETS` statement lists all available REST content sets of 
 ```antlr
 showRestContentSetsStatement:
     SHOW REST CONTENT SETS (
-        (IN | FROM) SERVICE? serviceRequestPath
+        (ON | FROM) SERVICE? serviceRequestPath
     )?
 ;
 ```
@@ -250,6 +250,61 @@ The following example lists all REST content sets of the given REST service.
 SHOW REST CONTENT SETS FROM SERVICE /myService;
 ```
 
+## SHOW REST CONTENT FILES
+
+The `SHOW REST CONTENT SETS` statement lists all available REST content files of the given content set.
+
+**_SYNTAX_**
+
+```antlr
+showRestContentFilesStatement:
+    SHOW REST CONTENT FILES (
+        ON
+        | FROM
+    ) (SERVICE? serviceRequestPath)? CONTENT SET contentSetRequestPath
+;
+```
+
+showRestContentFilesStatement ::=
+![showRestContentFilesStatement](../../images/sql/showRestContentFilesStatement.svg "showRestContentFilesStatement")
+
+## SHOW CREATE REST CONTENT SET
+
+Shows the CREATE SQL statement corresponding to the given content set.
+
+**_SYNTAX_**
+
+```antlr
+showCreateRestContentSetStatement:
+    SHOW CREATE REST CONTENT SET contentSetRequestPath (
+        (ON | FROM) SERVICE? serviceRequestPath
+    )?
+;
+```
+
+showCreateRestContentSetStatement ::=
+![showCreateRestContentSetStatement](../../images/sql/showCreateRestContentSetStatement.svg "showCreateRestContentSetStatement")
+
+
+## SHOW CREATE REST CONTENT FILE
+
+Shows the CREATE SQL statement corresponding to the given content file.
+
+**_SYNTAX_**
+
+```antlr
+showCreateRestContentFileStatement:
+    SHOW CREATE REST CONTENT FILE contentFileRequestPath (
+        ON
+        | FROM
+    ) (SERVICE? serviceRequestPath)? CONTENT SET contentSetRequestPath
+;
+```
+
+showCreateRestContentFileStatement ::=
+![showCreateRestContentFileStatement](../../images/sql/showCreateRestContentFileStatement.svg "showCreateRestContentFileStatement")
+
+
 ## SHOW REST AUTH APPS
 
 The `SHOW REST AUTH APPS` statement lists all available REST auth apps of the given or current REST service.
@@ -259,7 +314,7 @@ The `SHOW REST AUTH APPS` statement lists all available REST auth apps of the gi
 ```antlr
 showRestAuthAppsStatement:
     SHOW REST AUTH APPS (
-        (IN | FROM) SERVICE? serviceRequestPath
+        (ON | FROM) SERVICE? serviceRequestPath
     )?
 ;
 ```
@@ -283,7 +338,9 @@ The `SHOW CREATE REST SERVICE` statement shows the corresponding DDL statement f
 
 ```antlr
 showCreateRestServiceStatement:
-    SHOW CREATE REST SERVICE serviceRequestPath?
+    SHOW CREATE REST SERVICE serviceRequestPath? (
+        INCLUDING SCHEMA ENDPOINTS
+    )?
 ;
 ```
 
@@ -306,7 +363,7 @@ The `SHOW CREATE REST SCHEMA` statement shows the corresponding DDL statement fo
 
 ```antlr
 showCreateRestSchemaStatement:
-    SHOW CREATE REST DATABASE schemaRequestPath? (
+    SHOW CREATE REST SCHEMA schemaRequestPath? (
         (ON | FROM) SERVICE? serviceRequestPath
     )?
 ;
@@ -337,7 +394,7 @@ showCreateRestViewStatement:
 ;
 
 serviceSchemaSelector:
-    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+    (SERVICE serviceRequestPath)? SCHEMA schemaRequestPath
 ;
 ```
 
@@ -369,7 +426,7 @@ showCreateRestProcedureStatement:
 ;
 
 serviceSchemaSelector:
-    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+    (SERVICE serviceRequestPath)? SCHEMA schemaRequestPath
 ;
 ```
 
@@ -393,7 +450,7 @@ showCreateRestFunctionStatement:
 ;
 
 serviceSchemaSelector:
-    (SERVICE serviceRequestPath)? DATABASE schemaRequestPath
+    (SERVICE serviceRequestPath)? SCHEMA schemaRequestPath
 ;
 ```
 
@@ -411,17 +468,15 @@ The following example shows the DDL statement for the given REST procedure.
 SHOW CREATE REST PROCEDURE /inventory_in_stock ON SERVICE /myService SCHEMA /sakila;
 ```
 
-## SHOW CREATE AUTH APP
+## SHOW CREATE REST AUTH APP
 
-The `SHOW CREATE AUTH APP` statement shows the corresponding DDL statement for the given REST auth app.
+The `SHOW CREATE REST AUTH APP` statement shows the corresponding DDL statement for the given REST auth app.
 
 **_SYNTAX_**
 
 ```antlr
 showCreateRestAuthAppStatement:
-    SHOW CREATE REST AUTH APP authAppName (
-        (ON | FROM) SERVICE? serviceRequestPath
-    )?
+    SHOW CREATE REST AUTH APP authAppName
 ;
 ```
 
@@ -433,7 +488,63 @@ showCreateRestAuthAppStatement ::=
 The following example shows the DDL statement for the given REST auth app.
 
 ```sql
-SHOW CREATE REST AUTH APP "MRS" FROM SERVICE localhost/myTestService;
+SHOW CREATE REST AUTH APP "MRS" FROM SERVICE /myTestService;
+```
+
+## SHOW CREATE REST ROLE
+
+The `SHOW CREATE REST ROLE` statement shows the corresponding DDL statement for the given REST role.
+
+**_SYNTAX_**
+
+```antlr
+showCreateRestRoleStatement:
+    SHOW CREATE REST ROLE roleName roleService?
+;
+
+roleService:
+    ON (
+        ANY SERVICE
+        | SERVICE? serviceRequestPath
+    )
+;
+```
+
+showCreateRestRoleStatement ::=
+![showCreateRestRoleStatement](../../images/sql/showCreateRestRoleStatement.svg "showCreateRestRoleStatement")
+
+roleService ::=
+![roleService](../../images/sql/roleService.svg "roleService")
+
+**_Examples_**
+
+The following example shows the DDL statement for the given REST auth app.
+
+```sql
+SHOW CREATE REST ROLE `myrole` ON SERVICE /myTestService;
+```
+
+## SHOW CREATE REST USER
+
+The `SHOW CREATE REST USER` statement shows the corresponding DDL statement for the given REST user account.
+
+**_SYNTAX_**
+
+```antlr
+showCreateRestUserStatement:
+    SHOW CREATE REST USER userName AT_SIGN authAppName
+;
+```
+
+showCreateRestUserStatement ::=
+![showCreateRestUserStatement](../../images/sql/showCreateRestUserStatement.svg "showCreateRestUserStatement")
+
+**_Examples_**
+
+The following example shows the DDL statement for the given REST auth app.
+
+```sql
+SHOW CREATE REST USER myuser@`MRS` ON SERVICE /myTestService;
 ```
 
 ## SHOW REST ROLES
@@ -445,7 +556,10 @@ Shows a list of roles, optionally filtered by service or auth app and users that
 ```antlr
 showRestRolesStatement:
     SHOW REST ROLES (
-        (ON | FROM) (ANY SERVICE | SERVICE? serviceRequestPath)
+        (ON | FROM) (
+            ANY SERVICE
+            | SERVICE? serviceRequestPath
+        )
     )? (FOR userName? AT_SIGN authAppName)?
 ;
 ```
@@ -462,7 +576,12 @@ Show the list of REST privileges that were granted to the given role.
 
 ```antlr
 showRestGrantsStatement:
-    SHOW REST GRANTS FOR roleName
+    SHOW REST GRANTS FOR roleName (
+        (ON | FROM) (
+            ANY SERVICE
+            | SERVICE? serviceRequestPath
+        )
+    )?
 ;
 ```
 
