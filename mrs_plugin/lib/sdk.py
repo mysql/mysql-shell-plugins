@@ -1278,6 +1278,7 @@ def generate_interfaces(
     obj_sortable_fields: set[str] = set()
     has_nested_fields = False
     required_datatypes: set[str] = set()
+    nested_fields: set[str] = set()
 
     # The I{class_name}, I{class_name}Params and I{class_name}Out interfaces
     for field in fields:
@@ -1349,6 +1350,8 @@ def generate_interfaces(
                         fields=fields,
                         class_name=class_name,
                         sdk_language=sdk_language,
+                        nested_fields=nested_fields,
+                        fully_qualified_parent_name=field.get("name"),
                     )
             elif obj.get("kind") == "PARAMETERS":
                 # If this field represents an OUT parameter of a SP, add it to the
@@ -1479,6 +1482,14 @@ def generate_interfaces(
                     name=f"{class_name}Nested", sdk_language=sdk_language
                 )
             )
+        else:
+            obj_interfaces.append(
+                generate_field_enum(
+                    name=f"{class_name}Nested",
+                    fields=nested_fields,
+                    sdk_language=sdk_language,
+                )
+            )
 
         obj_interfaces.append(
             generate_selectable(class_name, interface_fields, sdk_language)
@@ -1606,7 +1617,7 @@ def generate_interfaces(
 def generate_nested_interfaces(
         obj_interfaces, parent_interface_fields, parent_field,
         reference_class_name_postfix,
-        fields, class_name, sdk_language):
+        fields, class_name, sdk_language, fully_qualified_parent_name: str = "", nested_fields: set[str] = set()):
     # Build interface name
     interface_name = f"{class_name}{reference_class_name_postfix}"
 
@@ -1639,16 +1650,22 @@ def generate_nested_interfaces(
                     generate_nested_interfaces(
                         obj_interfaces, interface_fields, field,
                         reference_class_name_postfix=reference_class_name_postfix + field_interface_name,
-                        fields=fields, class_name=class_name, sdk_language=sdk_language)
+                        fields=fields, class_name=class_name, sdk_language=sdk_language, nested_fields=nested_fields,
+                        fully_qualified_parent_name=f"{parent_field.get("name")}.{field.get("name")}")
             else:
                 datatype = get_interface_datatype(field, sdk_language)
                 interface_fields.update({ field.get("name"): datatype })
 
     if not parent_obj_ref.get("unnest"):
-        obj_interfaces.append(generate_type_declaration(name=interface_name, fields=interface_fields,
-                                                        sdk_language=sdk_language))
-        obj_interfaces.append(generate_field_enum(name=f"{class_name}Nested", fields=interface_fields,
-                                                  sdk_language=sdk_language))
+        obj_interfaces.append(
+            generate_type_declaration(
+                name=interface_name,
+                fields=interface_fields,
+                sdk_language=sdk_language,
+                non_mandatory_fields=set(interface_fields),
+            )
+        )
+        nested_fields.update([f"{fully_qualified_parent_name}.{field}" for field in interface_fields])
 
 
 def get_mrs_runtime_management_code(session, service_url=None):
