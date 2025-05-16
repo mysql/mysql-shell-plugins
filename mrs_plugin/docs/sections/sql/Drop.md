@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -31,7 +31,9 @@ An existing REST service can be dropped by using the `DROP REST SERVICE` stateme
 
 ```antlr
 dropRestServiceStatement:
-    DROP REST SERVICE serviceRequestPath
+    DROP REST SERVICE (
+        IF EXISTS
+    )? serviceRequestPath
 ;
 ```
 
@@ -54,7 +56,9 @@ An existing REST schema can be dropped by using the `DROP REST SCHEMA` statement
 
 ```antlr
 dropRestSchemaStatement:
-    DROP REST DATABASE schemaRequestPath (
+    DROP REST SCHEMA (
+        IF EXISTS
+    )? schemaRequestPath (
         FROM SERVICE? serviceRequestPath
     )?
 ;
@@ -79,8 +83,9 @@ The `DROP REST DATA MAPPING VIEW` statement is used to drop existing REST data m
 
 ```antlr
 dropRestViewStatement:
-    DROP REST DATA? MAPPING? VIEW
-        viewRequestPath (FROM serviceSchemaSelector)?
+    DROP REST DATA? MAPPING? VIEW (
+        IF EXISTS
+    )? viewRequestPath (FROM serviceSchemaSelector)?
 ;
 ```
 
@@ -104,9 +109,9 @@ The `DROP REST PROCEDURE` statement is used to drop an existing REST procedures.
 
 ```antlr
 dropRestProcedureStatement:
-    DROP REST PROCEDURE procedureRequestPath (
-        FROM serviceSchemaSelector
-    )?
+    DROP REST PROCEDURE (
+        IF EXISTS
+    )? procedureRequestPath (FROM serviceSchemaSelector)?
 ;
 ```
 
@@ -121,9 +126,9 @@ The `DROP REST FUNCTION` statement is used to drop an existing REST functions.
 
 ```antlr
 dropRestFunctionStatement:
-    DROP REST FUNCTION functionRequestPath (
-        FROM serviceSchemaSelector
-    )?
+    DROP REST FUNCTION (
+        IF EXISTS
+    )? functionRequestPath (FROM serviceSchemaSelector)?
 ;
 ```
 
@@ -138,7 +143,9 @@ The `DROP REST CONTENT SET` statement is used to drop an existing REST static co
 
 ```antlr
 dropRestContentSetStatement:
-    DROP REST CONTENT SET contentSetRequestPath (
+    DROP REST CONTENT SET (
+        IF EXISTS
+    )? contentSetRequestPath (
         FROM SERVICE? serviceRequestPath
     )?
 ;
@@ -146,6 +153,25 @@ dropRestContentSetStatement:
 
 dropRestContentSetStatement ::=
 ![dropRestContentSetStatement](../../images/sql/dropRestContentSetStatement.svg "dropRestContentSetStatement")
+
+## DROP REST CONTENT FILE
+
+Removes a file from a REST static content set.
+
+**_SYNTAX_**
+
+```antlr
+dropRestContentFileStatement:
+    DROP REST CONTENT FILE (
+        IF EXISTS
+    )? contentFileRequestPath FROM (
+        SERVICE? serviceRequestPath
+    )? CONTENT SET contentSetRequestPath
+;
+```
+
+dropRestContentFileStatement ::=
+![dropRestContentFileStatement](../../images/sql/dropRestContentFileStatement.svg "dropRestContentFileStatement")
 
 ## DROP REST AUTH APP
 
@@ -155,9 +181,9 @@ The `DROP REST AUTH APP` statement is used to drop an existing REST authenticati
 
 ```antlr
 dropRestAuthAppStatement:
-    DROP REST (AUTH | AUTHENTICATION) APP authAppName (
-        FROM SERVICE? serviceRequestPath
-    )?
+    DROP REST (AUTH | AUTHENTICATION) APP (
+        IF EXISTS
+    )? authAppName
 ;
 ```
 
@@ -172,9 +198,8 @@ The `DROP REST USER` statement is used to drop an existing REST user from a REST
 
 ```antlr
 dropRestUserStatement:
-    DROP REST USER userName AT_SIGN authAppName (
-        ON SERVICE? serviceRequestPath
-    )?
+    DROP REST USER (IF EXISTS)? userName AT_SIGN
+        authAppName
 ;
 ```
 
@@ -190,7 +215,7 @@ Drops the named REST role.
 
 ```antlr
 dropRestRoleStatement:
-    DROP REST ROLE roleName
+    DROP REST ROLE (IF EXISTS)? roleName roleService?
 ;
 ```
 

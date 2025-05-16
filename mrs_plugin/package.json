@@ -5,6 +5,7 @@
     "scripts": {
         "update-mrs-parser": "scripts/generate_mrs_parser.sh",
         "fix-rrd-svg-files": "scripts/fix_rrd_svg_files.sh",
+        "update-grammar-docs": "mysqlsh -f scripts/update_grammar_docs.py",
         "update-html-docs": "scripts/generate_html_docs.sh",
         "run-grammar-test": "clear; scripts/run_grammar_test.sh",
         "run-md-upgrade-test": "clear; scripts/run_md_upgrade_test.sh",
