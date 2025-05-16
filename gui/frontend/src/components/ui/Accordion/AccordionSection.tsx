@@ -123,7 +123,7 @@ export class AccordionSection extends ComponentBase<IAccordionSectionProperties,
                                     />;
                                 } else {
                                     return (
-                                        <MenuItem // Render a menu item here, not a menu (to an icon).
+                                        <MenuItem // Render a menu item here, not a menu (to have an icon).
                                             key={String(index)}
                                             command={{ title: "", command: "" }}
                                             icon={action.icon}

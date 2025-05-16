@@ -294,9 +294,10 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             defaultOpening: false,
         };
 
-        this.addHandledProperties("selectedEntry", "markedSchema", "savedSectionState", "onSelectConnectionItem",
-            "onSelectDocumentItem", "onSelectScriptItem", "onChangeItem", "onSaveState", "onConnectionTreeCommand",
-            "onDocumentTreeCommand", "onScriptTreeCommand", "onOciTreeCommand");
+        this.addHandledProperties("selectedOpenDocument", "markedSchema", "savedSectionState", "overviewId",
+            "onSelectConnectionItem", "onSelectDocumentItem", "onChangeItem", "onSaveState",
+            "onConnectionTreeCommand", "onDocumentTreeCommand", "onOciTreeCommand",
+        );
     }
 
     public override componentDidMount(): void {
@@ -400,7 +401,6 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         const documentSectionState = savedSectionState?.get("documentSection") ?? {};
         const connectionSectionState = savedSectionState?.get("connectionSection") ?? {};
         const ociSectionState = savedSectionState?.get("ociSection") ?? {};
-        //const shellTaskSectionState = savedSectionState?.get("shellTasksSection") ?? {};
 
         const title = appParameters.embedded ? "MYSQL SHELL GUI" : "MYSQL SHELL WORKBENCH";
 
