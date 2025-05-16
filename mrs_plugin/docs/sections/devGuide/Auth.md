@@ -29,7 +29,7 @@ As a HTTP REST service, MRS performs its own authentication and authorization ch
 
 In general, anyone or anything that intends to access a MRS endpoint needs to first authenticate with it as a specific user account. That user must also have specific privileges to access that object and execute the desired HTTP method (GET, POST etc).
 
-MRS defines 5 discrete types of users according to the type of activities they're allowed to perform in a MRS deployment. These users map to 5 MySQL roles created during MRS configuration, which can be granted in any combination to one or more MySQL user accounts.
+MRS defines 5 distinct types of users according to the type of activities they're allowed to perform in a MRS deployment. These users map to 5 MySQL roles created during MRS configuration, which can be granted in any combination to one or more MySQL user accounts.
 
 All roles have the minimal set of MySQL privileges necessary, mostly restricted to internal MRS metadata tables. By default, they have no access to any other schemas or tables. However, some roles must be granted varying levels of access to user schemas, tables and other DB objects necessary for their purpose.
 
@@ -238,4 +238,22 @@ CREATE REST USER "mike"@"TestAuthApp" IDENTIFIED BY "********";
 GRANT REST ROLE "editor" TO "mike"@"TestAuthApp";
 
 # Now, these three users can login with the specified password via MRS authentication.
+```
+
+By default, roles are specific to a service. The service to which a role belongs to can be specified directly in the `CREATE REST ROLE` in the statement but if omitted, it will be created in the current default service. Role names only need to be unique within a service:
+
+```sql
+CREATE REST ROLE "myrole" ON SERVICE /myOtherService;
+
+# The role is created in service /myTestService, which is the current default
+CREATE REST ROLE "myrole";
+
+SHOW CREATE REST ROLE "myrole" ON SERVICE /myTestService;
+SHOW CREATE REST ROLE "myrole" ON SERVICE /myOtherService;
+```
+
+It is also possible to create roles that can be used from any service, by specifying the `ON ANY SERVICE` clause:
+
+```sql
+CREATE REST ROLE "globalRole" ON ANY SERVICE;
 ```
