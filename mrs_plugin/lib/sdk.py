@@ -857,7 +857,7 @@ def get_interface_datatype(
     field,
     sdk_language,
     class_name="",
-    reference_class_name_postfix="",
+    reference_class_name_suffix="",
     enhanced_fields=False,
     nullable=True,
 ):
@@ -877,7 +877,7 @@ def get_interface_datatype(
 
         return maybe_null(client_datatype, sdk_language)
     class_name_postfix = generate_identifier(value=field.get("name"), primitive="class", existing_identifiers=[])
-    return f"I{class_name}{reference_class_name_postfix}{class_name_postfix}"
+    return f"I{class_name}{reference_class_name_suffix}{class_name_postfix}"
 
 
 def datatype_is_primitive(client_datatype, sdk_language):
@@ -940,9 +940,6 @@ def field_has_row_ownership(field, obj):
 
 
 def field_is_required(field, obj):
-    if field.get("lev") != 1:
-        return False
-
     db_column_info = field.get("db_column")
 
     if db_column_info is None:
@@ -1015,10 +1012,14 @@ def get_reduced_field_interface_datatype(field, fields, sdk_language, class_name
 
                 # If the reference mapping is "to_many", use an array
                 ref_mapping = obj_ref.get("reference_mapping")
-                is_array = "[]" if ref_mapping and ref_mapping.get(
-                    "to_many") == True else ""
+                is_array = ref_mapping and ref_mapping.get("to_many", False)
 
-                return datatype + is_array
+                if is_array and sdk_language == "Python":
+                    return f"list[{datatype}]"
+                if is_array:
+                    return f"{datatype}[]"
+
+                return datatype
 
     return None
 
@@ -1033,6 +1034,8 @@ def generate_type_declaration(
     requires_placeholder=False,
     is_unpacked=False,
     readonly_fields: set[str] = set(),
+    nesting_fields: set[str] = set(),
+    nested_value_prefix: str = "",
 ):
     if len(fields) == 0:
         if not requires_placeholder:
@@ -1042,7 +1045,7 @@ def generate_type_declaration(
         field_block = [
             generate_type_declaration_field(
                 name,
-                value,
+                f"I{nested_value_prefix}{value.lstrip("I")}" if name in nesting_fields else value,
                 sdk_language,
                 non_mandatory=(name in non_mandatory_fields),
                 allowed_special_characters={"(", ")"},
@@ -1064,7 +1067,7 @@ def generate_type_declaration(
         field_block = [
             generate_type_declaration_field(
                 name,
-                value,
+                f"list[I{nested_value_prefix}{value.lstrip("list[I")}" if name in nesting_fields else value,
                 sdk_language,
                 non_mandatory=(
                     name in non_mandatory_fields
@@ -1271,6 +1274,7 @@ def generate_interfaces(
 ):
     obj_interfaces: list[str] = []
     interface_fields = {}
+    reduced_to_datatype_fields = {}
     param_interface_fields = {}
     out_params_interface_fields = {}
     obj_unique_fields = {}
@@ -1279,6 +1283,8 @@ def generate_interfaces(
     has_nested_fields = False
     required_datatypes: set[str] = set()
     nested_fields: set[str] = set()
+    nesting_fields: set[str] = set()
+    generated_type_aliases: set[str] = set()
 
     # The I{class_name}, I{class_name}Params and I{class_name}Out interfaces
     for field in fields:
@@ -1295,13 +1301,17 @@ def generate_interfaces(
             )
             # Handle references
             if field.get("represents_reference_id"):
+                # nested field type aliases are already top-level type aliases for other REST objects
+                # we want to re-use them instead of clone them into a new ones
+                nested_class_name = class_name.rstrip(lib.core.convert_path_to_pascal_case(db_obj.get("name")))
+                datatype = get_interface_datatype(field, sdk_language, nested_class_name)
                 has_nested_fields = True
                 # Check if the field should be reduced to the value of another field
                 reduced_to_datatype = get_reduced_field_interface_datatype(
-                    field, fields, sdk_language, class_name
+                    field, fields, sdk_language, nested_class_name
                 )
                 if reduced_to_datatype:
-                    interface_fields.update({field.get("name"): reduced_to_datatype})
+                    reduced_to_datatype_fields.update({field.get("name"): reduced_to_datatype})
                 else:
                     obj_ref = field.get("object_reference")
                     # Add field if the referred table is not unnested
@@ -1342,16 +1352,19 @@ def generate_interfaces(
                     # Call recursive interface generation
                     generate_nested_interfaces(
                         obj_interfaces,
-                        interface_fields,
+                        interface_fields | reduced_to_datatype_fields,
                         field,
-                        reference_class_name_postfix=lib.core.convert_path_to_pascal_case(
+                        reference_class_name_suffix=lib.core.convert_path_to_pascal_case(
                             field.get("name")
                         ),
                         fields=fields,
-                        class_name=class_name,
+                        class_name=nested_class_name,
                         sdk_language=sdk_language,
-                        nested_fields=nested_fields,
+                        nesting_fields=nesting_fields,
                         fully_qualified_parent_name=field.get("name"),
+                        allowed_crud_ops=set(db_object_crud_ops),
+                        reference_obj=obj,
+                        generated_type_aliases=generated_type_aliases,
                     )
             elif obj.get("kind") == "PARAMETERS":
                 # If this field represents an OUT parameter of a SP, add it to the
@@ -1390,6 +1403,9 @@ def generate_interfaces(
 
     if not object_is_routine(db_obj):
         # The object is a TABLE or a VIEW
+        creatable_type_alias_name = f"New{class_name}"
+        updatable_type_alias_name = f"Update{class_name}"
+
         if sdk_language != "TypeScript":
             # These type declarations are not needed for TypeScript because it uses a Proxy to replace the interface
             # and not a wrapper class. This might change in the future.
@@ -1416,7 +1432,8 @@ def generate_interfaces(
                 )
             )
 
-        if "CREATE" in db_object_crud_ops:
+        # Do not generate type aliases that have already been created whilst processing nested fields.
+        if "CREATE" in db_object_crud_ops and creatable_type_alias_name not in generated_type_aliases:
             obj_non_mandatory_fields = set(
                 [
                     field.get("name")
@@ -1426,17 +1443,20 @@ def generate_interfaces(
                     and field_is_required(field, obj) is False
                 ]
             )
-
             obj_interfaces.append(
                 generate_type_declaration(
-                    name=f"New{class_name}",
+                    name=creatable_type_alias_name,
                     fields=interface_fields,
                     sdk_language=sdk_language,
                     non_mandatory_fields=obj_non_mandatory_fields,
+                    nesting_fields=nesting_fields,
+                    nested_value_prefix="New",
                 )
             )
+            generated_type_aliases.add(creatable_type_alias_name)
 
-        if "UPDATE" in db_object_crud_ops:
+        # Do not generate type aliases that have already been created whilst processing nested fields.
+        if "UPDATE" in db_object_crud_ops and updatable_type_alias_name not in generated_type_aliases:
             # TODO: No partial update is supported yet. Once it is, the
             # `non-mandatory_fields` argument should not change.
             # This way, users can know what fields are required and which ones aren't.
@@ -1449,28 +1469,33 @@ def generate_interfaces(
             ]
             obj_interfaces.append(
                 generate_type_declaration(
-                    name=f"Update{class_name}",
+                    name=updatable_type_alias_name,
                     fields=interface_fields,
                     sdk_language=sdk_language,
                     non_mandatory_fields=set(nullable_fields),
+                    nesting_fields=nesting_fields,
+                    nested_value_prefix="Update",
                 )
             )
+            generated_type_aliases.add(updatable_type_alias_name)
 
-        primary_key_fields = [field.get("name") for field in fields if field_is_pk(field)]
-        obj_interfaces.append(
-            generate_data_class(
-                name=class_name,
-                fields=interface_fields,
-                sdk_language=sdk_language,
-                db_object_crud_ops=db_object_crud_ops,
-                obj_endpoint=obj_endpoint,
-                primary_key_fields=set(primary_key_fields),
+        if class_name not in generated_type_aliases:
+            primary_key_fields = [field.get("name") for field in fields if field_is_pk(field)]
+            obj_interfaces.append(
+                generate_data_class(
+                    name=class_name,
+                    fields=interface_fields | reduced_to_datatype_fields,
+                    sdk_language=sdk_language,
+                    db_object_crud_ops=db_object_crud_ops,
+                    obj_endpoint=obj_endpoint,
+                    primary_key_fields=set(primary_key_fields),
+                )
             )
-        )
+            generated_type_aliases.add(class_name)
 
         obj_interfaces.append(
             generate_field_enum(
-                name=class_name, fields=interface_fields, sdk_language=sdk_language
+                name=class_name, fields=interface_fields | reduced_to_datatype_fields, sdk_language=sdk_language
             )
         )
 
@@ -1492,7 +1517,7 @@ def generate_interfaces(
             )
 
         obj_interfaces.append(
-            generate_selectable(class_name, interface_fields, sdk_language)
+            generate_selectable(class_name, interface_fields | reduced_to_datatype_fields, sdk_language)
         )
         obj_interfaces.append(
             generate_sortable(class_name, obj_sortable_fields, sdk_language)
@@ -1616,15 +1641,22 @@ def generate_interfaces(
 # For now, this function is not used for ${DatabaseObject}Params type declarations
 def generate_nested_interfaces(
         obj_interfaces, parent_interface_fields, parent_field,
-        reference_class_name_postfix,
-        fields, class_name, sdk_language, fully_qualified_parent_name: str = "", nested_fields: set[str] = set()):
+        reference_class_name_suffix,
+        fields, class_name, reference_obj,
+        sdk_language: Optional[Literal["TypeScript", "Python"]] = "TypeScript",
+        fully_qualified_parent_name: str = "",
+        nested_fields: set[str] = set(),
+        nesting_fields: set[str] = set(),
+        allowed_crud_ops: set[str] = set(),
+        generated_type_aliases: set[str] = set()):
     # Build interface name
-    interface_name = f"{class_name}{reference_class_name_postfix}"
+    interface_name = f"{class_name}{reference_class_name_suffix}"
 
     # Check if the reference has unnest set, and if so, use the parent_interface_fields
     parent_obj_ref = parent_field.get("object_reference")
     interface_fields = {} if not parent_obj_ref.get(
         "unnest") else parent_interface_fields
+    reduced_to_datatype_fields = {}
 
     for field in fields:
         if (field.get("parent_reference_id") == parent_field.get("represents_reference_id") and
@@ -1635,36 +1667,83 @@ def generate_nested_interfaces(
                 reduced_to_datatype = get_reduced_field_interface_datatype(
                     field, fields, sdk_language, class_name)
                 if reduced_to_datatype:
-                    interface_fields.update({ field.get("name"): reduced_to_datatype })
+                    reduced_to_datatype_fields.update({ field.get("name"): reduced_to_datatype })
                 else:
                     obj_ref = field.get("object_reference")
                     field_interface_name = lib.core.convert_path_to_pascal_case(
                         field.get("name"))
                     # Add field if the referred table is not unnested
                     if not obj_ref.get("unnest"):
-                        datatype = f"{class_name}{reference_class_name_postfix + field.get("name")}"
+                        datatype = f"{class_name}{reference_class_name_suffix + field.get("name")}"
                         # Should use the corresponding nested field type.
                         interface_fields.update({ field.get("name"): f"I{interface_name}" + field_interface_name })
 
                     # If not, do recursive call
                     generate_nested_interfaces(
                         obj_interfaces, interface_fields, field,
-                        reference_class_name_postfix=reference_class_name_postfix + field_interface_name,
-                        fields=fields, class_name=class_name, sdk_language=sdk_language, nested_fields=nested_fields,
-                        fully_qualified_parent_name=f"{parent_field.get("name")}.{field.get("name")}")
+                        reference_class_name_suffix=reference_class_name_suffix + field_interface_name,
+                        fields=fields, class_name=class_name, reference_obj=reference_obj, sdk_language=sdk_language, nested_fields=nested_fields,
+                        fully_qualified_parent_name=f"{parent_field.get("name")}.{field.get("name")}", generated_type_aliases=generated_type_aliases)
             else:
                 datatype = get_interface_datatype(field, sdk_language)
                 interface_fields.update({ field.get("name"): datatype })
 
     if not parent_obj_ref.get("unnest"):
-        obj_interfaces.append(
-            generate_type_declaration(
-                name=interface_name,
-                fields=interface_fields,
-                sdk_language=sdk_language,
-                non_mandatory_fields=set(interface_fields),
+        creatable_type_alias_name = f"New{interface_name}"
+        updatable_type_alias_name = f"Update{interface_name}"
+        # Do not generate type aliases that have already been created whilst processing top-level fields.
+        if "CREATE" in allowed_crud_ops and creatable_type_alias_name not in generated_type_aliases:
+            non_mandatory_fields = [
+                field.get("name")
+                for field in fields
+                # exclude fields that are out of range (e.g. on different nesting levels)
+                if field.get("parent_reference_id") == parent_field.get("represents_reference_id")
+                and field_is_required(field, reference_obj) is False
+            ]
+            obj_interfaces.append(
+                generate_type_declaration(
+                    name=creatable_type_alias_name,
+                    fields=interface_fields,
+                    sdk_language=sdk_language,
+                    non_mandatory_fields=set(non_mandatory_fields),
+                    nesting_fields=nesting_fields,
+                    nested_value_prefix="New",
+                )
             )
-        )
+            generated_type_aliases.add(creatable_type_alias_name)
+        # Do not generate type aliases that have already been created whilst processing top-level fields.
+        if "UPDATE" in allowed_crud_ops and updatable_type_alias_name not in generated_type_aliases:
+            nullable_fields = [
+                field.get("name")
+                for field in fields
+                # exclude fields that are out of range (e.g. on different nesting levels)
+                if field.get("parent_reference_id") == parent_field.get("represents_reference_id")
+                and field_is_nullable(field) or field_has_row_ownership(field, reference_obj)
+            ]
+            obj_interfaces.append(
+                generate_type_declaration(
+                    name=updatable_type_alias_name,
+                    fields=interface_fields,
+                    sdk_language=sdk_language,
+                    non_mandatory_fields=set(nullable_fields),
+                    nesting_fields=nesting_fields,
+                    nested_value_prefix="Update",
+                )
+            )
+            generated_type_aliases.add(updatable_type_alias_name)
+        # Do not generate type aliases that have already been created whilst processing top-level fields.
+        if interface_name not in generated_type_aliases:
+            readable_type_alias_fields = interface_fields | reduced_to_datatype_fields
+            obj_interfaces.append(
+                generate_type_declaration(
+                    name=interface_name,
+                    fields=readable_type_alias_fields,
+                    sdk_language=sdk_language,
+                    non_mandatory_fields=set(readable_type_alias_fields),
+                )
+            )
+            generated_type_aliases.add(interface_name)
+        nesting_fields.add(fully_qualified_parent_name)
         nested_fields.update([f"{fully_qualified_parent_name}.{field}" for field in interface_fields])
 
 

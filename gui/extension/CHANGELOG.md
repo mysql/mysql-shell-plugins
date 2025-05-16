@@ -4,11 +4,12 @@
 
 ### Additions
 
-- 
+-
 
 ### Fixes
 
-- 
+- BUG#37965633 Optional fields required when creating or updating nested documents
+-
 
 ## Changes in 1.19.11+9.3.1
 

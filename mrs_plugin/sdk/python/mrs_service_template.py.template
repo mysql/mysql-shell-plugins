@@ -178,7 +178,7 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
                 I${obj_class_name}UniqueFilterable,
                 I${obj_class_name}Selectable,
                 I${obj_class_name}Field,
-                I${obj_class_name}NestedField
+                I${obj_class_name}NestedField,
             ]
         ],
     ) -> Optional[I${obj_class_name}]:
@@ -191,7 +191,7 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
                 I${obj_class_name}UniqueFilterable,
                 I${obj_class_name}Selectable,
                 I${obj_class_name}Field,
-                I${obj_class_name}NestedField
+                I${obj_class_name}NestedField,
             ]
         ],
     ) -> I${obj_class_name}:
