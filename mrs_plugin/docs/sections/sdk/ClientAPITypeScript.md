@@ -23,27 +23,51 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 # TypeScript Client API Reference
 
-## REST Service
+## getMetadata (TS)
 
-### authenticate
+`getMetadata` is used to retrieve application-specific metadata attached to an MRS resource (REST Service, Schema and/or Object).
 
-`authenticate` is used to authenticate in a given service using a given authentication app.
+### Return Type (getMetadata)
 
-#### Options (authenticate)
+A JSON object containing the application-specific metadata attached to the resource.
+
+### Example (getMetadata)
+
+```TypeScript
+import { MyService } from './myService.mrs.sdk/myService';
+
+const myService = new MyService();
+
+await myService.getMetadata();
+await myService.mrsNotes.getMetadata();
+await myService.mrsNotes.note.getMetadata();
+```
+
+## Service.getAuthApps (TS)
+
+Use `getAuthApps` to get a list of available REST authentication apps for the given REST service. A REST service may be linked to several REST auth apps and therefore it is necessary to choose the right one for authentication.
+
+The name of the REST auth apps needs to be passed to the `Service.authenticate` method when performing the authentication process.
+
+## Service.authenticate (TS)
+
+Use `authenticate` to authenticate in a given REST service using a given authentication app.
+
+### Options (authenticate)
 
 | Name | Type | Required | Description
-|---|---|---|---
+|---|---|---|---------------------
 | username | string | Yes | Username in the scope of the authentication app.
 | password | string | No | Password in the scope of the authentication app.
 | authApp  | string | Yes | Name of the authentication app.
 
 : REST Service Options for Authentication
 
-#### Return Type (authenticate)
+### Return Type (authenticate)
 
 Nothing (void).
 
-#### Reference (authenticate)
+### Reference (authenticate)
 
 ```TypeScript
 async function authenticate (IAuthenticateOptions): Promise<IMrsLoginResult> {
@@ -65,7 +89,7 @@ interface IMrsLoginResult {
 }
 ```
 
-#### Example (authenticate)
+### Example (authenticate)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -76,11 +100,11 @@ await myService.authenticate({ username: 'foo', password: 'bar', app: 'baz' });
 await myService.authenticate({ username: 'foo', password: 'bar', app: 'baz', vendor: "0x30000000000000000000000000000000" });
 ```
 
-### deauthenticate
+## Service.deauthenticate (TS)
 
-`deauthenticate` is used for logging out a user from a given service.
+`deauthenticate` is used for logging out a user from a given REST service.
 
-#### Return Type (deauthenticate)
+### Return Type (deauthenticate)
 
 Nothing (void).
 
@@ -93,7 +117,7 @@ async function deauthenticate (): Promise<void> {
 
 ```
 
-#### Example (deauthenticate)
+### Example (deauthenticate)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -103,45 +127,23 @@ const myService = new MyService();
 await myService.deauthenticate();
 ```
 
-### getMetadata
-
-`getMetadata` is used to retrieve application-specific metadata attached to an MRS resource (REST Service, Schema and/or Object).
-
-#### Return Type (getMetadata)
-
-A JSON object containing the application-specific metadata attached to the resource.
-
-#### Example (getMetadata)
-
-```TypeScript
-import { MyService } from './myService.mrs.sdk/myService';
-
-const myService = new MyService();
-
-await myService.getMetadata();
-await myService.mrsNotes.getMetadata();
-await myService.mrsNotes.note.getMetadata();
-```
-
-## REST View
-
-### create
+## View.create (TS)
 
 `create` is used to add a REST Document to a given REST View. The document is represented as a plain TypeScript/JavaScript object or, alternatively, as an instance of a particular class that encapsulates the data required to create a new document. To insert multiple documents, see `createMany`[#createmany].
 
-#### Options (create)
+### Options (create)
 
 | Name | Type | Required | Description
-|---|---|---|---
+|---|---|---|---------------------
 | data  | object | Yes | Object containing the mapping between column names and values for the REST Document to be created.
 
 : REST View Options (create)
 
-#### Return Type (create)
+### Return Type (create)
 
 A JSON object representing the created REST Documents.
 
-#### Reference (create)
+### Reference (create)
 
 ```TypeScript
 async function create (args: ICreateOptions<Type>): Promise<Type> {
@@ -153,7 +155,7 @@ interface ICreateOptions<Type> {
 }
 ```
 
-#### Example (create)
+### Example (create)
 
 ```TypeScript
 import type { IMyServiceMrsNotesNote } from '/path/to/sdk/myService';
@@ -175,23 +177,23 @@ note.title = 'foo';
 myService.mrsNotes.note.create({ data: note });
 ```
 
-### createMany
+## View.createMany (TS)
 
 `createMany` adds one or more REST Documents to a given REST View. The documents are represented as plain TypeScript/JavaScript objects, or alternatively, as instances of a particular class that encapsulates the data required to create them.
 
-#### Options (createMany)
+### Options (createMany)
 
 | Name | Type | Required | Description
-|---|---|---|---
+|---|---|---|---------------------
 | data  | object | Yes | Array of objects containing the mapping between column names and values for the REST Documents to be created.
 
 : REST View Options (createMany)
 
-#### Return Type (createMany)
+### Return Type (createMany)
 
 An array of JSON objects representing the created REST Documents.
 
-#### Reference (createMany)
+### Reference (createMany)
 
 ```TypeScript
 async function createMany (args: ICreateOptions<Type[]>): Promise<Type[]> {
@@ -203,7 +205,7 @@ interface ICreateOptions<Type> {
 }
 ```
 
-#### Example (createMany)
+### Example (createMany)
 
 ```TypeScript
 import type { IMyServiceMrsNotesNote } from '/path/to/sdk/myService';
@@ -228,14 +230,14 @@ note1.title = 'bar';
 myService.mrsNotes.note.createMany({ data: [note1, note2] });
 ```
 
-### findFirst
+## View.findFirst (TS)
 
 `findFirst` is used to query the first REST Document (**in no specific order**) that matches a given optional filter.
 
-#### Options (findFirst)
+### Options (findFirst)
 
 | Name | Type | Required | Description
-|---|---|---|---
+|---|---|---|---------------------
 | where | object | No | Filtering conditions that apply to specific fields.
 | select | object | No | Specifies which properties to include in the returned object.
 | skip  | number | No | Specifies how many documents to skip before returning one of the matches.
@@ -243,11 +245,11 @@ myService.mrsNotes.note.createMany({ data: [note1, note2] });
 
 : REST View Options (findFirst)
 
-#### Return Type (findFirst)
+### Return Type (findFirst)
 
 A JSON object representing the first REST [Document](#rest-document) that matches the filter or `undefined` when the document was not found.
 
-#### Reference (findFirst)
+### Reference (findFirst)
 
 ```TypeScript
 async function findFirst (args?: IFindOptions<Selectable, Filterable>): Promise<Selectable | undefined> {
@@ -263,7 +265,7 @@ export interface IFindOptions<Selectable, Filterable> {
 }
 ```
 
-#### Example (findFirst)
+### Example (findFirst)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -286,7 +288,7 @@ await myService.mrsNotes.note.findFirst({ where: { shared: true } });
 await myService.mrsNotes.note.findFirst({ where: { title: { $like: "%foo%" } } });
 ```
 
-### findUnique
+## View.findUnique (TS)
 
 `findUnique` is used to query a single, uniquely identified REST Document by:
 
@@ -295,21 +297,21 @@ await myService.mrsNotes.note.findFirst({ where: { title: { $like: "%foo%" } } }
 
 If no document was found matching the given `where` condition, `undefined` is returned. To have an exception thrown in this case, see [findUniqueOrThrow](#finduniqueorthrow).
 
-#### Options (findUnique)
+### Options (findUnique)
 
 | Name | Type | Required | Description
-|---|---|---|---
+|---|---|---|---------------------
 | where | object | Yes | Wraps all unique columns so that individual documents can be selected.
 | select | object | No | Specifies which properties to include in the returned object.
 | readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers.
 
 : REST View Options (findUnique)
 
-#### Return Type (findUnique)
+### Return Type (findUnique)
 
 A JSON object representing the REST [Document](#rest-document) that matches the filter or `undefined` when the document was not found.
 
-#### Reference (findUnique)
+### Reference (findUnique)
 
 ```TypeScript
 async function findUnique (args?: IFindUniqueOptions<Selectable, Filterable>): Promise<Selectable | undefined> {
@@ -323,7 +325,7 @@ interface IFindUniqueOptions<Selectable, Filterable> {
 }
 ```
 
-#### Example (findUnique)
+### Example (findUnique)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -337,7 +339,7 @@ await myService.mrsNotes.note.findUnique({ where: { id: 4 } });
 await myService.mrsNotes.note.findUnique({ where: { id: { $eq: 4 } } });
 ```
 
-### findUniqueOrThrow
+## View.findUniqueOrThrow (TS)
 
 `findUniqueOrThrow` retrieves a single REST [Document](#rest-document) in the same way as [findUnique](#findunique). However, if the query does not find a document, it throws a `NotFoundError`.
 
@@ -345,14 +347,14 @@ await myService.mrsNotes.note.findUnique({ where: { id: { $eq: 4 } } });
 
 - Its return type is non-nullable. For example, myService.mrsNotes.note.findUnique() can return a note or undefined, but myService.mrsNotes.note.findUniqueOrThrow() always returns a note.
 
-### findMany
+## View.findMany (TS)
 
 `findMany` is used to query a subset of REST [Documents](#rest-document) in one or more pages, and optionally, those that match a given filter. To find all REST Documents see [findAll](#findall).
 
-#### Options (findMany)
+### Options (findMany)
 
 | Name | Type | Required | Description
-|---|---|---|---
+|---|---|---|---------------------
 | cursor | object | No | Retrieve documents using unique and sequential fields as cursor.
 | iterator | boolean | No | Enable or disable iterator behavior.
 | orderBy | object | No | Determines the sort order of specific fields.
@@ -364,11 +366,11 @@ await myService.mrsNotes.note.findUnique({ where: { id: { $eq: 4 } } });
 
 : REST View Options (findMany)
 
-#### Return Type (findMany)
+### Return Type (findMany)
 
 An array of JSON objects representing the REST Documents that match the filter.
 
-#### Reference (findMany)
+### Reference (findMany)
 
 ```TypeScript
 async function findMany ({ cursor, iterator = true, orderBy, select, skip, take, where }: IFindManyOptions<Item, Filterable, Cursors>): Promise<Item[]> {
@@ -387,7 +389,7 @@ interface IFindManyOptions<Item, Filterable, Iterable> {
 }
 ```
 
-#### Example (findMany)
+### Example (findMany)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -402,11 +404,11 @@ await myService.mrsNotes.note.findMany({ take: 3 });
 await myService.mrsNotes.note.findMany({ where: { id: { $gt: 10 } } });
 ```
 
-### findAll
+## View.findAll (TS)
 
 `findAll` is used to query every REST [Document](#rest-document), and optionally, all those that match a given filter. To get a paginated subset of documents, see [findMany](#findmany).
 
-#### Options (findAll)
+### Options (findAll)
 
 | Name | Type | Required | Description
 |---|---|---|---
@@ -420,11 +422,11 @@ await myService.mrsNotes.note.findMany({ where: { id: { $gt: 10 } } });
 
 : REST View Options (findAll)
 
-#### Return Type (findAll)
+### Return Type (findAll)
 
 An array of JSON objects representing the REST Documents that match the filter.
 
-#### Reference (findAll)
+### Reference (findAll)
 
 ```TypeScript
 async function findAll (args?: IFindAllOptions<Item, Filterable>): Promise<Item[]> {
@@ -442,7 +444,7 @@ interface IFindAllOptions<Item, Filterable> {
 }
 ```
 
-#### Example (findAll)
+### Example (findAll)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -459,24 +461,24 @@ await myService.mrsNotes.note.findMany({ progress: (notes) => {
 }});
 ```
 
-### delete
+## View.delete (TS)
 
 `delete` is used to delete the first REST Document that matches a given required filter.
 
-#### Options (delete)
+### Options (delete)
 
 | Name | Type | Required | Description
-|---|---|---|---
+|---|---|---|---------------------
 | where | object | Yes | Filtering conditions that apply to specific fields.
 | readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers.
 
 : REST View Options (delete)
 
-#### Return Type (delete)
+### Return Type (delete)
 
 A JSON object containing the number of REST Documents that were deleted (always 1).
 
-#### Reference (delete)
+### Reference (delete)
 
 ```TypeScript
 async function delete (args: IDeleteOptions<IMyServiceMrsNotesUserParams>): Promise<IMrsDeleteResult> {
@@ -493,7 +495,7 @@ interface IMrsDeleteResult {
 }
 ```
 
-#### Example (delete)
+### Example (delete)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -504,24 +506,24 @@ const myService = new MyService();
 await myService.mrsNotes.note.delete({ where: { title: { $like: "%foo%" } } });
 ```
 
-### deleteMany
+## View.deleteMany (TS)
 
 `delete` is used to delete all REST Documents that match a given filter.
 
-#### Options (deleteMany)
+### Options (deleteMany)
 
 | Name | Type | Required | Description
-|---|---|---|---
+|---|---|---|---------------------
 | where | object | No | Filtering conditions that apply to specific fields.
 | readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers.
 
 : REST View Options (deleteMany)
 
-#### Return Type (deleteMany)
+### Return Type (deleteMany)
 
 A JSON object containing the number of REST Documents that were deleted.
 
-#### Reference (deleteMany)
+### Reference (deleteMany)
 
 ```TypeScript
 async function deleteMany (args: IDeleteOptions<IMyServiceMrsNotesUserParams>): Promise<IMrsDeleteResult> {
@@ -551,23 +553,23 @@ await myService.mrsNotes.note.deleteMany({ where: { title: { $like: "%foo%" } } 
 await myService.mrsNotes.note.deleteMany({ where: { shared: true } });
 ```
 
-### update
+## View.update (TS)
 
 `update` is used to update a REST Document with a given identifier or primary key.
 
-#### Options (update)
+### Options (update)
 
 | Name | Type | Required | Description
-|---|---|---|---
+|---|---|---|---------------------
 | data | object | Yes | Set of fields and corresponding values to update.
 
 : REST View Options (update)
 
-#### Return Type (update)
+### Return Type (update)
 
 A JSON object representing the up-to-date REST [Document](#rest-document).
 
-#### Reference (update)
+### Reference (update)
 
 ```TypeScript
 async function update (args: IUpdateOptions<UpdatableFields>): Promise<Data> {
@@ -577,7 +579,7 @@ async function update (args: IUpdateOptions<UpdatableFields>): Promise<Data> {
 type IUpdateOptions<Type> = ICreateOptions<Type>;
 ```
 
-#### Example (update)
+### Example (update)
 
 ```TypeScript
 import type { IMyServiceMrsNotesNote } from '/path/to/sdk/myService';
@@ -601,23 +603,23 @@ note.shared = false;
 await myService.mrsNotes.note.update({ data: note });
 ```
 
-### updateMany
+## View.updateMany (TS)
 
 `updateMany` is used to update all REST Documents with matching identifiers or primary keys.
 
-#### Options (updateMany)
+### Options (updateMany)
 
 | Name | Type | Required | Description
-|---|---|---|---
+|---|---|---|---------------------
 | data | object | Yes | Set of fields and corresponding values to update.
 
 : REST View Options (updateMany)
 
-#### Return Type (updateMany)
+### Return Type (updateMany)
 
 An array of JSON objects representing the up-to-date REST [Documents](#rest-document).
 
-#### Reference (updateMany)
+### Reference (updateMany)
 
 ```TypeScript
 async function updateMany (args: IUpdateOptions<UpdatableFields[]>): Promise<Data[]> {
@@ -627,7 +629,7 @@ async function updateMany (args: IUpdateOptions<UpdatableFields[]>): Promise<Dat
 type IUpdateOptions<Type> = ICreateOptions<Type>;
 ```
 
-#### Example (updateMany)
+### Example (updateMany)
 
 ```TypeScript
 import type { IMyServiceMrsNotesNote } from '/path/to/sdk/myService';
@@ -654,15 +656,14 @@ note.shared = false;
 // update the notes with id 1 and 2
 await myService.mrsNotes.note.update({ data: [note1, note2] });
 ```
-## REST Document
 
-### update
+## Document.update (TS)
 
 `update` is used to update a given REST document by committing the set of updates performed locally on the corresponding instance in the application.
 
 > This function is only available if the REST View enables the "UPDATE" CRUD operation and specifies one or more identifier fields.
 
-#### Reference (update)
+### Reference (update)
 
 ```TypeScript
 async function update(): Promise<IMyServiceSakilaActor> {
@@ -677,7 +678,7 @@ interface IMyServiceSakilaActor {
 }
 ```
 
-#### Example (update)
+### Example (update)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -692,13 +693,13 @@ if (actor) {
 }
 ```
 
-### delete
+## Document.delete (TS)
 
 `delete` is used to delete a given REST document represented by a corresponding instance in the application.
 
 > This function is only available if the REST View enables the "DELETE" CRUD operation and specifies one or more identifier fields.
 
-#### Reference (delete)
+### Reference (delete)
 
 ```TypeScript
 async function delete(): Promise<void> {
@@ -706,7 +707,7 @@ async function delete(): Promise<void> {
 }
 ```
 
-#### Example (delete)
+### Example (delete)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -719,26 +720,24 @@ if (actor) {
 }
 ```
 
-## REST Function/Procedure
-
-### call
+## Function.call (TS)
 
 `call` is used to execute a REST routine (`FUNCTION` or `PROCEDURE`). The first parameter of the command is an `object` containing the set of `IN`/`INOUT` parameters (and corresponding values) as specified by the database routine. The second parameter is an `object` with execution options which is only available if the REST routine has an associated Async Task.
 
-#### Options (call)
+### Options (call)
 
 | Name | Type | Required | Description
-|---|---|---|---
+|---|---|---|---------------------
 | refreshRate | number (>=500) | No | Time (ms) to wait for retrieving the next progress report.
 | progress | async function | No | Callback to be executed using the details of each progress report while the routine does not finish.
 
 : REST Function/Procedure Options (call)
 
-#### Return Type (call)
+### Return Type (call)
 
 A JSON object containing the result produced by the routine (including `OUT`/`INOUT` parameters and result sets).
 
-#### Reference (call)
+### Reference (call)
 
 ```TypeScript
 async function call (noteUpdateParams?: IMyServiceMrsNotesNoteUpdateParams, options?: IMrsTaskRunOptions<object, IMrsProcedureResult<IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>>): Promise<IMrsProcedureResult<IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>> {
@@ -799,22 +798,22 @@ const progress = (report) => {
 await myService.mrsNotes.noteUpdate.call({ noteId: note.id, title: "hello world" }, { progress });
 ```
 
-### start
+## Function.start (TS)
 
 `start` is used to start a REST routine (`FUNCTION` or `PROCEDURE`) with an associated Async Task. The first parameter of the command is an `object` containing the set of `IN`/`INOUT` parameters (and corresponding values) as specified by the database routine. The second and last parameter of the command is an `object` with a set of routine execution constraint options.
 
-#### Options (start)
+### Options (start)
 
 | Name | Type | Required | Description
-|---|---|---|---
+|---|---|---|---------------------
 | refreshRate | number (>=500) | No | Time (ms) to wait for retrieving the next progress report (default 2000).
 | timeout | number | No | Time (ms) to wait for the routine to produce a result.
 
-#### Return Type (start)
+### Return Type (start)
 
 A [Task](#task) instance.
 
-#### Reference (start)
+### Reference (start)
 
 ```TypeScript
 async function start(params?: IMyServiceMrsNotesNoteUpdateParams, options?: IMrsTaskStartOptions): Promise<MrsTask<object, IMrsProcedureResult<IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>>> {
@@ -861,17 +860,23 @@ task = await myService.mrsNotes.noteUpdate.start({ noteId: note.id, title: "hell
 task = await myService.mrsNotes.noteUpdate.start({ noteId: note.id, title: "hello world" }, { timeout: 5000 });
 ```
 
-## Task
+## Procedure.call (TS)
 
-### watch
+`call` is used to execute a REST routine (`FUNCTION` or `PROCEDURE`). Please see [Function.call](#function-call-ts) for more details.
+
+## Procedure.start (TS)
+
+`start` is used to start a REST routine (`FUNCTION` or `PROCEDURE`) with an associated Async Task. Please see [Function.start](#function-start-ts) for more details..
+
+## Task.watch (TS)
 
 `watch` is used to monitor the status of a REST routine (`FUNCTION` or `PROCEDURE`) with an associated Async Task.
 
-#### Return Type (watch)
+### Return Type (watch)
 
 An [AsyncGenerator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncGenerator) instance which produces status update reports with details about the execution context of the REST routine.
 
-#### Reference (watch)
+### Reference (watch)
 
 ```TypeScript
 async function watch(): AsyncGenerator<
@@ -924,7 +929,7 @@ type IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult> =
     | IMrsTimedOutTaskReport<MrsTaskStatusUpdate, MrsTaskResult>;
 ```
 
-#### Example (watch)
+### Example (watch)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
@@ -944,11 +949,11 @@ for await (const report of task.watch()) {
 }
 ```
 
-### kill
+## Task.kill (TS)
 
 `kill` is used to kill the underlying Async Task of a REST routine (`FUNCTION` or `PROCEDURE`) and cancel its execution.
 
-#### Reference (kill)
+### Reference (kill)
 
 ```TypeScript
 async function kill(): Promise<void> {
@@ -956,7 +961,7 @@ async function kill(): Promise<void> {
 }
 ```
 
-#### Example (kill)
+### Example (kill)
 
 ```TypeScript
 import { MyService } from './myService.mrs.sdk/myService';
