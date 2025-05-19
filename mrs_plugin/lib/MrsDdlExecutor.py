@@ -401,7 +401,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                                     "type": "success",
                                     "message": f"REST SERVICE `{full_path}` created successfully.",
                                     "operation": self.current_operation,
-                                    "id": lib.core.convert_id_to_string(service_id),
+                                    "id": lib.core.convert_id_to_string(service.get("id")),
                                     "executionTime": timer.elapsed(),
                                 }
                             )
@@ -728,7 +728,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                                 {
                                     "statementIndex": len(self.results) + 1,
                                     "type": "success",
-                                    "message": f"REST content set `{full_path}` created successfully. {files_added} file(s) added.",
+                                    "message": f"REST content set `{full_path}` created successfully. 0 file(s) added.",
                                     "operation": self.current_operation,
                                     "id": content_set.get("id"),
                                     "executionTime": timer.elapsed(),
@@ -1059,7 +1059,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
                                     "type": "success",
                                     "message": f"REST USER `{full_path}` created successfully.",
                                     "operation": self.current_operation,
-                                    "id": lib.core.convert_id_to_string(user_id),
+                                    "id": lib.core.convert_id_to_string(users[0].get("id")),
                                     "executionTime": timer.elapsed(),
                                 }
                             )
