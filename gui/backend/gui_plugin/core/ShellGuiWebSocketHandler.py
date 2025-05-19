@@ -193,7 +193,10 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         logger.info("Websocket connected")
 
         reset_session = False
-        if self.cookies and 'SessionId' in self.cookies:
+
+        if self.single_server is not None and self.session_uuid is not None:
+            reset_session = True
+        elif self.cookies and 'SessionId' in self.cookies:
             requested_session_id = self.cookies['SessionId']
             self.session_uuid = str(requested_session_id)
 
