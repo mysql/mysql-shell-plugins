@@ -120,28 +120,20 @@ This document explains how to work with the MRS Software Development Kit and dis
 
 !include sections/sdk/Introduction.md
 
-!include sections/sdk/WorkingWithARESTService.md
+!include sections/sdk/WorkingWithRESTServices.md
 
-!include sections/sdk/QueryingDataAcrossTables.md
+!include sections/sdk/WorkingWithRESTViews.md
 
-!include sections/sdk/FunctionsAndProcedures.md
-
-!include sections/sdk/ContextualFieldsAndParameters.md
-
-!include sections/sdk/ReadYourWrites.md
-
-!include sections/sdk/CheckingForNullColumnValues.md
-
-!include sections/sdk/WorkingWithSpatialDataTypes.md
-
-!include sections/sdk/WorkingWithDateAndTimeDataTypes.md
-
-!include sections/sdk/WorkingWithVectorDataTypes.md
-
-!include sections/sdk/Authentication.md
+!include sections/sdk/WorkingWithRESTRoutines.md
 
 !include sections/sdk/ClientAPITypeScript.md
 
-!include sections/sdk/PythonAPIRef.md
+!include sections/sdk/ClientAPIPython.md
+
+!include sections/sdk/CheckingForNullColumnValues.md
+
+!include sections/sdk/WorkingWithDataTypes.md
+
+!include sections/sdk/ApplicationMetadata.md
 
 Copyright (c) 2022, 2025, Oracle and/or its affiliates.

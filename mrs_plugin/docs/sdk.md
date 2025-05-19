@@ -4,23 +4,6 @@ title: MySQL REST Service - SDK Reference
 
 This document explains how to work with the MRS Software Development Kit and discusses the Client API.
 
-__Chapter Overview__
-
-- [Introduction to the MRS SDK](#introduction-to-the-mrs-sdk)
-- [Working with a REST Service](#working-with-a-rest-service)
-- [Document API](#document-api)
-- [Querying Data Across Tables](#querying-data-across-tables)
-- [Functions And Procedures](#functions-and-procedures)
-- [Contextual Fields and Parameters](#contextual-fields-and-parameters)
-- [Read Your Writes Consistency](#read-your-writes-consistency)
-- [Checking for NULL Column Values](#checking-for-null-column-values)
-- [Working with Spatial Data Types](#working-with-spatial-data-types)
-- [Working with Date and Time Data Types](#working-with-date-and-time-data-types)
-- [Working with Vector Data Types](#working-with-vector-data-types)
-- [Authentication](#authentication)
-- [TypeScript Client API Reference](#typescript-client-api-reference)
-- [Python Client API Reference](#python-client-api-reference)
-
 ---
 
 Please also see
@@ -33,30 +16,20 @@ Please also see
 
 !include sections/sdk/Introduction.md
 
-!include sections/sdk/WorkingWithARESTService.md
+!include sections/sdk/WorkingWithRESTServices.md
 
-!include sections/sdk/DocumentAPI.md
+!include sections/sdk/WorkingWithRESTViews.md
 
-!include sections/sdk/QueryingDataAcrossTables.md
-
-!include sections/sdk/FunctionsAndProcedures.md
-
-!include sections/sdk/ContextualFieldsAndParameters.md
-
-!include sections/sdk/ReadYourWrites.md
-
-!include sections/sdk/CheckingForNullColumnValues.md
-
-!include sections/sdk/WorkingWithSpatialDataTypes.md
-
-!include sections/sdk/WorkingWithDateAndTimeDataTypes.md
-
-!include sections/sdk/WorkingWithVectorDataTypes.md
-
-!include sections/sdk/Authentication.md
+!include sections/sdk/WorkingWithRESTRoutines.md
 
 !include sections/sdk/ClientAPITypeScript.md
 
-!include sections/sdk/PythonAPIRef.md
+!include sections/sdk/ClientAPIPython.md
+
+!include sections/sdk/CheckingForNullColumnValues.md
+
+!include sections/sdk/WorkingWithDataTypes.md
+
+!include sections/sdk/ApplicationMetadata.md
 
 Copyright (c) 2022, 2025, Oracle and/or its affiliates.

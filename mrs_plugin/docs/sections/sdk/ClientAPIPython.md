@@ -40,7 +40,7 @@ The following commands can be executed in the scope of a client-side representat
 
 - [get_metadata()](#get_metadata)
 
-### get_metadata
+### get_metadata (PY)
 
 The MRS has a dedicated JSON field where users can store application specific metadata at different levels: service, schema and objects of the schema (such as Views or Functions).
 
@@ -169,7 +169,7 @@ tls_context = my_service.tls_context
 # True
 ```
 
-### get_auth_apps
+### Service.get_auth_apps (PY)
 
 `get_auth_apps()` is a service-level command that enables users to get a list containing the authentication apps and vendor IDs registered for the given service.
 
@@ -198,14 +198,14 @@ auth_apps = await my_service.get_auth_apps()
 # ]
 ```
 
-### authenticate
+### Service.authenticate (PY)
 
 `authenticate` is a service-level command that authenticates a user so he/she can work with restricted MySQL REST Services.
 
 #### Options (authenticate)
 
 | Argument Name  | Data Type | Required | Default | Notes |
-| :-------- | :------- | :------- | :------- |  :------- |
+| :-------- | :------- | :------- | :------- |  :--------------------- |
 | app | `str` | Yes | N/A | Name of the authentication application (as specified by the admin). |
 | user | `str` | Yes |  N/A | User name |
 | password | `str` | No | `""` | If not provided, the empty string is assumed as the password |
@@ -253,7 +253,7 @@ In the case the vendor ID is not specified, and a nonexisting app is provided, a
 
 Also, in the case the vendor ID is specified alongside a nonexisting app, there will not be a lookup. This means that if, by accident, or not, there is no authentication app from the specified `vendor_id` with the given `app`, an `AuthenticationError` exception is returned to the application.
 
-### deauthenticate
+### Service.deauthenticate (PY)
 
 `deauthenticate` is a service-level command that logs you out from authenticated MySQL REST Services.
 
@@ -310,7 +310,7 @@ The following REST resources can be accessed from the corresponding schema names
 
 ## REST Views
 
-### create
+### View.create (PY)
 
 `create` is used to insert a record (a REST document) into the database. The REST document is represented as a typed dictionary object whose fields, or keys, should comply with the interface exposed by the type definition `INew${obj_class_name}` where `${obj_class_name}` is a variable containing a string which is a fully-qualified name composed by the names of the *REST Service*, *REST Schema* and *REST View* themselves.
 
@@ -319,7 +319,7 @@ The following REST resources can be accessed from the corresponding schema names
 #### Options (create)
 
 | Name | Type | Required | Description |
-|---|---|---|---|
+|---|---|---|---------------------|
 | data  | TypedDict | Yes | Object containing the mapping between column names and values for the record to be inserted |
 
 : REST Views Options (create)
@@ -348,7 +348,7 @@ print(actor)
 
 The `actor_id` and `last_update` columns from the `sakila` table on the sample [sakila database](https://dev.mysql.com/doc/sakila/en/) are automatically generated on each insert, which means they can be omitted.
 
-### create_many
+### View.create_many (PY)
 
 `create_many` is used to insert one or more records (REST documents) into the database. A record is represented as a typed dictionary object whose fields, or keys, should comply with the interface exposed by the type definition `INew${obj_class_name}` where `${obj_class_name}` is a variable which value depends on the *service, schema and table* names themselves.
 
@@ -357,7 +357,7 @@ The `actor_id` and `last_update` columns from the `sakila` table on the sample [
 #### Options (create_many)
 
 | Name | Type | Required | Description |
-|---|---|---|---|
+|---|---|---|---------------------|
 | data  | Sequence of `TypedDict` - it can be any Python object supporting the iteration protocol, such as lists and tuples | Yes | List of objects containing the mapping between column names and values for the records to be inserted |
 
 : REST Views Options (create_many)
@@ -405,7 +405,7 @@ print(actors)
 
 The `actor_id` and `last_update` columns from the `sakila` table on the sample [sakila database](https://dev.mysql.com/doc/sakila/en/) are automatically generated on each insert, which means they can be omitted.
 
-### find_first
+### View.find_first (PY)
 
 `find_first` is used to query the first REST document (**in no specific order**) that matches a given optional filter. It returns `None` if no document is found.
 
@@ -416,7 +416,7 @@ The `actor_id` and `last_update` columns from the `sakila` table on the sample [
 #### Options (find_first)
 
 | Name | Type | Required | Description |
-|---|---|---|---|
+|---|---|---|---------------------|
 | select | dict or list | No | Specifies which properties to include or exclude on the returned document - works as a *field filter* |
 | where | dict | No | Applies filtering conditions based on specific fields - works as a *document filter* |
 | skip | int | No | Specifies how many documents to skip before returning one of the matches |
@@ -602,7 +602,7 @@ read_own_writes=True
 read_own_writes=False
 ```
 
-### find_first_or_throw
+### View.find_first_or_throw (PY)
 
 `find_first_or_throw` is used to retrieve the first REST document that matches a given optional filter in the same way as [find_first](#find_first) does. However, if the query does not find a document, it raises a `MrsDocumentNotFoundError` exception.
 
@@ -639,7 +639,7 @@ except MrsDocumentNotFoundError:
 
 See [Example (find_first)](#example-find_first) for additional usage options.
 
-### find_unique
+### View.find_unique (PY)
 
 `find_unique` is used to query a single, uniquely identified REST document by:
 
@@ -653,7 +653,7 @@ It returns `None` if no document is found.
 #### Options (find_unique)
 
 | Name | Type | Required | Description |
-|---|---|---|---|
+|---|---|---|---------------------|
 | select | dict or list | No | Specifies which properties to include or exclude on the returned document - works as a *field filter* |
 | where | dict | Yes | Applies filtering conditions based on specific fields (must be unique) - works as a *document filter* |
 | read_own_writes | bool | No | Ensures read consistency for a cluster of servers - `False` is used by default |
@@ -684,7 +684,7 @@ assert actor.actor_id == aid
 
 See [Example (find_first)](#example-find_first) for additional usage options.
 
-### find_unique_or_throw
+### View.find_unique_or_throw (PY)
 
 `find_unique_or_throw` is used to query a single, uniquely identified REST document by:
 
@@ -722,7 +722,7 @@ except MrsDocumentNotFoundError:
 
 See [Example (find_first)](#example-find_first) for additional usage options.
 
-### find_many
+### View.find_many (PY)
 
 `find_many` is used to query a subset of REST documents in one or more pages, and optionally, those that match a given filter.
 
@@ -731,7 +731,7 @@ See [Example (find_first)](#example-find_first) for additional usage options.
 #### Options (find_many)
 
 | Name | Type | Required | Description |
-|---|---|---|---|
+|---|---|---|---------------------|
 | select | dict or list | No | Specifies which properties to include or exclude on the returned document - works as a *field filter* |
 | where | dict | No | Applies filtering conditions based on specific fields - works as a *document filter* |
 | skip | int | No | Specifies how many documents to skip before returning one of the matches |
@@ -781,7 +781,7 @@ print(actors)
 
 See [Example (find_first)](#example-find_first) for additional usage options.
 
-### find_all
+### View.find_all (PY)
 
 `find_all` is used to retrieve every MRS document, and optionally, all those that match a given filter.
 
@@ -790,7 +790,7 @@ See [Example (find_first)](#example-find_first) for additional usage options.
 #### Options (find_all)
 
 | Name | Type | Required | Description |
-|---|---|---|---|
+|---|---|---|---------------------|
 | select | dict or list | No | Specifies which properties to include or exclude on the returned document - works as a *field filter* |
 | where | dict | No | Applies filtering conditions based on specific fields - works as a *document filter* |
 | skip | int | No | Specifies how many documents to skip before returning one of the matches |
@@ -833,7 +833,7 @@ actors: list[Actor] = await self.my_service.sakila.actor.find_all(
 
 See [Example (find_first)](#example-find_first) for additional usage options.
 
-### delete
+### View.delete (PY)
 
 `delete` is used to delete a single, uniquely identified REST document by:
 
@@ -845,7 +845,7 @@ See [Example (find_first)](#example-find_first) for additional usage options.
 #### Options (delete)
 
 | Name | Type | Required | Description |
-|---|---|---|---|
+|---|---|---|---------------------|
 | where | dict | Yes | Applies filtering conditions based on specific fields (must be unique) - works as a *document filter* |
 | read_own_writes | bool | No | Ensures read consistency for a cluster of servers - `False` is used by default |
 
@@ -873,14 +873,14 @@ else:
     print(f"Actor document with ID={aid} was deleted")
 ```
 
-### delete_many
+### View.delete_many (PY)
 
 `delete_many` is used to delete all REST documents that match a given filter. To delete a single document, see [delete](#delete).
 
 #### Options (delete_many)
 
 | Name | Type | Required | Description |
-|---|---|---|---|
+|---|---|---|---------------------|
 | where | dict | Yes | Applies filtering conditions based on specific fields - works as a *document filter* |
 | read_own_writes | bool | No | Ensures read consistency for a cluster of servers - `False` is used by default |
 
@@ -906,7 +906,7 @@ print(num_items_removed)
 # 3
 ```
 
-### update
+### View.update (PY)
 
 `update` is used to update a REST document with a given identifier or primary key.
 
@@ -915,7 +915,7 @@ print(num_items_removed)
 #### Options (update)
 
 | Name | Type | Required | Description |
-|---|---|---|---|
+|---|---|---|---------------------|
 | data | TypedDict | Yes | Set of fields and corresponding values to update. The identifier or primary key must be included |
 
 : REST Views Options (update)
@@ -953,7 +953,7 @@ assert actor_updated.last_name == "Smith"
 assert actor.actor_id == actor_updated.actor_id
 ```
 
-### update_many
+### View.update_many (PY)
 
 `update_many` is used to update all REST documents with matching identifiers or primary keys.
 
@@ -962,7 +962,7 @@ assert actor.actor_id == actor_updated.actor_id
 #### Options (update_many)
 
 | Name | Type | Required | Description |
-|---|---|---|---|
+|---|---|---|---------------------|
 | data | list of `TypedDict` | Yes | A list of set of fields and corresponding values to update. The identifier or primary key must be included for each "set of fields" (document)|
 
 : REST Views Options (update_many)
@@ -1018,9 +1018,9 @@ assert actors_updated[1].last_name == "Yeung"
 
 A *REST document* behaves like a [Python data class](https://docs.python.org/3/library/dataclasses.html) instance, and implements an extended interface which includes the `update` and `delete` methods.
 
-> **Python data classes defining REST documents are public elements of the *Service* module, however, we advise you to not produce (instantiate) *REST documents* directly. Instead, we recommend doing so indirectly; by calling specific Python SDK commands such as `find*()` or `create*()`. See [REST Views](#rest-views) to know more about these commands.**
+> Python data classes defining REST documents are public elements of the Service module, however, we advise you to not produce (instantiate) REST documents directly. Instead, we recommend doing so indirectly; by calling specific Python SDK commands such as `find*()` or `create*()`. See [REST Views](#rest-views) to know more about these commands.
 
-### update (document)
+### Document.update (PY)
 
 `update` updates the REST document represented by the data class instance.
 
@@ -1084,7 +1084,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-### delete (document)
+### Document.delete (PY)
 
 `delete` deletes the resource represented by the data class instance.
 

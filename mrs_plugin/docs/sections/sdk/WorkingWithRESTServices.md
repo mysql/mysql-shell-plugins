@@ -1,4 +1,4 @@
-<!-- Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+<!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License, version 2.0,
@@ -20,6 +20,44 @@ the GNU General Public License, version 2.0, for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
+
+# Working with REST Services
+
+The initializer returns an objects that implements the interface described in the [API reference docs](#client-api-reference).
+
+For a REST service available under the root path `/myService`, the corresponding client-side object can be created, on TypeScript, as follows:
+
+```TypeScript
+import { MyService } from './myService.mrs.sdk/myService';
+
+const myService = new MyService();
+```
+
+or, using a custom base URL:
+
+```TypeScript
+import { MyService } from './myService.mrs.sdk/myService';
+
+const myService = new MyService("https://localhost:8443/myService");
+```
+
+Similarly, on Python, the client-side object can be created as follows:
+
+```py
+from sdk.my_service import *
+
+my_service = MyService()
+```
+
+or, using a custom base URL:
+
+```py
+from sdk.my_service import *
+
+my_service = MyService(base_url="https://localhost:8443/myService")
+# or just
+my_service = MyService("https://localhost:8443/myService")
+```
 
 ## Authentication
 
