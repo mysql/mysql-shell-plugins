@@ -1,0 +1,52 @@
+{
+  "query": "/* select#1 */ select `sakila`.`country`.`country_id` AS `country_id`,`sakila`.`country`.`country` AS `country`,`sakila`.`country`.`last_update` AS `last_update`,`sakila`.`city`.`city_id` AS `city_id`,`sakila`.`city`.`city` AS `city`,`sakila`.`city`.`country_id` AS `country_id`,`sakila`.`city`.`last_update` AS `last_update` from `sakila`.`country` join `sakila`.`city` where (`sakila`.`city`.`country_id` = `sakila`.`country`.`country_id`)",
+  "query_plan": {
+    "inputs": [
+      {
+        "operation": "Table scan on country",
+        "table_name": "country",
+        "access_type": "table",
+        "schema_name": "sakila",
+        "used_columns": [
+          "country_id",
+          "country",
+          "last_update"
+        ],
+        "estimated_rows": 109.0,
+        "estimated_total_cost": 11.150000000000002
+      },
+      {
+        "covering": false,
+        "operation": "Index lookup on city using idx_fk_country_id (country_id = country.country_id)",
+        "index_name": "idx_fk_country_id",
+        "table_name": "city",
+        "access_type": "index",
+        "key_columns": [
+          "country_id"
+        ],
+        "schema_name": "sakila",
+        "used_columns": [
+          "city_id",
+          "city",
+          "country_id",
+          "last_update"
+        ],
+        "estimated_rows": 5.504587173461914,
+        "lookup_condition": "country_id = country.country_id",
+        "index_access_type": "index_lookup",
+        "lookup_references": [
+          "sakila.country.country_id"
+        ],
+        "estimated_total_cost": 1.3811968733411317
+      }
+    ],
+    "join_type": "inner join",
+    "operation": "Nested loop inner join",
+    "access_type": "join",
+    "estimated_rows": 600.0000019073486,
+    "join_algorithm": "nested_loop",
+    "estimated_total_cost": 221.15000066757204
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+} 

@@ -1,0 +1,12 @@
+{
+  "query": "/* select#1 */ select 1 AS `1`",
+  "query_plan": {
+    "operation": "Rows fetched before execution",
+    "access_type": "rows_fetched_before_execution",
+    "estimated_rows": 1.0,
+    "estimated_total_cost": 0.0,
+    "estimated_first_row_cost": 0.0
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

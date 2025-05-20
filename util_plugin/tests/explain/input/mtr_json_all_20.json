@@ -1,0 +1,17 @@
+{
+  "query": "update `test`.`t1` join `test`.`t2` set `test`.`t1`.`i` = (/* select#2 */ select '1' from dual)",
+  "query_plan": {
+    "inputs": [
+      {
+        "operation": "Rows fetched before execution",
+        "access_type": "rows_fetched_before_execution",
+        "estimated_rows": 1.0,
+        "estimated_total_cost": 0.0,
+        "estimated_first_row_cost": 0.0
+      }
+    ],
+    "operation": "Update t1 (immediate)"
+  },
+  "query_type": "update",
+  "json_schema_version": "2.0"
+}

@@ -1,0 +1,137 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`a` AS `a`,`test`.`t1`.`b` AS `b`,`test`.`t2`.`a` AS `a`,`test`.`t2`.`b` AS `b`,`test`.`t3`.`a` AS `a`,`test`.`t3`.`b` AS `b`,`test`.`t4`.`a` AS `a`,`test`.`t4`.`b` AS `b` from `test`.`t1` join `test`.`t2` join `test`.`t3` join `test`.`t4` where ((`test`.`t4`.`a` = `test`.`t3`.`b`) and (`test`.`t3`.`a` = `test`.`t2`.`b`) and (`test`.`t2`.`a` = `test`.`t1`.`b`))",
+  "inputs": [
+    {
+      "inputs": [
+        {
+          "inputs": [
+            {
+              "inputs": [
+                {
+                  "operation": "Table scan on t1",
+                  "table_name": "t1",
+                  "access_type": "table",
+                  "schema_name": "test",
+                  "used_columns": [
+                    "a",
+                    "b"
+                  ],
+                  "estimated_rows": 1.0,
+                  "estimated_total_cost": 0.35
+                }
+              ],
+              "condition": "(t1.b is not null)",
+              "operation": "Filter: (t1.b is not null)",
+              "access_type": "filter",
+              "estimated_rows": 1.0,
+              "filter_columns": [
+                "test.t1.b"
+              ],
+              "estimated_total_cost": 0.35
+            },
+            {
+              "inputs": [
+                {
+                  "covering": false,
+                  "operation": "Single-row index lookup on t2 using PRIMARY (a = t1.b)",
+                  "index_name": "PRIMARY",
+                  "table_name": "t2",
+                  "access_type": "index",
+                  "key_columns": [
+                    "a"
+                  ],
+                  "schema_name": "test",
+                  "used_columns": [
+                    "a",
+                    "b"
+                  ],
+                  "estimated_rows": 1.0,
+                  "lookup_condition": "a = t1.b",
+                  "index_access_type": "index_lookup",
+                  "estimated_total_cost": 0.35
+                }
+              ],
+              "condition": "(t2.b is not null)",
+              "operation": "Filter: (t2.b is not null)",
+              "access_type": "filter",
+              "estimated_rows": 1.0,
+              "filter_columns": [
+                "test.t2.b"
+              ],
+              "estimated_total_cost": 0.35
+            }
+          ],
+          "join_type": "inner join",
+          "operation": "Nested loop inner join",
+          "access_type": "join",
+          "estimated_rows": 1.0,
+          "join_algorithm": "nested_loop",
+          "estimated_total_cost": 0.7
+        },
+        {
+          "inputs": [
+            {
+              "covering": false,
+              "operation": "Single-row index lookup on t3 using PRIMARY (a = t2.b)",
+              "index_name": "PRIMARY",
+              "table_name": "t3",
+              "access_type": "index",
+              "key_columns": [
+                "a"
+              ],
+              "schema_name": "test",
+              "used_columns": [
+                "a",
+                "b"
+              ],
+              "estimated_rows": 1.0,
+              "lookup_condition": "a = t2.b",
+              "index_access_type": "index_lookup",
+              "estimated_total_cost": 0.35
+            }
+          ],
+          "condition": "(t3.b is not null)",
+          "operation": "Filter: (t3.b is not null)",
+          "access_type": "filter",
+          "estimated_rows": 1.0,
+          "filter_columns": [
+            "test.t3.b"
+          ],
+          "estimated_total_cost": 0.35
+        }
+      ],
+      "join_type": "inner join",
+      "operation": "Nested loop inner join",
+      "access_type": "join",
+      "estimated_rows": 1.0,
+      "join_algorithm": "nested_loop",
+      "estimated_total_cost": 1.05
+    },
+    {
+      "covering": false,
+      "operation": "Single-row index lookup on t4 using PRIMARY (a = t3.b)",
+      "index_name": "PRIMARY",
+      "table_name": "t4",
+      "access_type": "index",
+      "key_columns": [
+        "a"
+      ],
+      "schema_name": "test",
+      "used_columns": [
+        "a",
+        "b"
+      ],
+      "estimated_rows": 1.0,
+      "lookup_condition": "a = t3.b",
+      "index_access_type": "index_lookup",
+      "estimated_total_cost": 0.35
+    }
+  ],
+  "join_type": "inner join",
+  "operation": "Nested loop inner join",
+  "query_type": "select",
+  "access_type": "join",
+  "estimated_rows": 1.0,
+  "join_algorithm": "nested_loop",
+  "estimated_total_cost": 1.4000000000000001
+}

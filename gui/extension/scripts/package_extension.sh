@@ -31,10 +31,11 @@
 # variable is not defined, the default location of $HOME/.mysqlsh/plugins
 # will be used, the following are expected:
 #
-#   $SHELL_PLUGINS_LOCATION/gui_plugin
-#   $SHELL_PLUGINS_LOCATION/mds_plugin
-#   $SHELL_PLUGINS_LOCATION/mrs_plugin
-#   $SHELL_PLUGINS_LOCATION/msm_plugin
+#   $HOME/.mysqlsh/plugins/gui_plugin
+#   $HOME/.mysqlsh/plugins/mds_plugin
+#   $HOME/.mysqlsh/plugins/mrs_plugin
+#   $HOME/.mysqlsh/plugins/msm_plugin
+#   $HOME/.mysqlsh/plugins/util_plugin
 #
 # Note that if SHELL_VERSION is set in the environment, this script is
 # assumed to be run from PB2 without prompting the user to input the
@@ -156,6 +157,10 @@ if [ ! -d "$SHELL_PLUGINS_LOCATION" ]; then
     echo "ERROR: The msm_plugin is missing from $SHELL_PLUGINS_LOCATION"
     exit 1
 fi
+if [ ! -d "$HOME/.mysqlsh/plugins/util_plugin" ]; then
+    echo "ERROR: The util_plugin is missing from ~/.mysqlsh/plugins/"
+    exit 1
+fi
 
 if [ -z "${SHELL_VERSION}" ] && [ ! -d "packaging" ]; then
     echo "Setting up the packaging resources..."
@@ -241,13 +246,14 @@ for d in packaging/mysql-shell/*; do
         rm -Rf shell/lib/mysqlsh/plugins/mds_plugin
         rm -Rf shell/lib/mysqlsh/plugins/mrs_plugin
         rm -Rf shell/lib/mysqlsh/plugins/msm_plugin
+        rm -Rf shell/lib/mysqlsh/plugins/util_plugin
 
         echo "Copy plugins"
-
-        cp -RL $SHELL_PLUGINS_LOCATION/gui_plugin shell/lib/mysqlsh/plugins/.
-        cp -RL $SHELL_PLUGINS_LOCATION/mds_plugin shell/lib/mysqlsh/plugins/.
-        cp -RL $SHELL_PLUGINS_LOCATION/mrs_plugin shell/lib/mysqlsh/plugins/.
-        cp -RL $SHELL_PLUGINS_LOCATION/msm_plugin shell/lib/mysqlsh/plugins/.
+        cp -RL $HOME/.mysqlsh/plugins/gui_plugin shell/lib/mysqlsh/plugins/.
+        cp -RL $HOME/.mysqlsh/plugins/mds_plugin shell/lib/mysqlsh/plugins/.
+        cp -RL $HOME/.mysqlsh/plugins/mrs_plugin shell/lib/mysqlsh/plugins/.
+        cp -RL $HOME/.mysqlsh/plugins/msm_plugin shell/lib/mysqlsh/plugins/.
+        cp -RL $HOME/.mysqlsh/plugins/util_plugin shell/lib/mysqlsh/plugins/.
 
         # Clean *.py[co] files and __pycache__ directories
         find shell/lib/mysqlsh/plugins -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete

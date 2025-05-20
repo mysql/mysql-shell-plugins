@@ -1,0 +1,95 @@
+{
+  "query": "/* select#1 */ select `sakila`.`actor`.`actor_id` AS `actor_id`,`sakila`.`actor`.`first_name` AS `first_name`,`sakila`.`actor`.`last_name` AS `last_name`,`sakila`.`actor`.`last_update` AS `last_update`,`sakila`.`film_actor`.`actor_id` AS `actor_id`,`sakila`.`film_actor`.`film_id` AS `film_id`,`sakila`.`film_actor`.`last_update` AS `last_update`,`sakila`.`film`.`film_id` AS `film_id`,`sakila`.`film`.`title` AS `title`,`sakila`.`film`.`description` AS `description`,`sakila`.`film`.`release_year` AS `release_year`,`sakila`.`film`.`language_id` AS `language_id`,`sakila`.`film`.`original_language_id` AS `original_language_id`,`sakila`.`film`.`rental_duration` AS `rental_duration`,`sakila`.`film`.`rental_rate` AS `rental_rate`,`sakila`.`film`.`length` AS `length`,`sakila`.`film`.`replacement_cost` AS `replacement_cost`,`sakila`.`film`.`rating` AS `rating`,`sakila`.`film`.`special_features` AS `special_features`,`sakila`.`film`.`last_update` AS `last_update` from `sakila`.`actor` join `sakila`.`film_actor` join `sakila`.`film` where ((`sakila`.`film_actor`.`actor_id` = `sakila`.`actor`.`actor_id`) and (`sakila`.`film`.`film_id` = `sakila`.`film_actor`.`film_id`))",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "operation": "Table scan on actor",
+            "table_name": "actor",
+            "access_type": "table",
+            "schema_name": "sakila",
+            "used_columns": [
+              "actor_id",
+              "first_name",
+              "last_name",
+              "last_update"
+            ],
+            "estimated_rows": 200.0,
+            "estimated_total_cost": 20.25
+          },
+          {
+            "covering": false,
+            "operation": "Index lookup on film_actor using PRIMARY (actor_id = actor.actor_id)",
+            "index_name": "PRIMARY",
+            "table_name": "film_actor",
+            "access_type": "index",
+            "key_columns": [
+              "actor_id"
+            ],
+            "schema_name": "sakila",
+            "used_columns": [
+              "actor_id",
+              "film_id",
+              "last_update"
+            ],
+            "estimated_rows": 27.309999465942383,
+            "lookup_condition": "actor_id = actor.actor_id",
+            "index_access_type": "index_lookup",
+            "lookup_references": [
+              "sakila.actor.actor_id"
+            ],
+            "estimated_total_cost": 0.2694978908820731
+          }
+        ],
+        "join_type": "inner join",
+        "operation": "Nested loop inner join",
+        "access_type": "join",
+        "estimated_rows": 5461.999893188477,
+        "join_algorithm": "nested_loop",
+        "estimated_total_cost": 617.618567548668
+      },
+      {
+        "covering": false,
+        "operation": "Single-row index lookup on film using PRIMARY (film_id = film_actor.film_id)",
+        "index_name": "PRIMARY",
+        "table_name": "film",
+        "access_type": "index",
+        "key_columns": [
+          "film_id"
+        ],
+        "schema_name": "sakila",
+        "used_columns": [
+          "film_id",
+          "title",
+          "description",
+          "release_year",
+          "language_id",
+          "original_language_id",
+          "rental_duration",
+          "rental_rate",
+          "length",
+          "replacement_cost",
+          "rating",
+          "special_features",
+          "last_update"
+        ],
+        "estimated_rows": 1.0,
+        "lookup_condition": "film_id = film_actor.film_id",
+        "index_access_type": "index_lookup",
+        "lookup_references": [
+          "sakila.film_actor.film_id"
+        ],
+        "estimated_total_cost": 0.2500183083123316
+      }
+    ],
+    "join_type": "inner join",
+    "operation": "Nested loop inner join",
+    "access_type": "join",
+    "estimated_rows": 5461.999893188477,
+    "join_algorithm": "nested_loop",
+    "estimated_total_cost": 2529.318530164635
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

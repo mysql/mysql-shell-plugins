@@ -1,0 +1,84 @@
+{
+  "query": "/* select#1 */ select `sakila`.`actor`.`actor_id` AS `actor_id`,`sakila`.`actor`.`first_name` AS `first_name`,`sakila`.`actor`.`last_name` AS `last_name`,`sakila`.`actor`.`last_update` AS `last_update` from `sakila`.`actor` where (`sakila`.`actor`.`first_name` like 'a%') union /* select#2 */ select `sakila`.`actor`.`actor_id` AS `actor_id`,`sakila`.`actor`.`first_name` AS `first_name`,`sakila`.`actor`.`last_name` AS `last_name`,`sakila`.`actor`.`last_update` AS `last_update` from `sakila`.`actor` where (`sakila`.`actor`.`first_name` like 'b%')",
+  "query_plan": {
+    "inputs": [
+      {
+        "union": true,
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "operation": "Table scan on actor",
+                "table_name": "actor",
+                "access_type": "table",
+                "schema_name": "sakila",
+                "used_columns": [
+                  "actor_id",
+                  "first_name",
+                  "last_name",
+                  "last_update"
+                ],
+                "estimated_rows": 200.0,
+                "estimated_total_cost": 20.25
+              }
+            ],
+            "condition": "(sakila.actor.first_name like 'a%')",
+            "operation": "Filter: (sakila.actor.first_name like 'a%')",
+            "access_type": "filter",
+            "estimated_rows": 22.220000624656677,
+            "filter_columns": [
+              "sakila.actor.first_name"
+            ],
+            "estimated_total_cost": 20.25
+          },
+          {
+            "inputs": [
+              {
+                "operation": "Table scan on actor",
+                "table_name": "actor",
+                "access_type": "table",
+                "schema_name": "sakila",
+                "used_columns": [
+                  "actor_id",
+                  "first_name",
+                  "last_name",
+                  "last_update"
+                ],
+                "estimated_rows": 200.0,
+                "estimated_total_cost": 20.25
+              }
+            ],
+            "condition": "(sakila.actor.first_name like 'b%')",
+            "operation": "Filter: (sakila.actor.first_name like 'b%')",
+            "access_type": "filter",
+            "estimated_rows": 22.220000624656677,
+            "filter_columns": [
+              "sakila.actor.first_name"
+            ],
+            "estimated_total_cost": 20.25
+          }
+        ],
+        "operation": "Union materialize with deduplication",
+        "access_type": "materialize",
+        "deduplication": true,
+        "estimated_rows": 44.440001249313354,
+        "estimated_total_cost": 50.73963162426575,
+        "estimated_first_row_cost": 50.73963162426575
+      }
+    ],
+    "operation": "Table scan on <union temporary>",
+    "table_name": "<union temporary>",
+    "access_type": "table",
+    "used_columns": [
+      "actor_id",
+      "first_name",
+      "last_name",
+      "last_update"
+    ],
+    "estimated_rows": 44.440001249313354,
+    "estimated_total_cost": 53.789631624265745,
+    "estimated_first_row_cost": 50.808263485522666
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+} 

@@ -1,0 +1,109 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`a` AS `a`,group_concat(`test`.`t2`.`b` separator ',') AS `b` from `test`.`t1` left join `test`.`t2` on(multiple equal(`test`.`t1`.`a`, `test`.`t2`.`a`)) group by `test`.`t1`.`a` order by `test`.`t1`.`b`",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "inputs": [
+                  {
+                    "inputs": [
+                      {
+                        "inputs": [
+                          {
+                            "operation": "Table scan on t1",
+                            "table_name": "t1",
+                            "access_type": "table",
+                            "schema_name": "test",
+                            "used_columns": [
+                              "a",
+                              "b"
+                            ],
+                            "estimated_rows": 3.0,
+                            "estimated_total_cost": 1.1336405529953917,
+                            "estimated_first_row_cost": 0.3778801843317972
+                          }
+                        ],
+                        "operation": "Sort: t1.a",
+                        "access_type": "sort",
+                        "sort_fields": [
+                          "t1.a"
+                        ],
+                        "estimated_rows": 3.0,
+                        "estimated_total_cost": 2.323890380254121,
+                        "estimated_first_row_cost": 2.323890380254121
+                      },
+                      {
+                        "covering": true,
+                        "operation": "Covering index lookup on t2 using PRIMARY (a = t1.a)",
+                        "index_name": "PRIMARY",
+                        "table_name": "t2",
+                        "access_type": "index",
+                        "key_columns": [
+                          "a"
+                        ],
+                        "schema_name": "test",
+                        "used_columns": [
+                          "a",
+                          "b"
+                        ],
+                        "estimated_rows": 1.0,
+                        "lookup_condition": "a = t1.a",
+                        "index_access_type": "index_lookup",
+                        "lookup_references": [
+                          "test.t1.a"
+                        ],
+                        "estimated_total_cost": 2.0006912442396314,
+                        "estimated_first_row_cost": 2.0006912442396314
+                      }
+                    ],
+                    "join_type": "left join",
+                    "operation": "Nested loop left join",
+                    "access_type": "join",
+                    "estimated_rows": 3.0,
+                    "join_algorithm": "nested_loop",
+                    "estimated_total_cost": 8.325964112973015,
+                    "estimated_first_row_cost": 4.324581624493753
+                  }
+                ],
+                "group_by": true,
+                "functions": [
+                  "group_concat(t2.b separator ',')"
+                ],
+                "operation": "Group aggregate: group_concat(t2.b separator ',')",
+                "access_type": "aggregate",
+                "estimated_rows": 1.7320508075688772,
+                "estimated_total_cost": 9.212002134515885,
+                "estimated_first_row_cost": 6.300743555785376
+              }
+            ],
+            "operation": "Temporary table",
+            "temp_table": true,
+            "access_type": "materialize",
+            "estimated_rows": 1.7320508075688772,
+            "estimated_total_cost": 12.539401982288052,
+            "estimated_first_row_cost": 12.539401982288052
+          }
+        ],
+        "operation": "Table scan on <temporary>",
+        "table_name": "<temporary>",
+        "access_type": "table",
+        "estimated_rows": 1.7320508075688772,
+        "estimated_total_cost": 12.828077116882865,
+        "estimated_first_row_cost": 12.706068648954718
+      }
+    ],
+    "operation": "Sort: t1.b",
+    "access_type": "sort",
+    "sort_fields": [
+      "t1.b"
+    ],
+    "estimated_rows": 1.7320508075688772,
+    "estimated_total_cost": 13.48258479531903,
+    "estimated_first_row_cost": 13.48258479531903
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

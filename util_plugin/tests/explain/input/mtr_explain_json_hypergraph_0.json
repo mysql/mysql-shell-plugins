@@ -1,0 +1,73 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`f1` AS `f1` from `test`.`t1` where (`test`.`t1`.`f1` = (/* select#2 */ select min(`i`.`f1`) from `test`.`t1` `i` where (`i`.`f1` > `test`.`t1`.`f1`)))",
+  "query_plan": {
+    "inputs": [
+      {
+        "operation": "Table scan on t1",
+        "table_name": "t1",
+        "access_type": "table",
+        "schema_name": "test",
+        "used_columns": [
+          "f1"
+        ],
+        "estimated_rows": "elided",
+        "estimated_total_cost": "elided",
+        "estimated_first_row_cost": "elided"
+      },
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "alias": "i",
+                "operation": "Table scan on i",
+                "table_name": "t1",
+                "access_type": "table",
+                "schema_name": "test",
+                "used_columns": [
+                  "f1"
+                ],
+                "estimated_rows": "elided",
+                "estimated_total_cost": "elided",
+                "estimated_first_row_cost": "elided"
+              }
+            ],
+            "condition": "(i.f1 > t1.f1)",
+            "operation": "Filter: (i.f1 > t1.f1)",
+            "access_type": "filter",
+            "estimated_rows": "elided",
+            "filter_columns": [
+              "i.f1",
+              "test.t1.f1"
+            ],
+            "estimated_total_cost": "elided",
+            "estimated_first_row_cost": "elided"
+          }
+        ],
+        "heading": "Select #2 (subquery in condition; dependent)",
+        "subquery": true,
+        "dependent": true,
+        "functions": [
+          "min(i.f1)"
+        ],
+        "operation": "Aggregate: min(i.f1)",
+        "access_type": "aggregate",
+        "estimated_rows": "elided",
+        "subquery_location": "condition",
+        "estimated_total_cost": "elided",
+        "estimated_first_row_cost": "elided"
+      }
+    ],
+    "condition": "(t1.f1 = (select #2))",
+    "operation": "Filter: (t1.f1 = (select #2))",
+    "access_type": "filter",
+    "estimated_rows": "elided",
+    "filter_columns": [
+      "test.t1.f1"
+    ],
+    "estimated_total_cost": "elided",
+    "estimated_first_row_cost": "elided"
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

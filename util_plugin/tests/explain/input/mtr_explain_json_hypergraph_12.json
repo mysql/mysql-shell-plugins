@@ -1,0 +1,57 @@
+{
+  "query": "/* select#1 */ select last_value(`(select #2)`) OVER (PARTITION BY `x1`.`b` )  AS `LAST_VALUE((SELECT x1.a FROM t1))\nOVER (PARTITION BY b)` from `test`.`t1` `x1`",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "alias": "x1",
+            "operation": "Table scan on x1",
+            "table_name": "t1",
+            "access_type": "table",
+            "schema_name": "test",
+            "used_columns": [
+              "a",
+              "b"
+            ],
+            "estimated_rows": "elided",
+            "estimated_total_cost": "elided",
+            "estimated_first_row_cost": "elided"
+          }
+        ],
+        "operation": "Sort: x1.b",
+        "access_type": "sort",
+        "sort_fields": [
+          "x1.b"
+        ],
+        "estimated_rows": "elided",
+        "estimated_total_cost": "elided",
+        "estimated_first_row_cost": "elided"
+      },
+      {
+        "heading": "Select #2 (subquery in projection; dependent)",
+        "subquery": true,
+        "dependent": true,
+        "operation": "Table scan on t1",
+        "table_name": "t1",
+        "access_type": "table",
+        "schema_name": "test",
+        "estimated_rows": "elided",
+        "subquery_location": "projection",
+        "estimated_total_cost": "elided",
+        "estimated_first_row_cost": "elided"
+      }
+    ],
+    "buffering": true,
+    "functions": [
+      "last_value(`(select #2)`) OVER (PARTITION BY x1.b ) "
+    ],
+    "operation": "Window aggregate with buffering: last_value(`(select #2)`) OVER (PARTITION BY x1.b ) ",
+    "access_type": "window",
+    "estimated_rows": "elided",
+    "estimated_total_cost": "elided",
+    "estimated_first_row_cost": "elided"
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

@@ -1,0 +1,75 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`i` AS `i` from `test`.`t1` semi join (`test`.`t2`) where ((`test`.`t1`.`i` = 10) and (`test`.`t2`.`i` = 10))",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "operation": "Table scan on t1",
+            "table_name": "t1",
+            "access_type": "table",
+            "schema_name": "test",
+            "used_columns": [
+              "i"
+            ],
+            "estimated_rows": 7.0,
+            "estimated_total_cost": 1.202990658447564
+          }
+        ],
+        "condition": "(t1.i = 10)",
+        "operation": "Filter: (t1.i = 10)",
+        "access_type": "filter",
+        "estimated_rows": 0.9999999403953552,
+        "filter_columns": [
+          "test.t1.i"
+        ],
+        "estimated_total_cost": 1.202990658447564
+      },
+      {
+        "limit": 1,
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "operation": "Table scan on t2",
+                "table_name": "t2",
+                "access_type": "table",
+                "schema_name": "test",
+                "used_columns": [
+                  "i"
+                ],
+                "estimated_rows": 2.0,
+                "estimated_total_cost": 0.7008659630209897
+              }
+            ],
+            "condition": "(t2.i = 10)",
+            "operation": "Filter: (t2.i = 10)",
+            "access_type": "filter",
+            "estimated_rows": 1.0,
+            "filter_columns": [
+              "test.t2.i"
+            ],
+            "estimated_total_cost": 0.7008659630209897
+          }
+        ],
+        "heading": "Hash",
+        "operation": "Limit: 1 row(s)",
+        "access_type": "limit",
+        "limit_offset": 0,
+        "estimated_rows": 1.0,
+        "estimated_total_cost": 0.7008659630209897
+      }
+    ],
+    "join_type": "semijoin",
+    "operation": "Hash semijoin (FirstMatch) (no condition)",
+    "access_type": "join",
+    "join_columns": [],
+    "estimated_rows": 0.4999999701976776,
+    "hash_condition": [],
+    "join_algorithm": "hash",
+    "semijoin_strategy": "firstmatch",
+    "estimated_total_cost": 1.4017319096377965
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

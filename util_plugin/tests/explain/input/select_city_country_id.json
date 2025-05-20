@@ -1,0 +1,29 @@
+{
+  "query": "/* select#1 */ select `sakila`.`city`.`city_id` AS `city_id`,`sakila`.`city`.`city` AS `city`,`sakila`.`city`.`country_id` AS `country_id`,`sakila`.`city`.`last_update` AS `last_update` from `sakila`.`city` where (`sakila`.`city`.`country_id` = 4)",
+  "query_plan": {
+    "covering": false,
+    "operation": "Index lookup on city using idx_fk_country_id (country_id = 4)",
+    "index_name": "idx_fk_country_id",
+    "table_name": "city",
+    "access_type": "index",
+    "key_columns": [
+      "country_id"
+    ],
+    "schema_name": "sakila",
+    "used_columns": [
+      "city_id",
+      "city",
+      "country_id",
+      "last_update"
+    ],
+    "estimated_rows": 2.0,
+    "lookup_condition": "country_id = 4",
+    "index_access_type": "index_lookup",
+    "lookup_references": [
+      "const"
+    ],
+    "estimated_total_cost": 2.2
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

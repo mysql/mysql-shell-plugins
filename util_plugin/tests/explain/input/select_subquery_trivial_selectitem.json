@@ -1,0 +1,47 @@
+{
+  "query": "/* select#1 */ select (/* select#2 */ select max(`sakila`.`country`.`country_id`) from `sakila`.`country`) AS `(select max(country_id) from sakila.country)`,(/* select#3 */ select max(`sakila`.`city`.`city_id`) from `sakila`.`city`) AS `(select max(city_id) from sakila.city)`,(/* select#4 */ select max(`sakila`.`film`.`film_id`) from `sakila`.`film`) AS `film_id`",
+  "query_plan": {
+    "operation": "Rows fetched before execution",
+    "access_type": "rows_fetched_before_execution",
+    "estimated_rows": 1.0,
+    "estimated_total_cost": 0.0,
+    "inputs_from_select_list": [
+      {
+        "heading": "Select #2 (subquery in projection; run only once)",
+        "subquery": true,
+        "cacheable": true,
+        "operation": "Rows fetched before execution",
+        "access_type": "rows_fetched_before_execution",
+        "estimated_rows": 1.0,
+        "subquery_location": "projection",
+        "estimated_total_cost": 0.0,
+        "estimated_first_row_cost": 0.0
+      },
+      {
+        "heading": "Select #3 (subquery in projection; run only once)",
+        "subquery": true,
+        "cacheable": true,
+        "operation": "Rows fetched before execution",
+        "access_type": "rows_fetched_before_execution",
+        "estimated_rows": 1.0,
+        "subquery_location": "projection",
+        "estimated_total_cost": 0.0,
+        "estimated_first_row_cost": 0.0
+      },
+      {
+        "heading": "Select #4 (subquery in projection; run only once)",
+        "subquery": true,
+        "cacheable": true,
+        "operation": "Rows fetched before execution",
+        "access_type": "rows_fetched_before_execution",
+        "estimated_rows": 1.0,
+        "subquery_location": "projection",
+        "estimated_total_cost": 0.0,
+        "estimated_first_row_cost": 0.0
+      }
+    ],
+    "estimated_first_row_cost": 0.0
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

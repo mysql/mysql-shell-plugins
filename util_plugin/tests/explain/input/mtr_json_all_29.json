@@ -1,0 +1,41 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`a` AS `a`,min(`test`.`t1`.`b`) AS `b` from `test`.`t1` group by `test`.`t1`.`a` order by `b`",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "ranges": [],
+            "covering": true,
+            "operation": "Covering index skip scan for grouping on t1 using k1",
+            "index_name": "k1",
+            "table_name": "t1",
+            "access_type": "index",
+            "key_columns": [
+              "a"
+            ],
+            "schema_name": "test",
+            "used_columns": [
+              "a",
+              "b"
+            ],
+            "estimated_rows": 11.0,
+            "index_access_type": "group_index_skip_scan",
+            "estimated_total_cost": 3.0000000000000004
+          }
+        ],
+        "operation": "Stream results",
+        "access_type": "stream",
+        "estimated_rows": 11.0,
+        "estimated_total_cost": 3.0000000000000004
+      }
+    ],
+    "operation": "Sort: b",
+    "access_type": "sort",
+    "sort_fields": [
+      "b"
+    ]
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

@@ -1,0 +1,59 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`i` AS `i` from `test`.`t1` union /* select#2 */ select `test`.`t2`.`i` AS `i` from `test`.`t2` union /* select#3 */ select NULL AS `i` from `test`.`t3`",
+  "query_plan": {
+    "inputs": [
+      {
+        "union": true,
+        "inputs": [
+          {
+            "operation": "Table scan on t1",
+            "table_name": "t1",
+            "access_type": "table",
+            "schema_name": "test",
+            "used_columns": [
+              "i"
+            ],
+            "estimated_rows": 7.0,
+            "estimated_total_cost": 1.2029907226562504
+          },
+          {
+            "operation": "Table scan on t2",
+            "table_name": "t2",
+            "access_type": "table",
+            "schema_name": "test",
+            "used_columns": [
+              "i"
+            ],
+            "estimated_rows": 2.0,
+            "estimated_total_cost": 0.7008544921875
+          },
+          {
+            "operation": "Zero rows (no matching row in const table)",
+            "access_type": "zero_rows",
+            "estimated_rows": 0.0,
+            "zero_rows_cause": "no matching row in const table",
+            "estimated_total_cost": 0.0,
+            "estimated_first_row_cost": 0.0
+          }
+        ],
+        "operation": "Union materialize with deduplication",
+        "access_type": "materialize",
+        "deduplication": true,
+        "estimated_rows": 9.0,
+        "estimated_total_cost": 3.9775779337377597,
+        "estimated_first_row_cost": 3.9775779337377597
+      }
+    ],
+    "operation": "Table scan on <union temporary>",
+    "table_name": "<union temporary>",
+    "access_type": "table",
+    "used_columns": [
+      "i"
+    ],
+    "estimated_rows": 9.0,
+    "estimated_total_cost": 6.59007793373776,
+    "estimated_first_row_cost": 4.267855711515537
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

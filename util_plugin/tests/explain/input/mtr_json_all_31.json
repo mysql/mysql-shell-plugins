@@ -1,0 +1,41 @@
+{
+  "query": "/* select#1 */ select rollup_sum_switcher(sum(`test`.`t1`.`b`)) AS `SUM(b)` from `test`.`t1` group by `test`.`t1`.`a` with rollup",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "operation": "Table scan on t1",
+            "table_name": "t1",
+            "access_type": "table",
+            "schema_name": "test",
+            "used_columns": [
+              "a",
+              "b"
+            ],
+            "estimated_rows": 9.0,
+            "estimated_total_cost": 1.40494384765625
+          }
+        ],
+        "operation": "Sort: a",
+        "access_type": "sort",
+        "sort_fields": [
+          "a"
+        ],
+        "estimated_rows": 9.0,
+        "estimated_total_cost": 1.40494384765625
+      }
+    ],
+    "rollup": true,
+    "group_by": true,
+    "functions": [
+      "sum(t1.b)"
+    ],
+    "operation": "Group aggregate with rollup: sum(t1.b)",
+    "access_type": "aggregate",
+    "estimated_rows": 4.0,
+    "estimated_total_cost": 3.4786765665502593
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

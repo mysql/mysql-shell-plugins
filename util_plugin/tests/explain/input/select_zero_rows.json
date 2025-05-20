@@ -1,0 +1,13 @@
+ {
+  "query": "/* select#1 */ select `sakila`.`nicer_but_slower_film_list`.`FID` AS `FID`,`sakila`.`nicer_but_slower_film_list`.`title` AS `title`,`sakila`.`nicer_but_slower_film_list`.`description` AS `description`,`sakila`.`nicer_but_slower_film_list`.`category` AS `category`,`sakila`.`nicer_but_slower_film_list`.`price` AS `price`,`sakila`.`nicer_but_slower_film_list`.`length` AS `length`,`sakila`.`nicer_but_slower_film_list`.`rating` AS `rating`,`sakila`.`nicer_but_slower_film_list`.`actors` AS `actors` from `sakila`.`nicer_but_slower_film_list` where false",
+  "query_plan": {
+    "operation": "Zero rows (Impossible WHERE)",
+    "access_type": "zero_rows",
+    "estimated_rows": 0.0,
+    "zero_rows_cause": "Impossible WHERE",
+    "estimated_total_cost": 0.0,
+    "estimated_first_row_cost": 0.0
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

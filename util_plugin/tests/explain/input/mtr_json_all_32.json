@@ -1,0 +1,40 @@
+{
+  "query": "/* select#1 */ select distinct sum(`test`.`t1`.`b`) AS `s` from `test`.`t1` group by `test`.`t1`.`a` order by `s`",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "operation": "Table scan on t1",
+                "table_name": "t1",
+                "access_type": "table",
+                "schema_name": "test",
+                "used_columns": [
+                  "a",
+                  "b"
+                ],
+                "estimated_rows": 5.0,
+                "estimated_total_cost": 1.00274658203125
+              }
+            ],
+            "operation": "Aggregate using temporary table",
+            "access_type": "temp_table_aggregate"
+          }
+        ],
+        "operation": "Table scan on <temporary>",
+        "table_name": "<temporary>",
+        "access_type": "table"
+      }
+    ],
+    "operation": "Sort with duplicate removal: s",
+    "access_type": "sort",
+    "sort_fields": [
+      "s"
+    ],
+    "duplicate_removal": true
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}
