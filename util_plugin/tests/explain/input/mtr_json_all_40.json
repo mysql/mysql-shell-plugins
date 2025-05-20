@@ -1,0 +1,53 @@
+{
+  "query": "/* select#1 */ select `test`.`r`.`a` AS `a` from `test`.`r` intersect /* select#2 */ select `test`.`s`.`a` AS `a` from `test`.`s`",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "operation": "Table scan on r",
+            "table_name": "r",
+            "access_type": "table",
+            "schema_name": "test",
+            "used_columns": [
+              "a"
+            ],
+            "estimated_rows": 4.0,
+            "estimated_total_cost": 0.901708984375
+          },
+          {
+            "operation": "Table scan on s",
+            "table_name": "s",
+            "access_type": "table",
+            "schema_name": "test",
+            "used_columns": [
+              "a"
+            ],
+            "estimated_rows": 5.0,
+            "estimated_total_cost": 1.00213623046875
+          }
+        ],
+        "intersect": true,
+        "operation": "Intersect materialize with deduplication",
+        "access_type": "materialize",
+        "deduplication": true,
+        "estimated_rows": 4.0,
+        "estimated_total_cost": 2.825504201018865,
+        "estimated_first_row_cost": 2.825504201018865
+      }
+    ],
+    "operation": "Table scan on <intersect temporary>",
+    "table_name": "<intersect temporary>",
+    "access_type": "table",
+    "used_columns": [
+      "<hash_field>",
+      "<set counter>",
+      "a"
+    ],
+    "estimated_rows": 4.0,
+    "estimated_total_cost": 5.375504201018865,
+    "estimated_first_row_cost": 3.4630042010188653
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

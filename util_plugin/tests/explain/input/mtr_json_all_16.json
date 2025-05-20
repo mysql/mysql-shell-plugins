@@ -1,0 +1,213 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`a` AS `a` from `test`.`t1` semi join (`test`.`t3` join `test`.`t4`) semi join (`test`.`t2`) where ((`<subquery3>`.`a` = `test`.`t1`.`a`) and (`<subquery2>`.`a` = `test`.`t1`.`a`) and (`test`.`t3`.`a` = `test`.`t4`.`a`) and (`test`.`t4`.`a` > 0) and (`test`.`t2`.`a` > 0))",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "operation": "Table scan on t1",
+                "table_name": "t1",
+                "access_type": "table",
+                "schema_name": "test",
+                "used_columns": [
+                  "a"
+                ],
+                "estimated_rows": 12.0,
+                "estimated_total_cost": 1.7051269531250002
+              }
+            ],
+            "condition": "(t1.a is not null)",
+            "operation": "Filter: (t1.a is not null)",
+            "access_type": "filter",
+            "estimated_rows": 12.0,
+            "filter_columns": [
+              "test.t1.a"
+            ],
+            "estimated_total_cost": 1.7051269531250002
+          },
+          {
+            "inputs": [
+              {
+                "inputs": [
+                  {
+                    "inputs": [
+                      {
+                        "inputs": [
+                          {
+                            "operation": "Table scan on t3",
+                            "table_name": "t3",
+                            "access_type": "table",
+                            "schema_name": "test",
+                            "used_columns": [
+                              "a"
+                            ],
+                            "estimated_rows": 12.0,
+                            "estimated_total_cost": 0.15630700559101324
+                          },
+                          {
+                            "inputs": [
+                              {
+                                "operation": "Table scan on t4",
+                                "table_name": "t4",
+                                "access_type": "table",
+                                "schema_name": "test",
+                                "used_columns": [
+                                  "a"
+                                ],
+                                "estimated_rows": 12.0,
+                                "estimated_total_cost": 1.705126953125
+                              }
+                            ],
+                            "heading": "Hash",
+                            "condition": "(t4.a > 0)",
+                            "operation": "Filter: (t4.a > 0)",
+                            "access_type": "filter",
+                            "estimated_rows": 3.9995999336242676,
+                            "filter_columns": [
+                              "test.t4.a"
+                            ],
+                            "estimated_total_cost": 1.705126953125
+                          }
+                        ],
+                        "join_type": "inner join",
+                        "operation": "Inner hash join (t3.a = t4.a)",
+                        "access_type": "join",
+                        "join_columns": [
+                          "test.t3.a",
+                          "test.t4.a"
+                        ],
+                        "estimated_rows": 4.799519991867541,
+                        "hash_condition": [
+                          "(t3.a = t4.a)"
+                        ],
+                        "join_algorithm": "hash",
+                        "estimated_total_cost": 7.0098123608728065
+                      }
+                    ],
+                    "condition": "(t3.a is not null)",
+                    "operation": "Filter: (t3.a is not null)",
+                    "access_type": "filter",
+                    "estimated_rows": 4.799519991867541,
+                    "filter_columns": [
+                      "test.t3.a"
+                    ],
+                    "estimated_total_cost": 7.0098123608728065
+                  }
+                ],
+                "operation": "Materialize with deduplication",
+                "access_type": "materialize",
+                "deduplication": true,
+                "estimated_rows": 4.799519991867541,
+                "estimated_total_cost": 8.115692543330765,
+                "estimated_first_row_cost": 8.115692543330765
+              }
+            ],
+            "covering": false,
+            "operation": "Single-row index lookup on <subquery3> using <auto_distinct_key> (a = t1.a)",
+            "index_name": "<auto_distinct_key>",
+            "table_name": "<subquery3>",
+            "access_type": "index",
+            "key_columns": [
+              "a"
+            ],
+            "used_columns": [
+              "a"
+            ],
+            "estimated_rows": 1.0,
+            "lookup_condition": "a = t1.a",
+            "index_access_type": "index_lookup",
+            "lookup_references": [
+              "test.t1.a"
+            ],
+            "estimated_total_cost": 8.440725051975196,
+            "estimated_first_row_cost": 8.440725051975196
+          }
+        ],
+        "join_type": "inner join",
+        "operation": "Nested loop inner join",
+        "access_type": "join",
+        "estimated_rows": 57.59423990241049,
+        "join_algorithm": "nested_loop",
+        "estimated_total_cost": 8.66455094336605
+      },
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "inputs": [
+                  {
+                    "inputs": [
+                      {
+                        "operation": "Table scan on t2",
+                        "table_name": "t2",
+                        "access_type": "table",
+                        "schema_name": "test",
+                        "used_columns": [
+                          "a"
+                        ],
+                        "estimated_rows": 12.0,
+                        "estimated_total_cost": 1.705126953125
+                      }
+                    ],
+                    "condition": "(t2.a > 0)",
+                    "operation": "Filter: (t2.a > 0)",
+                    "access_type": "filter",
+                    "estimated_rows": 3.9995999336242676,
+                    "filter_columns": [
+                      "test.t2.a"
+                    ],
+                    "estimated_total_cost": 1.705126953125
+                  }
+                ],
+                "condition": "(t2.a is not null)",
+                "operation": "Filter: (t2.a is not null)",
+                "access_type": "filter",
+                "estimated_rows": 3.9995999336242676,
+                "filter_columns": [
+                  "test.t2.a"
+                ],
+                "estimated_total_cost": 1.705126953125
+              }
+            ],
+            "operation": "Materialize with deduplication",
+            "access_type": "materialize",
+            "deduplication": true,
+            "estimated_rows": 3.9995999336242676,
+            "estimated_total_cost": 2.62669375810755,
+            "estimated_first_row_cost": 2.62669375810755
+          }
+        ],
+        "covering": false,
+        "operation": "Single-row index lookup on <subquery2> using <auto_distinct_key> (a = t1.a)",
+        "index_name": "<auto_distinct_key>",
+        "table_name": "<subquery2>",
+        "access_type": "index",
+        "key_columns": [
+          "a"
+        ],
+        "used_columns": [
+          "a"
+        ],
+        "estimated_rows": 1.0,
+        "lookup_condition": "a = t1.a",
+        "index_access_type": "index_lookup",
+        "lookup_references": [
+          "test.t1.a"
+        ],
+        "estimated_total_cost": 2.7516962587725065,
+        "estimated_first_row_cost": 2.7516962587725065
+      }
+    ],
+    "join_type": "inner join",
+    "operation": "Nested loop inner join",
+    "access_type": "join",
+    "estimated_rows": 230.35391809082114,
+    "join_algorithm": "nested_loop",
+    "estimated_total_cost": 32.09990274581059
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

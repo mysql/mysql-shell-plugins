@@ -1,0 +1,50 @@
+{
+  "query": "/* select#1 */ select distinct sql_big_result '1' AS `a` from `test`.`t2` order by `test`.`t2`.`a`",
+  "query_plan": {
+    "limit": 1,
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "covering": true,
+                "operation": "Covering index scan on t2 using PRIMARY",
+                "index_name": "PRIMARY",
+                "table_name": "t2",
+                "access_type": "index",
+                "schema_name": "test",
+                "used_columns": [
+                  "a"
+                ],
+                "estimated_rows": 2.0,
+                "index_access_type": "index_scan",
+                "estimated_total_cost": 0.7008544921875
+              }
+            ],
+            "operation": "Temporary table",
+            "temp_table": true,
+            "access_type": "materialize",
+            "estimated_rows": 2.0,
+            "estimated_total_cost": 1.1616839852750576,
+            "estimated_first_row_cost": 1.1616839852750576
+          }
+        ],
+        "operation": "Table scan on <temporary>",
+        "table_name": "<temporary>",
+        "access_type": "table",
+        "estimated_rows": 2.0,
+        "estimated_total_cost": 3.6866839852750575,
+        "estimated_first_row_cost": 2.4241839852750573
+      }
+    ],
+    "operation": "Limit: 1 row(s)",
+    "access_type": "limit",
+    "limit_offset": 0,
+    "estimated_rows": 1.0,
+    "estimated_total_cost": 2.4241839852750573,
+    "estimated_first_row_cost": 2.4241839852750573
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

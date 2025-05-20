@@ -1,0 +1,173 @@
+{
+  "query": "/* select#1 */ select `test`.`t5`.`c` AS `c` from `test`.`t5` semi join (`test`.`t1` join `test`.`t2`) semi join (`test`.`t3` join `test`.`t4`) where ((`test`.`t1`.`c_key` = `test`.`t2`.`c_key`) and (`test`.`t3`.`c_key` = `test`.`t4`.`c_key`) and (`test`.`t2`.`c` = `test`.`t5`.`c`) and (`test`.`t4`.`c` = `test`.`t5`.`c`))",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "inputs": [
+                  {
+                    "inputs": [
+                      {
+                        "operation": "Table scan on t4",
+                        "table_name": "t4",
+                        "access_type": "table",
+                        "schema_name": "test",
+                        "used_columns": [
+                          "c",
+                          "c_key"
+                        ],
+                        "estimated_rows": 3.0,
+                        "estimated_total_cost": 0.20057610231366818
+                      }
+                    ],
+                    "condition": "(t4.c_key is not null)",
+                    "operation": "Filter: (t4.c_key is not null)",
+                    "access_type": "filter",
+                    "estimated_rows": 1.0000000298023224,
+                    "filter_columns": [
+                      "test.t4.c_key"
+                    ],
+                    "estimated_total_cost": 0.20057610231366818
+                  },
+                  {
+                    "inputs": [
+                      {
+                        "inputs": [
+                          {
+                            "operation": "Table scan on t2",
+                            "table_name": "t2",
+                            "access_type": "table",
+                            "schema_name": "test",
+                            "used_columns": [
+                              "c",
+                              "c_key"
+                            ],
+                            "estimated_rows": 3.0,
+                            "estimated_total_cost": 0.2005588855749617
+                          }
+                        ],
+                        "condition": "(t2.c_key is not null)",
+                        "operation": "Filter: (t2.c_key is not null)",
+                        "access_type": "filter",
+                        "estimated_rows": 1.0000000298023224,
+                        "filter_columns": [
+                          "test.t2.c_key"
+                        ],
+                        "estimated_total_cost": 0.2005588855749617
+                      },
+                      {
+                        "heading": "Hash",
+                        "operation": "Table scan on t5",
+                        "table_name": "t5",
+                        "access_type": "table",
+                        "schema_name": "test",
+                        "used_columns": [
+                          "c"
+                        ],
+                        "estimated_rows": 3.0,
+                        "estimated_total_cost": 0.8012817382812502
+                      }
+                    ],
+                    "heading": "Hash",
+                    "join_type": "inner join",
+                    "operation": "Inner hash join (t2.c = t5.c)",
+                    "access_type": "join",
+                    "join_columns": [
+                      "test.t2.c",
+                      "test.t5.c"
+                    ],
+                    "estimated_rows": 1.0000000596046457,
+                    "hash_condition": [
+                      "(t2.c = t5.c)"
+                    ],
+                    "join_algorithm": "hash",
+                    "estimated_total_cost": 1.6029584009665998
+                  }
+                ],
+                "join_type": "inner join",
+                "operation": "Inner hash join (t4.c = t5.c)",
+                "access_type": "join",
+                "join_columns": [
+                  "test.t4.c",
+                  "test.t5.c"
+                ],
+                "estimated_rows": 0.33333337306976496,
+                "hash_condition": [
+                  "(t4.c = t5.c)"
+                ],
+                "join_algorithm": "hash",
+                "estimated_total_cost": 2.20468673180097
+              },
+              {
+                "covering": true,
+                "operation": "Covering index lookup on t3 using c_key (c_key = t4.c_key)",
+                "index_name": "c_key",
+                "table_name": "t3",
+                "access_type": "index",
+                "key_columns": [
+                  "c_key"
+                ],
+                "schema_name": "test",
+                "used_columns": [
+                  "c_key"
+                ],
+                "estimated_rows": 1.0,
+                "lookup_condition": "c_key = t4.c_key",
+                "index_access_type": "index_lookup",
+                "lookup_references": [
+                  "test.t4.c_key"
+                ],
+                "estimated_total_cost": 0.2833333397905032
+              }
+            ],
+            "join_type": "inner join",
+            "operation": "Nested loop inner join",
+            "access_type": "join",
+            "estimated_rows": 0.33333337306976496,
+            "join_algorithm": "nested_loop",
+            "estimated_total_cost": 2.9880201138114306
+          },
+          {
+            "covering": true,
+            "operation": "Covering index lookup on t1 using c_key (c_key = t2.c_key)",
+            "index_name": "c_key",
+            "table_name": "t1",
+            "access_type": "index",
+            "key_columns": [
+              "c_key"
+            ],
+            "schema_name": "test",
+            "used_columns": [
+              "c_key"
+            ],
+            "estimated_rows": 2.0,
+            "lookup_condition": "c_key = t2.c_key",
+            "index_access_type": "index_lookup",
+            "lookup_references": [
+              "test.t2.c_key"
+            ],
+            "estimated_total_cost": 0.6449612555577774
+          }
+        ],
+        "join_type": "inner join",
+        "operation": "Nested loop inner join",
+        "access_type": "join",
+        "estimated_rows": 0.6666667461395299,
+        "join_algorithm": "nested_loop",
+        "estimated_total_cost": 3.8221286717620497
+      }
+    ],
+    "tables": [
+      "t5"
+    ],
+    "operation": "Remove duplicate t5 rows using temporary table (weedout)",
+    "estimated_rows": 0.6666667461395299,
+    "semijoin_strategy": "weedout",
+    "estimated_total_cost": 3.8221286717620497
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

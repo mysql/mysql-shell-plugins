@@ -1,0 +1,29 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`a` AS `a`,`test`.`t1`.`b` AS `b`,`test`.`t1`.`c` AS `c`,`test`.`t1`.`d` AS `d` from `test`.`t1` where (`test`.`t1`.`a` > 2)",
+  "query_plan": {
+    "ranges": [
+      "(2 < a)"
+    ],
+    "covering": false,
+    "operation": "Index range scan on t1 using PRIMARY over (2 < a)",
+    "index_name": "PRIMARY",
+    "table_name": "t1",
+    "access_type": "index",
+    "key_columns": [
+      "a"
+    ],
+    "schema_name": "test",
+    "used_columns": [
+      "a",
+      "b",
+      "c",
+      "d"
+    ],
+    "estimated_rows": "elided",
+    "index_access_type": "index_range_scan",
+    "estimated_total_cost": "elided",
+    "estimated_first_row_cost": "elided"
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

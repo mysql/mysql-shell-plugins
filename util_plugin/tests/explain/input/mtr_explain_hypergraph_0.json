@@ -1,0 +1,17 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`a` AS `a` from `test`.`t1`",
+  "query_plan": {
+    "operation": "Table scan on t1",
+    "table_name": "t1",
+    "access_type": "table",
+    "schema_name": "test",
+    "used_columns": [
+      "a"
+    ],
+    "estimated_rows": "elided",
+    "estimated_total_cost": "elided",
+    "estimated_first_row_cost": "elided"
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

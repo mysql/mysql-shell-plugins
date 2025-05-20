@@ -1,0 +1,228 @@
+{
+  "query": "/* select#1 */ select `sakila`.`sales_by_film_category`.`category` AS `category`,`sakila`.`sales_by_film_category`.`total_sales` AS `total_sales` from `sakila`.`sales_by_film_category`",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "inputs": [
+                  {
+                    "inputs": [
+                      {
+                        "inputs": [
+                          {
+                            "inputs": [
+                              {
+                                "inputs": [
+                                  {
+                                    "inputs": [
+                                      {
+                                        "inputs": [
+                                          {
+                                            "alias": "c",
+                                            "operation": "Table scan on c",
+                                            "table_name": "category",
+                                            "access_type": "table",
+                                            "schema_name": "sakila",
+                                            "used_columns": [
+                                              "category_id",
+                                              "name"
+                                            ],
+                                            "estimated_rows": 16.0,
+                                            "estimated_total_cost": 1.85
+                                          },
+                                          {
+                                            "alias": "fc",
+                                            "covering": true,
+                                            "operation": "Covering index lookup on fc using fk_film_category_category (category_id = c.category_id)",
+                                            "index_name": "fk_film_category_category",
+                                            "table_name": "film_category",
+                                            "access_type": "index",
+                                            "key_columns": [
+                                              "category_id"
+                                            ],
+                                            "schema_name": "sakila",
+                                            "used_columns": [
+                                              "film_id",
+                                              "category_id"
+                                            ],
+                                            "estimated_rows": 62.5,
+                                            "lookup_condition": "category_id = c.category_id",
+                                            "index_access_type": "index_lookup",
+                                            "lookup_references": [
+                                              "sakila.c.category_id"
+                                            ],
+                                            "estimated_total_cost": 0.6481286603221084
+                                          }
+                                        ],
+                                        "join_type": "inner join",
+                                        "operation": "Nested loop inner join",
+                                        "access_type": "join",
+                                        "estimated_rows": 1000.0,
+                                        "join_algorithm": "nested_loop",
+                                        "estimated_total_cost": 105.97005856515374
+                                      },
+                                      {
+                                        "alias": "f",
+                                        "covering": true,
+                                        "operation": "Single-row covering index lookup on f using PRIMARY (film_id = fc.film_id)",
+                                        "index_name": "PRIMARY",
+                                        "table_name": "film",
+                                        "access_type": "index",
+                                        "key_columns": [
+                                          "film_id"
+                                        ],
+                                        "schema_name": "sakila",
+                                        "used_columns": [
+                                          "film_id"
+                                        ],
+                                        "estimated_rows": 1.0,
+                                        "lookup_condition": "film_id = fc.film_id",
+                                        "index_access_type": "index_lookup",
+                                        "lookup_references": [
+                                          "sakila.fc.film_id"
+                                        ],
+                                        "estimated_total_cost": 0.2501
+                                      }
+                                    ],
+                                    "join_type": "inner join",
+                                    "operation": "Nested loop inner join",
+                                    "access_type": "join",
+                                    "estimated_rows": 1000.0,
+                                    "join_algorithm": "nested_loop",
+                                    "estimated_total_cost": 455.97005856515375
+                                  },
+                                  {
+                                    "alias": "i",
+                                    "covering": true,
+                                    "operation": "Covering index lookup on i using idx_fk_film_id (film_id = fc.film_id)",
+                                    "index_name": "idx_fk_film_id",
+                                    "table_name": "inventory",
+                                    "access_type": "index",
+                                    "key_columns": [
+                                      "film_id"
+                                    ],
+                                    "schema_name": "sakila",
+                                    "used_columns": [
+                                      "inventory_id",
+                                      "film_id"
+                                    ],
+                                    "estimated_rows": 4.781836986541748,
+                                    "lookup_condition": "film_id = fc.film_id",
+                                    "index_access_type": "index_lookup",
+                                    "lookup_references": [
+                                      "sakila.fc.film_id"
+                                    ],
+                                    "estimated_total_cost": 0.2510550349778704
+                                  }
+                                ],
+                                "join_type": "inner join",
+                                "operation": "Nested loop inner join",
+                                "access_type": "join",
+                                "estimated_rows": 4781.836986541748,
+                                "join_algorithm": "nested_loop",
+                                "estimated_total_cost": 1184.7306084985448
+                              },
+                              {
+                                "alias": "r",
+                                "covering": true,
+                                "operation": "Covering index lookup on r using idx_fk_inventory_id (inventory_id = i.inventory_id)",
+                                "index_name": "idx_fk_inventory_id",
+                                "table_name": "rental",
+                                "access_type": "index",
+                                "key_columns": [
+                                  "inventory_id"
+                                ],
+                                "schema_name": "sakila",
+                                "used_columns": [
+                                  "rental_id",
+                                  "inventory_id"
+                                ],
+                                "estimated_rows": 3.4945414066314697,
+                                "lookup_condition": "inventory_id = i.inventory_id",
+                                "index_access_type": "index_lookup",
+                                "lookup_references": [
+                                  "sakila.i.inventory_id"
+                                ],
+                                "estimated_total_cost": 0.25060564595892343
+                              }
+                            ],
+                            "join_type": "inner join",
+                            "operation": "Nested loop inner join",
+                            "access_type": "join",
+                            "estimated_rows": 16710.32734923199,
+                            "join_algorithm": "nested_loop",
+                            "estimated_total_cost": 4053.7692361636473
+                          },
+                          {
+                            "alias": "p",
+                            "covering": false,
+                            "operation": "Index lookup on p using fk_payment_rental (rental_id = r.rental_id)",
+                            "index_name": "fk_payment_rental",
+                            "table_name": "payment",
+                            "access_type": "index",
+                            "key_columns": [
+                              "rental_id"
+                            ],
+                            "schema_name": "sakila",
+                            "used_columns": [
+                              "payment_id",
+                              "rental_id",
+                              "amount"
+                            ],
+                            "estimated_rows": 1.028357744216919,
+                            "lookup_condition": "rental_id = r.rental_id",
+                            "index_access_type": "index_lookup",
+                            "lookup_references": [
+                              "sakila.r.rental_id"
+                            ],
+                            "estimated_total_cost": 0.2570955900793588
+                          }
+                        ],
+                        "join_type": "inner join",
+                        "operation": "Nested loop inner join",
+                        "access_type": "join",
+                        "estimated_rows": 17184.194537982494,
+                        "join_algorithm": "nested_loop",
+                        "estimated_total_cost": 10068.23732445752
+                      }
+                    ],
+                    "operation": "Aggregate using temporary table",
+                    "access_type": "temp_table_aggregate"
+                  }
+                ],
+                "operation": "Table scan on <temporary>",
+                "table_name": "<temporary>",
+                "access_type": "table"
+              }
+            ],
+            "operation": "Sort: total_sales DESC",
+            "access_type": "sort",
+            "sort_fields": [
+              "total_sales DESC"
+            ]
+          }
+        ],
+        "operation": "Materialize",
+        "access_type": "materialize",
+        "estimated_rows": 0.0,
+        "estimated_total_cost": 0.0,
+        "estimated_first_row_cost": 0.0
+      }
+    ],
+    "operation": "Table scan on sales_by_film_category",
+    "table_name": "sales_by_film_category",
+    "access_type": "table",
+    "used_columns": [
+      "category",
+      "total_sales"
+    ],
+    "estimated_rows": 0.0,
+    "estimated_total_cost": 2.5,
+    "estimated_first_row_cost": 2.5
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

@@ -1,0 +1,15 @@
+{
+  "query": "update `sakila`.`actor` set `sakila`.`actor`.`first_name` = 'Alfredo' where false",
+  "inputs": [
+    {
+      "operation": "Zero rows (Impossible WHERE)",
+      "access_type": "zero_rows",
+      "estimated_rows": 0.0,
+      "zero_rows_cause": "Impossible WHERE",
+      "estimated_total_cost": 0.0,
+      "estimated_first_row_cost": 0.0
+    }
+  ],
+  "operation": "Update actor (buffered)",
+  "query_type": "update"
+}

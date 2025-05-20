@@ -1,0 +1,111 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`a` AS `a`,`test`.`t1`.`b` AS `b`,`test`.`t2`.`a` AS `a`,`test`.`t2`.`b` AS `b`,`test`.`t3`.`a` AS `a`,`test`.`t3`.`b` AS `b`,`test`.`t4`.`a` AS `a`,`test`.`t4`.`b` AS `b` from `test`.`t1` join `test`.`t2` join `test`.`t3` join `test`.`t4` where ((`test`.`t1`.`b` = `test`.`t2`.`a`) and (`test`.`t2`.`b` = `test`.`t3`.`a`) and (`test`.`t3`.`b` = `test`.`t4`.`a`))",
+  "inputs": [
+    {
+      "operation": "Table scan on t4",
+      "table_name": "t4",
+      "access_type": "table",
+      "schema_name": "test",
+      "used_columns": [
+        "a",
+        "b"
+      ],
+      "estimated_rows": 1.0,
+      "estimated_total_cost": 0.35944700460829493,
+      "estimated_first_row_cost": 0.35944700460829493
+    },
+    {
+      "inputs": [
+        {
+          "operation": "Table scan on t3",
+          "table_name": "t3",
+          "access_type": "table",
+          "schema_name": "test",
+          "used_columns": [
+            "a",
+            "b"
+          ],
+          "estimated_rows": 1.0,
+          "estimated_total_cost": 0.35944700460829493,
+          "estimated_first_row_cost": 0.35944700460829493
+        },
+        {
+          "inputs": [
+            {
+              "operation": "Table scan on t1",
+              "table_name": "t1",
+              "access_type": "table",
+              "schema_name": "test",
+              "used_columns": [
+                "a",
+                "b"
+              ],
+              "estimated_rows": 1.0,
+              "estimated_total_cost": 0.35944700460829493,
+              "estimated_first_row_cost": 0.35944700460829493
+            },
+            {
+              "heading": "Hash",
+              "operation": "Table scan on t2",
+              "table_name": "t2",
+              "access_type": "table",
+              "schema_name": "test",
+              "used_columns": [
+                "a",
+                "b"
+              ],
+              "estimated_rows": 1.0,
+              "estimated_total_cost": 0.35944700460829493,
+              "estimated_first_row_cost": 0.35944700460829493
+            }
+          ],
+          "heading": "Hash",
+          "join_type": "inner join",
+          "operation": "Inner hash join (t1.b = t2.a)",
+          "access_type": "join",
+          "join_columns": [
+            "test.t1.b",
+            "test.t2.a"
+          ],
+          "estimated_rows": 1.0,
+          "hash_condition": [
+            "(t1.b = t2.a)"
+          ],
+          "join_algorithm": "hash",
+          "estimated_total_cost": 2.5622119815668203,
+          "estimated_first_row_cost": 2.5622119815668203
+        }
+      ],
+      "heading": "Hash",
+      "join_type": "inner join",
+      "operation": "Inner hash join (t2.b = t3.a)",
+      "access_type": "join",
+      "join_columns": [
+        "test.t2.b",
+        "test.t3.a"
+      ],
+      "estimated_rows": 1.0,
+      "hash_condition": [
+        "(t2.b = t3.a)"
+      ],
+      "join_algorithm": "hash",
+      "estimated_total_cost": 4.764976958525346,
+      "estimated_first_row_cost": 4.764976958525346
+    }
+  ],
+  "join_type": "inner join",
+  "operation": "Inner hash join (t3.b = t4.a)",
+  "query_type": "select",
+  "access_type": "join",
+  "join_columns": [
+    "test.t3.b",
+    "test.t4.a"
+  ],
+  "estimated_rows": 1.0,
+  "hash_condition": [
+    "(t3.b = t4.a)"
+  ],
+  "join_algorithm": "hash",
+  "estimated_total_cost": 6.967741935483871,
+  "estimated_first_row_cost": 6.967741935483871
+}

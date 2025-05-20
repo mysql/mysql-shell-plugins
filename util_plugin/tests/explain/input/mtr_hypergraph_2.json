@@ -1,0 +1,57 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`f1` AS `f1` from `test`.`t1` where (`test`.`t1`.`f1` > (/* select#2 */ select `test`.`t1`.`f1` from `test`.`t1` limit 1))",
+  "query_plan": {
+    "inputs": [
+      {
+        "operation": "Table scan on t1",
+        "table_name": "t1",
+        "access_type": "table",
+        "schema_name": "test",
+        "used_columns": [
+          "f1"
+        ],
+        "estimated_rows": 3.0,
+        "estimated_total_cost": 0.8847926267281105,
+        "estimated_first_row_cost": 0.29493087557603687
+      },
+      {
+        "limit": 1,
+        "inputs": [
+          {
+            "operation": "Table scan on t1",
+            "table_name": "t1",
+            "access_type": "table",
+            "schema_name": "test",
+            "used_columns": [
+              "f1"
+            ],
+            "estimated_rows": 3.0,
+            "estimated_total_cost": 0.8847926267281105,
+            "estimated_first_row_cost": 0.29493087557603687
+          }
+        ],
+        "heading": "Select #2 (subquery in condition; run only once)",
+        "subquery": true,
+        "cacheable": true,
+        "operation": "Limit: 1 row(s)",
+        "access_type": "limit",
+        "limit_offset": 0,
+        "estimated_rows": 1.0,
+        "subquery_location": "condition",
+        "estimated_total_cost": 0.2949308755760368,
+        "estimated_first_row_cost": 0.2949308755760368
+      }
+    ],
+    "condition": "(t1.f1 > (select #2))",
+    "operation": "Filter: (t1.f1 > (select #2))",
+    "access_type": "filter",
+    "estimated_rows": 0.9998999834060669,
+    "filter_columns": [
+      "test.t1.f1"
+    ],
+    "estimated_total_cost": 1.3525345622119813,
+    "estimated_first_row_cost": 1.3525345622119813
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

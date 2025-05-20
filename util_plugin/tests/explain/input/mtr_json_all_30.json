@@ -1,0 +1,89 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`a` AS `a`,group_concat(`test`.`t2`.`b` separator ',') AS `b` from `test`.`t1` left join `test`.`t2` on((`test`.`t2`.`a` = `test`.`t1`.`a`)) where true group by `test`.`t1`.`a` order by `test`.`t1`.`b`",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "inputs": [
+                  {
+                    "inputs": [
+                      {
+                        "operation": "Table scan on t1",
+                        "table_name": "t1",
+                        "access_type": "table",
+                        "schema_name": "test",
+                        "used_columns": [
+                          "a",
+                          "b"
+                        ],
+                        "estimated_rows": 3.0,
+                        "estimated_total_cost": 0.8031127929687502
+                      }
+                    ],
+                    "operation": "Sort: t1.a",
+                    "access_type": "sort",
+                    "sort_fields": [
+                      "t1.a"
+                    ],
+                    "estimated_rows": 3.0,
+                    "estimated_total_cost": 0.8031127929687502
+                  },
+                  {
+                    "covering": true,
+                    "operation": "Covering index lookup on t2 using PRIMARY (a = t1.a)",
+                    "index_name": "PRIMARY",
+                    "table_name": "t2",
+                    "access_type": "index",
+                    "key_columns": [
+                      "a"
+                    ],
+                    "schema_name": "test",
+                    "used_columns": [
+                      "a",
+                      "b"
+                    ],
+                    "estimated_rows": 1.0,
+                    "lookup_condition": "a = t1.a",
+                    "index_access_type": "index_lookup",
+                    "lookup_references": [
+                      "test.t1.a"
+                    ],
+                    "estimated_total_cost": 0.2833333333333333
+                  }
+                ],
+                "join_type": "left join",
+                "operation": "Nested loop left join",
+                "access_type": "join",
+                "estimated_rows": 3.0,
+                "join_algorithm": "nested_loop",
+                "estimated_total_cost": 1.8531127929687503
+              }
+            ],
+            "group_by": true,
+            "functions": [
+              "group_concat(t2.b separator ',')"
+            ],
+            "operation": "Group aggregate: group_concat(t2.b separator ',')",
+            "access_type": "aggregate",
+            "estimated_rows": 1.7320508075688772,
+            "estimated_total_cost": 2.544357032600087
+          }
+        ],
+        "operation": "Stream results",
+        "access_type": "stream",
+        "estimated_rows": 1.7320508075688772,
+        "estimated_total_cost": 2.544357032600087
+      }
+    ],
+    "operation": "Sort: t1.b",
+    "access_type": "sort",
+    "sort_fields": [
+      "t1.b"
+    ]
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

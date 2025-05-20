@@ -40,6 +40,10 @@
         {
             "name": "Shell Plugin Tools",
             "path": "gui/tools"
+        },
+        {
+            "name": "Shell Utility Plugin Additions",
+            "path": "util_plugin"
         }
     ],
     "settings": {

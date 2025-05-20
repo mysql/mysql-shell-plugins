@@ -1,0 +1,30 @@
+{
+  "query": "/* select#1 */ select `sakila`.`actor`.`actor_id` AS `actor_id`,`sakila`.`actor`.`first_name` AS `first_name`,`sakila`.`actor`.`last_name` AS `last_name`,`sakila`.`actor`.`last_update` AS `last_update` from `sakila`.`actor` order by `sakila`.`actor`.`first_name`",
+  "query_plan": {
+    "inputs": [
+      {
+        "operation": "Table scan on actor",
+        "table_name": "actor",
+        "access_type": "table",
+        "schema_name": "sakila",
+        "used_columns": [
+          "actor_id",
+          "first_name",
+          "last_name",
+          "last_update"
+        ],
+        "estimated_rows": 200.0,
+        "estimated_total_cost": 20.25
+      }
+    ],
+    "operation": "Sort: sakila.actor.first_name",
+    "access_type": "sort",
+    "sort_fields": [
+      "sakila.actor.first_name"
+    ],
+    "estimated_rows": 200.0,
+    "estimated_total_cost": 20.25
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

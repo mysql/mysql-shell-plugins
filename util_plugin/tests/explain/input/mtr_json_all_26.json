@@ -1,0 +1,13 @@
+{
+  "query": "/* select#1 */ select 1 AS `1` from `test`.`t1` where true",
+  "query_plan": {
+    "operation": "Table scan on t1",
+    "table_name": "t1",
+    "access_type": "table",
+    "schema_name": "test",
+    "estimated_rows": 2.0,
+    "estimated_total_cost": 0.7008544921875
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

@@ -1,0 +1,125 @@
+{
+  "query": "/* select#1 */ select `a4`.`i` AS `i` from (/* select#2 */ select `a3`.`i` AS `i` from (/* select#3 */ select `a2`.`i` AS `i` from (/* select#4 */ select `a1`.`i` AS `i` from (/* select#5 */ select `test`.`t1`.`i` AS `i` from `test`.`t1`) `a1` join `test`.`t2`) `a2`) `a3`) `a4`",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "inputs": [
+                  {
+                    "inputs": [
+                      {
+                        "inputs": [
+                          {
+                            "inputs": [
+                              {
+                                "inputs": [
+                                  {
+                                    "inputs": [
+                                      {
+                                        "operation": "Table scan on t1",
+                                        "table_name": "t1",
+                                        "access_type": "table",
+                                        "schema_name": "test",
+                                        "used_columns": [
+                                          "i"
+                                        ],
+                                        "estimated_rows": 7.0,
+                                        "estimated_total_cost": 1.2029907226562504
+                                      }
+                                    ],
+                                    "operation": "Materialize",
+                                    "access_type": "materialize",
+                                    "estimated_rows": 7.0,
+                                    "estimated_total_cost": 2.815893948462702,
+                                    "estimated_first_row_cost": 2.815893948462702
+                                  }
+                                ],
+                                "operation": "Table scan on a1",
+                                "table_name": "a1",
+                                "access_type": "table",
+                                "used_columns": [
+                                  "i"
+                                ],
+                                "estimated_rows": 7.0,
+                                "estimated_total_cost": 5.403393948462702,
+                                "estimated_first_row_cost": 3.185536805605559
+                              },
+                              {
+                                "heading": "Hash",
+                                "operation": "Table scan on t2",
+                                "table_name": "t2",
+                                "access_type": "table",
+                                "schema_name": "test",
+                                "estimated_rows": 2.0,
+                                "estimated_total_cost": 0.7008544921875
+                              }
+                            ],
+                            "join_type": "inner join",
+                            "operation": "Inner hash join (no condition)",
+                            "access_type": "join",
+                            "join_columns": [],
+                            "estimated_rows": 14.0,
+                            "hash_condition": [],
+                            "join_algorithm": "hash",
+                            "estimated_total_cost": 4.6883544921875
+                          }
+                        ],
+                        "operation": "Materialize",
+                        "access_type": "materialize",
+                        "estimated_rows": 14.0,
+                        "estimated_total_cost": 7.914160943800403,
+                        "estimated_first_row_cost": 7.914160943800403
+                      }
+                    ],
+                    "operation": "Table scan on a2",
+                    "table_name": "a2",
+                    "access_type": "table",
+                    "used_columns": [
+                      "i"
+                    ],
+                    "estimated_rows": 14.0,
+                    "estimated_total_cost": 10.589160943800403,
+                    "estimated_first_row_cost": 8.105232372371832
+                  }
+                ],
+                "operation": "Materialize",
+                "access_type": "materialize",
+                "estimated_rows": 14.0,
+                "estimated_total_cost": 13.814967395413305,
+                "estimated_first_row_cost": 13.814967395413305
+              }
+            ],
+            "operation": "Table scan on a3",
+            "table_name": "a3",
+            "access_type": "table",
+            "used_columns": [
+              "i"
+            ],
+            "estimated_rows": 14.0,
+            "estimated_total_cost": 16.489967395413306,
+            "estimated_first_row_cost": 14.006038823984733
+          }
+        ],
+        "operation": "Materialize",
+        "access_type": "materialize",
+        "estimated_rows": 14.0,
+        "estimated_total_cost": 19.71577384702621,
+        "estimated_first_row_cost": 19.71577384702621
+      }
+    ],
+    "operation": "Table scan on a4",
+    "table_name": "a4",
+    "access_type": "table",
+    "used_columns": [
+      "i"
+    ],
+    "estimated_rows": 14.0,
+    "estimated_total_cost": 22.39077384702621,
+    "estimated_first_row_cost": 19.90684527559764
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

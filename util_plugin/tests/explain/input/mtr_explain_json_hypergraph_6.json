@@ -1,0 +1,52 @@
+{
+  "query": "/* select#1 */ select `e`.`ENGINE` AS `ENGINE`,`e`.`SUPPORT` AS `SUPPORT`,`e`.`COMMENT` AS `COMMENT`,`e`.`TRANSACTIONS` AS `TRANSACTIONS`,`e`.`XA` AS `XA`,`e`.`SAVEPOINTS` AS `SAVEPOINTS` from `information_schema`.`ENGINES` `e` where (`e`.`ENGINE` = 'MyISAM')",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "operation": "Fill information schema table e",
+            "table_name": "e",
+            "access_type": "materialize_information_schema",
+            "used_columns": [
+              "ENGINE",
+              "SUPPORT",
+              "COMMENT",
+              "TRANSACTIONS",
+              "XA",
+              "SAVEPOINTS"
+            ],
+            "estimated_rows": "elided",
+            "estimated_total_cost": "elided",
+            "estimated_first_row_cost": "elided"
+          }
+        ],
+        "operation": "Table scan on e",
+        "table_name": "e",
+        "access_type": "table",
+        "used_columns": [
+          "ENGINE",
+          "SUPPORT",
+          "COMMENT",
+          "TRANSACTIONS",
+          "XA",
+          "SAVEPOINTS"
+        ],
+        "estimated_rows": "elided",
+        "estimated_total_cost": "elided",
+        "estimated_first_row_cost": "elided"
+      }
+    ],
+    "condition": "(e.`ENGINE` = 'MyISAM')",
+    "operation": "Filter: (e.`ENGINE` = 'MyISAM')",
+    "access_type": "filter",
+    "estimated_rows": "elided",
+    "filter_columns": [
+      "e.`ENGINE`"
+    ],
+    "estimated_total_cost": "elided",
+    "estimated_first_row_cost": "elided"
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

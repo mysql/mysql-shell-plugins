@@ -1,0 +1,98 @@
+{
+  "query": "/* select#1 */ select sql_big_result `test`.`t1`.`col_varchar_key` AS `field1` from `test`.`t1` join `test`.`t1` `alias1` anti join (`test`.`t1` `alias2`) on(((`alias2`.`col_varchar_key` >= `test`.`t1`.`col_varchar`))) where true group by `field1`",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "alias": "alias1",
+                "operation": "Table scan on alias1",
+                "table_name": "t1",
+                "access_type": "table",
+                "schema_name": "test",
+                "estimated_rows": 3.0,
+                "estimated_total_cost": 0.8018433179723503,
+                "estimated_first_row_cost": 0.2672811059907834
+              },
+              {
+                "inputs": [
+                  {
+                    "operation": "Table scan on t1",
+                    "table_name": "t1",
+                    "access_type": "table",
+                    "schema_name": "test",
+                    "used_columns": [
+                      "col_varchar",
+                      "col_varchar_key"
+                    ],
+                    "estimated_rows": 3.0,
+                    "estimated_total_cost": 1.0783410138248848,
+                    "estimated_first_row_cost": 0.35944700460829493
+                  },
+                  {
+                    "alias": "alias2",
+                    "heading": "Hash",
+                    "operation": "Table scan on alias2",
+                    "table_name": "t1",
+                    "access_type": "table",
+                    "schema_name": "test",
+                    "used_columns": [
+                      "col_varchar_key"
+                    ],
+                    "estimated_rows": 3.0,
+                    "estimated_total_cost": 0.9400921658986177,
+                    "estimated_first_row_cost": 0.3133640552995392
+                  }
+                ],
+                "heading": "Hash",
+                "join_type": "antijoin",
+                "operation": "Hash antijoin (no condition), extra conditions: (alias2.col_varchar_key >= t1.col_varchar)",
+                "access_type": "join",
+                "join_columns": [
+                  "alias2.col_varchar_key",
+                  "test.t1.col_varchar"
+                ],
+                "estimated_rows": 1.2681224262534148,
+                "hash_condition": [],
+                "join_algorithm": "hash",
+                "extra_condition": [
+                  "(alias2.col_varchar_key >= t1.col_varchar)"
+                ],
+                "estimated_total_cost": 7.382005544312304,
+                "estimated_first_row_cost": 6.969960227075354
+              }
+            ],
+            "join_type": "inner join",
+            "operation": "Inner hash join (no condition)",
+            "access_type": "join",
+            "join_columns": [],
+            "estimated_rows": 3.8043672787602443,
+            "hash_condition": [],
+            "join_algorithm": "hash",
+            "estimated_total_cost": 11.231179769635656,
+            "estimated_first_row_cost": 9.793813057504043
+          }
+        ],
+        "operation": "Sort: t1.col_varchar_key",
+        "access_type": "sort",
+        "sort_fields": [
+          "t1.col_varchar_key"
+        ],
+        "estimated_rows": 3.8043672787602443,
+        "estimated_total_cost": 12.782618202675183,
+        "estimated_first_row_cost": 12.782618202675183
+      }
+    ],
+    "group_by": true,
+    "functions": [],
+    "operation": "Group (no aggregates)",
+    "access_type": "aggregate",
+    "estimated_rows": 1.9504787306608202,
+    "estimated_total_cost": 13.564181331857744,
+    "estimated_first_row_cost": 13.183321433577767
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

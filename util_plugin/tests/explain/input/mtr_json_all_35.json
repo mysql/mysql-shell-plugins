@@ -1,0 +1,187 @@
+{
+  "query": "(/* select#1 */ select `test`.`r`.`a` AS `a` from `test`.`r` union (/* select#2 */ select `test`.`s`.`a` AS `a` from `test`.`s` order by `test`.`s`.`a` limit 1) union (/* select#3 */ select `test`.`s`.`a` AS `a` from `test`.`s` union /* select#4 */ select 2 AS `2` limit 3) order by `a` limit 3) order by `a`",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "limit": 3,
+                "inputs": [
+                  {
+                    "inputs": [
+                      {
+                        "inputs": [
+                          {
+                            "union": true,
+                            "inputs": [
+                              {
+                                "operation": "Table scan on r",
+                                "table_name": "r",
+                                "access_type": "table",
+                                "schema_name": "test",
+                                "used_columns": [
+                                  "a"
+                                ],
+                                "estimated_rows": 4.0,
+                                "estimated_total_cost": 0.901708984375
+                              },
+                              {
+                                "limit": 1,
+                                "inputs": [
+                                  {
+                                    "inputs": [
+                                      {
+                                        "operation": "Table scan on s",
+                                        "table_name": "s",
+                                        "access_type": "table",
+                                        "schema_name": "test",
+                                        "used_columns": [
+                                          "a"
+                                        ],
+                                        "estimated_rows": 5.0,
+                                        "estimated_total_cost": 1.00213623046875
+                                      }
+                                    ],
+                                    "operation": "Sort: s.a, limit input to 1 row(s) per chunk",
+                                    "access_type": "sort",
+                                    "sort_fields": [
+                                      "s.a"
+                                    ],
+                                    "estimated_rows": 5.0,
+                                    "per_chunk_limit": 1,
+                                    "estimated_total_cost": 1.00213623046875
+                                  }
+                                ],
+                                "operation": "Limit: 1 row(s)",
+                                "access_type": "limit",
+                                "limit_offset": 0,
+                                "estimated_rows": 1.0,
+                                "estimated_total_cost": 1.00213623046875
+                              },
+                              {
+                                "limit": 3,
+                                "inputs": [
+                                  {
+                                    "inputs": [
+                                      {
+                                        "union": true,
+                                        "inputs": [
+                                          {
+                                            "heading": "Limit table size: 3 unique row(s)",
+                                            "operation": "Table scan on s",
+                                            "table_name": "s",
+                                            "access_type": "table",
+                                            "schema_name": "test",
+                                            "used_columns": [
+                                              "a"
+                                            ],
+                                            "estimated_rows": 5.0,
+                                            "estimated_total_cost": 1.00213623046875
+                                          },
+                                          {
+                                            "heading": "Limit table size: 3 unique row(s)",
+                                            "operation": "Rows fetched before execution",
+                                            "access_type": "rows_fetched_before_execution",
+                                            "estimated_rows": 1.0,
+                                            "estimated_total_cost": 0.0,
+                                            "estimated_first_row_cost": 0.0
+                                          }
+                                        ],
+                                        "operation": "Union materialize with deduplication",
+                                        "access_type": "materialize",
+                                        "deduplication": true,
+                                        "estimated_rows": 6.0,
+                                        "estimated_total_cost": 2.3846247097314226,
+                                        "estimated_first_row_cost": 2.3846247097314226
+                                      }
+                                    ],
+                                    "operation": "Table scan on <union temporary>",
+                                    "table_name": "<union temporary>",
+                                    "access_type": "table",
+                                    "used_columns": [
+                                      "a"
+                                    ],
+                                    "estimated_rows": 6.0,
+                                    "estimated_total_cost": 4.959624709731423,
+                                    "estimated_first_row_cost": 2.8137913763980893
+                                  }
+                                ],
+                                "operation": "Limit: 3 row(s)",
+                                "access_type": "limit",
+                                "limit_offset": 0,
+                                "estimated_rows": 3.0,
+                                "estimated_total_cost": 3.6721247097314227,
+                                "estimated_first_row_cost": 2.8137913763980893
+                              }
+                            ],
+                            "operation": "Union materialize with deduplication",
+                            "access_type": "materialize",
+                            "deduplication": true,
+                            "estimated_rows": 8.0,
+                            "estimated_total_cost": 7.419287896925403,
+                            "estimated_first_row_cost": 7.419287896925403
+                          }
+                        ],
+                        "operation": "Table scan on <union temporary>",
+                        "table_name": "<union temporary>",
+                        "access_type": "table",
+                        "used_columns": [
+                          "a"
+                        ],
+                        "estimated_rows": 8.0,
+                        "estimated_total_cost": 10.019287896925404,
+                        "estimated_first_row_cost": 7.744287896925403
+                      }
+                    ],
+                    "operation": "Sort: a, limit input to 3 row(s) per chunk",
+                    "access_type": "sort",
+                    "sort_fields": [
+                      "a"
+                    ],
+                    "estimated_rows": 3.0,
+                    "per_chunk_limit": 3,
+                    "estimated_total_cost": 12.937648323262474,
+                    "estimated_first_row_cost": 12.937648323262474
+                  }
+                ],
+                "operation": "Limit: 3 row(s)",
+                "access_type": "limit",
+                "limit_offset": 0,
+                "estimated_rows": 3.0,
+                "estimated_total_cost": 12.937648323262474,
+                "estimated_first_row_cost": 12.937648323262474
+              }
+            ],
+            "operation": "Temporary table",
+            "temp_table": true,
+            "access_type": "materialize",
+            "estimated_rows": 3.0,
+            "estimated_total_cost": 13.62889256289381,
+            "estimated_first_row_cost": 13.62889256289381
+          }
+        ],
+        "operation": "Table scan on <result temporary>",
+        "table_name": "<result temporary>",
+        "access_type": "table",
+        "used_columns": [
+          "a"
+        ],
+        "estimated_rows": 3.0,
+        "estimated_total_cost": 16.16639256289381,
+        "estimated_first_row_cost": 14.474725896227143
+      }
+    ],
+    "operation": "Sort: a",
+    "access_type": "sort",
+    "sort_fields": [
+      "a"
+    ],
+    "estimated_rows": 3.0,
+    "estimated_total_cost": 17.35664239015254,
+    "estimated_first_row_cost": 17.35664239015254
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

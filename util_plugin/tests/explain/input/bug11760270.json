@@ -1,0 +1,91 @@
+{
+  "query": "/* select#1 */ select count(0) AS `rankForMyUid` from (/* select#2 */ select `test`.`quiz_user`.`correct` AS `correct`,count(0) AS `count(*)` from `test`.`quiz_user` group by `test`.`quiz_user`.`correct` having (`test`.`quiz_user`.`correct` >= (/* select#3 */ select NULL from `test`.`quiz_user` where multiple equal(123, NULL)))) `groupsBetterOrEqualThanMyUid`",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "inputs": [
+                  {
+                    "inputs": [
+                      {
+                        "covering": true,
+                        "operation": "Covering index scan on quiz_user using correct",
+                        "index_name": "correct",
+                        "table_name": "quiz_user",
+                        "access_type": "index",
+                        "schema_name": "test",
+                        "used_columns": [
+                          "uid",
+                          "correct"
+                        ],
+                        "estimated_rows": 1.0,
+                        "index_access_type": "index_scan",
+                        "estimated_total_cost": 0.35
+                      }
+                    ],
+                    "group_by": true,
+                    "functions": [
+                      "count(0)"
+                    ],
+                    "operation": "Group aggregate: count(0)",
+                    "access_type": "aggregate",
+                    "estimated_rows": 1.0,
+                    "estimated_total_cost": 0.5804147465437788
+                  },
+                  {
+                    "heading": "Select #3 (subquery in condition; run only once)",
+                    "subquery": true,
+                    "cacheable": true,
+                    "operation": "Zero rows (no matching row in const table)",
+                    "access_type": "zero_rows",
+                    "estimated_rows": 0.0,
+                    "zero_rows_cause": "no matching row in const table",
+                    "subquery_location": "condition",
+                    "estimated_total_cost": 0.0,
+                    "estimated_first_row_cost": 0.0
+                  }
+                ],
+                "condition": "(quiz_user.correct >= (select #3))",
+                "operation": "Filter: (quiz_user.correct >= (select #3))",
+                "access_type": "filter",
+                "estimated_rows": 1.0,
+                "filter_columns": [
+                  "test.quiz_user.correct"
+                ],
+                "estimated_total_cost": 0.5804147465437788
+              }
+            ],
+            "operation": "Materialize",
+            "access_type": "materialize",
+            "estimated_rows": 1.0,
+            "estimated_total_cost": 0.8108294930875576,
+            "estimated_first_row_cost": 0.8108294930875576
+          }
+        ],
+        "operation": "Table scan on groupsBetterOrEqualThanMyUid",
+        "table_name": "groupsBetterOrEqualThanMyUid",
+        "access_type": "table",
+        "used_columns": [
+          "correct",
+          "count(*)"
+        ],
+        "estimated_rows": 1.0,
+        "estimated_total_cost": 3.3233294930875577,
+        "estimated_first_row_cost": 3.3233294930875577
+      }
+    ],
+    "functions": [
+      "count(0)"
+    ],
+    "operation": "Aggregate: count(0)",
+    "access_type": "aggregate",
+    "estimated_rows": 1.0,
+    "estimated_total_cost": 3.5537442396313366,
+    "estimated_first_row_cost": 3.5537442396313366
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+} 

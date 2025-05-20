@@ -1,0 +1,58 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`i` AS `i` from `test`.`t1` order by (/* select#2 */ select `test`.`t2`.`j` from `test`.`t2` where (`test`.`t2`.`i` = `test`.`t1`.`i`))",
+  "query_plan": {
+    "inputs": [
+      {
+        "operation": "Table scan on t1",
+        "table_name": "t1",
+        "access_type": "table",
+        "schema_name": "test",
+        "used_columns": [
+          "i"
+        ],
+        "estimated_rows": 10.0,
+        "estimated_total_cost": 1.5042724609375
+      }
+    ],
+    "operation": "Sort: (select #2)",
+    "access_type": "sort",
+    "sort_fields": [
+      "(select #2)"
+    ],
+    "estimated_rows": 10.0,
+    "estimated_total_cost": 1.5042724609375,
+    "inputs_from_select_list": [
+      {
+        "inputs": [
+          {
+            "operation": "Table scan on t2",
+            "table_name": "t2",
+            "access_type": "table",
+            "schema_name": "test",
+            "used_columns": [
+              "i",
+              "j"
+            ],
+            "estimated_rows": 10.0,
+            "estimated_total_cost": 0.6054931655526161
+          }
+        ],
+        "heading": "Select #2 (subquery in projection; dependent)",
+        "subquery": true,
+        "condition": "(t2.i = t1.i)",
+        "dependent": true,
+        "operation": "Filter: (t2.i = t1.i)",
+        "access_type": "filter",
+        "estimated_rows": 1.0000000149011612,
+        "filter_columns": [
+          "test.t1.i",
+          "test.t2.i"
+        ],
+        "subquery_location": "projection",
+        "estimated_total_cost": 0.6054931655526161
+      }
+    ]
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}
