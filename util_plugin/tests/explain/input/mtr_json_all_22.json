@@ -1,0 +1,20 @@
+{
+  "query": "insert into `test`.`t1` values (1) on duplicate key update `test`.`t1`.`i` = (/* select#2 */ select `test`.`t2`.`i` from `test`.`t2`)",
+  "query_plan": {
+    "inputs": [
+      {
+        "operation": "Rows fetched before execution",
+        "access_type": "rows_fetched_before_execution"
+      }
+    ],
+    "operation": "Insert into t1",
+    "table_name": "t1",
+    "access_type": "insert_values",
+    "schema_name": "test",
+    "used_columns": [
+      "i"
+    ]
+  },
+  "query_type": "insert",
+  "json_schema_version": "2.0"
+}

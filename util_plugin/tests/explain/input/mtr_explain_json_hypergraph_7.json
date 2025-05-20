@@ -1,0 +1,83 @@
+{
+  "query": "/* select#1 */ select `dt`.`f1` AS `f1`,`dt`.`SUM(f2) OVER()` AS `SUM(f2) OVER()` from (/* select#2 */ select sql_big_result `test`.`t1`.`f1` AS `f1`,sum(`test`.`t1`.`f2`) OVER ()  AS `SUM(f2) OVER()` from `test`.`t1` group by `test`.`t1`.`f1`) `dt` where (`dt`.`f1` > 2)",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "inputs": [
+                  {
+                    "inputs": [
+                      {
+                        "ranges": [],
+                        "covering": true,
+                        "operation": "Covering index skip scan for deduplication on t1 using f1_2",
+                        "index_name": "f1_2",
+                        "table_name": "t1",
+                        "access_type": "index",
+                        "key_columns": [
+                          "f1"
+                        ],
+                        "schema_name": "test",
+                        "used_columns": [
+                          "f1",
+                          "f2"
+                        ],
+                        "estimated_rows": "elided",
+                        "index_access_type": "group_index_skip_scan",
+                        "estimated_total_cost": "elided",
+                        "estimated_first_row_cost": "elided"
+                      }
+                    ],
+                    "operation": "Stream results",
+                    "access_type": "stream",
+                    "estimated_rows": "elided",
+                    "estimated_total_cost": "elided",
+                    "estimated_first_row_cost": "elided"
+                  }
+                ],
+                "buffering": true,
+                "functions": [
+                  "sum(t1.f2) OVER () "
+                ],
+                "operation": "Window aggregate with buffering: sum(t1.f2) OVER () ",
+                "access_type": "window",
+                "estimated_rows": "elided",
+                "estimated_total_cost": "elided",
+                "estimated_first_row_cost": "elided"
+              }
+            ],
+            "operation": "Materialize",
+            "access_type": "materialize",
+            "estimated_rows": "elided",
+            "estimated_total_cost": "elided",
+            "estimated_first_row_cost": "elided"
+          }
+        ],
+        "operation": "Table scan on dt",
+        "table_name": "dt",
+        "access_type": "table",
+        "used_columns": [
+          "f1",
+          "SUM(f2) OVER()"
+        ],
+        "estimated_rows": "elided",
+        "estimated_total_cost": "elided",
+        "estimated_first_row_cost": "elided"
+      }
+    ],
+    "condition": "(dt.f1 > 2)",
+    "operation": "Filter: (dt.f1 > 2)",
+    "access_type": "filter",
+    "estimated_rows": "elided",
+    "filter_columns": [
+      "dt.f1"
+    ],
+    "estimated_total_cost": "elided",
+    "estimated_first_row_cost": "elided"
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

@@ -1,0 +1,58 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`i` AS `i` from `test`.`t1` having (<not>((`test`.`t1`.`i` <= <max>(/* select#2 */ select `test`.`t2`.`i` from `test`.`t2`))) or <not>((`test`.`t1`.`i` >= <min>(/* select#3 */ select `test`.`t2`.`i` from `test`.`t2`))))",
+  "query_plan": {
+    "inputs": [
+      {
+        "operation": "Table scan on t1",
+        "table_name": "t1",
+        "access_type": "table",
+        "schema_name": "test",
+        "used_columns": [
+          "i"
+        ],
+        "estimated_rows": 7.0,
+        "estimated_total_cost": 1.2029907226562504
+      },
+      {
+        "heading": "Select #2 (subquery in condition; run only once)",
+        "subquery": true,
+        "cacheable": true,
+        "operation": "Table scan on t2",
+        "table_name": "t2",
+        "access_type": "table",
+        "schema_name": "test",
+        "used_columns": [
+          "i"
+        ],
+        "estimated_rows": 2.0,
+        "subquery_location": "condition",
+        "estimated_total_cost": 0.7008544921875
+      },
+      {
+        "heading": "Select #3 (subquery in condition; run only once)",
+        "subquery": true,
+        "cacheable": true,
+        "operation": "Table scan on t2",
+        "table_name": "t2",
+        "access_type": "table",
+        "schema_name": "test",
+        "used_columns": [
+          "i"
+        ],
+        "estimated_rows": 2.0,
+        "subquery_location": "condition",
+        "estimated_total_cost": 0.7008544921875
+      }
+    ],
+    "condition": "(<not>((t1.i <= <max>(select #2))) or <not>((t1.i >= <min>(select #3))))",
+    "operation": "Filter: (<not>((t1.i <= <max>(select #2))) or <not>((t1.i >= <min>(select #3))))",
+    "access_type": "filter",
+    "estimated_rows": 7.0,
+    "filter_columns": [
+      "test.t1.i"
+    ],
+    "estimated_total_cost": 1.2029907226562504
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

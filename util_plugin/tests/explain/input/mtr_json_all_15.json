@@ -1,0 +1,125 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`a` AS `a`,`test`.`t1`.`b` AS `b` from `test`.`t1` semi join (`test`.`t2`) where ((`test`.`t2`.`c` = `test`.`t1`.`a`) and <nop>(<in_optimizer>((/* select#3 */ select `test`.`t3`.`e` from `test`.`t3`),<exists>(/* select#4 */ select `test`.`t3`.`e` from `test`.`t3` where ((0 <> `test`.`t1`.`b`) and (<cache>((/* select#3 */ select `test`.`t3`.`e` from `test`.`t3`)) < `test`.`t3`.`e`))))))",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "operation": "Table scan on t1",
+            "table_name": "t1",
+            "access_type": "table",
+            "schema_name": "test",
+            "used_columns": [
+              "a",
+              "b"
+            ],
+            "estimated_rows": 2.0,
+            "estimated_total_cost": 0.7010986328125
+          },
+          {
+            "heading": "Select #3 (subquery in condition; run only once)",
+            "subquery": true,
+            "cacheable": true,
+            "operation": "Table scan on t3",
+            "table_name": "t3",
+            "access_type": "table",
+            "schema_name": "test",
+            "used_columns": [
+              "e"
+            ],
+            "estimated_rows": 2.0,
+            "subquery_location": "condition",
+            "estimated_total_cost": 0.7008544921875
+          },
+          {
+            "limit": 1,
+            "inputs": [
+              {
+                "inputs": [
+                  {
+                    "operation": "Table scan on t3",
+                    "table_name": "t3",
+                    "access_type": "table",
+                    "schema_name": "test",
+                    "used_columns": [
+                      "e"
+                    ],
+                    "estimated_rows": 2.0,
+                    "estimated_total_cost": 0.6008544921875
+                  },
+                  {
+                    "heading": "Select #3 (subquery in condition; run only once)",
+                    "subquery": true,
+                    "cacheable": true,
+                    "operation": "Table scan on t3",
+                    "table_name": "t3",
+                    "access_type": "table",
+                    "schema_name": "test",
+                    "used_columns": [
+                      "e"
+                    ],
+                    "estimated_rows": 2.0,
+                    "subquery_location": "condition",
+                    "estimated_total_cost": 0.7008544921875
+                  }
+                ],
+                "condition": "((0 <> t1.b) and (<cache>((select #3)) < t3.e))",
+                "operation": "Filter: ((0 <> t1.b) and (<cache>((select #3)) < t3.e))",
+                "access_type": "filter",
+                "estimated_rows": 1.0,
+                "filter_columns": [
+                  "test.t1.b",
+                  "test.t3.e"
+                ],
+                "estimated_total_cost": 0.6008544921875
+              }
+            ],
+            "heading": "Select #4 (subquery in condition; dependent)",
+            "subquery": true,
+            "dependent": true,
+            "operation": "Limit: 1 row(s)",
+            "access_type": "limit",
+            "limit_offset": 0,
+            "estimated_rows": 1.0,
+            "subquery_location": "condition",
+            "estimated_total_cost": 0.6008544921875
+          }
+        ],
+        "condition": "<nop>(<in_optimizer>((select #3),<exists>(select #4)))",
+        "operation": "Filter: <nop>(<in_optimizer>((select #3),<exists>(select #4)))",
+        "access_type": "filter",
+        "estimated_rows": 2.0,
+        "filter_columns": [],
+        "estimated_total_cost": 0.7010986328125
+      },
+      {
+        "heading": "Hash",
+        "operation": "Table scan on t2",
+        "table_name": "t2",
+        "access_type": "table",
+        "schema_name": "test",
+        "used_columns": [
+          "c"
+        ],
+        "estimated_rows": 2.0,
+        "estimated_total_cost": 0.3005665202625096
+      }
+    ],
+    "join_type": "semijoin",
+    "operation": "Hash semijoin (FirstMatch) (t2.c = t1.a)",
+    "access_type": "join",
+    "join_columns": [
+      "test.t1.a",
+      "test.t2.c"
+    ],
+    "estimated_rows": 2.0,
+    "hash_condition": [
+      "(t2.c = t1.a)"
+    ],
+    "join_algorithm": "hash",
+    "semijoin_strategy": "firstmatch",
+    "estimated_total_cost": 1.201699560787529
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

@@ -1,0 +1,52 @@
+{
+  "query": "/* select#1 */ select `e`.`ENGINE` AS `ENGINE`,`e`.`SUPPORT` AS `SUPPORT`,`e`.`COMMENT` AS `COMMENT`,`e`.`TRANSACTIONS` AS `TRANSACTIONS`,`e`.`XA` AS `XA`,`e`.`SAVEPOINTS` AS `SAVEPOINTS` from `information_schema`.`ENGINES` `e` where (`e`.`ENGINE` = 'MyISAM')",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "operation": "Fill information schema table e",
+            "table_name": "e",
+            "access_type": "materialize_information_schema",
+            "used_columns": [
+              "ENGINE",
+              "SUPPORT",
+              "COMMENT",
+              "TRANSACTIONS",
+              "XA",
+              "SAVEPOINTS"
+            ],
+            "estimated_rows": 1000.0,
+            "estimated_total_cost": 1649.7695852534562,
+            "estimated_first_row_cost": 1592.2235023041474
+          }
+        ],
+        "operation": "Table scan on e",
+        "table_name": "e",
+        "access_type": "table",
+        "used_columns": [
+          "ENGINE",
+          "SUPPORT",
+          "COMMENT",
+          "TRANSACTIONS",
+          "XA",
+          "SAVEPOINTS"
+        ],
+        "estimated_rows": 1000.0,
+        "estimated_total_cost": 1649.7695852534562,
+        "estimated_first_row_cost": 1.6497695852534562
+      }
+    ],
+    "condition": "(e.`ENGINE` = 'MyISAM')",
+    "operation": "Filter: (e.`ENGINE` = 'MyISAM')",
+    "access_type": "filter",
+    "estimated_rows": 100.00000149011612,
+    "filter_columns": [
+      "e.`ENGINE`"
+    ],
+    "estimated_total_cost": 1707.373271889401,
+    "estimated_first_row_cost": 1650.345622111232
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

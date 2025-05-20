@@ -1,0 +1,46 @@
+{
+  "query": "/* select#1 */ select 1 AS `1` union all /* select#2 */ select 2 AS `2`",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "operation": "Rows fetched before execution",
+            "access_type": "rows_fetched_before_execution",
+            "estimated_rows": 1.0,
+            "estimated_total_cost": 0.0,
+            "estimated_first_row_cost": 0.0
+          }
+        ],
+        "operation": "Stream results",
+        "access_type": "stream",
+        "estimated_rows": 1.0,
+        "estimated_total_cost": 0.0,
+        "estimated_first_row_cost": 0.0
+      },
+      {
+        "inputs": [
+          {
+            "operation": "Rows fetched before execution",
+            "access_type": "rows_fetched_before_execution",
+            "estimated_rows": 1.0,
+            "estimated_total_cost": 0.0,
+            "estimated_first_row_cost": 0.0
+          }
+        ],
+        "operation": "Stream results",
+        "access_type": "stream",
+        "estimated_rows": 1.0,
+        "estimated_total_cost": 0.0,
+        "estimated_first_row_cost": 0.0
+      }
+    ],
+    "operation": "Append",
+    "access_type": "append",
+    "estimated_rows": 2.0,
+    "estimated_total_cost": 0.0,
+    "estimated_first_row_cost": 0.0
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

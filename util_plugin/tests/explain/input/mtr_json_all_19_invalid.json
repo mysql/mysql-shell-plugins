@@ -1,0 +1,7 @@
+{
+  "query_plan": {
+    "operation": "<not executable by iterator executor>"
+  },
+  "query_type": "update",
+  "json_schema_version": "2.0"
+}

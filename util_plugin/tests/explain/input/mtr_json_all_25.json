@@ -1,0 +1,50 @@
+{
+  "query": "/* select#1 */ select 1 AS `1` from `test`.`t1` group by greatest(`test`.`t1`.`a`,(/* select#2 */ select 1 from dual))",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "operation": "Table scan on t1",
+            "table_name": "t1",
+            "access_type": "table",
+            "schema_name": "test",
+            "used_columns": [
+              "a"
+            ],
+            "estimated_rows": 2.0,
+            "estimated_total_cost": 0.7010986328125,
+            "inputs_from_select_list": [
+              {
+                "heading": "Select #2 (subquery in projection; run only once)",
+                "subquery": true,
+                "cacheable": true,
+                "operation": "Rows fetched before execution",
+                "access_type": "rows_fetched_before_execution",
+                "estimated_rows": 1.0,
+                "subquery_location": "projection",
+                "estimated_total_cost": 0.0,
+                "estimated_first_row_cost": 0.0
+              }
+            ]
+          }
+        ],
+        "operation": "Temporary table with deduplication",
+        "temp_table": true,
+        "access_type": "materialize",
+        "deduplication": true,
+        "estimated_rows": 2.0,
+        "estimated_total_cost": 1.1619281259000576,
+        "estimated_first_row_cost": 1.1619281259000576
+      }
+    ],
+    "operation": "Table scan on <temporary>",
+    "table_name": "<temporary>",
+    "access_type": "table",
+    "estimated_rows": 2.0,
+    "estimated_total_cost": 3.6869281259000575,
+    "estimated_first_row_cost": 2.4244281259000573
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

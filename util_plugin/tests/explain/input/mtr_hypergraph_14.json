@@ -1,0 +1,20 @@
+{
+  "query": "insert into `test`.`t` values (4),(5),(6)",
+  "query_plan": {
+    "inputs": [
+      {
+        "operation": "Rows fetched before execution",
+        "access_type": "rows_fetched_before_execution"
+      }
+    ],
+    "operation": "Insert into t",
+    "table_name": "t",
+    "access_type": "insert_values",
+    "schema_name": "test",
+    "used_columns": [
+      "i"
+    ]
+  },
+  "query_type": "insert",
+  "json_schema_version": "2.0"
+}

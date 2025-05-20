@@ -1,0 +1,16 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`i` AS `i` from `test`.`t1` order by (/* select#2 */ select length(1) from `test`.`t2` limit 1)",
+  "query_plan": {
+    "operation": "Table scan on t1",
+    "table_name": "t1",
+    "access_type": "table",
+    "schema_name": "test",
+    "used_columns": [
+      "i"
+    ],
+    "estimated_rows": 7.0,
+    "estimated_total_cost": 1.2029907226562504
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

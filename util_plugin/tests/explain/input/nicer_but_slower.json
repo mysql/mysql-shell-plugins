@@ -1,0 +1,219 @@
+ {
+  "query": "/* select#1 */ select `sakila`.`nicer_but_slower_film_list`.`FID` AS `FID`,`sakila`.`nicer_but_slower_film_list`.`title` AS `title`,`sakila`.`nicer_but_slower_film_list`.`description` AS `description`,`sakila`.`nicer_but_slower_film_list`.`category` AS `category`,`sakila`.`nicer_but_slower_film_list`.`price` AS `price`,`sakila`.`nicer_but_slower_film_list`.`length` AS `length`,`sakila`.`nicer_but_slower_film_list`.`rating` AS `rating`,`sakila`.`nicer_but_slower_film_list`.`actors` AS `actors` from `sakila`.`nicer_but_slower_film_list`",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "inputs": [
+                  {
+                    "inputs": [
+                      {
+                        "inputs": [
+                          {
+                            "inputs": [
+                              {
+                                "inputs": [
+                                  {
+                                    "inputs": [
+                                      {
+                                        "operation": "Table scan on category",
+                                        "table_name": "category",
+                                        "access_type": "table",
+                                        "schema_name": "sakila",
+                                        "used_columns": [
+                                          "category_id",
+                                          "name"
+                                        ],
+                                        "estimated_rows": 16.0,
+                                        "estimated_total_cost": 1.85
+                                      },
+                                      {
+                                        "inputs": [
+                                          {
+                                            "covering": true,
+                                            "operation": "Covering index lookup on film_category using fk_film_category_category (category_id = category.category_id)",
+                                            "index_name": "fk_film_category_category",
+                                            "table_name": "film_category",
+                                            "access_type": "index",
+                                            "key_columns": [
+                                              "category_id"
+                                            ],
+                                            "schema_name": "sakila",
+                                            "used_columns": [
+                                              "film_id",
+                                              "category_id"
+                                            ],
+                                            "estimated_rows": 62.5,
+                                            "lookup_condition": "category_id = category.category_id",
+                                            "index_access_type": "index_lookup",
+                                            "lookup_references": [
+                                              "sakila.category.category_id"
+                                            ],
+                                            "estimated_total_cost": 0.6481286603221084
+                                          }
+                                        ],
+                                        "condition": "(film_category.film_id is not null)",
+                                        "operation": "Filter: (film_category.film_id is not null)",
+                                        "access_type": "filter",
+                                        "estimated_rows": 62.5,
+                                        "filter_columns": [
+                                          "sakila.film_category.film_id"
+                                        ],
+                                        "estimated_total_cost": 0.6481286603221084
+                                      }
+                                    ],
+                                    "join_type": "inner join",
+                                    "operation": "Nested loop inner join",
+                                    "access_type": "join",
+                                    "estimated_rows": 1000.0,
+                                    "join_algorithm": "nested_loop",
+                                    "estimated_total_cost": 105.97005856515374
+                                  },
+                                  {
+                                    "covering": false,
+                                    "operation": "Single-row index lookup on film using PRIMARY (film_id = film_category.film_id)",
+                                    "index_name": "PRIMARY",
+                                    "table_name": "film",
+                                    "access_type": "index",
+                                    "key_columns": [
+                                      "film_id"
+                                    ],
+                                    "schema_name": "sakila",
+                                    "used_columns": [
+                                      "film_id",
+                                      "title",
+                                      "description",
+                                      "rental_rate",
+                                      "length",
+                                      "rating"
+                                    ],
+                                    "estimated_rows": 1.0,
+                                    "lookup_condition": "film_id = film_category.film_id",
+                                    "index_access_type": "index_lookup",
+                                    "lookup_references": [
+                                      "sakila.film_category.film_id"
+                                    ],
+                                    "estimated_total_cost": 0.2501
+                                  }
+                                ],
+                                "join_type": "inner join",
+                                "operation": "Nested loop inner join",
+                                "access_type": "join",
+                                "estimated_rows": 1000.0,
+                                "join_algorithm": "nested_loop",
+                                "estimated_total_cost": 455.97005856515375
+                              },
+                              {
+                                "covering": true,
+                                "operation": "Covering index lookup on film_actor using idx_fk_film_id (film_id = film_category.film_id)",
+                                "index_name": "idx_fk_film_id",
+                                "table_name": "film_actor",
+                                "access_type": "index",
+                                "key_columns": [
+                                  "film_id"
+                                ],
+                                "schema_name": "sakila",
+                                "used_columns": [
+                                  "actor_id",
+                                  "film_id"
+                                ],
+                                "estimated_rows": 5.478435516357422,
+                                "lookup_condition": "film_id = film_category.film_id",
+                                "index_access_type": "index_lookup",
+                                "lookup_references": [
+                                  "sakila.film_category.film_id"
+                                ],
+                                "estimated_total_cost": 0.2513674693782019
+                              }
+                            ],
+                            "join_type": "inner join",
+                            "operation": "Nested loop inner join",
+                            "access_type": "join",
+                            "estimated_rows": 5478.435516357422,
+                            "join_algorithm": "nested_loop",
+                            "estimated_total_cost": 1254.633236027462
+                          },
+                          {
+                            "covering": false,
+                            "operation": "Single-row index lookup on actor using PRIMARY (actor_id = film_actor.actor_id)",
+                            "index_name": "PRIMARY",
+                            "table_name": "actor",
+                            "access_type": "index",
+                            "key_columns": [
+                              "actor_id"
+                            ],
+                            "schema_name": "sakila",
+                            "used_columns": [
+                              "actor_id",
+                              "first_name",
+                              "last_name"
+                            ],
+                            "estimated_rows": 1.0,
+                            "lookup_condition": "actor_id = film_actor.actor_id",
+                            "index_access_type": "index_lookup",
+                            "lookup_references": [
+                              "sakila.film_actor.actor_id"
+                            ],
+                            "estimated_total_cost": 0.25001825338633654
+                          }
+                        ],
+                        "join_type": "inner join",
+                        "operation": "Nested loop inner join",
+                        "access_type": "join",
+                        "estimated_rows": 5478.435516357422,
+                        "join_algorithm": "nested_loop",
+                        "estimated_total_cost": 3172.0856667525595
+                      }
+                    ],
+                    "operation": "Stream results",
+                    "access_type": "stream",
+                    "estimated_rows": 5478.435516357422,
+                    "estimated_total_cost": 3172.0856667525595
+                  }
+                ],
+                "operation": "Sort: film.film_id, category.`name`",
+                "access_type": "sort",
+                "sort_fields": [
+                  "film.film_id",
+                  "category.`name`"
+                ]
+              }
+            ],
+            "group_by": true,
+            "functions": [
+              "group_concat(tmp_field separator ', ')"
+            ],
+            "operation": "Group aggregate: group_concat(tmp_field separator ', ')",
+            "access_type": "aggregate"
+          }
+        ],
+        "operation": "Materialize",
+        "access_type": "materialize",
+        "estimated_rows": 0.0,
+        "estimated_total_cost": 0.0,
+        "estimated_first_row_cost": 0.0
+      }
+    ],
+    "operation": "Table scan on nicer_but_slower_film_list",
+    "table_name": "nicer_but_slower_film_list",
+    "access_type": "table",
+    "used_columns": [
+      "FID",
+      "title",
+      "description",
+      "category",
+      "price",
+      "length",
+      "rating",
+      "actors"
+    ],
+    "estimated_rows": 0.0,
+    "estimated_total_cost": 2.5,
+    "estimated_first_row_cost": 2.5
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

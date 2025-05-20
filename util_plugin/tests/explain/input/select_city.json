@@ -1,0 +1,19 @@
+{
+  "query": "/* select#1 */ select `sakila`.`city`.`city_id` AS `city_id`,`sakila`.`city`.`city` AS `city`,`sakila`.`city`.`country_id` AS `country_id`,`sakila`.`city`.`last_update` AS `last_update` from `sakila`.`city`",
+  "query_plan": {
+    "operation": "Table scan on city",
+    "table_name": "city",
+    "access_type": "table",
+    "schema_name": "sakila",
+    "used_columns": [
+      "city_id",
+      "city",
+      "country_id",
+      "last_update"
+    ],
+    "estimated_rows": 600.0,
+    "estimated_total_cost": 63.0
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

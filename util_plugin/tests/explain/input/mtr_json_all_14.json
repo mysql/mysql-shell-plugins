@@ -1,0 +1,13 @@
+{
+  "query": "/* select#1 */ select 1 AS `1` from `test`.`t1` where true",
+  "query_plan": {
+    "operation": "Zero rows (no matching row in const table)",
+    "access_type": "zero_rows",
+    "estimated_rows": 0.0,
+    "zero_rows_cause": "no matching row in const table",
+    "estimated_total_cost": 0.0,
+    "estimated_first_row_cost": 0.0
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

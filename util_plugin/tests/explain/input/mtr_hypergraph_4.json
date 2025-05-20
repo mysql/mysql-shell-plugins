@@ -1,0 +1,66 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`i` AS `i` from `test`.`t1` semi join (`test`.`t2`) where multiple equal(`test`.`t1`.`i`, `test`.`t2`.`i`)",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "covering": true,
+            "operation": "Covering index scan on t2 using i1",
+            "index_name": "i1",
+            "table_name": "t2",
+            "access_type": "index",
+            "schema_name": "test",
+            "used_columns": [
+              "i"
+            ],
+            "estimated_rows": 8.0,
+            "index_access_type": "index_scan",
+            "estimated_total_cost": 4.142857142857143,
+            "estimated_first_row_cost": 0.5178571428571429
+          }
+        ],
+        "operation": "Remove duplicates from input grouped on t2.i",
+        "access_type": "remove_duplicates_from_groups",
+        "group_items": [
+          "t2.i"
+        ],
+        "estimated_rows": 2.8284271247461903,
+        "estimated_total_cost": 5.986175115207374,
+        "estimated_first_row_cost": 2.116432508666648
+      },
+      {
+        "covering": true,
+        "operation": "Single-row covering index lookup on t1 using PRIMARY (i = t2.i)",
+        "index_name": "PRIMARY",
+        "table_name": "t1",
+        "access_type": "index",
+        "key_columns": [
+          "i"
+        ],
+        "schema_name": "test",
+        "used_columns": [
+          "i"
+        ],
+        "estimated_rows": 1.0,
+        "lookup_condition": "i = t2.i",
+        "index_access_type": "index_lookup",
+        "lookup_references": [
+          "test.t2.i"
+        ],
+        "estimated_total_cost": 1.9218894009216592,
+        "estimated_first_row_cost": 1.9218894009216592
+      }
+    ],
+    "join_type": "inner join",
+    "operation": "Nested loop inner join (LooseScan)",
+    "access_type": "join",
+    "estimated_rows": 2.8284271247461903,
+    "join_algorithm": "nested_loop",
+    "semijoin_strategy": "loosescan",
+    "estimated_total_cost": 11.4220992275364,
+    "estimated_first_row_cost": 4.038321909588307
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

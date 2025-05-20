@@ -1,0 +1,74 @@
+{
+  "query": "/* select#1 */ select `sakila`.`actor`.`actor_id` AS `actor_id`,`sakila`.`actor`.`first_name` AS `first_name`,`sakila`.`actor`.`last_name` AS `last_name`,`sakila`.`actor`.`last_update` AS `last_update` from `sakila`.`actor` union /* select#2 */ select `sakila`.`actor`.`actor_id` AS `actor_id`,`sakila`.`actor`.`first_name` AS `first_name`,`sakila`.`actor`.`last_name` AS `last_name`,`sakila`.`actor`.`last_update` AS `last_update` from `sakila`.`actor` union /* select#3 */ select `sakila`.`actor`.`actor_id` AS `actor_id`,`sakila`.`actor`.`first_name` AS `first_name`,`sakila`.`actor`.`last_name` AS `last_name`,`sakila`.`actor`.`last_update` AS `last_update` from `sakila`.`actor`",
+  "query_plan": {
+    "inputs": [
+      {
+        "union": true,
+        "inputs": [
+          {
+            "operation": "Table scan on actor",
+            "table_name": "actor",
+            "access_type": "table",
+            "schema_name": "sakila",
+            "used_columns": [
+              "actor_id",
+              "first_name",
+              "last_name",
+              "last_update"
+            ],
+            "estimated_rows": 200.0,
+            "estimated_total_cost": 20.25
+          },
+          {
+            "operation": "Table scan on actor",
+            "table_name": "actor",
+            "access_type": "table",
+            "schema_name": "sakila",
+            "used_columns": [
+              "actor_id",
+              "first_name",
+              "last_name",
+              "last_update"
+            ],
+            "estimated_rows": 200.0,
+            "estimated_total_cost": 20.25
+          },
+          {
+            "operation": "Table scan on actor",
+            "table_name": "actor",
+            "access_type": "table",
+            "schema_name": "sakila",
+            "used_columns": [
+              "actor_id",
+              "first_name",
+              "last_name",
+              "last_update"
+            ],
+            "estimated_rows": 200.0,
+            "estimated_total_cost": 20.25
+          }
+        ],
+        "operation": "Union materialize with deduplication",
+        "access_type": "materialize",
+        "deduplication": true,
+        "estimated_rows": 600.0,
+        "estimated_total_cost": 198.99884792626727,
+        "estimated_first_row_cost": 198.99884792626727
+      }
+    ],
+    "operation": "Table scan on <union temporary>",
+    "table_name": "<union temporary>",
+    "access_type": "table",
+    "used_columns": [
+      "actor_id",
+      "first_name",
+      "last_name",
+      "last_update"
+    ],
+    "estimated_rows": 600.0,
+    "estimated_total_cost": 208.99884792626727,
+    "estimated_first_row_cost": 199.01551459293395
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

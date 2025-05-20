@@ -1,0 +1,310 @@
+{
+  "query": "/* select#1 */ select `sakila`.`sales_by_store`.`store` AS `store`,`sakila`.`sales_by_store`.`manager` AS `manager`,`sakila`.`sales_by_store`.`total_sales` AS `total_sales` from `sakila`.`sales_by_store`",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "inputs": [
+                  {
+                    "inputs": [
+                      {
+                        "inputs": [
+                          {
+                            "inputs": [
+                              {
+                                "inputs": [
+                                  {
+                                    "inputs": [
+                                      {
+                                        "inputs": [
+                                          {
+                                            "inputs": [
+                                              {
+                                                "inputs": [
+                                                  {
+                                                    "alias": "s",
+                                                    "covering": false,
+                                                    "operation": "Index scan on s using PRIMARY",
+                                                    "index_name": "PRIMARY",
+                                                    "table_name": "store",
+                                                    "access_type": "index",
+                                                    "schema_name": "sakila",
+                                                    "used_columns": [
+                                                      "store_id",
+                                                      "manager_staff_id",
+                                                      "address_id"
+                                                    ],
+                                                    "estimated_rows": 2.0,
+                                                    "index_access_type": "index_scan",
+                                                    "estimated_total_cost": 0.45
+                                                  },
+                                                  {
+                                                    "alias": "m",
+                                                    "covering": false,
+                                                    "operation": "Single-row index lookup on m using PRIMARY (staff_id = s.manager_staff_id)",
+                                                    "index_name": "PRIMARY",
+                                                    "table_name": "staff",
+                                                    "access_type": "index",
+                                                    "key_columns": [
+                                                      "staff_id"
+                                                    ],
+                                                    "schema_name": "sakila",
+                                                    "used_columns": [
+                                                      "staff_id",
+                                                      "first_name",
+                                                      "last_name"
+                                                    ],
+                                                    "estimated_rows": 1.0,
+                                                    "lookup_condition": "staff_id = s.manager_staff_id",
+                                                    "index_access_type": "index_lookup",
+                                                    "lookup_references": [
+                                                      "sakila.s.manager_staff_id"
+                                                    ],
+                                                    "estimated_total_cost": 0.8000000000000002
+                                                  }
+                                                ],
+                                                "join_type": "inner join",
+                                                "operation": "Nested loop inner join",
+                                                "access_type": "join",
+                                                "estimated_rows": 2.0,
+                                                "join_algorithm": "nested_loop",
+                                                "estimated_total_cost": 2.1500000000000004
+                                              },
+                                              {
+                                                "alias": "a",
+                                                "covering": false,
+                                                "operation": "Single-row index lookup on a using PRIMARY (address_id = s.address_id)",
+                                                "index_name": "PRIMARY",
+                                                "table_name": "address",
+                                                "access_type": "index",
+                                                "key_columns": [
+                                                  "address_id"
+                                                ],
+                                                "schema_name": "sakila",
+                                                "used_columns": [
+                                                  "address_id",
+                                                  "city_id"
+                                                ],
+                                                "estimated_rows": 1.0,
+                                                "lookup_condition": "address_id = s.address_id",
+                                                "index_access_type": "index_lookup",
+                                                "lookup_references": [
+                                                  "sakila.s.address_id"
+                                                ],
+                                                "estimated_total_cost": 0.3
+                                              }
+                                            ],
+                                            "join_type": "inner join",
+                                            "operation": "Nested loop inner join",
+                                            "access_type": "join",
+                                            "estimated_rows": 2.0,
+                                            "join_algorithm": "nested_loop",
+                                            "estimated_total_cost": 2.8500000000000005
+                                          },
+                                          {
+                                            "alias": "c",
+                                            "covering": false,
+                                            "operation": "Single-row index lookup on c using PRIMARY (city_id = a.city_id)",
+                                            "index_name": "PRIMARY",
+                                            "table_name": "city",
+                                            "access_type": "index",
+                                            "key_columns": [
+                                              "city_id"
+                                            ],
+                                            "schema_name": "sakila",
+                                            "used_columns": [
+                                              "city_id",
+                                              "city",
+                                              "country_id"
+                                            ],
+                                            "estimated_rows": 1.0,
+                                            "lookup_condition": "city_id = a.city_id",
+                                            "index_access_type": "index_lookup",
+                                            "lookup_references": [
+                                              "sakila.a.city_id"
+                                            ],
+                                            "estimated_total_cost": 0.3
+                                          }
+                                        ],
+                                        "join_type": "inner join",
+                                        "operation": "Nested loop inner join",
+                                        "access_type": "join",
+                                        "estimated_rows": 2.0,
+                                        "join_algorithm": "nested_loop",
+                                        "estimated_total_cost": 3.5500000000000007
+                                      },
+                                      {
+                                        "alias": "cy",
+                                        "covering": false,
+                                        "operation": "Single-row index lookup on cy using PRIMARY (country_id = c.country_id)",
+                                        "index_name": "PRIMARY",
+                                        "table_name": "country",
+                                        "access_type": "index",
+                                        "key_columns": [
+                                          "country_id"
+                                        ],
+                                        "schema_name": "sakila",
+                                        "used_columns": [
+                                          "country_id",
+                                          "country"
+                                        ],
+                                        "estimated_rows": 1.0,
+                                        "lookup_condition": "country_id = c.country_id",
+                                        "index_access_type": "index_lookup",
+                                        "lookup_references": [
+                                          "sakila.c.country_id"
+                                        ],
+                                        "estimated_total_cost": 0.3
+                                      }
+                                    ],
+                                    "join_type": "inner join",
+                                    "operation": "Nested loop inner join",
+                                    "access_type": "join",
+                                    "estimated_rows": 2.0,
+                                    "join_algorithm": "nested_loop",
+                                    "estimated_total_cost": 4.250000000000001
+                                  },
+                                  {
+                                    "alias": "i",
+                                    "covering": true,
+                                    "operation": "Covering index lookup on i using idx_store_id_film_id (store_id = s.store_id)",
+                                    "index_name": "idx_store_id_film_id",
+                                    "table_name": "inventory",
+                                    "access_type": "index",
+                                    "key_columns": [
+                                      "store_id"
+                                    ],
+                                    "schema_name": "sakila",
+                                    "used_columns": [
+                                      "inventory_id",
+                                      "store_id"
+                                    ],
+                                    "estimated_rows": 2290.5,
+                                    "lookup_condition": "store_id = s.store_id",
+                                    "index_access_type": "index_lookup",
+                                    "lookup_references": [
+                                      "sakila.s.store_id"
+                                    ],
+                                    "estimated_total_cost": 115.19401537335285
+                                  }
+                                ],
+                                "join_type": "inner join",
+                                "operation": "Nested loop inner join",
+                                "access_type": "join",
+                                "estimated_rows": 4581.0,
+                                "join_algorithm": "nested_loop",
+                                "estimated_total_cost": 463.68803074670575
+                              },
+                              {
+                                "alias": "r",
+                                "covering": true,
+                                "operation": "Covering index lookup on r using idx_fk_inventory_id (inventory_id = i.inventory_id)",
+                                "index_name": "idx_fk_inventory_id",
+                                "table_name": "rental",
+                                "access_type": "index",
+                                "key_columns": [
+                                  "inventory_id"
+                                ],
+                                "schema_name": "sakila",
+                                "used_columns": [
+                                  "rental_id",
+                                  "inventory_id"
+                                ],
+                                "estimated_rows": 3.4945414066314697,
+                                "lookup_condition": "inventory_id = i.inventory_id",
+                                "index_access_type": "index_lookup",
+                                "lookup_references": [
+                                  "sakila.i.inventory_id"
+                                ],
+                                "estimated_total_cost": 0.2506088498580091
+                              }
+                            ],
+                            "join_type": "inner join",
+                            "operation": "Nested loop inner join",
+                            "access_type": "join",
+                            "estimated_rows": 16008.494183778763,
+                            "join_algorithm": "nested_loop",
+                            "estimated_total_cost": 3212.227136183459
+                          },
+                          {
+                            "alias": "p",
+                            "covering": false,
+                            "operation": "Index lookup on p using fk_payment_rental (rental_id = r.rental_id)",
+                            "index_name": "fk_payment_rental",
+                            "table_name": "payment",
+                            "access_type": "index",
+                            "key_columns": [
+                              "rental_id"
+                            ],
+                            "schema_name": "sakila",
+                            "used_columns": [
+                              "payment_id",
+                              "rental_id",
+                              "amount"
+                            ],
+                            "estimated_rows": 1.028357744216919,
+                            "lookup_condition": "rental_id = r.rental_id",
+                            "index_access_type": "index_lookup",
+                            "lookup_references": [
+                              "sakila.r.rental_id"
+                            ],
+                            "estimated_total_cost": 0.2570958598798089
+                          }
+                        ],
+                        "join_type": "inner join",
+                        "operation": "Nested loop inner join",
+                        "access_type": "join",
+                        "estimated_rows": 16462.458967140396,
+                        "join_algorithm": "nested_loop",
+                        "estimated_total_cost": 8974.087774682597
+                      }
+                    ],
+                    "group_by": true,
+                    "functions": [
+                      "sum(p.amount)"
+                    ],
+                    "operation": "Group aggregate: sum(p.amount)",
+                    "access_type": "aggregate",
+                    "estimated_rows": 2.0,
+                    "estimated_total_cost": 12767.28108508361
+                  }
+                ],
+                "operation": "Stream results",
+                "access_type": "stream",
+                "estimated_rows": 2.0,
+                "estimated_total_cost": 12767.28108508361
+              }
+            ],
+            "operation": "Sort: cy.country, c.city",
+            "access_type": "sort",
+            "sort_fields": [
+              "cy.country",
+              "c.city"
+            ]
+          }
+        ],
+        "operation": "Materialize",
+        "access_type": "materialize",
+        "estimated_rows": 0.0,
+        "estimated_total_cost": 0.0,
+        "estimated_first_row_cost": 0.0
+      }
+    ],
+    "operation": "Table scan on sales_by_store",
+    "table_name": "sales_by_store",
+    "access_type": "table",
+    "used_columns": [
+      "store",
+      "manager",
+      "total_sales"
+    ],
+    "estimated_rows": 0.0,
+    "estimated_total_cost": 2.5,
+    "estimated_first_row_cost": 2.5
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

@@ -1,0 +1,73 @@
+{
+  "query": "/* select#1 */ select `t1`.`a` AS `a`,`t1`.`b` AS `b` from (/* select#2 */ select 1 AS `a`,2 AS `b` union all /* select#3 */ select 1 AS `a`,2 AS `b`) `t1` group by `t1`.`a` order by `t1`.`b` desc",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "inputs": [
+                  {
+                    "union": true,
+                    "inputs": [
+                      {
+                        "operation": "Rows fetched before execution",
+                        "access_type": "rows_fetched_before_execution",
+                        "estimated_rows": 1.0,
+                        "estimated_total_cost": 0.0,
+                        "estimated_first_row_cost": 0.0
+                      },
+                      {
+                        "operation": "Rows fetched before execution",
+                        "access_type": "rows_fetched_before_execution",
+                        "estimated_rows": 1.0,
+                        "estimated_total_cost": 0.0,
+                        "estimated_first_row_cost": 0.0
+                      }
+                    ],
+                    "operation": "Union all materialize",
+                    "access_type": "materialize",
+                    "estimated_rows": 2.0,
+                    "estimated_total_cost": 0.4608294930875576,
+                    "estimated_first_row_cost": 0.4608294930875576
+                  }
+                ],
+                "operation": "Table scan on t1",
+                "table_name": "t1",
+                "access_type": "table",
+                "used_columns": [
+                  "a",
+                  "b"
+                ],
+                "estimated_rows": 2.0,
+                "estimated_total_cost": 2.9858294930875573,
+                "estimated_first_row_cost": 1.7233294930875573
+              }
+            ],
+            "operation": "Temporary table with deduplication",
+            "temp_table": true,
+            "access_type": "materialize",
+            "deduplication": true,
+            "estimated_rows": 2.0,
+            "estimated_total_cost": 3.446658986175115,
+            "estimated_first_row_cost": 3.446658986175115
+          }
+        ],
+        "operation": "Table scan on <temporary>",
+        "table_name": "<temporary>",
+        "access_type": "table",
+        "estimated_rows": 2.0,
+        "estimated_total_cost": 5.971658986175115,
+        "estimated_first_row_cost": 4.709158986175115
+      }
+    ],
+    "operation": "Sort: t1.b DESC",
+    "access_type": "sort",
+    "sort_fields": [
+      "t1.b DESC"
+    ]
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

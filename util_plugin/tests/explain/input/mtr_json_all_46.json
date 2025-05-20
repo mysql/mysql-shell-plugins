@@ -1,0 +1,38 @@
+{
+  "query": "/* select#1 */ select `test`.`t`.`i` AS `i` from `test`.`t` where (`test`.`t`.`i` in (2,3)) limit 1",
+  "query_plan": {
+    "limit": 1,
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "operation": "Table scan on t",
+            "table_name": "t",
+            "access_type": "table",
+            "schema_name": "test",
+            "used_columns": [
+              "i"
+            ],
+            "estimated_rows": 3.0,
+            "estimated_total_cost": 0.8012817382812502
+          }
+        ],
+        "condition": "(t.i in (2,3))",
+        "operation": "Filter: (t.i in (2,3))",
+        "access_type": "filter",
+        "estimated_rows": 1.5,
+        "filter_columns": [
+          "test.t.i"
+        ],
+        "estimated_total_cost": 0.8012817382812502
+      }
+    ],
+    "operation": "Limit: 1 row(s)",
+    "access_type": "limit",
+    "limit_offset": 0,
+    "estimated_rows": 1.0,
+    "estimated_total_cost": 0.8012817382812502
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

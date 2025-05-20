@@ -1,0 +1,87 @@
+{
+  "query": "delete from `sakila`.`film` where (`sakila`.`film`.`film_id` = (/* select#2 */ select max(`sakila`.`film_actor`.`film_id`) from `sakila`.`film_actor`))",
+  "inputs": [
+    {
+      "inputs": [
+        {
+          "covering": false,
+          "operation": "Single-row index lookup on film using PRIMARY (film_id = (select #2))",
+          "index_name": "PRIMARY",
+          "table_name": "film",
+          "access_type": "index",
+          "key_columns": [
+            "film_id"
+          ],
+          "schema_name": "sakila",
+          "used_columns": [
+            "film_id",
+            "title",
+            "description",
+            "release_year",
+            "language_id",
+            "original_language_id",
+            "rental_duration",
+            "rental_rate",
+            "length",
+            "replacement_cost",
+            "rating",
+            "special_features",
+            "last_update"
+          ],
+          "estimated_rows": 1.0,
+          "lookup_condition": "film_id = (select #2)",
+          "index_access_type": "index_lookup",
+          "estimated_total_cost": 4.207142857142857,
+          "estimated_first_row_cost": 4.207142857142857
+        },
+        {
+          "inputs": [
+            {
+              "covering": true,
+              "operation": "Covering index scan on film_actor using idx_fk_film_id",
+              "index_name": "idx_fk_film_id",
+              "table_name": "film_actor",
+              "access_type": "index",
+              "schema_name": "sakila",
+              "used_columns": [
+                "film_id"
+              ],
+              "estimated_rows": 5462.0,
+              "index_access_type": "index_scan",
+              "estimated_total_cost": 1613.2165898617511,
+              "estimated_first_row_cost": 0.29535272608234187
+            }
+          ],
+          "heading": "Select #2 (subquery in condition; run only once)",
+          "subquery": true,
+          "cacheable": true,
+          "functions": [
+            "max(sakila.film_actor.film_id)"
+          ],
+          "operation": "Aggregate: max(sakila.film_actor.film_id)",
+          "access_type": "aggregate",
+          "estimated_rows": 1.0,
+          "subquery_location": "condition",
+          "estimated_total_cost": 2871.741935483871,
+          "estimated_first_row_cost": 2871.741935483871
+        }
+      ],
+      "condition": "(sakila.film.film_id = (select #2))",
+      "operation": "Filter: (sakila.film.film_id = (select #2))",
+      "access_type": "filter",
+      "estimated_rows": 1.0,
+      "filter_columns": [
+        "sakila.film.film_id"
+      ],
+      "estimated_total_cost": 2876.00668202765,
+      "estimated_first_row_cost": 2876.00668202765
+    }
+  ],
+  "tables": "film (immediate)",
+  "operation": "Delete from film (immediate)",
+  "query_type": "delete",
+  "access_type": "delete_rows",
+  "estimated_rows": 1.0,
+  "estimated_total_cost": 2876.00668202765,
+  "estimated_first_row_cost": 2876.00668202765
+}

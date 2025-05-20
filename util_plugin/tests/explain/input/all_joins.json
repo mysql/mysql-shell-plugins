@@ -1,0 +1,273 @@
+{
+  "query": "/* select#1 */ select `c1`.`customer_id` AS `customer_id_1`,`c1`.`first_name` AS `customer_1_first`,`c2`.`customer_id` AS `customer_id_2`,`c2`.`first_name` AS `customer_2_first`,`a`.`address` AS `address_left`,`a2`.`address` AS `address_right`,`s`.`staff_id` AS `staff_id_cross`,`f`.`title` AS `film_title`,`r`.`rental_id` AS `rental_id` from `sakila`.`address` `a2` join `sakila`.`customer` `c1` join `sakila`.`customer` `c2` join `sakila`.`rental` `r` left join `sakila`.`address` `a` on((`a`.`address_id` = `c1`.`address_id`)) join `sakila`.`staff` `s` straight_join `sakila`.`inventory` `i` straight_join `sakila`.`film` `f` where ((`c2`.`store_id` = `c1`.`store_id`) and (`r`.`customer_id` = `c1`.`customer_id`) and (`a2`.`address_id` = `c1`.`address_id`) and (`i`.`inventory_id` = `r`.`inventory_id`) and (`f`.`film_id` = `i`.`film_id`) and (`c1`.`customer_id` <> `c2`.`customer_id`))",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "inputs": [
+                  {
+                    "inputs": [
+                      {
+                        "inputs": [
+                          {
+                            "inputs": [
+                              {
+                                "inputs": [
+                                  {
+                                    "alias": "c1",
+                                    "operation": "Table scan on c1",
+                                    "table_name": "customer",
+                                    "access_type": "table",
+                                    "schema_name": "sakila",
+                                    "used_columns": [
+                                      "customer_id",
+                                      "store_id",
+                                      "first_name",
+                                      "address_id"
+                                    ],
+                                    "estimated_rows": 599.0,
+                                    "estimated_total_cost": 31.981265497207648
+                                  }
+                                ],
+                                "condition": "(c1.address_id is not null)",
+                                "operation": "Filter: (c1.address_id is not null)",
+                                "access_type": "filter",
+                                "estimated_rows": 599.0,
+                                "filter_columns": [
+                                  "c1.address_id"
+                                ],
+                                "estimated_total_cost": 31.981265497207648
+                              },
+                              {
+                                "alias": "s",
+                                "heading": "Hash",
+                                "covering": true,
+                                "operation": "Covering index scan on s using idx_fk_store_id",
+                                "index_name": "idx_fk_store_id",
+                                "table_name": "staff",
+                                "access_type": "index",
+                                "schema_name": "sakila",
+                                "used_columns": [
+                                  "staff_id"
+                                ],
+                                "estimated_rows": 2.0,
+                                "index_access_type": "index_scan",
+                                "estimated_total_cost": 4.2
+                              }
+                            ],
+                            "join_type": "inner join",
+                            "operation": "Inner hash join (no condition)",
+                            "access_type": "join",
+                            "join_columns": [],
+                            "estimated_rows": 1198.0,
+                            "hash_condition": [],
+                            "join_algorithm": "hash",
+                            "estimated_total_cost": 128.06253099441528
+                          },
+                          {
+                            "alias": "a2",
+                            "covering": false,
+                            "operation": "Single-row index lookup on a2 using PRIMARY (address_id = c1.address_id)",
+                            "index_name": "PRIMARY",
+                            "table_name": "address",
+                            "access_type": "index",
+                            "key_columns": [
+                              "address_id"
+                            ],
+                            "schema_name": "sakila",
+                            "used_columns": [
+                              "address_id",
+                              "address"
+                            ],
+                            "estimated_rows": 1.0,
+                            "lookup_condition": "address_id = c1.address_id",
+                            "index_access_type": "index_lookup",
+                            "lookup_references": [
+                              "sakila.c1.address_id"
+                            ],
+                            "estimated_total_cost": 0.5000834724540901
+                          }
+                        ],
+                        "join_type": "inner join",
+                        "operation": "Nested loop inner join",
+                        "access_type": "join",
+                        "estimated_rows": 1198.0,
+                        "join_algorithm": "nested_loop",
+                        "estimated_total_cost": 846.8625309944152
+                      },
+                      {
+                        "inputs": [
+                          {
+                            "alias": "r",
+                            "covering": false,
+                            "operation": "Index lookup on r using idx_fk_customer_id (customer_id = c1.customer_id)",
+                            "index_name": "idx_fk_customer_id",
+                            "table_name": "rental",
+                            "access_type": "index",
+                            "key_columns": [
+                              "customer_id"
+                            ],
+                            "schema_name": "sakila",
+                            "used_columns": [
+                              "rental_id",
+                              "inventory_id",
+                              "customer_id"
+                            ],
+                            "estimated_rows": 26.719532012939453,
+                            "lookup_condition": "customer_id = c1.customer_id",
+                            "index_access_type": "index_lookup",
+                            "lookup_references": [
+                              "sakila.c1.customer_id"
+                            ],
+                            "estimated_total_cost": 26.721762357848714
+                          }
+                        ],
+                        "condition": "(r.inventory_id is not null)",
+                        "operation": "Filter: (r.inventory_id is not null)",
+                        "access_type": "filter",
+                        "estimated_rows": 26.719532012939453,
+                        "filter_columns": [
+                          "r.inventory_id"
+                        ],
+                        "estimated_total_cost": 26.721762357848714
+                      }
+                    ],
+                    "join_type": "inner join",
+                    "operation": "Nested loop inner join",
+                    "access_type": "join",
+                    "estimated_rows": 32009.999351501465,
+                    "join_algorithm": "nested_loop",
+                    "estimated_total_cost": 36057.86181764603
+                  },
+                  {
+                    "alias": "a",
+                    "covering": false,
+                    "operation": "Single-row index lookup on a using PRIMARY (address_id = c1.address_id)",
+                    "index_name": "PRIMARY",
+                    "table_name": "address",
+                    "access_type": "index",
+                    "key_columns": [
+                      "address_id"
+                    ],
+                    "schema_name": "sakila",
+                    "used_columns": [
+                      "address_id",
+                      "address"
+                    ],
+                    "estimated_rows": 1.0,
+                    "lookup_condition": "address_id = c1.address_id",
+                    "index_access_type": "index_lookup",
+                    "lookup_references": [
+                      "sakila.c1.address_id"
+                    ],
+                    "estimated_total_cost": 0.018716026620972066
+                  }
+                ],
+                "join_type": "left join",
+                "operation": "Nested loop left join",
+                "access_type": "join",
+                "estimated_rows": 32009.999351501465,
+                "join_algorithm": "nested_loop",
+                "estimated_total_cost": 39857.861752796176
+              },
+              {
+                "alias": "c2",
+                "covering": false,
+                "operation": "Index lookup on c2 using idx_fk_store_id (store_id = c1.store_id), with index condition: (c1.customer_id <> c2.customer_id)",
+                "index_name": "idx_fk_store_id",
+                "table_name": "customer",
+                "access_type": "index",
+                "key_columns": [
+                  "store_id"
+                ],
+                "schema_name": "sakila",
+                "used_columns": [
+                  "customer_id",
+                  "store_id",
+                  "first_name"
+                ],
+                "estimated_rows": 299.5,
+                "lookup_condition": "store_id = c1.store_id",
+                "index_access_type": "index_lookup",
+                "lookup_references": [
+                  "sakila.c1.store_id"
+                ],
+                "estimated_total_cost": 12.188342080594566,
+                "pushed_index_condition": "(c1.customer_id <> c2.customer_id)"
+              }
+            ],
+            "join_type": "inner join",
+            "operation": "Nested loop inner join",
+            "access_type": "join",
+            "estimated_rows": 9586994.805774689,
+            "join_algorithm": "nested_loop",
+            "estimated_total_cost": 1495201.4021540345
+          },
+          {
+            "alias": "i",
+            "covering": false,
+            "operation": "Single-row index lookup on i using PRIMARY (inventory_id = r.inventory_id)",
+            "index_name": "PRIMARY",
+            "table_name": "inventory",
+            "access_type": "index",
+            "key_columns": [
+              "inventory_id"
+            ],
+            "schema_name": "sakila",
+            "used_columns": [
+              "inventory_id",
+              "film_id"
+            ],
+            "estimated_rows": 1.0,
+            "lookup_condition": "inventory_id = r.inventory_id",
+            "index_access_type": "index_lookup",
+            "lookup_references": [
+              "sakila.r.inventory_id"
+            ],
+            "estimated_total_cost": 0.0018549550631399207
+          }
+        ],
+        "join_type": "inner join",
+        "operation": "Nested loop inner join",
+        "access_type": "join",
+        "estimated_rows": 9586994.805774689,
+        "join_algorithm": "nested_loop",
+        "estimated_total_cost": 2469905.882407254
+      },
+      {
+        "alias": "f",
+        "covering": false,
+        "operation": "Single-row index lookup on f using PRIMARY (film_id = i.film_id)",
+        "index_name": "PRIMARY",
+        "table_name": "film",
+        "access_type": "index",
+        "key_columns": [
+          "film_id"
+        ],
+        "schema_name": "sakila",
+        "used_columns": [
+          "film_id",
+          "title"
+        ],
+        "estimated_rows": 1.0,
+        "lookup_condition": "film_id = i.film_id",
+        "index_access_type": "index_lookup",
+        "lookup_references": [
+          "sakila.i.film_id"
+        ],
+        "estimated_total_cost": 0.0004637474581163342
+      }
+    ],
+    "join_type": "inner join",
+    "operation": "Nested loop inner join",
+    "access_type": "join",
+    "estimated_rows": 9586994.805774689,
+    "join_algorithm": "nested_loop",
+    "estimated_total_cost": 3432606.6129036606
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

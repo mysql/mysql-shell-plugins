@@ -1,0 +1,95 @@
+{
+  "query": "/* select#1 */ select `x1`.`a` AS `a`,`x1`.`b` AS `b`,`x2`.`a` AS `a`,`x2`.`b` AS `b` from `test`.`t1` `x1` join `test`.`t1` `x2` where (`x2`.`a` < (/* select#2 */ select min(`x3`.`a`) from `test`.`t1` `x3` where (`x1`.`a` = `x3`.`a`)))",
+  "query_plan": {
+    "inputs": [
+      {
+        "alias": "x1",
+        "operation": "Table scan on x1",
+        "table_name": "t1",
+        "access_type": "table",
+        "schema_name": "test",
+        "used_columns": [
+          "a",
+          "b"
+        ],
+        "estimated_rows": "elided",
+        "estimated_total_cost": "elided",
+        "estimated_first_row_cost": "elided"
+      },
+      {
+        "alias": "x2",
+        "heading": "Hash",
+        "operation": "Table scan on x2",
+        "table_name": "t1",
+        "access_type": "table",
+        "schema_name": "test",
+        "used_columns": [
+          "a",
+          "b"
+        ],
+        "estimated_rows": "elided",
+        "estimated_total_cost": "elided",
+        "estimated_first_row_cost": "elided"
+      },
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "alias": "x3",
+                "operation": "Table scan on x3",
+                "table_name": "t1",
+                "access_type": "table",
+                "schema_name": "test",
+                "used_columns": [
+                  "a"
+                ],
+                "estimated_rows": "elided",
+                "estimated_total_cost": "elided",
+                "estimated_first_row_cost": "elided"
+              }
+            ],
+            "condition": "(x1.a = x3.a)",
+            "operation": "Filter: (x1.a = x3.a)",
+            "access_type": "filter",
+            "estimated_rows": "elided",
+            "filter_columns": [
+              "x1.a",
+              "x3.a"
+            ],
+            "estimated_total_cost": "elided",
+            "estimated_first_row_cost": "elided"
+          }
+        ],
+        "heading": "Select #2 (subquery in extra conditions; dependent)",
+        "subquery": true,
+        "dependent": true,
+        "functions": [
+          "min(x3.a)"
+        ],
+        "operation": "Aggregate: min(x3.a)",
+        "access_type": "aggregate",
+        "estimated_rows": "elided",
+        "subquery_location": "extra conditions",
+        "estimated_total_cost": "elided",
+        "estimated_first_row_cost": "elided"
+      }
+    ],
+    "join_type": "inner join",
+    "operation": "Inner hash join (no condition), extra conditions: (x2.a < (select #2))",
+    "access_type": "join",
+    "join_columns": [
+      "x2.a"
+    ],
+    "estimated_rows": "elided",
+    "hash_condition": [],
+    "join_algorithm": "hash",
+    "extra_condition": [
+      "(x2.a < (select #2))"
+    ],
+    "estimated_total_cost": "elided",
+    "estimated_first_row_cost": "elided"
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

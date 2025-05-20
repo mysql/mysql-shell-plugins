@@ -1,0 +1,57 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`f1` AS `f1` from `test`.`t1` where (`test`.`t1`.`f1` > (/* select#2 */ select `test`.`t1`.`f1` from `test`.`t1` limit 1))",
+  "query_plan": {
+    "inputs": [
+      {
+        "operation": "Table scan on t1",
+        "table_name": "t1",
+        "access_type": "table",
+        "schema_name": "test",
+        "used_columns": [
+          "f1"
+        ],
+        "estimated_rows": "elided",
+        "estimated_total_cost": "elided",
+        "estimated_first_row_cost": "elided"
+      },
+      {
+        "limit": 1,
+        "inputs": [
+          {
+            "operation": "Table scan on t1",
+            "table_name": "t1",
+            "access_type": "table",
+            "schema_name": "test",
+            "used_columns": [
+              "f1"
+            ],
+            "estimated_rows": "elided",
+            "estimated_total_cost": "elided",
+            "estimated_first_row_cost": "elided"
+          }
+        ],
+        "heading": "Select #2 (subquery in condition; run only once)",
+        "subquery": true,
+        "cacheable": true,
+        "operation": "Limit: 1 row(s)",
+        "access_type": "limit",
+        "limit_offset": 0,
+        "estimated_rows": "elided",
+        "subquery_location": "condition",
+        "estimated_total_cost": "elided",
+        "estimated_first_row_cost": "elided"
+      }
+    ],
+    "condition": "(t1.f1 > (select #2))",
+    "operation": "Filter: (t1.f1 > (select #2))",
+    "access_type": "filter",
+    "estimated_rows": "elided",
+    "filter_columns": [
+      "test.t1.f1"
+    ],
+    "estimated_total_cost": "elided",
+    "estimated_first_row_cost": "elided"
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

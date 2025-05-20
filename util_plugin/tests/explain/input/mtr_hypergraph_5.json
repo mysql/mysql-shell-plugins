@@ -1,0 +1,67 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`col_int` AS `col_int`,`test`.`t1`.`pk` AS `pk`,`test`.`t2`.`col_int_key` AS `col_int_key`,`test`.`t2`.`col_varchar` AS `col_varchar`,`test`.`t2`.`pk` AS `pk` from `test`.`t1` straight_join `test`.`t2` where ((`test`.`t2`.`pk` < `test`.`t1`.`pk`) and (`test`.`t2`.`col_int_key` = `test`.`t1`.`col_int`))",
+  "query_plan": {
+    "inputs": [
+      {
+        "operation": "Table scan on t1",
+        "table_name": "t1",
+        "access_type": "table",
+        "schema_name": "test",
+        "used_columns": [
+          "col_int",
+          "pk"
+        ],
+        "estimated_rows": 2.0,
+        "estimated_total_cost": 0.7188940092165899,
+        "estimated_first_row_cost": 0.35944700460829493
+      },
+      {
+        "inputs": [
+          {
+            "covering": false,
+            "operation": "Index lookup on t2 using col_int_key (col_int_key = t1.col_int)",
+            "index_name": "col_int_key",
+            "table_name": "t2",
+            "access_type": "index",
+            "key_columns": [
+              "col_int_key"
+            ],
+            "schema_name": "test",
+            "used_columns": [
+              "col_int_key",
+              "col_varchar",
+              "pk"
+            ],
+            "estimated_rows": 1.0,
+            "lookup_condition": "col_int_key = t1.col_int",
+            "index_access_type": "index_lookup",
+            "lookup_references": [
+              "test.t1.col_int"
+            ],
+            "estimated_total_cost": 4.8703917050691246,
+            "estimated_first_row_cost": 4.8703917050691246
+          }
+        ],
+        "condition": "(t2.pk < t1.pk)",
+        "operation": "Filter: (t2.pk < t1.pk)",
+        "access_type": "filter",
+        "estimated_rows": 0.33329999446868896,
+        "filter_columns": [
+          "test.t1.pk",
+          "test.t2.pk"
+        ],
+        "estimated_total_cost": 4.927995391705069,
+        "estimated_first_row_cost": 4.927995391705069
+      }
+    ],
+    "join_type": "inner join",
+    "operation": "Nested loop inner join",
+    "access_type": "join",
+    "estimated_rows": 0.6665999889373779,
+    "join_algorithm": "nested_loop",
+    "estimated_total_cost": 10.57488479262673,
+    "estimated_first_row_cost": 10.57488479262673
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

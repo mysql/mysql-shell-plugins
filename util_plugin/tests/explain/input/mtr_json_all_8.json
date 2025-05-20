@@ -1,0 +1,71 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`i` AS `i` from `test`.`t1` join `test`.`t2` union all /* select#2 */ select NULL AS `i` from `test`.`t3` semi join (`test`.`t4`) where multiple equal(NULL, `test`.`t4`.`i`)",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "operation": "Table scan on t1",
+                "table_name": "t1",
+                "access_type": "table",
+                "schema_name": "test",
+                "used_columns": [
+                  "i"
+                ],
+                "estimated_rows": 7.0,
+                "estimated_total_cost": 0.6014953613281252
+              },
+              {
+                "heading": "Hash",
+                "operation": "Table scan on t2",
+                "table_name": "t2",
+                "access_type": "table",
+                "schema_name": "test",
+                "estimated_rows": 2.0,
+                "estimated_total_cost": 0.7008544921875
+              }
+            ],
+            "join_type": "inner join",
+            "operation": "Inner hash join (no condition)",
+            "access_type": "join",
+            "join_columns": [],
+            "estimated_rows": 14.0,
+            "hash_condition": [],
+            "join_algorithm": "hash",
+            "estimated_total_cost": 2.60384521484375
+          }
+        ],
+        "operation": "Stream results",
+        "access_type": "stream",
+        "estimated_rows": 14.0,
+        "estimated_total_cost": 2.60384521484375
+      },
+      {
+        "inputs": [
+          {
+            "operation": "Zero rows (no matching row in const table)",
+            "access_type": "zero_rows",
+            "estimated_rows": 0.0,
+            "zero_rows_cause": "no matching row in const table",
+            "estimated_total_cost": 0.0,
+            "estimated_first_row_cost": 0.0
+          }
+        ],
+        "operation": "Stream results",
+        "access_type": "stream",
+        "estimated_rows": 0.0,
+        "estimated_total_cost": 0.0,
+        "estimated_first_row_cost": 0.0
+      }
+    ],
+    "operation": "Append",
+    "access_type": "append",
+    "estimated_rows": 14.0,
+    "estimated_total_cost": 2.60384521484375,
+    "estimated_first_row_cost": 0.18598894391741072
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

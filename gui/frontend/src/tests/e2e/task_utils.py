@@ -404,7 +404,8 @@ class SetPluginsTask(BaseTask):
 
         if self.servers is not None:
             self.set_custom_config_folders()
-            Logger.success("Sets custom config folders for servers successfully")
+            Logger.success(
+                "Sets custom config folders for servers successfully")
 
     def get_repo_plugin_path(self, plugin_name):
         """Gets the path to given plugin name"""
@@ -431,6 +432,7 @@ class SetPluginsTask(BaseTask):
         self.link_plugin('mds_plugin')
         self.link_plugin('mrs_plugin')
         self.link_plugin('msm_plugin')
+        self.link_plugin('util_plugin')
 
     def set_custom_config_folders(self) -> None:
         """Sets custom config folders for all servers"""
@@ -451,6 +453,8 @@ class SetPluginsTask(BaseTask):
                 path, "plugins", "mrs_plugin"))
             create_symlink(self.get_repo_plugin_path('msm_plugin'), os.path.join(
                 path, "plugins", "msm_plugin"))
+            create_symlink(self.get_repo_plugin_path('util_plugin'), os.path.join(
+                path, "plugins", "util_plugin"))
 
 
 class SetMySQLServerTask(ShellTask):
@@ -478,7 +482,8 @@ class SetMySQLServerTask(ShellTask):
         existing_uri = ''
         if 'MYSQL_URI' in self.environment:
             existing_uri = self.environment['MYSQL_URI']
-            ssl_root_folder = pathlib.Path(self.find_ssl_root_folder(existing_uri))
+            ssl_root_folder = pathlib.Path(
+                self.find_ssl_root_folder(existing_uri))
             if not ssl_root_folder.joinpath("ca.pem").exists():
                 raise RuntimeError(
                     f"Unable to find SSL certificates for {existing_uri} in {ssl_root_folder}")
@@ -550,7 +555,7 @@ class SetMySQLServerTask(ShellTask):
              self.port,
              f"--password={self.environment['DBPASSWORD']}",
              f"--sandbox-dir={self.dir_name}"
-            ])
+             ])
 
         cert_path = pathlib.Path(
             self.dir_name, f"{self.port}", "sandboxdata")
@@ -559,9 +564,12 @@ class SetMySQLServerTask(ShellTask):
             raise RuntimeError("Unable to find SSL certificates")
 
         # We will use the certs deployed with the server
-        self.environment['SSL_CA_CERT_PATH'] = str((cert_path.joinpath("ca.pem")))
-        self.environment['SSL_CLIENT_CERT_PATH'] = str((cert_path.joinpath("client-cert.pem")))
-        self.environment['SSL_CLIENT_KEY_PATH'] = str((cert_path.joinpath("client-key.pem")))
+        self.environment['SSL_CA_CERT_PATH'] = str(
+            (cert_path.joinpath("ca.pem")))
+        self.environment['SSL_CLIENT_CERT_PATH'] = str(
+            (cert_path.joinpath("client-cert.pem")))
+        self.environment['SSL_CLIENT_KEY_PATH'] = str(
+            (cert_path.joinpath("client-key.pem")))
 
     def find_ssl_root_folder(self, conn_string: str) -> str:
         """Returns the SSL rot folder for custom MySQL Server"""
@@ -582,6 +590,7 @@ class SetMySQLServerTask(ShellTask):
             self.shell_command_execute_cli(["--", "dba", "delete-sandbox-instance", self.port, f"--sandbox-dir={self.dir_name}"])
             Logger.success("Successfully deleted MySQL instance")
 
+
 class InstallMRSSchema(ShellTask):
     def __init__(self, environment: typing.Dict[str, str], mysqlPort: str) -> None:
         super().__init__(environment)
@@ -596,6 +605,7 @@ class InstallMRSSchema(ShellTask):
         )
         Logger.success("[OK] MRS Schema was installed successfully")
 
+
 class ClearCredentials(ShellTask):
     def __init__(self, environment: typing.Dict[str, str]) -> None:
         super().__init__(environment)
@@ -605,6 +615,7 @@ class ClearCredentials(ShellTask):
             command="shell.delete_all_credentials()"
         )
         Logger.success("Shell credentials were cleaned")
+
 
 class StartBeServersTask:
     """Runs two BE servers for e2e tests"""
@@ -706,7 +717,8 @@ class BEServer:
         is_timeout = False
         with open(self.be_log_path, 'a', encoding="UTF-8") as be_log:
             environment = self.environment.copy()
-            mysqlsh_user_config_home = os.path.join(WORKING_DIR, f'port_{self.port}')
+            mysqlsh_user_config_home = os.path.join(
+                WORKING_DIR, f'port_{self.port}')
             os.makedirs(mysqlsh_user_config_home, exist_ok=True)
             environment["MYSQLSH_USER_CONFIG_HOME"] = mysqlsh_user_config_home
             environment["LOG_LEVEL"] = "DEBUG2"
@@ -717,7 +729,8 @@ class BEServer:
             if self.multi_user:
                 shell_args.append(f"gui.start.web_server(port={self.port})")
             elif self.single_server:
-                shell_args.append(f"gui.start.web_server(single_server='localhost:2208', accept_remote_connections=True, port={self.port})")
+                shell_args.append(
+                    f"gui.start.web_server(single_server='localhost:2208', accept_remote_connections=True, port={self.port})")
             else:
                 shell_args.append(
                     f'gui.start.web_server(port={self.port}, single_instance_token="{TOKEN}")')
@@ -753,6 +766,7 @@ class BEServer:
         self.server.kill()
         Logger.success(f"Shell Server: {self.port} has been stopped")
 
+
 class DisableTests:
     def clean_up() -> None:
         """Clean up after task finish"""
@@ -770,17 +784,20 @@ class DisableTests:
 
             for test in tests_to_disable:
                 for file in files:
-                    test_file = pathlib.Path(tests_dir.joinpath(file)).read_text()
+                    test_file = pathlib.Path(
+                        tests_dir.joinpath(file)).read_text()
 
                     log = ""
 
                     if test in test_file:
                         if f"describe(\"{test}" in test_file:
                             log += "Test Suite"
-                            to_replace = test_file.replace(f"describe(\"{test}\"", f"describe.skip(\"{test}\"")
+                            to_replace = test_file.replace(
+                                f"describe(\"{test}\"", f"describe.skip(\"{test}\"")
                         elif f"it(\"{test}" in test_file:
                             log += "Test"
-                            to_replace = test_file.replace(f"it(\"{test}\"", f"it.skip(\"{test}\"")
+                            to_replace = test_file.replace(
+                                f"it(\"{test}\"", f"it.skip(\"{test}\"")
                         else:
                             continue
 
@@ -788,5 +805,6 @@ class DisableTests:
                         f.write(to_replace)
                         f.close()
 
-                        Logger.info(f"{log} \"{test}\" on file \"{file}\" was DISABLED")
+                        Logger.info(
+                            f"{log} \"{test}\" on file \"{file}\" was DISABLED")
                         break

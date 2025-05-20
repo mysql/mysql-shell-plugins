@@ -107,6 +107,7 @@ $mrs_plugin_path = Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" 
 $mds_plugin_path = Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "mds_plugin"
 $msm_plugin_path = Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "msm_plugin"
 $gui_plugin_path = Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "gui_plugin"
+$util_plugin_path = Join-Path $extensionFolder "shell" "lib" "mysqlsh" "plugins" "util_plugin"
 
 Write-host "Adding MRS plugin..." -NoNewLine
 Remove-Item -Path $mrs_plugin_path -Recurse -Force -ErrorAction SilentlyContinue
@@ -121,6 +122,11 @@ Write-host "DONE"
 Write-host "Adding MSM plugin..." -NoNewLine
 Remove-Item -Path $msm_plugin_path -Recurse -Force -ErrorAction SilentlyContinue
 Copy-Item -Path $(Join-Path $shellPluginsFolder "msm_plugin") -Destination $msm_plugin_path -Recurse
+Write-host "DONE"
+
+Write-host "Adding utilities..." -NoNewLine
+Remove-Item -Path $util_plugin_path -Recurse -Force -ErrorAction SilentlyContinue
+Copy-Item -Path $(Join-Path $shellPluginsFolder "util_plugin") -Destination $util_plugin_path -Recurse
 Write-host "DONE"
 
 Write-host "Adding GUI plugin backend ..." -NoNewLine 

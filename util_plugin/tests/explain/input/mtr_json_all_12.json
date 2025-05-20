@@ -1,0 +1,139 @@
+{
+  "query": "/* select#1 */ select `test`.`t1`.`i` AS `i` from `test`.`t1` group by (<not>(<in_optimizer>(`test`.`t1`.`i`,<exists>(/* select#2 */ select `test`.`t2`.`i` from `test`.`t2` where <if>(outer_field_is_not_null, ((<cache>(`test`.`t1`.`i`) <= `test`.`t2`.`i`) or (`test`.`t2`.`i` is null)), true) having <if>(outer_field_is_not_null, <is_not_null_test>(`test`.`t2`.`i`), true)))) or <not>(<in_optimizer>(`test`.`t1`.`i`,<exists>(/* select#3 */ select `test`.`t2`.`i` from `test`.`t2` where <if>(outer_field_is_not_null, ((<cache>(`test`.`t1`.`i`) >= `test`.`t2`.`i`) or (`test`.`t2`.`i` is null)), true) having <if>(outer_field_is_not_null, <is_not_null_test>(`test`.`t2`.`i`), true)))))",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "operation": "Table scan on t1",
+            "table_name": "t1",
+            "access_type": "table",
+            "schema_name": "test",
+            "used_columns": [
+              "i"
+            ],
+            "estimated_rows": 7.0,
+            "estimated_total_cost": 1.2029907226562504,
+            "inputs_from_select_list": [
+              {
+                "limit": 1,
+                "inputs": [
+                  {
+                    "inputs": [
+                      {
+                        "inputs": [
+                          {
+                            "operation": "Table scan on t2",
+                            "table_name": "t2",
+                            "access_type": "table",
+                            "schema_name": "test",
+                            "used_columns": [
+                              "i"
+                            ],
+                            "estimated_rows": 2.0,
+                            "estimated_total_cost": 0.7008544921875
+                          }
+                        ],
+                        "condition": "<if>(outer_field_is_not_null, ((<cache>(t1.i) <= t2.i) or (t2.i is null)), true)",
+                        "operation": "Filter: <if>(outer_field_is_not_null, ((<cache>(t1.i) <= t2.i) or (t2.i is null)), true)",
+                        "access_type": "filter",
+                        "estimated_rows": 2.0,
+                        "filter_columns": [
+                          "test.t1.i",
+                          "test.t2.i"
+                        ],
+                        "estimated_total_cost": 0.7008544921875
+                      }
+                    ],
+                    "condition": "<if>(outer_field_is_not_null, <is_not_null_test>(t2.i), true)",
+                    "operation": "Filter: <if>(outer_field_is_not_null, <is_not_null_test>(t2.i), true)",
+                    "access_type": "filter",
+                    "estimated_rows": 2.0,
+                    "filter_columns": [
+                      "test.t2.i"
+                    ],
+                    "estimated_total_cost": 0.7008544921875
+                  }
+                ],
+                "heading": "Select #2 (subquery in projection; dependent)",
+                "subquery": true,
+                "dependent": true,
+                "operation": "Limit: 1 row(s)",
+                "access_type": "limit",
+                "limit_offset": 0,
+                "estimated_rows": 1.0,
+                "subquery_location": "projection",
+                "estimated_total_cost": 0.7008544921875
+              },
+              {
+                "limit": 1,
+                "inputs": [
+                  {
+                    "inputs": [
+                      {
+                        "inputs": [
+                          {
+                            "operation": "Table scan on t2",
+                            "table_name": "t2",
+                            "access_type": "table",
+                            "schema_name": "test",
+                            "used_columns": [
+                              "i"
+                            ],
+                            "estimated_rows": 2.0,
+                            "estimated_total_cost": 0.7008544921875
+                          }
+                        ],
+                        "condition": "<if>(outer_field_is_not_null, ((<cache>(t1.i) >= t2.i) or (t2.i is null)), true)",
+                        "operation": "Filter: <if>(outer_field_is_not_null, ((<cache>(t1.i) >= t2.i) or (t2.i is null)), true)",
+                        "access_type": "filter",
+                        "estimated_rows": 2.0,
+                        "filter_columns": [
+                          "test.t1.i",
+                          "test.t2.i"
+                        ],
+                        "estimated_total_cost": 0.7008544921875
+                      }
+                    ],
+                    "condition": "<if>(outer_field_is_not_null, <is_not_null_test>(t2.i), true)",
+                    "operation": "Filter: <if>(outer_field_is_not_null, <is_not_null_test>(t2.i), true)",
+                    "access_type": "filter",
+                    "estimated_rows": 2.0,
+                    "filter_columns": [
+                      "test.t2.i"
+                    ],
+                    "estimated_total_cost": 0.7008544921875
+                  }
+                ],
+                "heading": "Select #3 (subquery in projection; dependent)",
+                "subquery": true,
+                "dependent": true,
+                "operation": "Limit: 1 row(s)",
+                "access_type": "limit",
+                "limit_offset": 0,
+                "estimated_rows": 1.0,
+                "subquery_location": "projection",
+                "estimated_total_cost": 0.7008544921875
+              }
+            ]
+          }
+        ],
+        "operation": "Temporary table with deduplication",
+        "temp_table": true,
+        "access_type": "materialize",
+        "deduplication": true,
+        "estimated_rows": 7.0,
+        "estimated_total_cost": 2.815893948462702,
+        "estimated_first_row_cost": 2.815893948462702
+      }
+    ],
+    "operation": "Table scan on <temporary>",
+    "table_name": "<temporary>",
+    "access_type": "table",
+    "estimated_rows": 7.0,
+    "estimated_total_cost": 5.403393948462702,
+    "estimated_first_row_cost": 3.185536805605559
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

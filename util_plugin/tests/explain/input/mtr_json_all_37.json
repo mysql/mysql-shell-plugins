@@ -1,0 +1,61 @@
+{
+  "query": "(/* select#1 */ select `test`.`r`.`a` AS `a` from `test`.`r` limit 2) order by `a`",
+  "query_plan": {
+    "inputs": [
+      {
+        "inputs": [
+          {
+            "inputs": [
+              {
+                "limit": 2,
+                "inputs": [
+                  {
+                    "operation": "Table scan on r",
+                    "table_name": "r",
+                    "access_type": "table",
+                    "schema_name": "test",
+                    "used_columns": [
+                      "a"
+                    ],
+                    "estimated_rows": 4.0,
+                    "estimated_total_cost": 0.901708984375
+                  }
+                ],
+                "operation": "Limit: 2 row(s)",
+                "access_type": "limit",
+                "limit_offset": 0,
+                "estimated_rows": 2.0,
+                "estimated_total_cost": 0.901708984375
+              }
+            ],
+            "operation": "Temporary table",
+            "temp_table": true,
+            "access_type": "materialize",
+            "estimated_rows": 2.0,
+            "estimated_total_cost": 1.3625384774625577,
+            "estimated_first_row_cost": 1.3625384774625577
+          }
+        ],
+        "operation": "Table scan on <result temporary>",
+        "table_name": "<result temporary>",
+        "access_type": "table",
+        "used_columns": [
+          "a"
+        ],
+        "estimated_rows": 2.0,
+        "estimated_total_cost": 3.8875384774625577,
+        "estimated_first_row_cost": 2.6250384774625575
+      }
+    ],
+    "operation": "Sort: a",
+    "access_type": "sort",
+    "sort_fields": [
+      "a"
+    ],
+    "estimated_rows": 2.0,
+    "estimated_total_cost": 4.643298846126152,
+    "estimated_first_row_cost": 4.643298846126152
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}

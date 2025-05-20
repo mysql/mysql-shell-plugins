@@ -1,0 +1,37 @@
+{
+  "query": "/* select#1 */ select `a`.`a` AS `a`,`b`.`a` AS `a`,`c`.`a` AS `a` from `test`.`t1` `a` left join `test`.`t1` `b` on(false) left join `test`.`t1` `c` on(multiple equal(`b`.`a`, `c`.`a`))",
+  "query_plan": {
+    "inputs": [
+      {
+        "alias": "a",
+        "operation": "Table scan on a",
+        "table_name": "t1",
+        "access_type": "table",
+        "schema_name": "test",
+        "used_columns": [
+          "a"
+        ],
+        "estimated_rows": 4.0,
+        "estimated_total_cost": 1.1797235023041475,
+        "estimated_first_row_cost": 0.29493087557603687
+      },
+      {
+        "operation": "Zero rows (Join condition rejects all rows)",
+        "access_type": "zero_rows",
+        "estimated_rows": 0.0,
+        "zero_rows_cause": "Join condition rejects all rows",
+        "estimated_total_cost": 0.0,
+        "estimated_first_row_cost": 0.0
+      }
+    ],
+    "join_type": "left join",
+    "operation": "Nested loop left join",
+    "access_type": "join",
+    "estimated_rows": 4.0,
+    "join_algorithm": "nested_loop",
+    "estimated_total_cost": 1.1797235023041475,
+    "estimated_first_row_cost": 0.29493087557603687
+  },
+  "query_type": "select",
+  "json_schema_version": "2.0"
+}
