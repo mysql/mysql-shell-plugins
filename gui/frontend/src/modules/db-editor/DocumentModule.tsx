@@ -104,6 +104,8 @@ import { ShellTab, type IShellTabPersistentState } from "../shell/ShellTab.js";
 import { LakehouseNavigatorTab } from "./LakehouseNavigator.js";
 import { SidebarCommandHandler } from "./SidebarCommandHandler.js";
 import { SimpleEditor } from "./SimpleEditor.js";
+import { sendSqlUpdatesFromModel } from "./SqlQueryExecutor.js";
+import { ConnectionDataModelListener } from "./ConnectionDataModelListener.js";
 
 /**
  * Details generated while adding a new connection tab. These are used in the render method to fill the tab
@@ -207,6 +209,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private ociDataModel: OciDataModel;
     private shellTaskDataModel: ShellTaskDataModel;
 
+    private dataModelListener: ConnectionDataModelListener;
+
     #sidebarCommandHandler: SidebarCommandHandler;
 
     public constructor(props: {}) {
@@ -216,6 +220,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
         this.connectionsDataModel = new ConnectionDataModel(webSession.runMode === RunMode.SingleServer);
         this.connectionsDataModel.autoRouterRefresh = false;
+        this.dataModelListener = new ConnectionDataModelListener(this.connectionsDataModel);
 
         // The document data model does not need to be initialized. It's built dynamically.
         this.documentDataModel = new OpenDocumentDataModel(webSession.runMode === RunMode.SingleServer);
@@ -282,10 +287,10 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         requisitions.register("profileLoaded", this.profileLoaded);
         requisitions.register("webSessionStarted", this.webSessionStarted);
 
-        requisitions.register("connectionAdded", this.handleConnectionAdded);
-        requisitions.register("connectionUpdated", this.handleConnectionUpdated);
-        requisitions.register("connectionRemoved", this.handleConnectionRemoved);
-        requisitions.register("refreshConnection", this.handleRefreshConnection);
+        requisitions.register("connectionAdded", this.dataModelListener.handleConnectionAdded);
+        requisitions.register("connectionUpdated", this.dataModelListener.handleConnectionUpdated);
+        requisitions.register("connectionRemoved", this.dataModelListener.handleConnectionRemoved);
+        requisitions.register("refreshConnection", this.dataModelListener.handleRefreshConnection);
         requisitions.register("removeSession", this.removeSession);
 
         requisitions.register("showMrsDbObjectDialog", this.showMrsDbObjectDialog);
@@ -322,10 +327,10 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         requisitions.unregister("profileLoaded", this.profileLoaded);
         requisitions.unregister("webSessionStarted", this.webSessionStarted);
 
-        requisitions.unregister("connectionAdded", this.handleConnectionAdded);
-        requisitions.unregister("connectionUpdated", this.handleConnectionUpdated);
-        requisitions.unregister("connectionRemoved", this.handleConnectionRemoved);
-        requisitions.unregister("refreshConnection", this.handleRefreshConnection);
+        requisitions.unregister("connectionAdded", this.dataModelListener.handleConnectionAdded);
+        requisitions.unregister("connectionUpdated", this.dataModelListener.handleConnectionUpdated);
+        requisitions.unregister("connectionRemoved", this.dataModelListener.handleConnectionRemoved);
+        requisitions.unregister("refreshConnection", this.dataModelListener.handleRefreshConnection);
         requisitions.unregister("removeSession", this.removeSession);
 
         requisitions.unregister("showMrsDbObjectDialog", this.showMrsDbObjectDialog);
@@ -1010,55 +1015,6 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 await tab.connection.refresh?.();
             }
         }
-
-        return true;
-    };
-
-    /**
-     * Called when a new connection was added from outside (usually the application host like the VS Code extension).
-     *
-     * @param details The connection details.
-     *
-     * @returns A promise always fulfilled to true.
-     */
-    private handleConnectionAdded = (details: IConnectionDetails): Promise<boolean> => {
-        const entry = this.connectionsDataModel.createConnectionEntry(details);
-        this.connectionsDataModel.addConnectionEntry(entry);
-
-        return Promise.resolve(true);
-    };
-
-    /**
-     * Called when a connection was changed from outside (usually the application host like the VS Code extension).
-     *
-     * @param details The connection details.
-     *
-     * @returns A promise always fulfilled to true.
-     */
-    private handleConnectionUpdated = (details: IConnectionDetails): Promise<boolean> => {
-        this.connectionsDataModel.updateConnectionDetails(details);
-
-        return Promise.resolve(true);
-    };
-
-    /**
-     * Called when a new connection was removed from outside (usually the application host like the VS Code extension).
-     *
-     * @param details The connection details.
-     *
-     * @returns A promise always fulfilled to true.
-     */
-    private handleConnectionRemoved = async (details: IConnectionDetails): Promise<boolean> => {
-        const connection = this.connectionsDataModel.findConnectionEntryById(details.id);
-        if (connection) {
-            await this.connectionsDataModel.removeEntry(connection);
-        }
-
-        return true;
-    };
-
-    private handleRefreshConnection = async (): Promise<boolean> => {
-        await this.connectionsDataModel.reloadConnections();
 
         return true;
     };
@@ -2540,6 +2496,10 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         this.forceUpdate();
     };
 
+    private afterCommit = () => {
+        void ui.showInformationMessage("Changes committed successfully.", {});
+    };
+
     /**
      * Creates the standard model used by DB code editors. Each editor has an own model, which carries additional
      * information required by the editors.
@@ -2561,7 +2521,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 dbVersion: serverVersion,
                 sqlMode,
                 currentSchema,
-                runUpdates: this.sendSqlUpdatesFromModel.bind(this, backend),
+                runUpdates: sendSqlUpdatesFromModel.bind(this, this.afterCommit, backend),
             }),
             symbols: new DynamicSymbolTable(backend, "db symbols", { allowDuplicateSymbols: true }),
             editorMode: CodeEditorMode.Standard,
@@ -2788,36 +2748,6 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         });
     }
 
-    private sendSqlUpdatesFromModel = async (backend: ShellInterfaceSqlEditor,
-        updates: string[]): Promise<ISqlUpdateResult> => {
-
-        let lastIndex = 0;
-        let rowCount = 0;
-        try {
-            await backend.startTransaction();
-            for (; lastIndex < updates.length; ++lastIndex) {
-                const update = updates[lastIndex];
-                const result = await backend.execute(update);
-                rowCount += result?.rowsAffected ?? 0;
-            }
-            await backend.commitTransaction();
-
-            void ui.showInformationMessage("Changes committed successfully.", {});
-
-            return { affectedRows: rowCount, errors: [] };
-        } catch (reason) {
-            await backend.rollbackTransaction();
-            if (reason instanceof Error) {
-                const errors: string[] = [];
-                errors[lastIndex] = reason.message; // Set the error for the query that was last executed.
-
-                return { affectedRows: rowCount, errors };
-            }
-
-            throw reason;
-        }
-    };
-
     private sendSessionSqlUpdatesFromModel = async (session: ShellInterfaceShellSession,
         updates: string[]): Promise<ISqlUpdateResult> => {
 
@@ -2891,7 +2821,7 @@ Execute "\\sql" to switch to SQL mode, "\\js" to switch to JavaScript mode.
 GLOBAL FUNCTIONS
     - \`print(value: unknown): void\`
       Send a value to the output area.
-    - \`async runSql(code: string, params?: unknown), params?: unknown[]): Promise<unkown>\`
+    - \`async runSql(code: string, params?: unknown), params?: unknown[]): Promise<unknown>\`
       Run the given query and wait for the returned promise to resolve when done.
     - \`runSqlWithCallback(sql: string, callback?: (res: unknown) => void, params?: unknown): void\`
     Run the query and process the rows in the given callback, once all are received.

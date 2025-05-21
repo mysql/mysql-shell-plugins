@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -61,6 +61,7 @@ export interface IBrowserTileProperties extends IComponentProperties {
     description: string;
     type: BrowserTileType;
     icon: string;
+    hideActions?: boolean;
 
     onAction?: (action: string, props: IBrowserTileProperties, options: ITileActionOptions) => void;
     onTileReorder?: (draggedTileId: number, props: unknown) => void;
@@ -75,13 +76,13 @@ export abstract class BrowserTile<P extends IBrowserTileProperties> extends Comp
     public constructor(props: P) {
         super(props);
 
-        this.addHandledProperties("innerRef", "tileId", "caption", "description", "type", "icon", "onAction",
-            "onTileReorder");
+        this.addHandledProperties("innerRef", "tileId", "caption", "description", "type", "icon", "hideActions",
+            "onAction", "onTileReorder");
         this.connectDragEvents();
     }
 
     public render(): ComponentChild {
-        const { innerRef, tileId, type, icon, caption, description } = this.props;
+        const { innerRef, tileId, type, icon, caption, description, hideActions } = this.props;
 
         const className = this.getEffectiveClassNames([
             "browserTile",
@@ -105,7 +106,7 @@ export abstract class BrowserTile<P extends IBrowserTileProperties> extends Comp
                     <Label className="tileCaption">{caption}</Label>
                     <Label className="tileDescription">{description}</Label>
                 </Container>
-                {type === BrowserTileType.Open &&
+                {type === BrowserTileType.Open && !hideActions &&
                     <>
                         <Container id="actionsBackground" />
                         <Container

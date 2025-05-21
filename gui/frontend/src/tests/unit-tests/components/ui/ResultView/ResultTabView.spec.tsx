@@ -27,10 +27,16 @@ import { mount } from "enzyme";
 
 import { MessageType } from "../../../../../app-logic/general-types.js";
 import { ResultStatus } from "../../../../../components/ResultView/ResultStatus.js";
-import { ResultTabView } from "../../../../../components/ResultView/ResultTabView.js";
+import { IResultTabViewToggleOptions, ResultTabView } from "../../../../../components/ResultView/ResultTabView.js";
 import { Button } from "../../../../../components/ui/Button/Button.js";
-import { IResultSets } from "../../../../../script-execution/index.js";
+import { IResultSet, IResultSets } from "../../../../../script-execution/index.js";
 import { createResultSet, nextProcessTick, nextRunLoop } from "../../../test-helpers.js";
+
+const handleResultToggle = (_?: IResultSet) => {};
+const toggleOptions: IResultTabViewToggleOptions = {
+    showMaximizeButton: "never",
+    handleResultToggle,
+};
 
 describe("Result Tabview Tests", (): void => {
 
@@ -43,7 +49,7 @@ describe("Result Tabview Tests", (): void => {
                 }}
                 contextId="ec123"
                 hideTabs="single"
-                showMaximizeButton="never"
+                toggleOptions={toggleOptions}
             />,
         );
 
@@ -65,7 +71,7 @@ describe("Result Tabview Tests", (): void => {
                 }}
                 contextId="ec123"
                 hideTabs="never"
-                showMaximizeButton="never"
+                toggleOptions={toggleOptions}
             />,
         );
 
@@ -117,7 +123,10 @@ describe("Result Tabview Tests", (): void => {
                 }}
                 contextId="ec123"
                 hideTabs="single"
-                showMaximizeButton="tab"
+                toggleOptions={{
+                    showMaximizeButton: "tab",
+                    handleResultToggle,
+                }}
             />,
         );
 
@@ -158,7 +167,10 @@ describe("Result Tabview Tests", (): void => {
                 }}
                 contextId="ec123"
                 hideTabs="never"
-                showMaximizeButton="statusBar"
+                toggleOptions={{
+                    showMaximizeButton: "statusBar",
+                    handleResultToggle,
+                }}
 
             />,
         );
@@ -325,7 +337,10 @@ describe("Result Tabview Tests", (): void => {
                 resultSets={resultSets}
                 contextId="ec123"
                 hideTabs="single"
-                showMaximizeButton="tab"
+                toggleOptions={{
+                    showMaximizeButton: "tab",
+                    handleResultToggle,
+                }}
                 onResultPageChange={onResultPageChange}
             />,
         );
@@ -446,7 +461,8 @@ describe("Result Tabview Tests", (): void => {
             // const oldState: IResultTabViewState = {};
             const newState = ResultTabView.getDerivedStateFromProps({
                 contextId: "",
-                showMaximizeButton: "never",
+                upperCaseKeywords: true,
+                toggleOptions,
                 hideTabs: "never",
                 resultSets: {
                     type: "resultSets",
@@ -462,7 +478,8 @@ describe("Result Tabview Tests", (): void => {
             // const oldState: IResultTabViewState = {};
             const newState = ResultTabView.getDerivedStateFromProps({
                 contextId: "",
-                showMaximizeButton: "never",
+                upperCaseKeywords: true,
+                toggleOptions,
                 hideTabs: "never",
                 resultSets: {
                     type: "resultSets",
@@ -478,7 +495,8 @@ describe("Result Tabview Tests", (): void => {
             const nextResultSet = createResultSet("123");
             const newState = ResultTabView.getDerivedStateFromProps({
                 contextId: "",
-                showMaximizeButton: "never",
+                upperCaseKeywords: true,
+                toggleOptions,
                 hideTabs: "never",
                 resultSets: {
                     type: "resultSets",
@@ -494,7 +512,8 @@ describe("Result Tabview Tests", (): void => {
             const resultSet = createResultSet("123");
             const newState = ResultTabView.getDerivedStateFromProps({
                 contextId: "",
-                showMaximizeButton: "never",
+                upperCaseKeywords: true,
+                toggleOptions,
                 hideTabs: "never",
                 resultSets: {
                     type: "resultSets",
@@ -511,7 +530,8 @@ describe("Result Tabview Tests", (): void => {
             const nextResultSet = createResultSet("234");
             const newState = ResultTabView.getDerivedStateFromProps({
                 contextId: "",
-                showMaximizeButton: "never",
+                upperCaseKeywords: true,
+                toggleOptions,
                 hideTabs: "never",
                 resultSets: {
                     type: "resultSets",
@@ -528,7 +548,8 @@ describe("Result Tabview Tests", (): void => {
             const lastResultSet = createResultSet("234");
             const newState = ResultTabView.getDerivedStateFromProps({
                 contextId: "",
-                showMaximizeButton: "never",
+                upperCaseKeywords: true,
+                toggleOptions,
                 hideTabs: "never",
                 resultSets: {
                     type: "resultSets",

@@ -23,14 +23,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ComponentChild, createRef, render } from "preact";
+import { ComponentChild, createRef, render, VNode } from "preact";
 
-import { ResultTabView } from "../components/ResultView/ResultTabView.js";
+import { IResultTabViewLayout, ResultTabView } from "../components/ResultView/ResultTabView.js";
 import { Monaco } from "../components/ui/CodeEditor/index.js";
 import { DiagnosticSeverity, IDiagnosticEntry, QueryType, TextSpan } from "../parsing/parser-common.js";
 import { type IColumnDetails } from "../supplement/RequisitionTypes.js";
 import { requisitions } from "../supplement/Requisitions.js";
-import { EditorLanguage } from "../supplement/index.js";
+import { EditorLanguage, IScriptRequest } from "../supplement/index.js";
 import { ExecutionContext } from "./ExecutionContext.js";
 import {
     IExecutionResult, IExecutionResultData, IPresentationOptions, IResponseDataOptions,
@@ -46,6 +46,8 @@ import { ResultStatus } from "../components/ResultView/ResultStatus.js";
 import { GraphHost } from "../components/graphs/GraphHost.js";
 import { Container, Orientation } from "../components/ui/Container/Container.js";
 import { SQLExecutionContext } from "./SQLExecutionContext.js";
+import { uuid } from "../utilities/helpers.js";
+import { Settings } from "../supplement/Settings/Settings.js";
 
 /** Base class for handling of UI related elements like editor decorations and result display in execution contexts. */
 export class PresentationInterface {
@@ -81,6 +83,8 @@ export class PresentationInterface {
     public loadingState = LoadingState.Idle;
 
     public context?: ExecutionContext;
+    public connectionToggle?: VNode;
+    public hideMaximizeButton?: boolean;
 
     /**
      * A function to send a notification if the current result is being replaced by nothing.
@@ -92,6 +96,10 @@ export class PresentationInterface {
     public onCommitChanges?: (resultSet: IResultSet, updateSql: string[]) => Promise<ISqlUpdateResult>;
     public updateRowsForResultId?: (resultSet: IResultSet) => Promise<void>;
     public onRollbackChanges?: (resultSet: IResultSet) => Promise<void>;
+    public resultPageChangeHandler?: (resultId: string, currentPage: number, sql: string, currentSet?: number) => void;
+
+    public externalTextModel?: Monaco.ITextModel;
+    public resultViewLayout?: IResultTabViewLayout;
 
     // The target HTML element to which we render the React nodes dynamically.
     protected renderTarget?: HTMLDivElement;
@@ -127,6 +135,10 @@ export class PresentationInterface {
      * presentation is active.
      */
     #backend?: Monaco.IStandaloneCodeEditor;
+
+    public get resultTabViewRef(): typeof this.resultRef {
+        return this.resultRef;
+    }
 
     public constructor(public language: EditorLanguage) {
         this.prepareRenderTarget();
@@ -885,6 +897,10 @@ export class PresentationInterface {
 
     /** @returns a string determining where to show the maximize button. */
     protected showMaximizeButton(): "never" | "tab" | "statusBar" {
+        if (this.hideMaximizeButton) {
+            return "never";
+        }
+
         return this.maximizedResult ? "tab" : "statusBar";
     }
 
@@ -979,6 +995,7 @@ export class PresentationInterface {
 
         let element: ComponentChild | undefined;
         const contextId = this.context.id;
+        const upperCaseKeywords = Settings.get("dbEditor.upperCaseKeywords", true);
         switch (this.resultData.type) {
             case "text": {
                 if (this.alwaysShowTab) {
@@ -993,15 +1010,20 @@ export class PresentationInterface {
                         resultSets={data}
                         contextId={contextId}
                         currentSet={this.currentSet}
-                        showMaximizeButton={this.showMaximizeButton()}
                         hideTabs={this.hideTabs}
                         onResultPageChange={this.handleResultPageChange}
-                        onToggleResultPaneViewState={this.toggleResultPane}
                         onSelectTab={this.handleSelectTab}
                         onCommitChanges={this.commitChanges}
                         updateRowsForResultId={this.updateRowsForResultId}
                         onRollbackChanges={this.rollbackChanges}
                         onRemoveResult={this.handleRemoveResult}
+                        upperCaseKeywords={upperCaseKeywords}
+                        toggleOptions={{
+                            showMaximizeButton: this.showMaximizeButton(),
+                            handleResultToggle: this.handleResultToggle,
+                        }}
+                        layoutOptions={this.resultViewLayout}
+                        connectionToggle={this.connectionToggle}
                     />;
 
                     this.minHeight = 36;
@@ -1039,16 +1061,21 @@ export class PresentationInterface {
                     resultSets={this.resultData}
                     contextId={contextId}
                     currentSet={this.currentSet}
-                    showMaximizeButton={this.showMaximizeButton()}
                     hideTabs={this.hideTabs}
-                    showMaximized={this.maximizedResult}
                     onResultPageChange={this.handleResultPageChange}
-                    onToggleResultPaneViewState={this.toggleResultPane}
                     onSelectTab={this.handleSelectTab}
                     onCommitChanges={this.commitChanges}
                     updateRowsForResultId={this.updateRowsForResultId}
                     onRollbackChanges={this.rollbackChanges}
                     onRemoveResult={this.handleRemoveResult}
+                    upperCaseKeywords={upperCaseKeywords}
+                    toggleOptions={{
+                        showMaximizeButton: this.showMaximizeButton(),
+                        showMaximized: this.maximizedResult,
+                        handleResultToggle: this.handleResultToggle,
+                    }}
+                    layoutOptions={this.resultViewLayout}
+                    connectionToggle={this.connectionToggle}
                 />;
                 this.minHeight = 36;
 
@@ -1119,8 +1146,12 @@ export class PresentationInterface {
         }
     }
 
-    private handleResultPageChange = (resultId: string, currentPage: number, sql: string): void => {
+    private handleResultPageChange = (resultId: string, currentPage: number, sql: string,
+        currentSet?: number): void => {
         if (this.context instanceof SQLExecutionContext) {
+            if (this.resultPageChangeHandler) {
+                return this.resultPageChangeHandler(resultId, currentPage, sql, currentSet);
+            }
             // Currently paging is only supported for SQL execution blocks.
             void requisitions.execute("sqlShowDataAtPage",
                 { context: this.context, oldResultId: resultId, page: currentPage, sql });
@@ -1223,4 +1254,36 @@ export class PresentationInterface {
         }
     };
 
+    /**
+     * Triggered by one of the toggle view state buttons.
+     * It triggers the corresponding action needed to either show the result pane maximized (if this result view
+     * is in a script editor) or to create a new script and show the result pane maximized.
+     * @param currentResultSet Result set currently in use.
+     */
+    private handleResultToggle = (currentResultSet?: IResultSet): void => {
+        // If showMaximized is not yet used it means we are in a notebook that needs to run the script
+        // to show a separate script editor.
+        if (this.showMaximizeButton() === "statusBar" && this.maximizedResult === undefined) {
+            if (currentResultSet) {
+                const sql = currentResultSet.sql;
+                const name = `Result #${(currentResultSet.index ?? 0) + 1}`;
+                if (sql) {
+                    const request: IScriptRequest = {
+                        id: uuid(),
+                        language: "mysql",
+                        caption: name,
+                        content: sql,
+                    };
+
+                    // Run this as job (instead of a simple) requisition to allow it to be repeated until a script
+                    // editor is ready to take the request.
+                    void requisitions.execute("job", [
+                        { requestType: "editorRunScript", parameter: request },
+                    ]);
+                }
+            }
+        } else {
+            this.toggleResultPane();
+        }
+    };
 }

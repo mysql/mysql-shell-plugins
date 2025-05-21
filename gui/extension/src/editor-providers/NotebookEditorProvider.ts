@@ -220,7 +220,7 @@ export class NotebookEditorProvider implements CustomTextEditorProvider {
             // If there is no URL yet, wait for it to arrive.
             await this.#urlReady.wait();
         }
-        prepareWebviewContent(webviewPanel, this.#url!);
+        prepareWebviewContent(webviewPanel.webview, this.#url!);
 
         if (!this.#connectionsAvailable) {
             // If there are no connections yet, wait for them to arrive.

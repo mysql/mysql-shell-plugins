@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -31,21 +31,28 @@ import { Container, Orientation } from "../ui/Container/Container.js";
 import { Label } from "../ui/Label/Label.js";
 import { Message } from "../ui/Message/Message.js";
 
-interface IResultStatusProperties extends IComponentProperties {
+export interface IStatusTextPosition {
+    statusTextPosition?: "left" | "right",
+}
+
+interface IResultStatusProperties extends IComponentProperties, IStatusTextPosition {
     statusInfo: IStatusInfo;
 }
 
 /** Implements a text output area usually used for execution results or editing messages. */
 export class ResultStatus extends ComponentBase<IResultStatusProperties> {
+    public static override defaultProps: Partial<IResultStatusProperties> = {
+        statusTextPosition: "left",
+    };
 
     public constructor(props: IResultStatusProperties) {
         super(props);
 
-        this.addHandledProperties("statusInfo");
+        this.addHandledProperties("statusInfo", "statusTextPosition");
     }
 
     public render(): ComponentChild {
-        const { statusInfo, children } = this.props;
+        const { statusInfo, statusTextPosition, children } = this.props;
 
         if (!statusInfo.text && !children) {
             return undefined;
@@ -68,8 +75,9 @@ export class ResultStatus extends ComponentBase<IResultStatusProperties> {
                 orientation={Orientation.LeftToRight}
                 {...this.unhandledProperties}
             >
-                {text}
+                {statusTextPosition === "left" && text}
                 {(statusInfo.type == null) && children}
+                {statusTextPosition === "right" && text}
             </Container>
         );
     }

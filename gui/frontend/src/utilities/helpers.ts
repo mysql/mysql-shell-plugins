@@ -860,3 +860,12 @@ export const KeyboardKeys = {
 
     /* eslint-enable @typescript-eslint/naming-convention */
 };
+
+export const resolvePageSize = (settingsRawValue?: string): number => {
+    const settingsValue = Number(settingsRawValue);
+    if (!settingsValue || settingsValue < 1 || settingsValue > 100000) {
+        return 1000;
+    }
+
+    return settingsValue;
+};

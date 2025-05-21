@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -48,7 +48,7 @@ export class E2EToastNotification implements interfaces.INotification {
      * @param timeout The time to wait for a notification to be displayed, default is 5 seconds
      * @returns The notification
      */
-    public create = async (id?: string, timeout = constants.wait3seconds):
+    public create = async (id?: string, timeout = constants.wait10seconds):
         Promise<E2EToastNotification | undefined> => {
 
         let notification: WebElement | undefined;
@@ -89,7 +89,7 @@ export class E2EToastNotification implements interfaces.INotification {
                     throw e;
                 }
             }
-        }, constants.wait5seconds, "Could not create the notification");
+        }, timeout, "Could not create the notification");
 
         return this;
     };

@@ -75,11 +75,13 @@ export interface ITabviewPage {
     canClose?: boolean;
 }
 
-interface ITabviewProperties extends IComponentProperties {
-    innerRef?: preact.RefObject<HTMLElement>;
-
+export interface ITabPosition {
     /** The positions of the tabs around the content pane. */
     tabPosition?: TabPosition;
+}
+
+interface ITabviewProperties extends IComponentProperties, ITabPosition {
+    innerRef?: preact.RefObject<HTMLElement>;
 
     /** The tab page to make active initially. */
     selectedId?: string;

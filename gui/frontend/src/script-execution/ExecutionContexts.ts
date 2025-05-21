@@ -123,8 +123,8 @@ export class ExecutionContexts implements IContextProvider {
         return this.content[index];
     }
 
-    public addContext(presentation: PresentationInterface): ExecutionContext {
-        const context = this.createContext(presentation);
+    public addContext(presentation: PresentationInterface, statementSpans?: IStatementSpan[]): ExecutionContext {
+        const context = this.createContext(presentation, statementSpans);
         this.content.push(context);
 
         return context;

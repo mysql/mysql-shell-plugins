@@ -953,14 +953,13 @@ export class ScriptingLanguageServices {
     /**
      * Does a very quick scan of the query to identify its type.
      *
-     * @param block Provides access to source code specific aspects.
+     * @param sqlContext Provides access to source code specific aspects.
      * @param sql The query to scan.
      *
      * @returns A promise that resolves to the type of the query.
      */
-    public determineQueryType = async (block: IExecutionContext, sql: string): Promise<QueryType> => {
+    public determineQueryType = async (sqlContext: SQLExecutionContext, sql: string): Promise<QueryType> => {
         return new Promise((resolve) => {
-            const sqlContext = block as SQLExecutionContext;
             const queryTypeData: ILanguageWorkerQueryTypeData = {
                 language: sqlContext.language === "sql" ? ServiceLanguage.Sqlite : ServiceLanguage.MySQL,
                 api: "queryType",
@@ -980,7 +979,7 @@ export class ScriptingLanguageServices {
      * - If there's no top-level limit clause, then one is added.
      * - If indicated adds an optimizer hint to use the secondary engine (usually HeatWave).
      *
-     * @param block Provides access to source code specific aspects.
+     * @param sqlContext Provides access to source code specific aspects.
      * @param sql The query to check and modify.
      * @param offset The limit offset to add.
      * @param count The row count value to add.
@@ -989,10 +988,10 @@ export class ScriptingLanguageServices {
      * @returns The rewritten query if the original query is error free and contained no top-level LIMIT clause.
      *          Otherwise the original query is returned.
      */
-    public preprocessStatement = async (block: IExecutionContext, sql: string, offset: number,
-        count: number, forceSecondaryEngine?: boolean): Promise<IPreprocessResult> => {
+    public preprocessStatement = async (sqlContext: SQLExecutionContext,
+        sql: string, offset: number, count: number, forceSecondaryEngine?: boolean): Promise<IPreprocessResult> => {
+
         return new Promise((resolve, reject) => {
-            const sqlContext = block as SQLExecutionContext;
             const applyLimitsData: ILanguageWorkerQueryPreprocessData = {
                 language: sqlContext.language === "sql" ? ServiceLanguage.Sqlite : ServiceLanguage.MySQL,
                 api: "preprocessStatement",
@@ -1027,15 +1026,14 @@ export class ScriptingLanguageServices {
      * @returns The rewritten query if the original query is error free and contained no final semicolon.
      *          Otherwise the original query is returned.
      */
-    public checkAndAddSemicolon = async (block: IExecutionContext, sql: string): Promise<[string, boolean]> => {
+    public checkAndAddSemicolon = async (block: SQLExecutionContext, sql: string): Promise<[string, boolean]> => {
         return new Promise((resolve, reject) => {
-            const sqlContext = block as SQLExecutionContext;
             const applySemicolonData: ILanguageWorkerApplySemicolonData = {
-                language: sqlContext.language === "sql" ? ServiceLanguage.Sqlite : ServiceLanguage.MySQL,
+                language: block.language === "sql" ? ServiceLanguage.Sqlite : ServiceLanguage.MySQL,
                 api: "addSemicolon",
                 sql,
-                version: sqlContext.dbVersion,
-                sqlMode: sqlContext.sqlMode,
+                version: block.dbVersion,
+                sqlMode: block.sqlMode,
             };
 
             this.workerPool.runTask(applySemicolonData)
