@@ -986,8 +986,6 @@ class ShellGuiWebSocketHandler(HTTPWebSocketsHandler):
         return self._thread_context
 
     def authenticate_single_server_user(self, connection, password):
-        mysqlsh.globals.shell.delete_all_credentials()
-
         new_session = DbModuleSession(single_server_mode_authentication=True)
         new_session.open_connection(connection, password)
         new_session.completion_event.wait()  # type: ignore

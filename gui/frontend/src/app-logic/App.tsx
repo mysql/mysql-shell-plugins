@@ -146,7 +146,7 @@ export class App extends Component<{}, IAppState> {
         });
 
         requisitions.register("userLoggedOut", async (): Promise<boolean> => {
-            await ShellInterface.users.logout();
+            void ShellInterface.users.logout();
 
             this.defaultProfile = undefined;
             webSession.clearSessionData();
