@@ -735,14 +735,7 @@ export class DocumentCommandHandler {
                         if (connection) {
                             const provider = this.#host.currentProvider;
                             if (provider) {
-                                let sql = "";
-                                if (!editor.selection.isEmpty) {
-                                    editor.selections.forEach((selection) => {
-                                        sql += editor.document.getText(selection);
-                                    });
-                                } else {
-                                    sql = editor.document.getText();
-                                }
+                                const sql = this.getSql(editor);
 
                                 return provider.runScript(connection.details.id, {
                                     id: uuid(),
@@ -1386,4 +1379,17 @@ export class DocumentCommandHandler {
 
         return Promise.resolve(true);
     }
+
+    private getSql = (editor: TextEditor): string => {
+        let sql = "";
+        if (!editor.selection.isEmpty) {
+            editor.selections.forEach((selection) => {
+                sql += editor.document.getText(selection);
+            });
+        } else {
+            sql = editor.document.getText();
+        }
+
+        return sql;
+    };
 }

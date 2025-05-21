@@ -20,7 +20,13 @@ exports[`Result Tabview Tests Rendering Only Output 1`] = `
       "type": "resultSets",
     }
   }
-  showMaximizeButton="never"
+  toggleOptions={
+    {
+      "handleResultToggle": [Function],
+      "showMaximizeButton": "never",
+    }
+  }
+  upperCaseKeywords={true}
 >
   <Container
     className="msg resultHost"
@@ -535,7 +541,13 @@ exports[`Result Tabview Tests Standard Rendering 1`] = `
       "type": "resultSets",
     }
   }
-  showMaximizeButton="never"
+  toggleOptions={
+    {
+      "handleResultToggle": [Function],
+      "showMaximizeButton": "never",
+    }
+  }
+  upperCaseKeywords={true}
 >
   <Container
     className="msg resultHost"
@@ -695,7 +707,13 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
       "type": "resultSets",
     }
   }
-  showMaximizeButton="tab"
+  toggleOptions={
+    {
+      "handleResultToggle": [Function],
+      "showMaximizeButton": "tab",
+    }
+  }
+  upperCaseKeywords={true}
 >
   <Container
     className="msg resultHost"
@@ -1367,6 +1385,7 @@ exports[`Result Tabview Tests Tabview With Result Sets 1`] = `
             "type": 4,
           }
         }
+        statusTextPosition="left"
       >
         <Container
           className="msg resultStatus"

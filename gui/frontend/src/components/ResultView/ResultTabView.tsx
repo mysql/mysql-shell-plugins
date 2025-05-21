@@ -23,7 +23,7 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { ComponentChild, createRef } from "preact";
+import { ComponentChild, createRef, VNode } from "preact";
 
 import { DialogHost } from "../../app-logic/DialogHost.js";
 import {
@@ -31,10 +31,6 @@ import {
 } from "../../app-logic/general-types.js";
 import { IResultSet, IResultSetRows, IResultSets } from "../../script-execution/index.js";
 import { Assets } from "../../supplement/Assets.js";
-import { requisitions } from "../../supplement/Requisitions.js";
-import { Settings } from "../../supplement/Settings/Settings.js";
-import { IScriptRequest } from "../../supplement/index.js";
-import { uuid } from "../../utilities/helpers.js";
 import { formatWithNumber } from "../../utilities/string-helpers.js";
 import { Button } from "../ui/Button/Button.js";
 import {
@@ -49,11 +45,11 @@ import { Label } from "../ui/Label/Label.js";
 import { Menu } from "../ui/Menu/Menu.js";
 import { IMenuItemProperties, MenuItem } from "../ui/Menu/MenuItem.js";
 import { SQLPreview } from "../ui/SQLPreview/SQLPreview.js";
-import { ITabviewPage, TabPosition, Tabview } from "../ui/Tabview/Tabview.js";
+import { ITabPosition, ITabviewPage, TabPosition, Tabview } from "../ui/Tabview/Tabview.js";
 import { Toolbar } from "../ui/Toolbar/Toolbar.js";
 import { ActionOutput } from "./ActionOutput.js";
 import { QueryBuilder } from "./QueryBuilder.js";
-import { ResultStatus } from "./ResultStatus.js";
+import { IStatusTextPosition, ResultStatus } from "./ResultStatus.js";
 import { IResultCellChange, ResultRowChanges, ResultView } from "./ResultView.js";
 
 /** All the current changes for a result set. */
@@ -82,6 +78,20 @@ interface IEditingInfo {
     selectedRowIndex?: number;
 }
 
+export interface IResultTabViewLayout extends ITabPosition, IStatusTextPosition {
+    toolbarLocation?: "top" | "bottom";
+}
+
+export interface IResultTabViewToggleOptions {
+    /** Where to show the toggle state button. */
+    showMaximizeButton: "never" | "tab" | "statusBar";
+
+    /** When set to true show only the selected result set. */
+    showMaximized?: boolean;
+
+    handleResultToggle(currentResultSet?: IResultSet): void;
+}
+
 interface IResultTabViewProperties extends IComponentProperties {
     /** One set per tab page. */
     resultSets: IResultSets;
@@ -92,17 +102,17 @@ interface IResultTabViewProperties extends IComponentProperties {
     /** Which of the result sets is currently selected? */
     currentSet?: number;
 
-    /** Where to show the toggle state button. */
-    showMaximizeButton: "never" | "tab" | "statusBar";
-
     /** When to hide the tab area? */
     hideTabs: "never" | "single" | "always";
 
-    /** When set to true show only the selected result set. */
-    showMaximized?: boolean;
+    upperCaseKeywords: boolean;
 
-    onResultPageChange?: (resultId: string, currentPage: number, sql: string) => void;
-    onToggleResultPaneViewState?: () => void;
+    toggleOptions?: IResultTabViewToggleOptions,
+
+    layoutOptions?: IResultTabViewLayout,
+    connectionToggle?: VNode,
+
+    onResultPageChange?: (resultId: string, currentPage: number, sql: string, currentSet?: number) => void;
     onSelectTab?: (index: number) => void;
 
     /**
@@ -120,12 +130,15 @@ interface IResultTabViewProperties extends IComponentProperties {
 }
 
 interface IResultTabViewState extends IComponentState {
-
     currentResultSet?: IResultSet;
+    connectionToggle?: VNode,
 }
 
 /** Holds a collection of result views and other output in a tabbed interface. */
 export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResultTabViewState> {
+    public static override defaultProps: Partial<IResultTabViewProperties> = {
+        upperCaseKeywords: true,
+    };
 
     private actionMenuRef = createRef<Menu>();
 
@@ -134,6 +147,16 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
     // Keeps the top row index for each result set, keyed by the result ID.
     private topRowIndexes = new Map<string, number>();
+
+    private get mergedLayoutOptions(): IResultTabViewLayout {
+        const { toolbarLocation, tabPosition, statusTextPosition } = this.props.layoutOptions ?? {};
+
+        return {
+            toolbarLocation: toolbarLocation ?? "bottom",
+            tabPosition: tabPosition ?? TabPosition.Top,
+            statusTextPosition: statusTextPosition ?? "left",
+        };
+    }
 
     /** The number of updated rows during the last commit action. */
     #affectedRows: Map<string, number> = new Map();
@@ -146,11 +169,12 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
         this.state = {
             currentResultSet: props.resultSets.sets.length > 0 ? props.resultSets.sets[0] : undefined,
+            connectionToggle: props.connectionToggle,
         };
 
-        this.addHandledProperties("resultSets", "contextId", "currentSet", "showMaximizeButton", "hideTabs",
-            "showMaximized",
-            "onResultPageChange", "onToggleResultPaneViewState", "onSelectTab");
+        this.addHandledProperties("resultSets", "contextId", "currentSet",
+            "upperCaseKeywords", "toggleOptions", "layoutOptions", "connectionToggle",
+            "hideTabs","onResultPageChange", "onSelectTab");
     }
 
     public static override getDerivedStateFromProps(newProps: IResultTabViewProperties,
@@ -181,8 +205,10 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
     }
 
     public render(): ComponentChild {
-        const { resultSets, contextId, hideTabs, showMaximizeButton, showMaximized } = this.props;
-        const { currentResultSet } = this.state;
+        const { resultSets, contextId, hideTabs, toggleOptions } = this.props;
+        const { toolbarLocation, tabPosition, statusTextPosition } = this.mergedLayoutOptions;
+        const { showMaximizeButton, showMaximized } = toggleOptions ?? {};
+        const { currentResultSet, connectionToggle } = this.state;
 
         const className = this.getEffectiveClassNames(["resultHost"]);
 
@@ -208,7 +234,7 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
             id="toggleStateButton"
             imageOnly={true}
             data-tooltip="Maximize Result Tab"
-            onClick={this.handleResultToggle}
+            onClick={toggleOptions?.handleResultToggle.bind(this, this.state.currentResultSet)}
         >
             <Icon
                 src={showMaximized ? Assets.toolbar.normalizeIcon : Assets.toolbar.maximizeIcon}
@@ -308,18 +334,126 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
         const editButtonTooltip = updatable ? (editModeActive ? "Editing" : "Start Editing") : "Data not editable";
 
+        const resultStatus = statusInfo && (
+            <ResultStatus statusInfo={statusInfo} statusTextPosition={statusTextPosition}>
+                {
+                    !gotError && !gotResponse && <Toolbar dropShadow={false} >
+                        {connectionToggle !== undefined ? connectionToggle : null}
+                        <Label className="autoHide">View:</Label>
+                        <Dropdown
+                            id="viewStyleDropDown"
+                            selection={currentEditingInfo?.previewActive ? "preview" : "grid"}
+                            iconOnly={true}
+                            data-tooltip="Select a View Section for the Result Set"
+                            onSelect={this.selectViewStyle}
+                        >
+                            <DropdownItem
+                                id="grid"
+                                caption="Data Grid"
+                                picture={<Icon src={Assets.toolbar.gridIcon} data-tooltip="inherit" />}
+                            />
+                            <DropdownItem
+                                id="preview"
+                                caption="Preview Changes"
+                                picture={<Icon src={Assets.toolbar.previewIcon} data-tooltip="inherit" />}
+                                disabled={!currentEditingInfo}
+                            />
+                        </Dropdown>
+                        <Divider vertical={true} />
+                        <Label className="autoHide">Pages:</Label>
+                        <Button
+                            id="previousPageButton"
+                            imageOnly={true}
+                            disabled={currentPage === 0}
+                            data-tooltip="Previous Page"
+                            onClick={this.previousPage}
+                        >
+                            <Icon src={Assets.toolbar.pagePreviousIcon} data-tooltip="inherit" />
+                        </Button>
+                        <Button
+                            id="nextPageButton"
+                            imageOnly={true}
+                            disabled={!hasMorePages}
+                            data-tooltip="Next Page"
+                            onClick={this.nextPage}
+                        >
+                            <Icon src={Assets.toolbar.pageNextIcon} data-tooltip="inherit" />
+                        </Button>
+                        <Divider vertical={true} />
+                        <Label className="autoHide">Edit:</Label>
+                        <Button
+                            id="editButton"
+                            imageOnly={true}
+                            disabled={!updatable || editModeActive}
+                            data-tooltip={editButtonTooltip}
+                            onClick={this.startEditingFirstField}
+                        >
+                            <Icon src={Assets.toolbar.editIcon2} data-tooltip="inherit" />
+                        </Button>
+                        <Button
+                            id="previewButton"
+                            imageOnly={true}
+                            disabled={!currentEditingInfo}
+                            data-tooltip="Preview Changes"
+                            onClick={this.previewChanges}
+                        >
+                            <Icon src={Assets.toolbar.previewIcon} data-tooltip="inherit" />
+                        </Button>
+                        <Button
+                            id="applyButton"
+                            imageOnly={true}
+                            disabled={!currentEditingInfo}
+                            data-tooltip="Apply Changes"
+                            onClick={() => { return this.commitChanges(); }}
+                        >
+                            <Icon src={Assets.toolbar.commitIcon} data-tooltip="inherit" />
+                        </Button>
+                        <Button
+                            id="rollbackButton"
+                            imageOnly={true}
+                            disabled={!currentEditingInfo}
+                            data-tooltip="Rollback Changes"
+                            onClick={this.cancelEditingAndRollbackChanges}
+                        >
+                            <Icon src={Assets.toolbar.rollbackIcon} data-tooltip="inherit" />
+                        </Button>
+                        <Button
+                            id="refreshButton"
+                            imageOnly={true}
+                            disabled={!!currentEditingInfo}
+                            data-tooltip="Refresh"
+                            onClick={this.refresh}
+                        >
+                            <Icon src={Assets.toolbar.refreshIcon2} data-tooltip="inherit" />
+                        </Button>
+                        <Divider id="editSeparator" vertical={true} />
+                        {showMaximizeButton === "statusBar" && toggleStateButton}
+                        {showMaximizeButton === "statusBar" && <Divider vertical={true} />}
+                        <Button
+                            id="showActionMenu"
+                            imageOnly={true}
+                            data-tooltip="Show Action Menu"
+                            onClick={this.showActionMenu}
+                        >
+                            <Icon src={Assets.toolbar.menuIcon} data-tooltip="inherit" />
+                        </Button>
+                    </Toolbar>}
+            </ResultStatus>
+        );
+
         return (
             <Container
                 className={className}
                 orientation={Orientation.TopDown}
             >
+                {toolbarLocation === "top" && resultStatus}
                 <Tabview
                     className="resultTabview"
                     stretchTabs={false}
                     hideSingleTab={hideTabs === "single"}
                     showTabs={hideTabs !== "always"}
                     selectedId={currentResultSet?.resultId ?? "output"}
-                    tabPosition={TabPosition.Top}
+                    tabPosition={tabPosition}
                     pages={pages}
                     canReorderTabs={true}
 
@@ -327,139 +461,34 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
                     closeTabs={this.closeTabs}
                     canCloseTab={this.canClose}
                 />
-                {
-                    statusInfo && <ResultStatus statusInfo={statusInfo}>
-                        {
-                            !gotError && !gotResponse && <Toolbar dropShadow={false} >
-                                <Label className="autoHide">View:</Label>
-                                <Dropdown
-                                    id="viewStyleDropDown"
-                                    selection={currentEditingInfo?.previewActive ? "preview" : "grid"}
-                                    iconOnly={true}
-                                    data-tooltip="Select a View Section for the Result Set"
-                                    onSelect={this.selectViewStyle}
-                                >
-                                    <DropdownItem
-                                        id="grid"
-                                        caption="Data Grid"
-                                        picture={<Icon src={Assets.toolbar.gridIcon} data-tooltip="inherit" />}
-                                    />
-                                    <DropdownItem
-                                        id="preview"
-                                        caption="Preview Changes"
-                                        picture={<Icon src={Assets.toolbar.previewIcon} data-tooltip="inherit" />}
-                                        disabled={!currentEditingInfo}
-                                    />
-                                </Dropdown>
-                                <Divider vertical={true} />
-                                <Label className="autoHide">Pages:</Label>
-                                <Button
-                                    id="previousPageButton"
-                                    imageOnly={true}
-                                    disabled={currentPage === 0}
-                                    data-tooltip="Previous Page"
-                                    onClick={this.previousPage}
-                                >
-                                    <Icon src={Assets.toolbar.pagePreviousIcon} data-tooltip="inherit" />
-                                </Button>
-                                <Button
-                                    id="nextPageButton"
-                                    imageOnly={true}
-                                    disabled={!hasMorePages}
-                                    data-tooltip="Next Page"
-                                    onClick={this.nextPage}
-                                >
-                                    <Icon src={Assets.toolbar.pageNextIcon} data-tooltip="inherit" />
-                                </Button>
-                                <Divider vertical={true} />
-                                <Label className="autoHide">Edit:</Label>
-                                <Button
-                                    id="editButton"
-                                    imageOnly={true}
-                                    disabled={!updatable || editModeActive}
-                                    data-tooltip={editButtonTooltip}
-                                    onClick={this.startEditingFirstField}
-                                >
-                                    <Icon src={Assets.toolbar.editIcon2} data-tooltip="inherit" />
-                                </Button>
-                                <Button
-                                    id="previewButton"
-                                    imageOnly={true}
-                                    disabled={!currentEditingInfo}
-                                    data-tooltip="Preview Changes"
-                                    onClick={this.previewChanges}
-                                >
-                                    <Icon src={Assets.toolbar.previewIcon} data-tooltip="inherit" />
-                                </Button>
-                                <Button
-                                    id="applyButton"
-                                    imageOnly={true}
-                                    disabled={!currentEditingInfo}
-                                    data-tooltip="Apply Changes"
-                                    onClick={() => { return this.commitChanges(); }}
-                                >
-                                    <Icon src={Assets.toolbar.commitIcon} data-tooltip="inherit" />
-                                </Button>
-                                <Button
-                                    id="rollbackButton"
-                                    imageOnly={true}
-                                    disabled={!currentEditingInfo}
-                                    data-tooltip="Rollback Changes"
-                                    onClick={this.cancelEditingAndRollbackChanges}
-                                >
-                                    <Icon src={Assets.toolbar.rollbackIcon} data-tooltip="inherit" />
-                                </Button>
-                                <Button
-                                    id="refreshButton"
-                                    imageOnly={true}
-                                    disabled={!!currentEditingInfo}
-                                    data-tooltip="Refresh"
-                                    onClick={this.refresh}
-                                >
-                                    <Icon src={Assets.toolbar.refreshIcon2} data-tooltip="inherit" />
-                                </Button>
-                                <Divider id="editSeparator" vertical={true} />
-                                {showMaximizeButton === "statusBar" && toggleStateButton}
-                                {showMaximizeButton === "statusBar" && <Divider vertical={true} />}
-                                <Button
-                                    id="showActionMenu"
-                                    imageOnly={true}
-                                    data-tooltip="Show Action Menu"
-                                    onClick={this.showActionMenu}
-                                >
-                                    <Icon src={Assets.toolbar.menuIcon} data-tooltip="inherit" />
-                                </Button>
-                            </Toolbar>
-                        }
-                    </ResultStatus>
-                }
+                    {toolbarLocation === "bottom" && resultStatus}
 
-                <Menu
-                    id="actionMenu"
-                    ref={this.actionMenuRef}
-                    placement={ComponentPlacement.BottomLeft}
-                    onItemClick={this.handleActionMenuItemClick}
-                >
-                    <MenuItem
-                        id="closeMenuItem"
-                        command={{ title: "Close Result Set", command: "closeMenuItem" }}
-                    />
-                    <MenuItem
-                        id="separator1"
-                        command={{ title: "-", command: "" }}
-                        disabled
-                    />
-                    <MenuItem
-                        id="exportMenuItem"
-                        command={{ title: "Export Result Set", command: "exportMenuItem" }}
-                        disabled
-                    />
-                    <MenuItem
-                        id="importMenuItem"
-                        command={{ title: "Import Result Set", command: "importMenuItem" }}
-                        disabled
-                    />
-                </Menu>
+                    <Menu
+                        id="actionMenu"
+                        ref={this.actionMenuRef}
+                        placement={ComponentPlacement.BottomLeft}
+                        onItemClick={this.handleActionMenuItemClick}
+                    >
+                        <MenuItem
+                            id="closeMenuItem"
+                            command={{ title: "Close Result Set", command: "closeMenuItem" }}
+                        />
+                        <MenuItem
+                            id="separator1"
+                            command={{ title: "-", command: "" }}
+                            disabled
+                        />
+                        <MenuItem
+                            id="exportMenuItem"
+                            command={{ title: "Export Result Set", command: "exportMenuItem" }}
+                            disabled
+                        />
+                        <MenuItem
+                            id="importMenuItem"
+                            command={{ title: "Import Result Set", command: "importMenuItem" }}
+                            disabled
+                        />
+                    </Menu>
 
             </Container >
         );
@@ -527,8 +556,10 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
     }
 
     private handleTabSelection = (id: string): void => {
+        const { onSelectTab, resultSets } = this.props;
+
         let currentIndex = 0;
-        this.props.resultSets.sets.forEach((candidate, index) => {
+        resultSets.sets.forEach((candidate, index) => {
             if (candidate.resultId === id) {
                 currentIndex = index + 1; // Account for the output page.
             }
@@ -536,8 +567,6 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
         const viewRef = this.viewRefs.get(this.state.currentResultSet?.resultId ?? "")?.current;
         viewRef?.cellEditCancelled();
-
-        const { onSelectTab } = this.props;
 
         onSelectTab?.(currentIndex);
     };
@@ -634,11 +663,11 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
 
         const switchPage = (): void => {
             if (currentResultSet?.data.hasMoreRows) {
-                const { onResultPageChange } = this.props;
+                const { onResultPageChange, currentSet } = this.props;
 
                 ++currentResultSet.data.currentPage;
                 onResultPageChange?.(currentResultSet.resultId, currentResultSet.data.currentPage,
-                    currentResultSet.sql);
+                    currentResultSet.sql, currentSet);
             }
         };
 
@@ -748,41 +777,6 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
         }
 
         return true;
-    };
-
-    /**
-     * Triggered by one of the toggle view state buttons.
-     * It triggers the corresponding action needed to either show the result pane maximized (if this result view
-     * is in a script editor) or to create a new script and show the result pane maximized.
-     */
-    private handleResultToggle = (): void => {
-        const { onToggleResultPaneViewState, showMaximizeButton, showMaximized } = this.props;
-        const { currentResultSet } = this.state;
-
-        // If showMaximized is not yet used it means we are in a notebook that needs to run the script
-        // to show a separate script editor.
-        if (showMaximizeButton === "statusBar" && showMaximized === undefined) {
-            if (currentResultSet) {
-                const sql = currentResultSet.sql;
-                const name = `Result #${(currentResultSet.index ?? 0) + 1}`;
-                if (sql) {
-                    const request: IScriptRequest = {
-                        id: uuid(),
-                        language: "mysql",
-                        caption: name,
-                        content: sql,
-                    };
-
-                    // Run this as job (instead of a simple) requisition to allow it to be repeated until a script
-                    // editor is ready to take the request.
-                    void requisitions.execute("job", [
-                        { requestType: "editorRunScript", parameter: request },
-                    ]);
-                }
-            }
-        } else {
-            onToggleResultPaneViewState?.();
-        }
     };
 
     /**
@@ -1147,10 +1141,10 @@ export class ResultTabView extends ComponentBase<IResultTabViewProperties, IResu
      * @returns A statement for each row change (insert, update, delete).
      */
     private generateStatements = (info: IEditingInfo): Array<[number, string]> => {
+        const { upperCaseKeywords } = this.props;
         const { rowChanges, resultSet } = info;
 
-        const uppercaseKeywords = Settings.get("dbEditor.upperCaseKeywords", true);
-        const builder = new QueryBuilder(resultSet.fullTableName, resultSet.columns, uppercaseKeywords);
+        const builder = new QueryBuilder(resultSet.fullTableName, resultSet.columns, upperCaseKeywords);
 
         const statements: Array<[number, string]> = [];
         rowChanges.forEach((rowChange, index) => {
