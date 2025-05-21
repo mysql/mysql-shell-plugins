@@ -298,6 +298,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         requisitions.register("showMrsConfigurationDialog", this.showMrsConfigurationDialog);
 
         requisitions.register("openSession", this.openSession);
+        requisitions.register("socketStateChanged", this.connectionStateChanged);
 
         if (this.containerRef.current && !appParameters.embedded) {
             this.containerRef.current.addEventListener("keydown", this.handleKeyPress);
@@ -337,6 +338,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         requisitions.unregister("showMrsConfigurationDialog", this.showMrsConfigurationDialog);
 
         requisitions.unregister("openSession", this.openSession);
+        requisitions.unregister("socketStateChanged", this.connectionStateChanged);
     }
 
     public override render(): ComponentChild {
@@ -1196,6 +1198,26 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         await this.activateShellTab(details.sessionId, details.dbConnectionId, details.caption);
 
         return true;
+    };
+
+    private connectionStateChanged = async (): Promise<boolean> => {
+        if (webSession.runMode === RunMode.SingleServer) {
+            await this.doLogout();
+        }
+
+        return true;
+    };
+
+    private doLogout = async (): Promise<boolean> => {
+        this.connectionsDataModel.clear();
+        this.documentDataModel.clear();
+        this.ociDataModel.clear();
+        webSession.clearCredentials();
+
+        // No need to manually close any connection. The data models take care to close when they are cleared.
+        this.setState({ connectionTabs: [], documentTabs: [], shellSessionTabs: [] });
+
+        return requisitions.execute("userLoggedOut", {});
     };
 
     /**
@@ -2243,15 +2265,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             }
 
             case "msg.logOut": {
-                this.connectionsDataModel.clear();
-                this.documentDataModel.clear();
-                this.ociDataModel.clear();
-                webSession.clearCredentials();
-
-                // No need to manually close any connection. The data models take care to close when they are cleared.
-                this.setState({ connectionTabs: [], documentTabs: [], shellSessionTabs: [] });
-
-                void requisitions.execute("userLoggedOut", {});
+                await this.doLogout();
 
                 break;
             }

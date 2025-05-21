@@ -86,6 +86,11 @@ def web_server(port=None, secure=None, webrootpath=None,
         raise ValueError(
             'The single_instance_token and single_server parameters are mutually exclusive.')
 
+    if single_server is not None:
+        mysqlsh.globals.shell.options['credentialStore.helper'] = "<disabled>"
+        logger.debug(
+            f'Set credentialStore.helper to {mysqlsh.globals.shell.options['credentialStore.helper']}')
+
     # TODO: TEMPORARY HACK!!
     # import gc
     # gc.disable()
