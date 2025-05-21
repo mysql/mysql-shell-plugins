@@ -168,6 +168,28 @@ export class ShellInterfaceDb {
         return result;
     }
 
+    public async getLibrariesMetadata(schema: string): Promise<IDBSchemaObjectEntry[]> {
+        if (!this.moduleSessionId) {
+            return [];
+        }
+
+        const response = await MessageScheduler.get.sendRequest({
+            requestType: ShellAPIGui.GuiDbGetLibrariesMetadata,
+            parameters: {
+                args: {
+                    moduleSessionId: this.moduleSessionId,
+                    schemaName: schema,
+                },
+            },
+        });
+        const result: IDBSchemaObjectEntry[] = [];
+        response.forEach((entry) => {
+            result.push(...entry.result);
+        });
+
+        return result;
+    }
+
     /**
      * Returns a list of table objects (columns, indexes and so on).
      *

@@ -306,7 +306,6 @@ export enum DialogType {
 
     /** Select one entry from a list. */
     Select,
-
 }
 
 /** Types for MySQL REST dialogs. */
@@ -348,10 +347,15 @@ export enum MdsDialogType {
     MdsEndpoint,
 }
 
+export enum LibraryDialogType {
+    /** A dialog to create a library from. */
+    CreateLibraryFrom = 30,
+}
+
 /** A set of values that describe a single modal dialog request. */
 export interface IDialogRequest extends IDictionary {
     /** The type of the dialog to show. Used mostly to schedule dialog requests. */
-    type: DialogType | MrsDialogType | MdsDialogType;
+    type: DialogType | MrsDialogType | MdsDialogType | LibraryDialogType;
 
     /** An id to identify the invocation. */
     id: string;
@@ -384,7 +388,7 @@ export enum DialogResponseClosure {
 
 export interface IDialogResponse extends IDictionary {
     id: string;
-    type: DialogType | MdsDialogType;
+    type: DialogType | MdsDialogType | LibraryDialogType;
     closure: DialogResponseClosure;
 
     values?: IDictionary;

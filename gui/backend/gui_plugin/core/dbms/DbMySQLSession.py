@@ -41,7 +41,9 @@ from gui_plugin.core.dbms.DbMySQLSessionTasks import (MySQLBaseObjectTask,
                                                       MySQLTableObjectTask,
                                                       MySQLColumnObjectTask,
                                                       MySQLColumnsListTask,
-                                                      MySQLRoutinesListTask)
+                                                      MySQLRoutinesListTask,
+                                                      MySQLLibrariesListTask
+                                                      )
 from gui_plugin.core.dbms.DbSession import (DbSession, DbSessionFactory,
                                             ReconnectionMode, lock_usage)
 from gui_plugin.core.dbms.DbSessionTasks import (DbExecuteTask,
@@ -64,6 +66,7 @@ class DbMysqlSession(DbSession):
                         {"name": "Table",         "type": "SCHEMA_OBJECT"},
                         {"name": "View",          "type": "SCHEMA_OBJECT"},
                         {"name": "Routine",       "type": "SCHEMA_OBJECT"},
+                        {"name": "Library",       "type": "SCHEMA_OBJECT"},
                         {"name": "Event",         "type": "SCHEMA_OBJECT"},
                         {"name": "Trigger",       "type": "TABLE_OBJECT"},
                         {"name": "Foreign Key",   "type": "TABLE_OBJECT"},
@@ -498,6 +501,13 @@ class DbMysqlSession(DbSession):
             sql += " ORDER BY ROUTINE_NAME"
             params = (schema_name, routine_type.upper(),
                       filter) if routine_type else (schema_name, filter)
+        elif type == "Library":
+            sql = """SELECT LIBRARY_NAME
+                    FROM information_schema.LIBRARIES
+                    WHERE LIBRARY_SCHEMA = ?"""
+            sql += " AND LIBRARY_NAME like ?"
+            sql += " ORDER BY LIBRARY_NAME"
+            params = (schema_name, filter)
         elif type == "Event":
             sql = """SELECT EVENT_NAME
                     FROM information_schema.EVENTS
@@ -648,6 +658,10 @@ class DbMysqlSession(DbSession):
                 sql = """SELECT ROUTINE_NAME
                         FROM information_schema.ROUTINES
                         WHERE ROUTINE_SCHEMA = ? AND ROUTINE_NAME = ?"""
+            elif type == "Library":
+                sql = """SELECT LIBRARY_NAME
+                        FROM information_schema.LIBRARIES
+                        WHERE LIBRARY_SCHEMA = ? AND LIBRARY_NAME = ?"""
             elif type == "Event":
                 sql = """SELECT EVENT_NAME
                         FROM information_schema.EVENTS
@@ -793,6 +807,38 @@ class DbMysqlSession(DbSession):
                 raise MSGException(Error.DB_OBJECT_DOES_NOT_EXISTS,
                                    f"The '{schema_name}' does not exist.")
             return {"routines": result}
+
+
+    def get_libraries_metadata(self, schema_name):
+        libraries_available = self._column_exists("LIBRARIES", "LIBRARY_CATALOG")
+        if not libraries_available:
+            return []
+
+        params = (schema_name,)
+
+        sql = """SELECT LIBRARY_NAME as 'name', 'LIBRARY' as 'type', LANGUAGE as 'language'
+                FROM information_schema.LIBRARIES
+                WHERE LIBRARY_SCHEMA = ?"""
+
+        if self.threaded:
+            context = get_context()
+            task_id = context.request_id if context else None
+
+            self.add_task(MySQLLibrariesListTask(self,
+                                                task_id=task_id,
+                                                sql=sql,
+                                                params=params))
+        else:
+            cursor = self.execute(sql, params)
+            if cursor:
+                result = cursor.fetch_all()
+            else:
+                result = []
+            if not result:
+                raise MSGException(Error.DB_OBJECT_DOES_NOT_EXISTS,
+                                    f"The '{schema_name}' does not exist.")
+            return {"libraries": result}
+
 
     def _column_exists(self, table_name, column_name):
         """Check if a column exists in INFORMATION_SCHEMA table."""

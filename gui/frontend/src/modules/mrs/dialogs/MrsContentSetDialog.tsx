@@ -415,7 +415,7 @@ export class MrsContentSetDialog extends AwaitableValueEditDialog {
         };
     }
 
-    private onDirectoryChange = (_value: string, dialog: ValueEditDialog): void => {
+    private onDirectoryChange = (_value: File | null, dialog: ValueEditDialog): void => {
         const values = dialog.getDialogValues();
 
         this.updateMrsScriptSection(values).then((values) => {

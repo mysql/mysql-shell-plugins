@@ -245,3 +245,18 @@ def get_routines_metadata(session, schema_name):
     session = backend.get_db_session(session)
 
     return session.get_routines_metadata(schema_name=schema_name)
+
+@plugin_function('gui.db.getLibrariesMetadata', shell=True, web=True)
+def get_libraries_metadata(session, schema_name):
+    """Returns the schema objects of the given type in the given schema.
+
+    Args:
+        session (object): The session used to execute the operation
+        schema_name (str): schema name
+
+    Returns:
+        list: schema objects
+    """
+    session = backend.get_db_session(session)
+
+    return session.get_libraries_metadata(schema_name=schema_name)

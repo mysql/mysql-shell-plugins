@@ -43,8 +43,8 @@ import { IMrsDbObjectData } from "../../frontend/src/communication/ProtocolMrs.j
 import {
     cdbDbEntityTypeName, CdmEntityType, ConnectionDataModelEntry, ICdmConnectionEntry, ICdmEventEntry,
     ICdmRestDbObjectEntry, type ConnectionDataModelNoGroupEntry, type ICdmAdminPageEntry, type ICdmConnectionGroupEntry,
-    type ICdmRoutineEntry, type ICdmSchemaEntry, type ICdmSchemaGroupEntry, type ICdmTableEntry, type ICdmTriggerEntry,
-    type ICdmViewEntry,
+    type ICdmRoutineEntry, type ICdmLibraryEntry, type ICdmSchemaEntry, type ICdmSchemaGroupEntry, type ICdmTableEntry,
+    type ICdmTriggerEntry, type ICdmViewEntry,
 } from "../../frontend/src/data-models/ConnectionDataModel.js";
 import {
     OdmEntityType, OpenDocumentDataModel, type IOdmConnectionPageEntry, type IOdmNotebookEntry, type IOdmScriptEntry,
@@ -73,6 +73,8 @@ import {
 } from "./tree-providers/OpenEditorsTreeProvider/OpenEditorsTreeProvider.js";
 import { showMessageWithTimeout } from "./utilities.js";
 import { WebviewProvider } from "./WebviewProviders/WebviewProvider.js";
+import { LibraryDialogType } from "../../frontend/src/app-logic/general-types.js";
+import { DialogWebviewManager } from "./WebviewProviders/DialogWebviewProvider.js";
 
 const homeDir = os.homedir();
 
@@ -96,6 +98,8 @@ export class DocumentCommandHandler {
 
     private isConnected = false;
     private host: ExtensionHost;
+
+    private dialogManager = new DialogWebviewManager();
 
     private codeBlocks = new CodeBlocks();
 
@@ -470,6 +474,36 @@ export class DocumentCommandHandler {
                 }
             }));
 
+        context.subscriptions.push(commands.registerCommand("msg.createLibraryJs",
+            (entry?: ICdmSchemaGroupEntry<CdmEntityType.Library>) => {
+                if (entry) {
+                    void this.addNewSqlScript(entry.connection.details.id, "msg.createLibraryJs",
+                        entry.parent.caption, "New Library", "my_library");
+                }
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.createLibraryFrom",
+            (entry?: ICdmLibraryEntry) => {
+                if (entry) {
+                    const connection = entry.parent.connection;
+                    const connectionId = connection.details.id;
+                    const provider = this.host.currentProvider;
+                    const data = {
+                        type: LibraryDialogType.CreateLibraryFrom,
+                        id: "createLibraryDialog",
+                        parameters: {},
+                        values: { schemaName: entry.parent.caption },
+                    };
+                    if (provider) {
+                        void provider.runCommand("job", [
+                            { requestType: "showPage", parameter: { connectionId } },
+                            { requestType: "showCreateLibraryDialog", parameter: data },
+                        ], "newConnection");
+                    }
+
+                }
+            }));
+
         context.subscriptions.push(commands.registerCommand("msg.createProcedureJs",
             (entry?: ICdmSchemaGroupEntry<CdmEntityType.StoredProcedure>) => {
                 if (entry) {
@@ -485,6 +519,16 @@ export class DocumentCommandHandler {
 
                 void this.addNewSqlScript(entry.connection.details, "msg.editRoutine",
                     entry.parent.caption, "Edit Routine", sql);
+            }
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.editLibrary", async (entry?: ICdmLibraryEntry) => {
+            if (entry) {
+                const entryType = "library";
+                const sql = await this.connectionsProvider.getCreateSqlScript(entry, entryType, true, true);
+
+                void this.addNewSqlScript(entry.connection.details, "msg.editLibrary",
+                    entry.parent.caption, "Edit Library", sql);
             }
         }));
 
@@ -507,6 +551,12 @@ export class DocumentCommandHandler {
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.dropRoutine", (entry?: ICdmRoutineEntry) => {
+            if (entry) {
+                this.connectionsProvider.dropItem(entry);
+            }
+        }));
+
+        context.subscriptions.push(commands.registerCommand("msg.dropLibrary", (entry?: ICdmRoutineEntry) => {
             if (entry) {
                 this.connectionsProvider.dropItem(entry);
             }
@@ -1000,12 +1050,21 @@ export class DocumentCommandHandler {
         let sql = "";
         // If the commands is a create command, get the name of the new routine
         if (command.startsWith("msg.create")) {
-            name = await window.showInputBox({
-                title: `New Routine on Schema \`${schemaName}\``,
-                placeHolder,
-                prompt: "Please enter a name for the new routine:",
-                value: "",
-            });
+            if (command.startsWith("msg.createLibraryJs")) {
+                name = await window.showInputBox({
+                    title: `New Library on Schema \`${schemaName}\``,
+                    placeHolder,
+                    prompt: "Please enter a name for the new library:",
+                    value: "",
+                });
+            } else {
+                name = await window.showInputBox({
+                    title: `New Routine on Schema \`${schemaName}\``,
+                    placeHolder,
+                    prompt: "Please enter a name for the new routine:",
+                    value: "",
+                });
+            }
 
             if (name === undefined) {
                 return;
@@ -1043,11 +1102,13 @@ export class DocumentCommandHandler {
                     + `/* Add or remove function parameters as needed. */\n`
                     + `CREATE FUNCTION \`${schemaName}\`.\`${name}\`(arg1 INTEGER)\n`
                     + `RETURNS INTEGER\n`
+                    + `/* USING (\`${schemaName}\`.\`library1\` AS lib1, \`other_schema\`.\`library2\` AS lib2) */\n`
                     + `SQL SECURITY DEFINER\n`
                     + `DETERMINISTIC LANGUAGE JAVASCRIPT\nAS $$\n`
                     + `    /* Insert the function code here. */\n`
                     + `    console.log("Hello World!");\n`
                     + `    console.log('{"info": "This is Javascript"}');\n`
+                    + `    /* console.log("Imported function: ", lib1.f()); */\n`
                     + `    /* throw("Custom Error"); */\n`
                     + `    return arg1;\n`
                     + `$$;\n`
@@ -1055,16 +1116,34 @@ export class DocumentCommandHandler {
                 break;
             }
 
+            case "msg.createLibraryJs": {
+                sql = `DROP LIBRARY IF EXISTS \`${schemaName}\`.\`${name}\`;\n`
+                    + `CREATE LIBRARY \`${schemaName}\`.\`${name}\`\n`
+                    + `LANGUAGE JAVASCRIPT\nAS $$\n`
+                    + `    /* Insert the library code here. */\n`
+                    + `    export function f(x) {\n`
+                    + `        return x + 1;\n`
+                    + `    }\n`
+                    + `    export class MyRectangle {\n`
+                    + `        /* your class implementation */\n`
+                    + `    }\n`
+                    + `    export const myConst = 7;\n`
+                    + `$$;\n`;
+                break;
+            }
+
             case "msg.createProcedureJs": {
                 sql = `DROP PROCEDURE IF EXISTS \`${schemaName}\`.\`${name}\`;\n`
                     + `/* Add or remove procedure parameters as needed. */\n`
                     + `CREATE PROCEDURE \`${schemaName}\`.\`${name}\`(IN arg1 INTEGER, OUT arg2 INTEGER)\n`
+                    + `/* USING (\`${schemaName}\`.\`library1\` AS lib1, \`other_schema\`.\`library2\` AS lib2) */\n`
                     + `DETERMINISTIC LANGUAGE JAVASCRIPT\nAS $$\n`
                     + `    /* Insert the procedure code here. */\n`
                     + `    console.log("Hello World!");\n`
                     + `    const sql_query = session.prepare('SELECT ?');\n`
                     + `    const query_result = sql_query.bind(arg1).execute().fetchOne();\n`
                     + `    arg2 = query_result[0];\n`
+                    + `    /* console.log("Imported function: ", lib1.f()); */\n`
                     + `$$;\n`
                     + `CALL\`${schemaName}\`.\`${name}\`(42, @out);\n`
                     + `SELECT @out;`;
@@ -1072,6 +1151,11 @@ export class DocumentCommandHandler {
             }
 
             case "msg.editRoutine": {
+                sql = placeHolder;
+                break;
+            }
+
+            case "msg.editLibrary": {
                 sql = placeHolder;
                 break;
             }

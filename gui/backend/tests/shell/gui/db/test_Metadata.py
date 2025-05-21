@@ -47,6 +47,7 @@ def test_get_object_types_by_shell(shell_session):
                         {"name": "Table", "type": "SCHEMA_OBJECT"},
                         {"name": "View", "type": "SCHEMA_OBJECT"},
                         {"name": "Routine", "type": "SCHEMA_OBJECT"},
+                        {"name": "Library", "type": "SCHEMA_OBJECT"},
                         {"name": "Event", "type": "SCHEMA_OBJECT"},
                         {"name": "Trigger", "type": "TABLE_OBJECT"},
                         {"name": "Foreign Key", "type": "TABLE_OBJECT"},

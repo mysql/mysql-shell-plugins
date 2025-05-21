@@ -237,3 +237,13 @@ class MySQLRoutinesListTask(MySQLColumnsMetadataTask):
         }
 
         return result
+
+class MySQLLibrariesListTask(MySQLColumnsMetadataTask):
+    def format(self, row):
+        result = {
+            "name": row.get_field("name"),
+            "type": row.get_field("type"),
+            "language": row.get_field("language"),
+        }
+
+        return result

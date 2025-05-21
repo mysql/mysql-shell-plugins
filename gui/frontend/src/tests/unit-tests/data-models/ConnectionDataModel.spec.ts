@@ -81,6 +81,12 @@ jest.mock("../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js", () =>
                     { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc14" },
                     { type: "PROCEDURE", language: "JAVASCRIPT", name: "proc15" },
                 ]),
+                getLibrariesMetadata: jest.fn().mockReturnValue([
+                    { type: "LIBRARY", language: "JAVASCRIPT", name: "lib1" },
+                    { type: "LIBRARY", language: "JAVASCRIPT", name: "lib2" },
+                    { type: "LIBRARY", language: "JAVASCRIPT", name: "lib3" },
+                    { type: "LIBRARY", language: "JAVASCRIPT", name: "lib4" },
+                ]),
                 getTableObjectNames: jest.fn().mockReturnValue([
                     "object1", "object1", // In lieu of any database object name.
                 ]),

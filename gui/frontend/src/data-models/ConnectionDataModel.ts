@@ -80,6 +80,9 @@ export enum CdmEntityType {
     /** A stored procedure in a schema. */
     StoredProcedure,
 
+    /** A library in a schema. */
+    Library,
+
     /** An event in a table. */
     Event,
 
@@ -178,6 +181,7 @@ export const cdmDbEntityTypes = new Set<CdmEntityType>([
     CdmEntityType.View,
     CdmEntityType.StoredProcedure,
     CdmEntityType.StoredFunction,
+    CdmEntityType.Library,
     CdmEntityType.Event,
     CdmEntityType.Column,
     CdmEntityType.Index,
@@ -192,6 +196,7 @@ export const cdbDbEntityTypeName = new Map<CdmEntityType, string>([
     [CdmEntityType.View, "view"],
     [CdmEntityType.StoredProcedure, "procedure"],
     [CdmEntityType.StoredFunction, "function"],
+    [CdmEntityType.Library, "library"],
     [CdmEntityType.Event, "event"],
     [CdmEntityType.Column, "column"],
     [CdmEntityType.Index, "index"],
@@ -200,8 +205,9 @@ export const cdbDbEntityTypeName = new Map<CdmEntityType, string>([
 ]);
 
 /** All type corresponding to a concrete database object type. */
-export type CdmDbEntryType = ICdmSchemaEntry | ICdmTableEntry | ICdmViewEntry | ICdmRoutineEntry | ICdmEventEntry
-    | ICdmColumnEntry | ICdmIndexEntry | ICdmForeignKeyEntry | ICdmTriggerEntry;
+export type CdmDbEntryType = ICdmSchemaEntry | ICdmTableEntry | ICdmViewEntry | ICdmRoutineEntry
+    | ICdmLibraryEntry | ICdmEventEntry | ICdmColumnEntry | ICdmIndexEntry | ICdmForeignKeyEntry
+    | ICdmTriggerEntry;
 
 /** The base interface for all entries. */
 export interface ICdmBaseEntry {
@@ -246,6 +252,15 @@ export interface ICdmRoutineEntry extends ICdmBaseEntry {
     readonly parent: ICdmSchemaGroupEntry<CdmEntityType.StoredProcedure | CdmEntityType.StoredFunction>;
 
     readonly type: CdmEntityType.StoredProcedure | CdmEntityType.StoredFunction;
+    readonly schema: string;
+    readonly language: string;
+}
+
+/** An entry for a library. */
+export interface ICdmLibraryEntry extends ICdmBaseEntry {
+    readonly parent: ICdmSchemaGroupEntry<CdmEntityType.Library>;
+
+    readonly type: CdmEntityType.Library;
     readonly schema: string;
     readonly language: string;
 }
@@ -354,7 +369,7 @@ export interface ICdmViewEntry extends ICdmBaseEntry {
 
 /** A type union for all members of a schema group. */
 export type CdmSchemaGroupMemberType = CdmEntityType.StoredProcedure | CdmEntityType.StoredFunction
-    | CdmEntityType.Event | CdmEntityType.Table | CdmEntityType.View;
+    | CdmEntityType.Library | CdmEntityType.Event | CdmEntityType.Table | CdmEntityType.View;
 
 /**
  * A mapping from schema group types to their members. This is used to determine the type of the members in a
@@ -363,6 +378,7 @@ export type CdmSchemaGroupMemberType = CdmEntityType.StoredProcedure | CdmEntity
 interface ICdmEntityTypeToSchemaMember {
     [CdmEntityType.StoredProcedure]: ICdmRoutineEntry,
     [CdmEntityType.StoredFunction]: ICdmRoutineEntry,
+    [CdmEntityType.Library]: ICdmLibraryEntry,
     [CdmEntityType.Event]: ICdmEventEntry,
     [CdmEntityType.Table]: ICdmTableEntry,
     [CdmEntityType.View]: ICdmViewEntry;
@@ -387,6 +403,7 @@ export interface ICdmSchemaEntry extends ICdmBaseEntry {
     readonly views: ICdmSchemaGroupEntry<CdmEntityType.View>;
     readonly procedures: ICdmSchemaGroupEntry<CdmEntityType.StoredProcedure>;
     readonly functions: ICdmSchemaGroupEntry<CdmEntityType.StoredFunction>;
+    readonly libraries: ICdmSchemaGroupEntry<CdmEntityType.Library>;
     readonly events: ICdmSchemaGroupEntry<CdmEntityType.Event>;
 }
 
@@ -601,6 +618,7 @@ export type ConnectionDataModelEntry =
     | ICdmViewEntry
     | ICdmEventEntry
     | ICdmRoutineEntry
+    | ICdmLibraryEntry
     | ICdmAdminEntry
     | ICdmAdminPageEntry
     | ICdmTableGroupEntry<CdmTableGroupMemberType>
@@ -847,6 +865,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
             case CdmEntityType.View:
             case CdmEntityType.StoredProcedure:
             case CdmEntityType.StoredFunction:
+            case CdmEntityType.Library:
             case CdmEntityType.Event: {
                 schema = entry.parent.parent.caption;
                 tableOrView = entry.caption;
@@ -932,6 +951,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
             case CdmEntityType.View:
             case CdmEntityType.StoredFunction:
             case CdmEntityType.StoredProcedure:
+            case CdmEntityType.Library:
             case CdmEntityType.Event:
             case CdmEntityType.Trigger:
             case CdmEntityType.Index:
@@ -1550,12 +1570,34 @@ export class ConnectionDataModel implements ICdmAccessManager {
 
                 schemaEntry.functions = functionsSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.StoredFunction>;
 
+                const librariesSchemaGroup: Mutable<ICdmSchemaGroupEntry<CdmEntityType.Library>> = {
+                    parent: schemaEntry as ICdmSchemaEntry,
+                    id: uuid(),
+                    caption: "Libraries",
+                    type: CdmEntityType.SchemaGroup,
+                    state: createDataModelEntryState(),
+                    subType: CdmEntityType.Library,
+                    members: [],
+                    connection: schemaEntry.connection!,
+                    getChildren: () => { return []; },
+                };
+
+                librariesSchemaGroup.refresh = () => {
+                    return this.updateLibrariesSchemaGroup(
+                        librariesSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.Library>,
+                    );
+                };
+                librariesSchemaGroup.getChildren = () => { return librariesSchemaGroup.members; };
+
+                schemaEntry.libraries = librariesSchemaGroup as ICdmSchemaGroupEntry<CdmEntityType.Library>;
+
                 schemaEntry.getChildren = () => {
                     return [
                         schemaEntry.tables!,
                         schemaEntry.views!,
                         schemaEntry.procedures!,
                         schemaEntry.functions!,
+                        schemaEntry.libraries!,
                         schemaEntry.events!,
                     ];
                 };
@@ -1955,6 +1997,64 @@ export class ConnectionDataModel implements ICdmAccessManager {
         } catch (reason) {
             const message = convertErrorToString(reason);
             void ui.showErrorMessage(`Cannot load functions for schema ${group.parent.caption}: ${message}`, {});
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private async updateLibrariesSchemaGroup(
+        group: DeepMutable<ICdmSchemaGroupEntry<CdmEntityType.Library>>): Promise<boolean> {
+        group.state.initialized = true;
+
+        const actions: ConnectionDMActionList = [];
+        try {
+            const schema = group.parent.caption;
+            const libraries = await group.connection.backend
+                .getLibrariesMetadata(schema);
+
+            // Remove entries no longer in the function list.
+            const libraryNames = libraries.map((e) => { return e.name; });
+            const removedLibraries = group.members.filter((e) => {
+                return !libraryNames.includes(e.caption);
+            });
+
+            for (const lib of removedLibraries) {
+                actions.push({ action: "remove", entry: lib as ConnectionDataModelEntry });
+            }
+
+            // Create a new function entries list from the function names in their order. Take over existing
+            // function entries.
+            const newLibraryEntries: ICdmLibraryEntry[] = [];
+            for (const lib of libraries) {
+                const existing = group.members.find((e) => { return e.caption === lib.name; });
+                if (existing) {
+                    newLibraryEntries.push(existing as ICdmLibraryEntry);
+
+                    continue;
+                }
+
+                const libraryEntry: DeepMutable<ICdmLibraryEntry> = {
+                    parent: group,
+                    type: CdmEntityType.Library,
+                    id: uuid(),
+                    state: createDataModelEntryState(true, true),
+                    caption: lib.name,
+                    schema,
+                    connection: group.parent.parent,
+                    language: lib.language,
+                };
+
+                newLibraryEntries.push(libraryEntry as ICdmLibraryEntry);
+            }
+
+            group.members = newLibraryEntries;
+
+            this.notifySubscribers(actions);
+        } catch (reason) {
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Cannot load libraries for schema ${group.parent.caption}: ${message}`, {});
 
             return false;
         }

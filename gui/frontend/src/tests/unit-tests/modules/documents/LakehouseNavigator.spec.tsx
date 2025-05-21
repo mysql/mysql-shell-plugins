@@ -2151,7 +2151,7 @@ describe("LakehouseNavigator tests", () => {
         it("should return false for non-matching resourceId", async () => {
             const result = await instance["selectFile"]({
                 resourceId: "wrongId",
-                path: [],
+                file: [],
             });
 
             expect(result).toBe(false);
@@ -2162,7 +2162,7 @@ describe("LakehouseNavigator tests", () => {
 
             const result = await instance["selectFile"]({
                 resourceId: "lakehouseFileUpload",
-                path: ["file://path/to/file.txt"],
+                file: [{path: "file://path/to/file.txt", content: new ArrayBuffer()}],
             });
 
             expect(result).toBe(true);
@@ -2174,9 +2174,9 @@ describe("LakehouseNavigator tests", () => {
         it("should handle multiple file paths", async () => {
             const result = await instance["selectFile"]({
                 resourceId: "lakehouseFileUpload",
-                path: [
-                    "file://path/to/file1.txt",
-                    "file://path/to/file2.txt",
+                file: [
+                    {path: "file://path/to/file1.txt", content: new ArrayBuffer()},
+                    {path: "file://path/to/file2.txt", content: new ArrayBuffer()},
                 ],
             });
 
@@ -2190,9 +2190,9 @@ describe("LakehouseNavigator tests", () => {
         it("should handle paths without file:// prefix", async () => {
             const result = await instance["selectFile"]({
                 resourceId: "lakehouseFileUpload",
-                path: [
-                    "path/to/file1.txt",
-                    "file://path/to/file2.txt",
+                file: [
+                    {path: "path/to/file1.txt", content: new ArrayBuffer()},
+                    {path: "file://path/to/file2.txt", content: new ArrayBuffer()},
                 ],
             });
 
@@ -2206,8 +2206,8 @@ describe("LakehouseNavigator tests", () => {
         it("should handle URI encoded paths", async () => {
             const result = await instance["selectFile"]({
                 resourceId: "lakehouseFileUpload",
-                path: [
-                    "file://path/to/file%20with%20spaces.txt",
+                file: [
+                    { path: "file://path/to/file%20with%20spaces.txt", content: new ArrayBuffer() },
                 ],
             });
 
@@ -2222,7 +2222,7 @@ describe("LakehouseNavigator tests", () => {
 
             const result = await instance["selectFile"]({
                 resourceId: "lakehouseFileUpload",
-                path: [],
+                file: [],
             });
 
             expect(result).toBe(true);

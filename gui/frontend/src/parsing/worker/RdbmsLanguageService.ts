@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -37,8 +37,8 @@ import {
 import {
     CharsetSymbol, SystemVariableSymbol, SystemFunctionSymbol, CollationSymbol, ColumnSymbol, EngineSymbol, EventSymbol,
     IndexSymbol, LabelSymbol, LogfileGroupSymbol, PluginSymbol, SchemaSymbol, StoredFunctionSymbol, ViewSymbol,
-    StoredProcedureSymbol, TablespaceSymbol, TableSymbol, TriggerSymbol, UdfSymbol, UserSymbol, UserVariableSymbol,
-    DBSymbolTable,
+    StoredProcedureSymbol, LibrarySymbol, TablespaceSymbol, TableSymbol, TriggerSymbol, UdfSymbol, UserSymbol,
+    UserVariableSymbol, DBSymbolTable,
 } from "../DBSymbolTable.js";
 import { WorkerPool } from "../../supplement/WorkerPool.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
@@ -80,6 +80,7 @@ export class RdbmsLanguageService {
         [LanguageCompletionKind.Collation, "20."],
         [LanguageCompletionKind.SystemFunction, "21."],
         [LanguageCompletionKind.SystemVariable, "22."],
+        [LanguageCompletionKind.Library, "23."],
     ]);
 
     private readonly descriptionMap = new Map<LanguageCompletionKind, string>([
@@ -92,6 +93,7 @@ export class RdbmsLanguageService {
         [LanguageCompletionKind.Schema, "Schema"],
         [LanguageCompletionKind.Function, "Stored Function"],
         [LanguageCompletionKind.Procedure, "Stored Procedure"],
+        [LanguageCompletionKind.Library, "Library"],
         [LanguageCompletionKind.Udf, "User Defined Function"],
         [LanguageCompletionKind.Trigger, "Trigger"],
         [LanguageCompletionKind.Index, "Index"],
@@ -248,6 +250,7 @@ export class RdbmsLanguageService {
             switch (entry.kind) {
                 case LanguageCompletionKind.Procedure:
                 case LanguageCompletionKind.Function:
+                case LanguageCompletionKind.Library:
                 case LanguageCompletionKind.Udf:
                 case LanguageCompletionKind.Trigger:
                 case LanguageCompletionKind.Table:
@@ -563,6 +566,10 @@ export class RdbmsLanguageService {
 
             case LanguageCompletionKind.Function: {
                 return parent.getAllSymbols(StoredFunctionSymbol);
+            }
+
+            case LanguageCompletionKind.Library: {
+                return parent.getAllSymbols(LibrarySymbol);
             }
 
             case LanguageCompletionKind.Procedure: {

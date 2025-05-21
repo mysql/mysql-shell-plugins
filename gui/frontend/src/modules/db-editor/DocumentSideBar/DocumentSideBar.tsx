@@ -91,6 +91,7 @@ const cdmTypeToEntryIcon = new Map<CdmEntityType, string | Codicon>([
     [CdmEntityType.View, Assets.db.viewIcon],
     [CdmEntityType.StoredFunction, Assets.db.functionIcon],
     [CdmEntityType.StoredProcedure, Assets.db.procedureIcon],
+    [CdmEntityType.Library, Assets.db.libraryIcon],
     [CdmEntityType.Event, Assets.db.eventIcon],
     [CdmEntityType.Trigger, Assets.db.triggerIcon],
     [CdmEntityType.Column, Assets.db.columnNullableIcon],
@@ -121,6 +122,7 @@ const cdmSubTypeToDbObjectIcon: Map<CdmEntityType, string> = new Map([
     [CdmEntityType.View, Assets.db.viewsIcon],
     [CdmEntityType.StoredFunction, Assets.db.functionsIcon],
     [CdmEntityType.StoredProcedure, Assets.db.proceduresIcon],
+    [CdmEntityType.Library, Assets.db.librariesIcon],
     [CdmEntityType.Event, Assets.db.eventsIcon],
     [CdmEntityType.Trigger, Assets.db.triggersIcon],
     [CdmEntityType.Column, Assets.db.columnsIcon],
@@ -247,6 +249,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         [CdmEntityType.Event, createRef<Menu>()],
         [CdmEntityType.StoredProcedure, createRef<Menu>()],
         [CdmEntityType.StoredFunction, createRef<Menu>()],
+        [CdmEntityType.Library, createRef<Menu>()],
         [CdmEntityType.MrsRoot, createRef<Menu>()],
         [CdmEntityType.MrsService, createRef<Menu>()],
         [CdmEntityType.MrsSchema, createRef<Menu>()],
@@ -669,6 +672,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                         disabled />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Add Schema to REST Service...", command: "msg.mrs.addSchema" }} />
+                    <MenuItem command={{ title: "Create Library From...", command: "msg.createLibraryFrom" }} />
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Create Schema...", command: "msg.createSchema" }} disabled />
                     <MenuItem command={{ title: "Alter Schema...", command: "msg.alterSchema" }} disabled />
@@ -811,7 +815,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Create Procedure ...", command: "msg.createProcedure" }} disabled />
                     <MenuItem command={{ title: "Alter Procedure ...", command: "alterViewMenuItem" }} disabled />
-                    <MenuItem command={{ title: "Drop Procedure ...", command: "dropViewMenuItem" }} disabled />
+                    <MenuItem command={{ title: "Drop Procedure ...", command: "msg.dropRoutine" }} disabled />
                 </Menu >
 
                 <Menu
@@ -837,7 +841,33 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     <MenuItem command={{ title: "-", command: "" }} disabled />
                     <MenuItem command={{ title: "Create Function ...", command: "msg.createFunction" }} disabled />
                     <MenuItem command={{ title: "Alter Function ...", command: "msg.alterFunction" }} disabled />
-                    <MenuItem command={{ title: "Drop Function ...", command: "msg.dropFunction" }} disabled />
+                    <MenuItem command={{ title: "Drop Function ...", command: "msg.dropRoutine" }} disabled />
+                </Menu >
+
+                <Menu
+                    id="libraryContextMenu"
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.Library)}
+                    placement={ComponentPlacement.BottomLeft}
+                    onItemClick={this.handleConnectionTreeContextMenuItemClick}
+                >
+                    <MenuItem command={{ title: "Copy to Clipboard", command: "" }} >
+                        <MenuItem command={{ title: "Name", command: "msg.copyNameToClipboard" }} disabled />
+                        <MenuItem
+                            command={{ title: "Create Statement", command: "msg.copyCreateStatementToClipboard" }}
+                        />
+                    </MenuItem>
+                    <MenuItem command={{ title: "Send to SQL Editor", command: "" }} >
+                        <MenuItem command={{ title: "Name", command: "msg.copyNameToEditor" }} />
+                        <MenuItem command={{ title: "Create Statement", command: "msg.copyCreateStatementToEditor" }} />
+                    </MenuItem >
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    <MenuItem
+                        command={{ title: "Add Database Object to REST Service...", command: "msg.mrs.addDbObject" }}
+                    />
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    <MenuItem command={{ title: "Create Library ...", command: "msg.createLibraryJs" }} disabled />
+                    <MenuItem command={{ title: "Alter Library ...", command: "msg.alterLibrary" }} disabled />
+                    <MenuItem command={{ title: "Drop Library ...", command: "msg.dropLibrary" }} disabled />
                 </Menu >
 
                 <Menu
@@ -1573,6 +1603,11 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             }
 
             case CdmEntityType.StoredProcedure: {
+                // TODO: change icon from standard to the particular language.
+                break;
+            }
+
+            case CdmEntityType.Library: {
                 // TODO: change icon from standard to the particular language.
                 break;
             }
@@ -2466,6 +2501,17 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     break;
                 }
 
+
+                case "msg.createLibraryFrom": {
+                    void onConnectionTreeCommand?.(command, data.dataModelEntry).then((result) => {
+                        if (result.success) {
+                            void this.refreshConnectionTreeEntryChildren(data.dataModelEntry, true, true);
+                        }
+                    });
+
+                    break;
+                }
+
                 default: {
                     void onConnectionTreeCommand?.(command, data.dataModelEntry, data.qualifiedName);
                 }
@@ -3161,7 +3207,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     private async refreshConnectionParentEntry(item: IConnectionTreeItem, needRefresh: boolean): Promise<void> {
         if ("parent" in item.dataModelEntry) {
             // If the parent is the invisible root entry, we need to refresh the entire tree.
-            const parent = item.dataModelEntry.parent!;
+            const parent = item.dataModelEntry.parent;
             if (("folderPath" in parent) && parent.folderPath?.id === 1) {
                 await parent.refresh?.(); // Will trigger componentDidUpdate to refresh the root nodes.
             } else {

@@ -75,7 +75,9 @@ import {
 import { MrsHub } from "../mrs/MrsHub.js";
 import { ExecutionWorkerPool } from "./execution/ExecutionWorkerPool.js";
 
-import { type ISqlUpdateResult, type Mutable } from "../../app-logic/general-types.js";
+import {
+    DialogResponseClosure, IDialogRequest, type ISqlUpdateResult, type Mutable,
+} from "../../app-logic/general-types.js";
 import { Container, Orientation } from "../../components/ui/Container/Container.js";
 import { SplitContainer, type ISplitterPane } from "../../components/ui/SplitContainer/SplitContainer.js";
 import scriptingRuntime from "./assets/typings/scripting-runtime.d.ts?raw";
@@ -100,6 +102,7 @@ import {
 } from "../../data-models/OpenDocumentDataModel.js";
 
 import type { IChatOptionsState } from "../../components/Chat/ChatOptions.js";
+import { CreateLibraryDialog } from "../../components/Dialogs/CreateLibraryDialog.js";
 import { DropdownItem } from "../../components/ui/Dropdown/DropdownItem.js";
 import { ShellTaskDataModel } from "../../data-models/ShellTaskDataModel.js";
 import { parseVersion } from "../../parsing/mysql/mysql-helpers.js";
@@ -212,6 +215,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private actionMenuRef = createRef<Menu>();
     private mrsHubRef = createRef<MrsHub>();
     private currentTabRef = createRef<ConnectionTab>();
+    private createLibraryDialogRef = createRef<CreateLibraryDialog>();
 
     private documentDataModel: OpenDocumentDataModel;
     private ociDataModel: OciDataModel;
@@ -249,7 +253,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             this.setState({ loading: false });
         });
 
-        this.sidebarCommandHandler = new SidebarCommandHandler(this.connectionsDataModel, this.mrsHubRef);
+        this.sidebarCommandHandler = new SidebarCommandHandler(
+            this.connectionsDataModel, this.mrsHubRef, this.createLibraryDialogRef);
 
         this.state = {
             selectedPage: "",
@@ -311,6 +316,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         requisitions.register("showMrsUserDialog", this.showMrsUserDialog);
         requisitions.register("showMrsSdkExportDialog", this.showMrsSdkExportDialog);
         requisitions.register("showMrsConfigurationDialog", this.showMrsConfigurationDialog);
+        requisitions.register("showCreateLibraryDialog", this.showCreateLibraryDialog);
 
         requisitions.register("openSession", this.openSession);
         requisitions.register("socketStateChanged", this.connectionStateChanged);
@@ -368,6 +374,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         requisitions.unregister("showMrsUserDialog", this.showMrsUserDialog);
         requisitions.unregister("showMrsSdkExportDialog", this.showMrsSdkExportDialog);
         requisitions.unregister("showMrsConfigurationDialog", this.showMrsConfigurationDialog);
+        requisitions.unregister("showCreateLibraryDialog", this.showCreateLibraryDialog);
 
         requisitions.unregister("openSession", this.openSession);
         requisitions.unregister("socketStateChanged", this.connectionStateChanged);
@@ -723,6 +730,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 </Menu>
             }
             <MrsHub ref={this.mrsHubRef} />
+            <CreateLibraryDialog ref={this.createLibraryDialogRef} />
         </>;
 
         const selectedTab = connectionTabs.find((entry) => { return entry.dataModelEntry.id === selectedPage; });
@@ -1181,6 +1189,99 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
         return false;
     };
+
+    private showCreateLibraryDialog = async (request: IDialogRequest): Promise<boolean> => {
+        if (this.createLibraryDialogRef.current) {
+            try {
+                const { selectedPage, connectionTabs } = this.state;
+                const tab = connectionTabs.find((entry) => { return entry.dataModelEntry.id === selectedPage; });
+                if (!tab) {
+                    void ui.showErrorMessage(`Library cannot be created: no tab`, {});
+
+                    return false;
+                }
+
+                const element = document.activeElement;
+                const response = await this.createLibraryDialogRef.current.show(request);
+                if (element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement) {
+                    element.focus();
+                }
+                // handle response
+                if (!response ) {
+                    await ui.showInformationMessage("Library could NOT be created!", {});
+
+                    return true;
+                }
+                if (response === DialogResponseClosure.Cancel) {
+                    return true;
+                }
+                const data = response as IDictionary;
+                const schemaName = data.schemaName as string;
+                const libraryName = data.libraryName as string;
+                const language = data.language as string;
+                const comment = data.comment as string;
+                const body = data.body as string;
+                const statusBarItem = ui.createStatusBarItem();
+                statusBarItem.text = `$(loading~spin) Creating Library ${libraryName} in the DB...`;
+                const created = await this.createLibraryInDb(
+                    tab?.connection.backend, schemaName, libraryName, language, comment, body);
+                if (!created) {
+                    statusBarItem.dispose();
+
+                    return false;
+                }
+                statusBarItem.dispose();
+                await ui.showInformationMessage(
+                    `${language} library ${schemaName}.${libraryName} succesfully created!`, {});
+                await tab?.connection.refresh?.();
+
+                return true;
+            } catch (error) {
+                const message = convertErrorToString(error);
+                void ui.showErrorMessage(`Error while adding the object: ${message}.`, {});
+
+                return false;
+            }
+        }
+
+        return false;
+    };
+
+    private async createLibraryInDb(backend: ShellInterfaceSqlEditor | undefined, schemaName: string,
+        libraryName: string, language: string, comment: string, body: string): Promise<boolean> {
+        if (!backend) { return false; }
+        let commentPart = "";
+        if (comment.length > 0) {
+            commentPart = `COMMENT "${comment}"\n`;
+        }
+        let mleCounter = 1;
+        let currentQuote;
+        while (true) {
+            currentQuote = `$${"mle".repeat(mleCounter)}$`;
+            if (!body.includes(currentQuote)) { break; }
+            mleCounter++;
+        }
+        if (language.toUpperCase() === "WEBASSEMBLY") {
+            language = "WASM";
+        }
+        let completeBody = `CREATE LIBRARY \`${schemaName}\`.\`${libraryName}\`\n`;
+        completeBody += `${commentPart}LANGUAGE ${language} AS ${currentQuote}\n${body}\n${currentQuote};`;
+        if (!backend?.hasSession) {
+            void ui.showErrorMessage(`Library cannot be created on the server because NO open session`, {});
+
+            return false;
+        }
+        try {
+            const status = await backend?.execute(completeBody);
+        } catch (reason) {
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Error while creating library: ${message}`, {});
+
+            return false;
+        }
+
+        return true;
+    }
 
     private openSession = async (details: IShellSessionDetails): Promise<boolean> => {
         const canClose = this.currentTabRef.current ? (await this.currentTabRef.current.canClose()) : true;

@@ -1808,7 +1808,8 @@ describe("DATABASE CONNECTIONS", () => {
                 constants.wait1second * 5, "confirm dialog was not found");
 
             await dialog.findElement(locator.confirmDialog.accept).click();
-            expect(await dbConnectionOverview.existsConnection(connectionToRemove.caption)).to.be.false;
+            await driver.wait(dbConnectionOverview.untilConnectionDoesNotExist(connectionToRemove.caption),
+                constants.wait1second * 5);
 
         });
 

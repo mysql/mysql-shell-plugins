@@ -27,7 +27,7 @@ import { BaseSymbol, SymbolTable } from "antlr4-c3";
 
 import {
     CharsetSymbol, CollationSymbol, ColumnSymbol, EngineSymbol, EventSymbol, ForeignKeySymbol, IndexSymbol,
-    PluginSymbol, PrimaryKeySymbol, SchemaSymbol, StoredFunctionSymbol,
+    PluginSymbol, PrimaryKeySymbol, SchemaSymbol, StoredFunctionSymbol, LibrarySymbol,
     StoredProcedureSymbol, SystemFunctionSymbol, SystemVariableSymbol, TableSymbol, TablespaceSymbol, TriggerSymbol,
     UdfSymbol, UserSymbol, UserVariableSymbol, ViewSymbol,
 } from "../../../parsing/DBSymbolTable.js";
@@ -99,6 +99,10 @@ class MockShellInterfaceDb extends ShellInterfaceDb {
                 } else {
                     return ["udf1", "udf2"];
                 }
+            }
+
+            case "Library": {
+                return ["library1", "library2"];
             }
 
             case "View": {
@@ -189,6 +193,7 @@ describe("DynamicSymbolTable Tests", () => {
         await testSymbols(false, TableSymbol, ["table1", "table2"]);
         await testSymbols(false, StoredProcedureSymbol, ["procedure1", "procedure2"]);
         await testSymbols(false, StoredFunctionSymbol, ["function1", "function2"]);
+        await testSymbols(false, LibrarySymbol, ["library1", "library2"]);
         await testSymbols(false, UdfSymbol, ["udf1", "udf2"]);
         await testSymbols(false, ViewSymbol, ["view1", "view2"]);
         await testSymbols(false, TriggerSymbol, ["trigger1", "trigger2"]);

@@ -422,6 +422,9 @@ class DbSession(threading.Thread):
     def get_routines_metadata(self, schema_name):  # pragma: no cover
         raise NotImplementedError()
 
+    def get_libraries_metadata(self, schema_name):  # pragma: no cover
+        raise NotImplementedError()
+
     def run(self):
         threading.current_thread().name = f'sql-{self._id}'
 

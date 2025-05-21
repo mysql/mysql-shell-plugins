@@ -14356,6 +14356,14 @@
                 "reserved": false
             },
             {
+                "word": "LIBRARY",
+                "reserved": true
+            },
+            {
+                "word": "LIBRARIES",
+                "reserved": true
+            },
+            {
                 "word": "LIKE",
                 "reserved": true
             },

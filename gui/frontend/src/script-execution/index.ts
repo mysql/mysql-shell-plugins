@@ -49,6 +49,7 @@ export const mapCompletionKind: Map<LanguageCompletionKind, languages.Completion
     [LanguageCompletionKind.SystemFunction, languages.CompletionItemKind.Function],
     [LanguageCompletionKind.Function, languages.CompletionItemKind.Function],
     [LanguageCompletionKind.Procedure, languages.CompletionItemKind.Function],
+    [LanguageCompletionKind.Library, languages.CompletionItemKind.Function],
     [LanguageCompletionKind.Udf, languages.CompletionItemKind.Function],
     [LanguageCompletionKind.Engine, languages.CompletionItemKind.File],
     [LanguageCompletionKind.Tablespace, languages.CompletionItemKind.File],

@@ -3147,9 +3147,10 @@ export class LakehouseNavigator extends ComponentBase<ILakehouseNavigatorPropert
 
         // Only called in single user mode, from a native wrapper or VS Code.
         const newFilesForUpload = filesForUpload ?? [];
-        openFileResult.path.forEach((value) => {
+        openFileResult.file.forEach((value) => {
             newFilesForUpload.push({
-                filePath: decodeURI(value.startsWith("file://") ? value.substring("file://".length) : value),
+                filePath: decodeURI(
+                    value.path.startsWith("file://") ? value.path.substring("file://".length) : value.path),
                 uploadComplete: false,
             });
         });

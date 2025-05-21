@@ -27,13 +27,15 @@ import type { RefObject } from "preact";
 
 import { DialogHost } from "../../app-logic/DialogHost.js";
 import { ui } from "../../app-logic/UILayer.js";
-import { DialogResponseClosure, DialogType, type IDialogRequest } from "../../app-logic/general-types.js";
+import { DialogResponseClosure, DialogType, LibraryDialogType,
+    type IDialogRequest } from "../../app-logic/general-types.js";
 import type { IMrsDbObjectData } from "../../communication/ProtocolMrs.js";
 import {
     CdmEntityType, cdmDbEntityTypes, type ConnectionDataModel, type ConnectionDataModelEntry,
     type ICdmConnectionEntry, type ICdmConnectionGroupEntry, type ICdmRestAuthAppEntry,
     type ICdmRestDbObjectEntry, type ICdmRestSchemaEntry, type ICdmRestServiceAuthAppEntry, type ICdmRestServiceEntry,
-    type ICdmRestUserEntry, type ICdmRoutineEntry, type ICdmSchemaEntry, type ICdmTableEntry, type ICdmViewEntry,
+    type ICdmRestUserEntry, type ICdmRoutineEntry, type ICdmLibraryEntry, type ICdmSchemaEntry, type ICdmTableEntry,
+    type ICdmViewEntry,
 } from "../../data-models/ConnectionDataModel.js";
 import type {
     IOciDmBastion, IOciDmCompartment, IOciDmDbSystem, IOciDmProfile, OciDataModelEntry,
@@ -53,6 +55,8 @@ import type { MrsHub } from "../mrs/MrsHub.js";
 import { getRouterPortForConnection } from "../mrs/mrs-helpers.js";
 import { MrsDbObjectType } from "../mrs/types.js";
 import type { ISideBarCommandResult, QualifiedName } from "./index.js";
+import { CreateLibraryDialog } from "../../components/Dialogs/CreateLibraryDialog.js";
+
 
 /** Centralized handling of commands send from the DB editor sidebar to the DB editor module. */
 export class SidebarCommandHandler {
@@ -61,9 +65,11 @@ export class SidebarCommandHandler {
         [CdmEntityType.View, MrsDbObjectType.View],
         [CdmEntityType.StoredFunction, MrsDbObjectType.Function],
         [CdmEntityType.StoredProcedure, MrsDbObjectType.Procedure],
+        [CdmEntityType.Library, MrsDbObjectType.Library],
     ]);
 
-    public constructor(private connectionDataModel: ConnectionDataModel, private mrsHubRef: RefObject<MrsHub>) { }
+    public constructor(private connectionDataModel: ConnectionDataModel, private mrsHubRef: RefObject<MrsHub>,
+        private createLibraryDialogRef: RefObject<CreateLibraryDialog>) { }
 
     /**
      * Handles a single connection tree command for the DB editor module. Only commands that are not handled by the
@@ -717,6 +723,12 @@ export class SidebarCommandHandler {
                                     break;
                                 }
 
+                                case CdmEntityType.Library: {
+                                    index = 2;
+                                    type = "library";
+                                    break;
+                                }
+
                                 case CdmEntityType.Trigger: {
                                     type = "trigger";
                                     break;
@@ -787,6 +799,65 @@ export class SidebarCommandHandler {
                             }
 
                             break;
+                        }
+
+                         case "msg.createLibraryFrom": {
+                            if (this.createLibraryDialogRef.current) {
+                                const statusBarItem = ui.createStatusBarItem();
+                                try {
+                                    statusBarItem.text = "$(loading~spin) Creating Library...";
+                                    const request = {
+                                        type: LibraryDialogType.CreateLibraryFrom,
+                                        id: "createLibraryDialog",
+                                        parameters: {},
+                                        values: { schemaName: entry.caption },
+                                    };
+                                    const element = document.activeElement;
+                                    const response = await this.createLibraryDialogRef.current.show(request);
+                                    if (element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement) {
+                                        element.focus();
+                                    }
+
+                                    // handle response
+                                    if (!response) {
+                                        await ui.showInformationMessage("Library could NOT be created!", {});
+                                        statusBarItem.dispose();
+
+                                        return { success: false };
+                                    }
+
+                                    if (response === DialogResponseClosure.Cancel){
+                                        statusBarItem.dispose();
+
+                                        return { success: true };
+                                    }
+                                    const data = response as IDictionary;
+                                    const schemaName = data.schemaName as string;
+                                    const libraryName = data.libraryName as string;
+                                    const language = data.language as string;
+                                    statusBarItem.text = `$(loading~spin) Creating Library ${libraryName} in the DB...`;
+                                    const created = await this.createLibraryInDb(
+                                        connection.backend, schemaName, libraryName, language,
+                                        data.comment as string, data.body as string,
+                                    );
+                                    if (!created) {
+                                        statusBarItem.dispose();
+
+                                        return { success: false };
+                                    }
+                                    statusBarItem.dispose();
+                                    await ui.showInformationMessage(
+                                        `${language} library ${schemaName}.${libraryName} succesfully created.`, {});
+
+                                    return { success: true };
+                                } catch (error) {
+                                    const message = convertErrorToString(error);
+                                    statusBarItem.dispose();
+                                    void ui.showErrorMessage(`Error while adding the object: ${message}.`, {});
+
+                                    return { success: false };
+                                }
+                            }
                         }
 
                         case "refreshMenuItem": {
@@ -1130,7 +1201,7 @@ export class SidebarCommandHandler {
     }
 
     private async createNewDbObject(
-        entry: ICdmTableEntry | ICdmViewEntry | ICdmRoutineEntry): Promise<IMrsDbObjectData> {
+        entry: ICdmTableEntry | ICdmViewEntry | ICdmRoutineEntry | ICdmLibraryEntry): Promise<IMrsDbObjectData> {
 
         const dbObject: IMrsDbObjectData = {
             comments: "",
@@ -1291,5 +1362,43 @@ export class SidebarCommandHandler {
         }
 
         return false;
+    }
+    /**
+     * Creates a new LIBRARY object in the databse
+     *
+     * @param backend backend to use to connecto to the DB
+     * @param schemaName schema name of the new library
+     * @param libraryName name of the new library
+     * @param language language of the new library
+     * @param comment optional comment of the new library
+     * @param body defintion of the new library
+     * @returns A promise which resolves to true if the operation was successful.
+     */
+    private async createLibraryInDb(backend: ShellInterfaceSqlEditor, schemaName: string, libraryName: string,
+        language: string, comment: string, body: string): Promise<boolean> {
+        let commentPart = "";
+        if (comment.length > 0) {
+            commentPart = `COMMENT "${comment}"\n`;
+        }
+        let mleCounter = 1;
+        let currentQuote;
+        while (true) {
+            currentQuote = `$${"mle".repeat(mleCounter)}$`;
+            if (!body.includes(currentQuote)) {break;}
+            mleCounter++;
+        }
+        if (language.toUpperCase() === "WEBASSEMBLY") {
+            language = "WASM";
+        }
+        let completeBody = `CREATE LIBRARY \`${schemaName}\`.\`${libraryName}\`\n${commentPart}`;
+        completeBody += `LANGUAGE ${language} AS ${currentQuote}\n${body}\n${currentQuote};`;
+        const status = await backend.execute(completeBody);
+        if (!status) {
+            void ui.showErrorMessage(`Library cannot be created on the server! SidebarCommandHandler`, {});
+
+            return false;
+        }
+
+        return true;
     }
 }

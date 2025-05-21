@@ -533,12 +533,28 @@
                 "title": "Create Stored JavaScript Function..."
             },
             {
+                "command": "msg.createLibraryJs",
+                "title": "Create JavaScript Library..."
+            },
+            {
+                "command": "msg.createLibraryFrom",
+                "title": "Create Library From..."
+            },
+            {
                 "command": "msg.editRoutine",
                 "title": "Edit Stored Routine..."
             },
             {
+                "command": "msg.editLibrary",
+                "title": "Edit Library..."
+            },
+            {
                 "command": "msg.dropRoutine",
                 "title": "Drop Stored Routine..."
+            },
+            {
+                "command": "msg.dropLibrary",
+                "title": "Drop Library..."
             },
             {
                 "command": "msg.createTrigger",
@@ -1233,22 +1249,22 @@
             "msg.copyToClipboard": [
                 {
                     "command": "msg.copyNameToClipboard",
-                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Routine)?Item.*/",
+                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Routine|Library)?Item.*/",
                     "group": "1_msg@1"
                 },
                 {
                     "command": "msg.copyCreateScriptToClipboard",
-                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Routine)?Item.*/",
+                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Routine|Library)?Item.*/",
                     "group": "1_msg@2"
                 },
                 {
                     "command": "msg.copyCreateScriptWithDelimitersToClipboard",
-                    "when": "view == msg.connections && viewItem =~ /^schemaRoutineItem.*/",
+                    "when": "view == msg.connections && viewItem =~ /^schema(Routine|Library)?Item.*/",
                     "group": "1_msg@3"
                 },
                 {
                     "command": "msg.copyDropCreateScriptWithDelimitersToClipboard",
-                    "when": "view == msg.connections && viewItem =~ /^schemaRoutineItem.*/",
+                    "when": "view == msg.connections && viewItem =~ /^schema(Routine|Library)?Item.*/",
                     "group": "1_msg@4"
                 },
                 {
@@ -1541,7 +1557,7 @@
                 },
                 {
                     "submenu": "msg.copyToClipboard",
-                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Routine)?Item.*/ || viewItem =~ /^mrs(Service|Schema|DbObject|ContentSet|ContentFile|User|AuthApp).*/",
+                    "when": "view == msg.connections && viewItem =~ /^schema(Table|View|Routine|Library)?Item.*/ || viewItem =~ /^mrs(Service|Schema|DbObject|ContentSet|ContentFile|User|AuthApp).*/",
                     "group": "2_msg@5"
                 },
                 {
@@ -1568,6 +1584,16 @@
                     "command": "msg.createFunctionJs",
                     "when": "view == msg.connections && viewItem == FunctionsGroupItem && !showsModalDialog",
                     "group": "6_msg@1"
+                },
+                {
+                    "command": "msg.createLibraryJs",
+                    "when": "view == msg.connections && viewItem == LibrariesGroupItem && !showsModalDialog",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.createLibraryFrom",
+                    "when": "view == msg.connections && viewItem == LibrariesGroupItem && !showsModalDialog",
+                    "group": "4_msg@2"
                 },
                 {
                     "command": "msg.createProcedureJs",
@@ -1597,6 +1623,16 @@
                 {
                     "command": "msg.dropRoutine",
                     "when": "view == msg.connections && viewItem =~ /^schemaRoutineItem.*/",
+                    "group": "9_msg@2"
+                },
+                {
+                    "command": "msg.editLibrary",
+                    "when": "view == msg.connections && viewItem =~ /^schemaLibraryItem.*/",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.dropLibrary",
+                    "when": "view == msg.connections && viewItem =~ /^schemaLibraryItem.*/",
                     "group": "9_msg@2"
                 },
                 {

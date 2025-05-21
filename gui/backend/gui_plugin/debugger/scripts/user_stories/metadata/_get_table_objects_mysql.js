@@ -1,7 +1,7 @@
-responses = ws.tokens['responses']
-ws.tokens["profile_id"] = 1
-ws.tokens["db_type"] = "MySQL"
-ws.tokens["folder_path"] = "tests"
+responses = ws.tokens['responses'];
+ws.tokens["profile_id"] = 1;
+ws.tokens["db_type"] = "MySQL";
+ws.tokens["folder_path"] = "tests";
 ws.tokens["types"] = [{ "name": "Schema", "type": "CATALOG_OBJECT" },
 { "name": "User Variable", "type": "CATALOG_OBJECT" },
 { "name": "User", "type": "CATALOG_OBJECT" },
@@ -11,12 +11,13 @@ ws.tokens["types"] = [{ "name": "Schema", "type": "CATALOG_OBJECT" },
 { "name": "Table", "type": "SCHEMA_OBJECT" },
 { "name": "View", "type": "SCHEMA_OBJECT" },
 { "name": "Routine", "type": "SCHEMA_OBJECT" },
+{ "name": "Library", "type": "SCHEMA_OBJECT" },
 { "name": "Event", "type": "SCHEMA_OBJECT" },
 { "name": "Trigger", "type": "TABLE_OBJECT" },
 { "name": "Foreign Key", "type": "TABLE_OBJECT" },
 { "name": "Primary Key", "type": "TABLE_OBJECT" },
 { "name": "Index", "type": "TABLE_OBJECT" },
-{ "name": "Column", "type": "TABLE_OBJECT" }]
+{ "name": "Column", "type": "TABLE_OBJECT" }];
 
 // We're assuming that schema `test_user_story` exists and contains all object listed in script below:
 // CREATE DATABASE  IF NOT EXISTS `test_user_story`;
@@ -61,11 +62,11 @@ ws.tokens["types"] = [{ "name": "Schema", "type": "CATALOG_OBJECT" },
 // RETURN 1;
 // END$$
 // DELIMITER ;
-ws.tokens["schema"] = "test_user_story"
+ws.tokens["schema"] = "test_user_story";
 
-ws.log("Executing mysql metadata tests")
+ws.log("Executing mysql metadata tests");
 
-ws.log("Getting object types")
+ws.log("Getting object types");
 await ws.sendAndValidate({
     "request": "execute",
     "request_id": ws.generateRequestId(),
@@ -94,7 +95,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -124,7 +125,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -154,7 +155,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -184,7 +185,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -214,7 +215,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-], 0))
+], 0));
 
 
 await ws.sendAndValidate({
@@ -245,7 +246,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -275,7 +276,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -305,7 +306,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-], 0))
+], 0));
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -336,7 +337,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-], 0))
+], 0));
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -360,7 +361,7 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId,
     }
-], 0))
+], 0));
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -391,7 +392,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-], 0))
+], 0));
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -422,7 +423,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-], 0))
+], 0));
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -453,7 +454,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-], 0))
+], 0));
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -484,7 +485,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-], 0))
+], 0));
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -493,13 +494,13 @@ await ws.sendAndValidate({
     "args": {
         "module_session_id": ws.lastModuleSessionId,
         "names": [{
-          "schema": ws.tokens["schema"],
-          "table": 'categories',
-          "column": 'categoryName'
+            "schema": ws.tokens["schema"],
+            "table": 'categories',
+            "column": 'categoryName'
         }, {
-          "schema": ws.tokens["schema"],
-          "table": 'products',
-          "column": 'productName'
+            "schema": ws.tokens["schema"],
+            "table": 'products',
+            "column": 'productName'
         }]
     }
 }, ws.matchList([
@@ -511,8 +512,8 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId,
         "result": [
-            { "schema": ws.tokens["schema"], "table": "categories", "name": "categoryName", "type": "varchar(100)", "not_null": true, "is_pk": false, "auto_increment": false},
-            { "schema": ws.tokens["schema"], "table": "products", "name": "productName", "type": "varchar(100)", "not_null": true, "is_pk": false, "auto_increment": false}
+            { "schema": ws.tokens["schema"], "table": "categories", "name": "categoryName", "type": "varchar(100)", "not_null": true, "is_pk": false, "auto_increment": false },
+            { "schema": ws.tokens["schema"], "table": "products", "name": "productName", "type": "varchar(100)", "not_null": true, "is_pk": false, "auto_increment": false }
         ]
     },
     {
@@ -523,7 +524,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-], 0))
+], 0));
 
 await ws.sendAndValidate({
     "request": "execute",

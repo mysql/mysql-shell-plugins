@@ -45,6 +45,8 @@ import procedureIcon from "../assets/images/schemaProcedure.svg";
 import proceduresIcon from "../assets/images/schemaProcedures.svg";
 import functionIcon from "../assets/images/schemaFunction.svg";
 import functionsIcon from "../assets/images/schemaFunctions.svg";
+import libraryIcon from "../assets/images/schemaLibrary.svg";
+import librariesIcon from "../assets/images/schemaLibraries.svg";
 import procedureJsIcon from "../assets/images/schemaProcedureJs.svg";
 import functionJsIcon from "../assets/images/schemaFunctionJs.svg";
 
@@ -294,6 +296,8 @@ export class Assets {
         proceduresIcon,
         functionIcon,
         functionsIcon,
+        libraryIcon,
+        librariesIcon,
         procedureJsIcon,
         functionJsIcon,
         eventIcon,

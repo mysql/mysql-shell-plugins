@@ -164,6 +164,17 @@ export class DatabaseConnectionOverview {
     };
 
     /**
+     * Verifies if a Database connection does not exists on the DB Connection Overview
+     * @param dbConnection The database connection caption
+     * @returns A condition resolving to true if the connection does not exists, false otherwise
+     */
+    public untilConnectionDoesNotExist = (dbConnection: string): Condition<boolean> => {
+        return new Condition(`for ${dbConnection} to not exist`, async () => {
+            return !(await this.existsConnection(dbConnection));
+        });
+    };
+
+    /**
      * Opens a new notebook with (CMD|ALT)+click
      * @param dbConnectionCaption The DB Connection caption
      */
