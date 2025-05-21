@@ -108,6 +108,7 @@ exports[`Document module tests Test DocumentModule instantiation 1`] = `
               tabPosition="top"
             />
             <MrsHub />
+            <CreateLibraryDialog />
           </g>,
           "minSize": 500,
           "resizable": true,

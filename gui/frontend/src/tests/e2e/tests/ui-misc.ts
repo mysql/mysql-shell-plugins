@@ -567,6 +567,7 @@ describe("Single Server Mode", () => {
                 constants.copyToClipboard.exists,
                 constants.sendToSQLEditor.exists,
                 constants.addSchemaToRestService,
+                constants.createLibraryFrom,
             ]);
 
             expect(await dbTreeSection.getDatabaseConnections()).toStrictEqual([{

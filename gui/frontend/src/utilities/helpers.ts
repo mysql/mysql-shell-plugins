@@ -167,6 +167,17 @@ export const loadFileAsText = async (file: File): Promise<string> => {
     });
 };
 
+export const loadFileBinary = async (file: File): Promise<ArrayBuffer> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = () => {
+            resolve(reader.result as ArrayBuffer);
+        };
+        reader.readAsArrayBuffer(file);
+    });
+};
+
 /**
  * Ensures a value is within a given range.
  *

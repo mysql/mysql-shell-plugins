@@ -140,6 +140,8 @@ export enum ShellAPIGui {
     GuiDbReconnect = "gui.db.reconnect",
     /** Returns the schema objects of the given type in the given schema. */
     GuiDbGetRoutinesMetadata = "gui.db.get_routines_metadata",
+    /** Returns the schema objects of the given type in the given schema. */
+    GuiDbGetLibrariesMetadata = "gui.db.get_libraries_metadata",
     /** Creates a new Module Data record for the given module    and associates it to the active user profile and personal user group. */
     GuiModulesAddData = "gui.modules.add_data",
     /** Get list of data */
@@ -357,6 +359,7 @@ export interface IProtocolGuiParameters {
     [ShellAPIGui.GuiDbCloseSession]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbReconnect]: { args: { moduleSessionId: string; }; };
     [ShellAPIGui.GuiDbGetRoutinesMetadata]: { args: { moduleSessionId: string; schemaName: string; }; };
+    [ShellAPIGui.GuiDbGetLibrariesMetadata]: { args: { moduleSessionId: string; schemaName: string; }; };
     [ShellAPIGui.GuiModulesAddData]: { args: { caption: string; content: string; dataCategoryId: number; treeIdentifier: string; folderPath?: string; profileId?: number; }; };
     [ShellAPIGui.GuiModulesListData]: { args: { folderId: number; dataCategoryId?: number; }; };
     [ShellAPIGui.GuiModulesGetDataContent]: { args: { id: number; }; };
@@ -870,6 +873,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiInfo]: {};
     [ShellAPIGui.GuiVersion]: {};
     [ShellAPIGui.GuiDbGetRoutinesMetadata]: { result: IDBSchemaObjectEntry[]; };
+    [ShellAPIGui.GuiDbGetLibrariesMetadata]: { result: IDBSchemaObjectEntry[]; };
 }
 
 /**
@@ -880,6 +884,7 @@ export const multiResultAPIs = [
     ShellAPIGui.GuiCoreListFiles,
     ShellAPIGui.GuiDbGetSchemaObjectNames,
     ShellAPIGui.GuiDbGetRoutinesMetadata,
+    ShellAPIGui.GuiDbGetLibrariesMetadata,
     ShellAPIGui.GuiDbConnectionsListDbConnections,
     ShellAPIGui.GuiModulesGetProfileDataTree,
     ShellAPIGui.GuiShellComplete,

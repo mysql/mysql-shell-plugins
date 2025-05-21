@@ -203,6 +203,7 @@ export const configureInstanceForMySQLRestServiceSupport = "Configure Instance f
 // SCHEMA
 export const setAsCurrentDatabaseSchema = "Set As Current Database Schema";
 export const addSchemaToRestService = "Add Schema to REST Service...";
+export const createLibraryFrom = "Create Library From...";
 export const dropSchema = "Drop Schema...";
 
 // TABLE

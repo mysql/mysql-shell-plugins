@@ -441,6 +441,7 @@ export interface IProtocolGuiResults {
     [ShellAPIGui.GuiInfo]: {};
     [ShellAPIGui.GuiVersion]: {};
     [ShellAPIGui.GuiDbGetRoutinesMetadata]: { result: IDBSchemaObjectEntry[]; };
+    [ShellAPIGui.GuiDbGetLibrariesMetadata]: { result: IDBSchemaObjectEntry[]; };
 }
 
 /**
@@ -451,6 +452,7 @@ export const multiResultAPIs = [
     ShellAPIGui.GuiCoreListFiles,
     ShellAPIGui.GuiDbGetSchemaObjectNames,
     ShellAPIGui.GuiDbGetRoutinesMetadata,
+    ShellAPIGui.GuiDbGetLibrariesMetadata,
     ShellAPIGui.GuiDbConnectionsListDbConnections,
     ShellAPIGui.GuiModulesGetProfileDataTree,
     ShellAPIGui.GuiShellComplete,

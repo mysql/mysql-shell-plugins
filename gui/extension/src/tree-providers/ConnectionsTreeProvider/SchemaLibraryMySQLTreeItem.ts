@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,41 +23,12 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IMrsLoginResult } from "./sdk/MrsBaseClasses.js";
+import { SchemaLibraryTreeItem } from "./SchemaLibraryTreeItem.js";
 
-/**
- * Defines the payload structure for the IServicePasswordRequest
- */
-export interface IMrsAuthRequestPayload extends IMrsLoginResult {
-    /** The authentication path of the service */
-    authPath?: string;
+export class SchemaLibraryMySQLTreeItem extends SchemaLibraryTreeItem {
+    public override contextValue = "schemaLibraryItemMySQL";
 
-    /** The name of the authApp to use */
-    authApp?: string;
-
-    /** The id of the calling context. */
-    contextId?: string;
-
-    /** The login result. */
-    loginResult?: IMrsLoginResult;
-}
-
-export enum MrsSdkLanguage {
-    TypeScript = "TypeScript"
-}
-
-export enum MrsObjectKind {
-    Result = "RESULT",
-    Parameters = "PARAMETERS",
-}
-
-export enum MrsDbObjectType {
-    Table = "TABLE",
-    View = "VIEW",
-    Procedure = "PROCEDURE",
-    Function = "FUNCTION",
-    Library = "LIBRARY",
-    Script = "SCRIPT",
-
-    Event = "EVENT", // Not yet supported by the backend.
+    protected get iconName(): string {
+        return "schemaLibrary.svg";
+    }
 }

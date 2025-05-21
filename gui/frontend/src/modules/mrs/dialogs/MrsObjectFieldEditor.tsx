@@ -1118,6 +1118,9 @@ export class MrsObjectFieldEditor extends ValueEditCustom<
                 case MrsDbObjectType.Procedure:
                     dbObjIcon = Assets.db.procedureIcon;
                     break;
+                case MrsDbObjectType.Library:
+                    dbObjIcon = Assets.db.libraryIcon;
+                    break;
                 case MrsDbObjectType.Function:
                 case MrsDbObjectType.Script:
                     dbObjIcon = Assets.db.functionIcon;

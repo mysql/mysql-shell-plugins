@@ -52,6 +52,10 @@ export interface IFileSelectorProperties extends IComponentProperties {
     // Must represent a file system object. Other schemes are not supported.
     path: string;
 
+    // If true, actually read the file. In that case, its path cannot be
+    // specified manually, but the file must be selected from a separate dialog.
+    doRead?: boolean;
+
     // Text to show in the input, if nothing is selected yet.
     placeholder?: string;
 
@@ -86,7 +90,7 @@ export interface IFileSelectorProperties extends IComponentProperties {
     content?: IFileSelectorEntry[];
 
     // Triggered for any change in the file/path edit
-    onChange?: (newValues: string[], props: IFileSelectorProperties) => void;
+    onChange?: (newValues: File[], props: IFileSelectorProperties) => void;
     onConfirm?: (e: KeyboardEvent, props: IFileSelectorProperties) => void;
     onCancel?: (e: KeyboardEvent, props: IFileSelectorProperties) => void;
 }
@@ -121,7 +125,7 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
     }
 
     public render(): ComponentChild {
-        const { path, placeholder, id, canSelectFolders } = this.props;
+        const { path, placeholder, id, canSelectFolders, doRead } = this.props;
 
         const className = this.getEffectiveClassNames(["fileSelector"]);
 
@@ -138,6 +142,7 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
                     onChange={this.handleInputChange}
                     onConfirm={this.handleInputConfirm}
                     onCancel={this.handleInputCancel}
+                    readOnly={doRead === true} // disable input field when actual File reading is necessary
                 />
                 {(!canSelectFolders || appParameters.embedded) && <Button
                     id={id && `${id}Btn`}
@@ -154,10 +159,11 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
         if (id !== openFileResult.resourceId) {
             return Promise.resolve(false);
         }
-
         // Only called in single user mode, from a native wrapper or VS Code.
-        const result = openFileResult.path.map((value) => {
-            return decodeURI(value.startsWith("file://") ? value.substring("file://".length) : value);
+        const result = openFileResult.file.map((value) => {
+            const uint8Array = new Uint8Array(value.content);
+
+            return new File([uint8Array], value.path);
         });
         onChange?.(result, this.props);
 
@@ -167,10 +173,11 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
     private handleButtonClick = (): void => {
         const {
             path, title, openLabel, canSelectFiles = true, canSelectFolders, filters, multiSelection = false, onChange,
-            id,
+            id, doRead,
         } = this.props;
 
         if (appParameters.embedded) {
+            // called when native file dialog is shown
             const options = {
                 id,
                 default: path,
@@ -181,8 +188,13 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
                 filters,
                 openLabel,
             };
-            requisitions.executeRemote("showOpenDialog", options);
+            if(doRead === true){
+                requisitions.executeRemote("showOpenDialogWithRead", options);
+            } else {
+                requisitions.executeRemote("showOpenDialog", options);
+            }
         } else {
+            // called if it's opening a browser file dialog
             const contentType: string[] = [];
             if (filters) {
                 Object.values(filters).forEach((extensions: string[]) => {
@@ -192,7 +204,7 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
 
             void selectFileInBrowser(contentType, multiSelection).then((result) => {
                 if (result) {
-                    onChange?.(result.map((value) => { return value.name; }), this.props);
+                    onChange?.(result, this.props);
                 } else {
                     onChange?.([], this.props);
                 }
@@ -202,8 +214,18 @@ export class FileSelector extends ComponentBase<IFileSelectorProperties> {
 
     private handleInputChange = (e: InputEvent, props: IInputChangeProperties): void => {
         const { onChange } = this.props;
-
-        onChange?.([props.value], this.props);
+        const inputElement = e.target as HTMLInputElement;
+        const files = inputElement.files;
+        if (files) {
+            onChange?.(Array.from(files), this.props);
+        } else {
+            // Create a File object from the input value
+            const filePath = inputElement.value;
+            // You can't directly create a File object from a file path due to security restrictions
+            // Instead, you can create a new File object with the given path, but this won't actually read the file
+            const file = new File([], filePath, { type: "application/octet-stream" });
+            onChange?.([file], this.props);
+        }
     };
 
     private handleInputConfirm = (e: KeyboardEvent): void => {

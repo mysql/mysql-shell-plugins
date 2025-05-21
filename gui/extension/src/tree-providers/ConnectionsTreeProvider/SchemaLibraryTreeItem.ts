@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,41 +23,25 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { IMrsLoginResult } from "./sdk/MrsBaseClasses.js";
+import { Command } from "vscode";
 
-/**
- * Defines the payload structure for the IServicePasswordRequest
- */
-export interface IMrsAuthRequestPayload extends IMrsLoginResult {
-    /** The authentication path of the service */
-    authPath?: string;
+import { ConnectionBaseTreeItem } from "./ConnectionBaseTreeItem.js";
+import { MrsDbObjectType } from "../../../../frontend/src/modules/mrs/types.js";
+import { CdmEntityType, type ICdmLibraryEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 
-    /** The name of the authApp to use */
-    authApp?: string;
+export class SchemaLibraryTreeItem extends ConnectionBaseTreeItem<ICdmLibraryEntry> {
+    public override contextValue = "schemaLibraryItem";
 
-    /** The id of the calling context. */
-    contextId?: string;
+    public constructor(dataModelEntry: ICdmLibraryEntry, command?: Command) {
+        super(dataModelEntry, "schemaLibrary.svg", true,
+            command);
+    }
 
-    /** The login result. */
-    loginResult?: IMrsLoginResult;
-}
+    public override get qualifiedName(): string {
+        return `\`${this.dataModelEntry.schema}\`.\`${this.dataModelEntry.caption}\``;
+    }
 
-export enum MrsSdkLanguage {
-    TypeScript = "TypeScript"
-}
-
-export enum MrsObjectKind {
-    Result = "RESULT",
-    Parameters = "PARAMETERS",
-}
-
-export enum MrsDbObjectType {
-    Table = "TABLE",
-    View = "VIEW",
-    Procedure = "PROCEDURE",
-    Function = "FUNCTION",
-    Library = "LIBRARY",
-    Script = "SCRIPT",
-
-    Event = "EVENT", // Not yet supported by the backend.
+    public override get dbType(): MrsDbObjectType {
+        return MrsDbObjectType.Library;
+    }
 }

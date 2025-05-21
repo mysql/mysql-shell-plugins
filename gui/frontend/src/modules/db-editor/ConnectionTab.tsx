@@ -2342,16 +2342,16 @@ Execute \\help or \\? for help;`;
 
         switch (fileResult.resourceId) {
             case "saveChatOptions": {
-                if (fileResult.path.length === 1) {
+                if (fileResult.file.length === 1) {
                     // Save Chat Profile options
                     const options: IDictionary = {
                         ...savedState.chatOptionsState.options,
                     };
                     try {
-                        void await connection?.backend.mhs.saveMdsChatOptions(fileResult.path[0], options);
+                        void await connection?.backend.mhs.saveMdsChatOptions(fileResult.file[0].path, options);
 
                         void ui.showInformationMessage(
-                            `The HeatWave options have been saved successfully to ${fileResult.path[0]}`, {});
+                            `The HeatWave options have been saved successfully to ${fileResult.file[0].path}`, {});
                     } catch (reason) /* istanbul ignore next */ {
                         let content: string;
 
@@ -2375,16 +2375,16 @@ Execute \\help or \\? for help;`;
             }
 
             case "loadChatOptions": {
-                if (fileResult.path.length === 1) {
+                if (fileResult.file.length === 1) {
                     try {
                         // Load Chat Profile options
-                        const options = await connection?.backend.mhs.loadMdsChatOptions(fileResult.path[0]);
+                        const options = await connection?.backend.mhs.loadMdsChatOptions(fileResult.file[0].path);
 
                         if (id && onChatOptionsChange) {
                             onChatOptionsChange(id, { options });
 
                             void ui.showInformationMessage(
-                                `The HeatWave options have been loaded successfully from ${fileResult.path[0]}`, {});
+                                `The HeatWave options have been loaded successfully from ${fileResult.file[0].path}`, {});
                         }
                     } catch (reason) /* istanbul ignore next */ {
                         let content: string;

@@ -462,6 +462,7 @@ exports[`Application host tests Rendering About 1`] = `
                       tabPosition="top"
                     />
                     <MrsHub />
+                    <CreateLibraryDialog />
                   </g>,
                   "minSize": 500,
                   "resizable": true,
@@ -1576,6 +1577,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -2326,6 +2328,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -3333,6 +3336,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -4083,6 +4087,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -5260,6 +5265,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -6010,6 +6016,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -7003,6 +7010,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -7753,6 +7761,7 @@ exports[`Application host tests Rendering About 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -9243,6 +9252,12 @@ exports[`Application host tests Rendering About 1`] = `
                         placement="bottom-start"
                       />
                       <Menu
+                        id="libraryContextMenu"
+                        onItemClick={[Function]}
+                        orientation="column"
+                        placement="bottom-start"
+                      />
+                      <Menu
                         id="indexContextMenu"
                         onItemClick={[Function]}
                         orientation="column"
@@ -10302,6 +10317,75 @@ exports[`Application host tests Rendering About 1`] = `
                         </ValueEditDialog>
                       </MrsSdkExportDialog>
                     </MrsHub>
+                    <CreateLibraryDialog>
+                      <ValueEditDialog
+                        id="createLibraryDialog"
+                        onClose={[Function]}
+                        onValidate={[Function]}
+                      >
+                        <Dialog
+                          actions={
+                            {
+                              "begin": [],
+                              "end": [
+                                <Button
+                                  caption="OK"
+                                  disabled={false}
+                                  id="ok"
+                                  onClick={[Function]}
+                                />,
+                                <Button
+                                  caption="Cancel"
+                                  id="cancel"
+                                  onClick={[Function]}
+                                />,
+                              ],
+                            }
+                          }
+                          caption={
+                            <g>
+                              <Icon
+                                disabled={false}
+                                src={391}
+                              />
+                              <Label />
+                            </g>
+                          }
+                          className="msg valueEditDialog"
+                          container={
+                            <body
+                              theme="dark"
+                            />
+                          }
+                          content={
+                            <Grid
+                              columnGap={16}
+                              columns={8}
+                              id="contentGrid"
+                              rowGap={16}
+                            />
+                          }
+                          id="createLibraryDialog"
+                          onClose={[Function]}
+                        >
+                          <Portal
+                            container={
+                              <body
+                                theme="dark"
+                              />
+                            }
+                            id="createLibraryDialog"
+                            onClose={[Function]}
+                            onOpen={[Function]}
+                          />
+                        </Dialog>
+                        <Menu
+                          onItemClick={[Function]}
+                          orientation="column"
+                          placement="right-start"
+                        />
+                      </ValueEditDialog>
+                    </CreateLibraryDialog>
                   </div>
                 </Container>
               </div>
@@ -10776,6 +10860,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                       tabPosition="top"
                     />
                     <MrsHub />
+                    <CreateLibraryDialog />
                   </g>,
                   "minSize": 500,
                   "resizable": true,
@@ -11838,6 +11923,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -12588,6 +12674,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -13543,6 +13630,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -14293,6 +14381,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -15418,6 +15507,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -16168,6 +16258,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -17109,6 +17200,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -17859,6 +17951,7 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -19349,6 +19442,12 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                         placement="bottom-start"
                       />
                       <Menu
+                        id="libraryContextMenu"
+                        onItemClick={[Function]}
+                        orientation="column"
+                        placement="bottom-start"
+                      />
+                      <Menu
                         id="indexContextMenu"
                         onItemClick={[Function]}
                         orientation="column"
@@ -20408,6 +20507,75 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                         </ValueEditDialog>
                       </MrsSdkExportDialog>
                     </MrsHub>
+                    <CreateLibraryDialog>
+                      <ValueEditDialog
+                        id="createLibraryDialog"
+                        onClose={[Function]}
+                        onValidate={[Function]}
+                      >
+                        <Dialog
+                          actions={
+                            {
+                              "begin": [],
+                              "end": [
+                                <Button
+                                  caption="OK"
+                                  disabled={false}
+                                  id="ok"
+                                  onClick={[Function]}
+                                />,
+                                <Button
+                                  caption="Cancel"
+                                  id="cancel"
+                                  onClick={[Function]}
+                                />,
+                              ],
+                            }
+                          }
+                          caption={
+                            <g>
+                              <Icon
+                                disabled={false}
+                                src={391}
+                              />
+                              <Label />
+                            </g>
+                          }
+                          className="msg valueEditDialog"
+                          container={
+                            <body
+                              theme="dark"
+                            />
+                          }
+                          content={
+                            <Grid
+                              columnGap={16}
+                              columns={8}
+                              id="contentGrid"
+                              rowGap={16}
+                            />
+                          }
+                          id="createLibraryDialog"
+                          onClose={[Function]}
+                        >
+                          <Portal
+                            container={
+                              <body
+                                theme="dark"
+                              />
+                            }
+                            id="createLibraryDialog"
+                            onClose={[Function]}
+                            onOpen={[Function]}
+                          />
+                        </Dialog>
+                        <Menu
+                          onItemClick={[Function]}
+                          orientation="column"
+                          placement="right-start"
+                        />
+                      </ValueEditDialog>
+                    </CreateLibraryDialog>
                   </div>
                 </Container>
               </div>
@@ -20882,6 +21050,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                       tabPosition="top"
                     />
                     <MrsHub />
+                    <CreateLibraryDialog />
                   </g>,
                   "minSize": 500,
                   "resizable": true,
@@ -21944,6 +22113,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -22694,6 +22864,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -23649,6 +23820,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -24399,6 +24571,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -25524,6 +25697,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -26274,6 +26448,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -27215,6 +27390,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -27965,6 +28141,7 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -29455,6 +29632,12 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                         placement="bottom-start"
                       />
                       <Menu
+                        id="libraryContextMenu"
+                        onItemClick={[Function]}
+                        orientation="column"
+                        placement="bottom-start"
+                      />
+                      <Menu
                         id="indexContextMenu"
                         onItemClick={[Function]}
                         orientation="column"
@@ -30514,6 +30697,75 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                         </ValueEditDialog>
                       </MrsSdkExportDialog>
                     </MrsHub>
+                    <CreateLibraryDialog>
+                      <ValueEditDialog
+                        id="createLibraryDialog"
+                        onClose={[Function]}
+                        onValidate={[Function]}
+                      >
+                        <Dialog
+                          actions={
+                            {
+                              "begin": [],
+                              "end": [
+                                <Button
+                                  caption="OK"
+                                  disabled={false}
+                                  id="ok"
+                                  onClick={[Function]}
+                                />,
+                                <Button
+                                  caption="Cancel"
+                                  id="cancel"
+                                  onClick={[Function]}
+                                />,
+                              ],
+                            }
+                          }
+                          caption={
+                            <g>
+                              <Icon
+                                disabled={false}
+                                src={391}
+                              />
+                              <Label />
+                            </g>
+                          }
+                          className="msg valueEditDialog"
+                          container={
+                            <body
+                              theme="dark"
+                            />
+                          }
+                          content={
+                            <Grid
+                              columnGap={16}
+                              columns={8}
+                              id="contentGrid"
+                              rowGap={16}
+                            />
+                          }
+                          id="createLibraryDialog"
+                          onClose={[Function]}
+                        >
+                          <Portal
+                            container={
+                              <body
+                                theme="dark"
+                              />
+                            }
+                            id="createLibraryDialog"
+                            onClose={[Function]}
+                            onOpen={[Function]}
+                          />
+                        </Dialog>
+                        <Menu
+                          onItemClick={[Function]}
+                          orientation="column"
+                          placement="right-start"
+                        />
+                      </ValueEditDialog>
+                    </CreateLibraryDialog>
                   </div>
                 </Container>
               </div>
@@ -30988,6 +31240,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                       tabPosition="top"
                     />
                     <MrsHub />
+                    <CreateLibraryDialog />
                   </g>,
                   "minSize": 500,
                   "resizable": true,
@@ -32128,6 +32381,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -32878,6 +33132,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -33911,6 +34166,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -34661,6 +34917,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -35864,6 +36121,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -36614,6 +36872,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -37633,6 +37892,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -38383,6 +38643,7 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                                     tabPosition="top"
                                                   />
                                                   <MrsHub />
+                                                  <CreateLibraryDialog />
                                                 </g>,
                                                 "minSize": 500,
                                                 "resizable": true,
@@ -39873,6 +40134,12 @@ exports[`Application host tests Rendering Preferences 1`] = `
                         placement="bottom-start"
                       />
                       <Menu
+                        id="libraryContextMenu"
+                        onItemClick={[Function]}
+                        orientation="column"
+                        placement="bottom-start"
+                      />
+                      <Menu
                         id="indexContextMenu"
                         onItemClick={[Function]}
                         orientation="column"
@@ -40932,6 +41199,75 @@ exports[`Application host tests Rendering Preferences 1`] = `
                         </ValueEditDialog>
                       </MrsSdkExportDialog>
                     </MrsHub>
+                    <CreateLibraryDialog>
+                      <ValueEditDialog
+                        id="createLibraryDialog"
+                        onClose={[Function]}
+                        onValidate={[Function]}
+                      >
+                        <Dialog
+                          actions={
+                            {
+                              "begin": [],
+                              "end": [
+                                <Button
+                                  caption="OK"
+                                  disabled={false}
+                                  id="ok"
+                                  onClick={[Function]}
+                                />,
+                                <Button
+                                  caption="Cancel"
+                                  id="cancel"
+                                  onClick={[Function]}
+                                />,
+                              ],
+                            }
+                          }
+                          caption={
+                            <g>
+                              <Icon
+                                disabled={false}
+                                src={391}
+                              />
+                              <Label />
+                            </g>
+                          }
+                          className="msg valueEditDialog"
+                          container={
+                            <body
+                              theme="dark"
+                            />
+                          }
+                          content={
+                            <Grid
+                              columnGap={16}
+                              columns={8}
+                              id="contentGrid"
+                              rowGap={16}
+                            />
+                          }
+                          id="createLibraryDialog"
+                          onClose={[Function]}
+                        >
+                          <Portal
+                            container={
+                              <body
+                                theme="dark"
+                              />
+                            }
+                            id="createLibraryDialog"
+                            onClose={[Function]}
+                            onOpen={[Function]}
+                          />
+                        </Dialog>
+                        <Menu
+                          onItemClick={[Function]}
+                          orientation="column"
+                          placement="right-start"
+                        />
+                      </ValueEditDialog>
+                    </CreateLibraryDialog>
                   </div>
                 </Container>
               </div>

@@ -420,6 +420,15 @@ export const routinesCtxMenu = new Map([
     [dropStoredRoutine, 4],
 ]);
 
+export const libraryCtxMenu = new Map([
+    [copyToClipboard, 2],
+    [copyToClipboardName, 0],
+    [copyToClipboardStat, 1],
+    [copyToClipboardStatDel, 2],
+    [copyToClipboardDropStatDel, 3],
+    [dropStoredRoutine, 4],
+]);
+
 export const eventsCtxMenu = new Map([
     [dropEvent, 1],
 ]);

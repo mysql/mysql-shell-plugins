@@ -1,6 +1,6 @@
-ws.tokens["profile_id"] = 1
-ws.tokens["db_type"] = "MySQL"
-ws.tokens["folder_path"] = "tests"
+ws.tokens["profile_id"] = 1;
+ws.tokens["db_type"] = "MySQL";
+ws.tokens["folder_path"] = "tests";
 ws.tokens["types"] = [{ "name": "Schema", "type": "CATALOG_OBJECT" },
 { "name": "User Variable", "type": "CATALOG_OBJECT" },
 { "name": "User", "type": "CATALOG_OBJECT" },
@@ -10,16 +10,17 @@ ws.tokens["types"] = [{ "name": "Schema", "type": "CATALOG_OBJECT" },
 { "name": "Table", "type": "SCHEMA_OBJECT" },
 { "name": "View", "type": "SCHEMA_OBJECT" },
 { "name": "Routine", "type": "SCHEMA_OBJECT" },
+{ "name": "Library", "type": "SCHEMA_OBJECT" },
 { "name": "Event", "type": "SCHEMA_OBJECT" },
 { "name": "Trigger", "type": "TABLE_OBJECT" },
 { "name": "Foreign Key", "type": "TABLE_OBJECT" },
 { "name": "Primary Key", "type": "TABLE_OBJECT" },
-{ "name": "Index", "type": "TABLE_OBJECT" }]
-ws.tokens["schema"] = "mysql"
+{ "name": "Index", "type": "TABLE_OBJECT" }];
+ws.tokens["schema"] = "mysql";
 
-ws.log("Executing mysql metadata tests")
+ws.log("Executing mysql metadata tests");
 
-ws.log("Getting object types")
+ws.log("Getting object types");
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -45,7 +46,7 @@ await ws.sendAndValidate({
         },
         "done": true
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -79,7 +80,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -114,7 +115,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-])
+]);
 
 
 await ws.sendAndValidate({
@@ -149,7 +150,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -183,7 +184,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -217,7 +218,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -259,7 +260,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -301,7 +302,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-])
+]);
 
 
 await ws.sendAndValidate({
@@ -337,7 +338,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -363,7 +364,7 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId
     }
-])
+]);
 
 
 await ws.sendAndValidate({
@@ -390,7 +391,7 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -425,7 +426,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -451,7 +452,7 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -486,7 +487,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -512,7 +513,7 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -547,7 +548,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -573,7 +574,7 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -608,7 +609,7 @@ await ws.sendAndValidate({
         "request_id": ws.lastGeneratedRequestId,
         "done": true
     }
-])
+]);
 
 await ws.sendAndValidate({
     "request": "execute",
@@ -634,4 +635,4 @@ await ws.sendAndValidate({
         },
         "request_id": ws.lastGeneratedRequestId
     }
-])
+]);

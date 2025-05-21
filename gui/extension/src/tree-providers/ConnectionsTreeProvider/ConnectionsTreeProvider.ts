@@ -68,7 +68,9 @@ import { SchemaEventTreeItem } from "./SchemaEventTreeItem.js";
 import { SchemaGroupTreeItem } from "./SchemaGroupTreeItem.js";
 import { SchemaMySQLTreeItem } from "./SchemaMySQLTreeItem.js";
 import { SchemaRoutineMySQLTreeItem } from "./SchemaRoutineMySQLTreeItem.js";
+import { SchemaLibraryMySQLTreeItem } from "./SchemaLibraryMySQLTreeItem.js";
 import { SchemaRoutineTreeItem } from "./SchemaRoutineTreeItem.js";
+import { SchemaLibraryTreeItem } from "./SchemaLibraryTreeItem.js";
 import { SchemaSqliteTreeItem } from "./SchemaSqliteTreeItem.js";
 import { SchemaTableColumnTreeItem } from "./SchemaTableColumnTreeItem.js";
 import { SchemaTableForeignKeyTreeItem } from "./SchemaTableForeignKeyTreeItem.js";
@@ -290,6 +292,15 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
                 return new SchemaRoutineTreeItem(entry);
             }
 
+            case CdmEntityType.Library: {
+                const details = entry.connection.details;
+                if (details.dbType === DBType.MySQL) {
+                    return new SchemaLibraryMySQLTreeItem(entry);
+                }
+
+                return new SchemaLibraryTreeItem(entry);
+            }
+
             case CdmEntityType.Event: {
                 return new SchemaEventTreeItem(entry);
             }
@@ -451,13 +462,18 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
         const uppercaseKeywords = configuration.get("upperCaseKeywords", true);
         const procedureKeyword = uppercaseKeywords ? "PROCEDURE" : "procedure";
         const functionKeyword = uppercaseKeywords ? "FUNCTION" : "function";
+        const libraryKeyword = uppercaseKeywords ? "LIBRARY" : "library";
         const dropKeyword = uppercaseKeywords ? "DROP" : "drop";
         const delimiterKeyword = uppercaseKeywords ? "DELIMITER" : "delimiter";
         entryType = uppercaseKeywords ? entryType.toUpperCase() : entryType.toLowerCase();
 
         const qualifiedName = this.dataModel.getQualifiedName(entry);
         const data = await entry.connection.backend.execute(`show create ${entryType} ${qualifiedName}`);
-        const isRoutine = entry.type === CdmEntityType.StoredProcedure || entry.type === CdmEntityType.StoredFunction;
+
+        // Same logic applies for libraries as for the routines.
+        const isRoutine = entry.type === CdmEntityType.StoredProcedure
+            || entry.type === CdmEntityType.StoredFunction
+            || entry.type === CdmEntityType.Library;
         if (data) {
             if (data.rows && data.rows.length > 0) {
                 const firstRow = data.rows[0] as string[];
@@ -466,24 +482,28 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
                     sql = firstRow[index];
 
                     if (isRoutine) {
-                        // The SHOW CREATE PROCEDURE / FUNCTION statements do not return the fully qualified
+                        // The SHOW CREATE PROCEDURE / FUNCTION / LIBRARY statements do not return the fully qualified
                         // name including the schema, just the name of the procedure / functions with backticks
                         sql = sql.replaceAll(/PROCEDURE `(.*?)`/gm, `${procedureKeyword} ${qualifiedName}`);
                         sql = sql.replaceAll(/FUNCTION `(.*?)`/gm, `${functionKeyword} ${qualifiedName}`);
+                        sql = sql.replaceAll(/LIBRARY `(.*?)`/gm, `${libraryKeyword} ${qualifiedName}`);
 
                         if (withDelimiter) {
-                            const isJSRoutine = (entry).language === "JAVASCRIPT";
-                            const isProcedure = (entry).type === CdmEntityType.StoredProcedure;
+                            const isExternalLangRoutine = (entry).language === "JAVASCRIPT"
+                                || (entry).language === "WASM";
                             if (withDrop) {
-                                if (isProcedure) {
+                                if ((entry).type === CdmEntityType.StoredProcedure) {
                                     sql = `${dropKeyword} ${procedureKeyword} ${qualifiedName}`
-                                        + `${isJSRoutine ? ";" : "%%"}\n${sql}`;
-                                } else {
+                                        + `${isExternalLangRoutine ? ";" : "%%"}\n${sql}`;
+                                } else if ((entry).type === CdmEntityType.StoredFunction) {
                                     sql = `${dropKeyword} ${functionKeyword} ${qualifiedName}`
-                                        + `${isJSRoutine ? ";" : "%%"}\n${sql}`;
+                                        + `${isExternalLangRoutine ? ";" : "%%"}\n${sql}`;
+                                } else {
+                                    sql = `${dropKeyword} ${libraryKeyword} ${qualifiedName}`
+                                        + `${isExternalLangRoutine ? ";" : "%%"}\n${sql}`;
                                 }
                             }
-                            sql = !isJSRoutine
+                            sql = !isExternalLangRoutine
                                 ? `${delimiterKeyword} %%\n${sql}%%\n${delimiterKeyword} ;`
                                 : editRoutine ? `${sql};` : `${delimiterKeyword} ;\n${sql};\n${delimiterKeyword} ;`;
                         }

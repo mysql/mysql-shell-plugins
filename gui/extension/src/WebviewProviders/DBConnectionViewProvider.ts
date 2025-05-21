@@ -388,6 +388,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
             this.requisitions.register("editorSaveNotebookInPlace", this.editorSaveNotebookInPlace);
             this.requisitions.register("editorLoadNotebook", this.editorLoadNotebook);
             this.requisitions.register("showOpenDialog", this.showOpenDialog);
+            this.requisitions.register("showOpenDialogWithRead", this.showOpenDialogWithRead);
             this.requisitions.register("showSaveDialog", this.showSaveDialog);
             this.requisitions.register("sqlSetCurrentSchema", this.setCurrentSchema);
 
@@ -558,20 +559,55 @@ export class DBConnectionViewProvider extends WebviewProvider {
                 canSelectMany: options.canSelectMany,
                 filters: options.filters,
                 title: options.title,
-
             };
 
-            void window.showOpenDialog(dialogOptions).then((paths?: Uri[]) => {
+            void window.showOpenDialog(dialogOptions).then(async (paths?: Uri[]) => {
                 if (paths) {
+                    const files = await Promise.all(paths.map((path) => {
+                        return { path: path.fsPath, content: new ArrayBuffer(0) };
+                    }));
                     const result: IOpenFileDialogResult = {
                         resourceId: dialogOptions.id ?? "",
-                        path: paths.map((path) => {
-                            return path.fsPath;
-                        }),
+                        file: files,
                     };
                     void this.requisitions?.executeRemote("selectFile", result);
                 }
+                resolve(true);
+            });
+        });
+    };
 
+    private showOpenDialogWithRead = (options: IOpenDialogOptions): Promise<boolean> => {
+        return new Promise((resolve) => {
+            const dialogOptions = {
+                id: options.id,
+                defaultUri: Uri.file(options.default ?? ""),
+                openLabel: options.openLabel,
+                canSelectFiles: options.canSelectFiles,
+                canSelectFolders: options.canSelectFolders,
+                canSelectMany: options.canSelectMany,
+                filters: options.filters,
+                title: options.title,
+            };
+
+            void window.showOpenDialog(dialogOptions).then(async (paths?: Uri[]) => {
+                if (paths) {
+                    const files = await Promise.all(paths.map(async (path) => {
+                        const cntn = await readFile(path.fsPath);
+                        const arrayBuffer = new ArrayBuffer(cntn.length);
+                        const view = new Uint8Array(arrayBuffer);
+                        for (let i = 0; i < cntn.length; ++i) {
+                            view[i] = cntn[i];
+                        }
+
+                        return { path: path.fsPath, content: arrayBuffer };
+                    }));
+                    const result: IOpenFileDialogResult = {
+                        resourceId: dialogOptions.id ?? "",
+                        file: files,
+                    };
+                    void this.requisitions?.executeRemote("selectFile", result);
+                }
                 resolve(true);
             });
         });
@@ -591,11 +627,10 @@ export class DBConnectionViewProvider extends WebviewProvider {
                 if (path) {
                     const result: IOpenFileDialogResult = {
                         resourceId: dialogOptions.id ?? "",
-                        path: [path.fsPath],
+                        file: [{ path: path.fsPath, content: new ArrayBuffer(0) }],
                     };
                     void this.requisitions?.executeRemote("selectFile", result);
                 }
-
                 resolve(true);
             });
         });

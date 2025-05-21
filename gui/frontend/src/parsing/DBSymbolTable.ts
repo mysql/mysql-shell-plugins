@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -68,6 +68,7 @@ export class IndexSymbol extends BaseSymbol { } // Made of columns, but doesn't 
 export class ForeignKeySymbol extends BaseSymbol { } // ditto
 export class StoredProcedureSymbol extends RoutineSymbol { }
 export class StoredFunctionSymbol extends RoutineSymbol { }
+export class LibrarySymbol extends BaseSymbol { }
 export class TriggerSymbol extends ScopedSymbol { }
 export class UdfSymbol extends BaseSymbol { } // No body nor parameter info.
 export class EngineSymbol extends BaseSymbol { }
@@ -106,6 +107,7 @@ export class DBSymbolTable extends SymbolTable {
         [ForeignKeySymbol, SymbolKind.ForeignKey],
         [StoredProcedureSymbol, SymbolKind.Procedure],
         [StoredFunctionSymbol, SymbolKind.Function],
+        [LibrarySymbol, SymbolKind.Library],
         [TriggerSymbol, SymbolKind.Trigger],
         [UdfSymbol, SymbolKind.Udf],
         [EngineSymbol, SymbolKind.Engine],

@@ -1,0 +1,457 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MRS SDK Export dialog tests Show Create Library Dialog (snapshot) and escape 1`] = `
+<div
+  class="msg portal"
+  id="createLibraryDialog"
+  style="--background-opacity: 0.5;"
+>
+  <div
+    class="msg dialog visible valueEditDialog"
+  >
+    <div
+      class="title verticalCenterContent"
+    >
+      <div
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Create Library From
+      </label>
+      <div
+        class="msg button imageOnly"
+        id="closeButton"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          style="mask-image: url("close2.svg");"
+        />
+      </div>
+    </div>
+    <div
+      class="content fixedScrollbar"
+    >
+      <div
+        class="msg grid"
+        id="contentGrid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Schema Name
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="schemaName"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Library Name
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="libraryName"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Language
+          </label>
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
+            id="language"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          >
+            <label
+              class="msg label ellipsis"
+              data-tooltip="expand"
+            >
+              JavaScript
+            </label>
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Load From
+          </label>
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
+            id="loadFrom"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          >
+            <label
+              class="msg label ellipsis"
+              data-tooltip="expand"
+            >
+              File
+            </label>
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Comment
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <textarea
+              class="msg input valueEditor"
+              id="comment"
+              rows="3"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 6;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Path
+          </label>
+          <div
+            class="msg container fixedScrollbar fileSelector valueEditor"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input"
+              id="localFilePath"
+              placeholder="<Select JavaScript file>"
+              readonly=""
+              spellcheck="true"
+              type="text"
+            />
+            <div
+              caption="..."
+              class="msg button"
+              id="localFilePathBtn"
+              role="button"
+              tabindex="0"
+            >
+              ...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="footer verticalCenterContent"
+    >
+      <div
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <div
+          caption="OK"
+          class="msg button"
+          id="ok"
+          role="button"
+          tabindex="0"
+        >
+          OK
+        </div>
+        <div
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+          role="button"
+          tabindex="0"
+        >
+          Cancel
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MRS SDK Export dialog tests Show Create Library Dialog and cancel 1`] = `
+<div
+  class="msg portal"
+  id="createLibraryDialog"
+  style="--background-opacity: 0.5;"
+>
+  <div
+    class="msg dialog visible valueEditDialog"
+  >
+    <div
+      class="title verticalCenterContent"
+    >
+      <div
+        class="msg icon codicon codicon-terminal"
+      />
+      <label
+        class="msg label"
+        data-tooltip="expand"
+      >
+        Create Library From
+      </label>
+      <div
+        class="msg button imageOnly"
+        id="closeButton"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="msg icon"
+          style="mask-image: url("close2.svg");"
+        />
+      </div>
+    </div>
+    <div
+      class="content fixedScrollbar"
+    >
+      <div
+        class="msg grid"
+        id="contentGrid"
+        style="grid-template-columns: repeat(8, 1fr); row-gap: 16px; column-gap: 16px;"
+      >
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Schema Name
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="schemaName"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Library Name
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input valueEditor"
+              id="libraryName"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Language
+          </label>
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
+            id="language"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          >
+            <label
+              class="msg label ellipsis"
+              data-tooltip="expand"
+            >
+              JavaScript
+            </label>
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 2;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Load From
+          </label>
+          <div
+            class="msg container fixedScrollbar dropdown valueEditor"
+            data-tooltip="inherit"
+            id="loadFrom"
+            style="flex-direction: row; align-items: center;"
+            tabindex="0"
+          >
+            <label
+              class="msg label ellipsis"
+              data-tooltip="expand"
+            >
+              File
+            </label>
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 8;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Comment
+          </label>
+          <div
+            class="msg container fixedScrollbar inputWithProgress"
+            style="flex-direction: row;"
+          >
+            <textarea
+              class="msg input valueEditor"
+              id="comment"
+              rows="3"
+              spellcheck="true"
+              type="text"
+            />
+          </div>
+        </div>
+        <div
+          class="msg container fixedScrollbar gridCell"
+          style="flex-direction: column; justify-content: flex-start; align-items: stretch; grid-column: span 6;"
+        >
+          <label
+            class="msg label valueTitle"
+            data-tooltip="expand"
+          >
+            Path
+          </label>
+          <div
+            class="msg container fixedScrollbar fileSelector valueEditor"
+            style="flex-direction: row;"
+          >
+            <input
+              class="msg input"
+              id="localFilePath"
+              placeholder="<Select JavaScript file>"
+              readonly=""
+              spellcheck="true"
+              type="text"
+            />
+            <div
+              caption="..."
+              class="msg button"
+              id="localFilePathBtn"
+              role="button"
+              tabindex="0"
+            >
+              ...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="footer verticalCenterContent"
+    >
+      <div
+        class="msg container fixedScrollbar leftItems"
+        style="flex-direction: row;"
+      />
+      <div
+        class="msg container fixedScrollbar rightItems"
+        style="flex-direction: row-reverse;"
+      >
+        <div
+          caption="OK"
+          class="msg button"
+          id="ok"
+          role="button"
+          tabindex="0"
+        >
+          OK
+        </div>
+        <div
+          caption="Cancel"
+          class="msg button"
+          id="cancel"
+          role="button"
+          tabindex="0"
+        >
+          Cancel
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

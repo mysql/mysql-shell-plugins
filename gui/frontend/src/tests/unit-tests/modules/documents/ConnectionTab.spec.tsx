@@ -861,27 +861,27 @@ describe("DBConnectionTab tests", (): void => {
 
         const fileResultSaveValid = {
             resourceId: "saveChatOptions",
-            path: ["/valid/path/to/save"],
+            file: [{path: "/valid/path/to/save", content: new ArrayBuffer()}],
         };
 
         const fileResultSaveInvalid = {
             resourceId: "saveChatOptions",
-            path: [],
+            file: [],
         };
 
         const fileResultLoadValid = {
             resourceId: "loadChatOptions",
-            path: ["/valid/path/to/load"],
+            file: [{path: "/valid/path/to/load", content: new ArrayBuffer()}],
         };
 
         const fileResultLoadInvalid = {
             resourceId: "loadChatOptions",
-            path: [],
+            file: [],
         };
 
         const fileResultUnknown = {
             resourceId: "unknownResourceId",
-            path: ["some/path"],
+            file: [{path: "some/path", content: new ArrayBuffer()}],
         };
         const options: IMdsChatData = { schemaName: "testSchema" };
 

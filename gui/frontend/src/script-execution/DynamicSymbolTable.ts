@@ -26,8 +26,8 @@ import { BaseSymbol, ScopedSymbol, ISymbolTableOptions } from "antlr4-c3";
 import {
     CharsetSymbol, CollationSymbol, ColumnSymbol, DBSymbolTable, EngineSymbol, EventSymbol, ForeignKeySymbol,
     IndexSymbol, LogfileGroupSymbol, PluginSymbol, PrimaryKeySymbol, SchemaSymbol, StoredFunctionSymbol,
-    StoredProcedureSymbol, TableSymbol, TablespaceSymbol, TriggerSymbol, UdfSymbol, UserSymbol, UserVariableSymbol,
-    ViewSymbol,
+    StoredProcedureSymbol, LibrarySymbol, TableSymbol, TablespaceSymbol, TriggerSymbol, UdfSymbol, UserSymbol,
+    UserVariableSymbol, ViewSymbol,
 } from "../parsing/DBSymbolTable.js";
 import { SymbolKind } from "../parsing/parser-common.js";
 import { ShellInterfaceDb } from "../supplement/ShellInterface/ShellInterfaceDb.js";
@@ -109,6 +109,13 @@ export class DynamicSymbolTable extends DBSymbolTable {
             case SymbolKind.Function: {
                 const data = await this.backend.getSchemaObjectNames(parent.name, "Routine", "function");
                 this.handleResults(data, parent, StoredFunctionSymbol);
+
+                break;
+            }
+
+            case SymbolKind.Library: {
+                const data = await this.backend.getSchemaObjectNames(parent.name, "Library");
+                this.handleResults(data, parent, LibrarySymbol);
 
                 break;
             }

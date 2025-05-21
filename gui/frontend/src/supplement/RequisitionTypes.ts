@@ -178,7 +178,7 @@ export interface ISaveDialogOptions {
 /** The structure describing the files the user selected when running the open dialog in the application host. */
 export interface IOpenFileDialogResult {
     resourceId: string;
-    path: string[];
+    file: Array<{ path: string; content: ArrayBuffer }>;
 }
 
 /**
@@ -444,6 +444,9 @@ export interface IRequestTypeMap {
 
     "selectFile": (result: IOpenFileDialogResult) => Promise<boolean>;
     "showOpenDialog": (options: IOpenDialogOptions) => Promise<boolean>;
+    /** Used only within the extension, to show open dialog which also reads the content of the chosen file. */
+    "showOpenDialogWithRead": (options: IOpenDialogOptions) => Promise<boolean>;
+    /** Used only within the extension, to show open dialog which only selects a chosen file. */
     "showSaveDialog": (options: ISaveDialogOptions) => Promise<boolean>;
 
     "sqlShowDataAtPage": (data: ISqlPageRequest) => Promise<boolean>;
@@ -650,6 +653,9 @@ export interface IRequestTypeMap {
     "showMrsSdkExportDialog": (data: IMrsSdkExportRequest) => Promise<boolean>;
 
     "showMrsConfigurationDialog": (initialize: boolean) => Promise<boolean>;
+
+    /** Shows the dialog to create a library from... */
+    "showCreateLibraryDialog": (data: IDialogRequest) => Promise<boolean>;
 
     /** A list of requests that must be executed sequentially. */
     "job": (job: Array<IJobEntry<keyof IRequestTypeMap>>) => Promise<boolean>;

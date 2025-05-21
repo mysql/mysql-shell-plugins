@@ -253,8 +253,10 @@ interface IResourceDialogValue extends IBaseDialogValue {
     canSelectFiles?: boolean;
     canSelectFolders?: boolean;
 
+    doRead? : boolean;
+
     /** Called when the selection was changed. */
-    onChange?: (value: string, dialog: ValueEditDialog) => void;
+    onChange?: (value: File | null, dialog: ValueEditDialog) => void;
 }
 
 /**
@@ -727,7 +729,6 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                 const { onValidate } = this.props;
                 const validations = onValidate?.(false, values, data) || { messages: {} };
                 this.setState({ values, validations });
-
                 return;
             }
         });
@@ -1158,6 +1159,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                             placeholder={entry.value.placeholder}
                             onChange={this.fileChange.bind(this, sectionId)}
                             onConfirm={this.acceptOnConfirm}
+                            doRead={entry.value.doRead ?? false}
                         />);
 
                         break;
@@ -1630,22 +1632,31 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
         }
     };
 
-    private fileChange = (sectionId: string, newValue: string[], props: IFileSelectorProperties): void => {
+    private fileChange = (sectionId: string, newValue: File[], props: IFileSelectorProperties): void => {
         const { onValidate } = this.props;
         const { values, data } = this.state;
 
-        if (newValue.length > 0) {
-            const section = values.sections.get(sectionId);
-            if (section && props.id) {
-                const value = this.setValue(props.id, newValue[0], section) as IResourceDialogValue;
+        const section = values.sections.get(sectionId);
+        if (section && props.id) {
+            if (newValue.length > 0) {
+                const value = this.setValue(props.id, newValue[0].name, section) as IResourceDialogValue;
                 if (value) {
                     const validations = onValidate?.(false, values, data) || { messages: {} };
                     this.setState({ values, validations });
 
                     value.onChange?.(newValue[0], this);
                 }
+            } else {
+                const value = this.setValue(props.id, "", section) as IResourceDialogValue;
+                if (value) {
+                    const validations = onValidate?.(false, values, data) || { messages: {} };
+                    this.setState({ values, validations });
+
+                    value.onChange?.(null, this);
+                }
             }
         }
+
     };
 
     /**
