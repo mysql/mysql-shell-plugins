@@ -136,7 +136,7 @@ echo "Starting MySQL Shell for VS Code Extension packaging..."
 
 # If the shell plugins location is not defined, uses the default
 # location
-if [ ! -v SHELL_PLUGINS_LOCATION ]; then
+if [ -z "$SHELL_PLUGINS_LOCATION" ]; then
     export SHELL_PLUGINS_LOCATION=$HOME/.mysqlsh/plugins
 fi
 
