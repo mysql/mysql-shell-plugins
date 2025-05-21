@@ -8,6 +8,7 @@ exports[`Result Status Tests Default Rendering 1`] = `
       "type": 2,
     }
   }
+  statusTextPosition="left"
 >
   <Container
     className="msg resultStatus containsMessage"

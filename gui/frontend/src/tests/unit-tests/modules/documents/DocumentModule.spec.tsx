@@ -29,7 +29,6 @@ import { mount, shallow } from "enzyme";
 import { type ComponentChild } from "preact";
 
 import { registerUiLayer } from "../../../../app-logic/UILayer.js";
-import type { ISqlUpdateResult } from "../../../../app-logic/general-types.js";
 import { IMySQLConnectionOptions, MySQLConnectionScheme } from "../../../../communication/MySQL.js";
 import type { IShellProfile, IWebSessionData } from "../../../../communication/ProtocolGui.js";
 import type { ISqliteConnectionOptions } from "../../../../communication/Sqlite.js";
@@ -52,6 +51,7 @@ import {
     getDbCredentials, ignoreSnapshotUuids, nextProcessTick, nextRunLoop,
     setupShellForTests,
 } from "../../test-helpers.js";
+import { sendSqlUpdatesFromModel } from "../../../../modules/db-editor/SqlQueryExecutor.js";
 
 /**
  * This test module exists to isolate the different calls to private methods in the super class.
@@ -59,12 +59,6 @@ import {
  * much setup and teardown.
  */
 class TestDocumentModule extends DocumentModule {
-    public testSendSqlUpdatesFromModel = async (backend: ShellInterfaceSqlEditor,
-        updates: string[]): Promise<ISqlUpdateResult> => {
-        // @ts-expect-error Testing private method here.
-        return this.sendSqlUpdatesFromModel(backend, updates);
-    };
-
     public testHandleHelpCommand = (command: string, language: EditorLanguage): string | undefined => {
         return this["handleHelpCommand"](command, language);
     };
@@ -384,18 +378,13 @@ describe("Document module tests", (): void => {
     });
 
     it("Test sendSqlUpdatesFromModel function", async () => {
-        const component = mount<TestDocumentModule>(<TestDocumentModule />);
-        const instance = component.instance();
-
         await requisitions.execute("refreshConnection", undefined);
         await requisitions.execute("showPage", { connectionId });
 
         await nextProcessTick();
 
-        const result = await instance.testSendSqlUpdatesFromModel(backend, ["SELECT 1;"]);
+        const result = await sendSqlUpdatesFromModel(undefined, backend, ["SELECT 1;"]);
         expect(result.affectedRows).toBe(0);
-
-        component.unmount();
     });
 
     it("Test DocumentModule handleHelpCommand handler", () => {
@@ -422,7 +411,7 @@ Execute "\\sql" to switch to SQL mode, "\\js" to switch to JavaScript mode.
 GLOBAL FUNCTIONS
     - \`print(value: unknown): void\`
       Send a value to the output area.
-    - \`async runSql(code: string, params?: unknown), params?: unknown[]): Promise<unkown>\`
+    - \`async runSql(code: string, params?: unknown), params?: unknown[]): Promise<unknown>\`
       Run the given query and wait for the returned promise to resolve when done.
     - \`runSqlWithCallback(sql: string, callback?: (res: unknown) => void, params?: unknown): void\`
     Run the query and process the rows in the given callback, once all are received.

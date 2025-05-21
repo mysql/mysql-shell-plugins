@@ -189,7 +189,7 @@ export class WebviewProvider implements IWebviewProvider {
                     });
                 }
 
-                prepareWebviewContent(this.panel, this.url);
+                prepareWebviewContent(this.panel.webview, this.url);
             });
 
         });

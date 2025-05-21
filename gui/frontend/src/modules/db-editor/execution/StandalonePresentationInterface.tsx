@@ -52,7 +52,7 @@ export class StandalonePresentationInterface extends PresentationInterface {
      * @param target The target component reference.
      * @param host The hosting editor.
      */
-    public onMount(target: preact.RefObject<HTMLDivElement>, host: ScriptEditor): void {
+    public onMount(target: preact.RefObject<HTMLDivElement>, host?: ScriptEditor): void {
         this.#target = target;
         this.#host = host;
     }

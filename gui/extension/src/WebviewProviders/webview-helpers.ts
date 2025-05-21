@@ -23,16 +23,16 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { WebviewPanel, workspace } from "vscode";
+import { Webview, workspace } from "vscode";
 
 /**
  * This is the core function for preparing the webview panel for the MSG application.
  * It expects a running MySQL Shell server to be available at the given URL.
  *
- * @param panel The webview panel to prepare.
+ * @param webview The webview to prepare.
  * @param url The URL of the running MySQL Shell server.
  */
-export const prepareWebviewContent = (panel: WebviewPanel, url: URL): void => {
+export const prepareWebviewContent = (webview: Webview, url: URL): void => {
     // Insert an iframe to load the external URL from the running mysql shell server.
     url.searchParams.set("app", "vscode");
 
@@ -48,7 +48,7 @@ export const prepareWebviewContent = (panel: WebviewPanel, url: URL): void => {
     const showUnsecuredConnectionWarning = workspace.getConfiguration(`msg.shell`)
         .get<boolean>("showUnsecuredConnectionWarning", true);
 
-    panel.webview.html = `
+    webview.html = `
 <!doctype html><html lang="en">
 <head>
 <meta http-equiv="Content-Security-Policy" content="default-src *; img-src http: https:;
