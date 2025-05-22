@@ -75,6 +75,7 @@ def test_get_schemas(phone_book):
                     'service_id': phone_book["service_id"],
                     'url_host_id': schemas[1]["url_host_id"],
                     "schema_type": "DATABASE_SCHEMA",
+                    "internal": 0,
                 }
 
 
@@ -103,6 +104,7 @@ def test_get_schema(phone_book):
         'metadata': None,
         'url_host_id': phone_book["url_host_id"],
         "schema_type": "DATABASE_SCHEMA",
+        "internal": 0,
     }
 
 

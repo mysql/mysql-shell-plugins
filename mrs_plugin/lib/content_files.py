@@ -265,3 +265,12 @@ def get_content_file_create_statement(session, content_file: dict) -> str:
     output.append(auth)
 
     return "\n".join(output) + ";"
+
+
+def clone_content_file(session, content_file, new_content_set):
+    add_content_file(session, new_content_set,
+                    request_path=content_file["request_path"],
+                    requires_auth=content_file["requires_auth"],
+                    enabled=content_file["enabled"],
+                    options=content_file["options"],
+                    data=content_file["content"])

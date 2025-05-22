@@ -88,7 +88,7 @@ def test_update_db_object(phone_book, table_contents):
                 "schema_name": "PhoneBook",
                 "schema_request_path": "/PhoneBook",
                 "service_id": phone_book["service_id"],
-
+                "internal": 0,
             }
 
             result = lib.db_objects.get_db_object(session, db_object_id)

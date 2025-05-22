@@ -1804,3 +1804,24 @@ def prepare_open_api_ui(service, request_path, send_gui_message=None) -> str:
         '.swagger-ui .topbar a{align-items:center;color:#fff;display:none;')
 
     return swagger_ui_path
+
+def clone_content_set(session, content_set, new_service_id):
+    content_set_id = core.get_sequence_id(session)
+    values = {
+        "id": content_set_id,
+        "service_id": new_service_id,
+        "request_path": content_set["request_path"],
+        "requires_auth": int(content_set["requires_auth"]),
+        "enabled": int(content_set["enabled"]),
+        "comments": content_set["comments"],
+        "options": content_set["options"],
+        "content_type": content_set["content_type"],
+    }
+
+    # Create the content_set, ensure it is created as "not enabled"
+    core.insert(table="content_set", values=values).exec(session)
+
+    for content_file in content_files.get_content_files(session, content_set["id"],
+                                                        include_enable_state=True,
+                                                        include_file_content=True):
+        content_files.clone_content_file(session, content_file, content_set_id)

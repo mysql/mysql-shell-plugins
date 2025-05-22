@@ -191,7 +191,7 @@ def load_object_dump(session, target_schema_id, object, reuse_ids):
 def load_schema_dump(session, target_service_id, schema, reuse_ids):
     schema_id = None
     if reuse_ids:
-        schema_id = lib.core.id_to_binary(schema["id"], "object.id")
+        schema_id = lib.core.id_to_binary(schema["id"], "schema.id")
 
     schema_id = lib.schemas.add_schema(session,
                                        schema["name"],

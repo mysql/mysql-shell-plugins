@@ -1196,52 +1196,18 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         self.current_operation = mrs_object.pop("current_operation")
 
         full_path = self.getFullServicePath(mrs_object)
+        url_context_root = mrs_object.get("url_context_root")
+        new_url_context_root = mrs_object.get("new_url_context_root")
 
         try:
             service_id = self.get_given_or_current_service_id(mrs_object)
 
-            service = lib.services.get_service(
-                service_id=service_id, session=self.session
-            )
+            service = lib.services.get_service(self.session, url_context_root=url_context_root)
+
             if service is None:
                 raise Exception("The given REST SERVICE was not found.")
 
-            # A new developer_list / url_context_root / url_host_name is defined for the clone
-            if (
-                "new_developer_list" in mrs_object.keys()
-                and len(mrs_object["new_developer_list"]) > 0
-            ):
-                if not "in_development" in service.keys():
-                    service["in_development"] = {"developers": []}
-                service["in_development"]["developers"] = mrs_object.pop(
-                    "new_developer_list"
-                )
-            else:
-                service["in_development"] = None
-
-            service["url_context_root"] = mrs_object.pop(
-                "new_url_context_root", "/undefined"
-            )
-            new_url_host_name = mrs_object.pop("new_url_host_name", "")
-
-            service["parent_id"] = service_id
-            service.pop("id", None)
-            service.pop("url_host_name", None)
-            service.pop("host_ctx", None)
-            service.pop("full_service_path", None)
-            service.pop("is_current", None)
-            service.pop("sorted_developers", None)
-            service.pop("auth_apps", None)
-            service.pop("merge_options", None)
-
-            # Add the service
-            service_id = lib.services.add_service(
-                session=self.session, url_host_name=new_url_host_name, service=service
-            )
-
-            # TODO: Making the correct entry into service_has_auth_app, using the same auth_apps_ids as the parent
-
-            # TODO: Add copying of schemas and db_objects and content_sets
+            lib.services.clone_service(self.session, service, new_url_context_root, mrs_object.get("new_developer_list", []))
 
             self.results.append(
                 {

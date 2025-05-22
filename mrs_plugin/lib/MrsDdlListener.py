@@ -1413,6 +1413,9 @@ class MrsDdlListener(MRSListener):
             ctx.requestPathIdentifier().getText()
         )
 
+        if "@" in self.mrs_object["new_url_context_root"]:
+            self.mrs_object["new_developer_list"], self.mrs_object["new_url_context_root"] = self.mrs_object["new_url_context_root"].split("@")
+
     def exitAlterRestServiceStatement(self, ctx):
         self.mrs_ddl_executor.alterRestService(self.mrs_object)
 

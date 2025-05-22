@@ -21,12 +21,13 @@
 # along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from mrs_plugin.lib import core, roles, schemas, content_sets, auth_apps, database
+from mrs_plugin.lib import core, roles, schemas, content_sets, auth_apps, database, dump
 
 import re
 import os
 from zipfile import ZipFile
 import pathlib
+import copy
 
 
 def prompt_for_url_context_root(default=None):
@@ -632,3 +633,49 @@ def get_service_sdk_data(session, service_id, binary_formatter=None):
     return database.get_sdk_service_data(
         session, service_id, binary_formatter=binary_formatter
     )
+
+def clone_service(session, service, new_url_context_root, dev_list):
+    dump_initial = dump.get_service_dump(session, service["id"])
+
+    new_service = copy.deepcopy(service)
+
+    # Cleanup the existing data to properly insert it again
+    new_service.pop("id", None)
+    new_service.pop("url_host_name", None)
+    new_service.pop("host_ctx", None)
+    new_service.pop("full_service_path", None)
+    new_service.pop("is_current", None)
+    new_service.pop("sorted_developers", None)
+    new_service.pop("auth_apps", None)
+    new_service.pop("merge_options", None)
+
+    new_service["url_context_root"] = new_url_context_root
+    new_service["published"] = False
+    new_service["in_development"] = {
+        "developers": dev_list
+    }
+
+    # Add the service
+    new_service_id = add_service(session=session, url_host_name=None, service=new_service)
+
+    # Create links for the auth apps
+    for service_auth_app in auth_apps.get_auth_apps(session, service["id"]):
+        auth_apps.link_auth_app(session, service_auth_app["id"], new_service_id)
+
+    # Clone the schemas
+    for schema in schemas.get_schemas(session, service["id"]):
+        schemas.clone_schema(session, schema, new_service_id)
+
+    # Clone the content sets
+    for content_set in content_sets.get_content_sets(session, service["id"]):
+        content_sets.clone_content_set(session, content_set, new_service_id)
+
+    dump_final = dump.get_service_dump(session, new_service_id)
+
+    # assert dump_initial, dump_final
+
+    # print(f"------------------->\n{dump_initial}\n\n{dump_final}")
+
+    return
+
+
