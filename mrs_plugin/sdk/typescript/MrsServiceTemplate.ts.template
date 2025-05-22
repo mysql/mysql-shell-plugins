@@ -16,10 +16,12 @@ import {
     IAuthenticateOptions,
     // --- importAuthenticateOnlyEnd
     // --- importReadOnlyStart
-    IFindAllOptions,
+    IExhaustedList,
     IFindFirstOptions,
     IFindManyOptions,
     IFindUniqueOptions,
+    INotExhaustedList,
+    PaginatedList,
     MrsBaseObjectQuery,
     NotFoundError,
     // --- importReadOnlyEnd
@@ -63,9 +65,6 @@ export type { IMrsAuthUser, IMrsAuthStatus } from "./MrsBaseClasses";
  */
 class ${obj_class_name}Object extends MrsBaseObject {
 
-    // --- crudReadOnlyStart
-    #hasMore = true;
-    // --- crudReadOnlyEnd
     // --- crudCreateOnlyStart
     public create = async (args: ICreateOptions<INew${obj_class_name}>): Promise<I${obj_class_name}> => {
         const request = new MrsBaseObjectCreate<INew${obj_class_name}, I${obj_class_name}, [${obj_quoted_pk_list}]>(this.schema, this.requestPath, args, [${obj_quoted_pk_list}]);
@@ -87,40 +86,44 @@ class ${obj_class_name}Object extends MrsBaseObject {
     };
     // --- crudCreateOnlyEnd
     // --- crudReadOnlyStart
-    public findAll = async (args?: IFindAllOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<I${obj_class_name}[]> => {
-        const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors, [${obj_quoted_pk_list}]>(
-            this.schema, this.requestPath, { ...args, take: 25 }, [${obj_quoted_pk_list}]);
-        const response = await request.fetchAll(args?.progress);
-
-        return response.items;
-    };
-
-    public findMany = async ({ iterator = true, ...args }: IFindManyOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<I${obj_class_name}[]> => {
+    public async find(args?: IFindManyOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<PaginatedList<I${obj_class_name}>> {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors, [${obj_quoted_pk_list}]>(
             this.schema, this.requestPath, args, [${obj_quoted_pk_list}]);
-
-        if (!this.#hasMore && iterator) {
-            this.#hasMore = true;
-
-            return [];
-        }
-
         const response = await request.fetch();
+        const docs: I${obj_class_name}[] = response.items;
 
-        if (iterator) {
-            this.#hasMore = response.hasMore;
+        if (!response.hasMore) {
+            const paginatedList = docs as IExhaustedList<I${obj_class_name}>;
+
+            return paginatedList;
         }
 
-        return response.items;
-    };
+        const paginatedList = docs as INotExhaustedList<I${obj_class_name}>;
+        paginatedList.hasMore = true;
+        paginatedList.next = async () => {
+            return this.find({ ...args, skip: response.limit + response.offset });
+        };
 
-    public findFirst = async (args?: IFindFirstOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<I${obj_class_name} | undefined> => {
+        return paginatedList;
+    }
+
+    public async findFirst(args?: IFindFirstOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<I${obj_class_name} | undefined> {
         const request = new MrsBaseObjectQuery<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors, [${obj_quoted_pk_list}]>(
             this.schema, this.requestPath, { ...args, take: 1 }, [${obj_quoted_pk_list}]);
         const response = await request.fetchOne();
 
         return response;
-    };
+    }
+
+    public async findFirstOrThrow(args?: IFindFirstOptions<I${obj_class_name}, I${obj_class_name}Filterable, I${obj_class_name}Cursors>): Promise<I${obj_class_name}> {
+        const response = await this.findFirst(args);
+
+        if (response === undefined) {
+            throw new NotFoundError(`Document not found.`);
+        }
+
+        return response;
+    }
     // --- crudReadOnlyEnd
     // --- crudReadUniqueOnlyStart
     public findUnique = async (args?: IFindUniqueOptions<I${obj_class_name}, I${obj_class_name}UniqueFilterable>): Promise<I${obj_class_name} | undefined> => {
@@ -135,7 +138,7 @@ class ${obj_class_name}Object extends MrsBaseObject {
         const response = await this.findUnique(args);
 
         if (response === undefined) {
-            throw new NotFoundError(`Record not found.`);
+            throw new NotFoundError("Document not found.");
         }
 
         return response;

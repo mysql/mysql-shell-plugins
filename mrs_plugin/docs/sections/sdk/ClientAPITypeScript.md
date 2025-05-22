@@ -230,6 +230,79 @@ note1.title = 'bar';
 myService.mrsNotes.note.createMany({ data: [note1, note2] });
 ```
 
+## View.find (TS)
+
+`find` is used to query the subset of REST [Documents](#rest-document) (that optionally match a given filter) in the first page.
+
+### Options (find)
+
+| Name | Type | Required | Description
+|---|---|---|---------------------
+| cursor | object | No | Retrieve documents using unique and sequential fields as cursor.
+| orderBy | object | No | Determines the sort order of specific fields.
+| select | object | No | Specifies which properties to include in the returned object.
+| skip  | number | No | How many documents to skip before returning one of the matches.
+| where | object  | No | Filtering conditions that apply to specific fields.
+| take  | number | No | The maximum size of the page.
+| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers.
+
+: REST View Options (find)
+
+### Return Type (find)
+
+An array of JSON objects representing the first page of REST Documents matching the filter. If there are more matching REST Documents, the array contains an additional `hasMore` truthy property and a `next()` async function that automatically retrieves the subsequent page of REST Documents.
+
+### Reference (find)
+
+```TypeScript
+async function find ({ cursor, orderBy, select, skip, take, where }: IFindManyOptions<Item, Filterable, Cursors>): Promise<PaginatedList<Item>> {
+    // ...
+}
+
+interface IFindManyOptions<Item, Filterable, Iterable> {
+    cursor?: Cursor<Iterable>;
+    orderBy?: ColumnOrder<Filterable>;
+    select?: BooleanFieldMapSelect<Item> | FieldNameSelect<Item>;
+    skip?: number;
+    take?: number;
+    where?: DataFilter<Filterable>;
+    readOwnWrites?: boolean;
+}
+
+export interface IExhaustedList<T> extends Array<T> {
+    hasMore: false,
+}
+
+export interface INotExhaustedList<T> extends Array<T> {
+    hasMore: true,
+    next(): Promise<PaginatedList<T>>,
+}
+
+export type PaginatedList<T> = IExhaustedList<T> | INotExhaustedList<T>;
+```
+
+### Example (find)
+
+```TypeScript
+import { MyService } from './myService.mrs.sdk/myService';
+
+const myService = new MyService();
+
+// get all notes of the first page
+await myService.mrsNotes.note.find();
+// get the first 3 notes
+await myService.mrsNotes.note.find({ take: 3 });
+// get notes of then first page where the id is greater than 10
+await myService.mrsNotes.note.find({ where: { id: { $gt: 10 } } });
+
+// iterate over the pages
+let notes = await myService.mrsNotes.note.find();
+if (notes.hasMore) {
+    // automatically get the next page (if there is one)
+    notes = await notes.next();
+}
+```
+
 ## View.findFirst (TS)
 
 `findFirst` is used to query the first REST Document (**in no specific order**) that matches a given optional filter.
@@ -346,120 +419,6 @@ await myService.mrsNotes.note.findUnique({ where: { id: { $eq: 4 } } });
 `findUniqueOrThrow` differs from `findUnique` as follows:
 
 - Its return type is non-nullable. For example, myService.mrsNotes.note.findUnique() can return a note or undefined, but myService.mrsNotes.note.findUniqueOrThrow() always returns a note.
-
-## View.findMany (TS)
-
-`findMany` is used to query a subset of REST [Documents](#rest-document) in one or more pages, and optionally, those that match a given filter. To find all REST Documents see [findAll](#findall).
-
-### Options (findMany)
-
-| Name | Type | Required | Description
-|---|---|---|---------------------
-| cursor | object | No | Retrieve documents using unique and sequential fields as cursor.
-| iterator | boolean | No | Enable or disable iterator behavior.
-| orderBy | object | No | Determines the sort order of specific fields.
-| select | object | No | Specifies which properties to include in the returned object.
-| skip  | number | No | How many documents to skip before returning one of the matches.
-| where | object  | No | Filtering conditions that apply to specific fields.
-| take  | number | No | Maximum number of documents to return.
-| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers.
-
-: REST View Options (findMany)
-
-### Return Type (findMany)
-
-An array of JSON objects representing the REST Documents that match the filter.
-
-### Reference (findMany)
-
-```TypeScript
-async function findMany ({ cursor, iterator = true, orderBy, select, skip, take, where }: IFindManyOptions<Item, Filterable, Cursors>): Promise<Item[]> {
-    // ...
-}
-
-interface IFindManyOptions<Item, Filterable, Iterable> {
-    cursor?: Cursor<Iterable>;
-    iterator?: boolean;
-    orderBy?: ColumnOrder<Filterable>;
-    select?: BooleanFieldMapSelect<Item> | FieldNameSelect<Item>;
-    skip?: number;
-    take?: number;
-    where?: DataFilter<Filterable>;
-    readOwnWrites?: boolean;
-}
-```
-
-### Example (findMany)
-
-```TypeScript
-import { MyService } from './myService.mrs.sdk/myService';
-
-const myService = new MyService();
-
-// get all notes of the first page
-await myService.mrsNotes.note.findMany();
-// get the first 3 notes
-await myService.mrsNotes.note.findMany({ take: 3 });
-// get notes of then first page where the id is greater than 10
-await myService.mrsNotes.note.findMany({ where: { id: { $gt: 10 } } });
-```
-
-## View.findAll (TS)
-
-`findAll` is used to query every REST [Document](#rest-document), and optionally, all those that match a given filter. To get a paginated subset of documents, see [findMany](#findmany).
-
-### Options (findAll)
-
-| Name | Type | Required | Description
-|---|---|---|---
-| cursor | object | No | Retrieve documents using unique and sequential fields as cursor.
-| orderBy | object | No | Determines the sort order of specific fields.
-| progress | function | No | Specifies a function to be called back when reporting progress.
-| select | object | No | Specifies which properties to include in the returned object.
-| skip  | number | No | How many documents to skip before returning one of the matches.
-| where | object  | No | Filtering conditions that apply to specific fields.
-| readOwnWrites | boolean | No | Ensures read consistency for a cluster of servers.
-
-: REST View Options (findAll)
-
-### Return Type (findAll)
-
-An array of JSON objects representing the REST Documents that match the filter.
-
-### Reference (findAll)
-
-```TypeScript
-async function findAll (args?: IFindAllOptions<Item, Filterable>): Promise<Item[]> {
-    // ...
-}
-
-interface IFindAllOptions<Item, Filterable> {
-    cursor?: Cursor<Iterable>;
-    orderBy?: ColumnOrder<Filterable>;
-    progress?: progress?: (items: Item[]) => Promise<void>;
-    select?: BooleanFieldMapSelect<Item> | FieldNameSelect<Item>;
-    skip?: number;
-    where?: DataFilter<Filterable>;
-    readOwnWrites?: boolean;
-}
-```
-
-### Example (findAll)
-
-```TypeScript
-import { MyService } from './myService.mrs.sdk/myService';
-
-const myService = new MyService();
-
-// get all notes
-await myService.mrsNotes.note.findAll();
-// get all notes after the first 10
-await myService.mrsNotes.note.findAll({ skip: 10 });
-// get all notes and report the progress
-await myService.mrsNotes.note.findMany({ progress: (notes) => {
-    console.log(`Retrieved ${notes.length} notes.`);
-}});
-```
 
 ## View.delete (TS)
 
