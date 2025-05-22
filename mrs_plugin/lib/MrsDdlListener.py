@@ -1918,7 +1918,7 @@ class MrsDdlListener(MRSListener):
         self.mrs_object = {
             "line": ctx.start.line,
             "current_operation": "SHOW REST AUTH APPS",
-            "any_service": ctx.ANY_SYMBOL(),
+            "url_context_root": ctx.serviceRequestPath().getText() if ctx.serviceRequestPath() else None
         }
 
     def exitShowRestAuthAppsStatement(self, ctx):

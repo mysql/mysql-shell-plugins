@@ -2647,7 +2647,7 @@ class MrsDdlExecutor(MrsDdlExecutorInterface):
         self.current_operation = mrs_object.pop("current_operation")
 
         try:
-            service_id = self.get_given_or_current_service_id(mrs_object)
+            service_id = self.get_given_or_current_service_id(mrs_object, allow_not_set=True)
 
             auth_apps = lib.auth_apps.get_auth_apps(
                 session=self.session, service_id=service_id
