@@ -12,6 +12,8 @@ import {
     JsonObject,
     JsonValue,
     MaybeNull,
+    IMrsLoginResult,
+    IAuthenticateOptions,
     MrsBaseObjectProcedureCall,
 } from "./MrsBaseClasses";
 
@@ -21,7 +23,7 @@ export type { IMrsAuthUser, IMrsAuthStatus } from "./MrsBaseClasses";
 /*
  * MRS Object - /chatApp/chat/heatwaveChatAsync (PROCEDURE)
  */
-class ChatAppChatHeatwaveChatAsyncParamsObject extends MrsBaseObject {
+class ChatAppChatHeatwaveChatAsyncObject extends MrsBaseObject {
 
     public call = async (heatwaveChatAsyncParams?: IChatAppChatHeatwaveChatAsyncParams): Promise<IMrsProcedureResult<IChatAppChatHeatwaveChatAsyncParamsOut, IChatAppChatHeatwaveChatAsyncResultSet>> => {
         const request = new MrsBaseObjectProcedureCall<IChatAppChatHeatwaveChatAsyncParams, IChatAppChatHeatwaveChatAsyncParamsOut, IChatAppChatHeatwaveChatAsyncResultSet>(
@@ -48,7 +50,7 @@ export type IChatAppChatHeatwaveChatAsyncResultSet = JsonObject;
 /*
  * MRS Object - /chatApp/chat/heatwaveChatAsyncResult (PROCEDURE)
  */
-class ChatAppChatHeatwaveChatAsyncResultParamsObject extends MrsBaseObject {
+class ChatAppChatHeatwaveChatAsyncResultObject extends MrsBaseObject {
 
     public call = async (heatwaveChatAsyncResultParams?: IChatAppChatHeatwaveChatAsyncResultParams): Promise<IMrsProcedureResult<IChatAppChatHeatwaveChatAsyncResultParamsOut, IChatAppChatHeatwaveChatAsyncResultResultSet>> => {
         const request = new MrsBaseObjectProcedureCall<IChatAppChatHeatwaveChatAsyncResultParams, IChatAppChatHeatwaveChatAsyncResultParamsOut, IChatAppChatHeatwaveChatAsyncResultResultSet>(
@@ -75,19 +77,19 @@ export type IChatAppChatHeatwaveChatAsyncResultResultSet = JsonObject;
 
 
 class ChatAppChat extends MrsBaseSchema {
-    #heatwaveChatAsync?: ChatAppChatHeatwaveChatAsyncParamsObject;
-    #heatwaveChatAsyncResult?: ChatAppChatHeatwaveChatAsyncResultParamsObject;
+    #heatwaveChatAsync?: ChatAppChatHeatwaveChatAsyncObject;
+    #heatwaveChatAsyncResult?: ChatAppChatHeatwaveChatAsyncResultObject;
 
-    public get heatwaveChatAsync(): ChatAppChatHeatwaveChatAsyncParamsObject {
+    public get heatwaveChatAsync(): ChatAppChatHeatwaveChatAsyncObject {
         if (this.#heatwaveChatAsync === undefined) {
-            this.#heatwaveChatAsync = new ChatAppChatHeatwaveChatAsyncParamsObject(this, "/heatwaveChatAsync");
+            this.#heatwaveChatAsync = new ChatAppChatHeatwaveChatAsyncObject(this, "/heatwaveChatAsync");
         }
 
         return this.#heatwaveChatAsync;
     }
-    public get heatwaveChatAsyncResult(): ChatAppChatHeatwaveChatAsyncResultParamsObject {
+    public get heatwaveChatAsyncResult(): ChatAppChatHeatwaveChatAsyncResultObject {
         if (this.#heatwaveChatAsyncResult === undefined) {
-            this.#heatwaveChatAsyncResult = new ChatAppChatHeatwaveChatAsyncResultParamsObject(this, "/heatwaveChatAsyncResult");
+            this.#heatwaveChatAsyncResult = new ChatAppChatHeatwaveChatAsyncResultObject(this, "/heatwaveChatAsyncResult");
         }
 
         return this.#heatwaveChatAsyncResult;
@@ -112,5 +114,14 @@ export class ChatApp extends MrsBaseService {
         return this.#chat;
     }
 
+    public async authenticate(options: IAuthenticateOptions): Promise<IMrsLoginResult> {
+        const { username, password, app, vendor } = options ?? {};
+
+        return super.authenticate({ username, password, app, vendor });
+    }
+
+    public async deauthenticate(): Promise<void> {
+        await super.deauthenticate();
+    }
 }
 

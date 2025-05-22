@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/no-autofocus */
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,12 +27,12 @@
 import { Component, ComponentChild } from "preact";
 import InputForm from "../../components/InputForm";
 import style from "../../components/InputForm.module.css";
-import type { IMyServiceMrsNotesNote, MyService } from "../../myService.mrs.sdk/myService";
+import type { IMyServiceMrsNotesNotesAll, MyService } from "../../myService.mrs.sdk/myService";
 
 interface IShareProps {
     showPage: (page: string) => Promise<void>;
     showError: (error: unknown) => void;
-    activeNote?: IMyServiceMrsNotesNote;
+    activeNote?: IMyServiceMrsNotesNotesAll;
     myService: MyService;
 }
 

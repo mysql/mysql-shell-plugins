@@ -118,63 +118,26 @@ In the following examples case the `sakila.city` database table was used, as can
 ts> myService.sakila.city.findFirst();
 {
    "city": "A Corua (La Corua)",
-   "links": [
-      {
-         "rel": "self",
-         "href": "/myService/sakila/city/1"
-      }
-   ],
    "cityId": 1,
    "countryId": 87,
    "lastUpdate": "2006-02-15 04:45:25.000000",
-   "_metadata": {
-      "etag": "EE93452B41984F3F5BBB0395CCB2CED00F5C748FEEA4A36CCD749CC3F85B7CEA"
-   }
 }
 ```
 
 The fields can be filtered and a conditional `where` clause can be added. Please refer to the [MRS SDK Client API](sdk.html#document-top) documentation for more information.
 
 ```ts
-ts> myService.sakila.city.findMany({select: ["city", "cityId"], where: {city: {$like: "NE%"}}});
-{
-    "items": [
-        {
-            "city": "Newcastle",
-            "links": [
-                {
-                    "rel": "self",
-                    "href": "/myService/sakila/city/364"
-                }
-            ],
-            "cityId": 364,
-            "_metadata": {}
-        },
-        {
-            "city": "Nezahualcyotl",
-            "links": [
-                {
-                    "rel": "self",
-                    "href": "/myService/sakila/city/365"
-                }
-            ],
-            "cityId": 365,
-            "_metadata": {
-                "etag": "681C34301F6ED6FD1200505C9C2CFB90E3367A267B7AADBD85186D781FEC7C19"
-            }
-        }
-    ],
-    "limit": 25,
-    "offset": 0,
-    "hasMore": false,
-    "count": 2,
-    "links": [
-        {
-            "rel": "self",
-            "href": "/myService/sakila/city/"
-        }
-    ]
-}
+ts> myService.sakila.city.find({select: ["city", "cityId"], where: {city: {$like: "NE%"}}});
+[
+    {
+        "city": "Newcastle",
+        "cityId": 364,
+    },
+    {
+        "city": "Nezahualcyotl",
+        "cityId": 365,
+    }
+]
 ```
 
 To quickly edit a REST DB Object using the [REST Object dialog](#mrs-object-dialog), the `edit()` function can be used. Please note that this function is only available on DB Notebooks.

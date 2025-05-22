@@ -120,12 +120,9 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
             }
 
             const take = 5;
-            let iterator = 0;
-            let sliceOfNotes;
 
             const options = {
                 take,
-                skip: 0,
                 select: {
                     content: false,
                 },
@@ -136,12 +133,15 @@ export default class Notes extends Component<INotesPageProps, INotesPageState> {
                 },
             };
 
-            while ((sliceOfNotes = await myService.mrsNotes.notesAll.findMany(options)).length) {
+            let sliceOfNotes = await myService.mrsNotes.notesAll.find(options);
+            newNotes.push(...sliceOfNotes);
+            // Set a new state of the newNotes to trigger a re-render
+            this.setState({ notes: newNotes });
+            while (sliceOfNotes.hasMore) {
+                sliceOfNotes = await sliceOfNotes.next();
                 newNotes.push(...sliceOfNotes);
                 // Set a new state of the newNotes to trigger a re-render
                 this.setState({ notes: newNotes });
-                iterator += 1;
-                options.skip = iterator * take;
             }
 
             if (newNotes.length === 0) {

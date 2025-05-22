@@ -26,7 +26,7 @@
 import { assertType, describe, expectTypeOf, it } from "vitest";
 import {
     type PureFilter, type DataFilter, type BooleanFieldMapSelect, type ColumnOrder, type FieldNameSelect,
-    type IFindFirstOptions, type IFindManyOptions, type IFindUniqueOptions, type IFindAllOptions,
+    type IFindFirstOptions, type IFindManyOptions, type IFindUniqueOptions,
     type IMrsResourceCollectionData, type MaybeNull, type Point, type MultiPoint, type LineString,
     type MultiLineString, type Polygon, type MultiPolygon, type Geometry, type GeometryCollection,
     type HighOrderFilter, type ComparisonOpExpr, type MrsResourceObject, type Cursor, type IDeleteOptions,
@@ -348,16 +348,6 @@ describe("MRS SDK base types", () => {
             expectTypeOf(options.where).toEqualTypeOf<DataFilter<{ name: string; }> | undefined>();
         });
 
-        it("allows to enable or disable iterator behavior", () => {
-            const options: IFindManyOptions<unknown, unknown, unknown> = {};
-            expectTypeOf(options).toHaveProperty("iterator");
-            expectTypeOf(options.iterator).toEqualTypeOf<boolean | undefined>();
-        });
-
-        it("does not accept a progress callback with the list of items retrieved", () => {
-            expectTypeOf<IFindManyOptions<unknown, unknown, unknown>>().not.toHaveProperty("progress");
-        });
-
         it("allows to set a pagination cursor when there is an eligible field", () => {
             interface IIterable { id: string }
             const options: IFindManyOptions<unknown, unknown, IIterable> = {};
@@ -373,69 +363,6 @@ describe("MRS SDK base types", () => {
             expectTypeOf<IFindManyOptions<unknown, unknown>>().toHaveProperty("readOwnWrites");
             expectTypeOf({ readOwnWrites: true }).toMatchTypeOf<IFindManyOptions<unknown, unknown>>();
             expectTypeOf({ readOwnWrites: false }).toMatchTypeOf<IFindManyOptions<unknown, unknown>>();
-        });
-    });
-
-    describe("IFindAllOptions", () => {
-        it("accepts the appropriate option to order the result set", () => {
-            const options: IFindAllOptions<unknown, { name: string; }, unknown> = {};
-            expectTypeOf(options).toHaveProperty("orderBy");
-            expectTypeOf(options.orderBy).toEqualTypeOf<ColumnOrder<{ name: string; }> | undefined>();
-        });
-
-        it("accepts the appropriate option to select specific fields from the records in the result set", () => {
-            const options: IFindAllOptions<{ name: string; }, unknown, unknown> = {};
-            expectTypeOf(options).toHaveProperty("select");
-            expectTypeOf(options.select).toEqualTypeOf<
-                BooleanFieldMapSelect<{ name: string; }> | FieldNameSelect<{ name: string; }> | undefined>();
-        });
-
-        it("does not accept the maximum number of records to include in the result set", () => {
-            expectTypeOf<IFindAllOptions<unknown, unknown, unknown>>().not.toHaveProperty("take");
-        });
-
-        it("accepts the number for records to skip in the result set", () => {
-            const options: IFindAllOptions<{ name: string; }, unknown, unknown> = {};
-            expectTypeOf(options).toHaveProperty("skip");
-            expectTypeOf(options.skip).toEqualTypeOf<number | undefined>();
-        });
-
-        it("accepts the appropriate option to filter the records in the result set", () => {
-            const options: IFindAllOptions<unknown, { name: string; }, unknown> = {};
-            expectTypeOf(options).toHaveProperty("where");
-            expectTypeOf(options.where).toEqualTypeOf<DataFilter<{ name: string; }> | undefined>();
-        });
-
-        it("does not allow to enable or disable iterator behavior", () => {
-            expectTypeOf<IFindAllOptions<unknown, unknown, unknown>>().not.toHaveProperty("iterator");
-        });
-
-        it("accepts a progress callback with the list of items retrieved at each step", () => {
-            interface IItem { name: string }
-            const fetchAll: IFindAllOptions<IItem, unknown, unknown> = {};
-            const callback: ((items: IItem[]) => Promise<void>) = () => {
-                return Promise.resolve();
-            };
-
-            expectTypeOf(fetchAll).toHaveProperty("progress");
-            expectTypeOf(fetchAll.progress).toEqualTypeOf<typeof callback | undefined>();
-        });
-
-        it("allows to set a pagination cursor when there is an eligible field", () => {
-            interface IIterable { id: string }
-            const options: IFindAllOptions<unknown, unknown, IIterable> = {};
-            expectTypeOf(options).toHaveProperty("cursor");
-            expectTypeOf(options.cursor).toEqualTypeOf<Cursor<IIterable> | undefined>();
-        });
-
-        it("does not allow to set a pagination cursor when there are no eligible fields", () => {
-            expectTypeOf<IFindAllOptions<unknown, unknown>>().not.toHaveProperty("cursor");
-        });
-
-        it("allows to enforce read-your-writes consistency", () => {
-            expectTypeOf<IFindAllOptions<unknown, unknown>>().toHaveProperty("readOwnWrites");
-            expectTypeOf({ readOwnWrites: true }).toMatchTypeOf<IFindAllOptions<unknown, unknown>>();
-            expectTypeOf({ readOwnWrites: false }).toMatchTypeOf<IFindAllOptions<unknown, unknown>>();
         });
     });
 

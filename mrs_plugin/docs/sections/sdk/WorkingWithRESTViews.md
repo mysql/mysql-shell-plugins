@@ -67,16 +67,92 @@ To fetch documents from a REST view the family of `find` API commands is used. E
 
 | API Command | Description
 | --- | ---
+| find() | Fetches a page of the list of documents that were found.
 | findFirst() | Fetches the first document that was found.
 | findFirstOrThrow() | Same as findFirst() but throws when there was no document found.
 | findUnique() | Fetches the first document that matches a unique key lookup.
 | findUniqueOrThrow() | Same as findUnique() but throws when there was no document found.
-| findMany() | Fetches a page of the list of documents that were found.
-| findEach() | Returns an iterator on the list of documents that were found, using a local page cache.
 
 : Family of `find` API Commands
 
 > Please not that exact spelling of the API commands depends on the actual SDK language used, as its specific naming conventions (e.g. snake_case for Python) are honored.
+
+### Querying Data in Multiple Pages
+
+When a query for a REST View produces multiple documents, those are sent to the client organized in a set of pages that can be requested on demand. Each page contains, by default, 25 documents at most. The page size can be customized at the REST object level or by using the `take` option in the `find()` command. The command works by fetching the first page of documents, and provides additional infrastructure to keep consuming more matching documents whilst they exist.
+
+For example, retrieving the first 50 documents with the default page size can be done as follows:
+
+```TypeScript
+let countries = await myService.sakila.country.find();
+print(countries)
+if (countries.hasMore) {
+    countries = await countries.next();
+    print(countries)
+}
+[
+  {
+    "country": "Afghanistan",
+    "countryId": 1,
+    "lastUpdate": "2006-02-15 04:44:00.000000",
+  },
+  // ...
+  {
+    "country": "Congo, The Democratic Republic of the",
+    "countryId": 25,
+    "lastUpdate": "2006-02-15 04:44:00.000000",
+  },
+]
+[
+  {
+    "country": "Czech Republic",
+    "countryId": 26,
+    "lastUpdate": "2006-02-15 04:44:00.000000",
+  },
+  // ...
+  {
+    "country": "Japan",
+    "countryId": 50,
+    "lastUpdate": "2006-02-15 04:44:00.000000",
+  }
+]
+```
+
+Retrieving all documents under a given filter, whilst skipping an initial number of them and lowering the page size can be done as follows:
+
+```TypeScript
+let countries = await myService.sakila.country.find({ where: { country: { $like: "C%" } }, take: 3, skip: 2 });
+print(countries)
+while (countries.hasMore) {
+    countries = await countries.next();
+    print(countries)
+}
+[
+  {
+    "country": "Canada",
+    "countryId": 20,
+    "lastUpdate": "2006-02-15 04:44:00.000000",
+  },
+  {
+    "country": "Chad",
+    "countryId": 21,
+    "lastUpdate": "2006-02-15 04:44:00.000000",
+  },
+  {
+    "country": "Chile",
+    "countryId": 22,
+    "lastUpdate": "2006-02-15 04:44:00.000000",
+  },
+]
+// ...
+[
+  {
+    "country": "Czech Republic",
+    "countryId": 26,
+    "lastUpdate": "2006-02-15 04:44:00.000000",
+  }
+]
+```
 
 ### Querying Data Across Relational Tables
 
@@ -91,7 +167,7 @@ A key feature of the MRS SDK is the ability to query these relations between two
 This feature is available using the `select` option in the following API commands:
 
 - `findFirst()`
-- `findMany()`
+- `find()`
 - `findUnique()`
 
 By default, all the object fields (expanded or not) and their values are returned in the query response. Specific fields can be excluded from the query response using a plain object format in which the properties are the names of the fields to exclude and each value is `false`.
@@ -102,12 +178,6 @@ With a setup using the [Sakila Sample Database](https://dev.mysql.com/doc/sakila
 myService.sakila.city.findFirst({ select: { lastUpdate: false, country: { lastUpdate: false } } })
 {
   "city": "A Coruña (La Coruña)",
-  "links": [
-    {
-      "rel": "self",
-      "href": "/myService/sakila/city/1"
-    }
-  ],
   "cityId": 1,
   "country": {
     "country": "Spain",
@@ -123,12 +193,6 @@ In the same way, if the relationship between the `actor` and `film` tables (many
 myService.sakila.actor.findFirst({ select: { filmActor: { actorId: false, film: { filmId: false, languageId: false, originalLanguageId: false } } } })
 {
   {
-  "links": [
-    {
-      "rel": "self",
-      "href": "/myService/sakila/actor/58"
-    }
-  ],
   "actorId": 58,
   "lastName": "AKROYD",
   "filmActor": [
@@ -163,12 +227,6 @@ In the same way, this is possible for one-to-one relationships:
 myService.sakila.city.findFirst({ select: { city: true, country: { country: true } } })
 {
   "city": "A Coruña (La Coruña)",
-  "links": [
-    {
-      "rel": "self",
-      "href": "/myService/sakila/city/1"
-    }
-  ],
   "country": {
     "country": "Spain",
   }
@@ -180,13 +238,6 @@ And also for many-to-many relationships:
 ```TypeScript
 myService.sakila.actor.findFirst({ select: ['filmActor.film.title'] })
 {
-  {
-  "links": [
-    {
-      "rel": "self",
-      "href": "/myService/sakila/actor/58"
-    }
-  ],
   "filmActor": [
     {
       "film": {
@@ -335,12 +386,11 @@ It is, in essence, and in layman's terms, an identifier that is provided to a cl
 
 In the MySQL REST Service, it is possible to ensure an application is able to read its own writes consistently in a cluster of MySQL instances only when retrieving resources or deleting resources. Using the TypeScript SDK, this can be done with the `readOwnWrites` option available for the following commands:
 
+  - `find()`
   - `findFirst()`
   - `findFirstOrThrow()`
   - `findUnique()`
   - `findUniqueOrThrow()`
-  - `findMany()`
-  - `findAll()`
   - `delete()`
   - `deleteMany()`
 

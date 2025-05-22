@@ -538,6 +538,17 @@ export interface IMrsDeleteResult {
     _metadata?: Pick<IMrsResourceMetadata, "gtid">,
 }
 
+export interface IExhaustedList<T> extends Array<T> {
+    hasMore: false,
+}
+
+export interface INotExhaustedList<T> extends Array<T> {
+    hasMore: true,
+    next(): Promise<PaginatedList<T>>,
+}
+
+export type PaginatedList<T> = IExhaustedList<T> | INotExhaustedList<T>;
+
 export type DataFilter<Type> = DelegationFilter<Type> | HighOrderFilter<Type>;
 
 export type DelegationFilter<Type> = {
@@ -810,24 +821,11 @@ export type IFindFirstOptions<Item, Filterable, Iterable = never> = CursorEnable
 
 /** Options available to find multiple that optionally match a given filter. */
 export type IFindManyOptions<Item, Filterable, Iterable = never> = IFindFirstOptions<Item, Filterable, Iterable> & {
-    /** Enables or disables iterator behavior for findMany(). */
-    iterator?: boolean;
     /** Set the maximum number of records in the result set. */
     take?: number;
 };
 
-/** Options available to customize the result set page size. */
-export type IFindAllOptions<Item, Filterable, Iterable = never> = IFindFirstOptions<Item, Filterable, Iterable> & {
-    /**
-     * Asynchronous function to handle progress updates.
-     * @param items The list of records in the result set.
-     * @returns A Promise that resolves once the result set is complete.
-     */
-    progress?: (items: Item[]) => Promise<void>;
-};
-
-type IFindRangeOptions<Item, Filterable, Iterable> = IFindAllOptions<Item, Filterable, Iterable>
-| IFindFirstOptions<Item, Filterable, Iterable>
+type IFindRangeOptions<Item, Filterable, Iterable> = IFindFirstOptions<Item, Filterable, Iterable>
 | IFindManyOptions<Item, Filterable, Iterable>;
 
 export type IFindOptions<Item, Filterable, Iterable> = IFindRangeOptions<Item, Filterable, Iterable>
@@ -1220,55 +1218,6 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable = never, ResourceIdFi
         return collection.getInstance();
     };
 
-    /**
-     * Fetches all items that match an optional where condition.
-     *
-     * Items are fetched in pages with the size of pageSize or with the size parameter specified with a call to the
-     * this.pageSize() function. An optional progress callback can be specified that is called with the data of each
-     * page.
-     *
-     * @param progress An optional callback function that is called for each page that is fetched.
-     * @returns A list of typed IMrsResourceDetails
-     */
-    public fetchAll = async (progress?: (items: Item[]) => Promise<void>):
-    Promise<IMrsResourceCollectionData<Item>> => {
-        const res: IMrsResourceCollectionData<Item> = {
-            items: [],
-            limit: 25,
-            offset: 0,
-            hasMore: false,
-            count: 0,
-            links: [],
-        };
-
-        let hasMore = true;
-
-        while (hasMore) {
-            const current = await this.fetch();
-
-            // increase the global response count
-            res.count += current.count;
-
-            hasMore = current.hasMore;
-            res.hasMore = hasMore;
-
-            // add the remaining items
-            for (const item of current.items) {
-                res.items.push(item);
-            }
-
-            res.limit = current.limit;
-            res.links = current.links;
-            res.offset = current.offset;
-
-            if (progress !== undefined) {
-                await progress(res.items);
-            }
-        }
-
-        return res;
-    };
-
     public fetchOne = async (): Promise<MrsResourceObject<Item> | undefined> => {
         const resultList = await this.fetch();
 
@@ -1629,7 +1578,7 @@ export interface IMrsTaskStartOptions {
 }
 
 export interface IMrsTaskRunOptions<MrsTaskStatusUpdate, MrsTaskResult> extends IMrsTaskStartOptions {
-    progress?: (report: IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>) => Promise<void>;
+    progress?(this: void, report: IMrsRunningTaskReport<MrsTaskStatusUpdate, MrsTaskResult>): Promise<void>;
 }
 
 interface IMrsTaskStartResponse {
@@ -1703,7 +1652,7 @@ export class MrsBaseTaskStart<MrsTaskInputParameters> {
     }
 }
 
-class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
+export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
     public constructor(
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
@@ -1728,24 +1677,23 @@ class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
         const startedAt = Date.now();
         const { refreshRate = 2000, progress, timeout } = this.options;
 
-        if (refreshRate < 500) {
-            throw new Error("Refresh rate needs to be greater than or equal to 500ms.");
-        }
-
         while (true) {
             if (timeout !== undefined && Date.now() - startedAt > timeout) {
-                return yield { message: `The timeout of ${timeout} ms has been exceeded.`, status: "TIMEOUT" };
+                // a client-side timeout should not close the producer
+                yield { message: `The timeout of ${timeout} ms has been exceeded.`, status: "TIMEOUT" };
             }
 
             const statusUpdate = await this.#getStatus();
 
             if (statusUpdate.status === "ERROR" || statusUpdate.status === "CANCELLED") {
+                // these are both final status reports so they should close the producer
                 const { message, status } = statusUpdate;
 
                 return yield { message, status };
             }
 
             if (statusUpdate.status === "COMPLETED") {
+                // also a final status report that should close the producer
                 const { message, status } = statusUpdate;
                 const data = statusUpdate.data as MrsTaskResult;
 
@@ -1797,7 +1745,10 @@ export class MrsTask<MrsTaskStatusUpdate, MrsTaskResult> {
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
         public readonly id: string,
-        private readonly options?: IMrsTaskRunOptions<MrsTaskStatusUpdate, MrsTaskResult>) {
+        private readonly options: IMrsTaskRunOptions<MrsTaskStatusUpdate, MrsTaskResult> = { refreshRate: 2000 }) {
+        if (typeof options.refreshRate !== "number" || options.refreshRate < 500) {
+            throw new Error("Refresh rate needs to be a number greater than or equal to 500ms.");
+        }
     }
 
     public async kill(): Promise<void> {

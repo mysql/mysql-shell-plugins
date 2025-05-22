@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -26,12 +26,12 @@
 import { Component, ComponentChild } from "preact";
 import Icon from "../../components/Icon";
 import styles from "./NotesList.module.css";
-import { IMyServiceMrsNotesNote, IMyServiceMrsNotesNotesAll } from "../../myService.mrs.sdk/myService";
+import { IMyServiceMrsNotesNotesAll } from "../../myService.mrs.sdk/myService";
 
 interface INotesListProps {
     style?: {};
     notes: IMyServiceMrsNotesNotesAll[];
-    activeNote?: IMyServiceMrsNotesNote;
+    activeNote?: IMyServiceMrsNotesNotesAll;
     noteSearchText?: string;
     searchNotes: (noteSearchText: string) => void;
     setActiveNoteById: (noteId?: number, setFocus?: boolean) => Promise<void>;

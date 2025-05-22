@@ -2128,63 +2128,26 @@ Service - Reference Manual
                 class="sourceCode ts"><code class="sourceCode typescript"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>{</span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;city&quot;</span><span class="op">:</span> <span class="st">&quot;A Corua (La Corua)&quot;</span><span class="op">,</span></span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>      {</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>         <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>         <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>      }</span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>   ]<span class="op">,</span></span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;cityId&quot;</span><span class="op">:</span> 1<span class="op">,</span></span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;countryId&quot;</span><span class="op">:</span> 87<span class="op">,</span></span>
-<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;lastUpdate&quot;</span><span class="op">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="op">,</span></span>
-<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {</span>
-<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;etag&quot;</span><span class="op">:</span> <span class="st">&quot;EE93452B41984F3F5BBB0395CCB2CED00F5C748FEEA4A36CCD749CC3F85B7CEA&quot;</span></span>
-<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>   }</span>
-<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;cityId&quot;</span><span class="op">:</span> 1<span class="op">,</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;countryId&quot;</span><span class="op">:</span> 87<span class="op">,</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>   <span class="st">&quot;lastUpdate&quot;</span><span class="op">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="op">,</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
                 <p>The fields can be filtered and a conditional
                 <code>where</code> clause can be added. Please refer to
                 the <a href="sdk.html#document-top">MRS SDK Client
                 API</a> documentation for more information.</p>
                 <div class="sourceCode" id="cb26"><pre
-                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findMany</span>({select<span class="op">:</span> [<span class="st">&quot;city&quot;</span><span class="op">,</span> <span class="st">&quot;cityId&quot;</span>]<span class="op">,</span> where<span class="op">:</span> {city<span class="op">:</span> {$like<span class="op">:</span> <span class="st">&quot;NE%&quot;</span>}}})<span class="op">;</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>{</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;items&quot;</span><span class="op">:</span> [</span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>        {</span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;city&quot;</span><span class="op">:</span> <span class="st">&quot;Newcastle&quot;</span><span class="op">,</span></span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>                {</span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
-<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/city/364&quot;</span></span>
-<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>                }</span>
-<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>            ]<span class="op">,</span></span>
-<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;cityId&quot;</span><span class="op">:</span> 364<span class="op">,</span></span>
-<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {}</span>
-<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>        }<span class="op">,</span></span>
-<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>        {</span>
-<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;city&quot;</span><span class="op">:</span> <span class="st">&quot;Nezahualcyotl&quot;</span><span class="op">,</span></span>
-<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
-<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>                {</span>
-<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
-<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/city/365&quot;</span></span>
-<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>                }</span>
-<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>            ]<span class="op">,</span></span>
-<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;cityId&quot;</span><span class="op">:</span> 365<span class="op">,</span></span>
-<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;_metadata&quot;</span><span class="op">:</span> {</span>
-<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;etag&quot;</span><span class="op">:</span> <span class="st">&quot;681C34301F6ED6FD1200505C9C2CFB90E3367A267B7AADBD85186D781FEC7C19&quot;</span></span>
-<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>            }</span>
-<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a>    ]<span class="op">,</span></span>
-<span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;limit&quot;</span><span class="op">:</span> 25<span class="op">,</span></span>
-<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;offset&quot;</span><span class="op">:</span> 0<span class="op">,</span></span>
-<span id="cb26-31"><a href="#cb26-31" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;hasMore&quot;</span><span class="op">:</span> false<span class="op">,</span></span>
-<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;count&quot;</span><span class="op">:</span> 2<span class="op">,</span></span>
-<span id="cb26-33"><a href="#cb26-33" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;links&quot;</span><span class="op">:</span> [</span>
-<span id="cb26-34"><a href="#cb26-34" aria-hidden="true" tabindex="-1"></a>        {</span>
-<span id="cb26-35"><a href="#cb26-35" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;rel&quot;</span><span class="op">:</span> <span class="st">&quot;self&quot;</span><span class="op">,</span></span>
-<span id="cb26-36"><a href="#cb26-36" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;href&quot;</span><span class="op">:</span> <span class="st">&quot;/myService/sakila/city/&quot;</span></span>
-<span id="cb26-37"><a href="#cb26-37" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb26-38"><a href="#cb26-38" aria-hidden="true" tabindex="-1"></a>    ]</span>
-<span id="cb26-39"><a href="#cb26-39" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">find</span>({select<span class="op">:</span> [<span class="st">&quot;city&quot;</span><span class="op">,</span> <span class="st">&quot;cityId&quot;</span>]<span class="op">,</span> where<span class="op">:</span> {city<span class="op">:</span> {$like<span class="op">:</span> <span class="st">&quot;NE%&quot;</span>}}})<span class="op">;</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>[</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;city&quot;</span><span class="op">:</span> <span class="st">&quot;Newcastle&quot;</span><span class="op">,</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;cityId&quot;</span><span class="op">:</span> 364<span class="op">,</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;city&quot;</span><span class="op">:</span> <span class="st">&quot;Nezahualcyotl&quot;</span><span class="op">,</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;cityId&quot;</span><span class="op">:</span> 365<span class="op">,</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>]</span></code></pre></div>
                 <p>To quickly edit a REST DB Object using the <a
                 href="#mrs-object-dialog">REST Object dialog</a>, the
                 <code>edit()</code> function can be used. Please note
@@ -3403,7 +3366,7 @@ Service - Reference Manual
                 <code>ON ANY SERVICE</code> clause:</p>
                 <div class="sourceCode" id="cb48"><pre
                 class="sourceCode sql"><code class="sourceCode sql"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> REST <span class="kw">ROLE</span> <span class="ot">&quot;globalRole&quot;</span> <span class="kw">ON</span> <span class="kw">ANY</span> SERVICE;</span></code></pre></div>
-                <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+                <!-- Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
                 it under the terms of the GNU General Public License, version 2.0,

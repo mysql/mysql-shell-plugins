@@ -12,10 +12,14 @@ import {
     JsonObject,
     JsonValue,
     MaybeNull,
-    IFindAllOptions,
+    IMrsLoginResult,
+    IAuthenticateOptions,
+    IExhaustedList,
     IFindFirstOptions,
     IFindManyOptions,
     IFindUniqueOptions,
+    INotExhaustedList,
+    PaginatedList,
     MrsBaseObjectQuery,
     NotFoundError,
     ICreateOptions,
@@ -36,9 +40,8 @@ export type { IMrsAuthUser, IMrsAuthStatus } from "./MrsBaseClasses";
  */
 class MyServiceMrsNotesNoteObject extends MrsBaseObject {
 
-    #hasMore = true;
     public create = async (args: ICreateOptions<INewMyServiceMrsNotesNote>): Promise<IMyServiceMrsNotesNote> => {
-        const request = new MrsBaseObjectCreate<INewMyServiceMrsNotesNote, IMyServiceMrsNotesNote>(this.schema, this.requestPath, args);
+        const request = new MrsBaseObjectCreate<INewMyServiceMrsNotesNote, IMyServiceMrsNotesNote, ["id"]>(this.schema, this.requestPath, args, ["id"]);
         const response = await request.fetch();
 
         return response;
@@ -55,43 +58,47 @@ class MyServiceMrsNotesNoteObject extends MrsBaseObject {
 
         return result;
     };
-    public findAll = async (args?: IFindAllOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteCursors>): Promise<IMyServiceMrsNotesNote[]> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable>(
-            this.schema, this.requestPath, { ...args, take: 25 });
-        const response = await request.fetchAll(args?.progress);
-
-        return response.items;
-    };
-
-    public findMany = async ({ iterator = true, ...args }: IFindManyOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteCursors>): Promise<IMyServiceMrsNotesNote[]> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteCursors>(
-            this.schema, this.requestPath, args);
-
-        if (!this.#hasMore && iterator) {
-            this.#hasMore = true;
-
-            return [];
-        }
-
+    public async find(args?: IFindManyOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteCursors>): Promise<PaginatedList<IMyServiceMrsNotesNote>> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteCursors, ["id"]>(
+            this.schema, this.requestPath, args, ["id"]);
         const response = await request.fetch();
+        const docs: IMyServiceMrsNotesNote[] = response.items;
 
-        if (iterator) {
-            this.#hasMore = response.hasMore;
+        if (!response.hasMore) {
+            const paginatedList = docs as IExhaustedList<IMyServiceMrsNotesNote>;
+
+            return paginatedList;
         }
 
-        return response.items;
-    };
+        const paginatedList = docs as INotExhaustedList<IMyServiceMrsNotesNote>;
+        paginatedList.hasMore = true;
+        paginatedList.next = async () => {
+            return this.find({ ...args, skip: response.limit + response.offset });
+        };
 
-    public findFirst = async (args?: IFindFirstOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteCursors>): Promise<IMyServiceMrsNotesNote | undefined> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable>(
-            this.schema, this.requestPath, { ...args, take: 1 });
+        return paginatedList;
+    }
+
+    public async findFirst(args?: IFindFirstOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteCursors>): Promise<IMyServiceMrsNotesNote | undefined> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteCursors, ["id"]>(
+            this.schema, this.requestPath, { ...args, take: 1 }, ["id"]);
         const response = await request.fetchOne();
 
         return response;
-    };
+    }
+
+    public async findFirstOrThrow(args?: IFindFirstOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteFilterable, IMyServiceMrsNotesNoteCursors>): Promise<IMyServiceMrsNotesNote> {
+        const response = await this.findFirst(args);
+
+        if (response === undefined) {
+            throw new NotFoundError(`Document not found.`);
+        }
+
+        return response;
+    }
     public findUnique = async (args?: IFindUniqueOptions<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteUniqueFilterable>): Promise<IMyServiceMrsNotesNote | undefined> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteUniqueFilterable>(
-            this.schema, this.requestPath, { ...args, take: 1 });
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNote, IMyServiceMrsNotesNoteUniqueFilterable, never, ["id"]>(
+            this.schema, this.requestPath, { ...args, take: 1 }, ["id"]);
         const response = await request.fetchOne();
 
         return response;
@@ -101,7 +108,7 @@ class MyServiceMrsNotesNoteObject extends MrsBaseObject {
         const response = await this.findUnique(args);
 
         if (response === undefined) {
-            throw new NotFoundError(`Record not found.`);
+            throw new NotFoundError("Document not found.");
         }
 
         return response;
@@ -165,7 +172,7 @@ export interface IUpdateMyServiceMrsNotesNote {
 
 export interface IMyServiceMrsNotesNote {
     title?: string,
-    id?: number,
+    readonly id?: number,
     lastUpdate?: string,
     pinned?: boolean,
     userId?: string,
@@ -174,6 +181,8 @@ export interface IMyServiceMrsNotesNote {
     createDate?: string,
     lockedDown?: boolean,
     content?: MaybeNull<string>,
+    update(): Promise<IMyServiceMrsNotesNote>,
+    delete(): Promise<void>,
 }
 
 export interface IMyServiceMrsNotesNoteFilterable {
@@ -203,9 +212,8 @@ export interface IMyServiceMrsNotesNoteCursors {
  */
 class MyServiceMrsNotesUserObject extends MrsBaseObject {
 
-    #hasMore = true;
     public create = async (args: ICreateOptions<INewMyServiceMrsNotesUser>): Promise<IMyServiceMrsNotesUser> => {
-        const request = new MrsBaseObjectCreate<INewMyServiceMrsNotesUser, IMyServiceMrsNotesUser>(this.schema, this.requestPath, args);
+        const request = new MrsBaseObjectCreate<INewMyServiceMrsNotesUser, IMyServiceMrsNotesUser, ["id"]>(this.schema, this.requestPath, args, ["id"]);
         const response = await request.fetch();
 
         return response;
@@ -222,43 +230,47 @@ class MyServiceMrsNotesUserObject extends MrsBaseObject {
 
         return result;
     };
-    public findAll = async (args?: IFindAllOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserCursors>): Promise<IMyServiceMrsNotesUser[]> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable>(
-            this.schema, this.requestPath, { ...args, take: 25 });
-        const response = await request.fetchAll(args?.progress);
-
-        return response.items;
-    };
-
-    public findMany = async ({ iterator = true, ...args }: IFindManyOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserCursors>): Promise<IMyServiceMrsNotesUser[]> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserCursors>(
-            this.schema, this.requestPath, args);
-
-        if (!this.#hasMore && iterator) {
-            this.#hasMore = true;
-
-            return [];
-        }
-
+    public async find(args?: IFindManyOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserCursors>): Promise<PaginatedList<IMyServiceMrsNotesUser>> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserCursors, ["id"]>(
+            this.schema, this.requestPath, args, ["id"]);
         const response = await request.fetch();
+        const docs: IMyServiceMrsNotesUser[] = response.items;
 
-        if (iterator) {
-            this.#hasMore = response.hasMore;
+        if (!response.hasMore) {
+            const paginatedList = docs as IExhaustedList<IMyServiceMrsNotesUser>;
+
+            return paginatedList;
         }
 
-        return response.items;
-    };
+        const paginatedList = docs as INotExhaustedList<IMyServiceMrsNotesUser>;
+        paginatedList.hasMore = true;
+        paginatedList.next = async () => {
+            return this.find({ ...args, skip: response.limit + response.offset });
+        };
 
-    public findFirst = async (args?: IFindFirstOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserCursors>): Promise<IMyServiceMrsNotesUser | undefined> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable>(
-            this.schema, this.requestPath, { ...args, take: 1 });
+        return paginatedList;
+    }
+
+    public async findFirst(args?: IFindFirstOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserCursors>): Promise<IMyServiceMrsNotesUser | undefined> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserCursors, ["id"]>(
+            this.schema, this.requestPath, { ...args, take: 1 }, ["id"]);
         const response = await request.fetchOne();
 
         return response;
-    };
+    }
+
+    public async findFirstOrThrow(args?: IFindFirstOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserFilterable, IMyServiceMrsNotesUserCursors>): Promise<IMyServiceMrsNotesUser> {
+        const response = await this.findFirst(args);
+
+        if (response === undefined) {
+            throw new NotFoundError(`Document not found.`);
+        }
+
+        return response;
+    }
     public findUnique = async (args?: IFindUniqueOptions<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserUniqueFilterable>): Promise<IMyServiceMrsNotesUser | undefined> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserUniqueFilterable>(
-            this.schema, this.requestPath, { ...args, take: 1 });
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUser, IMyServiceMrsNotesUserUniqueFilterable, never, ["id"]>(
+            this.schema, this.requestPath, { ...args, take: 1 }, ["id"]);
         const response = await request.fetchOne();
 
         return response;
@@ -268,7 +280,7 @@ class MyServiceMrsNotesUserObject extends MrsBaseObject {
         const response = await this.findUnique(args);
 
         if (response === undefined) {
-            throw new NotFoundError(`Record not found.`);
+            throw new NotFoundError("Document not found.");
         }
 
         return response;
@@ -317,9 +329,11 @@ export interface IUpdateMyServiceMrsNotesUser {
 }
 
 export interface IMyServiceMrsNotesUser {
-    id?: string,
+    readonly id?: string,
     email?: MaybeNull<string>,
     nickname?: string,
+    update(): Promise<IMyServiceMrsNotesUser>,
+    delete(): Promise<void>,
 }
 
 export interface IMyServiceMrsNotesUserFilterable {
@@ -340,44 +354,47 @@ type IMyServiceMrsNotesUserCursors = never;
  */
 class MyServiceMrsNotesUserHasNoteObject extends MrsBaseObject {
 
-    #hasMore = true;
-    public findAll = async (args?: IFindAllOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteCursors>): Promise<IMyServiceMrsNotesUserHasNote[]> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable>(
-            this.schema, this.requestPath, { ...args, take: 25 });
-        const response = await request.fetchAll(args?.progress);
-
-        return response.items;
-    };
-
-    public findMany = async ({ iterator = true, ...args }: IFindManyOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteCursors>): Promise<IMyServiceMrsNotesUserHasNote[]> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteCursors>(
-            this.schema, this.requestPath, args);
-
-        if (!this.#hasMore && iterator) {
-            this.#hasMore = true;
-
-            return [];
-        }
-
+    public async find(args?: IFindManyOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteCursors>): Promise<PaginatedList<IMyServiceMrsNotesUserHasNote>> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteCursors, []>(
+            this.schema, this.requestPath, args, []);
         const response = await request.fetch();
+        const docs: IMyServiceMrsNotesUserHasNote[] = response.items;
 
-        if (iterator) {
-            this.#hasMore = response.hasMore;
+        if (!response.hasMore) {
+            const paginatedList = docs as IExhaustedList<IMyServiceMrsNotesUserHasNote>;
+
+            return paginatedList;
         }
 
-        return response.items;
-    };
+        const paginatedList = docs as INotExhaustedList<IMyServiceMrsNotesUserHasNote>;
+        paginatedList.hasMore = true;
+        paginatedList.next = async () => {
+            return this.find({ ...args, skip: response.limit + response.offset });
+        };
 
-    public findFirst = async (args?: IFindFirstOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteCursors>): Promise<IMyServiceMrsNotesUserHasNote | undefined> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable>(
-            this.schema, this.requestPath, { ...args, take: 1 });
+        return paginatedList;
+    }
+
+    public async findFirst(args?: IFindFirstOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteCursors>): Promise<IMyServiceMrsNotesUserHasNote | undefined> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteCursors, []>(
+            this.schema, this.requestPath, { ...args, take: 1 }, []);
         const response = await request.fetchOne();
 
         return response;
-    };
+    }
+
+    public async findFirstOrThrow(args?: IFindFirstOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteFilterable, IMyServiceMrsNotesUserHasNoteCursors>): Promise<IMyServiceMrsNotesUserHasNote> {
+        const response = await this.findFirst(args);
+
+        if (response === undefined) {
+            throw new NotFoundError(`Document not found.`);
+        }
+
+        return response;
+    }
     public findUnique = async (args?: IFindUniqueOptions<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteUniqueFilterable>): Promise<IMyServiceMrsNotesUserHasNote | undefined> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteUniqueFilterable>(
-            this.schema, this.requestPath, { ...args, take: 1 });
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesUserHasNote, IMyServiceMrsNotesUserHasNoteUniqueFilterable, never, []>(
+            this.schema, this.requestPath, { ...args, take: 1 }, []);
         const response = await request.fetchOne();
 
         return response;
@@ -387,7 +404,7 @@ class MyServiceMrsNotesUserHasNoteObject extends MrsBaseObject {
         const response = await this.findUnique(args);
 
         if (response === undefined) {
-            throw new NotFoundError(`Record not found.`);
+            throw new NotFoundError("Document not found.");
         }
 
         return response;
@@ -399,9 +416,9 @@ export interface IMyServiceMrsNotesUserHasNote {
     canShare?: boolean,
     viewOnly?: boolean,
     invitationKey?: MaybeNull<string>,
-    userId?: string,
+    readonly userId?: string,
     invitationAccepted?: boolean,
-    noteId?: number,
+    readonly noteId?: number,
 }
 
 export interface IMyServiceMrsNotesUserHasNoteFilterable {
@@ -426,41 +443,44 @@ type IMyServiceMrsNotesUserHasNoteCursors = never;
  */
 class MyServiceMrsNotesNotesAllObject extends MrsBaseObject {
 
-    #hasMore = true;
-    public findAll = async (args?: IFindAllOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllCursors>): Promise<IMyServiceMrsNotesNotesAll[]> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable>(
-            this.schema, this.requestPath, { ...args, take: 25 });
-        const response = await request.fetchAll(args?.progress);
-
-        return response.items;
-    };
-
-    public findMany = async ({ iterator = true, ...args }: IFindManyOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllCursors>): Promise<IMyServiceMrsNotesNotesAll[]> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllCursors>(
-            this.schema, this.requestPath, args);
-
-        if (!this.#hasMore && iterator) {
-            this.#hasMore = true;
-
-            return [];
-        }
-
+    public async find(args?: IFindManyOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllCursors>): Promise<PaginatedList<IMyServiceMrsNotesNotesAll>> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllCursors, []>(
+            this.schema, this.requestPath, args, []);
         const response = await request.fetch();
+        const docs: IMyServiceMrsNotesNotesAll[] = response.items;
 
-        if (iterator) {
-            this.#hasMore = response.hasMore;
+        if (!response.hasMore) {
+            const paginatedList = docs as IExhaustedList<IMyServiceMrsNotesNotesAll>;
+
+            return paginatedList;
         }
 
-        return response.items;
-    };
+        const paginatedList = docs as INotExhaustedList<IMyServiceMrsNotesNotesAll>;
+        paginatedList.hasMore = true;
+        paginatedList.next = async () => {
+            return this.find({ ...args, skip: response.limit + response.offset });
+        };
 
-    public findFirst = async (args?: IFindFirstOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllCursors>): Promise<IMyServiceMrsNotesNotesAll | undefined> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable>(
-            this.schema, this.requestPath, { ...args, take: 1 });
+        return paginatedList;
+    }
+
+    public async findFirst(args?: IFindFirstOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllCursors>): Promise<IMyServiceMrsNotesNotesAll | undefined> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllCursors, []>(
+            this.schema, this.requestPath, { ...args, take: 1 }, []);
         const response = await request.fetchOne();
 
         return response;
-    };
+    }
+
+    public async findFirstOrThrow(args?: IFindFirstOptions<IMyServiceMrsNotesNotesAll, IMyServiceMrsNotesNotesAllFilterable, IMyServiceMrsNotesNotesAllCursors>): Promise<IMyServiceMrsNotesNotesAll> {
+        const response = await this.findFirst(args);
+
+        if (response === undefined) {
+            throw new NotFoundError(`Document not found.`);
+        }
+
+        return response;
+    }
 
 }
 
@@ -504,41 +524,44 @@ type IMyServiceMrsNotesNotesAllCursors = never;
  */
 class MyServiceMrsNotesNotesServedObject extends MrsBaseObject {
 
-    #hasMore = true;
-    public findAll = async (args?: IFindAllOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedCursors>): Promise<IMyServiceMrsNotesNotesServed[]> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable>(
-            this.schema, this.requestPath, { ...args, take: 25 });
-        const response = await request.fetchAll(args?.progress);
-
-        return response.items;
-    };
-
-    public findMany = async ({ iterator = true, ...args }: IFindManyOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedCursors>): Promise<IMyServiceMrsNotesNotesServed[]> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedCursors>(
-            this.schema, this.requestPath, args);
-
-        if (!this.#hasMore && iterator) {
-            this.#hasMore = true;
-
-            return [];
-        }
-
+    public async find(args?: IFindManyOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedCursors>): Promise<PaginatedList<IMyServiceMrsNotesNotesServed>> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedCursors, []>(
+            this.schema, this.requestPath, args, []);
         const response = await request.fetch();
+        const docs: IMyServiceMrsNotesNotesServed[] = response.items;
 
-        if (iterator) {
-            this.#hasMore = response.hasMore;
+        if (!response.hasMore) {
+            const paginatedList = docs as IExhaustedList<IMyServiceMrsNotesNotesServed>;
+
+            return paginatedList;
         }
 
-        return response.items;
-    };
+        const paginatedList = docs as INotExhaustedList<IMyServiceMrsNotesNotesServed>;
+        paginatedList.hasMore = true;
+        paginatedList.next = async () => {
+            return this.find({ ...args, skip: response.limit + response.offset });
+        };
 
-    public findFirst = async (args?: IFindFirstOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedCursors>): Promise<IMyServiceMrsNotesNotesServed | undefined> => {
-        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable>(
-            this.schema, this.requestPath, { ...args, take: 1 });
+        return paginatedList;
+    }
+
+    public async findFirst(args?: IFindFirstOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedCursors>): Promise<IMyServiceMrsNotesNotesServed | undefined> {
+        const request = new MrsBaseObjectQuery<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedCursors, []>(
+            this.schema, this.requestPath, { ...args, take: 1 }, []);
         const response = await request.fetchOne();
 
         return response;
-    };
+    }
+
+    public async findFirstOrThrow(args?: IFindFirstOptions<IMyServiceMrsNotesNotesServed, IMyServiceMrsNotesNotesServedFilterable, IMyServiceMrsNotesNotesServedCursors>): Promise<IMyServiceMrsNotesNotesServed> {
+        const response = await this.findFirst(args);
+
+        if (response === undefined) {
+            throw new NotFoundError(`Document not found.`);
+        }
+
+        return response;
+    }
 
 }
 
@@ -556,7 +579,7 @@ type IMyServiceMrsNotesNotesServedCursors = never;
 /*
  * MRS Object - /myService/mrsNotes/noteAcceptShare (PROCEDURE)
  */
-class MyServiceMrsNotesNoteAcceptShareParamsObject extends MrsBaseObject {
+class MyServiceMrsNotesNoteAcceptShareObject extends MrsBaseObject {
 
     public call = async (noteAcceptShareParams?: IMyServiceMrsNotesNoteAcceptShareParams): Promise<IMrsProcedureResult<IMyServiceMrsNotesNoteAcceptShareParamsOut, IMyServiceMrsNotesNoteAcceptShareResultSet>> => {
         const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteAcceptShareParams, IMyServiceMrsNotesNoteAcceptShareParamsOut, IMyServiceMrsNotesNoteAcceptShareResultSet>(
@@ -581,7 +604,7 @@ export type IMyServiceMrsNotesNoteAcceptShareResultSet = JsonObject;
 /*
  * MRS Object - /myService/mrsNotes/noteDelete (PROCEDURE)
  */
-class MyServiceMrsNotesNoteDeleteParamsObject extends MrsBaseObject {
+class MyServiceMrsNotesNoteDeleteObject extends MrsBaseObject {
 
     public call = async (noteDeleteParams?: IMyServiceMrsNotesNoteDeleteParams): Promise<IMrsProcedureResult<IMyServiceMrsNotesNoteDeleteParamsOut, IMyServiceMrsNotesNoteDeleteResultSet>> => {
         const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteDeleteParams, IMyServiceMrsNotesNoteDeleteParamsOut, IMyServiceMrsNotesNoteDeleteResultSet>(
@@ -618,6 +641,15 @@ class MyServiceMrsNotesNoteShareObject extends MrsBaseObject {
 
 }
 
+export interface IMyServiceMrsNotesNoteShare {
+    invitationKey?: MaybeNull<string>,
+}
+
+export type ITaggedMyServiceMrsNotesNoteShare = {
+    type: "MyServiceMrsNotesNoteShare",
+    items: IMyServiceMrsNotesNoteShare[],
+} & JsonObject;
+
 export interface IMyServiceMrsNotesNoteShareParams {
     viewOnly?: MaybeNull<boolean>,
     userId?: MaybeNull<string>,
@@ -628,22 +660,13 @@ export interface IMyServiceMrsNotesNoteShareParams {
 
 type IMyServiceMrsNotesNoteShareParamsOut = never;
 
-export interface IMyServiceMrsNotesNoteShare {
-    invitationKey?: MaybeNull<string>,
-}
-
-export type ITaggedMyServiceMrsNotesNoteShare = {
-    type: "MyServiceMrsNotesNoteShare",
-    items: IMyServiceMrsNotesNoteShare[],
-} & JsonObject;
-
 export type IMyServiceMrsNotesNoteShareResultSet = ITaggedMyServiceMrsNotesNoteShare;
 
 
 /*
  * MRS Object - /myService/mrsNotes/noteUpdate (PROCEDURE)
  */
-class MyServiceMrsNotesNoteUpdateParamsObject extends MrsBaseObject {
+class MyServiceMrsNotesNoteUpdateObject extends MrsBaseObject {
 
     public call = async (noteUpdateParams?: IMyServiceMrsNotesNoteUpdateParams): Promise<IMrsProcedureResult<IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>> => {
         const request = new MrsBaseObjectProcedureCall<IMyServiceMrsNotesNoteUpdateParams, IMyServiceMrsNotesNoteUpdateParamsOut, IMyServiceMrsNotesNoteUpdateResultSet>(
@@ -676,10 +699,10 @@ class MyServiceMrsNotes extends MrsBaseSchema {
     #userHasNote?: MyServiceMrsNotesUserHasNoteObject;
     #notesAll?: MyServiceMrsNotesNotesAllObject;
     #notesServed?: MyServiceMrsNotesNotesServedObject;
-    #noteAcceptShare?: MyServiceMrsNotesNoteAcceptShareParamsObject;
-    #noteDelete?: MyServiceMrsNotesNoteDeleteParamsObject;
+    #noteAcceptShare?: MyServiceMrsNotesNoteAcceptShareObject;
+    #noteDelete?: MyServiceMrsNotesNoteDeleteObject;
     #noteShare?: MyServiceMrsNotesNoteShareObject;
-    #noteUpdate?: MyServiceMrsNotesNoteUpdateParamsObject;
+    #noteUpdate?: MyServiceMrsNotesNoteUpdateObject;
 
     public get note(): MyServiceMrsNotesNoteObject {
         if (this.#note === undefined) {
@@ -716,16 +739,16 @@ class MyServiceMrsNotes extends MrsBaseSchema {
 
         return this.#notesServed;
     }
-    public get noteAcceptShare(): MyServiceMrsNotesNoteAcceptShareParamsObject {
+    public get noteAcceptShare(): MyServiceMrsNotesNoteAcceptShareObject {
         if (this.#noteAcceptShare === undefined) {
-            this.#noteAcceptShare = new MyServiceMrsNotesNoteAcceptShareParamsObject(this, "/noteAcceptShare");
+            this.#noteAcceptShare = new MyServiceMrsNotesNoteAcceptShareObject(this, "/noteAcceptShare");
         }
 
         return this.#noteAcceptShare;
     }
-    public get noteDelete(): MyServiceMrsNotesNoteDeleteParamsObject {
+    public get noteDelete(): MyServiceMrsNotesNoteDeleteObject {
         if (this.#noteDelete === undefined) {
-            this.#noteDelete = new MyServiceMrsNotesNoteDeleteParamsObject(this, "/noteDelete");
+            this.#noteDelete = new MyServiceMrsNotesNoteDeleteObject(this, "/noteDelete");
         }
 
         return this.#noteDelete;
@@ -737,9 +760,9 @@ class MyServiceMrsNotes extends MrsBaseSchema {
 
         return this.#noteShare;
     }
-    public get noteUpdate(): MyServiceMrsNotesNoteUpdateParamsObject {
+    public get noteUpdate(): MyServiceMrsNotesNoteUpdateObject {
         if (this.#noteUpdate === undefined) {
-            this.#noteUpdate = new MyServiceMrsNotesNoteUpdateParamsObject(this, "/noteUpdate");
+            this.#noteUpdate = new MyServiceMrsNotesNoteUpdateObject(this, "/noteUpdate");
         }
 
         return this.#noteUpdate;
@@ -764,5 +787,14 @@ export class MyService extends MrsBaseService {
         return this.#mrsNotes;
     }
 
+    public async authenticate(options: IAuthenticateOptions): Promise<IMrsLoginResult> {
+        const { username, password, app, vendor } = options ?? {};
+
+        return super.authenticate({ username, password, app, vendor });
+    }
+
+    public async deauthenticate(): Promise<void> {
+        await super.deauthenticate();
+    }
 }
 

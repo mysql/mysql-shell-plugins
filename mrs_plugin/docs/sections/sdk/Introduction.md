@@ -41,11 +41,11 @@ Most of the examples in this guide are written in TypeScript. If you want more d
 | | [deauthenticate](#service-deauthenticate-ts) | [deauthenticate](#service-deauthenticate-py) | Used to close an authenticated session to the REST service.
 | View | [create](#view-create-ts) | [create](#view-create-py) | Creates a new document on a given REST view endpoint.
 | | [createMany](#view-createmany-ts) | [create_many](#view-create_many-py) | Creates a list of document on a given REST view endpoint.
+| | [find](#view-find-ts) | [find](#view-find-py) | Reads the first page of documents of a search request and returns an iterator.
 | | [findFirst](#view-findfirst-ts) | [find_first](#view-find_first-py) | Reads the first matching document of a search request.
+| | [findFirstOrThrow](#view-findfirst-ts) | [find_first](#view-find_first-py) | Reads the first matching document of a search request and throws an error if not found.
 | | [findUnique](#view-findunique-ts) | [find_unique](#view-find_first-py) | Reads the first matching document of a primary key lookup.
 | | [findUniqueOrThrow](#view-finduniqueorthrow-ts) | [find_unique_or_throw](#view-find_unique_or_throw-py) | Reads the first matching document of a primary key lookup and throws if not found.
-| | [findAll](#view-findall-ts) | [find_all](#view-find_all-py) | Reads the first page of documents of a search request.
-| | [findMany](#view-findmany-ts) | [find_many](#view-find_many-py) | Reads the first page of documents of a search request and returns an iterator.
 | | [delete](#view-delete-ts) | [delete](#view-delete-py) | Deletes a given document from a REST view endpoint.
 | | [deleteMany](#view-deletemany-ts) | [delete_many](#view-delete_many-py) | Deletes several documents from a REST view endpoint.
 | | [update](#view-update-ts) | [update](#view-update-py) | Updates a given document on a REST view endpoint.
