@@ -102,6 +102,7 @@ def test_add_delete_db_object(phone_book, table_contents):
         "requires_auth": False,
         "items_per_page": 10,
         "session": session,
+        "internal": 0,
     }
 
     with pytest.raises(Exception) as exc_info:
