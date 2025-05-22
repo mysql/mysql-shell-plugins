@@ -211,7 +211,7 @@ def query_schemas(
             SELECT sc.id, sc.name, sc.service_id, sc.request_path,
                 sc.requires_auth, sc.enabled, sc.items_per_page, sc.comments, se.url_host_id,
                 CONCAT(h.name, se.url_context_root) AS host_ctx,
-                sc.options, sc.metadata, sc.schema_type
+                sc.options, sc.metadata, sc.schema_type, sc.internal
             FROM `mysql_rest_service_metadata`.db_schema sc
                 LEFT OUTER JOIN `mysql_rest_service_metadata`.service se
                     ON se.id = sc.service_id
@@ -440,3 +440,18 @@ def get_schema_create_statement(session, schema, include_database_endpoints: boo
 
     return "\n\n".join(result)
 
+def clone_schema(session, schema, new_service_id):
+    new_schema_id = add_schema(session,
+               schema_name=schema["name"],
+               service_id=new_service_id,
+               request_path=schema["request_path"],
+               enabled=schema["enabled"],
+               items_per_page=schema["items_per_page"],
+               comments=schema["comments"],
+               options=schema["options"],
+               metadata=schema["metadata"],
+               internal=schema["internal"])
+
+    # Get the db objects, inner objects and fields. We'll need to replace the ids for all of those
+    for db_object in db_objects.get_db_objects(session, schema["id"]):
+        db_objects.clone_db_object(session, db_object, new_schema_id)

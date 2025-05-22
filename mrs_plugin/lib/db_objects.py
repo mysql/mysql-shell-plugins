@@ -183,7 +183,7 @@ def query_db_objects(session, db_object_id=None, schema_id=None, request_path=No
                 o.crud_operations, o.format as crud_operation_format,
                 o.media_type, o.auto_detect_media_type,
                 o.auth_stored_procedure, o.options,
-                o.metadata,
+                o.metadata, o.internal,
                 MAX(al.changed_at) as changed_at,
                 CONCAT(sc.name, '.', o.name) AS qualified_name,
                 se.id AS service_id, sc.name AS schema_name
@@ -935,3 +935,85 @@ def get_db_object_create_statement(session, db_object, objects) -> str:
 
     # Build CREATE statement
     return "\n".join(output) + ";"
+
+def clone_db_object(session, db_object, new_schema_id):
+    objects = get_objects(session, db_object["id"])
+    mapped_ids = {}
+
+    def map_id(original_id):
+        # Add the new id only if it valid and doesn't exist yet
+        if original_id is None or original_id in mapped_ids:
+            return
+
+        mapped_ids[original_id] = core.get_sequence_id(session)
+
+    def replace_mapped_id(obj, key):
+        # replace only when necessary and available
+        if not obj.get(key):
+            return
+
+        obj[key] = mapped_ids[obj[key]]
+
+    # Collect and map all the original ids to new ones
+    for object in objects:
+        object["fields"] = get_object_fields_with_references(session, object["id"])
+
+        map_id(object["row_ownership_field_id"])
+
+        for field in object["fields"]:
+            map_id(field["id"])
+            map_id(field["parent_reference_id"])
+            map_id(field["represents_reference_id"])
+
+            object_reference = field.get("object_reference") or {}
+            map_id(object_reference.get("reduce_to_value_of_field_id"))
+            map_id(object_reference.get("row_ownership_field_id"))
+
+
+
+    # Replace all the mapped ids with the new generated ids
+    # The ones that need to be properly mapped are:
+    #   - field.id, field.parent_reference_id and field.represents_reference_id
+    #   - field.object_reference.id, field.object_reference.reduce_to_value_of_field_id
+    #           and field.object_reference.row_ownership_field_id
+    for object in objects:
+        object["id"] = core.get_sequence_id(session)
+
+        replace_mapped_id(object, "row_ownership_field_id")
+
+        for field in object["fields"]:
+            replace_mapped_id(field, "id")
+            replace_mapped_id(field, "parent_reference_id")
+            replace_mapped_id(field, "represents_reference_id")
+
+            if field["object_reference"]:
+                ref = field["object_reference"]
+
+                ref["id"] = field["represents_reference_id"]
+
+                replace_mapped_id(ref, "reduce_to_value_of_field_id")
+                replace_mapped_id(ref, "row_ownership_field_id")
+
+            field["object_id"] = object["id"]
+
+        object.pop("db_object_id")
+
+    db_object.pop("db_schema_id")
+
+    return add_db_object(session,
+        schema_id=new_schema_id,
+        db_object_name=db_object["name"],
+        request_path=db_object["request_path"],
+        db_object_type=db_object["object_type"],
+        enabled=db_object["enabled"],
+        items_per_page=db_object["items_per_page"],
+        requires_auth=db_object["requires_auth"],
+        crud_operation_format=db_object["crud_operation_format"],
+        comments=db_object["comments"],
+        media_type=db_object["media_type"],
+        auto_detect_media_type=db_object["auto_detect_media_type"],
+        auth_stored_procedure=db_object["auth_stored_procedure"],
+        options=db_object["options"],
+        metadata=db_object["metadata"],
+        internal=db_object["internal"],
+        objects=objects)

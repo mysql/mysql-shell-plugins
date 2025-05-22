@@ -141,6 +141,7 @@ def test_validate_service_path(phone_book):
         "host_ctx": "/test",
         "url_host_id": phone_book["url_host_id"],
         "schema_type": "DATABASE_SCHEMA",
+        "internal": 0,
     }
 
     assert content_set is None
