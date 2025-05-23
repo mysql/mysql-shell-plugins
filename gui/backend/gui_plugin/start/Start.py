@@ -89,7 +89,7 @@ def web_server(port=None, secure=None, webrootpath=None,
     if single_server is not None:
         mysqlsh.globals.shell.options['credentialStore.helper'] = "<disabled>"
         logger.debug(
-            f'Set credentialStore.helper to {mysqlsh.globals.shell.options['credentialStore.helper']}')
+            f'Set credentialStore.helper to {mysqlsh.globals.shell.options["credentialStore.helper"]}')
 
     # TODO: TEMPORARY HACK!!
     # import gc
