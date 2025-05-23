@@ -54,6 +54,7 @@ from .mrs_base_classes import (
     MrsTask,
     IMrsTaskStartOptions,
     IMrsTaskCallOptions,
+    merge_task_options,
     # --- importTaskRunOnlyEnd
     Filterable,
     HighOrderOperator,
@@ -117,13 +118,13 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
     # --- crudFunctionTaskRunOnlyStart
     async def start(
         self,
-        options: IMrsTaskStartOptions,
+        *args: IMrsTaskStartOptions,
         **parameters: Unpack[I${obj_param_interface}]
     ) -> MrsTask[${obj_function_result_datatype}]:
         request = MrsBaseTaskStartFunction[I${obj_param_interface}, ${obj_function_result_datatype}](
             schema=self._schema,
             request_path=self._request_path,
-            options=options,
+            options=cast(IMrsTaskStartOptions, merge_task_options(args)),
             parameters=parameters,
             result_type_hint_struct={"result": ${obj_function_result_datatype}},
         )
@@ -131,13 +132,13 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
 
     async def call(
         self,
-        options: IMrsTaskCallOptions,
+        *args: IMrsTaskCallOptions,
         **parameters: Unpack[I${obj_param_interface}]
     ) -> ${obj_function_result_datatype}:
         request = MrsBaseTaskCallFunction[I${obj_param_interface}, ${obj_function_result_datatype}](
             schema=self._schema,
             request_path=self._request_path,
-            options=options,
+            options=cast(IMrsTaskCallOptions, merge_task_options(args)),
             parameters=parameters,
             result_type_hint_struct={"result": ${obj_function_result_datatype}}
         )
@@ -147,7 +148,7 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
     # --- crudProcedureTaskRunOnlyStart
     async def start(
         self,
-        options: IMrsTaskStartOptions,
+        *args: IMrsTaskStartOptions,
         **parameters: Unpack[I${obj_param_interface}]
     ) -> MrsTask[IMrsProcedureResponse[
             I${obj_param_interface}Out,
@@ -160,7 +161,7 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
         ](
             schema=self._schema,
             request_path=self._request_path,
-            options=options,
+            options=cast(IMrsTaskStartOptions, merge_task_options(args)),
             parameters=parameters,
             result_type_hint_struct={
                 "out_parameters": I${obj_param_interface}Out,
@@ -171,7 +172,7 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
 
     async def call(
         self,
-        options: IMrsTaskCallOptions,
+        *args: IMrsTaskCallOptions,
         **parameters: Unpack[I${obj_param_interface}]
     ) -> IMrsProcedureResponse[
             I${obj_param_interface}Out,
@@ -184,7 +185,7 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
         ](
             schema=self._schema,
             request_path=self._request_path,
-            options=options,
+            options=cast(IMrsTaskCallOptions, merge_task_options(args)),
             parameters=parameters,
             result_type_hint_struct={
                 "out_parameters": I${obj_param_interface}Out,

@@ -1111,6 +1111,8 @@ if __name__ == "__main__":
 
 `call` is used to execute a REST routine (`FUNCTION` or `PROCEDURE`). In the case of a `FUNCTION`, the set of parameters (and corresponding values) as specified by the database routine are provided as corresponding keyword arguments. If the REST routine has an associated Async Task, the first parameter is, instead, a positional argument that uses a Python `dict` to specify additional task-specific execution options.
 
+> For the sake of avoiding conflict with keyword argument names, an arbitrary number of positional arguments are enabled. The recommended treat is to pass only one options dictionary, as the first positional argument. If you, intentionally or not, pass more than one positional argument, the option value from the later dictionary in the sequence takes precedence.
+
 #### Options (call)
 
 | Option Name  | Data Type | Required | Default | Notes |
@@ -1179,7 +1181,7 @@ mysql> CREATE FUNCTION my_birthday_func ()
 
 #### Options (start)
 
-`start()` accepts the same set of options as `call()`, see [Function.call](#function-call-py) for more details.
+`start()` accepts the same set of options as `call()`, see [Function.call](#functioncall-py) for more details.
 
 #### Return Type (start)
 
@@ -1192,8 +1194,7 @@ from sdk.python import MyService
 
 my_service = MyService()
 
-res = await my_service.sakila.delayed_hello_func.start({}, name="Rui")
-# print(res) -> Hello, Rui!
+task = await my_service.sakila.delayed_hello_func.start({"refresh_rate": 5.0}, name="Rui")
 ```
 
 where `delayed_hello_func` is:
@@ -1213,13 +1214,15 @@ mysql> CREATE FUNCTION delayed_hello_func (name CHAR(20))
 
 `call` is used to execute a REST routine (`FUNCTION` or `PROCEDURE`). In the case of a `PROCEDURE`, the set of `IN`/`INOUT` parameters (and corresponding values) as specified by the database routine are provided as corresponding keyword arguments. If the REST routine has an associated Async Task, the first parameter is, instead, a positional argument that uses a Python `dict` to specify additional task-specific execution options.
 
+> For the sake of avoiding conflict with keyword argument names, an arbitrary number of positional arguments are enabled. The recommended treat is to pass only one options dictionary, as the first positional argument. If you, intentionally or not, pass more than one positional argument, the option value from the later dictionary in the sequence takes precedence
+
 #### Options (call)
 
 Input parameters aren't mandatory, meaning you are free to not provide them.
 
 In case of being provided, input parameters can also be assigned a null value when calling the procedure, in other words, you can set any parameters to `None`.
 
-As for additional options, see [Function.call](#function-call-py) for more details.
+As for additional options, see [Function.call](#functioncall-py) for more details.
 
 #### Return Type (call)
 
@@ -1345,11 +1348,11 @@ procedure_result = await my_service.mrs_tests.sample_proc.call(arg2=None)
 
 ### Procedure.start (PY)
 
-See [Function.start](#function-start-py) for more details.
+See [Function.start](#functionstart-py) for more details.
 
 #### Options (start)
 
-`start()` accepts the same set of options as `call()`, see [Procedure.call](#procedure-call-py) for more details.
+`start()` accepts the same set of options as `call()`, see [Procedure.call](#procedurecall-py) for more details.
 
 #### Return Type (start)
 
@@ -1362,7 +1365,7 @@ from sdk.python import MyService
 
 my_service = MyService()
 
-await my_service.sakila.delayed_hello_proc.start({}, name="Rui")
+task = await my_service.sakila.delayed_hello_proc.start({"refresh_rate": 5.0}, name="Rui")
 ```
 
 where `delayed_hello_proc` is:
@@ -1399,7 +1402,7 @@ An [Asynchronous Generator](https://peps.python.org/pep-0525/) instance which pr
 #### Example (watch)
 
 ```py
-task = await my_service.my_db.delayed_hello_func.start({}, name="Rui")
+task = await my_service.my_db.delayed_hello_func.start({"refresh_rate": 3.0}, name="Rui")
 
 async for report in task.watch():
     if report.status == "RUNNING":
