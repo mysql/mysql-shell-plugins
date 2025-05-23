@@ -411,7 +411,7 @@ The `actor_id` and `last_update` columns from the `sakila` table on the sample [
 
 > To raise an exception if there are no matches, use [find_first_or_throw](#find_first_or_throw) instead.
 >
-> To find multiple REST documents, see [find_many](#find_many).
+> To find multiple REST documents, see [find](#find).
 
 #### Options (find_first)
 
@@ -608,7 +608,7 @@ read_own_writes=False
 
 > To not raise an exception and get `None` if there are no matches, use [find_first](#find_first) instead.
 >
-> To find multiple REST documents, see [find_many](#find_many).
+> To find multiple REST documents, see [find](#find).
 
 #### Options (find_first_or_throw)
 
@@ -722,13 +722,11 @@ except MrsDocumentNotFoundError:
 
 See [Example (find_first)](#example-find_first) for additional usage options.
 
-### View.find_many (PY)
+### View.find (PY)
 
-`find_many` is used to query a subset of REST documents in one or more pages, and optionally, those that match a given filter.
+`find` is used to query a subset of REST documents in one or more pages, and optionally, those that match a given filter.
 
-> To retrieve all documents see [find_all](#find_all).
-
-#### Options (find_many)
+#### Options (find)
 
 | Name | Type | Required | Description |
 |---|---|---|---------------------|
@@ -738,98 +736,68 @@ See [Example (find_first)](#example-find_first) for additional usage options.
 | order_by | dict | No | Lets you customize the order (`ASC` or `DESC`) in which the documents are returned based on specific fields|
 | cursor | dict | No | Specifies the position of the first item to include in the result set. A cursor bookmarks a location in a result set and must be a column containing unique and sequential values. |
 | read_own_writes | bool | No | Ensures read consistency for a cluster of servers - `False` is used by default |
-| take | int | No | Maximum number of documents to return |
-| iterator | bool | No | Enable or disable iterator behavior. It is used by the SDK to reset the internal iterator when consuming paginated data in order to avoid n + 1 requests, the internal iterator stops after the MySQL Router says there are no more items. Default value is `True` (enabled). |
+| take | int | No | The maximum size of the page. |
+in order to avoid n + 1 requests, the internal iterator stops after the MySQL Router says there are no more items. Default value is `True` (enabled). |
 
-: REST Views Options (find_many)
+: REST Views Options (find)
 
 > Cursor-based pagination takes precedence over offset-based pagination, which means that if a cursor is defined, the value of the offset property (`skip`) will be ignored.
 
-#### Return Type (find_many)
+#### Return Type (find)
 
-A list of REST document data class objects representing the records that match the filter. For more details about REST documents, check the [REST Documents](#rest-documents) section.
+A list of objects representing the first page of REST Documents matching the filter. If there are more matching REST Documents, the array contains an additional `has_more` truthy property and a `next()` async function that automatically retrieves the subsequent page of REST Documents.
 
-#### Example (find_many)
+#### Example (find)
 
 ```Python
-from sdk.python.my_service import IMyServiceSakilaActor as Actor, MyService
+from sdk.python.my_service import MyService
 
 my_service = MyService()
 
-actors: list[Actor] = await self.my_service.sakila.actor.find_many(
-    where={"first_name": "PENELOPE"},
-    take=2,
-    skip=2,
-)
-
+actors = await self.my_service.sakila.countries.find()
 print(actors)
 # [
-#     IMyServiceSakilaActor(
-#         actor_id=35000,
-#         first_name='PENELOPE',
-#         last_name='BAR',
-#         last_update='2024-06-04 10:14:33.000000'
-#     ),
-#     IMyServiceSakilaActor(
-#         actor_id=36000,
-#         first_name='PENELOPE',
-#         last_name='FOO',
-#         last_update='2024-08-04 10:14:33.000000'
-#     )
+#   IMyServiceSakilaCountry(
+#       country_id=1,
+#       last_update=datetime.datetime(2006, 2, 15, 4, 44),
+#       country='Afghanistan',
+#   ),
+#   IMyServiceSakilaCountry(
+#       country_id=2,
+#       last_update=datetime.datetime(2006, 2, 15, 4, 44),
+#       country='Algeria',
+#   ),
+#   ...
+#   IMyServiceSakilaCountry(
+#       country_id=25,
+#       last_update=datetime.datetime(2006, 2, 15, 4, 44),
+#       country='Congo, The Democratic Republic of the',
+#   )
 # ]
+
+if actors.has_more is True:
+    actors = await actors.next()
+    print(actors)
+    # [
+    #   IMyServiceSakilaCountry(
+    #       country_id=26,
+    #       last_update=datetime.datetime(2006, 2, 15, 4, 44),
+    #       country='Czech Republic',
+    #   ),
+    #   IMyServiceSakilaCountry(
+    #       country_id=27,
+    #       last_update=datetime.datetime(2006, 2, 15, 4, 44),
+    #       country='Dominican Republic',
+    #   ),
+    #   ...
+    #   IMyServiceSakilaCountry(
+    #       country_id=50,
+    #       last_update=datetime.datetime(2006, 2, 15, 4, 44),
+    #       country='Japan',
+    #   )
 ```
 
-See [Example (find_first)](#example-find_first) for additional usage options.
-
-### View.find_all (PY)
-
-`find_all` is used to retrieve every MRS document, and optionally, all those that match a given filter.
-
-> To get a paginated subset of documents, see [find_many](#find_many).
-
-#### Options (find_all)
-
-| Name | Type | Required | Description |
-|---|---|---|---------------------|
-| select | dict or list | No | Specifies which properties to include or exclude on the returned document - works as a *field filter* |
-| where | dict | No | Applies filtering conditions based on specific fields - works as a *document filter* |
-| skip | int | No | Specifies how many documents to skip before returning one of the matches |
-| order_by | dict | No | Lets you customize the order (`ASC` or `DESC`) in which the documents are returned based on specific fields|
-| cursor | dict | No | Specifies the position of the first item to include in the result set. A cursor bookmarks a location in a result set and must be a column containing unique and sequential values. |
-| read_own_writes | bool | No | Ensures read consistency for a cluster of servers - `False` is used by default |
-| progress | function | No | Specifies a function to be called back when reporting progress |
-
-: REST Views Options (find_all)
-
-> Cursor-based pagination takes precedence over offset-based pagination, which means that if a cursor is defined, the value of the offset property (`skip`) will be ignored.
-
-#### Return Type (find_all)
-
-A list of REST document data class objects representing the records that match the filter. For more details about REST documents, check the [REST Documents](#rest-documents) section.
-
-#### Example (find_all)
-
-```Python
-import time
-from sdk.python.my_service import (
-    IMyServiceSakilaActorData as ActorData,
-    IMyServiceSakilaActor as Actor,
-    MyService
-)
-
-my_service = MyService()
-
-def my_progress(data: list[ActorData]) -> None:
-    print("Test Progress Option")
-    for i, item in enumerate(data):
-        print(f"{i+1} of {len(data)}: actor_id={item["actor_id"]}")
-        time.sleep(0.1)
-
-# get all documents that first name matches 'PENELOPE'
-actors: list[Actor] = await self.my_service.sakila.actor.find_all(
-    where={"first_name": "PENELOPE"}, progress=my_progress
-)
-```
+> Due the way attributes work in Python, for the MyPy type checker to be able to correctly narrow the types returned by `next()`, `has_more` must be explicitly checked against `True`.
 
 See [Example (find_first)](#example-find_first) for additional usage options.
 
