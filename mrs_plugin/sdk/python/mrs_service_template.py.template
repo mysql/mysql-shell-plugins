@@ -22,11 +22,12 @@ from .mrs_base_classes import (
     MrsBaseObjectCreate,
     # --- importCreateOnlyEnd
     # --- importReadOnlyStart
-    FindAllOptions,
     FindFirstOptions,
-    FindManyOptions,
+    FindOptions,
     FindUniqueOptions,
     MrsBaseObjectQuery,
+    MrsDocumentList,
+    MrsDocumentListLastPage,
     # --- importReadOnlyEnd
     # --- importUpdateOnlyStart
     _MrsDocumentUpdateMixin,
@@ -200,10 +201,10 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
         return data_obj
     # --- crudReadUniqueOnlyEnd
 
-    async def find_many(
+    async def find(
         self,
         **options: Unpack[  # type: ignore[misc]
-            FindManyOptions[
+            FindOptions[
                 I${obj_class_name}Data,
                 I${obj_class_name}Filterable[I${obj_class_name}Filterable],
                 I${obj_class_name}Selectable,
@@ -213,66 +214,42 @@ class ${obj_class_name}DatabaseObject(MrsBaseObject):
                 I${obj_class_name}Cursors,
             ]
         ],
-    ) -> list[I${obj_class_name}]:
+    ) ->(
+        MrsDocumentList[I${obj_class_name}, I${obj_class_name}Data, I${obj_class_name}Details]
+        | MrsDocumentListLastPage[I${obj_class_name}, I${obj_class_name}Data, I${obj_class_name}Details]
+    ):
         request = MrsBaseObjectQuery[
             I${obj_class_name}Data, I${obj_class_name}Details
         ](
             schema=self._schema,
             request_path=self._request_path,
-            options=cast(FindManyOptions, options),
+            options=cast(FindOptions, options),
         )
-        iterator = options.get("iterator", True)
-
-        if not self._has_more and iterator:
-            self._has_more = True
-            return []
-
         response = await request.submit()
-
-        if iterator:
-            self._has_more = response["has_more"]
-
-        return [
+        page = [
             I${obj_class_name}(
                 schema=self._schema, data=cast(I${obj_class_name}Data, item)
             )
             for item in response["items"]
         ]
 
-    async def find_all(
-        self,
-        **options: Unpack[  # type: ignore[misc]
-            FindAllOptions[
-                I${obj_class_name}Data,
-                I${obj_class_name}Filterable[I${obj_class_name}Filterable],
-                I${obj_class_name}Selectable,
-                I${obj_class_name}Sortable,
-                I${obj_class_name}Field,
-                I${obj_class_name}NestedField,
-                I${obj_class_name}Cursors,
-            ]
-        ],
-    ) -> list[I${obj_class_name}]:
-        request = MrsBaseObjectQuery[
-            I${obj_class_name}Data, I${obj_class_name}Details
-        ](
+        if response["has_more"]:
+            skip = options.get("skip", 0) + response["count"]
+            return MrsDocumentList[I${obj_class_name}, I${obj_class_name}Data, I${obj_class_name}Details](
+                datacls=I${obj_class_name},
+                schema=self._schema,
+                request_path=self._request_path,
+                options=cast(FindOptions, {**options, **{"skip": skip}}),
+                iterable=page,
+            )
+
+        return MrsDocumentListLastPage[I${obj_class_name}, I${obj_class_name}Data, I${obj_class_name}Details](
+            datacls=I${obj_class_name},
             schema=self._schema,
             request_path=self._request_path,
-            options=cast(FindAllOptions, options),
+            options=cast(FindOptions, options),
+            iterable=page,
         )
-        progress = options.get("progress")
-
-        if progress is None:
-            response = await request.fetch_all()
-        else:
-            response = await request.fetch_all(progress=progress)
-
-        return [
-            I${obj_class_name}(
-                schema=self._schema, data=cast(I${obj_class_name}Data, item)
-            )
-            for item in response["items"]
-        ]
     # --- crudReadOnlyEnd
 
     # --- crudUpdateOnlyStart

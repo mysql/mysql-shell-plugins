@@ -54,9 +54,8 @@ from ..mrs_base_classes import (
     DateTimeField,
     DeleteOptions,
     Filterable,
-    FindAllOptions,
     FindFirstOptions,
-    FindManyOptions,
+    FindOptions,
     FindUniqueOptions,
     HighOrderOperator,
     IMrsResourceDetails,
@@ -1002,7 +1001,7 @@ async def test_gtid_track_and_sync(
                 request = MrsBaseObjectQuery[Obj1Data, Obj1Details](
                     schema=schema,
                     request_path=request_path,
-                    options=cast(FindManyOptions, query),
+                    options=cast(FindOptions, query),
                 )
             else:
                 request = MrsBaseObjectDelete[Obj1Filterable](
@@ -1877,7 +1876,7 @@ async def test_select_with_list_for_inclusion(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
+    query: FindFirstOptions | FindOptions | FindUniqueOptions,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -1903,7 +1902,7 @@ async def test_select_with_mapper_for_inclusion(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
+    query: FindFirstOptions | FindOptions | FindUniqueOptions,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -1929,7 +1928,7 @@ async def test_select_with_mapper_for_exclusion(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
+    query: FindFirstOptions | FindOptions | FindUniqueOptions,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -2002,7 +2001,7 @@ async def test_where_field_is_equal_with_implicit_filter(
                 schema=schema,
                 request_path=request_path,
                 options=cast(
-                    FindFirstOptions | FindManyOptions | FindUniqueOptions, query
+                    FindFirstOptions | FindOptions | FindUniqueOptions, query
                 ),
             )
         else:
@@ -2094,7 +2093,7 @@ async def test_where_field_is_equal_with_explicit_filter(
                 schema=schema,
                 request_path=request_path,
                 options=cast(
-                    FindFirstOptions | FindManyOptions | FindUniqueOptions, query
+                    FindFirstOptions | FindOptions | FindUniqueOptions, query
                 ),
             )
         else:
@@ -2136,7 +2135,7 @@ async def test_where_field_is_null(
                 schema=schema,
                 request_path=request_path,
                 options=cast(
-                    FindFirstOptions | FindManyOptions | FindUniqueOptions, query
+                    FindFirstOptions | FindOptions | FindUniqueOptions, query
                 ),
             )
         else:
@@ -2177,7 +2176,7 @@ async def test_where_field_is_not_null(
             request = MrsBaseObjectQuery[Obj1Data, Obj1Details](
                 schema=schema,
                 request_path=request_path,
-                options=cast(FindManyOptions, query),
+                options=cast(FindOptions, query),
             )
         else:
             request = MrsBaseObjectDelete[Obj1Filterable](
@@ -2207,7 +2206,7 @@ async def test_skip(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
+    query: FindFirstOptions | FindOptions | FindUniqueOptions,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -2237,7 +2236,7 @@ async def test_cursor(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
+    query: FindFirstOptions | FindOptions | FindUniqueOptions,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -2267,7 +2266,7 @@ async def test_take(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
+    query: FindFirstOptions | FindOptions | FindUniqueOptions,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -2297,7 +2296,7 @@ async def test_order_by_asc_without_filter(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
+    query: FindFirstOptions | FindOptions | FindUniqueOptions,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -2324,7 +2323,7 @@ async def test_order_by_asc_with_filter(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
+    query: FindFirstOptions | FindOptions | FindUniqueOptions,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -2351,7 +2350,7 @@ async def test_order_by_desc_with_filter(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
+    query: FindFirstOptions | FindOptions | FindUniqueOptions,
     mock_request_class: MagicMock,
     schema: MrsBaseSchema,
 ):
@@ -2378,7 +2377,7 @@ async def test_submit(
     mock_urlopen: MagicMock,
     urlopen_simulator: MagicMock,
     mock_create_default_context: MagicMock,
-    query: FindFirstOptions | FindManyOptions | FindUniqueOptions,
+    query: FindFirstOptions | FindOptions | FindUniqueOptions,
     urlopen_read: dict[str, Any],
     schema: MrsBaseSchema,
 ):
@@ -2419,34 +2418,6 @@ async def test_fetch_one(
         assert response is None
     else:
         assert response == MrsJSONDataDecoder.convert_keys(urlopen_read)["items"][0]
-
-
-@pytest.mark.parametrize("query, urlopen_read", TEST_FETCH_SAMPLE_DATA)
-async def test_fetch_all(
-    mock_urlopen: MagicMock,
-    urlopen_simulator: MagicMock,
-    mock_create_default_context: MagicMock,
-    query: FindAllOptions,
-    urlopen_read: dict[str, Any],
-    schema: MrsBaseSchema,
-):
-    """Check `MrsBaseObjectQuery.fetch_all()`."""
-    request_path = f"{schema._request_path}/actor"
-    request = MrsBaseObjectQuery[ActorData, ActorDetails](
-        schema=schema, request_path=request_path, options=query
-    )
-    mock_urlopen.return_value = urlopen_simulator(urlopen_read=urlopen_read)
-    mock_create_default_context.return_value = ssl.create_default_context()
-
-    response = await request.fetch_all()
-    mock_urlopen.assert_called_once()
-
-    if not urlopen_read["items"]:
-        assert response["items"] == []
-    else:
-        assert (
-            response["items"] == MrsJSONDataDecoder.convert_keys(urlopen_read)["items"]
-        )
 
 
 ####################################################################################
@@ -2829,7 +2800,7 @@ def test_decode_data(data: dict[str, Any], converted_data: dict[str, Any]):
     ],
 )
 async def test_query_encoder(
-    sample_filter: FindFirstOptions | FindManyOptions | FindUniqueOptions,
+    sample_filter: FindFirstOptions | FindOptions | FindUniqueOptions,
     expected_payload: str,
     schema: MrsBaseSchema,
 ):
