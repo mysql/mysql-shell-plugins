@@ -48,6 +48,7 @@ from typing import (
     Optional,
     Required,
     Sequence,
+    Type,
     TypeAlias,
     TypeAliasType,
     TypedDict,
@@ -412,6 +413,88 @@ class MrsDocumentBase(ABC):
             for key in super().__dir__()
             if key not in MrsDocumentBase._reserved_keys
         ]
+
+
+class MrsDocumentListBase(Generic[DataClass, Data, DataDetails], list[DataClass]):
+
+    def __init__(
+        self,
+        datacls: Type[DataClass],
+        schema: MrsBaseSchema,
+        request_path: str,
+        options: Optional[FindOptions],
+        iterable: Optional[Iterable[DataClass]] = None,
+    ):
+        if iterable is not None:
+            super().__init__(iterable)
+        else:
+            super().__init__()
+
+        self._datacls: Type[DataClass] = datacls
+        self._schema: MrsBaseSchema = schema
+        self._request_path: str = request_path
+        self._options: FindOptions = options or FindOptions()
+
+        if self._options.get("skip") is None:
+            self._options["skip"] = 0
+
+
+class MrsDocumentListLastPage(
+    Generic[DataClass, Data, DataDetails],
+    MrsDocumentListBase[DataClass, Data, DataDetails],
+):
+
+    @property
+    def has_more(self) -> Literal[False]:
+        """If there are more pages to consume or not."""
+        return False
+
+
+class MrsDocumentList(
+    Generic[DataClass, Data, DataDetails],
+    MrsDocumentListBase[DataClass, Data, DataDetails],
+):
+
+    @property
+    def has_more(self) -> Literal[True]:
+        """If there are more pages to consume or not."""
+        return True
+
+    async def next(
+        self,
+    ) -> (
+        MrsDocumentList[DataClass, Data, DataDetails]
+        | MrsDocumentListLastPage[DataClass, Data, DataDetails]
+    ):
+        """Gets next page."""
+        request = MrsBaseObjectQuery[Data, DataDetails](
+            schema=self._schema,
+            request_path=self._request_path,
+            options=self._options,
+        )
+        response = await request.submit()
+        page = [
+            self._datacls(schema=self._schema, data=cast(Data, item))  # type: ignore[call-arg]
+            for item in response["items"]
+        ]
+
+        if response["has_more"]:
+            self._options["skip"] += response["count"]
+            return MrsDocumentList[DataClass, Data, DataDetails](
+                datacls=self._datacls,
+                schema=self._schema,
+                request_path=self._request_path,
+                options=self._options,
+                iterable=page,
+            )
+
+        return MrsDocumentListLastPage[DataClass, Data, DataDetails](
+            datacls=self._datacls,
+            schema=self._schema,
+            request_path=self._request_path,
+            options=self._options,
+            iterable=page,
+        )
 
 
 class MrsDocument(Generic[Data], MrsDocumentBase):
@@ -932,7 +1015,7 @@ class FindFirstOptions(
             cursor = actor.actor_id
             if not isinstance(cursor, int):
                 self.fail("Cursor is undefined")
-            actors = await self.my_service.sakila.actor.find_many(
+            actors = await self.my_service.sakila.actor.find(
                 where={"first_name": "PENELOPE"}, cursor={"actor_id": cursor}
             )
         ```
@@ -948,7 +1031,7 @@ class FindFirstOptions(
     cursor: Cursors
 
 
-class FindManyOptions(
+class FindOptions(
     Generic[
         Data,
         Filterable,
@@ -968,62 +1051,18 @@ class FindManyOptions(
     ],
     total=False,
 ):
-    """Options supported by `find_many()`. See `FindFirstOptions` to know
+    """Options supported by `find()`. See `FindFirstOptions` to know
     about the other options.
 
     take (int): Specifies how many objects should be returned in the list.
         ```
-            actors: list[Actors] = await self.my_service.sakila.actor.find_many(
+            actors: list[Actors] = await self.my_service.sakila.actor.find(
                 where={"first_name": "PENELOPE"}, take=2
             )
         ```
-    iterator (bool): (not actually available on Prisma) it is used by the SDK to reset
-        the internal iterator when consuming paginated data in order to avoid n + 1
-        requests, the internal iterator stops after the MySQL Router says there are
-        no more items. Default value is `True`.
     """
 
     take: int
-    iterator: bool
-
-
-class FindAllOptions(
-    Generic[
-        Data,
-        Filterable,
-        Selectable,
-        Sortable,
-        DataField,
-        NestedField,
-        Cursors,
-    ],
-    FindFirstOptions[
-        Filterable,
-        Selectable,
-        Sortable,
-        DataField,
-        NestedField,
-        Cursors,
-    ],
-    total=False,
-):
-    """Options supported by `find_all()`. See `FindFirstOptions` to
-    know about the other options.
-
-    progress (callback): Display loop progress.
-        ```
-        def my_progress(data: list[ActorData]) -> None:
-            print("Test Progress Option")
-            for i, item in enumerate(data):
-                print(f"{i+1} of {len(data)}: actor_id={item["actor_id"]}")
-
-        actors: list[Actor] = await self.my_service.sakila.actor.find_all(
-            where={"first_name": "PENELOPE"}, progress=my_progress
-        )
-        ```
-    """
-
-    progress: Callable[[list[Data]], None]
 
 
 ####################################################################################
@@ -1403,7 +1442,6 @@ class MrsBaseObject:
     def __init__(self, schema: MrsBaseSchema, request_path: str) -> None:
         self._schema: MrsBaseSchema = schema
         self._request_path: str = request_path
-        self._has_more: bool = True
 
     async def get_metadata(self) -> JsonObject:
         return await _get_metadata(
@@ -1567,7 +1605,7 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
         self,
         schema: MrsBaseSchema,
         request_path: str,
-        options: Optional[Union[FindManyOptions, FindFirstOptions, FindUniqueOptions]],
+        options: Optional[Union[FindOptions, FindFirstOptions, FindUniqueOptions]],
     ) -> None:
         """Constructor.
 
@@ -1577,7 +1615,7 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
         Args:
             schema: instance of the corresponding MRS schema
             request_path: the base endpoint to the resource (database table).
-            options: See FindManyOptions, FindFirstOptions and FindUniqueOptions
+            options: See FindOptions, FindFirstOptions and FindUniqueOptions
                     to know more about the options.
         """
         self._schema: MrsBaseSchema = schema
@@ -1593,7 +1631,7 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
         if options is None:
             return
 
-        all_available_options = cast(FindManyOptions, options)
+        all_available_options = cast(FindOptions, options)
 
         where = all_available_options.get("where")
         order_by = all_available_options.get("order_by")
@@ -1691,61 +1729,6 @@ class MrsBaseObjectQuery(Generic[Data, DataDetails]):
         )
 
         return json.loads(response.read(), object_hook=MrsJSONDataDecoder.convert_keys)
-
-    async def fetch_all(
-        self, progress: Optional[ProgressCallback] = None
-    ) -> IMrsResourceCollectionData:
-        """Fetch all result sets (pages). Unlike `submit()`, this method loads
-        all pages matching the query `options`.
-
-        Returns:
-            A dictionary with the following keys:
-            ```
-                items: list[IMrsResourceDetails]
-                limit: int
-                offset: int
-                has_more: bool
-                count: int
-                links: list[MrsResourceLink]
-            ```
-        """
-        has_more = True
-        res: IMrsResourceCollectionData = {
-            "count": 0,
-            "has_more": False,
-            "items": [],
-            "limit": 25,
-            "links": [],
-            "offset": 0,
-        }
-
-        while has_more:
-            current = await self.submit()
-
-            if current is None:
-                break
-
-            has_more = current["has_more"]
-
-            if res is None:
-                res = current
-            else:
-                # increase the global response count
-                res["count"] += current["count"]
-                res["has_more"] = has_more
-                # add the remaining items
-                res["items"].extend(current["items"])
-                res["limit"] = current["limit"]
-                res["links"] = current["links"]
-                res["offset"] = current["offset"]
-
-            if progress:
-                # callback with the current status
-                progress([cast(Data, item) for item in res["items"]])
-
-            self.offset = res["count"]
-
-        return res
 
     async def fetch_one(self) -> Optional[DataDetails]:
         """Fetch a single document.
