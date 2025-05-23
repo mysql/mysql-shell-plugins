@@ -33,6 +33,7 @@ from typing import (
     Generic,
     Literal,
     Optional,
+    Sequence,
     TypeAlias,
     TypedDict,
     Union,
@@ -108,6 +109,7 @@ from ..mrs_base_classes import (
     UndefinedDataClassField,
     JsonObject,
     Year,
+    merge_task_options,
 )
 
 ####################################################################################
@@ -2955,9 +2957,7 @@ async def test_where_field_is_equal_with_implicit_filter(
             request = MrsBaseObjectQuery[Obj1Data, Obj1Details](
                 schema=schema,
                 request_path=request_path,
-                options=cast(
-                    FindFirstOptions | FindOptions | FindUniqueOptions, query
-                ),
+                options=cast(FindFirstOptions | FindOptions | FindUniqueOptions, query),
             )
         else:
             request = MrsBaseObjectDelete[Obj1Filterable](
@@ -3047,9 +3047,7 @@ async def test_where_field_is_equal_with_explicit_filter(
             request = MrsBaseObjectQuery[Obj1Data, Obj1Details](
                 schema=schema,
                 request_path=request_path,
-                options=cast(
-                    FindFirstOptions | FindOptions | FindUniqueOptions, query
-                ),
+                options=cast(FindFirstOptions | FindOptions | FindUniqueOptions, query),
             )
         else:
             request = MrsBaseObjectDelete[Obj1Filterable](
@@ -3089,9 +3087,7 @@ async def test_where_field_is_null(
             request = MrsBaseObjectQuery[Obj1Data, Obj1Details](
                 schema=schema,
                 request_path=request_path,
-                options=cast(
-                    FindFirstOptions | FindOptions | FindUniqueOptions, query
-                ),
+                options=cast(FindFirstOptions | FindOptions | FindUniqueOptions, query),
             )
         else:
             request = MrsBaseObjectDelete[Obj1Filterable](
@@ -3948,3 +3944,35 @@ def test_upstream_converter(value: Any, exp_output: Any):
     value_converted = MrsDataUpstreamConverter.convert(value)
     assert value_converted == exp_output
     assert isinstance(value_converted, exp_output.__class__) == True
+
+
+####################################################################################
+#                             Test Utilities
+####################################################################################
+@pytest.mark.parametrize(
+    "args, exp_merged",
+    [
+        (
+            (
+                IMrsTaskCallOptions(refresh_rate=1.2, timeout=3.6),
+                IMrsTaskCallOptions(refresh_rate=5),
+            ),
+            IMrsTaskCallOptions(refresh_rate=5, timeout=3.6),
+        ),
+        (
+            (
+                IMrsTaskCallOptions(refresh_rate=1.2, timeout=3.6),
+                IMrsTaskCallOptions(timeout=None),
+            ),
+            IMrsTaskCallOptions(refresh_rate=1.2, timeout=None),
+        ),
+    ],
+)
+def test_merge_task_options(
+    args: Sequence[IMrsTaskCallOptions], exp_merged: IMrsTaskCallOptions
+):
+    """Test `merge_task_options()`."""
+    assert merge_task_options(args) == exp_merged
+
+    with pytest.raises(ValueError):
+        merge_task_options([{"timeout": None}, None])  # type: ignore[list-item]
