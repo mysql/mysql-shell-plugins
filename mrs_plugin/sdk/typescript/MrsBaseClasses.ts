@@ -1630,11 +1630,16 @@ export type IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult> =
     | IMrsErrorTaskReport<MrsTaskStatusUpdate, MrsTaskResult>
     | IMrsTimedOutTaskReport<MrsTaskStatusUpdate, MrsTaskResult>;
 
-export class MrsBaseTaskStart<MrsTaskInputParameters> {
+export class MrsBaseTaskStart<MrsTaskInputParameters, MrsTaskStatusUpdate, MrsTaskResult> {
     public constructor(
-        private schema: MrsBaseSchema,
-        private requestPath: string,
-        private params?: MrsTaskInputParameters) {
+        private readonly schema: MrsBaseSchema,
+        private readonly requestPath: string,
+        private readonly params?: MrsTaskInputParameters,
+        private readonly options: IMrsTaskRunOptions<MrsTaskStatusUpdate, MrsTaskResult> = { refreshRate: 2000 }) {
+            const { refreshRate = 2000 } = this.options;
+            if (typeof refreshRate !== "number" || refreshRate < 500) {
+                throw new Error("Refresh rate needs to be a number greater than or equal to 500ms.");
+            }
     }
 
     public async submit(): Promise<IMrsTaskStartResponse> {
@@ -1676,9 +1681,12 @@ export class MrsBaseTaskWatch<MrsTaskStatusUpdate, MrsTaskResult> {
     public async* submit(): AsyncGenerator<IMrsTaskReport<MrsTaskStatusUpdate, MrsTaskResult>> {
         const startedAt = Date.now();
         const { refreshRate = 2000, progress, timeout } = this.options;
+        // the timeout event should be produced only once
+        let timeoutReached = false;
 
         while (true) {
-            if (timeout !== undefined && Date.now() - startedAt > timeout) {
+            if (timeout !== undefined && Date.now() - startedAt > timeout && !timeoutReached) {
+                timeoutReached = true;
                 // a client-side timeout should not close the producer
                 yield { message: `The timeout of ${timeout} ms has been exceeded.`, status: "TIMEOUT" };
             }
@@ -1745,10 +1753,7 @@ export class MrsTask<MrsTaskStatusUpdate, MrsTaskResult> {
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
         public readonly id: string,
-        private readonly options: IMrsTaskRunOptions<MrsTaskStatusUpdate, MrsTaskResult> = { refreshRate: 2000 }) {
-        if (typeof options.refreshRate !== "number" || options.refreshRate < 500) {
-            throw new Error("Refresh rate needs to be a number greater than or equal to 500ms.");
-        }
+        private readonly options?: IMrsTaskRunOptions<MrsTaskStatusUpdate, MrsTaskResult>) {
     }
 
     public async kill(): Promise<void> {
