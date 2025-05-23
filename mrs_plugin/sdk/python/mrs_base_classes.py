@@ -77,7 +77,7 @@ MIN_ALLOWED_REFRESH_RATE = 0.5
 
 
 ####################################################################################
-#                                Utility Classes
+#                                   Utilities
 ####################################################################################
 class _Singleton:
     """A single pointer of this class is guaranteed to exits at any given time.
@@ -105,6 +105,31 @@ class UndefinedDataClassField(_Singleton):
 
     def __repr__(self):
         return "<undef>"  # undefined field
+
+
+def merge_task_options(
+    options: Sequence[IMrsTaskStartOptions | IMrsTaskCallOptions],
+) -> IMrsTaskStartOptions | IMrsTaskCallOptions:
+    """Merges a sequence of dictionaries into a single dictionary.
+
+    Args:
+        args: A sequence (e.g., list or tuple)
+            of dictionaries.
+
+    Returns:
+        A new dictionary containing all key-value pairs from the input dictionaries.
+        If there are duplicate keys, the value from the later dictionary in the sequence
+        takes precedence.
+    """
+    merged: IMrsTaskStartOptions | IMrsTaskCallOptions = {}
+    for d in options:
+        if not isinstance(d, dict):
+            raise ValueError(
+                "task options of `call()/start()` must be dictionaries. "
+                f"Type {d.__class__.__name__} found when parsing options."
+            )
+        merged.update(d)
+    return merged
 
 
 ####################################################################################
