@@ -9,6 +9,7 @@
 ### Fixes
 
 - BUG#37965633 Optional fields required when creating or updating nested documents
+- BUG#37987749 Unexpected error when starting a REST routine with a custom timeout
 -
 
 ## Changes in 1.19.11+9.3.1
