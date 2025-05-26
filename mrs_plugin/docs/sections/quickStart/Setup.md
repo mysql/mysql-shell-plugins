@@ -118,7 +118,7 @@ After creating the new account, remember to update the DB Connection and replace
 
 ### Granting REST Service Admin Privileges
 
-Any existing MySQL user account can be used promoted to a REST service administrator by granting the `mysql_rest_service_admin` role. This role has to be added to the default MySQL roles that are assigned when a MySQL user connects.
+Any existing MySQL user account can be promoted to a REST service administrator by granting the `mysql_rest_service_admin` role. This role has to be added to the default MySQL roles that are assigned when a MySQL user connects.
 
 The following two statements grant the required MySQL role and assign all roles to be loaded by default.
 
