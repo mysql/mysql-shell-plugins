@@ -34,27 +34,27 @@ export const appParameters: Map<string, string> & IAppParameters = new Map<strin
  */
 export const parseAppParameters = (): void => {
     if (typeof window !== "undefined") {
-        const queryParts = window.location.search.substring(1).split("&");
-        queryParts.forEach((part) => {
-            const elements = part.split("=");
-            if (elements.length > 1) {
-                appParameters.set(elements[0], elements[1]);
+        const search = new URLSearchParams(window.location.search);
 
-                if (elements[0] === "app") {
-                    appParameters.embedded = true;
-                } else if (elements[0] === "fontSize") {
-                    const fontSize = parseInt(elements[1], 10);
-                    if (!isNaN(fontSize)) {
-                        appParameters.fontSize = fontSize;
-                    }
-                } else if (elements[0] === "editorFontSize") {
-                    const fontSize = parseInt(elements[1], 10);
-                    if (!isNaN(fontSize)) {
-                        appParameters.editorFontSize = fontSize;
-                    }
-                }
+        for (const [queryParam, value] of search) {
+            appParameters.set(queryParam, value);
+
+            if (queryParam === "app") {
+                appParameters.embedded = true;
+                appParameters.hideStatusBar = true;
+
+                continue;
             }
-        });
+
+            if (queryParam === "fontSize" || queryParam === "editorFontSize") {
+                const numericValue = parseInt(value, 10);
+                if (!isNaN(numericValue)) {
+                    appParameters[queryParam] = numericValue;
+                }
+            } else if (queryParam === "subApp") {
+                appParameters[queryParam] = value;
+            }
+        }
     }
 
     if (process.env.NODE_ENV === "test") {

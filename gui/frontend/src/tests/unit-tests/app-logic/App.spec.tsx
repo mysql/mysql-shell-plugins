@@ -56,7 +56,7 @@ describe("Application tests", () => {
         launcher = await setupShellForTests(false, false);
         expect(MessageScheduler.get.isConnected).toBe(false);
 
-        expect(requisitions.registrations("dialogResponse")).toBe(1);
+        expect(requisitions.registrations("dialogResponse")).toBe(0);
 
         app = mount(<App />);
         await started();
@@ -87,11 +87,8 @@ describe("Application tests", () => {
     });
 
     it("Handling status bar click events", async () => {
-        let result = await requisitions.execute("statusBarButtonClick", { type: "dummy", event: mouseEventMock });
+        const result = await requisitions.execute("statusBarButtonClick", { type: "dummy", event: mouseEventMock });
         expect(result).toBe(false);
-
-        result = await requisitions.execute("statusBarButtonClick", { type: "openPopupMenu", event: mouseEventMock });
-        expect(result).toBe(true);
     });
 
     it("DOM events", () => {

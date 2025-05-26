@@ -62,6 +62,9 @@ export interface IAppParameters {
 
     /** The font size for the code editors */
     editorFontSize?: number;
+
+    hideStatusBar?: boolean;
+    subApp?: string;
 }
 
 export type SimpleCallback = (_: unknown) => Promise<boolean>;

@@ -93,7 +93,7 @@ interface ICommunicationDebuggerState extends IComponentState {
     scriptTabs: ITabviewPage[];
 }
 
-export class CommunicationDebugger
+export default class CommunicationDebugger
     extends ComponentBase<ICommunicationDebuggerProperties, ICommunicationDebuggerState> {
 
     private environment: CommunicationDebuggerEnvironment;

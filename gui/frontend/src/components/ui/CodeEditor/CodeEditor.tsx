@@ -26,18 +26,15 @@
 import "./CodeEditor.css";
 
 import { SymbolTable } from "antlr4-c3";
-import Color from "color";
 import { ComponentChild, createRef } from "preact";
 
 import "./userWorker.js";
 
 import {
-    CodeEditorMode, ICodeEditorViewState, IDisposable, ILanguageDefinition, IPosition, IProviderEditorModel,
+    CodeEditorMode, ICodeEditorViewState, IDisposable, IPosition, IProviderEditorModel,
     IScriptExecutionOptions, KeyCode, KeyMod, languages, Monaco, Range, Selection,
 } from "./index.js";
 
-import { msg } from "./languages/msg/msg.contribution.js";
-import { mysql } from "./languages/mysql/mysql.contribution.js";
 
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
@@ -50,22 +47,12 @@ import {
 import { Settings } from "../../../supplement/Settings/Settings.js";
 import { editorRangeToTextRange } from "../../../utilities/ts-helpers.js";
 
-import { IThemeChangeData, IThemeObject, ITokenEntry } from "../../Theming/ThemeManager.js";
 
 import { MessageType } from "../../../app-logic/general-types.js";
 import { ExecutionContext } from "../../../script-execution/ExecutionContext.js";
 import { splitTextToLines } from "../../../utilities/string-helpers.js";
 import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";
 import type { ICodeEditorOptions } from "../index.js";
-import { CodeCompletionProvider } from "./CodeCompletionProvider.js";
-import { DefinitionProvider } from "./DefinitionProvider.js";
-import { DocumentHighlightProvider } from "./DocumentHighlightProvider.js";
-import { FormattingProvider } from "./FormattingProvider.js";
-import { HoverProvider } from "./HoverProvider.js";
-import { MsgSemanticTokensProvider } from "./MsgSemanticTokensProvider.js";
-import { ReferencesProvider } from "./ReferencesProvider.js";
-import { RenameProvider } from "./RenameProvider.js";
-import { SignatureHelpProvider } from "./SignatureHelpProvider.js";
 
 /** Used when splitting pasted text to find the individual language blocks. */
 interface ITextBlockEntry {
@@ -239,110 +226,6 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
         // istanbul ignore next
         if (typeof ResizeObserver !== "undefined") {
             this.resizeObserver = new ResizeObserver(this.handleEditorResize);
-        }
-    }
-
-    /**
-     * Updates the theme used by all code editor instances.
-     *
-     * @param theme The theme name (DOM safe).
-     * @param type The base type of the theme.
-     * @param values The actual theme values.
-     */
-    public static updateTheme(theme: string, type: "light" | "dark", values: IThemeObject): void {
-        Monaco.remeasureFonts();
-
-        // Convert all color values to CSS hex form.
-        const entries: { [key: string]: string; } = {};
-        for (const [key, value] of Object.entries(values.colors || {})) {
-            entries[key] = (new Color(value)).hexa();
-        }
-
-        const tokenRules: Monaco.ITokenThemeRule[] = [];
-        (values.tokenColors || []).forEach((value: ITokenEntry): void => {
-            const scopeValue = value.scope || [];
-            const scopes = Array.isArray(scopeValue) ? scopeValue : scopeValue.split(",");
-            scopes.forEach((scope: string): void => {
-                tokenRules.push({
-                    token: scope,
-                    foreground: (new Color(value.settings.foreground)).hexa(),
-                    background: (new Color(value.settings.background)).hexa(),
-                    fontStyle: value.settings.fontStyle,
-                });
-            });
-        });
-
-        Monaco.defineTheme(theme, {
-            base: type === "light" ? "vs" : "vs-dark",
-            inherit: false,
-            rules: tokenRules,
-            colors: entries,
-        });
-
-        Monaco.setTheme(theme);
-    }
-
-    /**
-     * Called once to initialize various aspects of the monaco-editor subsystem (like languages, themes, options etc.)
-     */
-    public static configureMonaco(): void {
-        if (CodeEditor.monacoConfigured) {
-            return;
-        }
-
-        CodeEditor.monacoConfigured = true;
-
-        languages.onLanguage(msg.id, () => {
-            void msg.loader().then((definition: ILanguageDefinition) => {
-                languages.setMonarchTokensProvider(msg.id, definition.language);
-                languages.setLanguageConfiguration(msg.id, definition.languageConfiguration);
-            });
-        });
-
-        languages.onLanguage("mysql", () => {
-            void mysql.loader().then((definition: ILanguageDefinition) => {
-                languages.setMonarchTokensProvider("mysql", definition.language);
-                languages.setLanguageConfiguration("mysql", definition.languageConfiguration);
-            });
-        });
-
-        const editorLanguages = ["msg", "javascript", "typescript", "mysql", "python"];
-        languages.registerDocumentSemanticTokensProvider(editorLanguages, new MsgSemanticTokensProvider());
-        languages.registerCompletionItemProvider(editorLanguages, new CodeCompletionProvider());
-        languages.registerHoverProvider(editorLanguages, new HoverProvider());
-        languages.registerSignatureHelpProvider(editorLanguages, new SignatureHelpProvider());
-        languages.registerDocumentHighlightProvider(editorLanguages, new DocumentHighlightProvider());
-        languages.registerDefinitionProvider(editorLanguages, new DefinitionProvider());
-        languages.registerReferenceProvider(editorLanguages, new ReferencesProvider());
-        languages.registerDocumentFormattingEditProvider(editorLanguages, new FormattingProvider());
-        languages.registerRenameProvider(editorLanguages, new RenameProvider());
-
-        // Register our combined language and create dummy text models for some languages, to trigger their
-        // initialization. Otherwise we will get errors when they are used by the combined language code.
-        languages.register(msg);
-
-        Monaco.createModel("", "typescript").dispose();
-        Monaco.createModel("", "javascript").dispose();
-        Monaco.createModel("", "json").dispose();
-
-        if (languages.typescript) { // This field is not set when running under Jest.
-            const compilerOptions: languages.typescript.CompilerOptions = {
-                allowNonTsExtensions: true,
-                target: languages.typescript.ScriptTarget.ESNext,
-                module: languages.typescript.ModuleKind.ESNext,
-                strictNullChecks: true,
-            };
-
-            languages.typescript.javascriptDefaults.setCompilerOptions(compilerOptions);
-            languages.typescript.typescriptDefaults.setCompilerOptions(compilerOptions);
-
-            // Disable the error about "top level await" for standalone editors.
-            languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-                diagnosticCodesToIgnore: [1375],
-            });
-            languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-                diagnosticCodesToIgnore: [1375],
-            });
         }
     }
 
@@ -2324,14 +2207,4 @@ export class CodeEditor extends ComponentBase<ICodeEditorProperties> {
             }
         }
     };
-
-    static {
-        CodeEditor.configureMonaco();
-
-        requisitions.register("themeChanged", (data: IThemeChangeData): Promise<boolean> => {
-            CodeEditor.updateTheme(data.safeName, data.type, data.values);
-
-            return Promise.resolve(true);
-        });
-    }
 }

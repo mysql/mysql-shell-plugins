@@ -178,7 +178,6 @@ export class ThemeManager {
         }
 
         requisitions.register("settingsChanged", this.settingsChanged);
-        requisitions.register("hostThemeChange", this.hostThemeChange);
     }
 
     public static get get(): ThemeManager {
@@ -462,6 +461,28 @@ export class ThemeManager {
         return this.getThemeCss(theme);
     }
 
+    /**
+     * Handles theme changes in the host (if the app is embedded).
+     *
+     * @param data The new theme data.
+     * @param data.css A set of CSS variables with individual theme data.
+     * @param data.themeClass The name of the main theme type. The exact name depends on the host.
+     *
+     * @returns A promise that always resolve to true.
+     */
+    public hostThemeChange = (data: IHostThemeData): Promise<boolean> => {
+        // From now on we ignore the theme from the profile.
+        this.#useHostTheme = true;
+
+        this.themeDefinitions.delete(data.themeClass);
+
+        const theme = this.parseHostTheme(data);
+        this.loadThemeDetails(theme);
+        this.switchTheme(data.themeClass);
+
+        return Promise.resolve(true);
+    };
+
     private setFont(theme: IThemeObject, property: string, value: string): void {
         if (!theme.font) {
             theme.font = {};
@@ -578,28 +599,6 @@ export class ThemeManager {
         }
 
         return Promise.resolve(false);
-    };
-
-    /**
-     * Handles theme changes in the host (if the app is embedded).
-     *
-     * @param data The new theme data.
-     * @param data.css A set of CSS variables with individual theme data.
-     * @param data.themeClass The name of the main theme type. The exact name depends on the host.
-     *
-     * @returns A promise that always resolve to true.
-     */
-    private hostThemeChange = (data: IHostThemeData): Promise<boolean> => {
-        // From now on we ignore the theme from the profile.
-        this.#useHostTheme = true;
-
-        this.themeDefinitions.delete(data.themeClass);
-
-        const theme = this.parseHostTheme(data);
-        this.loadThemeDetails(theme);
-        this.switchTheme(data.themeClass);
-
-        return Promise.resolve(true);
     };
 
     /**

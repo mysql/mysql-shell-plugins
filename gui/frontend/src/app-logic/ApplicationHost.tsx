@@ -25,35 +25,38 @@
 
 
 import { ComponentChild } from "preact";
-
-import { requisitions } from "../supplement/Requisitions.js";
-import { appParameters } from "../supplement/AppParameters.js";
-import { RunMode, webSession } from "../supplement/WebSession.js";
+import { lazy, Suspense } from "preact/compat";
 
 import { SettingsEditor } from "../components/SettingsEditor/SettingsEditor.js";
-import { DialogHost } from "./DialogHost.js";
-
-import { CommunicationDebugger } from "../components/CommunicationDebugger/CommunicationDebugger.js";
+import { AboutBox } from "../components/ui/AboutBox/AboutBox.js";
 import { ComponentBase, type IComponentProperties } from "../components/ui/Component/ComponentBase.js";
 import { Container, Orientation } from "../components/ui/Container/Container.js";
-import { SplitContainer, type ISplitterPaneSizeInfo } from "../components/ui/SplitContainer/SplitContainer.js";
+import { ISplitterPane, SplitContainer,
+    type ISplitterPaneSizeInfo } from "../components/ui/SplitContainer/SplitContainer.js";
 import { StatusBarAlignment, type IStatusBarItem } from "../components/ui/Statusbar/StatusBarItem.js";
 import { DocumentModule } from "../modules/db-editor/DocumentModule.js";
+import { appParameters } from "../supplement/AppParameters.js";
+import { requisitions } from "../supplement/Requisitions.js";
+import { RunMode, webSession } from "../supplement/WebSession.js";
+import { LoadingIndicator } from "./LazyAppRouter.js";
 import { ui } from "./UILayer.js";
-import { AboutBox } from "../components/ui/AboutBox/AboutBox.js";
 
-interface IApplicationHostProperties extends IComponentProperties {
-    toggleOptions: () => void;
-}
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const CommunicationDebugger = lazy(async () => {
+    return import("../components/CommunicationDebugger/CommunicationDebugger.js");
+});
+
+interface IApplicationHostProperties extends IComponentProperties {}
 
 interface IApplicationHostState {
     settingsVisible: boolean;
     aboutVisible: boolean;
     debuggerVisible: boolean;
     debuggerMaximized: boolean;
+    debuggerEnabledInBackground: boolean;
 }
 
-export class ApplicationHost extends ComponentBase<IApplicationHostProperties, IApplicationHostState> {
+export default class ApplicationHost extends ComponentBase<IApplicationHostProperties, IApplicationHostState> {
     private lastEmbeddedDebuggerSplitPosition = 500;
 
     private optionsStatusItem?: IStatusBarItem;
@@ -70,6 +73,7 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
             aboutVisible: false,
             debuggerVisible: false,
             debuggerMaximized: true,
+            debuggerEnabledInBackground: false,
         };
     }
 
@@ -111,7 +115,8 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
     }
 
     public render(): ComponentChild {
-        const { settingsVisible, aboutVisible, debuggerVisible, debuggerMaximized } = this.state;
+        const { settingsVisible, aboutVisible, debuggerVisible, debuggerEnabledInBackground,
+            debuggerMaximized } = this.state;
 
         const pages: ComponentChild[] = [this.editorHost];
 
@@ -122,40 +127,45 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
         }
 
         let content = pages;
-        let allowDebugger = false;
         if (webSession.runMode === RunMode.LocalUser && !appParameters.embedded &&
             (!appParameters.testsRunning || appParameters.launchWithDebugger)) {
-            allowDebugger = true;
+
+            const panes: ISplitterPane[] = [{
+                id: "appHostPane",
+                content: pages,
+                minSize: debuggerMaximized ? 0 : 500,
+                initialSize: !debuggerVisible ? undefined :
+                    debuggerMaximized
+                        ? 0
+                        : this.lastEmbeddedDebuggerSplitPosition,
+                resizable: debuggerVisible && !debuggerMaximized,
+                stretch: !debuggerVisible,
+            }];
+
+            if (debuggerEnabledInBackground) {
+                panes.push({
+                    id: "debuggerPane",
+                    content: (
+                        <Suspense fallback={LoadingIndicator}>
+                            <CommunicationDebugger
+                                toggleDisplayMode={this.toggleDebuggerDisplayMode}
+                            />
+                        </Suspense>
+                    ),
+                    minSize: debuggerVisible && !debuggerMaximized ? 200 : 0,
+                    initialSize: !debuggerVisible ? 0 : undefined,
+                    snap: true,
+                    resizable: debuggerVisible && !debuggerMaximized,
+                    stretch: debuggerVisible && debuggerMaximized,
+                });
+            }
 
             content = [
                 <SplitContainer
                     key="appHostSplitter"
                     id="appHostSplitter"
                     orientation={Orientation.TopDown}
-                    panes={[
-                        {
-                            id: "appHostPane",
-                            content: pages,
-                            minSize: debuggerMaximized ? 0 : 500,
-                            initialSize: !debuggerVisible ? undefined :
-                                debuggerMaximized
-                                    ? 0
-                                    : this.lastEmbeddedDebuggerSplitPosition,
-                            resizable: debuggerVisible && !debuggerMaximized,
-                            stretch: !debuggerVisible,
-                        },
-                        allowDebugger && {
-                            id: "debuggerPane",
-                            content: <CommunicationDebugger
-                                toggleDisplayMode={this.toggleDebuggerDisplayMode}
-                            />,
-                            minSize: debuggerVisible && !debuggerMaximized ? 200 : 0,
-                            initialSize: !debuggerVisible ? 0 : undefined,
-                            snap: true,
-                            resizable: debuggerVisible && !debuggerMaximized,
-                            stretch: debuggerVisible && debuggerMaximized,
-                        },
-                    ]}
+                    panes={panes}
                     onPaneResized={this.embeddedDebuggerSplitterResize}
                 />];
         }
@@ -163,7 +173,6 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
         return (
             <Container className="applicationHost" orientation={Orientation.TopDown}>
                 {content}
-                <DialogHost />
             </Container>
         );
     }
@@ -203,7 +212,12 @@ export class ApplicationHost extends ComponentBase<IApplicationHostProperties, I
             case "application:toggleDebugger": {
                 const { debuggerVisible } = this.state;
 
-                this.setState({ debuggerVisible: !debuggerVisible, settingsVisible: false, aboutVisible: false });
+                this.setState({
+                    debuggerVisible: !debuggerVisible,
+                    debuggerEnabledInBackground: true,
+                    settingsVisible: false,
+                    aboutVisible: false,
+                });
 
                 break;
             }
