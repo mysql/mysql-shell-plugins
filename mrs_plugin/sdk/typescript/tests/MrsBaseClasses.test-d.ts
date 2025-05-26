@@ -27,9 +27,9 @@ import { assertType, describe, expectTypeOf, it } from "vitest";
 import {
     type PureFilter, type DataFilter, type BooleanFieldMapSelect, type ColumnOrder, type FieldNameSelect,
     type IFindFirstOptions, type IFindManyOptions, type IFindUniqueOptions,
-    type IMrsResourceCollectionData, type MaybeNull, type Point, type MultiPoint, type LineString,
+    type MrsDownstreamDocumentListData, type MaybeNull, type Point, type MultiPoint, type LineString,
     type MultiLineString, type Polygon, type MultiPolygon, type Geometry, type GeometryCollection,
-    type HighOrderFilter, type ComparisonOpExpr, type MrsResourceObject, type Cursor, type IDeleteOptions,
+    type HighOrderFilter, type ComparisonOpExpr, type MrsDownstreamDocumentData, type Cursor, type IDeleteOptions,
     IMrsProcedureJsonResponse, IMrsProcedureResult, IMrsFunctionJsonResponse, IMrsTaskReport, IMrsRunningTaskReport,
     IMrsTaskRunOptions, IMrsTaskStartOptions,
 } from "../MrsBaseClasses";
@@ -718,7 +718,7 @@ describe("MRS SDK base types", () => {
         });
     });
 
-    describe("MrsResourceObject", () => {
+    describe("MrsDownstreamDocumentData", () => {
         it("contains hypermedia-related properties and data fields of a single resource", () => {
             const resource = {
                 _metadata: {
@@ -732,11 +732,11 @@ describe("MRS SDK base types", () => {
                 age: 42,
             };
 
-            expectTypeOf(resource).toMatchTypeOf<MrsResourceObject<{ name: string, age: number }>>();
+            expectTypeOf(resource).toMatchTypeOf<MrsDownstreamDocumentData<{ name: string, age: number }>>();
         });
     });
 
-    describe("IMrsResourceCollectionData", () => {
+    describe("MrsDownstreamDocumentListData", () => {
         it("contains hypermedia-related properties and the list of individual resources in a collection", () => {
             const collection = {
                 items: [{
@@ -760,7 +760,7 @@ describe("MRS SDK base types", () => {
                 }],
             };
 
-            expectTypeOf(collection).toMatchTypeOf<IMrsResourceCollectionData<{ name: string, age: number }>>();
+            expectTypeOf(collection).toMatchTypeOf<MrsDownstreamDocumentListData<{ name: string, age: number }>>();
         });
     });
 
