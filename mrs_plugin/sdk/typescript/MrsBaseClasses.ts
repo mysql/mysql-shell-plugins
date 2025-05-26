@@ -462,12 +462,12 @@ export interface IMrsOperator {
  * A collection of MRS resources is represented by a JSON object returned by the MySQL Router, which includes the list
  * of underlying resource objects and additional hypermedia-related properties with pagination state and the
  * relationships with additional resources.
- * @see MrsResourceObject
+ * @see MrsDownstreamDocumentData
  * @see IMrsLink
  * @see JsonObject
  */
-export type IMrsResourceCollectionData<C> = {
-    items: Array<MrsResourceObject<C>>,
+export type MrsDownstreamDocumentListData<C> = {
+    items: Array<MrsDownstreamDocumentData<C>>,
     limit: number,
     offset: number,
     hasMore: boolean,
@@ -480,7 +480,12 @@ export type IMrsResourceCollectionData<C> = {
  * corresponding fields and values alongside additional hypermedia-related properties.
  * @see IMrsResourceDetails
  */
-export type MrsResourceObject<T> = T & IMrsResourceDetails;
+export type MrsDownstreamDocumentData<T> = T & IMrsResourceDetails & IPojo;
+
+/**
+ * Actual MRS Document definition + "_metadata" (BUG#37716544).
+ */
+export type MrsUpstreamResourceData<T> = T & Omit<IMrsResourceDetails, "links">;
 
 /**
  * A resource object is always represented as JSON and can include specific hypermedia properties such as a potential
@@ -489,11 +494,10 @@ export type MrsResourceObject<T> = T & IMrsResourceDetails;
  * @see IMrsResourceMetadata
  * @see JsonObject
  */
-export type IMrsResourceDetails = {
+interface IMrsResourceDetails {
     links: IMrsLink[];
     _metadata: IMrsResourceMetadata;
-} & JsonObject;
-
+}
 
 interface IMrsTransactionalMetadata {
     gtid?: string;
@@ -664,6 +668,11 @@ type JsonPrimitive = string | number | boolean | null;
  * and arrays of these.
  */
 export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
+
+/** Type representing a plain old JavaScript object. */
+export interface IPojo {
+    [key: symbol | string]: JsonValue | undefined
+}
 
 /**
  * Columns can be assigned "NOT NULL" constraints, which can be enforced by the client type.
@@ -928,29 +937,53 @@ class MrsJSON {
     };
 }
 
+class MrsRequestBody<Doc> {
+    public constructor(
+        private readonly json: MrsDownstreamDocumentData<Doc>) {
+    }
+
+    public createProxy() {
+        return new Proxy(this.json, {
+            get: (target: MrsDownstreamDocumentData<Doc>, key) => {
+                if (key === "toJSON") {
+                    return this.serialize.bind(this);
+                }
+
+                return target[key];
+            },
+        });
+    }
+
+    private serialize() {
+        // eslint-disable-next-line no-underscore-dangle
+        return { ...this.json, _metadata: this.json._metadata };
+    }
+}
+
 /**
- * @template T The set of fields of a given database object that should be part of the result set.
+ * @template Doc The type representing an MRS Document produced by a REST View.
+ * @template KeyFieldNames The set of fields that constitute the identifying key of a REST View.
  */
-class MrsSimplifiedObjectResponse<Input, ResourceIdFieldNames extends string[], Output> {
+class MrsDocument<Doc extends IPojo, KeyFieldNames extends string[]> {
     #hypermediaProperties = ["_metadata", "links"];
 
     public constructor (
-        private readonly json: Output & JsonObject,
+        private readonly json: Doc,
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
-        private readonly primaryKeys?: ResourceIdFieldNames) {
+        private readonly primaryKeys?: KeyFieldNames) {
     }
 
     /**
-     * Retrieve an application resource instance that hides hypermedia-related properties and prevents the application
-     * from changing or deleting them.
-     * @see {MrsResourceObject}
-     * @returns An abstraction of the database object item without hypermedia-related properties.
+     * Create an application-level MRS Document object that hides hypermedia-related properties and prevents the
+     * application from changing or deleting them.
+     * @see {MrsDownstreamDocumentData}
+     * @returns An MRS Document without hypermedia-related properties.
      */
-    public getInstance () {
+    public createProxy () {
         return new Proxy(this.json, {
             deleteProperty: (target, p) => {
-                const property = String(p);
+                const property = String(p); // convert symbols to strings
                 const isPrimaryKey = this.primaryKeys !== undefined && this.primaryKeys.includes(property);
 
                 if (this.#hypermediaProperties.indexOf(property) > -1 || isPrimaryKey) {
@@ -962,27 +995,29 @@ class MrsSimplifiedObjectResponse<Input, ResourceIdFieldNames extends string[], 
                 return true;
             },
 
-            get: (target: MrsResourceObject<Output> & { [key: symbol]: unknown }, key) => {
-                if (key === "toJSON") {
+            get: (target: MrsDownstreamDocumentData<Doc>, key) => {
+                const property = String(key); // convert symbols to strings
+
+                if (property === "toJSON") {
                     return this.deserialize.bind(this);
                 }
 
                 // primaryKeys only contains items if the "UPDATE" CRUD operation is enabled
                 // and there are, in fact, primary keys
-                if (key === "update" && this.primaryKeys !== undefined && this.primaryKeys.length) {
+                if (property === "update" && this.primaryKeys !== undefined && this.primaryKeys.length) {
                     return this.update.bind(this);
                 }
 
                 // same as above
-                if (key === "delete" && this.primaryKeys !== undefined && this.primaryKeys.length) {
+                if (property === "delete" && this.primaryKeys !== undefined && this.primaryKeys.length) {
                     return this.delete.bind(this);
                 }
 
-                return target[key];
+                return target[property];
             },
 
             has: (target, p) => {
-                const property = String(p);
+                const property = String(p); // convert symbols to strings
 
                 if (this.#hypermediaProperties.indexOf(property) > -1) {
                     return false;
@@ -998,7 +1033,7 @@ class MrsSimplifiedObjectResponse<Input, ResourceIdFieldNames extends string[], 
             },
 
             set: (target, p, newValue) => {
-                const property = String(p);
+                const property = String(p); // convert symbols to strings
                 const isPrimaryKey = this.primaryKeys !== undefined && this.primaryKeys.includes(property);
 
                 if (this.#hypermediaProperties.indexOf(property) > -1 || isPrimaryKey) {
@@ -1017,7 +1052,7 @@ class MrsSimplifiedObjectResponse<Input, ResourceIdFieldNames extends string[], 
         const queryFilter: Record<string, unknown> = {};
 
         // the proxy already guarantees that the primaryKeys property is always defined
-        for (const key of this.primaryKeys as ResourceIdFieldNames) {
+        for (const key of this.primaryKeys as KeyFieldNames) {
             queryFilter[key] = this.json[key];
         }
 
@@ -1029,9 +1064,9 @@ class MrsSimplifiedObjectResponse<Input, ResourceIdFieldNames extends string[], 
         return;
     }
 
-    private deserialize(): Omit<MrsResourceObject<Output>, "links" | "_metadata"> {
+    private deserialize(): Omit<MrsDownstreamDocumentData<Doc>, "links" | "_metadata"> {
         // We want to change a copy of the underlying json object, not the reference to the original one.
-        const partial = { ...this.json as Omit<MrsResourceObject<Output>, "links" | "_metadata"> };
+        const partial = { ...this.json as Omit<MrsDownstreamDocumentData<Doc>, "links" | "_metadata"> };
         delete partial.links;
         // eslint-disable-next-line no-underscore-dangle
         delete partial._metadata;
@@ -1039,11 +1074,11 @@ class MrsSimplifiedObjectResponse<Input, ResourceIdFieldNames extends string[], 
         return partial;
     }
 
-    private async update(): Promise<MrsResourceObject<Output>> {
+    private async update(): Promise<MrsDownstreamDocumentData<Doc>> {
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        const request = new MrsBaseObjectUpdate<Input, ResourceIdFieldNames, Output>(
+        const request = new MrsBaseObjectUpdate<Doc, KeyFieldNames, Doc>(
             // the proxy already guarantees that the primaryKeys property is always defined
-            this.schema, this.requestPath, { data: this.json as Input }, this.primaryKeys as ResourceIdFieldNames);
+            this.schema, this.requestPath, { data: this.json }, this.primaryKeys as KeyFieldNames);
         const response = await request.fetch();
 
         return response;
@@ -1051,36 +1086,38 @@ class MrsSimplifiedObjectResponse<Input, ResourceIdFieldNames extends string[], 
 }
 
 /**
- * @template T The set of fields of a given database object that should be part of the result set.
+ * @template Doc The type representing an MRS Document produced by a REST View.
+ * @template KeyFieldNames The set of fields that constitute the identifying key of a REST View.
  */
-class MrsSimplifiedCollectionObjectResponse<Input, ResourceIdFieldNames extends string[]> {
+class MrsDocumentList<Doc, KeyFieldNames extends string[]> {
     public constructor (
-        private readonly json: IMrsResourceCollectionData<Input>,
+        private readonly json: MrsDownstreamDocumentListData<Doc>,
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
-        private readonly primaryKeys?: ResourceIdFieldNames) {
+        private readonly primaryKeys?: KeyFieldNames) {
     }
 
     /**
-     * Retrieve an application resource instance that hides hypermedia-related properties and prevents the application
-     * from changing or deleting them.
-     *Data{IMrsResourceCollectionObject}
-     * @returns A list of the database object items without hypermedia-related properties.
+     * Create an application-level MRS Document object that hides hypermedia-related properties and prevents the
+     * application from changing or deleting them.
+     * @see {MrsDownstreamDocumentListData}
+     * @returns A list of MRS Documents without hypermedia-related properties.
      */
-    public getInstance () {
+    public createProxy () {
         return new Proxy(this.json, {
             deleteProperty: (_, p) => {
-                throw new Error(`The "${String(p)}" property cannot be deleted.`);
+                throw new Error(`The "${String(p)}" property cannot be deleted.`); // convert symbols to strings
             },
 
-            get: (target: IMrsResourceCollectionData<Input> & { [key: symbol]: unknown }, key,
-                receiver: IMrsResourceCollectionData<Input>) => {
-                if (key !== "toJSON" && key !== "items") {
-                    return target[key];
+            get: (target: MrsDownstreamDocumentListData<Doc>, key, receiver: MrsDownstreamDocumentListData<Doc>) => {
+                const property = String(key); // convert symbols to strings
+
+                if (property !== "toJSON" && property !== "items") {
+                    return target[property];
                 }
 
                 // .toJSON()
-                if (key === "toJSON") {
+                if (property === "toJSON") {
                     return () => {
                         // Each item is already a Proxy that provides a custom toJSON() handler.
                         // This falls into the scope of the alternative condition below.
@@ -1090,10 +1127,10 @@ class MrsSimplifiedCollectionObjectResponse<Input, ResourceIdFieldNames extends 
 
                 // .items
                 return target.items.map((item) => {
-                    const resource = new MrsSimplifiedObjectResponse(
+                    const resource = new MrsDocument(
                         item, this.schema, this.requestPath, this.primaryKeys);
 
-                    return resource.getInstance();
+                    return resource.createProxy();
                 });
             },
 
@@ -1106,20 +1143,21 @@ class MrsSimplifiedCollectionObjectResponse<Input, ResourceIdFieldNames extends 
             },
 
             set: (_, p) => {
-                throw new Error(`The "${String(p)}" property cannot be changed.`);
+                throw new Error(`The "${String(p)}" property cannot be changed.`); // convert symbols to strings
             },
         });
     }
 }
 
 /**
- * @template Item The entire set of fields of a given database object.
+ * @template Doc The entire set of fields of a given database object.
  * @template Filterable The set of fields of a given database object that can be used in a query filter.
  * @template Iterable An optional set of fields of a given database object that can be used as cursors. It is optional
  * because it is not used by "findAll()" or "findFirst()", both of which, also create an instance of MrsBaseObjectQuery.
  * Creates an object that represents an MRS GET request.
  */
-export class MrsBaseObjectQuery<Item, Filterable, Iterable = never, ResourceIdFieldNames extends string[] = never> {
+export class MrsBaseObjectQuery<Doc, Filterable, Iterable = never,
+    KeyFieldNames extends string[] = never> {
     private where?: MrsRequestFilter<Filterable>;
     private exclude: string[] = [];
     private include: string[] = [];
@@ -1130,14 +1168,14 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable = never, ResourceIdFi
     public constructor(
         private readonly schema: MrsBaseSchema,
         private readonly requestPath: string,
-        options?: IFindOptions<Item, Filterable, Iterable>,
-        private readonly primaryKeys?: ResourceIdFieldNames) {
+        options?: IFindOptions<Doc, Filterable, Iterable>,
+        private readonly primaryKeys?: KeyFieldNames) {
         if (options === undefined) {
             return;
         }
 
         const { cursor, orderBy, readOwnWrites, select, skip, take, where } =
-        options as IFindManyOptions<Item, Filterable, Iterable> & { cursor?: Cursor<Iterable> };
+        options as IFindManyOptions<Doc, Filterable, Iterable> & { cursor?: Cursor<Iterable> };
 
         if (where !== undefined) {
             this.where = where;
@@ -1183,7 +1221,7 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable = never, ResourceIdFi
         }
     }
 
-    public fetch = async (): Promise<IMrsResourceCollectionData<Item>> => {
+    public fetch = async (): Promise<MrsDownstreamDocumentListData<Doc>> => {
         // Placeholder base URL just to avoid throwing an exception.
         const url = new URL("https://example.com");
         url.pathname = `${this.schema.requestPath}${this.requestPath}`;
@@ -1211,14 +1249,14 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable = never, ResourceIdFi
             errorMsg: "Failed to fetch items.",
         });
 
-        const responseBody: IMrsResourceCollectionData<Item> = await response.json();
-        const collection = new MrsSimplifiedCollectionObjectResponse(
+        const responseBody: MrsDownstreamDocumentListData<Doc> = await response.json();
+        const collection = new MrsDocumentList(
             responseBody, this.schema, this.requestPath, this.primaryKeys);
 
-        return collection.getInstance();
+        return collection.createProxy();
     };
 
-    public fetchOne = async (): Promise<MrsResourceObject<Item> | undefined> => {
+    public fetchOne = async (): Promise<MrsDownstreamDocumentData<Doc> | undefined> => {
         const resultList = await this.fetch();
 
         if (resultList.items.length >= 1) {
@@ -1228,23 +1266,24 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable = never, ResourceIdFi
         }
     };
 
-    private fieldsToInclude = (fields: BooleanFieldMapSelect<Item>): string[] => {
+    private fieldsToInclude = (fields: BooleanFieldMapSelect<Doc>): string[] => {
         return this.fieldsToConsider(fields, true);
     };
 
-    private fieldsToExclude = (fields: BooleanFieldMapSelect<Item>): string[] => {
+    private fieldsToExclude = (fields: BooleanFieldMapSelect<Doc>): string[] => {
         return this.fieldsToConsider(fields, false);
     };
 
-    private fieldsToConsider = (fields: BooleanFieldMapSelect<Item>, equalTo: boolean,
+    private fieldsToConsider = (fields: BooleanFieldMapSelect<Doc>, equalTo: boolean,
         prefix: string = ""): string[] => {
         const consider: string[] = [];
 
-        for (const [key, value] of Object.entries(fields)) {
+        for (const key in fields) {
             const fullyQualifiedKeyName = `${prefix}${key}`;
+            const value = fields[key];
 
             if (value === equalTo) {
-                consider.push(`${fullyQualifiedKeyName}`);
+                consider.push(fullyQualifiedKeyName);
             }
 
             if (typeof value === "object" && value !== null) {
@@ -1256,15 +1295,15 @@ export class MrsBaseObjectQuery<Item, Filterable, Iterable = never, ResourceIdFi
     };
 }
 
-export class MrsBaseObjectCreate<Input, Output, ResourceIdFieldNames extends string[] = never> {
+export class MrsBaseObjectCreate<Input, Output, KeyFieldNames extends string[] = never> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
         protected options: ICreateOptions<Input>,
-        protected primaryKeys?: ResourceIdFieldNames) {
+        protected primaryKeys?: KeyFieldNames) {
     }
 
-    public fetch = async (): Promise<MrsResourceObject<Output>> => {
+    public fetch = async (): Promise<MrsDownstreamDocumentData<Output>> => {
         const response = await this.schema.service.session.doFetch({
             input: `${this.schema.requestPath}${this.requestPath}`,
             method: "POST",
@@ -1272,14 +1311,14 @@ export class MrsBaseObjectCreate<Input, Output, ResourceIdFieldNames extends str
             errorMsg: "Failed to create item.",
         });
 
-        const responseBody: MrsResourceObject<Output> = await response.json();
+        const responseBody: MrsDownstreamDocumentData<Output> = await response.json();
         // eslint-disable-next-line no-underscore-dangle
         this.schema.service.session.gtid = responseBody._metadata.gtid;
 
-        const resource = new MrsSimplifiedObjectResponse(
+        const resource = new MrsDocument(
             responseBody, this.schema, this.requestPath, this.primaryKeys);
 
-        return resource.getInstance();
+        return resource.createProxy();
     };
 }
 
@@ -1318,16 +1357,21 @@ export class MrsBaseObjectDelete<Filterable> {
     };
 }
 
-export class MrsBaseObjectUpdate<Input, ResourceIdFieldNames extends string[], Output> {
+
+/**
+ * @template InputType A type that enforces only mandatory fields.
+ * @template OutputType It is not possible to narrow fields of an update response. So, all fields must be returned.
+ */
+export class MrsBaseObjectUpdate<InputType, KeyFieldNames extends string[], OutputType> {
     public constructor(
         protected schema: MrsBaseSchema,
         protected requestPath: string,
-        protected options: IUpdateOptions<Input>,
-        protected primaryKeys: ResourceIdFieldNames) {
+        protected options: IUpdateOptions<InputType>,
+        protected primaryKeys: KeyFieldNames) {
     }
 
-    public fetch = async (): Promise<MrsResourceObject<Output>> => {
-        const resourceIdComponents: Array<Input[Extract<keyof Input, string>]> = [];
+    public fetch = async (): Promise<MrsDownstreamDocumentData<OutputType>> => {
+        const resourceIdComponents: Array<InputType[Extract<keyof InputType, string>]> = [];
 
         for (const x in this.options.data) {
             if (this.primaryKeys.indexOf(x) > -1) {
@@ -1335,23 +1379,26 @@ export class MrsBaseObjectUpdate<Input, ResourceIdFieldNames extends string[], O
             }
         }
 
+        const data = new MrsRequestBody(this.options.data as MrsDownstreamDocumentData<InputType>);
+        const dataProxy = data.createProxy();
+
         const response = await this.schema.service.session.doFetch({
             input: `${this.schema.requestPath}${this.requestPath}/${resourceIdComponents.join(",")}`,
             method: "PUT",
-            body: this.options.data,
+            body: dataProxy,
             errorMsg: "Failed to update item.",
         });
 
         // The REST service returns a single resource, which is an ORDS-compatible object representation decorated with
         // additional fields such as "links" and "_metadata".
-        const responseBody = await response.json() as MrsResourceObject<Output>;
+        const responseBody = await response.json() as MrsDownstreamDocumentData<OutputType>;
         // eslint-disable-next-line no-underscore-dangle
         this.schema.service.session.gtid = responseBody._metadata.gtid;
 
-        const resource = new MrsSimplifiedObjectResponse(
+        const resource = new MrsDocument(
             responseBody, this.schema, this.requestPath, this.primaryKeys);
 
-        return resource.getInstance();
+        return resource.createProxy();
     };
 }
 
@@ -1377,10 +1424,10 @@ class MrsBaseObjectCall<Input, Output extends IMrsCommonRoutineResponse> {
         // eslint-disable-next-line no-underscore-dangle
         this.schema.service.session.gtid = responseBody._metadata?.gtid;
 
-        const resource = new MrsSimplifiedObjectResponse(
+        const resource = new MrsDocument(
             responseBody, this.schema, this.requestPath);
 
-        return resource.getInstance();
+        return resource.createProxy();
     }
 }
 
@@ -1397,7 +1444,7 @@ export class MrsBaseObjectProcedureCall<InParams, OutParams, ResultSet extends J
         const response = await super.fetch();
 
         response.resultSets = response.resultSets.map((resultSet) => {
-            return (new MrsSimplifiedObjectResponse(resultSet, this.schema, this.requestPath)).getInstance();
+            return (new MrsDocument(resultSet, this.schema, this.requestPath)).createProxy();
         });
 
         return response;
@@ -1636,10 +1683,10 @@ export class MrsBaseTaskStart<MrsTaskInputParameters, MrsTaskStatusUpdate, MrsTa
         private readonly requestPath: string,
         private readonly params?: MrsTaskInputParameters,
         private readonly options: IMrsTaskRunOptions<MrsTaskStatusUpdate, MrsTaskResult> = { refreshRate: 2000 }) {
-            const { refreshRate = 2000 } = this.options;
-            if (typeof refreshRate !== "number" || refreshRate < 500) {
-                throw new Error("Refresh rate needs to be a number greater than or equal to 500ms.");
-            }
+        const { refreshRate = 2000 } = this.options;
+        if (typeof refreshRate !== "number" || refreshRate < 500) {
+            throw new Error("Refresh rate needs to be a number greater than or equal to 500ms.");
+        }
     }
 
     public async submit(): Promise<IMrsTaskStartResponse> {

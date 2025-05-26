@@ -26,12 +26,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     IFindManyOptions, IFindUniqueOptions, JsonValue, MrsBaseObjectQuery, MrsBaseSchema, MrsBaseService,
-    MrsResourceObject, MrsBaseObjectCreate, IFindFirstOptions, IMrsResourceCollectionData, MrsBaseObjectDelete,
-    MrsBaseObjectUpdate, IMrsDeleteResult, IMrsFunctionJsonResponse, MrsBaseObjectFunctionCall,
+    MrsDownstreamDocumentData, MrsBaseObjectCreate, IFindFirstOptions, MrsDownstreamDocumentListData,
+    MrsBaseObjectDelete, MrsBaseObjectUpdate, IMrsDeleteResult, IMrsFunctionJsonResponse, MrsBaseObjectFunctionCall,
     IMrsProcedureJsonResponse, MrsBaseObjectProcedureCall, JsonObject, MrsAuthenticate, MrsBaseObject,
-    MrsBaseTaskStart, MrsBaseTaskWatch,
-    MrsTask,
-    MrsBaseTaskRun,
+    MrsBaseTaskStart, MrsBaseTaskWatch, MrsTask, MrsBaseTaskRun,
 } from "../MrsBaseClasses";
 
 // fixtures
@@ -208,7 +206,7 @@ describe("MRS SDK API", () => {
 
     describe("when accessing REST objects", () => {
         it("selects fields to include in the result set using the field names", async () => {
-            const options: IFindManyOptions<ITableMetadata1, unknown, unknown> = {
+            const options: IFindManyOptions<ITableMetadata1, unknown> = {
                 select: ["str", "json", "oneToMany.oneToOne.str"],
             };
 
@@ -242,7 +240,7 @@ describe("MRS SDK API", () => {
         });
 
         it("selects fields to exclude from the result set using a field mapper", async () => {
-            const options: IFindManyOptions<ITableMetadata1, unknown, unknown> = {
+            const options: IFindManyOptions<ITableMetadata1, unknown> = {
                 select: {
                     id: false,
                     json: false,
@@ -265,7 +263,7 @@ describe("MRS SDK API", () => {
 
         it("sets the order of the records in the result set based on a given field using a literal order keyword",
                 async () => {
-            const options: IFindFirstOptions<ITableMetadata1, unknown, unknown> = { orderBy: { num: "DESC" } };
+            const options: IFindFirstOptions<ITableMetadata1, unknown> = { orderBy: { num: "DESC" } };
             const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options);
             await query.fetch();
 
@@ -276,7 +274,7 @@ describe("MRS SDK API", () => {
 
         it("sets the order of the records in the result set based on a given field using a numeric order identifier",
                 async () => {
-            const options: IFindFirstOptions<ITableMetadata1, unknown, unknown> = { orderBy: { num: -1 } };
+            const options: IFindFirstOptions<ITableMetadata1, unknown> = { orderBy: { num: -1 } };
             const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz", options);
             await query.fetch();
 
@@ -295,7 +293,7 @@ describe("MRS SDK API", () => {
         });
 
         it("filters items where a field explicitly matches a given value", async () => {
-            const options: IFindManyOptions<unknown, ITableMetadata1, unknown> = {
+            const options: IFindManyOptions<unknown, ITableMetadata1> = {
                 where: {
                     str: {
                         $like: "%foo%",
@@ -311,7 +309,7 @@ describe("MRS SDK API", () => {
         });
 
         it("limits the number of items to include in the result set", async () => {
-            const options: IFindManyOptions<unknown, ITableMetadata1, unknown> = { take: 2 };
+            const options: IFindManyOptions<unknown, ITableMetadata1> = { take: 2 };
             const query = new MrsBaseObjectQuery<unknown, ITableMetadata1>(schema, "/baz", options);
             await query.fetch();
 
@@ -319,7 +317,7 @@ describe("MRS SDK API", () => {
         });
 
         it("limits the number of items to include in the result set where a field matches a given value", async () => {
-            const options: IFindManyOptions<unknown, ITableMetadata1, unknown> = {
+            const options: IFindManyOptions<unknown, ITableMetadata1> = {
                 take: 2,
                 where: {
                     id: {
@@ -336,7 +334,7 @@ describe("MRS SDK API", () => {
         });
 
         it("skips a number of items to not include in the result set", async () => {
-            const options: IFindManyOptions<unknown, unknown, unknown> = { skip: 2 };
+            const options: IFindManyOptions<unknown, unknown> = { skip: 2 };
             const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz", options);
             await query.fetch();
 
@@ -344,7 +342,7 @@ describe("MRS SDK API", () => {
         });
 
         it("skips a number of items to not include in the result set where a field matches a given value", async () => {
-            const options: IFindManyOptions<unknown, ITableMetadata1, unknown> = {
+            const options: IFindManyOptions<unknown, ITableMetadata1> = {
                 skip: 2,
                 where: {
                     bool: true,
@@ -359,7 +357,7 @@ describe("MRS SDK API", () => {
         });
 
         it("filters items where a field is NULL", async () => {
-            const options: IFindManyOptions<unknown, { maybe: number | null }, unknown> = {
+            const options: IFindManyOptions<unknown, { maybe: number | null }> = {
                 where: {
                     maybe: null,
                 },
@@ -373,7 +371,7 @@ describe("MRS SDK API", () => {
         });
 
         it("filters items where a field is not NULL", async () => {
-            const options: IFindManyOptions<unknown, { maybe: number | null }, unknown> = {
+            const options: IFindManyOptions<unknown, { maybe: number | null }> = {
                 where: {
                     maybe: {
                         not: null,
@@ -389,7 +387,7 @@ describe("MRS SDK API", () => {
         });
 
         it(`filters items where a field called "not" is NULL`, async () => {
-            const options: IFindManyOptions<unknown, { not: number | null }, unknown> = {
+            const options: IFindManyOptions<unknown, { not: number | null }> = {
                 where: {
                     not: null,
                 },
@@ -403,7 +401,7 @@ describe("MRS SDK API", () => {
         });
 
         it(`filters items where a field called "not" is not NULL`, async () => {
-            const options: IFindManyOptions<unknown, { not: number | null }, unknown> = {
+            const options: IFindManyOptions<unknown, { not: number | null }> = {
                 where: {
                     not: {
                         not: null,
@@ -419,7 +417,7 @@ describe("MRS SDK API", () => {
         });
 
         beforeEach(() => {
-            const collectionResponse: IMrsResourceCollectionData<ITableMetadata1> = {
+            const collectionResponse: MrsDownstreamDocumentListData<ITableMetadata1> = {
                 count: 2,
                 hasMore: false,
                 limit: 25,
@@ -461,7 +459,7 @@ describe("MRS SDK API", () => {
 
         it("metadata are not part of the JSON representation of an application resource instance",
                 async () => {
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+            const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz");
             const collection = await query.fetch();
 
             expect(JSON.stringify(collection)).toEqual('[{"id":1,"str":"qux"},{"id":2,"str":"quux"}]');
@@ -472,7 +470,7 @@ describe("MRS SDK API", () => {
         });
 
         it("metadata are not enumerable in an application resource instance", async () => {
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+            const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz");
             const collection = await query.fetch();
 
             expect(Object.keys(collection)).toEqual([]);
@@ -483,7 +481,7 @@ describe("MRS SDK API", () => {
         });
 
         it("metadata are not iterable in an application resource instance", async () => {
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+            const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz");
             const collection = await query.fetch();
 
             expect("count" in collection).toBeFalsy();
@@ -493,14 +491,14 @@ describe("MRS SDK API", () => {
             expect("links" in collection).toBeFalsy();
             expect("offset" in collection).toBeFalsy();
 
-            const resource = await query.fetchOne() as MrsResourceObject<ITableMetadata1>;
+            const resource = await query.fetchOne() as MrsDownstreamDocumentData<ITableMetadata1>;
 
             expect("_metadata" in resource).toBeFalsy();
             expect("links" in resource).toBeFalsy();
         });
 
         it("metadata are not writable in an application resource instance", async () => {
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+            const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz");
             const collection = await query.fetch();
 
             expect(() => { collection.count = 0; }).toThrowError('The "count" property cannot be changed.');
@@ -509,7 +507,7 @@ describe("MRS SDK API", () => {
             expect(() => { collection.offset = 1; }).toThrowError('The "offset" property cannot be changed.');
             expect(() => { collection.links = []; }).toThrowError('The "links" property cannot be changed.');
 
-            const resource = await query.fetchOne() as MrsResourceObject<ITableMetadata1>;
+            const resource = await query.fetchOne() as MrsDownstreamDocumentData<ITableMetadata1>;
             // eslint-disable-next-line no-underscore-dangle
             expect(() => { resource._metadata = { etag: "AAA" }; })
                 .toThrowError('The "_metadata" property cannot be changed');
@@ -517,8 +515,8 @@ describe("MRS SDK API", () => {
         });
 
         it("metadata are not removable from an application resource instance", async () => {
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
-            const collection = await query.fetch() as Omit<IMrsResourceCollectionData<ITableMetadata1>,
+            const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz");
+            const collection = await query.fetch() as Omit<MrsDownstreamDocumentListData<ITableMetadata1>,
                 "count" | "hasMore" | "limit" | "offset" | "links">;
 
             expect(() => { delete collection.count; }).toThrowError('The "count" property cannot be deleted.');
@@ -527,7 +525,8 @@ describe("MRS SDK API", () => {
             expect(() => { delete collection.offset; }).toThrowError('The "offset" property cannot be deleted.');
             expect(() => { delete collection.links; }).toThrowError('The "links" property cannot be deleted.');
 
-            const resource = await query.fetchOne() as Omit<MrsResourceObject<ITableMetadata1>, "_metadata" | "links">;
+            const resource = await query.fetchOne() as Omit<MrsDownstreamDocumentData<ITableMetadata1>,
+                "_metadata" | "links">;
             // eslint-disable-next-line no-underscore-dangle
             expect(() => { delete resource._metadata; }).toThrowError('The "_metadata" property cannot be deleted');
             expect(() => { delete resource.links; }).toThrowError('The "links" property cannot be deleted');
@@ -535,7 +534,7 @@ describe("MRS SDK API", () => {
 
         it("metadata and database object fields are directly accessible in an application resource instance",
                 async () => {
-            const query = new MrsBaseObjectQuery<ITableMetadata1, unknown>(schema, "/baz");
+            const query = new MrsBaseObjectQuery<unknown, unknown>(schema, "/baz");
             const collection = await query.fetch();
 
             expect(collection.items).toHaveLength(2);
@@ -548,7 +547,7 @@ describe("MRS SDK API", () => {
             expect(collection.limit).toBeDefined();
             expect(collection.links).toBeDefined();
 
-            const resource = await query.fetchOne() as MrsResourceObject<ITableMetadata1>;
+            const resource = await query.fetchOne() as MrsDownstreamDocumentData<ITableMetadata1>;
 
             expect(resource.id).toEqual(1);
             expect(resource.str).toEqual("qux");
@@ -677,7 +676,7 @@ describe("MRS SDK API", () => {
     });
 
     describe("when creating a REST document", () => {
-        const response: MrsResourceObject<ITableMetadata1> = {
+        const response: MrsDownstreamDocumentData<ITableMetadata1> = {
             id: 1,
             str: "qux",
             _metadata: {
@@ -744,7 +743,7 @@ describe("MRS SDK API", () => {
         it("metadata are not removable from an application resource instance", async () => {
             const query = new MrsBaseObjectCreate<ITableMetadata1, unknown>(schema, "/baz", { data: { id: 1,
                 str: "qux" } });
-            const res = await query.fetch() as Omit<MrsResourceObject<ITableMetadata1>, "_metadata" | "links">;
+            const res = await query.fetch() as Omit<MrsDownstreamDocumentData<ITableMetadata1>, "_metadata" | "links">;
 
             // eslint-disable-next-line no-underscore-dangle
             expect(() => { delete res._metadata; }).toThrowError('The "_metadata" property cannot be deleted.');
@@ -795,7 +794,7 @@ describe("MRS SDK API", () => {
 
         describe("when the server sends back a GTID", () => {
             beforeEach(async () => {
-                const response: MrsResourceObject<ITableMetadata1> = {
+                const response: MrsDownstreamDocumentData<ITableMetadata1> = {
                     id: 1,
                     str: "qux",
                     _metadata: {
@@ -902,8 +901,8 @@ describe("MRS SDK API", () => {
         });
     });
 
-    describe("when updating a resource", () => {
-        const response: MrsResourceObject<ITableMetadata1> = {
+    describe("when updating a REST document", () => {
+        const response: MrsDownstreamDocumentData<ITableMetadata1> = {
             id: 1,
             str: "qux",
             _metadata: {
@@ -919,7 +918,7 @@ describe("MRS SDK API", () => {
             FetchMock.push({ response: JSON.stringify(response) });
         });
 
-        it("metadata are not part of the JSON representation of an application resource instance",
+        it("metadata are not part of the JSON representation of an application document instance",
                 async () => {
             const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
                 { data: { id: 1, str: "qux" } }, ["id"]);
@@ -928,7 +927,7 @@ describe("MRS SDK API", () => {
             expect(JSON.stringify(res)).toEqual('{"id":1,"str":"qux"}');
         });
 
-        it("metadata are not enumerable in an application resource instance", async () => {
+        it("metadata are not enumerable in an application document instance", async () => {
             const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
                 { data: { id: 1, str: "qux" } }, ["id"]);
             const res = await query.fetch();
@@ -936,7 +935,7 @@ describe("MRS SDK API", () => {
             expect(Object.keys(res)).toEqual(["id", "str"]);
         });
 
-        it("metadata are not iterable in an application resource instance", async () => {
+        it("metadata are not iterable in an application document instance", async () => {
             const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
                 { data: { id: 1, str: "qux" } }, ["id"]);
             const res = await query.fetch();
@@ -945,7 +944,7 @@ describe("MRS SDK API", () => {
             expect("links" in res).toBeFalsy();
         });
 
-        it("metadata are not writable in an application resource instance", async () => {
+        it("metadata are not writable in an application document instance", async () => {
             const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
                 { data: { id: 1, str: "qux" } }, ["id"]);
             const res = await query.fetch();
@@ -956,17 +955,17 @@ describe("MRS SDK API", () => {
             expect(() => { res.links = []; }).toThrowError('The "links" property cannot be changed.');
         });
 
-        it("metadata are not removable from an application resource instance", async () => {
+        it("metadata are not removable from an application document instance", async () => {
             const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
                 { data: { id: 1, str: "qux" } }, ["id"]);
-            const res = await query.fetch() as Omit<MrsResourceObject<ITableMetadata1>, "_metadata" | "links">;
+            const res = await query.fetch() as Omit<MrsDownstreamDocumentData<ITableMetadata1>, "_metadata" | "links">;
 
             // eslint-disable-next-line no-underscore-dangle
             expect(() => { delete res._metadata; }).toThrowError('The "_metadata" property cannot be deleted.');
             expect(() => { delete res.links; }).toThrowError('The "links" property cannot be deleted.');
         });
 
-        it("metadata and database object fields are directly accessible in an application resource instance",
+        it("metadata and database object fields are directly accessible in an application document instance",
                 async () => {
                     const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz",
                         { data: { id: 1, str: "qux" } }, ["id"]);
@@ -979,10 +978,48 @@ describe("MRS SDK API", () => {
             expect(res.links).toBeDefined();
         });
 
+        describe("and the document contains an etag", () => {
+            beforeEach(() => {
+                const response: MrsDownstreamDocumentListData<ITableMetadata1> = {
+                    items: [{
+                        id: 1,
+                        str: "qux",
+                        _metadata: {
+                            etag: "XYZ",
+                        },
+                        links: [],
+                    }],
+                    count: 25,
+                    hasMore: false,
+                    offset: 0,
+                    limit: 25,
+                    links: [],
+                };
+
+                FetchMock.push({ response: JSON.stringify(response) });
+            });
+
+            it("includes the etag in subsequent updates to avoid mid-air collisions", async () => {
+                const readQuery = new MrsBaseObjectQuery<ITableMetadata1, Pick<ITableMetadata1, "id">>(
+                    schema, "/baz", { where: { id: 1 } });
+                const doc = await readQuery.fetchOne();
+
+                const updateQuery = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz", {
+                    data: doc as ITableMetadata1 }, ["id"]);
+                await updateQuery.fetch();
+
+                expect(fetch).toHaveBeenLastCalledWith(`/foo/bar/baz/${doc?.id}`, expect.objectContaining({
+                    method: "PUT",
+                    // eslint-disable-next-line no-underscore-dangle
+                    body: JSON.stringify({ id: doc?.id, str: doc?.str, _metadata: doc?._metadata }),
+                }));
+            });
+        });
+
         describe("when the server does not send back a GTID", () => {
             beforeEach(async () => {
                 const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz", {
-                    data: { id:1, str: "qux" } }, ["id"]);
+                    data: { id: 1, str: "qux" } }, ["id"]);
                 await query.fetch();
             });
 
@@ -1010,7 +1047,7 @@ describe("MRS SDK API", () => {
 
         describe("when the server sends back a GTID", () => {
             beforeEach(async () => {
-                const response: MrsResourceObject<ITableMetadata1> = {
+                const response: MrsDownstreamDocumentData<ITableMetadata1> = {
                     id: 1,
                     str: "qux",
                     _metadata: {
@@ -1026,7 +1063,7 @@ describe("MRS SDK API", () => {
                 FetchMock.push({ response: JSON.stringify(response) });
 
                 const query = new MrsBaseObjectUpdate<ITableMetadata1, ["id"], unknown>(schema, "/baz", {
-                    data: { id:1, str: "qux" } }, ["id"]);
+                    data: { id: 1, str: "qux" } }, ["id"]);
                 await query.fetch();
             });
 
