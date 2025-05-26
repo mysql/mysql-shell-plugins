@@ -391,14 +391,18 @@ def move_connection(profile_id, folder_id, connection_id_to_move, connection_id_
 
 
 @plugin_function('gui.dbConnections.addFolderPath', cli=True, shell=True, web=True)
-def add_folder_path(profile_id, caption, parent_folder_id=None, be_session=None):
+def add_folder_path(profile_id, caption, settings=None, parent_folder_id=None, be_session=None):
     """Add a new folder path
 
     Args:
         profile_id (int): The id of the profile
         caption (str): The caption of the folder
+        settings (dict): Additional settings for the folder, optional
         parent_folder_id (int): The id of the parent folder, optional
         be_session (object): A session to the GUI backend database where the operation will be performed.
+
+    Allowed options for settings:
+        color (str): The color of the tile
 
     Returns:
         int: The folder path ID
@@ -411,9 +415,9 @@ def add_folder_path(profile_id, caption, parent_folder_id=None, be_session=None)
             if folder_path_id is None:
                 index = db_connections.get_next_connection_index(
                     db, profile_id, parent_folder_id)
-                db.execute('''INSERT INTO folder_path (parent_folder_id, caption, `index`)
-                            VALUES (?, ?, ?)''',
-                        (parent_folder_id, caption, index))
+                db.execute('''INSERT INTO folder_path (parent_folder_id, caption, `index`, settings)
+                            VALUES (?, ?, ?, ?)''',
+                        (parent_folder_id, caption, index, json.dumps(settings or {})))
                 folder_path_id = db.get_last_row_id()
     return db.select('''SELECT * FROM folder_path WHERE id=?''', (folder_path_id,))[0]
 
@@ -548,10 +552,47 @@ def list_all(profile_id, folder_id=None, be_session=None):
                 LEFT JOIN db_connection dc ON p_dc.db_connection_id = dc.id
                 WHERE p_dc.profile_id = ? AND p_dc.folder_path_id = ?
             UNION ALL
-            SELECT fp.id, fp.caption, NULL AS description, NULL AS db_type, NULL AS options, NULL AS settings, fp.`index`, 'folder' AS type
+            SELECT fp.id, fp.caption, NULL AS description, NULL AS db_type, NULL AS options, fp.settings, fp.`index`, 'folder' AS type
                 FROM folder_path fp
                 WHERE fp.parent_folder_id = ?
                 ORDER BY `index` ASC
         ''', (profile_id, folder_id if folder_id is not None else 1, folder_id if folder_id is not None else 1))
 
     return combined_list
+
+
+@plugin_function('gui.dbConnections.updateFolderSettings', cli=True, shell=True, web=True)
+def update_folder_settings(folder_path_id, new_settings, be_session=None):
+    """Rename a folder path
+
+    Args:
+        folder_path_id (int): The id of the folder path to rename
+        new_settings (dict): The new settings for the folder path
+        be_session (object): A session to the GUI backend database where the operation will be performed.
+
+    Allowed options for new_settings:
+        color (str): The color of the tile
+
+    Returns:
+        None
+    """
+    with BackendDatabase(be_session) as db:
+        db.execute('''UPDATE folder_path SET settings=? WHERE id=?''',
+                   (new_settings, folder_path_id))
+
+
+@plugin_function('gui.dbConnections.getFolder', cli=True, shell=True, web=True)
+def get_folder(folder_path_id, be_session=None):
+    """Get folder
+
+    Args:
+        folder_path_id (int): The id of the folder
+        be_session (object):  A session to the GUI backend database
+            where the operation will be performed.
+
+    Returns:
+        dict: The folder
+    """
+    with BackendDatabase(be_session) as db:
+        return db.select('SELECT * FROM folder_path WHERE id = ?',
+                         (folder_path_id,))[0]
