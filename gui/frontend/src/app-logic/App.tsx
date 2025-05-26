@@ -25,40 +25,40 @@
 
 import "./App.css";
 
-import { Component, VNode, createRef } from "preact";
-
-import { LoginPage } from "../components/Login/LoginPage.js";
-import { IThemeChangeData } from "../components/Theming/ThemeManager.js";
-import { TooltipProvider } from "../components/ui/Tooltip/Tooltip.js";
-import { requisitions } from "../supplement/Requisitions.js";
-import { appParameters } from "../supplement/AppParameters.js";
-import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
-import { RunMode, webSession } from "../supplement/WebSession.js";
-import { ApplicationHost } from "./ApplicationHost.js";
-import { ErrorBoundary } from "./ErrorBoundary.js";
-import { ProfileSelector } from "./ProfileSelector.js";
+import { Component, createRef, VNode } from "preact";
 
 import type { IDisposable } from "monaco-editor";
 import { StandaloneServices } from "monaco-editor/esm/vs/editor/standalone/browser/standaloneServices.js";
 import { IStandaloneThemeService } from "monaco-editor/esm/vs/editor/standalone/common/standaloneTheme.js";
+
 import { MessageScheduler } from "../communication/MessageScheduler.js";
 import { IShellProfile } from "../communication/ProtocolGui.js";
 import { PasswordDialog } from "../components/Dialogs/PasswordDialog.js";
+import { LoginPage } from "../components/Login/LoginPage.js";
+import { IThemeChangeData, ThemeManager } from "../components/Theming/ThemeManager.js";
+import { CodeEditorSetup } from "../components/ui/CodeEditor/CodeEditorSetup.js";
 import { IComponentState } from "../components/ui/Component/ComponentBase.js";
 import { NotificationCenter, NotificationType } from "../components/ui/NotificationCenter/NotificationCenter.js";
-import { ProgressIndicator } from "../components/ui/ProgressIndicator/ProgressIndicator.js";
-import type {
-    IStatusBarItem, IStatusBarItemOptions, StatusBarAlignment,
-} from "../components/ui/Statusbar/StatusBarItem.js";
-import { StatusBar, renderStatusBar } from "../components/ui/Statusbar/Statusbar.js";
+import type { IStatusBarItem, IStatusBarItemOptions,
+    StatusBarAlignment } from "../components/ui/Statusbar/StatusBarItem.js";
+import { renderStatusBar, StatusBar } from "../components/ui/Statusbar/Statusbar.js";
+import { TooltipProvider } from "../components/ui/Tooltip/Tooltip.js";
+import { appParameters } from "../supplement/AppParameters.js";
+import { requisitions } from "../supplement/Requisitions.js";
 import { Settings } from "../supplement/Settings/Settings.js";
+import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
+import { RunMode, webSession } from "../supplement/WebSession.js";
 import { versionMatchesExpected } from "../utilities/helpers.js";
 import { ApplicationDB } from "./ApplicationDB.js";
 import { DialogHost } from "./DialogHost.js";
+import { ErrorBoundary } from "./ErrorBoundary.js";
+import { LazyAppRouter, LoadingIndicator } from "./LazyAppRouter.js";
 import { registerUiLayer, ui, type MessageOptions, type Thenable } from "./UILayer.js";
 import {
     DialogResponseClosure, DialogType, IDialogResponse, minimumShellVersion, type IServicePasswordRequest,
 } from "./general-types.js";
+
+void CodeEditorSetup.init();
 
 interface IAppState extends IComponentState {
     explorerIsVisible: boolean;
@@ -70,10 +70,10 @@ interface IAppState extends IComponentState {
 
 export class App extends Component<{}, IAppState> {
 
-    private actionMenuRef = createRef<ProfileSelector>();
     private passwordDialogRef = createRef<PasswordDialog>();
 
     private defaultProfile?: IShellProfile;
+    private themeManager = ThemeManager.get;
 
     #notificationCenterRef = createRef<NotificationCenter>();
 
@@ -88,6 +88,7 @@ export class App extends Component<{}, IAppState> {
             loginInProgress: true,
             showOptions: false,
         };
+        requisitions.register("hostThemeChange", this.themeManager.hostThemeChange);
 
         // Register early to ensure this handler is called last.
         requisitions.register("dialogResponse", this.dialogResponse);
@@ -185,10 +186,9 @@ export class App extends Component<{}, IAppState> {
             MessageScheduler.get.disconnect();
             void ApplicationDB.cleanUp();
 
-            requisitions.unregister("statusBarButtonClick", this.statusBarButtonClick);
             requisitions.unregister("themeChanged", this.themeChanged);
             requisitions.unregister("dialogResponse", this.dialogResponse);
-
+            requisitions.unregister("hostThemeChange", this.themeManager.hostThemeChange);
         });
 
         // The Monaco Editor includes a font (codicon.ttf).
@@ -196,7 +196,6 @@ export class App extends Component<{}, IAppState> {
         // is dynamically injected into the document by JavaScript via a style.monaco-colors element.
         // This injection only occurs if an Editor instance is created.
         // We require the icons to be available on pages even without an editor instance.
-        // The only reason why it works in standalone is that CommunicationDebugger renders CodeEditor.
         const themeService = StandaloneServices.get(IStandaloneThemeService);
         themeService.registerEditorContainer(document.createElement("div"));
     }
@@ -224,7 +223,6 @@ export class App extends Component<{}, IAppState> {
             `.msg.resultHost .resultView .tabulator { font-size: ${editorFontSize}; }`;
         document.head.appendChild(style);
 
-        requisitions.register("statusBarButtonClick", this.statusBarButtonClick);
         requisitions.register("themeChanged", this.themeChanged);
     }
 
@@ -235,16 +233,12 @@ export class App extends Component<{}, IAppState> {
         if (loginInProgress) {
             const connectionToken = appParameters.get("token") ?? "";
             if (connectionToken.length > 0) {
-                content = <ProgressIndicator
-                    backgroundOpacity={0}
-                    indicatorWidth={100}
-                    indicatorHeight={100}
-                />;
+                content = LoadingIndicator;
             } else {
                 content = <LoginPage />;
             }
         } else {
-            content = <ApplicationHost toggleOptions={this.toggleOptions} />;
+            content = <LazyAppRouter />;
         }
 
         return (
@@ -254,11 +248,11 @@ export class App extends Component<{}, IAppState> {
                 <TooltipProvider showDelay={200} />
                 <NotificationCenter ref={this.#notificationCenterRef} />
                 <PasswordDialog ref={this.passwordDialogRef} />
+                <DialogHost />
 
-                {!appParameters.embedded && (
+                {!appParameters.hideStatusBar && (
                     <>
                         {renderStatusBar()}
-                        <ProfileSelector ref={this.actionMenuRef}></ProfileSelector>
                     </>
                 )}
             </ErrorBoundary>
@@ -389,26 +383,10 @@ export class App extends Component<{}, IAppState> {
 
     // End of UILayer interface implementation
 
-    private statusBarButtonClick = (values: { type: string; event: MouseEvent | KeyboardEvent; }): Promise<boolean> => {
-        if (values.type === "openPopupMenu") {
-            const target = values.event.target as HTMLElement;
-            this.actionMenuRef.current?.open(target.getBoundingClientRect());
-
-            return Promise.resolve(true);
-        }
-
-        return Promise.resolve(false);
-    };
-
     private themeChanged = (values: IThemeChangeData): Promise<boolean> => {
         requisitions.executeRemote("themeChanged", values);
 
         return Promise.resolve(true);
-    };
-
-    private toggleOptions = (): void => {
-        const { showOptions } = this.state;
-        this.setState({ showOptions: !showOptions });
     };
 
     private dialogResponse = (response: IDialogResponse): Promise<boolean> => {

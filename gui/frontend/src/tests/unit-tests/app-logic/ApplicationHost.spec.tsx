@@ -27,18 +27,15 @@
 
 import { mount, shallow } from "enzyme";
 
-import { ApplicationHost } from "../../../app-logic/ApplicationHost.js";
+import ApplicationHost from "../../../app-logic/ApplicationHost.js";
 import { DialogResponseClosure, DialogType, IDialogResponse } from "../../../app-logic/general-types.js";
 import { appParameters } from "../../../supplement/AppParameters.js";
 import { requisitions } from "../../../supplement/Requisitions.js";
 import { RunMode, webSession } from "../../../supplement/WebSession.js";
 
 import { registerUiLayer } from "../../../app-logic/UILayer.js";
-import { CommunicationDebugger } from "../../../components/CommunicationDebugger/CommunicationDebugger.js";
 import { uiLayerMock } from "../__mocks__/UILayerMock.js";
 import { ignoreSnapshotUuids, nextRunLoop, stateChange } from "../test-helpers.js";
-
-const toggleOptions = (): void => { };
 
 describe("Application host tests", () => {
     beforeAll(() => {
@@ -53,9 +50,7 @@ describe("Application host tests", () => {
 
     it("Reacts to commands + unmount", async () => {
         const component = mount<ApplicationHost>(
-            <ApplicationHost
-                toggleOptions={toggleOptions}
-            />,
+            <ApplicationHost />,
         );
 
         expect(requisitions.registrations("showAbout")).toBe(1);
@@ -74,9 +69,7 @@ describe("Application host tests", () => {
 
     it("Standard Rendering", () => {
         const component = shallow<ApplicationHost>(
-            <ApplicationHost
-                toggleOptions={toggleOptions}
-            />,
+            <ApplicationHost />,
         );
 
         expect(component).toMatchSnapshot();
@@ -84,6 +77,7 @@ describe("Application host tests", () => {
             aboutVisible: false,
             settingsVisible: false,
             debuggerVisible: false,
+            debuggerEnabledInBackground: false,
             debuggerMaximized: true,
         });
 
@@ -92,9 +86,7 @@ describe("Application host tests", () => {
 
     it("Rendering About", async () => {
         const component = mount<ApplicationHost>(
-            <ApplicationHost
-                toggleOptions={toggleOptions}
-            />,
+            <ApplicationHost />,
         );
 
         await requisitions.execute("showAbout", undefined);
@@ -106,6 +98,7 @@ describe("Application host tests", () => {
             aboutVisible: true,
             settingsVisible: false,
             debuggerVisible: false,
+            debuggerEnabledInBackground: false,
             debuggerMaximized: true,
         });
 
@@ -114,9 +107,7 @@ describe("Application host tests", () => {
 
     it("Rendering Preferences", async () => {
         const component = mount<ApplicationHost>(
-            <ApplicationHost
-                toggleOptions={toggleOptions}
-            />,
+            <ApplicationHost />,
         );
 
         await requisitions.execute("showPreferences", undefined);
@@ -126,26 +117,30 @@ describe("Application host tests", () => {
             aboutVisible: false,
             settingsVisible: true,
             debuggerVisible: false,
+            debuggerEnabledInBackground: false,
             debuggerMaximized: true,
         });
 
         component.unmount();
     });
 
-    it("Rendering Debugger Normal", () => {
+    it("Rendering Debugger Normal", async () => {
         const component = mount<ApplicationHost>(
-            <ApplicationHost
-                toggleOptions={toggleOptions}
-            />,
+            <ApplicationHost />,
         );
 
-        component.setState({ debuggerVisible: true, debuggerMaximized: false });
+        await stateChange(component, {
+            debuggerVisible: true,
+            debuggerEnabledInBackground: true,
+            debuggerMaximized: false,
+        });
 
         expect(component).toMatchSnapshot();
         expect(component.state()).toEqual({
             aboutVisible: false,
             settingsVisible: false,
             debuggerVisible: true,
+            debuggerEnabledInBackground: true,
             debuggerMaximized: false,
         });
 
@@ -154,18 +149,21 @@ describe("Application host tests", () => {
 
     it("Rendering Debugger Maximized", async () => {
         const component = mount<ApplicationHost>(
-            <ApplicationHost
-                toggleOptions={toggleOptions}
-            />,
+            <ApplicationHost />,
         );
 
-        await stateChange(component, { debuggerVisible: true, debuggerMaximized: true });
+        await stateChange(component, {
+            debuggerVisible: true,
+            debuggerEnabledInBackground: true,
+            debuggerMaximized: true,
+        });
 
         expect(component).toMatchSnapshot();
         expect(component.state()).toEqual({
             aboutVisible: false,
             settingsVisible: false,
             debuggerVisible: true,
+            debuggerEnabledInBackground: true,
             debuggerMaximized: true,
         });
 
@@ -177,22 +175,26 @@ describe("Application host tests", () => {
         appParameters.embedded = false;
 
         const component = mount<ApplicationHost>(
-            <ApplicationHost
-                toggleOptions={toggleOptions}
-            />,
+            <ApplicationHost />,
         );
 
-        // The debugger is always rendered (to allow receiving messages all the time).
-        const debugComponent = component.find(CommunicationDebugger);
-        expect(debugComponent.length).toBe(1);
+        const id = "debuggerPaneHost";
 
-        let element = debugComponent.getDOMNode();
-        expect(element.parentElement?.classList.contains("stretch")).toBeFalsy();
+        // The debugger is only mounted when first activated (to allow receiving messages in background later on).
+        let debugComponent = component.find(`#${id}`);
+        expect(debugComponent.length).toBe(0);
 
-        await stateChange(component, { debuggerVisible: true, debuggerMaximized: true });
+        await stateChange(component, {
+            debuggerVisible: true,
+            debuggerEnabledInBackground: true,
+            debuggerMaximized: true,
+        });
 
-        element = debugComponent.getDOMNode();
-        expect(element.parentElement?.classList.contains("stretch")).toBeTruthy();
+        debugComponent = component.find(`#${id}`);
+
+        const element = debugComponent.last().getDOMNode();
+        expect(element?.getAttribute("id")).toEqual(id);
+        expect(element?.classList.contains("stretch")).toBeTruthy();
 
         component.unmount();
     });
@@ -207,9 +209,7 @@ describe("Application host tests", () => {
         expect(result).toBe(false);
 
         const component = mount<ApplicationHost>(
-            <ApplicationHost
-                toggleOptions={toggleOptions}
-            />,
+            <ApplicationHost />,
         );
         await nextRunLoop();
 
