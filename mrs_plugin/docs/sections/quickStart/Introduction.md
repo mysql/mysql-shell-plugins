@@ -25,4 +25,4 @@ along with this program; if not, write to the Free Software Foundation, Inc.,
 
 Welcome to the MySQL REST Service (MRS). It provides a fast and powerful way to serve JSON documents to client applications via a HTTPS REST interface.
 
-To learn more about the MySQL REST Service please check out the [Developer Guide](index.html#introduction)
+To learn more about the MySQL REST Service please check out the [Developer Guide](index.html#introduction).

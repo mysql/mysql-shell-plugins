@@ -25,6 +25,7 @@ pandoc index_one_page.md -f markdown -t html -s -o $ROOTPATH/docs/index_one_page
 
 # Fix image links
 sed -i '' 's#".*\.\.\/docs\/#".\/#g' $ROOTPATH/docs/index.html
+sed -i '' 's#".*\.\.\/docs\/#".\/#g' $ROOTPATH/docs/quickstart.html
 
 # Replace . in ids with -, e.g. id="service.authenticate-ts"
 sed -i '' 's#id="\([^"]*\)\.\([^"]*\)"#id="\1-\2"#g' $ROOTPATH/docs/sdk.html
@@ -43,3 +44,4 @@ sed -i '' 's# ([[:upper:]]*)</h3>#</h3>#g' $ROOTPATH/docs/sdk.html
 
 sed -i '' 's/sql\.html//g' $ROOTPATH/docs/index_one_page.html
 sed -i '' 's/sdk\.html//g' $ROOTPATH/docs/index_one_page.html
+sed -i '' 's/quickstart\.html//g' $ROOTPATH/docs/index_one_page.html

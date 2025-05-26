@@ -6,11 +6,11 @@ This book provides a hands-on approach to learning how to use the MySQL REST ser
 
 __Chapter Overview__
 
-- [What is the MySQL REST Service](#introduction)
-- [Setting up the MySQL REST Service](#setup)
-- [Using the REST SQL extension to define REST endpoints](#restSql)
-- [Using the MySQL Shell for VS Code extension](#shellUi)
-- [Accessing the REST endpoints](#restEndpoints)
+- [What is the MySQL REST Service](#quickstart-introduction)
+- [Setting up the MySQL REST Service](#setting-up-the-mysql-rest-service)
+- [Defining REST Endpoints](#defining-rest-endpoints)
+- [Accessing REST Endpoints](#accessing-rest-endpoints)
+- [Appendix](#quickstart-appendix)
 
 ---
 
@@ -27,10 +27,10 @@ Please also see
 
 !include sections/quickStart/Setup.md
 
-!include sections/quickStart/RestSql.md
+!include sections/quickStart/DefiningRestEndpoints.md
 
-!include sections/quickStart/ShellUi.md
+!include sections/quickStart/AccessingRestEndpoints.md
 
-!include sections/quickStart/RestEndpoints.md
+!include sections/quickStart/Appendix.md
 
 Copyright (c) 2025, Oracle and/or its affiliates.
