@@ -47,7 +47,8 @@ import { PresentationInterface } from "../../../../script-execution/Presentation
 import { SQLExecutionContext } from "../../../../script-execution/SQLExecutionContext.js";
 import { ScriptingLanguageServices } from "../../../../script-execution/ScriptingLanguageServices.js";
 import type { IEditorExtendedExecutionOptions } from "../../../../supplement/RequisitionTypes.js";
-import { appParameters, requisitions } from "../../../../supplement/Requisitions.js";
+import { appParameters } from "../../../../supplement/AppParameters.js";
+import { requisitions } from "../../../../supplement/Requisitions.js";
 import { DBType } from "../../../../supplement/ShellInterface/index.js";
 import type { IScriptRequest, ISqlPageRequest } from "../../../../supplement/index.js";
 import { MySQLShellLauncher } from "../../../../utilities/MySQLShellLauncher.js";

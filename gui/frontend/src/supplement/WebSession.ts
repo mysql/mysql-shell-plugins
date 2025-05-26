@@ -23,7 +23,8 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { appParameters, requisitions } from "./Requisitions.js";
+import { requisitions } from "./Requisitions.js";
+import { appParameters } from "./AppParameters.js";
 import { IShellProfile } from "../communication/ProtocolGui.js";
 import { ShellInterface } from "./ShellInterface/ShellInterface.js";
 import { Cookies } from "./Storage/Cookies.js";

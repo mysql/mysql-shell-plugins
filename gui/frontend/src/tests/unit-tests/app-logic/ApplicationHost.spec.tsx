@@ -29,7 +29,8 @@ import { mount, shallow } from "enzyme";
 
 import { ApplicationHost } from "../../../app-logic/ApplicationHost.js";
 import { DialogResponseClosure, DialogType, IDialogResponse } from "../../../app-logic/general-types.js";
-import { appParameters, requisitions } from "../../../supplement/Requisitions.js";
+import { appParameters } from "../../../supplement/AppParameters.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
 import { RunMode, webSession } from "../../../supplement/WebSession.js";
 
 import { registerUiLayer } from "../../../app-logic/UILayer.js";

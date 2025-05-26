@@ -26,7 +26,8 @@
 /// <reference path="../components/CommunicationDebugger/debugger-runtime.d.ts"/>
 
 import { ui } from "../app-logic/UILayer.js";
-import { appParameters, requisitions } from "../supplement/Requisitions.js";
+import { requisitions } from "../supplement/Requisitions.js";
+import { appParameters } from "../supplement/AppParameters.js";
 import { webSession } from "../supplement/WebSession.js";
 import { uuid } from "../utilities/helpers.js";
 import { convertObjectKeysCamelToSnakeCase, convertObjectKeysSnakeToCamelCase } from "../utilities/string-helpers.js";

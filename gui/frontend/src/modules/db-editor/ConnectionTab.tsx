@@ -57,7 +57,8 @@ import {
     IEditorExtendedExecutionOptions, IMrsDbObjectEditRequest, IMrsSchemaEditRequest, type IColumnDetails,
     type IOpenFileDialogResult,
 } from "../../supplement/RequisitionTypes.js";
-import { appParameters, requisitions } from "../../supplement/Requisitions.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { appParameters } from "../../supplement/AppParameters.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { RunMode, webSession } from "../../supplement/WebSession.js";
 import {

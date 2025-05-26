@@ -57,7 +57,8 @@ import {
 } from "../../../data-models/data-model-types.js";
 import { BastionLifecycleState } from "../../../oci-typings/oci-bastion/lib/model/bastion-lifecycle-state.js";
 import { Assets } from "../../../supplement/Assets.js";
-import { appParameters, requisitions } from "../../../supplement/Requisitions.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
+import { appParameters } from "../../../supplement/AppParameters.js";
 import { DBType } from "../../../supplement/ShellInterface/index.js";
 import { RunMode, webSession } from "../../../supplement/WebSession.js";
 import { EditorLanguage } from "../../../supplement/index.js";

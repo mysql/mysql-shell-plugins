@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -25,54 +25,11 @@
 
 import type { IDictionary } from "../app-logic/general-types.js";
 import type { IEmbeddedMessage, IEmbeddedSourceType } from "../communication/index.js";
+import { appParameters, parseAppParameters } from "./AppParameters.js";
 import { RequisitionPipeline } from "./RequisitionPipeline.js";
 import type {
-    IAppParameters, IRemoteTarget, IRequestTypeMap, IRequisitionCallbackValues, IWebviewProvider,
+    IRemoteTarget, IRequestTypeMap, IRequisitionCallbackValues, IWebviewProvider,
 } from "./RequisitionTypes.js";
-
-/** A set of values passed to the application via URL parameters and a couple other application wide values. */
-export const appParameters: Map<string, string> & IAppParameters = new Map<string, string>();
-
-/**
- * Determines if the app is embedded and wires up message handlers for sending and receiving wrapper messages.
- * It also converts URL parameters to a map, for consumption in the app.
- */
-const parseAppParameters = (): void => {
-    if (typeof window !== "undefined") {
-        const queryParts = window.location.search.substring(1).split("&");
-        queryParts.forEach((part) => {
-            const elements = part.split("=");
-            if (elements.length > 1) {
-                appParameters.set(elements[0], elements[1]);
-
-                if (elements[0] === "app") {
-                    appParameters.embedded = true;
-                } else if (elements[0] === "fontSize") {
-                    const fontSize = parseInt(elements[1], 10);
-                    if (!isNaN(fontSize)) {
-                        appParameters.fontSize = fontSize;
-                    }
-                } else if (elements[0] === "editorFontSize") {
-                    const fontSize = parseInt(elements[1], 10);
-                    if (!isNaN(fontSize)) {
-                        appParameters.editorFontSize = fontSize;
-                    }
-                }
-            }
-        });
-    }
-
-    if (process.env.NODE_ENV === "test") {
-        appParameters.testsRunning = true;
-    } else if (process.env.NODE_ENV === "development") {
-        appParameters.inDevelopment = true;
-    }
-
-    // Test Explorer tests also run under VS Code control, but must not be treated as embedded.
-    if (process.env.VSCODE_PID !== undefined && process.env.JEST_WORKER_ID === undefined) {
-        appParameters.inExtension = true;
-    }
-};
 
 /**
  * Management class for requests and messages sent between various parts of the application. It allows to schedule

@@ -34,7 +34,8 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 
-import { appParameters, requisitions } from "../../supplement/Requisitions.js";
+import { appParameters } from "../../supplement/AppParameters.js";
+import { requisitions } from "../../supplement/Requisitions.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { RunMode, webSession } from "../../supplement/WebSession.js";
 import { LogLevel, MySQLShellLauncher } from "../../utilities/MySQLShellLauncher.js";

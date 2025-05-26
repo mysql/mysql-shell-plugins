@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -50,7 +50,8 @@ import Color from "color";
 import { ColorManipulator } from "../../utilities/ColorManipulator.js";
 
 import type { IHostThemeData } from "../../supplement/RequisitionTypes.js";
-import { appParameters, requisitions } from "../../supplement/Requisitions.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { appParameters } from "../../supplement/AppParameters.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 
 export interface IColors {

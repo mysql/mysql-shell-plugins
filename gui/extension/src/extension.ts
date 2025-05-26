@@ -34,7 +34,8 @@ import { existsSync, mkdirSync, rmSync, symlinkSync, unlinkSync, writeFileSync }
 import { arch, homedir, platform } from "os";
 import { join } from "path";
 
-import { appParameters, requisitions } from "../../frontend/src/supplement/Requisitions.js";
+import { requisitions } from "../../frontend/src/supplement/Requisitions.js";
+import { appParameters } from "../../frontend/src/supplement/AppParameters.js";
 
 import {
     IShellLaunchConfiguration, LogLevel, MySQLShellLauncher,

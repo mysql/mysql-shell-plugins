@@ -26,7 +26,8 @@
 
 import { ComponentChild } from "preact";
 
-import { appParameters, requisitions } from "../supplement/Requisitions.js";
+import { requisitions } from "../supplement/Requisitions.js";
+import { appParameters } from "../supplement/AppParameters.js";
 import { RunMode, webSession } from "../supplement/WebSession.js";
 
 import { SettingsEditor } from "../components/SettingsEditor/SettingsEditor.js";

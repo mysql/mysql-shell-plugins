@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,7 +28,8 @@ import "./NotificationCenter.css";
 import { createRef, type ComponentChild, type RefObject } from "preact";
 
 import { type Resolver } from "../../../app-logic/general-types.js";
-import { appParameters, requisitions } from "../../../supplement/Requisitions.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
+import { appParameters } from "../../../supplement/AppParameters.js";
 import type { EditorLanguage } from "../../../supplement/index.js";
 import { Button } from "../Button/Button.js";
 import { Codicon } from "../Codicon.js";
