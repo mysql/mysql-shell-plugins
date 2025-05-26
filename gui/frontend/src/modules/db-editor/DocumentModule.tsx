@@ -28,7 +28,8 @@ import { Component, ComponentChild, createRef } from "preact";
 import { ICodeEditorModel, type IEditorPersistentState } from "../../components/ui/CodeEditor/CodeEditor.js";
 import { CodeEditorMode, Monaco } from "../../components/ui/CodeEditor/index.js";
 import { ExecutionContexts } from "../../script-execution/ExecutionContexts.js";
-import { appParameters, requisitions } from "../../supplement/Requisitions.js";
+import { requisitions } from "../../supplement/Requisitions.js";
+import { appParameters } from "../../supplement/AppParameters.js";
 import {
     IMrsAuthAppEditRequest, IMrsContentSetEditRequest, IMrsDbObjectEditRequest, IMrsSchemaEditRequest,
     IMrsSdkExportRequest, IMrsUserEditRequest, InitialEditor, type IDocumentOpenData,

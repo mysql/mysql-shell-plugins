@@ -42,7 +42,8 @@ import { mysql } from "./languages/mysql/mysql.contribution.js";
 import { ExecutionContexts } from "../../../script-execution/ExecutionContexts.js";
 import { PresentationInterface } from "../../../script-execution/PresentationInterface.js";
 import { EditorLanguage, isEditorLanguage, ITextRange } from "../../../supplement/index.js";
-import { appParameters, requisitions } from "../../../supplement/Requisitions.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
+import { appParameters } from "../../../supplement/AppParameters.js";
 import {
     IEditorCommonExecutionOptions, IEditorExtendedExecutionOptions,
 } from "../../../supplement/RequisitionTypes.js";

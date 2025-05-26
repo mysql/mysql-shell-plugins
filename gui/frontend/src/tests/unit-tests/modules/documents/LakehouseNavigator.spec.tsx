@@ -38,7 +38,8 @@ import {
     ILakehouseTask, ILakehouseTaskItem, IObjectStorageTreeItem, LakehouseNavigator, LakehouseNavigatorTab,
     ObjectStorageTreeItemType,
 } from "../../../../modules/db-editor/LakehouseNavigator.js";
-import { appParameters, requisitions } from "../../../../supplement/Requisitions.js";
+import { appParameters } from "../../../../supplement/AppParameters.js";
+import { requisitions } from "../../../../supplement/Requisitions.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { nextProcessTick } from "../../test-helpers.js";
 

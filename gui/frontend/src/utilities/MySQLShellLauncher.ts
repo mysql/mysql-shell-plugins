@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -31,7 +31,8 @@ import * as path from "path";
 import * as net from "net";
 import * as os from "os";
 
-import { appParameters, requisitions } from "../supplement/Requisitions.js";
+import { requisitions } from "../supplement/Requisitions.js";
+import { appParameters } from "../supplement/AppParameters.js";
 import { uuid } from "./helpers.js";
 import { MessageScheduler } from "../communication/MessageScheduler.js";
 import { findExecutable } from "./file-utilities.js";
