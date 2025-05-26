@@ -46,13 +46,16 @@ export class E2ETests {
     public static testSuites: IE2ETestSuite[] = [];
 
     /** The MySQL port used by the deployed sandbox. Defaults to 3308 */
-    public static mysqlPort = "3307";
+    public static mysqlPort = "1107";
 
     /** The MySQL port used by the deployed sandbox for REST tests*/
-    public static mysqlPortRest = "3308";
+    public static mysqlPortRest = "1108";
 
     /** The MySQL port used by the deployed sandbox for ROUTER tests*/
-    public static mysqlPortRouter = "3309";
+    public static mysqlPortRouter = "1109";
+
+    /** The MySQL port used by the deployed sandbox for REST CONFIG tests*/
+    public static mysqlPortRestConfig = "1110";
 
     /** The MySQL deployed sandbox directory */
     public static mysqlSandboxDir = process.cwd();
@@ -255,10 +258,13 @@ export class E2ETests {
      */
     public static removeLogs = async (testSuite: IE2ETestSuite): Promise<void> => {
         const logsFolderPath = join(testSuite.testResources, "settings", "logs");
-        const folderItems = await fs.readdir(logsFolderPath);
 
-        for (const item of folderItems) {
-            await fs.rm(join(logsFolderPath, item), { recursive: true });
+        if (existsSync(logsFolderPath)) {
+            const folderItems = await fs.readdir(logsFolderPath);
+
+            for (const item of folderItems) {
+                await fs.rm(join(logsFolderPath, item), { recursive: true });
+            }
         }
     };
 
@@ -271,7 +277,7 @@ export class E2ETests {
         this.checkMySql();
         this.setShellBinary();
 
-        for (const port of [this.mysqlPort, this.mysqlPortRest, this.mysqlPortRouter]) {
+        for (const port of [this.mysqlPort, this.mysqlPortRest, this.mysqlPortRouter, this.mysqlPortRestConfig]) {
 
             this.runShellCommand([
                 "--",
@@ -303,12 +309,13 @@ export class E2ETests {
         this.runShellCommand([connUri, "--sql", "-e", `INSTALL COMPONENT "file://component_mle";`]);
         E2ELogger.success(`Installed MLE component`);
 
-        // CONFIGURE REST
-        this.runShellCommand([
-            `root:${process.env.DBROOTPASSWORD}@localhost:${this.mysqlPortRouter}`,
-            "--py", "-e", "mrs.configure()",
-        ]);
-        E2ELogger.success(`MRS was configured successfully on MySQL instance ${this.mysqlPortRouter}`);
+        for (const port of [this.mysqlPortRest, this.mysqlPortRouter]) {
+            this.runShellCommand([
+                `root:${process.env.DBROOTPASSWORD}@localhost:${port}`,
+                "--py", "-e", "mrs.configure()",
+            ]);
+            E2ELogger.success(`MRS was configured successfully on MySQL instance ${port}`);
+        }
 
         // CREATE THE OCI CONFIG FILE
         const ociConfigFile = `
@@ -351,6 +358,7 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         process.env.MYSQL_PORT = this.mysqlPort;
         process.env.MYSQL_REST_PORT = this.mysqlPortRest;
         process.env.MYSQL_ROUTER_PORT = this.mysqlPortRouter;
+        process.env.MYSQL_REST_CONFIG_PORT = this.mysqlPortRestConfig;
         process.env.DBUSERNAME1 = "clientqa";
         process.env.DBPASSWORD1 = "dummy";
         process.env.DBUSERNAME2 = "shell";
@@ -644,7 +652,12 @@ key_file=${process.env.OCI_HW_KEY_FILE_PATH}
         E2ETests.setTestSuite("DB");
         E2ETests.setShellBinary();
 
-        const mysqlPorts = [E2ETests.mysqlPort, E2ETests.mysqlPortRest, E2ETests.mysqlPortRouter];
+        const mysqlPorts = [
+            E2ETests.mysqlPort,
+            E2ETests.mysqlPortRest,
+            E2ETests.mysqlPortRouter,
+            E2ETests.mysqlPortRestConfig,
+        ];
 
         for (const mysqlPort of mysqlPorts) {
 
