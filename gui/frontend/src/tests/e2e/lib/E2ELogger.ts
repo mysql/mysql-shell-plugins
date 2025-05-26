@@ -45,6 +45,6 @@ export class E2ELogger {
     };
 
     public static debug = (message: string): void => {
-        console.error(`[DBG] ${message}`);
+        console.log(`[DBG] ${message}`);
     };
 }
