@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,7 +28,8 @@ import "./FileSelector.css";
 import { ComponentChild } from "preact";
 
 import { IOpenDialogFilters, IOpenFileDialogResult } from "../../../supplement/RequisitionTypes.js";
-import { requisitions, appParameters } from "../../../supplement/Requisitions.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
+import { appParameters } from "../../../supplement/AppParameters.js";
 import { selectFile } from "../../../utilities/helpers.js";
 import { Button } from "../Button/Button.js";
 import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,7 +30,7 @@ import { ValueDialogBase } from "../../../components/Dialogs/ValueDialogBase.js"
 import {
     ValueEditDialog, IDialogValues, IDialogSection, CommonDialogValueOption, IDialogValidations,
 } from "../../../components/Dialogs/ValueEditDialog.js";
-import { appParameters } from "../../../supplement/Requisitions.js";
+import { appParameters } from "../../../supplement/AppParameters.js";
 
 export class MdsEndpointDialog extends ValueDialogBase {
     private dialogRef = createRef<ValueEditDialog>();

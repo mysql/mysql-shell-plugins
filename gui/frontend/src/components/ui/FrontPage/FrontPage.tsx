@@ -28,7 +28,7 @@ import "./FrontPage.css";
 import { ComponentChild } from "preact";
 
 import { Assets } from "../../../supplement/Assets.js";
-import { appParameters } from "../../../supplement/Requisitions.js";
+import { appParameters } from "../../../supplement/AppParameters.js";
 import { helpUrlMap } from "../../../supplement/index.js";
 import { Button } from "../Button/Button.js";
 import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.js";

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -27,7 +27,8 @@ import { mount } from "enzyme";
 
 import { App } from "../../../app-logic/App.js";
 import { MessageScheduler } from "../../../communication/MessageScheduler.js";
-import { appParameters, requisitions } from "../../../supplement/Requisitions.js";
+import { appParameters } from "../../../supplement/AppParameters.js";
+import { requisitions } from "../../../supplement/Requisitions.js";
 import { MySQLShellLauncher } from "../../../utilities/MySQLShellLauncher.js";
 import { waitFor } from "../../../utilities/helpers.js";
 import { mouseEventMock } from "../__mocks__/EventMocks.js";

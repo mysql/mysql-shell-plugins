@@ -39,7 +39,8 @@ import { ConnectionDataModel, type ICdmConnectionEntry } from "../../../../data-
 import { DocumentModule, type IDocumentModuleState } from "../../../../modules/db-editor/DocumentModule.js";
 import type { IDocumentSideBarSectionState } from "../../../../modules/db-editor/DocumentSideBar/DocumentSideBar.js";
 import type { DocumentContextType } from "../../../../modules/db-editor/index.js";
-import { appParameters, requisitions } from "../../../../supplement/Requisitions.js";
+import { appParameters } from "../../../../supplement/AppParameters.js";
+import { requisitions } from "../../../../supplement/Requisitions.js";
 import { ShellInterface } from "../../../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import { DBType, type IConnectionDetails } from "../../../../supplement/ShellInterface/index.js";

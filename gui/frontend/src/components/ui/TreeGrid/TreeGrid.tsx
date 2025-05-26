@@ -35,7 +35,7 @@ import {
 
 import { ComponentChild, createRef } from "preact";
 
-import { appParameters } from "../../../supplement/Requisitions.js";
+import { appParameters } from "../../../supplement/AppParameters.js";
 import { waitFor } from "../../../utilities/helpers.js";
 import { ComponentBase, IComponentProperties, SelectionType } from "../Component/ComponentBase.js";
 
