@@ -4,13 +4,17 @@
 
 ### Additions
 
--
+- Added MySQL Shell Workbench Web UI - Single Server Mode
+- Added MRS Quickstart Guide
+- Added MRS Python SDK Async Task API support
+- Client SDK - Added a new simplified find() method to replace findAll() and findMany()
 
 ### Fixes
 
 - BUG#37965633 Optional fields required when creating or updating nested documents
 - BUG#37987749 Unexpected error when starting a REST routine with a custom timeout
--
+- Fixed CLONE REST SERVICE statement implementation
+- Fixed SHOW CREATE AUTH APPS statement implementation
 
 ## Changes in 1.19.11+9.3.1
 

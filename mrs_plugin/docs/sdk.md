@@ -9,6 +9,7 @@ This document explains how to work with the MRS Software Development Kit and dis
 Please also see
 
 - __[MySQL REST Service - Developer's Guide](index.html)__ - This book explains how to install and configure the MySQL REST Service (MRS) as well as how to access the data through REST calls.
+- __[MySQL REST Service - Quickstart Guide](quickstart.html)__ - This book provides a hands-on approach to learning how to use the MySQL REST service.
 - __[MySQL REST Service - Core REST APIs](restApi.html)__ - This book provides examples of using the MySQL REST Service queries and other operations against tables and views after you have REST-enabled them.
 - __[MySQL REST Service - SQL Reference](sql.html)__ - This book discusses the MySQL REST Service SQL Extension.
 

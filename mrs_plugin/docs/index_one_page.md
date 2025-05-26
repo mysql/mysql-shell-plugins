@@ -18,6 +18,18 @@ This book explains how to install and configure the MySQL REST Service (MRS) as 
 
 ---
 
+**MySQL REST Service - Quickstart Guide**
+
+This book provides a hands-on approach to learning how to use the MySQL REST service.
+
+- [What is the MySQL REST Service](#quickstart-introduction)
+- [Setting up the MySQL REST Service](#setting-up-the-mysql-rest-service)
+- [Defining REST Endpoints](#defining-rest-endpoints)
+- [Accessing REST Endpoints](#accessing-rest-endpoints)
+- [Appendix](#quickstart-appendix)
+
+---
+
 **MySQL REST Service DDL - SQL Extension Reference**
 
 This document discusses the MySQL REST Service (MRS) DDL - SQL Extension. The MRS DDL - SQL Extension adds a set of MRS specific DDL statements to the MySQL Shell SQL handling in order to provide a familiar management interface to MySQL developers and DBAs.
@@ -85,6 +97,20 @@ This document explains how to work with the MRS Software Development Kit and dis
 !include sections/devGuide/Auth.md
 
 !include ../examples/readme.md
+
+---
+
+**MySQL REST Service - Quickstart Guide**
+
+!include sections/quickStart/Introduction.md
+
+!include sections/quickStart/Setup.md
+
+!include sections/quickStart/DefiningRestEndpoints.md
+
+!include sections/quickStart/AccessingRestEndpoints.md
+
+!include sections/quickStart/Appendix.md
 
 ---
 

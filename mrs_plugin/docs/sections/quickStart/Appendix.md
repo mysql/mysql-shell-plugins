@@ -21,6 +21,29 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
 
-# Using the MySQL Shell for VS Code extension
+# Quickstart Appendix
 
-Tbd.
+## Enabling MS Marketplace on VSCodium
+
+In order to use extensions from the MS Marketplace on [VSCodium](https://vscodium.com/), a configuration file has to be created.
+
+1. Open an editor of your choice and paste the following content.
+
+    ```json
+    {
+        "nameShort": "Visual Studio Code",
+        "nameLong": "Visual Studio Code",
+        "extensionsGallery": {
+            "serviceUrl": "https://marketplace.visualstudio.com/_apis/public/gallery",
+            "cacheUrl": "https://vscode.blob.core.windows.net/gallery/index",
+            "itemUrl": "https://marketplace.visualstudio.com/items"
+        }
+    }
+    ```
+
+2. Save the file at the following location.
+   - MacOS: `$HOME/Library/Application Support/VSCodium/product.json`
+   - Windows: `$HOME\AppData\Roaming\VSCodium\product.json`
+3. Restart VSCodium.
+
+> To revert to using VSCodium's default marketplace, simply delete the project.json file and restart VSCodium.

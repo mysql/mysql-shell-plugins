@@ -136,9 +136,9 @@
                 <h2>
                     <div class="icon bookIcon"></div>&nbsp;<a href="index.html#document-top">Reference Manual</a>
                 </h2>
-                <!--<h2>
+                <h2>
                     <div class="icon bookIcon"></div>&nbsp;<a href="quickstart.html#document-top">Quickstart Guide</a>
-                </h2>-->
+                </h2>
                 <h2>
                     <div class="icon bookIcon"></div>&nbsp;<a href="sql.html#document-top">SQL Reference</a>
                 </h2>
@@ -167,27 +167,110 @@ Guide 1.19.12+9.3.1</h3>
                                                 id="toc-setting-up-the-mysql-rest-service"><span
                                                 class="toc-section-number">2</span>
                                                 Setting up the MySQL
-                                                REST Service</a></li>
+                                                REST Service</a>
+                                                <ul>
                                                 <li><a
-                                                href="#using-the-rest-sql-extension-to-define-rest-endpoints"
-                                                id="toc-using-the-rest-sql-extension-to-define-rest-endpoints"><span
+                                                href="#setting-up-a-local-mysql-server"
+                                                id="toc-setting-up-a-local-mysql-server"><span
+                                                class="toc-section-number">2.1</span>
+                                                Setting up a local MySQL
+                                                Server</a></li>
+                                                <li><a
+                                                href="#setting-up-vs-code"
+                                                id="toc-setting-up-vs-code"><span
+                                                class="toc-section-number">2.2</span>
+                                                Setting up VS
+                                                Code</a></li>
+                                                <li><a
+                                                href="#configuring-a-mysql-instance-for-mysql-rest-service-support"
+                                                id="toc-configuring-a-mysql-instance-for-mysql-rest-service-support"><span
+                                                class="toc-section-number">2.3</span>
+                                                Configuring a MySQL
+                                                Instance for MySQL REST
+                                                Service Support</a></li>
+                                                <li><a
+                                                href="#assigning-rest-user-privileges"
+                                                id="toc-assigning-rest-user-privileges"><span
+                                                class="toc-section-number">2.4</span>
+                                                Assigning REST User
+                                                Privileges</a></li>
+                                                <li><a
+                                                href="#deploying-a-mysql-router-for-development"
+                                                id="toc-deploying-a-mysql-router-for-development"><span
+                                                class="toc-section-number">2.5</span>
+                                                Deploying a MySQL Router
+                                                for Development</a></li>
+                                                </ul></li>
+                                                <li><a
+                                                href="#defining-rest-endpoints"
+                                                id="toc-defining-rest-endpoints"><span
                                                 class="toc-section-number">3</span>
-                                                Using the REST SQL
-                                                extension to define REST
-                                                endpoints</a></li>
+                                                Defining REST
+                                                Endpoints</a>
+                                                <ul>
                                                 <li><a
-                                                href="#using-the-mysql-shell-for-vs-code-extension"
-                                                id="toc-using-the-mysql-shell-for-vs-code-extension"><span
+                                                href="#deploying-the-sakila-schema"
+                                                id="toc-deploying-the-sakila-schema"><span
+                                                class="toc-section-number">3.1</span>
+                                                Deploying the Sakila
+                                                Schema</a></li>
+                                                <li><a
+                                                href="#creating-a-rest-service"
+                                                id="toc-creating-a-rest-service"><span
+                                                class="toc-section-number">3.2</span>
+                                                Creating a REST
+                                                Service</a></li>
+                                                <li><a
+                                                href="#adding-a-rest-endpoint"
+                                                id="toc-adding-a-rest-endpoint"><span
+                                                class="toc-section-number">3.3</span>
+                                                Adding a REST
+                                                Endpoint</a></li>
+                                                </ul></li>
+                                                <li><a
+                                                href="#accessing-rest-endpoints"
+                                                id="toc-accessing-rest-endpoints"><span
                                                 class="toc-section-number">4</span>
-                                                Using the MySQL Shell
-                                                for VS Code
-                                                extension</a></li>
+                                                Accessing REST
+                                                Endpoints</a>
+                                                <ul>
                                                 <li><a
-                                                href="#accessing-the-rest-endpoints"
-                                                id="toc-accessing-the-rest-endpoints"><span
+                                                href="#web-browser-access"
+                                                id="toc-web-browser-access"><span
+                                                class="toc-section-number">4.1</span>
+                                                Web Browser
+                                                Access</a></li>
+                                                <li><a
+                                                href="#typescript-prompt"
+                                                id="toc-typescript-prompt"><span
+                                                class="toc-section-number">4.2</span>
+                                                TypeScript
+                                                Prompt</a></li>
+                                                <li><a
+                                                href="#access-via-curl"
+                                                id="toc-access-via-curl"><span
+                                                class="toc-section-number">4.3</span>
+                                                Access via CURL</a></li>
+                                                <li><a
+                                                href="#deploying-a-web-app"
+                                                id="toc-deploying-a-web-app"><span
+                                                class="toc-section-number">4.4</span>
+                                                Deploying a Web
+                                                App</a></li>
+                                                </ul></li>
+                                                <li><a
+                                                href="#quickstart-appendix"
+                                                id="toc-quickstart-appendix"><span
                                                 class="toc-section-number">5</span>
-                                                Accessing the REST
-                                                endpoints</a></li>
+                                                Quickstart Appendix</a>
+                                                <ul>
+                                                <li><a
+                                                href="#enabling-ms-marketplace-on-vscodium"
+                                                id="toc-enabling-ms-marketplace-on-vscodium"><span
+                                                class="toc-section-number">5.1</span>
+                                                Enabling MS Marketplace
+                                                on VSCodium</a></li>
+                                                </ul></li>
                                                 </ul>
                                             </div>
                 </nav>
@@ -207,16 +290,15 @@ Service - Quickstart Guide
                 objects.</p>
                 <p><strong>Chapter Overview</strong></p>
                 <ul>
-                <li><a href="#introduction">What is the MySQL REST
-                Service</a></li>
-                <li><a href="#setup">Setting up the MySQL REST
-                Service</a></li>
-                <li><a href="#restSql">Using the REST SQL extension to
-                define REST endpoints</a></li>
-                <li><a href="#shellUi">Using the MySQL Shell for VS Code
-                extension</a></li>
-                <li><a href="#restEndpoints">Accessing the REST
-                endpoints</a></li>
+                <li><a href="#quickstart-introduction">What is the MySQL
+                REST Service</a></li>
+                <li><a href="#setting-up-the-mysql-rest-service">Setting
+                up the MySQL REST Service</a></li>
+                <li><a href="#defining-rest-endpoints">Defining REST
+                Endpoints</a></li>
+                <li><a href="#accessing-rest-endpoints">Accessing REST
+                Endpoints</a></li>
+                <li><a href="#quickstart-appendix">Appendix</a></li>
                 </ul>
                 <hr />
                 <p>Please also see</p>
@@ -268,7 +350,7 @@ Service - Quickstart Guide
                 client applications via a HTTPS REST interface.</p>
                 <p>To learn more about the MySQL REST Service please
                 check out the <a
-                href="index.html#introduction">Developer Guide</a></p>
+                href="index.html#introduction">Developer Guide</a>.</p>
                 <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -295,7 +377,271 @@ Service - Quickstart Guide
                 id="setting-up-the-mysql-rest-service"><span
                 class="header-section-number">2</span> Setting up the
                 MySQL REST Service</h1>
-                <p>Tbd.</p>
+                <p>To get started with the MySQL REST Service, you must
+                first deploy a MySQL solution. In this guide, we will
+                use a local MySQL Server installation. If you have an
+                existing MySQL server or InnoDB ClusterSet installed,
+                you can use that setup instead. This is also true if you
+                are working with a HeatWave instance.</p>
+                <h2 data-number="2.1"
+                id="setting-up-a-local-mysql-server"><span
+                class="header-section-number">2.1</span> Setting up a
+                local MySQL Server</h2>
+                <p>Please go to the <a
+                href="https://dev.mysql.com/downloads/mysql/">MySQL
+                download page</a> and select a MySQL Server version. It
+                is recommended to download the latest MySQL Innovation
+                or LTS release. Download the appropriate packages for
+                your local operating system and perform the local
+                installation either on <a
+                href="https://dev.mysql.com/doc/mysql-installation-excerpt/en/macos-installation.html">MacOS</a>,
+                <a
+                href="https://dev.mysql.com/doc/mysql-installation-excerpt/en/linux-installation.html">Linux</a>
+                or <a
+                href="https://dev.mysql.com/doc/mysql-installation-excerpt/en/windows-installation.html">Windows</a>.</p>
+                <p>After the MySQL Server has been installed, make sure
+                that it is started up and that a database connection can
+                be established, using the MySQL Shell for VS Code
+                extension.</p>
+                <h2 data-number="2.2" id="setting-up-vs-code"><span
+                class="header-section-number">2.2</span> Setting up VS
+                Code</h2>
+                <p>The recommended way to configure a MySQL REST Service
+                development setup is to use <a
+                href="https://code.visualstudio.com/">VS Code</a> or <a
+                href="https://vscodium.com/">VSCodium</a> with the MySQL
+                Shell for VS Code extension installed.</p>
+                <p>After downloading and installing VS Code, select the
+                Extensions icon in the Activity Bar on the left hand
+                side and enter MySQL Shell, then click the
+                <code>Install</code> button.</p>
+                <p>When using VSCodium, please see here how to <a
+                href="#enabling-ms-marketplace-on-vscodium">enable the
+                MS Marketplace</a> first. With the MS Marketplace
+                enabled, select the Extensions icon in the Activity Bar
+                on the left hand side, enter MySQL Shell and then click
+                the <code>Install</code> button.</p>
+                <h3 data-number="2.2.1"
+                id="mysql-shell-welcome-wizard"><span
+                class="header-section-number">2.2.1</span> MySQL Shell
+                Welcome Wizard</h3>
+                <p>When first launching the MySQL Shell VS Code
+                extension, a Welcome Wizard will be shown. Please follow
+                the required steps to configure the extension.</p>
+                <p>In case of an issue, the extension can be reset by
+                bringing up the VS Code Command Palette and selecting
+                the <code>Reset MySQL Shell for VS Code Extension</code>
+                or by selecting the corresponding popup menu item of the
+                <code>DATABASE CONNECTIONS</code> view in the Primary
+                Side Bar.</p>
+                <h3 data-number="2.2.2"
+                id="adding-a-db-connection"><span
+                class="header-section-number">2.2.2</span> Adding a DB
+                Connection</h3>
+                <p>After successfully configuring the MySQL Shell VS
+                Code extension, select its icon in the VS Code Activity
+                Bar on the left hand side. Then click the
+                <code>DB Connection Overview</code> entry in the
+                <code>OPEN EDITORS</code> view in the Primary Side
+                Bar.</p>
+                <p>On the <code>DB Connection Overview</code> page,
+                click the <code>New Connection</code> tile in the
+                <code>Database Connections</code> list. This will bring
+                up the <code>Database Connection Configuration</code>
+                dialog.</p>
+                <ul>
+                <li>Choose a <code>Caption</code> for the new DB
+                Connection, e.g. <code>MRS Development</code>.</li>
+                <li>Set the <code>User Name</code> to
+                <code>root</code></li>
+                <li>Click <code>OK</code> to create the DB
+                Connection.</li>
+                </ul>
+                <p>A new DB Connection tile will show up in the
+                <code>DB Connection Overview</code>, as well as a new DB
+                Connection entry in the
+                <code>DATABASE CONNECTIONS</code> view in the Primary
+                Side Bar.</p>
+                <h3 data-number="2.2.3"
+                id="opening-a-db-connection"><span
+                class="header-section-number">2.2.3</span> Opening a DB
+                Connection</h3>
+                <p>Click the new tile to open the database connection.
+                Enter the password and select whether to store it.</p>
+                <p>A new <code>DB Notebook</code> page will be opened,
+                showing an SQL prompt.</p>
+                <h2 data-number="2.3"
+                id="configuring-a-mysql-instance-for-mysql-rest-service-support"><span
+                class="header-section-number">2.3</span> Configuring a
+                MySQL Instance for MySQL REST Service Support</h2>
+                <p>Support for the MySQL REST Service has to be
+                explicitly configured on a given MySQL setup, before it
+                can be used.</p>
+                <p>This configuration can either be performed directly
+                in the MySQL Shell for VS Code extension or via the <a
+                href="index.html#mrs-configuration-using-mysql-shell">REST
+                SQL extension available</a> in the MySQL Shell.</p>
+                <blockquote>
+                <p>When using a HeatWave setup on OCI, please browse the
+                HeatWave documentation on how to enable REST service
+                support for the given HeatWave instance.</p>
+                </blockquote>
+                <h3 data-number="2.3.1"
+                id="configuring-mrs-in-mysql-shell-for-vs-code"><span
+                class="header-section-number">2.3.1</span> Configuring
+                MRS in MySQL Shell for VS Code</h3>
+                <p>Using the MySQL Shell for VS Code extension, locate
+                the <code>DATABASE CONNECTIONS</code> view in the
+                Primary Side Bar and right-click on the DB Connection
+                entry <code>MRS Development</code> created above. This
+                will bring up the popup menu.</p>
+                <p>Select
+                <code>Configuring Instance for MySQL REST Service Support</code>
+                in the DB Connection’s popup menu, which will bring up
+                the <code>MySQL REST Service</code> dialog.</p>
+                <figure>
+                <img
+                src="sections/quickStart/../../images/vsc-mrs-configure.png"
+                title="Configure Instance for MySQL REST Service Support"
+                alt="Configure Instance for MySQL REST Service Support" />
+                <figcaption aria-hidden="true">Configure Instance for
+                MySQL REST Service Support</figcaption>
+                </figure>
+                <p>On the <code>MySQL REST Service</code> dialog provide
+                a <code>REST User Name</code> and a
+                <code>REST User Password</code>. Please note that the
+                password has a minimum length of 8 characters and must
+                contain a lower case character, and upper case
+                character, a number and a special character. The REST
+                user specified on this dialog can later be used to log
+                into REST services.</p>
+                <p>Click <code>OK</code> to configure the instance for
+                MySQL REST Service support. This process will create a
+                dedicated metadata schema on the MySQL instance, which
+                holds all metadata information about the REST services
+                and endpoints.</p>
+                <p>After MySQL has been configured for MySQL REST
+                Service support, a new <code>MySQL REST Service</code>
+                child entry can be seen when expanding the DB Connection
+                entry in the <code>DATABASE CONNECTIONS</code> view in
+                the Primary Side Bar.</p>
+                <h3 data-number="2.3.2"
+                id="adding-the-mrs-authentication-app-for-heatwave"><span
+                class="header-section-number">2.3.2</span> Adding the
+                MRS Authentication App for HeatWave</h3>
+                <p>When you are working against a HeatWave instance, the
+                REST user mentioned above needs to be created
+                explicitly.</p>
+                <p>Open the <code>MySQL REST Service</code> child entry
+                of the DB Connection, click on the
+                <code>REST Authentication Apps</code> item with the
+                right mouse button and select
+                <code>Add New Authentication App</code>.</p>
+                <p>This will show the
+                <code>REST Authentication App</code> dialog. Select the
+                vendor <code>MRS</code> and click <code>OK</code> to
+                have the new REST authentication app be created.</p>
+                <p>Expand the <code>REST Authentication Apps</code> item
+                in the tree view and right click on the new
+                <code>MRS</code> entry. Select <code>Add User</code>
+                from the popup menu when clicking the <code>MRS</code>
+                entry with the right mouse button.</p>
+                <p>Provide a <code>User Name</code> and a
+                <code>User Password</code> and click <code>OK</code> to
+                have the REST user created.</p>
+                <h2 data-number="2.4"
+                id="assigning-rest-user-privileges"><span
+                class="header-section-number">2.4</span> Assigning REST
+                User Privileges</h2>
+                <p>When working with MySQL, it is recommended that the
+                <code>root</code> account be used exclusively for
+                configuration purposes. Create dedicated MySQL user
+                accounts for general administrative and development
+                tasks instead.</p>
+                <h3 data-number="2.4.1" id="dba-account"><span
+                class="header-section-number">2.4.1</span> DBA
+                Account</h3>
+                <blockquote>
+                <p>When working with HeatWave, a dedicated MySQL user
+                account with administrative privileges was already
+                created during HeatWave deployment. This MySQL user
+                account can be used instead. Please proceed to</p>
+                </blockquote>
+                <p>To create a database administrator account named
+                <code>dba</code> the following SQL commands can be
+                used.</p>
+                <p>This account will have full privileges on all
+                database schemas. To adjust the list of schemas, modify
+                the <code>GRANT ALL ON *.*</code> statement
+                accordingly.</p>
+                <div class="sourceCode" id="cb1"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="fu">USER</span> <span class="st">&#39;dba&#39;</span>@<span class="st">&#39;%&#39;</span> <span class="kw">IDENTIFIED</span> <span class="kw">BY</span> <span class="st">&#39;********&#39;</span>;</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> <span class="kw">ALL</span> <span class="kw">ON</span> <span class="op">*</span>.<span class="op">*</span> <span class="kw">TO</span> <span class="st">&#39;dba&#39;</span>@<span class="st">&#39;%&#39;</span> <span class="kw">WITH</span> <span class="kw">GRANT</span> <span class="kw">OPTION</span>;</span></code></pre></div>
+                <p>After creating the new account, remember to update
+                the DB Connection and replace the <code>User Name</code>
+                <code>root</code> with <code>dba</code>. This can be
+                done by clicking on the DB Connection entry with the
+                right mouse button and selecting
+                <code>Edit DB Connection</code>.</p>
+                <h3 data-number="2.4.2"
+                id="granting-rest-service-admin-privileges"><span
+                class="header-section-number">2.4.2</span> Granting REST
+                Service Admin Privileges</h3>
+                <p>Any existing MySQL user account can be used promoted
+                to a REST service administrator by granting the
+                <code>mysql_rest_service_admin</code> role. This role
+                has to be added to the default MySQL roles that are
+                assigned when a MySQL user connects.</p>
+                <p>The following two statements grant the required MySQL
+                role and assign all roles to be loaded by default.</p>
+                <div class="sourceCode" id="cb2"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">GRANT</span> <span class="st">&#39;mysql_rest_service_admin&#39;</span> <span class="kw">TO</span> <span class="st">&#39;dba&#39;</span>@<span class="st">&#39;%&#39;</span>;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">SET</span> <span class="kw">DEFAULT</span> <span class="kw">ROLE</span> <span class="kw">ALL</span> <span class="kw">TO</span> <span class="st">&#39;dba&#39;</span>@<span class="st">&#39;%&#39;</span>;</span></code></pre></div>
+                <blockquote>
+                <p>Please note that the
+                <code>mysql_rest_service_admin</code> role is only
+                available after configuring the MySQL instance for MySQL
+                REST Service support.</p>
+                </blockquote>
+                <p>The MySQL REST Service supports several MySQL roles
+                to manage fine-grained access for administrators and
+                developers. Please check the <a
+                href="index.html#mrs-user-roles">MRS User Roles</a>
+                documentation for more details.</p>
+                <h2 data-number="2.5"
+                id="deploying-a-mysql-router-for-development"><span
+                class="header-section-number">2.5</span> Deploying a
+                MySQL Router for Development</h2>
+                <p>When developing REST services, it is highly
+                recommended to deploy a local MySQL Router instance.
+                This allows developers to locally test the REST services
+                they are working on without publishing them on the
+                production systems. Please see the <a
+                href="index.html#rest-service-lifecycle-management">REST
+                Service Lifecycle Management</a> for details.</p>
+                <p>To bootstrap and start a local MySQL Router in
+                development mode, select
+                <code>Bootstrap Local MySQL Router Instance</code> from
+                the <code>MySQL REST Service</code> items popup
+                menu.</p>
+                <p>A terminal will appear.</p>
+                <ul>
+                <li>Enter the password of the MySQL user and hit the
+                <code>return</code> key.</li>
+                <li>Next, enter a JWT secret. Since this is a local
+                development server, a simple secret like
+                <code>1234</code> can be used. Please note that the
+                same, strong JWT secret has to be used on all production
+                routers.</li>
+                </ul>
+                <p>Now, a local development instance of the MySQL Router
+                has been bootstrapped.</p>
+                <p>Select <code>Start Local MySQL Router Instance</code>
+                from the <code>MySQL REST Service</code> items popup
+                menu to start up the router.</p>
+                <p>The terminal will display the MySQL Router log output
+                in real time. This log output is very helpful when
+                debugging REST endpoints.</p>
                 <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -318,11 +664,173 @@ Service - Quickstart Guide
                 You should have received a copy of the GNU General Public License
                 along with this program; if not, write to the Free Software Foundation, Inc.,
                 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
-                <h1 data-number="3"
-                id="using-the-rest-sql-extension-to-define-rest-endpoints"><span
-                class="header-section-number">3</span> Using the REST
-                SQL extension to define REST endpoints</h1>
-                <p>Tbd.</p>
+                <h1 data-number="3" id="defining-rest-endpoints"><span
+                class="header-section-number">3</span> Defining REST
+                Endpoints</h1>
+                <p>After configuring a MySQL instance for MySQL REST
+                Service support, you can define new REST services and
+                endpoints. This can be done using the graphical user
+                interface built into the MySQL Shell extension for
+                Visual Studio Code or directly via the MySQL Shell REST
+                SQL extension.</p>
+                <h2 data-number="3.1"
+                id="deploying-the-sakila-schema"><span
+                class="header-section-number">3.1</span> Deploying the
+                Sakila Schema</h2>
+                <p>All further examples in the quickstart guide use the
+                <code>Sakila</code> example database schema. To follow
+                along, please install that schema.</p>
+                <ol type="1">
+                <li>Download the Sakila schema from <a
+                href="https://downloads.mysql.com/docs/sakila-db.zip">https://downloads.mysql.com/docs/sakila-db.zip</a></li>
+                <li>Double-click the downloaded ZIP file to extract it.
+                This will create a folder <code>sakila-db</code>
+                containing two SQL scripts.</li>
+                <li>Using the MySQL Shell for VS Code extension, locate
+                the <code>DATABASE CONNECTIONS</code> view in the
+                Primary Side Bar and right-click on the DB Connection
+                entry <code>MRS Development</code> created above. From
+                the popup menu select
+                <code>Load SQL Script from Disk...</code> and select the
+                <code>sakila-schema.sql</code> script.</li>
+                <li>After the script has loaded, click the first
+                lightning bolt in the toolbar to execute the full
+                script. Monitor the output until the line
+                <code>✓ SQL Script execution completed in ___s. 46 statements executed successfully.</code>
+                is displayed.</li>
+                <li>Use <code>Load SQL Script from Disk...</code> again
+                and select the <code>sakila-data.sql</code> script.
+                Execute it and monitor the output for
+                <code>✓ SQL Script execution completed in ___s. 62 statements executed successfully.</code></li>
+                </ol>
+                <p>The <code>sakila</code> schema should now be
+                displayed in the <code>DATABASE CONNECTIONS</code> view
+                in the Primary Side Bar as a child entry of the
+                <code>MRS Development</code> connection.</p>
+                <h2 data-number="3.2" id="creating-a-rest-service"><span
+                class="header-section-number">3.2</span> Creating a REST
+                Service</h2>
+                <p>To create a REST service, click with the right mouse
+                button on the <code>MySQL REST Service</code> child
+                entry of the <code>MRS Development</code> connection in
+                the <code>DATABASE CONNECTIONS</code> view in the
+                Primary Side Bar.</p>
+                <figure>
+                <img
+                src="sections/quickStart/../../images/vsc-mrs-add-service.png"
+                title="Adding a REST Service"
+                alt="Adding a REST Service" />
+                <figcaption aria-hidden="true">Adding a REST
+                Service</figcaption>
+                </figure>
+                <p>This will bring up the
+                <code>MySQL REST Service</code> dialog. You can set a
+                REST service path and a REST Service Name or accept the
+                defaults of <code>/myService</code> for now.</p>
+                <p>The REST service will be created without being
+                <code>Published</code> and the REST authentication app
+                <code>MRS</code> will be linked by default. To also
+                allow logins with MySQL user accounts, the REST
+                authentication app <code>MySQL</code> can be linked as
+                well.</p>
+                <p>Click <code>OK</code> to have the REST service
+                created.</p>
+                <p>The new REST Service will now be displayed as a child
+                to the <code>MySQL REST Service</code> item in the tree
+                view.</p>
+                <h3 data-number="3.2.1"
+                id="creating-a-rest-service-with-rest-sql"><span
+                class="header-section-number">3.2.1</span> Creating a
+                REST Service with REST SQL</h3>
+                <p>Alternatively to using the graphical user interface
+                the REST SQL extension can be used to create the REST
+                service.</p>
+                <div class="sourceCode" id="cb3"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST SERVICE <span class="op">/</span>myService</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">ADD</span> AUTH APP <span class="st">&#39;MRS&#39;</span>;</span></code></pre></div>
+                <h2 data-number="3.3" id="adding-a-rest-endpoint"><span
+                class="header-section-number">3.3</span> Adding a REST
+                Endpoint</h2>
+                <p>After a REST service has been created, a new REST
+                endpoint can be added. It is possible to add database
+                schema tables, views, procedures and functions, as well
+                as static files.</p>
+                <p>On the <code>DATABASE CONNECTIONS</code> view in the
+                Primary Side Bar, expand the <code>sakila</code>
+                database schema tree item as well as the
+                <code>Tables</code> item of the DB Connection entry.</p>
+                <p>Click the database schema table <code>city</code>
+                using the right mouse button and select
+                <code>Add Database Object to REST Service</code> from
+                the popup menu.</p>
+                <figure>
+                <img
+                src="sections/quickStart/../../images/vsc-mrs-add-db-object.png"
+                title="Adding a Database Object"
+                alt="Adding a Database Object" />
+                <figcaption aria-hidden="true">Adding a Database
+                Object</figcaption>
+                </figure>
+                <p>A notification will be show on the lower right area
+                of the window displaying the following question.</p>
+                <div class="sourceCode" id="cb4"><pre
+                class="sourceCode txt"><code class="sourceCode default"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>The database schema sakila has not been added to the REST service.</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>Do you want to add the schema now?</span></code></pre></div>
+                <p>Before adding a database schema object as a REST
+                endpoint, it is required to add their database schema as
+                a REST schema first. Click <code>Yes</code> to add the
+                database schema as a REST schema.</p>
+                <p>The <code>MySQL REST Object</code> dialog will be
+                displayed.</p>
+                <figure>
+                <img
+                src="sections/quickStart/../../images/vsc-mrs-object-dialog.svg"
+                title="The MySQL REST Object Dialog"
+                alt="The MySQL REST Object Dialog" />
+                <figcaption aria-hidden="true">The MySQL REST Object
+                Dialog</figcaption>
+                </figure>
+                <p>It shows the full request path that will be used for
+                the REST endpoint, consisting of the parts
+                <code>REST Service Path</code>
+                <code>REST Schema Path</code>
+                <code>REST Object Path</code>. In this case the path
+                will be <code>/myService/sakila/city</code>.</p>
+                <blockquote>
+                <p>Since we want this REST endpoint to not require
+                authentication, disable the <code>Auth. Required</code>
+                option in the <code>Access Control</code> section, top
+                right.</p>
+                </blockquote>
+                <p>On the <code>Data Mapping</code> tab sheet, the
+                mapping of JSON fields to database columns can be seen.
+                It is possible to rename JSON fields or add referenced
+                tables as nested JSON documents. See <a
+                href="index.html#rest-data-mapping-views">Data Mapping
+                Views</a> for more details.</p>
+                <p>To enable write access on the REST endpoint, click
+                the <code>INSERT</code> <code>UPDATE</code>
+                <code>DELETE</code> buttons next to the database schema
+                name.</p>
+                <p>Click <code>OK</code> to create the REST
+                endpoint.</p>
+                <h3 data-number="3.3.1"
+                id="adding-a-rest-endpoint-via-rest-sql"><span
+                class="header-section-number">3.3.1</span> Adding a REST
+                Endpoint via REST SQL</h3>
+                <p>The same operations as doing in the user interface
+                above can also be done via the REST SQL extension.</p>
+                <p>In a first step, the database schema can be added to
+                the REST service as a REST schema.</p>
+                <div class="sourceCode" id="cb5"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">SCHEMA</span> <span class="op">/</span>sakila <span class="kw">ON</span> SERVICE <span class="op">/</span>myService</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">FROM</span> `sakila`;</span></code></pre></div>
+                <p>Next, the <code>sakila.city</code> database schema
+                table can be added.</p>
+                <div class="sourceCode" id="cb6"><pre
+                class="sourceCode sql"><code class="sourceCode sql"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> REST <span class="kw">VIEW</span> <span class="op">/</span>city <span class="kw">ON</span> SERVICE <span class="op">/</span>myService <span class="kw">SCHEMA</span> <span class="op">/</span>sakila</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">AS</span> `sakila`.`city` @INSERT @UPDATE @DELETE</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    AUTHENTICATION <span class="kw">NOT</span> REQUIRED;</span></code></pre></div>
                 <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -345,11 +853,287 @@ Service - Quickstart Guide
                 You should have received a copy of the GNU General Public License
                 along with this program; if not, write to the Free Software Foundation, Inc.,
                 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
-                <h1 data-number="4"
-                id="using-the-mysql-shell-for-vs-code-extension"><span
-                class="header-section-number">4</span> Using the MySQL
-                Shell for VS Code extension</h1>
-                <p>Tbd.</p>
+                <h1 data-number="4" id="accessing-rest-endpoints"><span
+                class="header-section-number">4</span> Accessing REST
+                Endpoints</h1>
+                <p>A MySQL Router instance must be used to access any
+                REST endpoint. When developing on a REST service, please
+                make sure to deploy a <a
+                href="#deploying-a-mysql-router-for-development">MySQL
+                Router in development mode</a>.</p>
+                <h2 data-number="4.1" id="web-browser-access"><span
+                class="header-section-number">4.1</span> Web Browser
+                Access</h2>
+                <p>To access a REST endpoint, expand the REST service
+                entry in the <code>DATABASE CONNECTIONS</code> tree view
+                until you reach the REST object. Right-click on
+                <code>city</code> REST endpoint and select
+                <code>Open REST Object Request Path in Web Browser</code>
+                from the popup menu.</p>
+                <p>This will open up a web browser pointing at the REST
+                endpoint URL
+                <code>https://localhost:8443/myService/sakila/city</code>
+                and display the JSON document returned from accessing
+                the REST endpoint via the GET method.</p>
+                <blockquote>
+                <p>The port number of the URL depends on the internal ID
+                of the DB Connection and is different for each
+                connection.</p>
+                </blockquote>
+                <div class="sourceCode" id="cb7"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;items&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;city&quot;</span><span class="fu">:</span> <span class="st">&quot;A Coruña (La Coruña)&quot;</span><span class="fu">,</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;links&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>                <span class="fu">{</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;rel&quot;</span><span class="fu">:</span> <span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;href&quot;</span><span class="fu">:</span> <span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>                <span class="fu">}</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>            <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span> <span class="dv">87</span><span class="fu">,</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>                <span class="dt">&quot;etag&quot;</span><span class="fu">:</span> <span class="st">&quot;09785343A8A790724C995E20AE6844EA2A78E9CFD57BE64063B2FC56E12D8FFC&quot;</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>            <span class="fu">}</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;city&quot;</span><span class="fu">:</span> <span class="st">&quot;Abha&quot;</span><span class="fu">,</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;links&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>                <span class="fu">{</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;rel&quot;</span><span class="fu">:</span> <span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>                    <span class="dt">&quot;href&quot;</span><span class="fu">:</span> <span class="st">&quot;/myService/sakila/city/2&quot;</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>                <span class="fu">}</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>            <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;cityId&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;countryId&quot;</span><span class="fu">:</span> <span class="dv">82</span><span class="fu">,</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;lastUpdate&quot;</span><span class="fu">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span><span class="fu">,</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;_metadata&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>                <span class="dt">&quot;etag&quot;</span><span class="fu">:</span> <span class="st">&quot;B069A2EEC4663506F97019A369BD77AB086A9BA5FB1DD224C36B67CF687A6B14&quot;</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>            <span class="fu">}</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>        <span class="er">...</span></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;limit&quot;</span><span class="fu">:</span> <span class="dv">25</span><span class="fu">,</span></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;offset&quot;</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;hasMore&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;count&quot;</span><span class="fu">:</span> <span class="dv">25</span><span class="fu">,</span></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;links&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span> <span class="st">&quot;self&quot;</span><span class="fu">,</span></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span> <span class="st">&quot;/myService/sakila/city/&quot;</span></span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span><span class="ot">,</span></span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>        <span class="fu">{</span></span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;rel&quot;</span><span class="fu">:</span> <span class="st">&quot;next&quot;</span><span class="fu">,</span></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>            <span class="dt">&quot;href&quot;</span><span class="fu">:</span> <span class="st">&quot;/myService/sakila/city/?offset=25&quot;</span></span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>        <span class="fu">}</span></span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>    <span class="ot">]</span></span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+                <h2 data-number="4.2" id="typescript-prompt"><span
+                class="header-section-number">4.2</span> TypeScript
+                Prompt</h2>
+                <p>The MySQL Shell for VS Code supports and interactive
+                workflow to prototype REST access using TypeScript.</p>
+                <p>After opening a database connection in MySQL Shell
+                for VS Code the DB Notebook will be displayed. Switch
+                the DB Notebook to TypeScript mode with <code>\ts</code>
+                if it is in SQL mode.</p>
+                <figure>
+                <img
+                src="sections/quickStart/../../images/msg-db-notebook-switch-to-ts.svg"
+                title="DB Notebook - Switch to TS mode"
+                alt="DB Notebook - Switch to TS mode" />
+                <figcaption aria-hidden="true">DB Notebook - Switch to
+                TS mode</figcaption>
+                </figure>
+                <p>First, you can check the status of the MySQL REST
+                Service by executing the <code>mrs.getStatus();</code>
+                command. Since the automatically generated Client SDK is
+                fully type safe, auto completion support will be
+                provided all the way.</p>
+                <div class="sourceCode" id="cb8"><pre
+                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> mrs<span class="op">.</span><span class="fu">getStatus</span>()<span class="op">;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;configured&quot;</span><span class="op">:</span> <span class="kw">true</span><span class="op">,</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;info&quot;</span><span class="op">:</span> <span class="st">&quot;1 REST service available.&quot;</span><span class="op">,</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;services&quot;</span><span class="op">:</span> [</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        {</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;serviceName&quot;</span><span class="op">:</span> <span class="st">&quot;myService&quot;</span><span class="op">,</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;url&quot;</span><span class="op">:</span> <span class="st">&quot;https://localhost:8443/myService&quot;</span><span class="op">,</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;isCurrent&quot;</span><span class="op">:</span> <span class="kw">true</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <p>Next we can do a <code>findFirst()</code> operation
+                on the <code>/myService/sakila/city</code> endpoint to
+                fetch the first city in the list. Again, the auto
+                completion feature should guide the way.</p>
+                <div class="sourceCode" id="cb9"><pre
+                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">findFirst</span>()<span class="op">;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;city&quot;</span><span class="op">:</span> <span class="st">&quot;A Coruña (La Coruña)&quot;</span><span class="op">,</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;cityId&quot;</span><span class="op">:</span> <span class="dv">1</span><span class="op">,</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;countryId&quot;</span><span class="op">:</span> <span class="dv">87</span><span class="op">,</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;lastUpdate&quot;</span><span class="op">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+                <p>Searching for a specific city can be done by using
+                the <code>find()</code> method and using a where
+                clause.</p>
+                <div class="sourceCode" id="cb10"><pre
+                class="sourceCode ts"><code class="sourceCode typescript"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>ts<span class="op">&gt;</span> myService<span class="op">.</span><span class="at">sakila</span><span class="op">.</span><span class="at">city</span><span class="op">.</span><span class="fu">find</span>({where<span class="op">:</span> {city<span class="op">:</span> { <span class="st">&#39;$like&#39;</span><span class="op">:</span> <span class="st">&#39;Van%&#39;</span>}}})</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>[</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;city&quot;</span><span class="op">:</span> <span class="st">&quot;Vancouver&quot;</span><span class="op">,</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;cityId&quot;</span><span class="op">:</span> <span class="dv">565</span><span class="op">,</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;countryId&quot;</span><span class="op">:</span> <span class="dv">20</span><span class="op">,</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;lastUpdate&quot;</span><span class="op">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>]</span></code></pre></div>
+                <p>Many more methods are available when using the Client
+                SDK. Please see the <a
+                href="sdk.html#sdk-cheat-sheet">SDK Reference</a> for
+                more details.</p>
+                <h2 data-number="4.3" id="access-via-curl"><span
+                class="header-section-number">4.3</span> Access via
+                CURL</h2>
+                <p>Instead of using a web browser, the REST endpoint can
+                be accessed using any other HTTP client as well.</p>
+                <p>Using <code>curl</code> is a popular way to fetch
+                data via HTTP from the command line. It is installed by
+                default on MacOS machines and can easily be installed on
+                Linux and Windows.</p>
+                <p>To access the city REST endpoint, the following can
+                be executed on a terminal. The JSON data will be
+                formatted using the jq tool.</p>
+                <div class="sourceCode" id="cb11"><pre
+                class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="st">&quot;https://localhost:8443/myService/sakila/city&quot;</span> <span class="kw">|</span> <span class="ex">jq</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;items&quot;</span><span class="ex">:</span> [</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">{</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;city&quot;</span><span class="ex">:</span> <span class="st">&quot;A Coruña (La Coruña)&quot;</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;links&quot;</span><span class="ex">:</span> [</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>        <span class="kw">{</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;rel&quot;</span><span class="ex">:</span> <span class="st">&quot;self&quot;</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;href&quot;</span><span class="ex">:</span> <span class="st">&quot;/myService/sakila/city/1&quot;</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>        <span class="kw">}</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>      <span class="ex">],</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cityId&quot;</span><span class="ex">:</span> 1,</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;countryId&quot;</span><span class="ex">:</span> 87,</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;lastUpdate&quot;</span><span class="ex">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span>,</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;_metadata&quot;</span><span class="ex">:</span> {</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;etag&quot;</span><span class="ex">:</span> <span class="st">&quot;09785343A8A790724C995E20AE6844EA2A78E9CFD57BE64063B2FC56E12D8FFC&quot;</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>      <span class="kw">}</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    <span class="ex">},</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">{</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;city&quot;</span><span class="ex">:</span> <span class="st">&quot;Abha&quot;</span>,</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;links&quot;</span><span class="ex">:</span> [</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>        <span class="kw">{</span></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;rel&quot;</span><span class="ex">:</span> <span class="st">&quot;self&quot;</span>,</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;href&quot;</span><span class="ex">:</span> <span class="st">&quot;/myService/sakila/city/2&quot;</span></span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>        <span class="kw">}</span></span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>      <span class="ex">],</span></span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cityId&quot;</span><span class="ex">:</span> 2,</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;countryId&quot;</span><span class="ex">:</span> 82,</span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;lastUpdate&quot;</span><span class="ex">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span>,</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;_metadata&quot;</span><span class="ex">:</span> {</span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;etag&quot;</span><span class="ex">:</span> <span class="st">&quot;B069A2EEC4663506F97019A369BD77AB086A9BA5FB1DD224C36B67CF687A6B14&quot;</span></span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>      <span class="kw">}</span></span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>    <span class="ex">},</span></span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>    <span class="ex">...</span></span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>  <span class="ex">],</span></span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;limit&quot;</span><span class="ex">:</span> 25,</span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;offset&quot;</span><span class="ex">:</span> 0,</span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;hasMore&quot;</span><span class="ex">:</span> true,</span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;count&quot;</span><span class="ex">:</span> 25,</span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;links&quot;</span><span class="ex">:</span> [</span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>    <span class="kw">{</span></span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;rel&quot;</span><span class="ex">:</span> <span class="st">&quot;self&quot;</span>,</span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;href&quot;</span><span class="ex">:</span> <span class="st">&quot;/myService/sakila/city/&quot;</span></span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>    <span class="ex">},</span></span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>    <span class="kw">{</span></span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;rel&quot;</span><span class="ex">:</span> <span class="st">&quot;next&quot;</span>,</span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;href&quot;</span><span class="ex">:</span> <span class="st">&quot;/myService/sakila/city/?offset=25&quot;</span></span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>    <span class="kw">}</span></span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a>  <span class="ex">]</span></span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span></code></pre></div>
+                <p>To perform a find operation we can specify the
+                additional <code>q</code> parameter. To learn more about
+                the core REST API syntax please browse the corresponding
+                <a href="restApi.html#mrs-core-rest-apis">Core REST
+                APIs</a> manual.</p>
+                <div class="sourceCode" id="cb12"><pre
+                class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="va">url</span><span class="op">=</span>https://localhost:8443/myService/sakila/city</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-s</span> <span class="st">&quot;</span><span class="va">$url</span><span class="st">?q=</span><span class="va">$(</span><span class="bu">echo</span> <span class="st">&#39;{&quot;city&quot;:{&quot;$like&quot;:&quot;Van%&quot;}}&#39;</span><span class="kw">|</span><span class="ex">jq</span> <span class="at">-sRr</span> @uri<span class="va">)</span><span class="st">&quot;</span> <span class="kw">|</span> <span class="ex">jq</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="kw">{</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;items&quot;</span><span class="ex">:</span> [</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">{</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;city&quot;</span><span class="ex">:</span> <span class="st">&quot;Vancouver&quot;</span>,</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;links&quot;</span><span class="ex">:</span> [</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>        <span class="kw">{</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;rel&quot;</span><span class="ex">:</span> <span class="st">&quot;self&quot;</span>,</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>          <span class="st">&quot;href&quot;</span><span class="ex">:</span> <span class="st">&quot;/myService/sakila/city/565&quot;</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>        <span class="kw">}</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>      <span class="ex">],</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;cityId&quot;</span><span class="ex">:</span> 565,</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;countryId&quot;</span><span class="ex">:</span> 20,</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;lastUpdate&quot;</span><span class="ex">:</span> <span class="st">&quot;2006-02-15 04:45:25.000000&quot;</span>,</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;_metadata&quot;</span><span class="ex">:</span> {</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;etag&quot;</span><span class="ex">:</span> <span class="st">&quot;E5162E0999E4A016B8AEA25FE6E5C79C6F171B3A207B4143C20B1D3380C6BABA&quot;</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>      <span class="kw">}</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">}</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>  <span class="ex">],</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;limit&quot;</span><span class="ex">:</span> 25,</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;offset&quot;</span><span class="ex">:</span> 0,</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;hasMore&quot;</span><span class="ex">:</span> false,</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;count&quot;</span><span class="ex">:</span> 1,</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;links&quot;</span><span class="ex">:</span> [</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>    <span class="kw">{</span></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;rel&quot;</span><span class="ex">:</span> <span class="st">&quot;self&quot;</span>,</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>      <span class="st">&quot;href&quot;</span><span class="ex">:</span> <span class="st">&quot;/myService/sakila/city/&quot;</span></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>    <span class="kw">}</span></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>  <span class="ex">]</span></span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a><span class="er">}</span></span></code></pre></div>
+                <h2 data-number="4.4" id="deploying-a-web-app"><span
+                class="header-section-number">4.4</span> Deploying a Web
+                App</h2>
+                <p>The MySQL REST Service not only serves dynamic
+                database schema data, but also static files. This
+                feature can be used to upload a Progressive Web App
+                (PWA) and have the MySQL Routers serve the PWA. In that
+                case, no additional web server setup is needed.</p>
+                <p>One popular PWA is the OpenAPI Web UI (also called <a
+                href="https://github.com/swagger-api/swagger-ui">SwaggerUI</a>).
+                It provides a user friendly interface to work with REST
+                endpoints based on their OpenAPI definition.</p>
+                <p>To deploy a OpenAPI Web UI instance for the REST
+                service created above, right click on the REST service
+                item DATABASE CONNECTIONS view and select the
+                <code>Deploy OpenAPI Web UI</code> popup menu item.</p>
+                <blockquote>
+                <p>Please note that this operation requires an internet
+                connection that can reach <code>github.com</code>.</p>
+                </blockquote>
+                <p>This will show the <code>MRS Content Set</code>
+                dialog. Leave all settings unchanged and click the
+                <code>OK</code> button.</p>
+                <p>The OpenAPI Web UI will now be downloaded from
+                <code>github.com</code>, patched with a dark mode and
+                enabling authentication with MRS. After this operation
+                is completed, a notification will be show stating
+                <code>The MRS static content set has been added successfully. 10 files have been uploaded</code>.</p>
+                <p>Now, navigate to the REST service item DATABASE
+                CONNECTIONS view and right-click on the
+                <code>/OpenApiUi</code> REST content set item. Select
+                the
+                <code>Open Content Set Request Path in Web Browser</code>
+                popup menu item.</p>
+                <p>This will open the URL
+                <code>https://localhost:8443/myService/openApiUi/</code>
+                in a web browser and render the OpenAPI Web UI for the
+                <code>/myService</code>, giving access to the different
+                HTTP methods for the <code>/myService/sakila/city</code>
+                endpoint.</p>
                 <!-- Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
                 This program is free software; you can redistribute it and/or modify
@@ -372,11 +1156,43 @@ Service - Quickstart Guide
                 You should have received a copy of the GNU General Public License
                 along with this program; if not, write to the Free Software Foundation, Inc.,
                 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA -->
-                <h1 data-number="5"
-                id="accessing-the-rest-endpoints"><span
-                class="header-section-number">5</span> Accessing the
-                REST endpoints</h1>
-                <p>Tbd.</p>
+                <h1 data-number="5" id="quickstart-appendix"><span
+                class="header-section-number">5</span> Quickstart
+                Appendix</h1>
+                <h2 data-number="5.1"
+                id="enabling-ms-marketplace-on-vscodium"><span
+                class="header-section-number">5.1</span> Enabling MS
+                Marketplace on VSCodium</h2>
+                <p>In order to use extensions from the MS Marketplace on
+                <a href="https://vscodium.com/">VSCodium</a>, a
+                configuration file has to be created.</p>
+                <ol type="1">
+                <li><p>Open an editor of your choice and paste the
+                following content.</p>
+                <div class="sourceCode" id="cb13"><pre
+                class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;nameShort&quot;</span><span class="fu">:</span> <span class="st">&quot;Visual Studio Code&quot;</span><span class="fu">,</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;nameLong&quot;</span><span class="fu">:</span> <span class="st">&quot;Visual Studio Code&quot;</span><span class="fu">,</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;extensionsGallery&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;serviceUrl&quot;</span><span class="fu">:</span> <span class="st">&quot;https://marketplace.visualstudio.com/_apis/public/gallery&quot;</span><span class="fu">,</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;cacheUrl&quot;</span><span class="fu">:</span> <span class="st">&quot;https://vscode.blob.core.windows.net/gallery/index&quot;</span><span class="fu">,</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;itemUrl&quot;</span><span class="fu">:</span> <span class="st">&quot;https://marketplace.visualstudio.com/items&quot;</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div></li>
+                <li><p>Save the file at the following location.</p>
+                <ul>
+                <li>MacOS:
+                <code>$HOME/Library/Application Support/VSCodium/product.json</code></li>
+                <li>Windows:
+                <code>$HOME\AppData\Roaming\VSCodium\product.json</code></li>
+                </ul></li>
+                <li><p>Restart VSCodium.</p></li>
+                </ol>
+                <blockquote>
+                <p>To revert to using VSCodium’s default marketplace,
+                simply delete the project.json file and restart
+                VSCodium.</p>
+                </blockquote>
                 <p>Copyright (c) 2025, Oracle and/or its affiliates.</p>
             </div>
         </div>
