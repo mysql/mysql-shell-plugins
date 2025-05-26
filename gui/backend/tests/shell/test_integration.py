@@ -166,7 +166,7 @@ FUNCTIONS
       add_db_connection(profile_id, connection[, folder_path_id][, be_session])
             Add a new db_connection and associate the connection with a profile
 
-      add_folder_path(profile_id, caption[, parent_folder_id][, be_session])
+      add_folder_path(profile_id, caption[, settings][, parent_folder_id][, be_session])
             Add a new folder path
 
       delete_credential(url)
@@ -177,6 +177,9 @@ FUNCTIONS
 
       get_db_types()
             Get the list of db_types
+
+      get_folder(folder_path_id[, be_session])
+            Get folder
 
       help([member])
             Provides help about this object and it's members
@@ -220,7 +223,10 @@ FUNCTIONS
             Opens test connection
 
       update_db_connection(profile_id, connection_id[, connection][, folder_path_id][, be_session])
-            Update the data for a database connection'''
+            Update the data for a database connection
+
+      update_folder_settings(folder_path_id, new_settings[, be_session])
+            Rename a folder path'''
 
 
     assert help_text == mysqlsh.globals.gui.db_connections.help() # pylint: disable=no-member

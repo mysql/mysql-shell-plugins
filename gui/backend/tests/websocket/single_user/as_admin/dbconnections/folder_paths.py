@@ -100,7 +100,8 @@ await ws.sendAndValidate({
                 "id": ws.tokens['develop_folder_path_id'],
                 "parent_folder_id": 1,
                 "caption": "develop",
-                "index": ws.ignore
+                "index": ws.ignore,
+                "settings": {}
             }
         ],
     'request_id': ws.lastGeneratedRequestId,
@@ -197,13 +198,15 @@ await ws.sendAndValidate({
                 "id": ws.tokens['develop_folder_path_id'],
                 "parent_folder_id": 1,
                 "caption": "develop",
-                "index": ws.ignore
+                "index": ws.ignore,
+                "settings": {}
             },
             {
                 "id": ws.tokens['test_folder_path_id'],
                 "parent_folder_id": 1,
                 "caption": "test",
-                "index": ws.ignore
+                "index": ws.ignore,
+                "settings": {}
             }
         ],
     'request_id': ws.lastGeneratedRequestId,
@@ -237,7 +240,8 @@ await ws.sendAndValidate({
                 "id": ws.tokens['sub_develop_folder_path_id'],
                 "parent_folder_id": ws.tokens['develop_folder_path_id'],
                 "caption": "sub_develop",
-                "index": ws.ignore
+                "index": ws.ignore,
+                "settings": {}
             }
         ],
     'request_id': ws.lastGeneratedRequestId,
@@ -367,19 +371,22 @@ await ws.sendAndValidate({
                 "id": ws.tokens['subfolder1_id'],
                 "parent_folder_id": ws.tokens['test_folder_path_id'],
                 "caption": "subfolder1",
-                "index": ws.ignore
+                "index": ws.ignore,
+                "settings": {}
             },
             {
                 "id": ws.tokens['subfolder2_id'],
                 "parent_folder_id": ws.tokens['test_folder_path_id'],
                 "caption": "subfolder2",
-                "index": ws.ignore
+                "index": ws.ignore,
+                "settings": {}
             },
             {
                 "id": ws.tokens['subfolder3_id'],
                 "parent_folder_id": ws.tokens['test_folder_path_id'],
                 "caption": "subfolder3",
-                "index": ws.ignore
+                "index": ws.ignore,
+                "settings": {}
             }
         ],
     'request_id': ws.lastGeneratedRequestId,
@@ -458,8 +465,20 @@ await ws.sendAndValidate({
         'msg': ''
     },
     'result': [
-        {"id": ws.tokens['develop_folder_path_id'], "parent_folder_id": 1, "caption": "development", "index": ws.ignore},
-        {"id": ws.tokens['test_folder_path_id'], "parent_folder_id": 1, "caption": "test", "index": ws.ignore}
+        {
+            "id": ws.tokens['develop_folder_path_id'],
+            "parent_folder_id": 1,
+            "caption": "development",
+            "index": ws.ignore,
+            "settings": {}
+        },
+        {
+            "id": ws.tokens['test_folder_path_id'],
+            "parent_folder_id": 1,
+            "caption": "test",
+            "index": ws.ignore,
+            "settings": {}
+        }
     ],
     'request_id': ws.lastGeneratedRequestId,
     },
@@ -485,9 +504,27 @@ await ws.sendAndValidate({
         'msg': ''
     },
     'result': [
-        {"id": ws.tokens['subfolder1_id'], "parent_folder_id": ws.tokens['test_folder_path_id'], "caption": "subfolder_one", "index": ws.ignore},
-        {"id": ws.tokens['subfolder2_id'], "parent_folder_id": ws.tokens['test_folder_path_id'], "caption": "subfolder_two", "index": ws.ignore},
-        {"id": ws.tokens['subfolder3_id'], "parent_folder_id": ws.tokens['test_folder_path_id'], "caption": "subfolder3", "index": ws.ignore}
+        {
+            "id": ws.tokens['subfolder1_id'],
+            "parent_folder_id": ws.tokens['test_folder_path_id'],
+            "caption": "subfolder_one",
+            "index": ws.ignore,
+            "settings": {}
+        },
+        {
+            "id": ws.tokens['subfolder2_id'],
+            "parent_folder_id": ws.tokens['test_folder_path_id'],
+            "caption": "subfolder_two",
+            "index": ws.ignore,
+            "settings": {}
+        },
+        {
+            "id": ws.tokens['subfolder3_id'],
+            "parent_folder_id": ws.tokens['test_folder_path_id'],
+            "caption": "subfolder3",
+            "index": ws.ignore,
+            "settings": {}
+        }
     ],
     'request_id': ws.lastGeneratedRequestId,
     },
@@ -698,7 +735,8 @@ await ws.sendAndValidate({
                 "id": ws.tokens['sub_recursive1_id'],
                 "parent_folder_id": ws.tokens['recursive_folder_id'],
                 "caption": "sub_recursive1",
-                "index": ws.ignore
+                "index": ws.ignore,
+                "settings": {}
             }
         ],
     'request_id': ws.lastGeneratedRequestId,
@@ -733,13 +771,15 @@ await ws.sendAndValidate({
                 "id": ws.tokens['sub_recursive1_id'],
                 "parent_folder_id": ws.tokens['recursive_folder_id'],
                 "caption": "sub_recursive1",
-                "index": ws.ignore
+                "index": ws.ignore,
+                "settings": {}
             },
             {
                 "id": ws.tokens['subsub_recursive1_id'],
                 "parent_folder_id": ws.tokens['sub_recursive1_id'],
                 "caption": "subsub_recursive1",
-                "index": ws.ignore
+                "index": ws.ignore,
+                "settings": {}
             }
         ],
     'request_id': ws.lastGeneratedRequestId,
@@ -815,7 +855,7 @@ await ws.sendAndValidate({
                 "description": null,
                 "db_type": null,
                 "options": null,
-                "settings": null,
+                "settings": {},
                 "index": ws.ignore,
                 "type": "folder"
             },

@@ -562,6 +562,7 @@ CREATE TABLE IF NOT EXISTS `folder_path` (
   `parent_folder_id` INTEGER NULL,
   `caption` VARCHAR(256) NOT NULL,
   `index` INTEGER NULL,
+  `settings` TEXT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_folder_path_folder_path1`
     FOREIGN KEY (`parent_folder_id`)
@@ -631,7 +632,7 @@ CREATE TABLE IF NOT EXISTS `logs`.`message` (
 -- View `schema_version`
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `schema_version` ;
-CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 22;
+CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 23;
 
 -- -----------------------------------------------------
 -- Data for table `data_category`
