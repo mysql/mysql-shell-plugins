@@ -123,4 +123,5 @@ export interface IFolderPath {
 
     /** Certain APIs set this member, when folders and connections are mixed. */
     type?: "folder";
+    settings?: IDictionary;
 }

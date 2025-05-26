@@ -562,6 +562,7 @@ CREATE TABLE IF NOT EXISTS `folder_path` (
   `parent_folder_id` INT NULL,
   `caption` VARCHAR(256) NOT NULL,
   `index` INT NULL,
+  `settings` TEXT NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_folder_path_folder_path1_idx` (`parent_folder_id` ASC) VISIBLE,
   INDEX `index_idx` (`index` ASC) VISIBLE,
@@ -577,7 +578,7 @@ ENGINE = InnoDB
 -- View `schema_version`
 -- -----------------------------------------------------
 DROP VIEW IF EXISTS `schema_version` ;
-CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 22;
+CREATE VIEW schema_version (major, minor, patch) AS SELECT 0, 0, 23;
 
 -- -----------------------------------------------------
 -- Data for table `data_category`
