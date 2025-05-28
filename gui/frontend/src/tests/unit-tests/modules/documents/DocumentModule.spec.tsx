@@ -109,6 +109,8 @@ describe("Document module tests", (): void => {
         caption: "DocumentModule Test Connection 1",
         description: "DocumentModule Test MyQSL Connection",
         options,
+        folderPath: "/",
+        index: -1,
     };
 
     beforeAll(async () => {
@@ -196,10 +198,10 @@ describe("Document module tests", (): void => {
 
     });
 
-    it("Test DocumentModule adding connection tab", () => {
+    it("Test DocumentModule adding connection tab", async () => {
         const component = mount<DocumentModule>(<DocumentModule />);
         const entry = dataModel.createConnectionEntry(testMySQLConnection);
-        component.instance().handlePushConnection(entry);
+        await component.instance().handlePushConnection(entry);
 
         const docSelector = document.getElementById("documentSelector");
         expect(docSelector).toBeDefined();
@@ -336,6 +338,8 @@ describe("Document module tests", (): void => {
             caption: "DocumentModule Test Connection 2",
             description: "DocumentModule Test Sqlite Connection",
             options: sqliteOptions,
+            folderPath: "/",
+            index: -1,
         };
 
         await requisitions.execute("openConnectionTab", {
@@ -475,6 +479,8 @@ EXAMPLES
             caption: "DocumentModule Test Connection 99",
             description: "DocumentModule Test MyQSL Connection",
             options,
+            folderPath: "/",
+            index: -1,
         };
         const entry = dataModel.createConnectionEntry(testAddMySQLConnection);
 
@@ -501,6 +507,8 @@ EXAMPLES
             caption: "DocumentModule Test Connection 99",
             description: "DocumentModule Test MyQSL Connection",
             options,
+            folderPath: "/",
+            index: -1,
         };
         const entry = dataModel.createConnectionEntry(testAddMySQLConnection);
 

@@ -5,9 +5,26 @@ exports[`Document module tests Test DocumentModule instantiation 1`] = `
   value={
     {
       "connectionsDataModel": ConnectionDataModel {
-        "connections": [],
         "notifySubscribers": [Function],
         "refreshMrsRoutersTimer": undefined,
+        "rootGroup": {
+          "caption": "",
+          "entries": [],
+          "folderPath": {
+            "caption": "/",
+            "id": 1,
+            "index": 0,
+          },
+          "id": "",
+          "refresh": [Function],
+          "state": {
+            "expanded": false,
+            "expandedOnce": false,
+            "initialized": true,
+            "isLeaf": false,
+          },
+          "type": 0,
+        },
         "routerRefreshTime": 10000,
         "singleServerMode": false,
         "subscribers": Set {},

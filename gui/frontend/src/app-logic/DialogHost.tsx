@@ -268,7 +268,7 @@ export class DialogHost extends ComponentBase {
                 input: {
                     type: "text",
                     caption: request.values?.prompt as string,
-                    value: "",
+                    value: request.values?.value as string ?? "",
                     horizontalSpan: 8,
                     options: [CommonDialogValueOption.AutoFocus],
                 },
@@ -401,7 +401,7 @@ export class DialogHost extends ComponentBase {
     };
 
     private handlePromptDialogClose = (closure: DialogResponseClosure, values: IDialogValues,
-        data?: IDictionary): void => {
+        data?: IDictionary): Promise<void> => {
 
         const type = data?.type as DialogType ?? DialogType.Prompt;
         const element = this.#focusedElements.pop();
@@ -442,6 +442,8 @@ export class DialogHost extends ComponentBase {
         if (element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement) {
             element.focus();
         }
+
+        return Promise.resolve();
     };
 
     private handleDialogClose = (type: MdsDialogType, closure: DialogResponseClosure, data?: IDictionary): void => {

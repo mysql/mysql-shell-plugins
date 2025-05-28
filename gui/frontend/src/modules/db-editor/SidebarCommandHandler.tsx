@@ -30,10 +30,10 @@ import { ui } from "../../app-logic/UILayer.js";
 import { DialogResponseClosure, DialogType, type IDialogRequest } from "../../app-logic/general-types.js";
 import type { IMrsDbObjectData } from "../../communication/ProtocolMrs.js";
 import {
-    CdmEntityType, cdmDbEntityTypes, type ConnectionDataModel, type ConnectionDataModelEntry, type ICdmConnectionEntry,
-    type ICdmRestAuthAppEntry, type ICdmRestDbObjectEntry, type ICdmRestSchemaEntry, type ICdmRestServiceAuthAppEntry,
-    type ICdmRestServiceEntry, type ICdmRestUserEntry, type ICdmRoutineEntry, type ICdmSchemaEntry,
-    type ICdmTableEntry, type ICdmViewEntry,
+    CdmEntityType, cdmDbEntityTypes, type ConnectionDataModel, type ConnectionDataModelEntry,
+    type ICdmConnectionEntry, type ICdmConnectionGroupEntry, type ICdmRestAuthAppEntry,
+    type ICdmRestDbObjectEntry, type ICdmRestSchemaEntry, type ICdmRestServiceAuthAppEntry, type ICdmRestServiceEntry,
+    type ICdmRestUserEntry, type ICdmRoutineEntry, type ICdmSchemaEntry, type ICdmTableEntry, type ICdmViewEntry,
 } from "../../data-models/ConnectionDataModel.js";
 import type {
     IOciDmBastion, IOciDmCompartment, IOciDmDbSystem, IOciDmProfile, OciDataModelEntry,
@@ -43,10 +43,12 @@ import type { Command } from "../../data-models/data-model-types.js";
 import type { IEditorExtendedExecutionOptions } from "../../supplement/RequisitionTypes.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
+import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import type { ShellInterfaceSqlEditor } from "../../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
 import type { IShellSessionDetails } from "../../supplement/ShellInterface/index.js";
+import { webSession } from "../../supplement/WebSession.js";
 import { convertErrorToString, sleep, uuid } from "../../utilities/helpers.js";
-import { convertSnakeToCamelCase, quote } from "../../utilities/string-helpers.js";
+import { convertSnakeToCamelCase, formatWithNumber, quote } from "../../utilities/string-helpers.js";
 import type { MrsHub } from "../mrs/MrsHub.js";
 import { getRouterPortForConnection } from "../mrs/mrs-helpers.js";
 import { MrsDbObjectType } from "../mrs/types.js";
@@ -78,484 +80,762 @@ export class SidebarCommandHandler {
         qualifiedName?: QualifiedName, pageId?: string): Promise<ISideBarCommandResult> {
 
         let success = false;
-        const connection = entry?.connection;
-        if (connection) {
-            // Commands/actions that are related to a specific connection.
-            switch (command.command) {
-                case "msg.editConnection": {
-                    success = await requisitions.execute("job", [
-                        { requestType: "showPage", parameter: {} },
-                        { requestType: "editConnection", parameter: connection.details.id },
-                    ]);
 
-                    break;
-                }
+        try {
+            if (entry?.type !== CdmEntityType.ConnectionGroup) {
+                const connection = entry?.connection;
+                if (connection) {
+                    // Commands/actions that are related to a specific connection.
+                    switch (command.command) {
+                        case "msg.editConnection": {
+                            success = await requisitions.execute("job", [
+                                { requestType: "showPage", parameter: {} },
+                                { requestType: "editConnection", parameter: connection.details.id },
+                            ]);
 
-                case "msg.duplicateConnection": {
-                    success = await requisitions.execute("job", [
-                        { requestType: "showPage", parameter: {} },
-                        { requestType: "duplicateConnection", parameter: connection.details.id },
-                    ]);
-
-                    break;
-                }
-
-                case "msg.removeConnection": {
-                    success = await requisitions.execute("job", [
-                        { requestType: "showPage", parameter: {} },
-                        { requestType: "removeConnection", parameter: connection.details.id },
-                    ]);
-
-                    break;
-                }
-
-                case "msg.loadDumpFromDisk": {
-                    // TODO: Implement this for embedded scenarios.
-
-                    // It's not possible in a browser to get a full folder path for this functionality.
-
-                    break;
-                }
-
-                case "msg.newSessionUsingConnection": {
-                    let caption: string;
-                    if (entry.type === CdmEntityType.Connection) {
-                        caption = entry.details.caption;
-                        const dbConnectionId = entry.details.id;
-
-                        const details: IShellSessionDetails = {
-                            sessionId: uuid(),
-                            caption: `Session to ${caption}`,
-                            dbConnectionId,
-                        };
-
-                        success = await requisitions.execute("job",
-                            [{ requestType: "openSession", parameter: details }]);
-                    }
-
-                    break;
-                }
-
-                case "msg.mrs.loadSchemaFromJSONFile": {
-                    // TODO: works with the file system, not possible in a browser.
-
-                    break;
-                }
-
-                case "msg.mrs.exportServiceSdk": {
-                    // TODO: works with the file system, not possible in a browser.
-
-                    break;
-                }
-
-                case "msg.mrs.dumpCreateServiceSqlScript": {
-                    // TODO: works with the file system, not possible in a browser.
-
-                    break;
-                }
-
-                case "msg.mrs.copyCreateServiceSql": {
-                    const object = entry as ICdmRestDbObjectEntry;
-                    try {
-                        const result = await entry.connection.backend.mrs.getServiceCreateStatement(object.details.id,
-                            true,
-                        );
-                        requisitions.writeToClipboard(result);
-                        void ui.showInformationMessage("The CREATE statement was copied to the system clipboard", {});
-                        success = true;
-                    } catch (error) {
-                        const message = convertErrorToString(error);
-                        void ui.showErrorMessage(`Error getting the SQL for this REST Service: ${message}`, {});
-                    }
-
-                    break;
-                }
-
-                case "msg.mrs.configureMySQLRestService": {
-                    const treeItem = entry.type === CdmEntityType.Connection
-                        ? entry
-                        : entry.type === CdmEntityType.MrsRoot
-                            ? entry.parent
-                            : undefined;
-                    if (treeItem) {
-                        if (!treeItem.isOpen) {
-                            const statusBarItem = ui.createStatusBarItem();
-                            try {
-                                statusBarItem.text = "$(loading~spin) Opening Database Connection ...";
-                                await treeItem.refresh?.();
-                            } catch (error) {
-                                break;
-                            } finally {
-                                statusBarItem.dispose();
-                            }
+                            break;
                         }
 
-                        success = await this.mrsHubRef.current
-                            ?.showMrsConfigurationDialog(connection) ?? false;
-                    }
+                        case "msg.duplicateConnection": {
+                            success = await requisitions.execute("job", [
+                                { requestType: "showPage", parameter: {} },
+                                { requestType: "duplicateConnection", parameter: connection.details.id },
+                            ]);
 
-                    break;
-                }
+                            break;
+                        }
 
-                case "msg.mrs.enableMySQLRestService":
-                case "msg.mrs.disableMySQLRestService": {
-                    const enableMrs = command.command === "msg.mrs.enableMySQLRestService";
-                    success = await this.configureMrs(connection, enableMrs);
+                        case "msg.removeConnection": {
+                            success = await requisitions.execute("job", [
+                                { requestType: "showPage", parameter: {} },
+                                { requestType: "removeConnection", parameter: connection.details.id },
+                            ]);
 
-                    break;
-                }
+                            break;
+                        }
 
-                case "msg.mrs.addService": {
-                    const configured = await this.checkMrsStatus(connection.backend, false);
-                    if (configured) {
-                        success = await this.mrsHubRef.current?.showMrsServiceDialog(connection.backend) ?? false;
-                    }
+                        case "msg.loadDumpFromDisk": {
+                            // TODO: Implement this for embedded scenarios.
 
-                    break;
-                }
+                            // It's not possible in a browser to get a full folder path for this functionality.
 
-                case "msg.mrs.editService": {
-                    const service = entry as ICdmRestServiceEntry;
-                    success = await this.mrsHubRef.current
-                        ?.showMrsServiceDialog(connection.backend, service.details) ?? false;
+                            break;
+                        }
 
-                    break;
-                }
+                        case "msg.newSessionUsingConnection": {
+                            let caption: string;
+                            if (entry?.type === CdmEntityType.Connection) {
+                                caption = entry.details.caption;
+                                const dbConnectionId = entry.details.id;
 
-                case "msg.mrs.setCurrentService": {
-                    const service = entry as ICdmRestServiceEntry;
-                    try {
-                        await connection.backend?.mrs.setCurrentService(service.details.id);
+                                const details: IShellSessionDetails = {
+                                    sessionId: uuid(),
+                                    caption: `Session to ${caption}`,
+                                    dbConnectionId,
+                                };
 
-                        const connectionId = connection.details.id;
-                        success = await requisitions.execute("job", [
-                            {
-                                requestType: "showPage",
-                                parameter: { connectionId, pageId },
-                            },
-                            { requestType: "refreshMrsServiceSdk", parameter: {} },
-                        ]);
+                                success = await requisitions.execute("job",
+                                    [{ requestType: "openSession", parameter: details }]);
+                            }
 
-                        void ui.showInformationMessage("The MRS service has been set as the new default service.", {});
-                        success = true;
-                    } catch (reason) {
-                        const message = convertErrorToString(reason);
-                        void ui.showErrorMessage(`Error setting the default MRS service: ${message}`, {});
-                    }
+                            break;
+                        }
 
-                    break;
-                }
+                        case "msg.mrs.loadSchemaFromJSONFile": {
+                            // TODO: works with the file system, not possible in a browser.
 
-                case "msg.mrs.linkAuthApp": {
-                    try {
-                        const service = entry as ICdmRestServiceEntry;
-                        const apps = await connection.backend.mrs.listAuthApps();
+                            break;
+                        }
 
-                        const items = apps.map((app) => {
-                            return app.name;
-                        });
+                        case "msg.mrs.exportServiceSdk": {
+                            // TODO: works with the file system, not possible in a browser.
 
-                        const response = await DialogHost.showDialog({
-                            id: "msg.mrs.linkToService",
-                            type: DialogType.Select,
-                            title: "Select REST Authentication App",
-                            parameters: {
-                                prompt: "Select a REST Authentication app to link it to this service.",
-                                default: "Accept",
-                                options: items,
-                            },
-                        });
+                            break;
+                        }
 
-                        if (response.closure === DialogResponseClosure.Accept) {
-                            const name = response.values?.input as string;
-                            if (name) {
-                                const authApp = apps.find((candidate) => {
-                                    return candidate.name === name;
-                                });
+                        case "msg.mrs.dumpCreateServiceSqlScript": {
+                            // TODO: works with the file system, not possible in a browser.
 
-                                if (authApp !== undefined) {
+                            break;
+                        }
+
+                        case "msg.mrs.exportCreateServiceSql": {
+                            // TODO: works with the file system, not possible in a browser.
+                            break;
+                        }
+
+                        case "msg.mrs.copyCreateServiceSql": {
+                            const object = entry as ICdmRestDbObjectEntry;
+                            const result = await entry.connection.backend.mrs.getServiceCreateStatement(
+                                object.details.id, true);
+                            requisitions.writeToClipboard(result);
+                            void ui.showInformationMessage("The CREATE statement was copied to the system " +
+                                "clipboard", {});
+                            success = true;
+
+                            break;
+                        }
+
+                        case "msg.mrs.configureMySQLRestService": {
+                            const treeItem = entry.type === CdmEntityType.Connection
+                                ? entry
+                                : entry.type === CdmEntityType.MrsRoot
+                                    ? entry.parent
+                                    : undefined;
+                            if (treeItem) {
+                                if (!treeItem.isOpen) {
+                                    const statusBarItem = ui.createStatusBarItem();
                                     try {
+                                        statusBarItem.text = "$(loading~spin) Opening Database Connection ...";
+                                        await treeItem.refresh?.();
+                                    } catch (error) {
+                                        break;
+                                    } finally {
+                                        statusBarItem.dispose();
+                                    }
+                                }
+
+                                success = await this.mrsHubRef.current
+                                    ?.showMrsConfigurationDialog(connection) ?? false;
+                            }
+
+                            break;
+                        }
+
+                        case "msg.mrs.enableMySQLRestService":
+                        case "msg.mrs.disableMySQLRestService": {
+                            const enableMrs = command.command === "msg.mrs.enableMySQLRestService";
+                            success = await this.configureMrs(connection, enableMrs);
+
+                            break;
+                        }
+
+                        case "msg.mrs.addService": {
+                            const configured = await this.checkMrsStatus(connection.backend, false);
+                            if (configured) {
+                                success = await this.mrsHubRef.current?.showMrsServiceDialog(
+                                    connection.backend) ?? false;
+                            }
+
+                            break;
+                        }
+
+                        case "msg.mrs.editService": {
+                            const service = entry as ICdmRestServiceEntry;
+                            success = await this.mrsHubRef.current
+                                ?.showMrsServiceDialog(connection.backend, service.details) ?? false;
+
+                            break;
+                        }
+
+                        case "msg.mrs.setCurrentService": {
+                            const service = entry as ICdmRestServiceEntry;
+                            await connection.backend?.mrs.setCurrentService(service.details.id);
+                            void ui.showInformationMessage("The MRS service has been set as the new " +
+                                "default service.", {});
+                            success = true;
+
+                            break;
+                        }
+
+                        case "msg.mrs.linkAuthApp": {
+                            const service = entry as ICdmRestServiceEntry;
+                            const apps = await connection.backend.mrs.listAuthApps();
+
+                            const items = apps.map((app) => {
+                                return app.name;
+                            });
+
+                            const response = await DialogHost.showDialog({
+                                id: "msg.mrs.linkToService",
+                                type: DialogType.Select,
+                                title: "Select REST Authentication App",
+                                parameters: {
+                                    prompt: "Select a REST Authentication app to link it to this service.",
+                                    default: "Accept",
+                                    options: items,
+                                },
+                            });
+
+                            if (response.closure === DialogResponseClosure.Accept) {
+                                const name = response.values?.input as string;
+                                if (name) {
+                                    const authApp = apps.find((candidate) => {
+                                        return candidate.name === name;
+                                    });
+
+                                    if (authApp !== undefined) {
                                         await connection.backend.mrs.linkAuthAppToService(authApp.id!, service.id);
                                         void ui.showInformationMessage("The MRS Authentication App has " +
                                             `been linked to service ${service.details.name}`, {});
                                         success = true;
-                                    } catch (reason) {
-                                        const message = convertErrorToString(reason);
-                                        void ui.showErrorMessage("Error linking an MRS Authentication App: " +
-                                            `${message}`, {});
                                     }
                                 }
                             }
-                        }
-                    } catch (reason) {
-                        const message = convertErrorToString(reason);
-                        void ui.showErrorMessage(`Error adding a new MRS Authentication App: ${message}`, {});
-                    }
 
-                    break;
-                }
 
-                case "msg.mrs.addAuthApp": {
-                    try {
-                        let serviceDetails;
-                        if (entry.type === CdmEntityType.MrsService) {
-                            serviceDetails = entry.details;
+                            break;
                         }
 
-                        success = await this.mrsHubRef.current?.showMrsAuthAppDialog(connection.backend, undefined,
-                            serviceDetails) ?? false;
-                    } catch (reason) {
-                        const message = convertErrorToString(reason);
-                        void ui.showErrorMessage(`Error adding a new MRS Authentication App: ${message}`, {});
-                    }
-
-                    break;
-                }
-
-                case "msg.mrs.editAuthApp": {
-                    try {
-                        const app = entry as ICdmRestAuthAppEntry;
-
-                        success = await this.mrsHubRef.current?.showMrsAuthAppDialog(
-                            connection.backend, app.details) ?? false;
-                    } catch (reason) {
-                        const message = convertErrorToString(reason);
-                        void ui.showErrorMessage(`Error adding a new MRS Authentication App: ${message}`, {});
-                    }
-
-                    break;
-                }
-
-                case "msg.mrs.deleteAuthApp": {
-                    const app = entry as ICdmRestAuthAppEntry;
-                    if (app.details.id) {
-                        const prompt = `Are you sure the MRS authentication app "${app.details.name}" should ` +
-                            "be deleted?";
-                        const response = await DialogHost.showDialog({
-                            id: "msg.mrs.deleteAuthApp",
-                            type: DialogType.Confirm,
-                            parameters: {
-                                title: "Confirmation",
-                                prompt,
-                                accept: "Delete",
-                                refuse: "No",
-                                default: "No",
-                            },
-                        });
-
-                        if (response.closure === DialogResponseClosure.Accept) {
-                            try {
-                                await connection.backend?.mrs.deleteAuthApp(app.details.id);
-
-                                success = true;
-                                void ui.showInformationMessage(`The MRS Authentication App ` +
-                                    `"${app.details.name}" has been deleted.`, {});
-                            } catch (error) {
-                                const message = convertErrorToString(error);
-                                void ui.showErrorMessage(`Error removing an Auth App: ${message}`, {});
+                        case "msg.mrs.addAuthApp": {
+                            let serviceDetails;
+                            if (entry.type === CdmEntityType.MrsService) {
+                                serviceDetails = entry.details;
                             }
+
+                            success = await this.mrsHubRef.current?.showMrsAuthAppDialog(connection.backend, undefined,
+                                serviceDetails) ?? false;
+
+                            break;
                         }
-                    }
 
-                    break;
-                }
+                        case "msg.mrs.editAuthApp": {
+                            const app = entry as ICdmRestAuthAppEntry;
 
-                case "msg.mrs.linkToService": {
-                    const authApp = entry as ICdmRestAuthAppEntry;
-                    const services = await connection.backend.mrs.listServices();
-                    const items = services.map((s) => {
-                        return s.urlContextRoot;
-                    });
+                            success = await this.mrsHubRef.current?.showMrsAuthAppDialog(connection.backend,
+                                app.details) ?? false;
 
-                    const response = await DialogHost.showDialog({
-                        id: "msg.mrs.linkToService",
-                        type: DialogType.Select,
-                        title: "Select REST Service",
-                        parameters: {
-                            prompt: "Select a REST service to link this authentication app to.",
-                            default: "Accept",
-                            options: items,
-                        },
-                    });
+                            break;
+                        }
 
-                    if (response.closure === DialogResponseClosure.Accept) {
-                        const name = response.values?.input as string;
-                        if (name) {
-                            const service = services.find((candidate) => {
-                                return candidate.urlContextRoot === name;
-                            });
+                        case "msg.mrs.deleteAuthApp": {
+                            const app = entry as ICdmRestAuthAppEntry;
+                            if (app.details.id) {
+                                const prompt = `Are you sure the MRS authentication app "${app.details.name}" should ` +
+                                    "be deleted?";
+                                const response = await DialogHost.showDialog({
+                                    id: "msg.mrs.deleteAuthApp",
+                                    type: DialogType.Confirm,
+                                    parameters: {
+                                        title: "Confirmation",
+                                        prompt,
+                                        accept: "Delete",
+                                        refuse: "No",
+                                        default: "No",
+                                    },
+                                });
 
-                            if (service) {
-                                try {
-                                    await connection.backend.mrs.linkAuthAppToService(authApp.details.id!,
-                                        service.id);
-                                    void ui.showInformationMessage("The MRS Authentication App has been linked " +
-                                        `to service ${service.name}`, {});
+                                if (response.closure === DialogResponseClosure.Accept) {
+                                    await connection.backend?.mrs.deleteAuthApp(app.details.id);
+
                                     success = true;
-                                } catch (reason) {
-                                    const message = convertErrorToString(reason);
-                                    void ui.showErrorMessage("Error linking an MRS Authentication App: " +
-                                        `${message}`, {});
+                                    void ui.showInformationMessage(`The MRS Authentication App ` +
+                                        `"${app.details.name}" has been deleted.`, {});
                                 }
                             }
+
+                            break;
                         }
-                    }
 
-                    break;
-                }
+                        case "msg.mrs.linkToService": {
+                            const authApp = entry as ICdmRestAuthAppEntry;
+                            const services = await connection.backend.mrs.listServices();
+                            const items = services.map((s) => {
+                                return s.urlContextRoot;
+                            });
 
-                case "msg.mrs.unlinkAuthApp": {
-                    const app = entry as ICdmRestServiceAuthAppEntry;
-                    if (app.details.id) {
-                        const prompt = `Are you sure the MRS authentication app "${app.details.name}" should ` +
-                            `be unlinked from the service "${app.parent.caption}"?`;
-                        const response = await DialogHost.showDialog({
-                            id: "msg.mrs.unlinkAuthApp",
-                            type: DialogType.Confirm,
-                            parameters: {
-                                title: "Confirmation",
-                                prompt,
-                                accept: "Unlink",
-                                refuse: "No",
-                                default: "No",
-                            },
-                        });
+                            const response = await DialogHost.showDialog({
+                                id: "msg.mrs.linkToService",
+                                type: DialogType.Select,
+                                title: "Select REST Service",
+                                parameters: {
+                                    prompt: "Select a REST service to link this authentication app to.",
+                                    default: "Accept",
+                                    options: items,
+                                },
+                            });
 
-                        if (response.closure === DialogResponseClosure.Accept) {
-                            try {
-                                await connection.backend?.mrs.unlinkAuthAppFromService(app.details.id,
-                                    app.parent.details.id);
+                            if (response.closure === DialogResponseClosure.Accept) {
+                                const name = response.values?.input as string;
+                                if (name) {
+                                    const service = services.find((candidate) => {
+                                        return candidate.urlContextRoot === name;
+                                    });
 
-                                success = true;
-                                void ui.showInformationMessage(`The MRS Authentication App ` +
-                                    `"${app.details.name}" has been unlinked.`, {});
-                            } catch (error) {
-                                void ui.showErrorMessage(`Error removing an Auth App: ${String(error)}`, {});
+                                    if (service) {
+                                        await connection.backend.mrs.linkAuthAppToService(authApp.details.id!,
+                                            service.id);
+                                        void ui.showInformationMessage("The MRS Authentication App has been linked " +
+                                            `to service ${service.name}`, {});
+                                        success = true;
+                                    }
+                                }
                             }
+
+                            break;
                         }
-                    }
 
-                    break;
-                }
+                        case "msg.mrs.unlinkAuthApp": {
+                            const app = entry as ICdmRestServiceAuthAppEntry;
+                            if (app.details.id) {
+                                const prompt = `Are you sure the MRS authentication app "${app.details.name}" should ` +
+                                    `be unlinked from the service "${app.parent.caption}"?`;
+                                const response = await DialogHost.showDialog({
+                                    id: "msg.mrs.unlinkAuthApp",
+                                    type: DialogType.Confirm,
+                                    parameters: {
+                                        title: "Confirmation",
+                                        prompt,
+                                        accept: "Unlink",
+                                        refuse: "No",
+                                        default: "No",
+                                    },
+                                });
 
-                case "msg.mrs.deleteService": {
-                    const service = entry as ICdmRestServiceEntry;
-                    const response = await DialogHost.showDialog({
-                        id: "msg.mrs.deleteService",
-                        type: DialogType.Confirm,
-                        parameters: {
-                            title: "Confirmation",
-                            prompt: `Are you sure the MRS service ${service.details.urlContextRoot} should be deleted?`,
-                            accept: "Delete",
-                            refuse: "No",
-                            default: "No",
-                        },
-                    });
+                                if (response.closure === DialogResponseClosure.Accept) {
+                                    await connection.backend?.mrs.unlinkAuthAppFromService(app.details.id,
+                                        app.parent.details.id);
 
-                    if (response.closure === DialogResponseClosure.Accept) {
-                        try {
-                            await connection.backend?.mrs.deleteService(service.details.id);
-                            success = true;
-                            void ui.showInformationMessage("The MRS service has been deleted successfully.", {});
-                        } catch (error) {
-                            const message = convertErrorToString(error);
-                            void ui.showErrorMessage(`Error removing an MRS service: ${message}`, {});
+                                    success = true;
+                                    void ui.showInformationMessage(`The MRS Authentication App ` +
+                                        `"${app.details.name}" has been unlinked.`, {});
+                                }
+                            }
+
+                            break;
                         }
-                    }
 
-                    break;
-                }
+                        case "msg.mrs.deleteService": {
+                            const service = entry as ICdmRestServiceEntry;
+                            const response = await DialogHost.showDialog({
+                                id: "msg.mrs.deleteService",
+                                type: DialogType.Confirm,
+                                parameters: {
+                                    title: "Confirmation",
+                                    prompt: `Are you sure the MRS service ${service.details.urlContextRoot} should ` +
+                                        `be deleted?`,
+                                    accept: "Delete",
+                                    refuse: "No",
+                                    default: "No",
+                                },
+                            });
 
-                case "msg.mrs.editSchema": {
-                    const service = entry as ICdmRestSchemaEntry;
-                    const path = await this.mrsHubRef.current?.showMrsSchemaDialog(connection.backend,
-                        qualifiedName?.schema, service.details);
-                    if (path) {
-                        success = true;
-                    }
+                            if (response.closure === DialogResponseClosure.Accept) {
+                                await connection.backend?.mrs.deleteService(service.details.id);
+                                success = true;
+                                void ui.showInformationMessage("The MRS service has been deleted successfully.", {});
+                            }
 
-                    break;
-                }
+                            break;
+                        }
 
-                case "msg.mrs.deleteSchema": {
-                    const response = await DialogHost.showDialog({
-                        id: "msg.mrs.deleteSchema",
-                        type: DialogType.Confirm,
-                        parameters: {
-                            title: "Confirmation",
-                            prompt: `Are you sure the MRS schema ${entry.caption} should be deleted?`,
-                            accept: "Delete",
-                            refuse: "Cancel",
-                            default: "Cancel",
-                        },
-                    });
+                        case "msg.mrs.editSchema": {
+                            const service = entry as ICdmRestSchemaEntry;
+                            const path = await this.mrsHubRef.current?.showMrsSchemaDialog(connection.backend,
+                                qualifiedName?.schema, service.details);
+                            if (path) {
+                                success = true;
+                            }
 
-                    if (response.closure === DialogResponseClosure.Accept) {
-                        try {
+                            break;
+                        }
+
+                        case "msg.mrs.deleteSchema": {
+                            const response = await DialogHost.showDialog({
+                                id: "msg.mrs.deleteSchema",
+                                type: DialogType.Confirm,
+                                parameters: {
+                                    title: "Confirmation",
+                                    prompt: `Are you sure the MRS schema ${entry?.caption} should be deleted?`,
+                                    accept: "Delete",
+                                    refuse: "Cancel",
+                                    default: "Cancel",
+                                },
+                            });
+
+                            if (response.closure === DialogResponseClosure.Accept) {
+                                const schema = entry as ICdmRestSchemaEntry;
+                                await connection.backend.mrs.deleteSchema(schema.details.id, schema.details.serviceId);
+                                success = true;
+
+                                void ui.showInformationMessage("The MRS schema has been deleted successfully.", {});
+                            }
+
+                            break;
+                        }
+
+                        case "msg.mrs.addDbObject": {
+                            switch (entry?.type) {
+                                case CdmEntityType.Table:
+                                case CdmEntityType.View:
+                                case CdmEntityType.StoredFunction:
+                                case CdmEntityType.StoredProcedure: {
+                                    try {
+                                        const configured = await this.checkMrsStatus(connection.backend, true);
+                                        if (!configured) {
+                                            return { success: false };
+                                        }
+
+                                        // First, create a new temporary dbObject, then call the DbObject dialog.
+                                        const dbObject = await this.createNewDbObject(entry);
+                                        await this.mrsHubRef.current?.showMrsDbObjectDialog(connection.backend,
+                                            { dbObject, createObject: true });
+
+                                        return {
+                                            success: true,
+                                            mrsServiceId: dbObject.serviceId,
+                                            mrsSchemaId: dbObject.dbSchemaId,
+                                        };
+
+                                    } catch (error) {
+                                        const message = convertErrorToString(error);
+                                        void ui.showErrorMessage(`Error while adding the object: ${message}`, {});
+
+                                        return { success: false };
+                                    }
+
+                                }
+
+                                default: {
+                                    void ui.showErrorMessage(`The database object type '${entry.caption}' is not "+
+                                        "supported at this time`, {});
+                                }
+                            }
+
+                            break;
+                        }
+
+                        case "msg.mrs.editDbObject": {
+                            const dbObject = entry as ICdmRestDbObjectEntry;
+                            await this.mrsHubRef.current?.showMrsDbObjectDialog(connection.backend,
+                                { dbObject: dbObject.details, createObject: false });
+
+                            return {
+                                success: true,
+                                mrsServiceId: dbObject.details.serviceId,
+                                mrsSchemaId: dbObject.details.dbSchemaId,
+                            };
+                        }
+
+                        case "msg.mrs.copyDbObjectRequestPath": {
+                            const path = this.buildDbObjectRequestPath(entry as ICdmRestDbObjectEntry);
+                            if (path) {
+                                requisitions.writeToClipboard(path.toString());
+                                success = true;
+                                void ui.showInformationMessage("The DB Object Path was copied to the system clipboard",
+                                    {});
+                            }
+
+                            break;
+                        }
+
+                        case "msg.mrs.copyCreateSchemaSql": {
                             const schema = entry as ICdmRestSchemaEntry;
-                            await connection.backend.mrs.deleteSchema(schema.details.id, schema.details.serviceId);
+                            const result = await entry.connection.backend.mrs.getSchemaCreateStatement(
+                                schema.details.id, true);
+                            requisitions.writeToClipboard(result);
                             success = true;
-                            void ui.showInformationMessage("The MRS schema has been deleted successfully.", {});
-                        } catch (error) {
-                            const message = convertErrorToString(error);
-                            void ui.showErrorMessage(`Error removing an MRS schema: ${message}`, {});
+                            void ui.showInformationMessage("The CREATE statement was copied to the system clipboard",
+                                {});
+
+                            break;
                         }
-                    }
 
-                    break;
-                }
+                        case "msg.mrs.copyCreateDbObjectSql": {
+                            const object = entry as ICdmRestDbObjectEntry;
+                            const result = await connection.backend.mrs.getDbObjectCreateStatement(object.details.id);
+                            requisitions.writeToClipboard(result);
+                            success = true;
+                            void ui.showInformationMessage("The CREATE statement was copied to the system clipboard",
+                                {});
 
-                case "msg.mrs.addDbObject": {
-                    switch (entry.type) {
-                        case CdmEntityType.Table:
-                        case CdmEntityType.View:
-                        case CdmEntityType.StoredFunction:
-                        case CdmEntityType.StoredProcedure: {
-                            try {
+                            break;
+                        }
+
+                        case "msg.mrs.deleteDbObject": {
+                            const response = await DialogHost.showDialog({
+                                id: "msg.mrs.deleteDbObject",
+                                type: DialogType.Confirm,
+                                parameters: {
+                                    title: "Confirmation",
+                                    prompt: `Are you sure you want to delete the REST DB Object ${entry?.caption}?`,
+                                    accept: "Delete",
+                                    refuse: "Cancel",
+                                    default: "Cancel",
+                                },
+                            });
+
+                            if (response.closure === DialogResponseClosure.Accept) {
+                                const dbObject = entry as ICdmRestDbObjectEntry;
+                                await connection.backend.mrs.deleteDbObject(dbObject.details.id);
+                                success = true;
+                                void ui.showInformationMessage("The MRS DB object has been deleted successfully.", {});
+                            }
+
+                            break;
+                        }
+
+                        case "msg.mrs.addUser": {
+                            if (this.mrsHubRef.current) {
+                                const authApp = entry as ICdmRestAuthAppEntry;
+                                success = await this.mrsHubRef.current.showMrsUserDialog(authApp.connection.backend,
+                                    authApp.details);
+                            }
+
+                            break;
+                        }
+
+                        case "msg.mrs.editUser": {
+                            if (this.mrsHubRef.current) {
+                                const user = entry as ICdmRestUserEntry;
+                                const authApp = user.parent;
+                                success = await this.mrsHubRef.current.showMrsUserDialog(authApp.connection.backend,
+                                    authApp.details, user.details);
+                            }
+
+                            break;
+                        }
+
+                        case "msg.mrs.deleteUser": {
+                            const response = await DialogHost.showDialog({
+                                id: "msg.mrs.deleteUser",
+                                type: DialogType.Confirm,
+                                parameters: {
+                                    title: "Confirmation",
+                                    prompt: `Are you sure you want to delete the MRS user "${entry?.caption}"?`,
+                                    accept: "Delete",
+                                    refuse: "Cancel",
+                                    default: "Cancel",
+                                },
+                            });
+
+                            if (response.closure === DialogResponseClosure.Accept) {
+                                try {
+                                    const user = entry as ICdmRestUserEntry;
+                                    await connection.backend.mrs.deleteUser(user.details.id!);
+                                    success = true;
+                                    void ui.showInformationMessage(`The MRS user ${user.caption} has been deleted ` +
+                                        `successfully.`, {});
+                                } catch (error) {
+                                    const message = convertErrorToString(error);
+                                    void ui.showErrorMessage(`Error removing an MRS user: ${message}`, {});
+                                }
+                            }
+
+                            break;
+                        }
+
+                        case "msg.selectRows": {
+                            if (qualifiedName?.schema && qualifiedName.name) {
+                                let query;
+
+                                const uppercaseKeywords = Settings.get("dbEditor.upperCaseKeywords", true);
+                                const select = uppercaseKeywords ? "SELECT" : "select";
+                                const from = uppercaseKeywords ? "FROM" : "from";
+
+                                if (entry?.type === CdmEntityType.Column) {
+                                    const qualifiedTableName = `${quote(qualifiedName.schema)}.` +
+                                        `${quote(qualifiedName.table!)}`;
+                                    query = `${select} ${qualifiedTableName}.${quote(qualifiedName.name)} ${from} ` +
+                                        `${qualifiedTableName}`;
+                                } else {
+                                    const qualifiedTableName = `${quote(qualifiedName.schema)}.` +
+                                        `${quote(qualifiedName.name)}`;
+                                    query = `${select} * ${from} ${qualifiedTableName}`;
+                                }
+
+                                const options: IEditorExtendedExecutionOptions = {
+                                    code: query,
+                                    language: "mysql",
+                                };
+
+                                const connectionId = connection.details.id;
+                                success = await requisitions.execute("job", [
+                                    {
+                                        requestType: "showPage",
+                                        parameter: { connectionId, pageId },
+                                    },
+                                    { requestType: "editorRunCode", parameter: options },
+                                ]);
+                            }
+
+                            break;
+                        }
+
+                        case "filterMenuItem": {
+                            break;
+                        }
+
+                        case "inspectorMenuItem": {
+                            break;
+                        }
+
+                        case "msg.copyNameToEditor":
+                        case "msg.copyNameToClipboard": {
+                            if (command.command === "msg.copyNameToClipboard" && entry) {
+                                requisitions.writeToClipboard(entry.caption);
+
+                                void ui.showInformationMessage("The name was copied to the system clipboard", {});
+                                success = true;
+                            } else {
+                                const connectionId = connection.details.id;
+                                success = await requisitions.execute("job", [
+                                    {
+                                        requestType: "showPage",
+                                        parameter: { connectionId },
+                                    },
+                                    { requestType: "editorInsertText", parameter: entry?.caption },
+                                ]);
+                            }
+
+                            break;
+                        }
+
+                        case "msg.copyCreateStatementToClipboard":
+                        case "msg.copyCreateStatementToEditor": {
+                            let type;
+                            let qualifier = qualifiedName ? `\`${qualifiedName.schema}\`.` : "";
+                            let index = 1; // The column index in the result row.
+                            switch (entry?.type) {
+                                case CdmEntityType.Schema: {
+                                    type = "schema";
+                                    qualifier = "";
+                                    break;
+                                }
+
+                                case CdmEntityType.Table: {
+                                    type = "table";
+                                    break;
+                                }
+
+                                case CdmEntityType.View: {
+                                    type = "view";
+                                    break;
+                                }
+
+                                case CdmEntityType.StoredFunction: {
+                                    index = 2;
+                                    type = "function";
+                                    break;
+                                }
+
+                                case CdmEntityType.StoredProcedure: {
+                                    index = 2;
+                                    type = "procedure";
+                                    break;
+                                }
+
+                                case CdmEntityType.Trigger: {
+                                    type = "trigger";
+                                    break;
+                                }
+
+                                case CdmEntityType.Event: {
+                                    index = 3;
+                                    type = "event";
+                                    break;
+                                }
+
+                                default:
+                            }
+
+                            if (type) {
+                                const data = await connection?.backend.execute(
+                                    `show create ${type} ${qualifier}\`${entry?.caption}\``);
+                                const rows = data?.rows;
+                                if (rows && rows.length > 0) {
+                                    // Returns one row with 2 columns.
+                                    const row = rows[0] as string[];
+                                    if (row.length > index) {
+                                        if (command.command === "msg.copyCreateStatementToClipboard") {
+                                            requisitions.writeToClipboard(row[index]);
+
+                                            void ui.showInformationMessage("The CREATE statement was copied to the " +
+                                                "system clipboard", {});
+                                            success = true;
+                                        } else {
+                                            const connectionId = connection.details.id;
+                                            success = await requisitions.execute("job", [
+                                                {
+                                                    requestType: "showPage",
+                                                    parameter: { connectionId, pageId },
+                                                },
+                                                { requestType: "editorInsertText", parameter: row[index] },
+                                            ]);
+                                        }
+                                    }
+                                }
+                            }
+
+                            break;
+                        }
+
+                        case "msg.createSchema": {
+                            break;
+                        }
+
+                        case "msg.alterSchema": {
+                            break;
+                        }
+
+                        case "msg.mrs.addSchema": {
+                            if (this.mrsHubRef.current) {
                                 const configured = await this.checkMrsStatus(connection.backend, true);
                                 if (!configured) {
                                     return { success: false };
                                 }
 
-                                // First, create a new temporary dbObject, then call the DbObject dialog.
-                                const dbObject = await this.createNewDbObject(entry);
-                                await this.mrsHubRef.current?.showMrsDbObjectDialog(connection.backend,
-                                    { dbObject, createObject: true });
+                                const serviceId = await this.mrsHubRef.current.showMrsSchemaDialog(connection.backend,
+                                    entry?.caption);
 
                                 return {
                                     success: true,
-                                    mrsServiceId: dbObject.serviceId,
-                                    mrsSchemaId: dbObject.dbSchemaId,
+                                    mrsServiceId: serviceId,
                                 };
-
-                            } catch (error) {
-                                const message = convertErrorToString(error);
-                                void ui.showErrorMessage(`Error while adding the object: ${message}`, {});
-
-                                return { success: false };
                             }
 
+                            break;
                         }
 
-                        default: {
-                            void ui.showErrorMessage(
-                                `The database object type '${entry.caption}' is not supported at this time`, {});
+                        case "refreshMenuItem": {
+                            break;
                         }
+
+                        default:
                     }
+                }
+            }
+
+            // Other Commands/actions that are not related to a specific connection.
+            switch (command.command) {
+                case "msg.addConnection": {
+                    success = await requisitions.execute("job", [
+                        { requestType: "showPage", parameter: {} },
+                        { requestType: "addNewConnection", parameter: {} },
+                    ]);
+                    break;
+                }
+
+                case "msg.refreshConnections": {
+                    await this.connectionDataModel.reloadConnections();
+                    success = true;
 
                     break;
                 }
 
-                case "msg.mrs.editDbObject": {
-                    const dbObject = entry as ICdmRestDbObjectEntry;
-                    await this.mrsHubRef.current?.showMrsDbObjectDialog(connection.backend,
-                        { dbObject: dbObject.details, createObject: false });
+                case "msg.mrs.docs": {
+                    window.open("https://dev.mysql.com/doc/dev/mysql-rest-service/latest/", "_blank");
+                    success = true;
 
-                    return {
-                        success: true,
-                        mrsServiceId: dbObject.details.serviceId,
-                        mrsSchemaId: dbObject.details.dbSchemaId,
-                    };
+                    break;
+                }
+
+                case "msg.mrs.docs.service": {
+                    window.open("https://dev.mysql.com/doc/dev/mysql-rest-service/latest/#rest-service-properties",
+                        "_blank");
+                    success = true;
+
+                    break;
+                }
+
+                case "msg.fileBugReport": {
+                    // The version is injected by the vite config.
+                    const currentVersion = process.env.versionNumber ?? "1.0.0";
+
+                    void window.open("https://bugs.mysql.com/report.php?category=Shell%20VSCode%20Extension" +
+                        `&version=${currentVersion}`);
+
+                    break;
                 }
 
                 case "msg.mrs.copyDbObjectRequestPath": {
@@ -569,377 +849,114 @@ export class SidebarCommandHandler {
                     break;
                 }
 
-                case "msg.mrs.copyCreateSchemaSql": {
-                    try {
-                        const schema = entry as ICdmRestSchemaEntry;
-                        const result = await entry.connection.backend.mrs.getSchemaCreateStatement(schema.details.id,
-                            true);
-                        requisitions.writeToClipboard(result);
+                case "msg.mrs.openDbObjectRequestPath": {
+                    const path = this.buildDbObjectRequestPath(entry as ICdmRestDbObjectEntry);
+                    if (path) {
+                        window.open(path);
                         success = true;
-                        void ui.showInformationMessage("The CREATE statement was copied to the system clipboard", {});
-                    } catch (reason) {
-                        void ui.showErrorMessage(`Error getting the SQL for this REST Schema`, {});
                     }
 
                     break;
                 }
 
-                case "msg.mrs.copyCreateDbObjectSql": {
-                    try {
-                        const object = entry as ICdmRestDbObjectEntry;
-                        const result = await entry.connection.backend.mrs.getDbObjectCreateStatement(object.details.id);
-                        requisitions.writeToClipboard(result);
-                        success = true;
-                        void ui.showInformationMessage("The CREATE statement was copied to the system clipboard", {});
-                    } catch (reason) {
-                        void ui.showErrorMessage(`Error getting the SQL for this REST DB Object`, {});
-                    }
-
-                    break;
-                }
-
-                case "msg.mrs.deleteDbObject": {
-                    const response = await DialogHost.showDialog({
-                        id: "msg.mrs.deleteDbObject",
-                        type: DialogType.Confirm,
-                        parameters: {
-                            title: "Confirmation",
-                            prompt: `Are you sure you want to delete the REST DB Object ${entry.caption}?`,
-                            accept: "Delete",
-                            refuse: "Cancel",
-                            default: "Cancel",
-                        },
-                    });
-
-                    if (response.closure === DialogResponseClosure.Accept) {
-                        try {
-                            const dbObject = entry as ICdmRestDbObjectEntry;
-                            await connection.backend.mrs.deleteDbObject(dbObject.details.id);
-                            success = true;
-                            void ui.showInformationMessage("The MRS DB object has been deleted successfully.", {});
-                        } catch (error) {
-                            const message = convertErrorToString(error);
-                            void ui.showErrorMessage(`Error removing an MRS schema: ${message}`, {});
-                        }
-                    }
-
-                    break;
-                }
-
-                case "msg.mrs.addUser": {
-                    if (this.mrsHubRef.current) {
-                        const authApp = entry as ICdmRestAuthAppEntry;
-                        success = await this.mrsHubRef.current.showMrsUserDialog(authApp.connection.backend,
-                            authApp.details);
-                    }
-
-                    break;
-                }
-
-                case "msg.mrs.editUser": {
-                    if (this.mrsHubRef.current) {
-                        const user = entry as ICdmRestUserEntry;
-                        const authApp = user.parent;
-                        success = await this.mrsHubRef.current.showMrsUserDialog(authApp.connection.backend,
-                            authApp.details, user.details);
-                    }
-
-                    break;
-                }
-
-                case "msg.mrs.deleteUser": {
-                    const response = await DialogHost.showDialog({
-                        id: "msg.mrs.deleteUser",
-                        type: DialogType.Confirm,
-                        parameters: {
-                            title: "Confirmation",
-                            prompt: `Are you sure you want to delete the MRS user "${entry.caption}"?`,
-                            accept: "Delete",
-                            refuse: "Cancel",
-                            default: "Cancel",
-                        },
-                    });
-
-                    if (response.closure === DialogResponseClosure.Accept) {
-                        try {
-                            const user = entry as ICdmRestUserEntry;
-                            await connection.backend.mrs.deleteUser(user.details.id!);
-                            success = true;
-                            void ui.showInformationMessage(`The MRS user ${user.caption} has been deleted ` +
-                                `successfully.`, {});
-                        } catch (error) {
-                            const message = convertErrorToString(error);
-                            void ui.showErrorMessage(`Error removing an MRS user: ${message}`, {});
-                        }
-                    }
-
-                    break;
-                }
-
-                case "msg.selectRows": {
-                    if (qualifiedName?.schema && qualifiedName.name) {
-                        let query;
-
-                        const uppercaseKeywords = Settings.get("dbEditor.upperCaseKeywords", true);
-                        const select = uppercaseKeywords ? "SELECT" : "select";
-                        const from = uppercaseKeywords ? "FROM" : "from";
-
-                        if (entry.type === CdmEntityType.Column) {
-                            const qualifiedTableName = `${quote(qualifiedName.schema)}.${quote(qualifiedName.table!)}`;
-                            query = `${select} ${qualifiedTableName}.${quote(qualifiedName.name)} ${from} ` +
-                                `${qualifiedTableName}`;
-                        } else {
-                            const qualifiedTableName = `${quote(qualifiedName.schema)}.${quote(qualifiedName.name)}`;
-                            query = `${select} * ${from} ${qualifiedTableName}`;
-                        }
-
-                        const options: IEditorExtendedExecutionOptions = {
-                            code: query,
-                            language: "mysql",
-                        };
-
-                        const connectionId = connection.details.id;
-                        success = await requisitions.execute("job", [
-                            {
-                                requestType: "showPage",
-                                parameter: { connectionId, pageId },
-                            },
-                            { requestType: "editorRunCode", parameter: options },
-                        ]);
-                    }
-
-                    break;
-                }
-
-                case "filterMenuItem": {
-                    break;
-                }
-
-                case "inspectorMenuItem": {
-                    break;
-                }
-
-                case "msg.copyNameToEditor":
                 case "msg.copyNameToClipboard": {
-                    if (command.command === "msg.copyNameToClipboard") {
-                        requisitions.writeToClipboard(entry.caption);
+                    requisitions.writeToClipboard(entry!.caption);
+                    success = true;
 
-                        void ui.showInformationMessage("The name was copied to the system clipboard", {});
-                        success = true;
+                    break;
+                }
+
+                case "msg.dropSchema": {
+                    const schema = entry as ICdmSchemaEntry;
+                    await this.dropItem(schema);
+                    success = true;
+
+                    break;
+                }
+
+                case "msg.addSubFolder": {
+                    success = await this.addOrEditFolder(entry as ICdmConnectionGroupEntry, true);
+
+                    break;
+                }
+
+                case "msg.editFolder": {
+                    success = await this.addOrEditFolder(entry as ICdmConnectionGroupEntry, false);
+
+                    break;
+                }
+
+                case "msg.removeFolder": {
+                    // Count how many connections and subfolders are in the folder. The group entry is returned
+                    // in the list too.
+                    await entry?.refresh?.();
+                    const flatList = await this.connectionDataModel.flattenGroupList(entry as ICdmConnectionGroupEntry);
+
+                    let description: string[] = [];
+                    let prompt = `Are you sure you want to remove the folder "${entry?.caption}", including all its ` +
+                        `contents? This operation cannot be reverted!`;
+                    if (flatList.connections.length === 0 &&
+                        flatList.groups.length === 1) { // Only the group entry is in the list.
+                        prompt = `The folder "${entry?.caption}" is empty. Do you want to remove it?`;
                     } else {
-                        const connectionId = connection.details.id;
-                        success = await requisitions.execute("job", [
-                            {
-                                requestType: "showPage",
-                                parameter: { connectionId },
-                            },
-                            { requestType: "editorInsertText", parameter: entry.caption },
-                        ]);
-                    }
-
-                    break;
-                }
-
-                case "msg.copyCreateStatementToClipboard":
-                case "msg.copyCreateStatementToEditor": {
-                    let type;
-                    let qualifier = qualifiedName ? `\`${qualifiedName.schema}\`.` : "";
-                    let index = 1; // The column index in the result row.
-                    switch (entry.type) {
-                        case CdmEntityType.Schema: {
-                            type = "schema";
-                            qualifier = "";
-                            break;
+                        let groupString = "";
+                        if (flatList.groups.length > 1) {
+                            groupString = formatWithNumber("subfolder", flatList.groups.length - 1);
                         }
 
-                        case CdmEntityType.Table: {
-                            type = "table";
-                            break;
+                        let connectionString = "";
+                        if (flatList.connections.length > 0) {
+                            connectionString = formatWithNumber("connection", flatList.connections.length);
                         }
 
-                        case CdmEntityType.View: {
-                            type = "view";
-                            break;
-                        }
-
-                        case CdmEntityType.StoredFunction: {
-                            index = 2;
-                            type = "function";
-                            break;
-                        }
-
-                        case CdmEntityType.StoredProcedure: {
-                            index = 2;
-                            type = "procedure";
-                            break;
-                        }
-
-                        case CdmEntityType.Trigger: {
-                            type = "trigger";
-                            break;
-                        }
-
-                        case CdmEntityType.Event: {
-                            index = 3;
-                            type = "event";
-                            break;
-                        }
-
-                        default:
-                    }
-
-                    if (type) {
-                        const data = await connection?.backend.execute(
-                            `show create ${type} ${qualifier}\`${entry.caption}\``);
-                        const rows = data?.rows;
-                        if (rows && rows.length > 0) {
-                            // Returns one row with 2 columns.
-                            const row = rows[0] as string[];
-                            if (row.length > index) {
-                                if (command.command === "msg.copyCreateStatementToClipboard") {
-                                    requisitions.writeToClipboard(row[index]);
-
-                                    void ui.showInformationMessage("The CREATE statement was copied to the " +
-                                        "system clipboard", {});
-                                    success = true;
-                                } else {
-                                    const connectionId = connection.details.id;
-                                    success = await requisitions.execute("job", [
-                                        {
-                                            requestType: "showPage",
-                                            parameter: { connectionId, pageId },
-                                        },
-                                        { requestType: "editorInsertText", parameter: row[index] },
-                                    ]);
-                                }
-                            }
+                        if (groupString && connectionString) {
+                            description = [`The folder contains ${groupString} and ` +
+                                `${connectionString}.`];
+                        } else if (groupString) {
+                            description = [`The folder contains ${groupString}.`];
+                        } else {
+                            description = [`The folder contains ${connectionString}.`];
                         }
                     }
 
-                    break;
-                }
+                    const response = await DialogHost.showDialog({
+                        id: "msg.removeFolder",
+                        type: DialogType.Confirm,
+                        parameters: {
+                            title: "Confirmation",
+                            prompt,
+                            accept: "Delete Folder",
+                            refuse: "No",
+                            default: "No",
+                        },
+                        description,
+                    });
 
-                case "msg.createSchema": {
-                    break;
-                }
+                    if (response.closure === DialogResponseClosure.Accept) {
+                        success = true;
 
-                case "msg.alterSchema": {
-                    break;
-                }
-
-                case "msg.mrs.addSchema": {
-                    if (this.mrsHubRef.current) {
-                        const configured = await this.checkMrsStatus(connection.backend, true);
-                        if (!configured) {
-                            return { success: false };
+                        for (const connection of flatList.connections.reverse()) {
+                            await this.connectionDataModel.dropItem(connection);
+                            await this.connectionDataModel.removeEntry(connection);
                         }
 
-                        try {
-                            const serviceId = await this.mrsHubRef.current.showMrsSchemaDialog(connection.backend,
-                                entry.caption);
-
-                            return {
-                                success: true,
-                                mrsServiceId: serviceId,
-                            };
-                        } catch (error) {
-                            const message = convertErrorToString(error);
-                            void ui.showErrorMessage(`Error while adding the schema: ${message}.`, {});
-
-                            return { success: false };
+                        for (const group of flatList.groups.reverse()) {
+                            await this.connectionDataModel.dropItem(group);
+                            await this.connectionDataModel.removeEntry(group);
                         }
+
+                        void ui.showInformationMessage(`The connection group ` +
+                            `"${entry?.caption}" has been deleted.`, {});
                     }
 
-                    break;
-                }
-
-                case "refreshMenuItem": {
                     break;
                 }
 
                 default:
             }
-        }
-
-        // Other Commands/actions that are not related to a specific connection.
-        switch (command.command) {
-            case "msg.addConnection": {
-                success = await requisitions.execute("job", [
-                    { requestType: "showPage", parameter: {} },
-                    { requestType: "addNewConnection", parameter: {} },
-                ]);
-                break;
-            }
-
-            case "msg.refreshConnections": {
-                await this.connectionDataModel.reloadConnections();
-                success = true;
-
-                break;
-            }
-
-            case "msg.mrs.docs": {
-                window.open("https://dev.mysql.com/doc/dev/mysql-rest-service/latest/", "_blank");
-                success = true;
-
-                break;
-            }
-
-            case "msg.mrs.docs.service": {
-                window.open("https://dev.mysql.com/doc/dev/mysql-rest-service/latest/#rest-service-properties",
-                    "_blank");
-                success = true;
-
-                break;
-            }
-
-            case "msg.fileBugReport": {
-                // The version is injected by the vite config.
-                const currentVersion = process.env.versionNumber ?? "1.0.0";
-
-                void window.open("https://bugs.mysql.com/report.php?category=Shell%20VSCode%20Extension" +
-                    `&version=${currentVersion}`);
-
-                break;
-            }
-
-            case "msg.mrs.copyDbObjectRequestPath": {
-                const path = this.buildDbObjectRequestPath(entry as ICdmRestDbObjectEntry);
-                if (path) {
-                    requisitions.writeToClipboard(path.toString());
-                    success = true;
-                    void ui.showInformationMessage("The DB Object Path was copied to the system clipboard", {});
-                }
-
-                break;
-            }
-
-            case "msg.mrs.openDbObjectRequestPath": {
-                const path = this.buildDbObjectRequestPath(entry as ICdmRestDbObjectEntry);
-                if (path) {
-                    window.open(path);
-                    success = true;
-                }
-
-                break;
-            }
-
-            case "msg.copyNameToClipboard": {
-                requisitions.writeToClipboard(entry!.caption);
-                success = true;
-
-                break;
-            }
-
-            case "msg.dropSchema": {
-                const schema = entry as ICdmSchemaEntry;
-                await this.dropItem(schema);
-                success = true;
-
-                break;
-            }
-
-            default:
+        } catch (e) {
+            const message = convertErrorToString(e);
+            void ui.showErrorMessage(`Error while executing the command: ${message}`, {});
         }
 
         return { success };
@@ -1230,5 +1247,44 @@ export class SidebarCommandHandler {
         }
 
         return true;
+    }
+
+    /**
+     * Adds a new subfolder to the given group entry or edits the name of an existing folder.
+     *
+     * @param group The group entry to which the folder should be added or edited.
+     * @param addSubFolder If true, a new subfolder will be added. If false, the name of an existing folder will
+     *                     be edited.
+     *
+     * @returns A promise which resolves to true if the operation was successful.
+     */
+    private async addOrEditFolder(group: ICdmConnectionGroupEntry, addSubFolder: boolean): Promise<boolean> {
+        const title = addSubFolder ? "Add Subfolder" : "Edit Folder";
+        const prompt = addSubFolder ? "Enter the name of the new folder:" : "Enter the new name of the folder:";
+        const response = await DialogHost.showDialog({
+            id: "connectionFolderPath",
+            type: DialogType.Prompt,
+            title,
+            values: {
+                prompt,
+                value: addSubFolder ? "" : group.caption,
+            },
+            description: ["A connection folder is an organizational unit for connections."],
+        });
+
+        if (response.closure === DialogResponseClosure.Accept && response.values) {
+            const name = response.values.input as string;
+
+            if (addSubFolder) {
+                await ShellInterface.dbConnections.addFolderPath(webSession.currentProfileId, name,
+                    group.folderPath.id);
+            } else {
+                await ShellInterface.dbConnections.renameFolderPath(group.folderPath.id, name);
+            }
+
+            return true;
+        }
+
+        return false;
     }
 }

@@ -32,6 +32,17 @@ export const dbConnectionDialog = {
     databaseTypeList: By.id("databaseTypePopup"),
     databaseTypeMysql: By.id("MySQL"),
     databaseTypeSqlite: By.id("Sqlite"),
+    folderPath: {
+        exists: By.id("folderPath"),
+        label: By.css("#folderPath label"),
+        selectList: {
+            exists: By.css("#folderPathPopup .popup.visible"),
+            addNewFolder: By.id("<Add new folder>"),
+            item: (itemName: string): By => {
+                return By.id(itemName);
+            },
+        },
+    },
     mysql: {
         basic: {
             hostname: By.id("hostName"),
@@ -646,6 +657,7 @@ export const dbConnectionOverview = {
     newConsoleButton: By.id("newConsoleMenuButton"),
     browser: By.className("connectionBrowser"),
     newDBConnection: By.id("-1"),
+    back: By.id("-2"),
     dbConnection: {
         tile: By.css("#tilesHost .connectionTile"),
         caption: By.className("tileCaption"),
@@ -657,6 +669,15 @@ export const dbConnectionOverview = {
         newNotebook: By.id("tileNewNotebookAction"),
         newScript: By.id("tileNewScriptAction"),
         contextMenu: By.css(".noArrow.menu"),
+    },
+    group: {
+        tile: By.css("#tilesHost .group"),
+        caption: By.className("tileCaption"),
+        description: By.css(".tileDescription"),
+    },
+    breadCrumb: {
+        exists: By.css(".breadcrumb"),
+        item: By.css(".breadcrumbItem"),
     },
     closeHeader: By.id("closeButton"),
 };
@@ -995,4 +1016,9 @@ export const notification = {
 
 export const sideBarItems = By.css(".composite-bar .actions-container > li");
 export const togglePrimarySideBar = By.xpath("//a[contains(@aria-label, 'Toggle Primary Side Bar')]");
-
+export const createNewFolderDialog = {
+    exists: By.id("connectionFolderPath"),
+    name: By.id("input"),
+    ok: By.id("ok"),
+    cancel: By.id("cancel"),
+};

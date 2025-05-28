@@ -25,14 +25,16 @@ exports[`Shell prompt tests ShellPrompt output test 1`] = `
         "",
       ]
     }
-    separator="❯"
+    showPicker={false}
   >
     <Container
-      className="msg breadcrumb verticalCenterContent shellPrompt"
+      className="msg breadcrumb shellPrompt"
       orientation="row"
+      showPicker={false}
     >
       <div
-        className="msg container fixedScrollbar breadcrumb verticalCenterContent shellPrompt"
+        className="msg container fixedScrollbar breadcrumb shellPrompt"
+        showPicker={false}
         style={
           {
             "alignItems": undefined,

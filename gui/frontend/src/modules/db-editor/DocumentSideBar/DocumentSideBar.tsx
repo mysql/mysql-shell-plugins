@@ -45,8 +45,9 @@ import { IMenuItemProperties, MenuItem } from "../../../components/ui/Menu/MenuI
 import { ISplitterPaneSizeInfo } from "../../../components/ui/SplitContainer/SplitContainer.js";
 import { ITreeGridOptions, SetDataAction, TreeGrid } from "../../../components/ui/TreeGrid/TreeGrid.js";
 import {
-    CdmEntityType, type ConnectionDataModelEntry, type ICdmConnectionEntry, type ICdmRestAuthAppEntry,
-    type ICdmRestRootEntry, type ICdmRestSchemaEntry, type ICdmRestServiceEntry,
+    CdmEntityType, type ConnectionDMActionList, type ConnectionDataModelEntry, type ConnectionDataModelNoGroupEntry,
+    type ICdmConnectionEntry, type ICdmConnectionGroupEntry, type ICdmRestAuthAppEntry, type ICdmRestRootEntry,
+    type ICdmRestSchemaEntry, type ICdmRestServiceEntry,
 } from "../../../data-models/ConnectionDataModel.js";
 import {
     OciDmEntityType, type IOciDmCompartment, type IOciDmProfile, type OciDataModelEntry,
@@ -69,6 +70,7 @@ import {
     DocumentContext, type DocumentContextType, type IBaseTreeItem, type IConnectionTreeItem,
     type IDocumentTreeItem, type IOciTreeItem, type ISideBarCommandResult, type QualifiedName,
 } from "../index.js";
+import { Settings } from "../../../supplement/Settings/Settings.js";
 
 /** Lookup for icons for a specific document type. */
 export const documentTypeToFileIcon = new Map<EditorLanguage, string | Codicon>([
@@ -82,7 +84,7 @@ export const documentTypeToFileIcon = new Map<EditorLanguage, string | Codicon>(
 ]);
 
 /** Mapping of connection data model types to icons (main types). */
-const cdmTypeToEntryIcon: Map<CdmEntityType, string> = new Map([
+const cdmTypeToEntryIcon = new Map<CdmEntityType, string | Codicon>([
     [CdmEntityType.Schema, Assets.db.schemaIcon],
     [CdmEntityType.Table, Assets.db.tableIcon],
     [CdmEntityType.View, Assets.db.viewIcon],
@@ -96,6 +98,7 @@ const cdmTypeToEntryIcon: Map<CdmEntityType, string> = new Map([
     [CdmEntityType.ForeignKey, Assets.db.foreignKeyIcon],
     [CdmEntityType.TableGroup, Assets.db.tablesIcon],
     [CdmEntityType.SchemaGroup, Assets.db.schemaIcon],
+    [CdmEntityType.ConnectionGroup, Assets.file.folderIcon],
     [CdmEntityType.Admin, Assets.documents.adminDashboardIcon],
     [CdmEntityType.MrsRoot, Assets.mrs.mainIcon],
     [CdmEntityType.MrsService, Assets.mrs.serviceIcon],
@@ -199,6 +202,8 @@ interface IDataModelBaseEntry {
     id: string;
     caption: string,
     state: IDataModelEntryState;
+    type: CdmEntityType | OdmEntityType | OciDmEntityType;
+    parent?: IDataModelBaseEntry;
 
     refresh?: () => Promise<unknown>;
     getChildren?(): IDataModelBaseEntry[];
@@ -230,6 +235,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     public static override contextType = DocumentContext;
 
     private cdmTypeToMenuRefMap = new Map<CdmEntityType, RefObject<Menu>>([
+        [CdmEntityType.ConnectionGroup, createRef<Menu>()],
         [CdmEntityType.Connection, createRef<Menu>()],
         [CdmEntityType.Schema, createRef<Menu>()],
         [CdmEntityType.Table, createRef<Menu>()],
@@ -303,6 +309,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
     public override componentDidMount(): void {
         requisitions.register("refreshConnection", this.refreshConnection);
+        requisitions.register("refreshConnectionGroup", this.refreshConnectionGroup);
+        requisitions.register("settingsChanged", this.handleSettingsChanged);
 
         // Create the initial tree items.
         const context = this.context as DocumentContextType;
@@ -321,7 +329,9 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             context.documentDataModel.unsubscribe(this.documentDataModelChanged);
         }
 
+        requisitions.unregister("refreshConnectionGroup", this.refreshConnectionGroup);
         requisitions.unregister("refreshConnection", this.refreshConnection);
+        requisitions.unregister("settingsChanged", this.handleSettingsChanged);
     }
 
     public override componentDidUpdate(prevProps: IDocumentSideBarProperties): void {
@@ -331,7 +341,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             if (!defaultOpening && context) {
                 this.setState({ defaultOpening: true });
 
-                const firstConnection = context.connectionsDataModel.connections[0];
+                const firstConnection = context.connectionsDataModel.connectionList[0];
                 if (!context.documentDataModel.isOpen(firstConnection.details)) {
                     // Open the first connection and wait for it to finish that.
                     void firstConnection.refresh?.().then(() => {
@@ -440,7 +450,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             resizable: true,
             minSize: 100,
             actions: [],
-            content: this.renderConnectionsTree(context.connectionsDataModel.connections),
+            content: this.renderConnectionsTree(context.connectionsDataModel.roots),
         };
 
         accordionSections.push(connectionSection);
@@ -580,6 +590,19 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
         return (
             <>
+                <Menu
+                    id="connectionGroupContextMenu"
+                    ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.ConnectionGroup)}
+                    placement={ComponentPlacement.BottomLeft}
+                    onItemClick={this.handleConnectionTreeContextMenuItemClick}
+                >
+                    <MenuItem command={{ title: "Add Subfolder", command: "msg.addSubFolder" }} />
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    <MenuItem command={{ title: "Edit Folder", command: "msg.editFolder" }} />
+                    <MenuItem command={{ title: "-", command: "" }} disabled />
+                    <MenuItem command={{ title: "Remove Folder", command: "msg.removeFolder" }} />
+                </Menu>
+
                 <Menu
                     id="connectionContextMenu"
                     ref={this.cdmTypeToMenuRefMap.get(CdmEntityType.Connection)}
@@ -1369,8 +1392,9 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     private isConnectionMenuItemDisabled = (item: IMenuItemProperties, payload: unknown): boolean => {
         if (payload && item.id === "showSystemSchemas") {
             const entry = payload as IConnectionTreeItem;
-
-            return entry.dataModelEntry.connection.details.dbType !== DBType.MySQL;
+            if (entry.dataModelEntry.type !== CdmEntityType.ConnectionGroup) {
+                return entry.dataModelEntry.connection.details.dbType !== DBType.MySQL;
+            }
         }
 
         return item.disabled ?? false;
@@ -1622,7 +1646,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     imageOnly
                     onClick={() => {
                         void onConnectionTreeCommand({ title: "", command: "msg.mrs.docs.service" },
-                            data.dataModelEntry);
+                            data.dataModelEntry as ICdmRestServiceEntry);
                     }}
                 ><Icon src={Assets.misc.docsIcon} data-tooltip="inherit" /></Button>;
 
@@ -1657,7 +1681,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         return host;
     };
 
-    private openNewNotebook(entry: ConnectionDataModelEntry): void {
+    private openNewNotebook(entry: ConnectionDataModelNoGroupEntry): void {
         const connection = entry.connection;
         void requisitions.execute("openDocument", {
             connection: connection.details,
@@ -1670,7 +1694,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         });
     }
 
-    private openNewScript(entry: ConnectionDataModelEntry): void {
+    private openNewScript(entry: ConnectionDataModelNoGroupEntry): void {
         const connection = entry.connection;
         void requisitions.execute("openDocument", {
             connection: connection.details,
@@ -2330,80 +2354,113 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         const data = payload as IConnectionTreeItem;
         const command = altActive && props.altCommand ? props.altCommand : props.command;
 
-        switch (command.command) {
-            case "msg.mrs.configureMySQLRestService": {
-                void onConnectionTreeCommand?.(command, data.dataModelEntry).then(() => {
-                    void this.refreshConnectionTreeEntryChildren(data.dataModelEntry, true);
-                });
+        if (data.dataModelEntry.type === CdmEntityType.ConnectionGroup) {
+            switch (command.command) {
+                case "msg.addSubFolder": {
+                    void onConnectionTreeCommand?.(command, data.dataModelEntry).then(() => {
+                        void this.refreshConnectionTreeEntryChildren(data.dataModelEntry, true);
+                    });
 
-                break;
-            }
+                    break;
+                }
 
-            case "msg.hideSystemSchemasOnConnection":
-            case "msg.showSystemSchemasOnConnection": {
-                const connection = data.dataModelEntry as ICdmConnectionEntry;
-                connection.state.payload ??= {};
-                connection.state.payload.showSystemSchemas = command.command === "msg.showSystemSchemasOnConnection";
-                void this.refreshConnectionTreeEntryChildren(data.dataModelEntry, true);
-
-                break;
-            }
-
-            case "msg.dropSchema": {
-                void onConnectionTreeCommand?.(command, data.dataModelEntry).then((result) => {
-                    if (result.success) {
+                case "msg.editFolder": {
+                    void onConnectionTreeCommand?.(command, data.dataModelEntry).then(() => {
                         void this.refreshConnectionParentEntry(data, true);
-                    }
-                });
+                    });
 
-                break;
+                    break;
+                }
+
+                case "msg.removeFolder": {
+                    void onConnectionTreeCommand?.(command, data.dataModelEntry).then(() => {
+                        void this.refreshConnectionParentEntry(data, true);
+                    });
+
+                    break;
+                }
+
+                default:
             }
+        } else {
+            switch (command.command) {
+                case "msg.mrs.configureMySQLRestService": {
+                    void onConnectionTreeCommand?.(command, data.dataModelEntry).then(() => {
+                        void this.refreshConnectionTreeEntryChildren(data.dataModelEntry, true);
+                    });
 
-            case "msg.mrs.addSchema": {
-                void onConnectionTreeCommand?.(command, data.dataModelEntry).then((result) => {
-                    if (result.success) {
-                        // Find the MRS service entry to refresh its tree node.
-                        const mrsRoot = data.dataModelEntry.connection.mrsEntry;
-                        const service = mrsRoot?.services.find((s) => {
-                            return s.details.id === result.mrsServiceId;
-                        });
+                    break;
+                }
 
-                        if (service) {
-                            void this.refreshConnectionTreeEntryChildren(service, true);
-                        } else if (mrsRoot) {
-                            void this.refreshConnectionTreeEntryChildren(mrsRoot, true);
+                case "msg.hideSystemSchemasOnConnection":
+                case "msg.showSystemSchemasOnConnection": {
+                    const connection = data.dataModelEntry as ICdmConnectionEntry;
+                    connection.state.payload ??= {};
+                    connection.state.payload.showSystemSchemas =
+                        (command.command === "msg.showSystemSchemasOnConnection");
+                    void this.refreshConnectionTreeEntryChildren(data.dataModelEntry, true);
+
+                    break;
+                }
+
+                case "msg.dropSchema": {
+                    void onConnectionTreeCommand?.(command, data.dataModelEntry).then((result) => {
+                        if (result.success) {
+                            void this.refreshConnectionParentEntry(data, true);
                         }
-                    }
-                });
+                    });
 
-                break;
-            }
+                    break;
+                }
 
-            case "msg.mrs.addDbObject": {
-                void onConnectionTreeCommand?.(command, data.dataModelEntry).then((result) => {
-                    if (result.success && result.mrsServiceId && result.mrsSchemaId) {
-                        // Find the service and the schema in that, where the new object was added.
-                        const mrsRoot = data.dataModelEntry.connection.mrsEntry;
-                        const service = mrsRoot?.services.find((s) => {
-                            return s.details.id === result.mrsServiceId;
-                        });
-                        const schema = service?.schemas.find((s) => {
-                            return s.details.id === result.mrsSchemaId;
-                        });
+                case "msg.mrs.addSchema": {
+                    void onConnectionTreeCommand?.(command, data.dataModelEntry).then((result) => {
+                        if (result.success) {
+                            // Find the MRS service entry to refresh its tree node.
+                            const mrsRoot = (data.dataModelEntry as ConnectionDataModelNoGroupEntry)
+                                .connection.mrsEntry;
+                            const service = mrsRoot?.services.find((s) => {
+                                return s.details.id === result.mrsServiceId;
+                            });
 
-                        if (schema) {
-                            void this.refreshConnectionTreeEntryChildren(schema, true);
-                        } else if (mrsRoot) {
-                            void this.refreshConnectionTreeEntryChildren(mrsRoot, true);
+                            if (service) {
+                                void this.refreshConnectionTreeEntryChildren(service, true);
+                            } else if (mrsRoot) {
+                                void this.refreshConnectionTreeEntryChildren(mrsRoot, true);
+                            }
                         }
-                    }
-                });
+                    });
 
-                break;
-            }
+                    break;
+                }
 
-            default: {
-                void onConnectionTreeCommand?.(command, data.dataModelEntry, data.qualifiedName);
+                case "msg.mrs.addDbObject": {
+                    void onConnectionTreeCommand?.(command, data.dataModelEntry).then((result) => {
+                        if (result.success && result.mrsServiceId && result.mrsSchemaId) {
+                            // Find the service and the schema in that, where the new object was added.
+                            const mrsRoot = (data.dataModelEntry as ConnectionDataModelNoGroupEntry)
+                                .connection.mrsEntry;
+                            const service = mrsRoot?.services.find((s) => {
+                                return s.details.id === result.mrsServiceId;
+                            });
+                            const schema = service?.schemas.find((s) => {
+                                return s.details.id === result.mrsSchemaId;
+                            });
+
+                            if (schema) {
+                                void this.refreshConnectionTreeEntryChildren(schema, true);
+                            } else if (mrsRoot) {
+                                void this.refreshConnectionTreeEntryChildren(mrsRoot, true);
+                            }
+                        }
+                    });
+
+                    break;
+                }
+
+                default: {
+                    void onConnectionTreeCommand?.(command, data.dataModelEntry, data.qualifiedName);
+                }
             }
         }
 
@@ -2419,6 +2476,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         const command = altActive && props.altCommand ? props.altCommand : props.command;
 
         const tree = this.connectionTableRef.current;
+        const dataModelEntry = entry.dataModelEntry as ConnectionDataModelNoGroupEntry;
 
         try {
             switch (command.command) {
@@ -2431,14 +2489,14 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
                 case "msg.mrs.addAuthApp":
                 case "msg.mrs.linkAuthApp": {
-                    void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
+                    void onConnectionTreeCommand(command, dataModelEntry).then((done) => {
                         if (done) {
-                            void this.refreshConnectionTreeEntryChildren(entry.dataModelEntry, true).then(() => {
+                            void this.refreshConnectionTreeEntryChildren(dataModelEntry, true).then(() => {
                                 if (command.command === "msg.mrs.addAuthApp"
-                                    && entry.dataModelEntry.type === CdmEntityType.MrsService) {
+                                    && dataModelEntry.type === CdmEntityType.MrsService) {
                                     // If the command was sent from a service, refresh also the list of auth apps.
                                     void this.refreshConnectionTreeEntryChildren(
-                                        entry.dataModelEntry.parent.authAppGroup, true);
+                                        dataModelEntry.parent.authAppGroup, true);
                                 }
                             });
                         }
@@ -2448,9 +2506,9 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 }
 
                 case "msg.mrs.addService": {
-                    void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
+                    void onConnectionTreeCommand(command, dataModelEntry).then((done) => {
                         if (done) {
-                            const mrsRoot = entry.dataModelEntry as ICdmRestRootEntry;
+                            const mrsRoot = dataModelEntry as ICdmRestRootEntry;
                             void this.refreshConnectionTreeEntryChildren(mrsRoot, true).then(() => {
                                 void this.refreshConnectionTreeEntryChildren(mrsRoot.routerGroup, true, true);
                             });
@@ -2462,9 +2520,9 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
                 case "msg.mrs.enableMySQLRestService":
                 case "msg.mrs.disableMySQLRestService": {
-                    void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
+                    void onConnectionTreeCommand(command, dataModelEntry).then((done) => {
                         if (done) {
-                            void this.refreshTreeEntry(tree, entry.dataModelEntry, true);
+                            void this.refreshTreeEntry(tree, dataModelEntry, true);
                         }
 
                         // There's no need to update the routers group, as they only contain published services
@@ -2476,15 +2534,15 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
                 case "msg.mrs.showPrivateItems":
                 case "msg.mrs.hidePrivateItems": {
-                    const mrsRoot = entry.dataModelEntry as ICdmRestRootEntry;
+                    const mrsRoot = dataModelEntry as ICdmRestRootEntry;
                     mrsRoot.showPrivateItems = command.command === "msg.mrs.showPrivateItems";
-                    void this.refreshConnectionTreeEntryChildren(entry.dataModelEntry, false, true);
+                    void this.refreshConnectionTreeEntryChildren(dataModelEntry, false, true);
 
                     break;
                 }
 
                 case "msg.mrs.editService": {
-                    const done = await onConnectionTreeCommand(command, entry.dataModelEntry);
+                    const done = await onConnectionTreeCommand(command, dataModelEntry);
                     if (done) {
                         // Update the entire services list, as we can have a changed default state.
                         const mrsService = entry.dataModelEntry as ICdmRestServiceEntry;
@@ -2506,9 +2564,9 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 }
 
                 case "msg.mrs.deleteService": {
-                    void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
+                    void onConnectionTreeCommand(command, dataModelEntry).then((done) => {
                         if (done) {
-                            const service = entry.dataModelEntry as ICdmRestServiceEntry;
+                            const service = dataModelEntry as ICdmRestServiceEntry;
                             void this.refreshConnectionTreeEntryChildren(service.parent, true).then(() => {
                                 void this.refreshConnectionTreeEntryChildren(service.parent.routerGroup, true, true);
                             });
@@ -2522,7 +2580,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 case "msg.mrs.deleteDbObject":
                 case "msg.mrs.editDbObject":
                 case "msg.mrs.deleteUser": {
-                    void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
+                    void onConnectionTreeCommand(command, dataModelEntry).then((done) => {
                         if (done) {
                             void this.refreshConnectionParentEntry(entry, true);
                         }
@@ -2532,7 +2590,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 }
 
                 case "msg.mrs.editSchema": {
-                    const mrsSchema = entry.dataModelEntry as ICdmRestSchemaEntry;
+                    const mrsSchema = dataModelEntry as ICdmRestSchemaEntry;
                     void onConnectionTreeCommand(command, mrsSchema).then((done) => {
                         if (done) {
                             // If the schema moved from one MRS service to another,
@@ -2556,7 +2614,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                                 }
                             } else {
                                 // Otherwise just update the schema entry.
-                                void this.refreshTreeEntry(tree, entry.dataModelEntry, true);
+                                void this.refreshTreeEntry(tree, dataModelEntry, true);
                             }
                         }
                     });
@@ -2565,12 +2623,12 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 }
 
                 case "msg.mrs.editAuthApp": {
-                    void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
+                    void onConnectionTreeCommand(command, dataModelEntry).then((done) => {
                         if (done) {
-                            void this.refreshTreeEntry(tree, entry.dataModelEntry, true);
+                            void this.refreshTreeEntry(tree, dataModelEntry, true);
 
                             // Also refresh all MRS services, as the app may have been linked to a service.
-                            const authApp = entry.dataModelEntry as ICdmRestAuthAppEntry;
+                            const authApp = dataModelEntry as ICdmRestAuthAppEntry;
                             void this.refreshConnectionTreeEntryChildren(authApp.parent.parent, true,
                                 true);
                         }
@@ -2580,9 +2638,9 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 }
 
                 case "msg.mrs.editUser": {
-                    void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
+                    void onConnectionTreeCommand(command, dataModelEntry).then((done) => {
                         if (done) {
-                            void this.refreshTreeEntry(tree, entry.dataModelEntry, true);
+                            void this.refreshTreeEntry(tree, dataModelEntry, true);
                         }
                     });
 
@@ -2590,10 +2648,10 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 }
 
                 case "msg.mrs.deleteAuthApp": {
-                    void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
+                    void onConnectionTreeCommand(command, dataModelEntry).then((done) => {
                         if (done) {
                             void this.refreshConnectionParentEntry(entry, true).then(() => {
-                                const authApp = entry.dataModelEntry as ICdmRestAuthAppEntry;
+                                const authApp = dataModelEntry as ICdmRestAuthAppEntry;
                                 void this.refreshConnectionTreeEntryChildren(authApp.parent.parent, true, true);
                             });
                         }
@@ -2603,7 +2661,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 }
 
                 case "msg.mrs.unlinkAuthApp": {
-                    void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
+                    void onConnectionTreeCommand(command, dataModelEntry).then((done) => {
                         if (done) {
                             void this.refreshConnectionParentEntry(entry, true);
                         }
@@ -2613,7 +2671,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 }
 
                 case "msg.mrs.addUser": {
-                    void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
+                    void onConnectionTreeCommand(command, dataModelEntry).then((done) => {
                         if (done) {
                             void this.refreshConnectionTreeEntryChildren(entry.dataModelEntry, true);
                         }
@@ -2623,11 +2681,11 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 }
 
                 case "msg.mrs.linkToService": {
-                    void onConnectionTreeCommand(command, entry.dataModelEntry).then((done) => {
+                    void onConnectionTreeCommand(command, dataModelEntry).then((done) => {
                         if (done) {
                             // Linking to a service means to refresh the service children. At this point we don't
                             // know the service the app was linked to, so refresh all MRS services.
-                            const authApp = entry.dataModelEntry as ICdmRestAuthAppEntry;
+                            const authApp = dataModelEntry as ICdmRestAuthAppEntry;
                             authApp.parent.parent.services.forEach((service) => {
                                 void this.refreshConnectionTreeEntryChildren(service, true);
                             });
@@ -2638,7 +2696,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                 }
 
                 default: {
-                    void onConnectionTreeCommand(command, entry.dataModelEntry);
+                    void onConnectionTreeCommand(command, dataModelEntry);
                 }
             }
         } catch (error) {
@@ -2713,9 +2771,10 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     };
 
     /**
-     * Triggered when one or all connections need to be refreshed.
+     * Triggered when one specific or all top level connections need to be refreshed.
+     * Refreshing the top level connections also means to refresh all top level groups.
      *
-     * @param connection The connection to refresh. If not provided, all connections are refreshed.
+     * @param connection The connection to refresh. If not provided, the top level connections are refreshed.
      *
      * @returns A promise that resolves to `true`.
      */
@@ -2730,13 +2789,37 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     };
 
     /**
+     * Triggered when one specific or all top level groups need to be refreshed.
+     * Refreshing the top level groups also means to refresh all top level connections.
+     *
+     * @param groupId The id of the group to refresh. If not provided, the top level groups are refreshed.
+     *
+     * @returns A promise that resolves to `true`.
+     */
+    private refreshConnectionGroup = async (groupId?: number): Promise<boolean> => {
+        if (groupId !== undefined && groupId >= 0) {
+            const context = this.context as DocumentContextType;
+            if (context) {
+                const group = context.connectionsDataModel.findConnectionGroupEntryById(groupId);
+                if (group) {
+                    await this.refreshConnectionTreeEntryChildren(group, true);
+                }
+            }
+        } else {
+            this.updateTreesFromContext();
+        }
+
+        return Promise.resolve(true);
+    };
+
+    /**
      * Creates a list of entries for the connection tree.
      *
      * @param connections The connections to create the entries for.
      *
      * @returns The list of entries.
      */
-    private renderConnectionsTree(connections: ICdmConnectionEntry[]): ComponentChild {
+    private renderConnectionsTree(connections: Array<ICdmConnectionEntry | ICdmConnectionGroupEntry>): ComponentChild {
         const connectionTreeColumns: ColumnDefinition[] = [{
             title: "",
             field: "caption",
@@ -2769,8 +2852,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         return connectionSectionContent;
     }
 
-    private connectionDataModelChanged = (
-        list: Readonly<Array<ISubscriberActionType<ConnectionDataModelEntry>>>): void => {
+    private connectionDataModelChanged = (list: Readonly<ConnectionDMActionList>): void => {
 
         if (this.refreshRunning) {
             return;
@@ -2780,8 +2862,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         list.forEach((action) => {
             switch (action.action) {
                 case "add": {
-                    if (action.entry) {
-                        void this.refreshConnectionTreeEntryChildren(action.entry, false);
+                    if (action.entry?.parent) {
+                        void this.refreshConnectionTreeEntryChildren(action.entry.parent, false);
                     }
 
                     break;
@@ -2789,19 +2871,11 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
                 case "remove": {
                     if (action.entry?.type === CdmEntityType.Connection) {
-                        const context = this.context as DocumentContextType;
-                        if (context) {
-                            // Remove the connection from the backend.
-                            void context.connectionsDataModel.dropItem(action.entry);
-                        }
-
                         requisitions.executeRemote("connectionRemoved", action.entry.details);
                     }
 
-                    // Finally, refresh our UI.
-                    const entry = action.entry as ConnectionDataModelEntry;
-                    if ("parent" in entry && entry.parent) {
-                        void this.refreshConnectionTreeEntryChildren(entry.parent, false);
+                    if (action.entry?.parent) {
+                        void this.refreshConnectionTreeEntryChildren(action.entry.parent, false);
                     }
 
                     break;
@@ -2811,7 +2885,14 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     if (action.entry) {
                         switch (action.entry.type) {
                             case CdmEntityType.Connection: {
+                                void this.refreshTreeEntry(tree, action.entry, false);
                                 void this.refreshConnectionTreeEntryChildren(action.entry, false);
+
+                                break;
+                            }
+
+                            case CdmEntityType.ConnectionGroup: {
+                                void this.refreshExpandedConnectionGroupTreeEntries(action.entry);
 
                                 break;
                             }
@@ -2981,9 +3062,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         const [treeItems, changed] = this.updateRootTreeItems(context);
 
         if (changed) {
-            if (this.connectionTableRef.current) {
-                void this.connectionTableRef.current.setData(treeItems.connectionTreeItems, SetDataAction.Replace);
-            }
+            void this.updateConnectionTreeItems();
 
             if (this.documentTableRef.current) {
                 void this.documentTableRef.current.setData(treeItems.openDocumentTreeItems, SetDataAction.Replace);
@@ -3018,7 +3097,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         }
 
         const connectionTreeItems = treeItems.connectionTreeItems;
-        context.connectionsDataModel.connections.forEach((connection, index) => {
+        context.connectionsDataModel.roots.forEach((connection, index) => {
             if (index >= connectionTreeItems.length || connectionTreeItems[index].dataModelEntry !== connection) {
                 changed = true;
                 connectionTreeItems[index] = {
@@ -3028,12 +3107,17 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
                     qualifiedName: {},
                     children: [],
                 };
+            } else {
+                if (connectionTreeItems[index].caption !== connection.caption) {
+                    changed = true;
+                    connectionTreeItems[index].caption = connection.caption;
+                }
             }
         });
 
-        if (connectionTreeItems.length > context.connectionsDataModel.connections.length) {
+        if (connectionTreeItems.length > context.connectionsDataModel.roots.length) {
             changed = true;
-            connectionTreeItems.splice(context.connectionsDataModel.connections.length);
+            connectionTreeItems.splice(context.connectionsDataModel.roots.length);
         }
 
         const ociTreeItems = treeItems.ociTreeItems;
@@ -3068,8 +3152,13 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
      */
     private async refreshConnectionParentEntry(item: IConnectionTreeItem, needRefresh: boolean): Promise<void> {
         if ("parent" in item.dataModelEntry) {
-            const parent = item.dataModelEntry.parent;
-            await this.refreshConnectionTreeEntryChildren(parent, needRefresh);
+            // If the parent is the invisible root entry, we need to refresh the entire tree.
+            const parent = item.dataModelEntry.parent!;
+            if (("folderPath" in parent) && parent.folderPath?.id === 1) {
+                await parent.refresh?.(); // Will trigger componentDidUpdate to refresh the root nodes.
+            } else {
+                await this.refreshConnectionTreeEntryChildren(parent, needRefresh);
+            }
         }
     }
 
@@ -3173,6 +3262,21 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             let generator = this.generateConnectionTreeChild.bind(this, schemaName, tableName);
 
             switch (entry.type) {
+                case CdmEntityType.ConnectionGroup: {
+                    if (data.dataModelEntry.state.expandedOnce) {
+                        const foldersFirst = Settings.get("dbEditor.connectionBrowser.sortFoldersFirst", true);
+                        if (foldersFirst) {
+                            const sorted = Array.from(children ?? []);
+                            this.sortConnectionGroupItems(sorted);
+                            await this.diffTreeEntries(row, generator, recursive, sorted);
+                        } else {
+                            await this.diffTreeEntries(row, generator, recursive, children);
+                        }
+                    }
+
+                    break;
+                }
+
                 case CdmEntityType.Connection: {
                     if (data.dataModelEntry.state.expandedOnce) {
                         if (children && !data.dataModelEntry.state.payload?.showSystemSchemas) {
@@ -3218,6 +3322,73 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             if (recursive && children) {
                 for (const child of children) {
                     await this.refreshConnectionTreeEntryChildren(child, true, child.state.expandedOnce);
+                }
+            }
+        } finally {
+            table.endUpdate();
+
+            clearTimeout(timer);
+            this.connectionSectionRef.current!.showProgress = false;
+        }
+    }
+
+    /**
+     * Updates all child tree items of type connection group recursively, starting with the given entry.
+     *
+     * @param entry The item to update.
+     */
+    private async refreshExpandedConnectionGroupTreeEntries(entry: ConnectionDataModelEntry): Promise<void> {
+        if (!entry.state.expandedOnce) {
+            return;
+        }
+
+        const table = this.connectionTableRef.current;
+        const rows = table?.searchAllRows("id", entry.id);
+        if (!table || !rows || rows?.length === 0) {
+            return;
+        }
+
+        const row = rows[0];
+
+        // If initializing takes longer that the timer runs, show a progress indicator.
+        const timer = setTimeout(() => {
+            this.connectionSectionRef.current!.showProgress = true;
+        }, 200);
+
+        try {
+            ++this.refreshRunning;
+            await entry.refresh?.((result?: string | Error) => {
+                if (result instanceof Error) {
+                    void ui.showErrorMessage(convertErrorToString(result), {});
+                } else if (typeof result === "string") {
+                    void ui.setStatusBarMessage(result, 15000);
+                }
+            });
+
+            clearTimeout(timer);
+            this.connectionSectionRef.current!.showProgress = false;
+        } catch (error) {
+            clearTimeout(timer);
+            this.connectionSectionRef.current!.showProgress = false;
+            void ui.showErrorMessage(convertErrorToString(error), {});
+
+            return;
+        } finally {
+            --this.refreshRunning;
+        }
+
+        const children = entry.getChildren?.();
+
+        try {
+            table.beginUpdate();
+            const generator = this.generateConnectionTreeChild.bind(this, undefined, undefined);
+            await this.diffTreeEntries(row, generator, true, children);
+
+            if (children) {
+                for (const child of children) {
+                    if (child.type === CdmEntityType.ConnectionGroup) {
+                        await this.refreshExpandedConnectionGroupTreeEntries(child);
+                    }
                 }
             }
         } finally {
@@ -3331,8 +3502,8 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     private async diffTreeEntries<T extends IDataModelBaseEntry>(row: RowComponent,
         generator: TreeItemGenerator<T>, recursive: boolean, entries?: T[]): Promise<void> {
 
+        const data = row.getData() as IBaseTreeItem<T>;
         if (!entries) {
-            const data = row.getData() as IBaseTreeItem<T>;
             data.children = undefined;
 
             return;
@@ -3351,6 +3522,14 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
         }
 
         existingTreeItems = row.getTreeChildren();
+
+        // Removing all child entries will remove the "children" property from the tree item, making it so
+        // a leaf node, which is wrong.
+        if (existingTreeItems.length === 0 && !data.dataModelEntry.state.isLeaf) {
+            data.children = [];
+            await row.update(data);
+        }
+
         const newList: T[] = [];
 
         for (const entry of entries) {
@@ -3363,6 +3542,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
 
             if (item) {
                 const data = item.getData() as IBaseTreeItem<T>;
+                data.caption = entry.caption;
                 newList.push(data.dataModelEntry);
 
                 // Diff children if the entry was expanded once.
@@ -3383,6 +3563,11 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             const child = generator(entry);
             row.addTreeChild(child);
         }
+
+        // Re-expand the parent row if it was expanded before.
+        if (data.dataModelEntry.state.expanded) {
+            row.treeExpand();
+        }
     }
 
     /**
@@ -3398,6 +3583,7 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
     private generateConnectionTreeChild = <T extends IDataModelBaseEntry>(schema: string | undefined,
         table: string | undefined, entry: T): IConnectionTreeItem => {
         const item = this.generateTreeItem<IDataModelBaseEntry>(entry) as IConnectionTreeItem;
+
         item.qualifiedName = {
             schema,
             table,
@@ -3502,4 +3688,58 @@ export class DocumentSideBar extends ComponentBase<IDocumentSideBarProperties, I
             row.treeCollapse();
         });
     }
+
+    private sortConnectionTreeItems(items: IConnectionTreeItem[]): void {
+        items.sort((a, b) => {
+            const leftItem = a.dataModelEntry;
+            const rightItem = b.dataModelEntry;
+            if (leftItem.type === CdmEntityType.ConnectionGroup
+                && rightItem.type !== CdmEntityType.ConnectionGroup) {
+                return -1;
+            }
+
+            if (leftItem.type !== CdmEntityType.ConnectionGroup
+                && rightItem.type === CdmEntityType.ConnectionGroup) {
+                return 1;
+            }
+
+            return 0;
+        });
+    }
+
+    private sortConnectionGroupItems(items: ConnectionDataModelEntry[]): void {
+        items.sort((a, b) => {
+            return (b.type === CdmEntityType.ConnectionGroup ? 1 : 0) -
+                (a.type === CdmEntityType.ConnectionGroup ? 1 : 0);
+        });
+    }
+
+    /**
+     * Updates the connection tree items in the connection table (sorted or not).
+     */
+    private async updateConnectionTreeItems(): Promise<void> {
+        const { treeItems } = this.state;
+
+        if (this.connectionTableRef.current) {
+            const foldersFirst = Settings.get("dbEditor.connectionBrowser.sortFoldersFirst", true);
+            if (foldersFirst) {
+                const sortedItems = Array.from(treeItems.connectionTreeItems);
+                this.sortConnectionTreeItems(sortedItems);
+                await this.connectionTableRef.current.setData(sortedItems, SetDataAction.Replace);
+            } else {
+                await this.connectionTableRef.current.setData(treeItems.connectionTreeItems, SetDataAction.Replace);
+            }
+        }
+    }
+
+    private handleSettingsChanged = (entry?: { key: string; value: unknown; }): Promise<boolean> => {
+        if (entry?.key === "dbEditor.connectionBrowser.sortFoldersFirst") {
+            void this.updateConnectionTreeItems();
+
+            return Promise.resolve(true);
+        }
+
+        return Promise.resolve(false);
+    };
+
 }

@@ -41,10 +41,10 @@ import { DBConnectionViewProvider } from "./WebviewProviders/DBConnectionViewPro
 import { ui } from "../../frontend/src/app-logic/UILayer.js";
 import { IMrsDbObjectData } from "../../frontend/src/communication/ProtocolMrs.js";
 import {
-    cdbDbEntityTypeName,
-    CdmEntityType, ConnectionDataModelEntry, ICdmConnectionEntry, ICdmEventEntry, ICdmRestDbObjectEntry,
-    type ICdmAdminPageEntry, type ICdmRoutineEntry, type ICdmSchemaEntry, type ICdmSchemaGroupEntry,
-    type ICdmTableEntry, type ICdmTriggerEntry, type ICdmViewEntry,
+    cdbDbEntityTypeName, CdmEntityType, ConnectionDataModelEntry, ICdmConnectionEntry, ICdmEventEntry,
+    ICdmRestDbObjectEntry, type ConnectionDataModelNoGroupEntry, type ICdmAdminPageEntry, type ICdmConnectionGroupEntry,
+    type ICdmRoutineEntry, type ICdmSchemaEntry, type ICdmSchemaGroupEntry, type ICdmTableEntry,
+    type ICdmTriggerEntry, type ICdmViewEntry,
 } from "../../frontend/src/data-models/ConnectionDataModel.js";
 import {
     OdmEntityType, OpenDocumentDataModel, type IOdmConnectionPageEntry, type IOdmNotebookEntry, type IOdmScriptEntry,
@@ -53,9 +53,11 @@ import {
 } from "../../frontend/src/data-models/OpenDocumentDataModel.js";
 import { MrsDbObjectType } from "../../frontend/src/modules/mrs/types.js";
 import { DBType, type IShellSessionDetails } from "../../frontend/src/supplement/ShellInterface/index.js";
+import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceSqlEditor.js";
+import { webSession } from "../../frontend/src/supplement/WebSession.js";
 import { uuid } from "../../frontend/src/utilities/helpers.js";
-import { convertSnakeToCamelCase } from "../../frontend/src/utilities/string-helpers.js";
+import { convertSnakeToCamelCase, formatWithNumber } from "../../frontend/src/utilities/string-helpers.js";
 import { CodeBlocks } from "./CodeBlocks.js";
 import { ExtensionHost } from "./ExtensionHost.js";
 import {
@@ -81,37 +83,37 @@ export class DocumentCommandHandler {
 
     private latestPagesByConnection: Map<number, string> = new Map();
 
-    #isConnected = false;
-    #host: ExtensionHost;
+    private isConnected = false;
+    private host: ExtensionHost;
 
-    #codeBlocks = new CodeBlocks();
+    private codeBlocks = new CodeBlocks();
 
     // For each open editor a list of open scripts is held (via a mapping of script IDs and their target URI).
-    #openScripts = new Map<DBConnectionViewProvider, Map<string, Uri>>();
+    private openScripts = new Map<DBConnectionViewProvider, Map<string, Uri>>();
 
-    #openEditorsTreeDataProvider: OpenEditorsTreeDataProvider;
-    #connectionsProvider: ConnectionsTreeDataProvider;
+    private openEditorsTreeDataProvider: OpenEditorsTreeDataProvider;
+    private connectionsProvider: ConnectionsTreeDataProvider;
 
-    #initialDisplayOfOpenEditorsView = true;
-    #displayDbConnectionOverviewWhenConnected = false;
+    private initialDisplayOfOpenEditorsView = true;
+    private displayDbConnectionOverviewWhenConnected = false;
 
-    #openDocumentsModel = new OpenDocumentDataModel(false);
+    private openDocumentsModel = new OpenDocumentDataModel(false);
 
     // Set when the handler triggers a document selection, which causes the a bounce back from the web app
     // in which a document was selected. This flag is used to prevent the re-selection of the last selected item.
-    #selectionInProgress = false;
+    private selectionInProgress = false;
 
     public constructor(connectionsProvider: ConnectionsTreeDataProvider) {
-        this.#connectionsProvider = connectionsProvider;
+        this.connectionsProvider = connectionsProvider;
     }
 
     public setup(host: ExtensionHost): void {
-        this.#host = host;
+        this.host = host;
         const context = host.context;
 
-        this.#codeBlocks.setup(context);
+        this.codeBlocks.setup(context);
         const dbConnectionsTreeView = window.createTreeView("msg.connections", {
-            treeDataProvider: this.#connectionsProvider,
+            treeDataProvider: this.connectionsProvider,
             showCollapseAll: true,
             canSelectMany: false,
         });
@@ -119,27 +121,27 @@ export class DocumentCommandHandler {
 
         // Register expand/collapse handlers
         dbConnectionsTreeView.onDidExpandElement((event) => {
-            this.#connectionsProvider.didExpandElement(event.element);
+            this.connectionsProvider.didExpandElement(event.element);
         });
 
         dbConnectionsTreeView.onDidCollapseElement((event) => {
-            this.#connectionsProvider.didCollapseElement(event.element);
+            this.connectionsProvider.didCollapseElement(event.element);
         });
 
-        this.#openEditorsTreeDataProvider = new OpenEditorsTreeDataProvider(this.#openDocumentsModel);
+        this.openEditorsTreeDataProvider = new OpenEditorsTreeDataProvider(this.openDocumentsModel);
         const openEditorsTreeView = window.createTreeView(
             "msg.openEditors",
             {
-                treeDataProvider: this.#openEditorsTreeDataProvider,
+                treeDataProvider: this.openEditorsTreeDataProvider,
                 showCollapseAll: true,
                 canSelectMany: false,
             });
         context.subscriptions.push(openEditorsTreeView);
-        this.#openEditorsTreeDataProvider.onSelect = (item: OpenDocumentDataModelEntry): void => {
-            if (!this.#selectionInProgress) {
+        this.openEditorsTreeDataProvider.onSelect = (item: OpenDocumentDataModelEntry): void => {
+            if (!this.selectionInProgress) {
                 void openEditorsTreeView.reveal(item, { select: true, focus: false, expand: 3 });
             } else {
-                this.#selectionInProgress = false;
+                this.selectionInProgress = false;
             }
         };
 
@@ -149,16 +151,16 @@ export class DocumentCommandHandler {
             const showDbConnectionsTab = workspace.getConfiguration(`msg.startup`)
                 .get<boolean>("showDbConnectionsTab", true);
 
-            if (e.visible && this.#initialDisplayOfOpenEditorsView && showDbConnectionsTab) {
-                this.#initialDisplayOfOpenEditorsView = false;
+            if (e.visible && this.initialDisplayOfOpenEditorsView && showDbConnectionsTab) {
+                this.initialDisplayOfOpenEditorsView = false;
 
                 // If the extension is already connected to the MySQL Shell websocket,
                 // open the DB Connection Overview right away
-                if (this.#isConnected) {
+                if (this.isConnected) {
                     void commands.executeCommand("msg.openDBBrowser");
                 } else {
                     // Otherwise open the DB Connection Overview when connected
-                    this.#displayDbConnectionOverviewWhenConnected = true;
+                    this.displayDbConnectionOverviewWhenConnected = true;
                 }
             }
         });
@@ -175,10 +177,10 @@ export class DocumentCommandHandler {
             if (entry) {
                 // "Open connection" acts differently, depending on whether the same connection is already open or not.
                 let provider;
-                if (this.#openDocumentsModel.isOpen(entry.details)) {
-                    provider = this.#host.newProvider;
+                if (this.openDocumentsModel.isOpen(entry.details)) {
+                    provider = this.host.newProvider;
                 } else {
-                    provider = this.#host.currentProvider;
+                    provider = this.host.currentProvider;
                 }
 
                 void provider?.show(entry.details.id, editor);
@@ -202,7 +204,7 @@ export class DocumentCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.openConnectionNewTab",
             (entry?: ICdmConnectionEntry) => {
                 if (entry) {
-                    const provider = this.#host.newProvider;
+                    const provider = this.host.newProvider;
                     void provider?.show(entry.details.id);
                 }
             }));
@@ -211,7 +213,6 @@ export class DocumentCommandHandler {
             if (!uri) {
                 return;
             }
-
 
             const connection = await host.determineConnection(DBType.MySQL, true);
             if (connection) {
@@ -222,7 +223,7 @@ export class DocumentCommandHandler {
                         `is too large to edit it in a web view. Instead use the VS Code built-in editor.`, {});
                 } else {
                     const content = (await workspace.fs.readFile(uri)).toString();
-                    const provider = this.#host.currentProvider;
+                    const provider = this.host.currentProvider;
 
                     if (provider) {
                         // We load only sql and mysql scripts here.
@@ -236,17 +237,15 @@ export class DocumentCommandHandler {
                             language,
                         };
 
-                        let scripts = this.#openScripts.get(provider);
+                        let scripts = this.openScripts.get(provider);
                         if (!scripts) {
                             scripts = new Map();
-                            this.#openScripts.set(provider, scripts);
+                            this.openScripts.set(provider, scripts);
                         }
                         scripts.set(request.id, uri);
 
                         const details = connection.details;
                         void provider.editScript(details.id, request);
-
-
                     }
                 }
             }
@@ -254,7 +253,7 @@ export class DocumentCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.showTableData", (entry?: ICdmTableEntry) => {
             if (entry) {
-                const provider = this.#host.currentProvider;
+                const provider = this.host.currentProvider;
 
                 const configuration = workspace.getConfiguration(`msg.dbEditor`);
                 const uppercaseKeywords = configuration.get("upperCaseKeywords", true);
@@ -277,7 +276,7 @@ export class DocumentCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.selectTableRows", (entry?: ICdmTableEntry) => {
             if (entry) {
-                const provider = this.#host.currentProvider;
+                const provider = this.host.currentProvider;
 
                 const configuration = workspace.getConfiguration(`msg.dbEditor`);
                 const uppercaseKeywords = configuration.get("upperCaseKeywords", true);
@@ -294,12 +293,12 @@ export class DocumentCommandHandler {
         }));
 
         const showAdminPage = (provider: IWebviewProvider | undefined, _caption: string, page: ICdmAdminPageEntry) => {
-            provider ??= this.#host.currentProvider;
+            provider ??= this.host.currentProvider;
             if (provider instanceof DBConnectionViewProvider) {
                 const connectionId = page.connection.details.id;
 
                 const latestPageId = this.latestPagesByConnection.get(connectionId);
-                const documents = this.#openEditorsTreeDataProvider.findAdminDocument(provider,
+                const documents = this.openEditorsTreeDataProvider.findAdminDocument(provider,
                     connectionId, latestPageId);
 
                 // Check the list of open admin pages for the type we want to open.
@@ -328,7 +327,7 @@ export class DocumentCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.showLakehouseNavigator", showAdminPage));
 
         context.subscriptions.push(commands.registerCommand("msg.addConnection", () => {
-            const provider = this.#host.currentProvider;
+            const provider = this.host.currentProvider;
             void provider?.addConnection();
         }));
 
@@ -338,14 +337,14 @@ export class DocumentCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.removeConnection", (entry?: ICdmConnectionEntry) => {
             if (entry) {
-                const provider = this.#host.currentProvider;
+                const provider = this.host.currentProvider;
                 void provider?.removeConnection(entry.details.id);
             }
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.editConnection", (entry?: ICdmConnectionEntry) => {
             if (entry) {
-                const provider = this.#host.currentProvider;
+                const provider = this.host.currentProvider;
                 void provider?.editConnection(entry?.details.id);
             }
         }));
@@ -353,7 +352,7 @@ export class DocumentCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.duplicateConnection",
             (entry?: ICdmConnectionEntry) => {
                 if (entry) {
-                    const provider = this.#host.currentProvider;
+                    const provider = this.host.currentProvider;
                     void provider?.duplicateConnection(entry.details.id);
                 }
             }));
@@ -381,11 +380,11 @@ export class DocumentCommandHandler {
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.openDBBrowser", (provider?: IWebviewProvider) => {
-            provider ??= this.#host.currentProvider;
+            provider ??= this.host.currentProvider;
             if (provider instanceof DBConnectionViewProvider) {
                 void provider.show();
             } else {
-                const provider = this.#host.currentProvider;
+                const provider = this.host.currentProvider;
                 if (provider) {
                     void provider.show();
                 }
@@ -394,14 +393,13 @@ export class DocumentCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.makeCurrentSchema", (entry?: ICdmSchemaEntry) => {
             if (entry) {
-                const provider = this.#host.currentProvider;
+                const provider = this.host.currentProvider;
                 if (provider) {
-                    void provider?.makeCurrentSchema(entry.connection.details.id, entry.caption)
-                        .then((success) => {
-                            if (success) {
-                                this.#connectionsProvider.makeCurrentSchema(entry);
-                            }
-                        });
+                    void provider?.makeCurrentSchema(entry.connection.details.id, entry.caption).then((success) => {
+                        if (success) {
+                            this.connectionsProvider.makeCurrentSchema(entry);
+                        }
+                    });
                 }
             }
         }));
@@ -441,7 +439,7 @@ export class DocumentCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.editRoutine", async (entry?: ICdmRoutineEntry) => {
             if (entry) {
                 const entryType = entry.type === CdmEntityType.StoredFunction ? "function" : "procedure";
-                const sql = await this.#connectionsProvider.getCreateSqlScript(entry, entryType, true, true);
+                const sql = await this.connectionsProvider.getCreateSqlScript(entry, entryType, true, true);
 
                 void this.addNewSqlScript(entry.connection.details.id, "msg.editRoutine",
                     entry.parent.caption, "Edit Routine", sql);
@@ -450,37 +448,37 @@ export class DocumentCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.dropSchema", (entry?: ICdmSchemaEntry) => {
             if (entry) {
-                this.#connectionsProvider.dropItem(entry);
+                this.connectionsProvider.dropItem(entry);
             }
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.dropTable", (entry?: ICdmTableEntry) => {
             if (entry) {
-                this.#connectionsProvider.dropItem(entry);
+                this.connectionsProvider.dropItem(entry);
             }
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.dropView", (entry?: ICdmViewEntry) => {
             if (entry) {
-                this.#connectionsProvider.dropItem(entry);
+                this.connectionsProvider.dropItem(entry);
             }
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.dropRoutine", (entry?: ICdmRoutineEntry) => {
             if (entry) {
-                this.#connectionsProvider.dropItem(entry);
+                this.connectionsProvider.dropItem(entry);
             }
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.dropTrigger", (entry?: ICdmTriggerEntry) => {
             if (entry) {
-                this.#connectionsProvider.dropItem(entry);
+                this.connectionsProvider.dropItem(entry);
             }
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.dropEvent", (entry?: ICdmEventEntry) => {
             if (entry) {
-                this.#connectionsProvider.dropItem(entry);
+                this.connectionsProvider.dropItem(entry);
             }
         }));
 
@@ -499,31 +497,31 @@ export class DocumentCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.copyNameToClipboard",
             (entry?: ConnectionDataModelEntry) => {
                 if (entry) {
-                    this.#connectionsProvider.copyNameToClipboard(entry);
+                    this.connectionsProvider.copyNameToClipboard(entry);
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.copyCreateScriptToClipboard",
-            (entry?: ConnectionDataModelEntry) => {
+            (entry?: ConnectionDataModelNoGroupEntry) => {
                 if (entry) {
                     const typeName = cdbDbEntityTypeName.get(entry.type)!;
-                    void this.#connectionsProvider.copyCreateScriptToClipboard(entry, typeName);
+                    void this.connectionsProvider.copyCreateScriptToClipboard(entry, typeName);
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.copyCreateScriptWithDelimitersToClipboard",
-            (entry?: ConnectionDataModelEntry) => {
+            (entry?: ConnectionDataModelNoGroupEntry) => {
                 if (entry) {
                     const typeName = cdbDbEntityTypeName.get(entry.type)!;
-                    void this.#connectionsProvider.copyCreateScriptToClipboard(entry, typeName, true);
+                    void this.connectionsProvider.copyCreateScriptToClipboard(entry, typeName, true);
                 }
             }));
 
         context.subscriptions.push(commands.registerCommand("msg.copyDropCreateScriptWithDelimitersToClipboard",
-            (entry?: ConnectionDataModelEntry) => {
+            (entry?: ConnectionDataModelNoGroupEntry) => {
                 if (entry) {
                     const typeName = cdbDbEntityTypeName.get(entry.type)!;
-                    void this.#connectionsProvider.copyCreateScriptToClipboard(entry, typeName, true, true);
+                    void this.connectionsProvider.copyCreateScriptToClipboard(entry, typeName, true, true);
                 }
             }));
 
@@ -542,7 +540,7 @@ export class DocumentCommandHandler {
                         if (connection) {
                             await workspace.fs.readFile(uri).then((value) => {
                                 const content = value.toString();
-                                const provider = this.#host.currentProvider;
+                                const provider = this.host.currentProvider;
 
                                 if (provider) {
                                     const name = basename(uri.fsPath);
@@ -553,10 +551,10 @@ export class DocumentCommandHandler {
                                         content,
                                     };
 
-                                    let scripts = this.#openScripts.get(provider);
+                                    let scripts = this.openScripts.get(provider);
                                     if (!scripts) {
                                         scripts = new Map();
-                                        this.#openScripts.set(provider, scripts);
+                                        this.openScripts.set(provider, scripts);
                                     }
                                     scripts.set(details.id, uri);
 
@@ -593,7 +591,7 @@ export class DocumentCommandHandler {
                         } else {
                             await workspace.fs.readFile(uri).then((value) => {
                                 const content = value.toString();
-                                const provider = this.#host.currentProvider;
+                                const provider = this.host.currentProvider;
 
                                 if (provider) {
                                     let language: EditorLanguage = "mysql";
@@ -628,10 +626,10 @@ export class DocumentCommandHandler {
                                         content,
                                     };
 
-                                    let scripts = this.#openScripts.get(provider);
+                                    let scripts = this.openScripts.get(provider);
                                     if (!scripts) {
                                         scripts = new Map();
-                                        this.#openScripts.set(provider, scripts);
+                                        this.openScripts.set(provider, scripts);
                                     }
                                     scripts.set(details.id, uri);
 
@@ -643,6 +641,105 @@ export class DocumentCommandHandler {
                 });
             }
         }));
+
+        context.subscriptions.push(commands.registerCommand("msg.addSubFolder",
+            async (entry: ICdmConnectionGroupEntry) => {
+                let name = await window.showInputBox({
+                    title: `Add subfolder in Folder \`${entry.caption}\``,
+                    placeHolder: "Sub folder",
+                    prompt: "Enter the name of the new folder:",
+                    value: "",
+                });
+
+                if (name === undefined) {
+                    return;
+                }
+
+                if (name === "") {
+                    name = "Sub folder";
+                }
+
+                await ShellInterface.dbConnections.addFolderPath(webSession.currentProfileId, name,
+                    entry.folderPath.id);
+                await entry.refresh?.();
+                void requisitions.executeRemote("refreshConnectionGroup", entry.folderPath.id);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.editFolder",
+            async (entry: ICdmConnectionGroupEntry) => {
+                const name = await window.showInputBox({
+                    title: `Edit Folder`,
+                    prompt: "Enter the new name of the folder:",
+                    value: entry.caption,
+                });
+
+                if (!name) {
+                    return;
+                }
+
+                await ShellInterface.dbConnections.renameFolderPath(entry.folderPath.id, name);
+
+                // TODO: for now we have to update the parent folder, to get the new name. A new API should be created
+                // to get the new name of the folder directly.
+                await entry.parent?.refresh?.();
+                void requisitions.executeRemote("refreshConnectionGroup", entry.parent?.folderPath.id);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.removeFolder",
+            async (entry: ICdmConnectionGroupEntry) => {
+                // Count how many connections and subfolders are in the folder. The group entry is returned
+                // in the list too.
+                await entry?.refresh?.();
+                const flatList = await this.connectionsProvider.dataModel.flattenGroupList(entry);
+
+                let description: string[] = [];
+                let prompt = `Are you sure you want to remove the folder "${entry?.caption}", including all its ` +
+                    `contents? This operation cannot be reverted!`;
+                if (flatList.connections.length === 0 &&
+                    flatList.groups.length === 1) { // Only the group entry is in the list.
+                    prompt = `The folder "${entry?.caption}" is empty. Do you want to remove it?`;
+                } else {
+                    let groupString = "";
+                    if (flatList.groups.length > 1) {
+                        groupString = formatWithNumber("subfolder", flatList.groups.length - 1);
+                    }
+
+                    let connectionString = "";
+                    if (flatList.connections.length > 0) {
+                        connectionString = formatWithNumber("connection", flatList.connections.length);
+                    }
+
+                    if (groupString && connectionString) {
+                        description = [`The folder contains ${groupString} and ` +
+                            `${connectionString}.`];
+                    } else if (groupString) {
+                        description = [`The folder contains ${groupString}.`];
+                    } else {
+                        description = [`The folder contains ${connectionString}.`];
+                    }
+                }
+
+                description.unshift("");
+                description.unshift(prompt);
+                const answer = await ui.confirm(description.join("\n"), "Delete Folder");
+                if (answer === "Delete Folder") {
+                    for (const connection of flatList.connections.reverse()) {
+                        await this.connectionsProvider.dataModel.dropItem(connection);
+                        await this.connectionsProvider.dataModel.removeEntry(connection);
+                    }
+
+                    for (const group of flatList.groups.reverse()) {
+                        await this.connectionsProvider.dataModel.dropItem(group);
+                        await this.connectionsProvider.dataModel.removeEntry(group);
+                    }
+
+                    void ui.showInformationMessage(`The connection group ` +
+                        `"${entry?.caption}" has been deleted.`, {});
+
+                    await entry.parent?.refresh?.();
+                    void requisitions.executeRemote("refreshConnectionGroup", entry.parent?.folderPath.id);
+                }
+            }));
 
         context.subscriptions.push(commands.registerCommand("msg.selectDocument",
             (item?: DocumentTreeBaseItem<OpenDocumentDataModelEntry>) => {
@@ -672,7 +769,7 @@ export class DocumentCommandHandler {
                         }
 
                         case OdmEntityType.Overview: {
-                            provider = this.#host.currentProvider;
+                            provider = this.host.currentProvider;
                             break;
                         }
 
@@ -702,7 +799,7 @@ export class DocumentCommandHandler {
                     }
 
                     if (provider) {
-                        this.#selectionInProgress = true;
+                        this.selectionInProgress = true;
                         void provider.selectDocument(dataModelEntry.id, connectionId, pageId);
                     }
                 }
@@ -711,7 +808,7 @@ export class DocumentCommandHandler {
         context.subscriptions.push(commands.registerCommand("msg.mds.createConnectionViaBastionService",
             (item?: OciDbSystemTreeItem) => {
                 if (item) {
-                    const provider = this.#host.currentProvider;
+                    const provider = this.host.currentProvider;
                     void provider?.addConnection(item.dbSystem, item.profile.profile);
                 }
             }));
@@ -721,7 +818,7 @@ export class DocumentCommandHandler {
                 if (editor) {
                     void host.determineConnection().then((connection) => {
                         if (connection) {
-                            this.#codeBlocks.executeSqlFromEditor(editor, connection.details.caption,
+                            this.codeBlocks.executeSqlFromEditor(editor, connection.details.caption,
                                 connection.details.id);
                         }
                     });
@@ -733,7 +830,7 @@ export class DocumentCommandHandler {
                 if (editor) {
                     void host.determineConnection().then((connection) => {
                         if (connection) {
-                            const provider = this.#host.currentProvider;
+                            const provider = this.host.currentProvider;
                             if (provider) {
                                 const sql = this.getSql(editor);
 
@@ -795,7 +892,7 @@ export class DocumentCommandHandler {
                     || entry.type === CdmEntityType.StoredFunction || entry.type === CdmEntityType.StoredProcedure) {
                     // First, create a new temporary dbObject, then call the DbObject dialog
                     this.createNewDbObject(connection.backend, entry).then((dbObject) => {
-                        const provider = this.#host.currentProvider;
+                        const provider = this.host.currentProvider;
                         void provider?.editMrsDbObject(connection.details.id,
                             { dbObject, createObject: true });
                     }).catch((reason) => {
@@ -810,7 +907,7 @@ export class DocumentCommandHandler {
 
         context.subscriptions.push(commands.registerCommand("msg.mrs.editDbObject", (entry?: ICdmRestDbObjectEntry) => {
             if (entry) {
-                const provider = this.#host.currentProvider;
+                const provider = this.host.currentProvider;
                 const connection = entry.parent.parent.parent.parent;
                 void provider?.editMrsDbObject(connection.details.id,
                     { dbObject: entry.details, createObject: false });
@@ -818,18 +915,18 @@ export class DocumentCommandHandler {
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.newSession", () => {
-            const provider = this.#host.currentProvider;
+            const provider = this.host.currentProvider;
             void provider?.openSession({ sessionId: uuid() });
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.openSession", (details: IShellSessionDetails) => {
-            const provider = this.#host.currentProvider;
+            const provider = this.host.currentProvider;
             void provider?.openSession(details);
         }));
 
         context.subscriptions.push(commands.registerCommand("msg.newSessionUsingConnection",
             (entry: ICdmConnectionEntry | IOdmConnectionPageEntry) => {
-                const provider = this.#host.currentProvider;
+                const provider = this.host.currentProvider;
 
                 const caption = entry.type === CdmEntityType.Connection ? entry.details.caption : entry.caption;
                 const dbConnectionId = entry.details.id;
@@ -848,6 +945,7 @@ export class DocumentCommandHandler {
                 void provider.removeSession(entry.details);
             }
         }));
+
     }
 
     public async addNewSqlScript(connectionId: number, command: string, schemaName: string,
@@ -867,6 +965,7 @@ export class DocumentCommandHandler {
             if (name === undefined) {
                 return;
             }
+
             if (name === "") {
                 name = placeHolder;
             }
@@ -935,7 +1034,7 @@ export class DocumentCommandHandler {
             default:
         }
 
-        const provider = this.#host.currentProvider ?? this.#host.newProvider;
+        const provider = this.host.currentProvider ?? this.host.newProvider;
         if (provider) {
             this.createNewScriptEditor(
                 provider, scriptName, sql, "mysql", connectionId,
@@ -947,12 +1046,12 @@ export class DocumentCommandHandler {
      * Triggered on authentication, which means existing connections are no longer valid.
      */
     public async refreshConnectionTree(): Promise<void> {
-        await this.#connectionsProvider.closeAllConnections();
-        this.#connectionsProvider.refresh();
+        await this.connectionsProvider.closeAllConnections();
+        this.connectionsProvider.refresh();
     }
 
     public clear(): void {
-        this.#openEditorsTreeDataProvider.clear();
+        this.openEditorsTreeDataProvider.clear();
     }
 
     /**
@@ -962,17 +1061,17 @@ export class DocumentCommandHandler {
      */
     public providerOpened(provider: DBConnectionViewProvider): void {
         // Register the new provider with our data model.
-        this.#openDocumentsModel.openProvider(provider);
-        this.#openEditorsTreeDataProvider.refresh();
+        this.openDocumentsModel.openProvider(provider);
+        this.openEditorsTreeDataProvider.refresh();
     }
 
     public providerClosed(provider: DBConnectionViewProvider): void {
-        this.#openDocumentsModel.closeProvider(provider);
-        this.#openScripts.delete(provider);
-        this.#openEditorsTreeDataProvider.refresh();
-        if (this.#openEditorsTreeDataProvider.clear(provider)) {
+        this.openDocumentsModel.closeProvider(provider);
+        this.openScripts.delete(provider);
+        this.openEditorsTreeDataProvider.refresh();
+        if (this.openEditorsTreeDataProvider.clear(provider)) {
             // No provider remained open. Reset the current schemas.
-            this.#connectionsProvider.resetCurrentSchemas();
+            this.connectionsProvider.resetCurrentSchemas();
         }
     }
 
@@ -982,11 +1081,11 @@ export class DocumentCommandHandler {
      * @returns The new caption.
      */
     public generateNewProviderCaption(): string {
-        return this.#openDocumentsModel.createUniqueCaption();
+        return this.openDocumentsModel.createUniqueCaption();
     }
 
     public providerStateChanged(provider: DBConnectionViewProvider, active: boolean): void {
-        this.#connectionsProvider.providerStateChanged(provider, active);
+        this.connectionsProvider.providerStateChanged(provider, active);
     }
 
     private createNewDbObject = async (backend: ShellInterfaceSqlEditor,
@@ -1075,10 +1174,10 @@ export class DocumentCommandHandler {
     };
 
     private connectedToUrl = (url?: URL): Promise<boolean> => {
-        this.#isConnected = url !== undefined;
+        this.isConnected = url !== undefined;
 
-        if (this.#displayDbConnectionOverviewWhenConnected) {
-            this.#displayDbConnectionOverviewWhenConnected = false;
+        if (this.displayDbConnectionOverviewWhenConnected) {
+            this.displayDbConnectionOverviewWhenConnected = false;
             void commands.executeCommand("msg.openDBBrowser");
         }
 
@@ -1093,7 +1192,7 @@ export class DocumentCommandHandler {
      * @returns A promise returning a flag whether the task was successfully executed or not.
      */
     private executeCodeBlock = (details: ICodeBlockExecutionOptions): Promise<boolean> => {
-        const provider = this.#host.currentProvider;
+        const provider = this.host.currentProvider;
         if (provider) {
             return provider.runCode(details.connectionId, {
                 linkId: details.linkId,
@@ -1142,9 +1241,9 @@ export class DocumentCommandHandler {
         }).then((list: Uri[]) => {
             if (list.length > 0) {
                 void workspace.fs.readFile(list[0]).then((content) => {
-                    const provider = this.#host.currentProvider;
+                    const provider = this.host.currentProvider;
                     if (provider) {
-                        const scripts = this.#openScripts.get(provider);
+                        const scripts = this.openScripts.get(provider);
                         if (scripts) {
                             scripts.set(details.id, list[0]);
                             const newName = basename(list[0].fsPath);
@@ -1159,7 +1258,7 @@ export class DocumentCommandHandler {
                         }
 
                         details.content = content.toString();
-                        const connectionId = this.#openEditorsTreeDataProvider.currentConnectionId(provider) ?? -1;
+                        const connectionId = this.openEditorsTreeDataProvider.currentConnectionId(provider) ?? -1;
 
                         void provider.loadScript(connectionId, details);
                     }
@@ -1172,9 +1271,9 @@ export class DocumentCommandHandler {
     };
 
     private editorSaveScript = (details: IScriptRequest): Promise<boolean> => {
-        const provider = this.#host.currentProvider;
+        const provider = this.host.currentProvider;
         if (provider) {
-            const scripts = this.#openScripts.get(provider);
+            const scripts = this.openScripts.get(provider);
             if (scripts) {
                 const uri = scripts.get(details.id);
                 if (uri) {
@@ -1249,10 +1348,10 @@ export class DocumentCommandHandler {
             pageId,
         };
 
-        let scripts = this.#openScripts.get(dbProvider);
+        let scripts = this.openScripts.get(dbProvider);
         if (!scripts) {
             scripts = new Map();
-            this.#openScripts.set(dbProvider, scripts);
+            this.openScripts.set(dbProvider, scripts);
         }
         if (uri) {
             scripts.set(request.id, uri);
@@ -1277,9 +1376,9 @@ export class DocumentCommandHandler {
                 provider = params.entry.parent.provider;
                 pageId = params.entry.id;
             } else if (!connectionId) {
-                provider = this.#host.currentProvider;
+                provider = this.host.currentProvider;
                 if (provider) {
-                    connectionId = this.#openEditorsTreeDataProvider.currentConnectionId(provider) ?? -1;
+                    connectionId = this.openEditorsTreeDataProvider.currentConnectionId(provider) ?? -1;
                 }
             }
 

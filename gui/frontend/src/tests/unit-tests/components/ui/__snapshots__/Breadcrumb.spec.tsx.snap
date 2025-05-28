@@ -11,16 +11,18 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
       "subfolder",
     ]
   }
-  separator="❯"
+  showPicker={false}
 >
   <Container
-    className="msg breadcrumb verticalCenterContent dropShadow"
+    className="msg breadcrumb dropShadow"
     id="breadcrumb1"
     orientation="row"
+    showPicker={false}
   >
     <div
-      className="msg container fixedScrollbar breadcrumb verticalCenterContent dropShadow"
+      className="msg container fixedScrollbar breadcrumb dropShadow"
       id="breadcrumb1"
+      showPicker={false}
       style={
         {
           "alignItems": undefined,
@@ -32,13 +34,12 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
     >
       <Button
         className="breadcrumbItem"
-        id="root"
-        key="breadcrumb10"
+        id="undefined"
         onClick={[Function]}
       >
         <div
           className="msg button breadcrumbItem"
-          id="root"
+          id="undefined"
           onClick={[Function]}
           onMouseDown={[Function]}
           role="button"
@@ -48,31 +49,16 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
             }
           }
           tabIndex={0}
-        >
-          root
-        </div>
+        />
       </Button>
-      <Label
-        caption="❯"
-        className="separator"
-      >
-        <label
-          className="msg label separator"
-          data-tooltip="expand"
-          style={{}}
-        >
-          ❯
-        </label>
-      </Label>
       <Button
         className="breadcrumbItem"
-        id="folder"
-        key="breadcrumb11"
+        id="undefined"
         onClick={[Function]}
       >
         <div
           className="msg button breadcrumbItem"
-          id="folder"
+          id="undefined"
           onClick={[Function]}
           onMouseDown={[Function]}
           role="button"
@@ -82,31 +68,16 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
             }
           }
           tabIndex={0}
-        >
-          folder
-        </div>
+        />
       </Button>
-      <Label
-        caption="❯"
-        className="separator"
-      >
-        <label
-          className="msg label separator"
-          data-tooltip="expand"
-          style={{}}
-        >
-          ❯
-        </label>
-      </Label>
       <Button
         className="breadcrumbItem"
-        id="subfolder"
-        key="breadcrumb12"
+        id="undefined"
         onClick={[Function]}
       >
         <div
           className="msg button breadcrumbItem"
-          id="subfolder"
+          id="undefined"
           onClick={[Function]}
           onMouseDown={[Function]}
           role="button"
@@ -116,41 +87,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 1 1`] = `
             }
           }
           tabIndex={0}
-        >
-          subfolder
-        </div>
-      </Button>
-      <Label
-        caption="❯"
-        className="separator"
-      >
-        <label
-          className="msg label separator"
-          data-tooltip="expand"
-          style={{}}
-        >
-          ❯
-        </label>
-      </Label>
-      <Button
-        caption="..."
-        className="picker"
-        key="picker"
-      >
-        <div
-          caption="..."
-          className="msg button picker"
-          onMouseDown={[Function]}
-          role="button"
-          style={
-            {
-              "flexDirection": undefined,
-            }
-          }
-          tabIndex={0}
-        >
-          ...
-        </div>
+        />
       </Button>
     </div>
   </Container>
@@ -169,15 +106,18 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
     ]
   }
   separator="☞"
+  showPicker={false}
 >
   <Container
-    className="msg breadcrumb verticalCenterContent"
+    className="msg breadcrumb"
     id="breadcrumb2"
     orientation="row"
+    showPicker={false}
   >
     <div
-      className="msg container fixedScrollbar breadcrumb verticalCenterContent"
+      className="msg container fixedScrollbar breadcrumb"
       id="breadcrumb2"
+      showPicker={false}
       style={
         {
           "alignItems": undefined,
@@ -189,13 +129,12 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
     >
       <Button
         className="breadcrumbItem"
-        id="root"
-        key="breadcrumb20"
+        id="undefined"
         onClick={[Function]}
       >
         <div
           className="msg button breadcrumbItem"
-          id="root"
+          id="undefined"
           onClick={[Function]}
           onMouseDown={[Function]}
           role="button"
@@ -205,9 +144,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
             }
           }
           tabIndex={0}
-        >
-          root
-        </div>
+        />
       </Button>
       <Label
         caption="☞"
@@ -223,13 +160,12 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
       </Label>
       <Button
         className="breadcrumbItem"
-        id="folder"
-        key="breadcrumb21"
+        id="undefined"
         onClick={[Function]}
       >
         <div
           className="msg button breadcrumbItem"
-          id="folder"
+          id="undefined"
           onClick={[Function]}
           onMouseDown={[Function]}
           role="button"
@@ -239,9 +175,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
             }
           }
           tabIndex={0}
-        >
-          folder
-        </div>
+        />
       </Button>
       <Label
         caption="☞"
@@ -257,13 +191,12 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
       </Label>
       <Button
         className="breadcrumbItem"
-        id="subfolder"
-        key="breadcrumb22"
+        id="undefined"
         onClick={[Function]}
       >
         <div
           className="msg button breadcrumbItem"
-          id="subfolder"
+          id="undefined"
           onClick={[Function]}
           onMouseDown={[Function]}
           role="button"
@@ -273,9 +206,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
             }
           }
           tabIndex={0}
-        >
-          subfolder
-        </div>
+        />
       </Button>
       <Label
         caption="☞"
@@ -291,13 +222,12 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
       </Label>
       <Button
         className="breadcrumbItem"
-        id="subfolder2"
-        key="breadcrumb23"
+        id="undefined"
         onClick={[Function]}
       >
         <div
           className="msg button breadcrumbItem"
-          id="subfolder2"
+          id="undefined"
           onClick={[Function]}
           onMouseDown={[Function]}
           role="button"
@@ -307,9 +237,7 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
             }
           }
           tabIndex={0}
-        >
-          subfolder2
-        </div>
+        />
       </Button>
       <Label
         caption="☞"
@@ -323,26 +251,6 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 2 1`] = `
           ☞
         </label>
       </Label>
-      <Button
-        caption="..."
-        className="picker"
-        key="picker"
-      >
-        <div
-          caption="..."
-          className="msg button picker"
-          onMouseDown={[Function]}
-          role="button"
-          style={
-            {
-              "flexDirection": undefined,
-            }
-          }
-          tabIndex={0}
-        >
-          ...
-        </div>
-      </Button>
     </div>
   </Container>
 </Breadcrumb>
@@ -356,16 +264,18 @@ exports[`Breadcrumb render testing Test Breadcrumb (Snapshot) 3 1`] = `
       "",
     ]
   }
-  separator="❯"
+  showPicker={false}
 >
   <Container
-    className="msg breadcrumb verticalCenterContent"
+    className="msg breadcrumb"
     id="breadcrumb3"
     orientation="row"
+    showPicker={false}
   >
     <div
-      className="msg container fixedScrollbar breadcrumb verticalCenterContent"
+      className="msg container fixedScrollbar breadcrumb"
       id="breadcrumb3"
+      showPicker={false}
       style={
         {
           "alignItems": undefined,

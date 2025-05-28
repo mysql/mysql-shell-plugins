@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -23,7 +23,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-msg.sessionTile > #actions > .icon:not(.codicon) {
-    flex: 0 0 24px;
-    margin: 0;
+import { type ICdmConnectionGroupEntry } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
+import { ConnectionBaseTreeItem } from "./ConnectionBaseTreeItem.js";
+
+export class ConnectionGroupTreeItem extends ConnectionBaseTreeItem<ICdmConnectionGroupEntry> {
+
+    public override contextValue = `connectionGroup`;
+
+    public constructor(dataModelEntry: ICdmConnectionGroupEntry) {
+        super(dataModelEntry, "folder.svg", true);
+    }
 }

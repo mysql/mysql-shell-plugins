@@ -50,6 +50,8 @@ import { E2ECommandResultData } from "../lib/CommandResults/E2ECommandResultData
 import { E2ETreeItem } from "../lib/SideBar/E2ETreeItem.js";
 import { PasswordDialog } from "../lib/Dialogs/PasswordDialog.js";
 import { E2EObjectStorageBrowserError } from "../lib/errors/E2EObjectStorageBrowserError.js";
+import { FolderDialog } from "../lib/Dialogs/FolderDialog.js";
+import { ConfirmDialog } from "../lib/Dialogs/ConfirmationDialog.js";
 
 const filename = basename(__filename);
 const url = Misc.getUrl(basename(filename));
@@ -151,10 +153,7 @@ describe("DATABASE CONNECTIONS", () => {
         beforeAll(async () => {
 
             try {
-                const closeHeaderButton = await driver.findElements(locator.dbConnectionOverview.closeHeader);
-                if (closeHeaderButton.length > 0) {
-                    await closeHeaderButton[0].click();
-                }
+                await new E2ETabContainer().closeAllTabs();
             } catch (e) {
                 await Misc.storeScreenShot("beforeAll_Connection_Overview");
                 throw e;
@@ -354,6 +353,9 @@ describe("DATABASE CONNECTIONS", () => {
                         privateKey: "edited private key",
                         customPath: "edited custom path",
                     };
+                    editConn.folderPath = {
+                        value: "/",
+                    };
                     editConn.advanced = {
                         // bug : https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=36482559
                         /*mode: {
@@ -447,11 +449,16 @@ describe("DATABASE CONNECTIONS", () => {
                 await dbConnectionOverview.moreActions(editSqliteConn.caption!, constants.editConnection);
                 editSqliteConn.caption = "e2eEditedSqliteCaption";
                 editSqliteConn.description = "edited sqlite description";
+                editSqliteConn.folderPath = {
+                    value: "/",
+                };
+
                 if (interfaces.isSQLiteConnection(editSqliteConn.basic)) {
                     editSqliteConn.basic.dbPath = "edited path";
                     // https://mybug.mysql.oraclecorp.com/orabugs/site/bug.php?id=36492230
                     // editConn.basic.dbName = "edited name";
                 }
+
                 if (interfaces.isAdvancedSqlite(editSqliteConn.advanced)) {
                     editSqliteConn.advanced.params = "another param";
                 }
@@ -791,6 +798,392 @@ describe("DATABASE CONNECTIONS", () => {
                 testFailed = true;
                 throw e;
             }
+        });
+
+        describe("DB Connection Groups", () => {
+
+            const dbConnection1: interfaces.IDBConnection = {
+                caption: `E2E - CONNECTION 1`,
+                dbType: "MySQL",
+                folderPath: {
+                    new: true,
+                    value: "group1",
+                },
+                basic: {
+                    hostname: "localhost",
+                    username: "test",
+                },
+            };
+
+            const dbConnection2: interfaces.IDBConnection = {
+                caption: `E2E - CONNECTION 2`,
+                dbType: "MySQL",
+                folderPath: {
+                    new: true,
+                    value: "/group1/group2",
+                },
+                basic: {
+                    hostname: "localhost",
+                    username: "test",
+                },
+            };
+
+            const connectionOverview = new E2EDatabaseConnectionOverview();
+            let testFailed = false;
+
+            beforeAll(async () => {
+                try {
+                    await dbTreeSection.focus();
+                    await new E2ETabContainer().closeAllTabs();
+                } catch (e) {
+                    await Misc.storeScreenShot("beforeAll_DBConnection_Groups");
+                    throw e;
+                }
+            });
+
+            beforeEach(async () => {
+                try {
+                    await (await connectionOverview.getBreadCrumbLinks())[0].click();
+                } catch (e) {
+                    await Misc.storeScreenShot("beforeEach_DBConnection_Groups");
+                    throw e;
+                }
+            });
+
+            afterEach(async () => {
+                if (testFailed) {
+                    testFailed = false;
+                    await Misc.storeScreenShot();
+                }
+            });
+
+            afterAll(async () => {
+                try {
+                    await Misc.dismissNotifications();
+                } catch (e) {
+                    await Misc.storeScreenShot("afterAll_DB Connection Groups");
+                    throw e;
+                }
+            });
+
+            it("Add MySQL connection to new folder", async () => {
+                try {
+
+                    await connectionOverview.addNewConnection(dbConnection1);
+                    await driver.wait(connectionOverview.untilGroupExists(dbConnection1.folderPath!.value!),
+                        constants.wait5seconds);
+                    await connectionOverview.joinGroup(dbConnection1.folderPath!.value!);
+                    await driver.wait(connectionOverview.untilConnectionExists(dbConnection1.caption!),
+                        constants.wait3seconds);
+
+                    expect(await connectionOverview.getBreadCrumb()).toBe(`/${dbConnection1.folderPath!.value}/`);
+                    expect(await dbTreeSection.existsTreeItem(dbConnection1.folderPath!.value!)).toBe(true);
+                    expect((await dbTreeSection.getTreeItemChildren(dbConnection1.folderPath!.value!))[0].caption)
+                        .toBe(dbConnection1.caption);
+                } catch (e) {
+                    testFailed = true;
+                    throw e;
+                }
+            });
+
+            it("Add MySQL connection to subfolder", async () => {
+                try {
+                    await connectionOverview.addNewConnection(dbConnection2);
+                    await dbTreeSection.clickToolbarButton(constants.refreshConnectionList);
+                    await dbTreeSection.expandTree(dbConnection2.folderPath!.value!.split("/").filter((item) => {
+                        return item !== "";
+                    }));
+
+                    const group1 = dbConnection2.folderPath!.value!.split("/")[1];
+                    const group2 = dbConnection2.folderPath!.value!.split("/")[2];
+
+                    await connectionOverview.joinGroup(group1);
+                    await driver.wait(connectionOverview.untilGroupExists(group2), constants.wait5seconds);
+                    await connectionOverview.joinGroup(group2);
+                    expect(await connectionOverview.existsConnection(dbConnection2.caption!)).toBe(true);
+                    expect(await dbTreeSection.existsTreeItem(group2)).toBe(true);
+                    expect((await dbTreeSection.getTreeItemChildren(group2))[0].caption!)
+                        .toBe(dbConnection2.caption);
+                } catch (e) {
+                    testFailed = true;
+                    throw e;
+                }
+            });
+
+            it("Add Sqlite connection to new folder", async () => {
+                try {
+                    const dbConnection: interfaces.IDBConnection = {
+                        caption: `E2E - SQLITE CONNECTION 1`,
+                        dbType: "Sqlite",
+                        folderPath: {
+                            new: true,
+                            value: "sqliteGroup1",
+                        },
+                        basic: {
+                            dbPath: "test",
+                        },
+                    };
+
+                    await connectionOverview.addNewConnection(dbConnection);
+                    expect(await connectionOverview.existsGroup(dbConnection.folderPath!.value!)).toBe(true);
+                    await connectionOverview.joinGroup(dbConnection.folderPath!.value!);
+                    await driver.wait(connectionOverview.untilConnectionExists(dbConnection.caption!),
+                        constants.wait3seconds);
+
+                    expect(await connectionOverview.getBreadCrumb()).toBe(`/${dbConnection.folderPath!.value}/`);
+                    expect(await dbTreeSection.existsTreeItem(dbConnection.folderPath!.value!)).toBe(true);
+                    expect((await dbTreeSection.getTreeItemChildren(dbConnection.folderPath!.value!))[0].caption)
+                        .toBe(dbConnection.caption);
+                } catch (e) {
+                    testFailed = true;
+                    throw e;
+                }
+            });
+
+            it("Add Sqlite connection to subfolder", async () => {
+                try {
+                    const dbConnection: interfaces.IDBConnection = {
+                        caption: `E2E - SQLITE CONNECTION 2`,
+                        dbType: "Sqlite",
+                        folderPath: {
+                            new: true,
+                            value: "/sqliteGroup1/sqliteGroup2",
+                        },
+                        basic: {
+                            dbPath: "test",
+                        },
+                    };
+
+                    await connectionOverview.addNewConnection(dbConnection);
+                    await dbTreeSection.clickToolbarButton(constants.refreshConnectionList);
+                    await dbTreeSection.expandTree(dbConnection.folderPath!.value!.split("/").filter((item) => {
+                        return item !== "";
+                    }));
+
+                    const sqliteGroup1 = dbConnection.folderPath!.value!.split("/")[1];
+                    const sqliteGroup2 = dbConnection.folderPath!.value!.split("/")[2];
+
+                    await connectionOverview.joinGroup(sqliteGroup1);
+                    expect(await connectionOverview.existsGroup(sqliteGroup2)).toBe(true);
+                    await connectionOverview.joinGroup(sqliteGroup2);
+                    expect(await connectionOverview.existsConnection(dbConnection.caption!)).toBe(true);
+                    expect(await dbTreeSection.existsTreeItem(sqliteGroup2)).toBe(true);
+                    expect((await dbTreeSection.getTreeItemChildren(sqliteGroup2))[0].caption!)
+                        .toBe(dbConnection.caption);
+                } catch (e) {
+                    testFailed = true;
+                    throw e;
+                }
+            });
+
+            it("Add Subfolder", async () => {
+                try {
+                    const dbConnection: interfaces.IDBConnection = {
+                        caption: `E2E - CONN 1`,
+                        dbType: "MySQL",
+                        folderPath: {
+                            new: true,
+                            value: "1group",
+                        },
+                        basic: {
+                            hostname: "localhost",
+                            username: "test",
+                        },
+                    };
+
+                    const subFolder = "2group";
+
+                    await connectionOverview.addNewConnection(dbConnection);
+                    await dbTreeSection.clickToolbarButton(constants.refreshConnectionList);
+                    await dbTreeSection.openContextMenuAndSelect(dbConnection.folderPath!.value!,
+                        constants.addSubfolder);
+                    await FolderDialog.setFolderValue(subFolder);
+                    await FolderDialog.ok();
+                    await dbTreeSection.expandTreeItem(dbConnection.folderPath!.value!);
+                    expect(await dbTreeSection.existsTreeItem(subFolder)).toBe(true);
+                } catch (e) {
+                    testFailed = true;
+                    throw e;
+                }
+            });
+
+            it("Navigate through folders and subfolders", async () => {
+                try {
+                    await dbTreeSection.openContextMenuAndSelect("2group", constants.addSubfolder);
+                    await FolderDialog.setFolderValue("3group");
+                    await FolderDialog.ok();
+                    await dbTreeSection.expandTreeItem("2group");
+                    expect(await dbTreeSection.existsTreeItem("3group")).toBe(true);
+
+                    await dbTreeSection.openContextMenuAndSelect("3group", constants.addSubfolder);
+                    await FolderDialog.setFolderValue("4group");
+                    await FolderDialog.ok();
+                    await dbTreeSection.expandTreeItem("3group");
+                    expect(await dbTreeSection.existsTreeItem("4group")).toBe(true);
+
+                    await (await connectionOverview.getBreadCrumbLinks())[0].click();
+                    await connectionOverview.joinGroup("1group");
+                    await connectionOverview.joinGroup("2group");
+                    await connectionOverview.joinGroup("3group");
+                    await connectionOverview.joinGroup("4group");
+
+                    // USING BACK BUTTON
+                    await driver.wait(connectionOverview.untilBreadCrumbIs(`/1group/2group/3group/4group/`),
+                        constants.wait3seconds);
+                    await driver.findElement(locator.dbConnectionOverview.back).click();
+                    await driver.wait(connectionOverview.untilBreadCrumbIs(`/1group/2group/3group/`),
+                        constants.wait3seconds);
+                    await driver.findElement(locator.dbConnectionOverview.back).click();
+                    await driver.wait(connectionOverview.untilBreadCrumbIs(`/1group/2group/`),
+                        constants.wait3seconds);
+                    await driver.findElement(locator.dbConnectionOverview.back).click();
+                    await driver.wait(connectionOverview.untilBreadCrumbIs(`/1group/`),
+                        constants.wait3seconds);
+                    await driver.findElement(locator.dbConnectionOverview.back).click();
+                    await driver.wait(connectionOverview.untilBreadCrumbIs(`/`),
+                        constants.wait3seconds);
+
+                    await connectionOverview.joinGroup("1group");
+                    await connectionOverview.joinGroup("2group");
+                    await connectionOverview.joinGroup("3group");
+                    await connectionOverview.joinGroup("4group");
+
+                    // USING BREADCRUMB LINKS
+                    let breadCrumbLinks = await connectionOverview.getBreadCrumbLinks();
+                    await breadCrumbLinks[breadCrumbLinks.length - 2].click();
+                    expect(await connectionOverview.getBreadCrumb()).toBe(`/1group/2group/3group/`);
+
+                    breadCrumbLinks = await connectionOverview.getBreadCrumbLinks();
+                    await breadCrumbLinks[breadCrumbLinks.length - 2].click();
+                    expect(await connectionOverview.getBreadCrumb()).toBe(`/1group/2group/`);
+
+                    breadCrumbLinks = await connectionOverview.getBreadCrumbLinks();
+                    await breadCrumbLinks[breadCrumbLinks.length - 2].click();
+                    expect(await connectionOverview.getBreadCrumb()).toBe(`/1group/`);
+
+                    breadCrumbLinks = await connectionOverview.getBreadCrumbLinks();
+                    await breadCrumbLinks[0].click();
+                    expect(await connectionOverview.getBreadCrumb()).toBe(`/`);
+                } catch (e) {
+                    testFailed = true;
+                    throw e;
+                }
+            });
+
+            it("Move MySQL connection to folder", async () => {
+                try {
+                    const dbConnection = {
+                        dbType: "MySQL",
+                        folderPath: {
+                            new: false,
+                            value: `/${dbConnection1.folderPath!.value!}`,
+                        },
+                        basic: {
+                            hostname: "localhost",
+                            username: "test",
+                        },
+                    };
+
+                    await dbTreeSection.expandTree(dbConnection2.folderPath!.value!.split("/").filter((item) => {
+                        return item !== "";
+                    }));
+
+                    await dbTreeSection.openContextMenuAndSelect(dbConnection2.caption!, constants.editDBConnection);
+                    await DatabaseConnectionDialog.setConnection(dbConnection);
+
+                    await dbTreeSection.clickToolbarButton(constants.refreshConnectionList);
+                    expect((await dbTreeSection.getTreeItemChildren(dbConnection1.folderPath!.value!))
+                        .map((item: E2ETreeItem) => {
+                            return item.caption;
+                        })).toContain(dbConnection2.caption!);
+
+                    await (await connectionOverview.getGroup(dbConnection.folderPath.value.slice(1))).click();
+                    expect(await connectionOverview.existsConnection(dbConnection1.caption!)).toBe(true);
+                } catch (e) {
+                    testFailed = true;
+                    throw e;
+                }
+            });
+
+            it("Edit a folder", async () => {
+                try {
+
+                    const dbConnection: interfaces.IDBConnection = {
+                        caption: `E2E - DB CONNECTION`,
+                        dbType: "MySQL",
+                        folderPath: {
+                            new: true,
+                            value: "groupToEdit",
+                        },
+                        basic: {
+                            hostname: "localhost",
+                            username: "test",
+                        },
+                    };
+
+                    const editedGroup = "Edited group";
+                    await connectionOverview.addNewConnection(dbConnection);
+                    await dbTreeSection.openContextMenuAndSelect(dbConnection.folderPath!.value!, constants.editFolder);
+                    await FolderDialog.setFolderValue("Edited group");
+                    await FolderDialog.ok();
+                    await dbTreeSection.clickToolbarButton(constants.refreshConnectionList);
+                    expect(await dbTreeSection.existsTreeItem(editedGroup)).toBe(true);
+                    expect(await connectionOverview.existsGroup(editedGroup)).toBe(true);
+
+                } catch (e) {
+                    testFailed = true;
+                    throw e;
+                }
+            });
+
+            it("Edit subfolder", async () => {
+                try {
+                    const editedFolderName = "Edited subfolder";
+                    await dbTreeSection.openContextMenuAndSelect(dbConnection2.folderPath!.value!.split("/")[2],
+                        constants.editFolder);
+                    await FolderDialog.setFolderValue(editedFolderName);
+                    await FolderDialog.ok();
+                    await dbTreeSection.clickToolbarButton(constants.refreshConnectionList);
+                    expect(await dbTreeSection.existsTreeItem(editedFolderName)).toBe(true);
+                    await connectionOverview.joinGroup(dbConnection1.folderPath!.value!);
+                    expect(await connectionOverview.existsGroup(editedFolderName)).toBe(true);
+                } catch (e) {
+                    testFailed = true;
+                    throw e;
+                }
+            });
+
+            it("Remove empty folder", async () => {
+                try {
+                    await dbTreeSection.openContextMenuAndSelect("4group", constants.removeFolder);
+                    const dialog = await new ConfirmDialog().untilExists();
+                    await dialog.accept();
+                    const notification = await new E2EToastNotification().create();
+                    expect(notification!.message)
+                        .toBe(`The connection group "4group" has been deleted.`);
+                    await notification!.close();
+                } catch (e) {
+                    testFailed = true;
+                    throw e;
+                }
+            });
+
+            it("Remove folder with connections", async () => {
+                try {
+                    await dbTreeSection.openContextMenuAndSelect(dbConnection1.folderPath!.value!,
+                        constants.removeFolder);
+                    const dialog = await new ConfirmDialog().untilExists();
+                    await dialog.accept();
+                    const notification = await new E2EToastNotification().create();
+                    expect(notification?.message)
+                        .toBe(`The connection group "${dbConnection1.folderPath!.value!}" has been deleted.`);
+                    await notification?.close();
+                } catch (e) {
+                    testFailed = true;
+                    throw e;
+                }
+            });
+
         });
 
     });

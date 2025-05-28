@@ -36,7 +36,7 @@ import {
 } from "../../supplement/RequisitionTypes.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import {
-    DBConnectionEditorType, DBType, IConnectionDetails, type IShellSessionDetails,
+    ConnectionEditorType, DBType, IConnectionDetails, type IShellSessionDetails,
 } from "../../supplement/ShellInterface/index.js";
 import { ConnectionBrowser } from "./ConnectionBrowser.js";
 import {
@@ -80,7 +80,8 @@ import {
 
 import { ui } from "../../app-logic/UILayer.js";
 import {
-    CdmEntityType, ConnectionDataModel, type ConnectionDataModelEntry, type ICdmConnectionEntry,
+    CdmEntityType, ConnectionDataModel, type ConnectionDataModelEntry,
+    type ICdmConnectionEntry,
 } from "../../data-models/ConnectionDataModel.js";
 import type { Command } from "../../data-models/data-model-types.js";
 import {
@@ -188,6 +189,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private connectionPresentation: Map<IOdmConnectionPageEntry, IConnectionPresentationState> = new Map();
 
     private workerPool: ExecutionWorkerPool;
+    private connectionsDataModel: ConnectionDataModel;
 
     private latestPagesByConnection: Map<number, string> = new Map();
     private maxConnectionDocumentSuffix: Map<number, number> = new Map();
@@ -205,14 +207,13 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     private mrsHubRef = createRef<MrsHub>();
     private currentTabRef = createRef<ConnectionTab>();
 
-    private connectionsDataModel: ConnectionDataModel;
     private documentDataModel: OpenDocumentDataModel;
     private ociDataModel: OciDataModel;
     private shellTaskDataModel: ShellTaskDataModel;
 
     private dataModelListener: ConnectionDataModelListener;
 
-    #sidebarCommandHandler: SidebarCommandHandler;
+    private sidebarCommandHandler: SidebarCommandHandler;
 
     public constructor(props: {}) {
         super(props);
@@ -240,7 +241,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             this.setState({ loading: false });
         });
 
-        this.#sidebarCommandHandler = new SidebarCommandHandler(this.connectionsDataModel, this.mrsHubRef);
+        this.sidebarCommandHandler = new SidebarCommandHandler(this.connectionsDataModel, this.mrsHubRef);
 
         this.state = {
             selectedPage: "",
@@ -751,8 +752,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         );
     }
 
-    public handlePushConnection = (entry: ICdmConnectionEntry): void => {
-        this.connectionsDataModel.addConnectionEntry(entry);
+    public handlePushConnection = async (entry: ICdmConnectionEntry): Promise<void> => {
+        await this.connectionsDataModel.addConnectionEntry(entry);
     };
 
     private handleKeyPress = (event: KeyboardEvent): void => {
@@ -766,28 +767,39 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     };
 
     private handleAddConnection = (entry: ICdmConnectionEntry): void => {
-        ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId, entry.details)
-            .then((connection) => {
-                if (connection !== undefined) {
-                    entry.details.id = connection[0];
-                    this.connectionsDataModel.addConnectionEntry(entry);
+        void this.connectionsDataModel.groupFromPath(entry.details.folderPath).then((group) => {
+            ShellInterface.dbConnections.addDbConnection(webSession.currentProfileId, entry.details,
+                group.folderPath.id).then((connectionDetails) => {
+                    if (connectionDetails !== undefined) {
+                        entry.details.id = connectionDetails[0];
+                        void this.connectionsDataModel.addConnectionEntry(entry).then(() => {
+                            requisitions.executeRemote("connectionAdded", entry.details);
+                        });
+                    }
+                }).catch((reason) => {
+                    const message = convertErrorToString(reason);
+                    void requisitions.execute("showError", "Cannot add DB connection: " + message);
 
-                    requisitions.executeRemote("connectionAdded", entry.details);
-                }
-            }).catch((reason) => {
-                const message = convertErrorToString(reason);
-                void ui.showErrorMessage(`Cannot add DB connection: ${message}`, {});
-
-            });
+                });
+        });
     };
 
     private handleUpdateConnection = (entry: ICdmConnectionEntry): void => {
-        ShellInterface.dbConnections.updateDbConnection(webSession.currentProfileId, entry.details).then(() => {
-            this.connectionsDataModel.updateConnectionDetails(entry);
-            requisitions.executeRemote("connectionUpdated", entry.details);
-        }).catch((reason) => {
-            const message = convertErrorToString(reason);
-            void ui.showErrorMessage(`Cannot update DB connection: ${message}`, {});
+        void this.connectionsDataModel.groupFromPath(entry.details.folderPath).then((group) => {
+            const id = group.folderPath.id;
+            ShellInterface.dbConnections.updateDbConnection(webSession.currentProfileId, entry.details, id).then(() => {
+                // Connection groups may have changed.
+                void entry.parent?.refresh?.(); // Old parent.
+                requisitions.executeRemote("refreshConnectionGroup", entry.parent?.folderPath.id);
+                if (entry.parent !== group) {
+                    void group.refresh?.();     // New parent.
+                    requisitions.executeRemote("refreshConnectionGroup", group.parent?.folderPath.id);
+                }
+                requisitions.executeRemote("connectionUpdated", entry.details);
+            }).catch((reason) => {
+                const message = convertErrorToString(reason);
+                void requisitions.execute("showError", "Cannot update DB connection: " + message);
+            });
         });
     };
 
@@ -799,8 +811,8 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
             requisitions.executeRemote("connectionRemoved", entry.details);
         }).catch((reason) => {
-            const message = convertErrorToString(reason);
-            void ui.showErrorMessage(`Cannot remove DB connection: ${message}`, {});
+            const message = reason instanceof Error ? reason.message : String(reason);
+            void requisitions.execute("showError", "Cannot remove DB connection: " + message);
         });
     };
 
@@ -1166,7 +1178,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     };
 
     private doLogout = async (): Promise<boolean> => {
-        this.connectionsDataModel.clear();
+        await this.connectionsDataModel.clear();
         this.documentDataModel.clear();
         this.ociDataModel.clear();
         webSession.clearCredentials();
@@ -1205,8 +1217,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 await this.addNewTab(newEntry, suppressAbout, initialEditor, pageId);
                 selectedPage = pageId;
             } catch (error) {
-                const message = convertErrorToString(error);
-                void ui.showErrorMessage(message, {});
+                void ui.showErrorMessage(convertErrorToString(error), {});
             } finally {
                 this.hideProgress(true);
             }
@@ -1258,7 +1269,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             const entryId = uuid();
             let useNotebook;
             if (connection.details.settings && connection.details.settings.defaultEditor) {
-                useNotebook = connection.details.settings.defaultEditor === DBConnectionEditorType.DbNotebook;
+                useNotebook = connection.details.settings.defaultEditor === ConnectionEditorType.DbNotebook;
             } else {
                 useNotebook = Settings.get("dbEditor.defaultEditor", "notebook") === "notebook";
             }
@@ -1414,9 +1425,11 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         state.shellSessionTabs?.forEach((info) => {
             remainingPageIds.push(info.dataModelEntry.id);
         });
+
         state.connectionTabs?.forEach((info) => {
             remainingPageIds.push(info.dataModelEntry.id);
         });
+
         state.documentTabs?.forEach((info) => {
             remainingPageIds.push(info.dataModelEntry.id);
         });
@@ -1454,8 +1467,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     /**
      * Completely removes a tab, with all its editors (if the tab is a connection tab).
      *
-     * @param tabIds The list of tab IDs to remove. For standalone documents this is equal to the document ID.
-     *
+     * @param tabIds tabIds The list of tab IDs to remove. For standalone documents this is equal to the document ID.
      * @returns A promise resolving to true, when the tab removal is finished.
      */
     private removeTabs = async (tabIds: string[]): Promise<boolean> => {
@@ -1482,6 +1494,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 remainingTabsState.shellSessionTabs.push(info);
             }
         });
+
         connectionTabs.forEach((info) => {
             if (tabIds.includes(info.dataModelEntry.id)) {
                 closingTabs.connectionTabs.push(info);
@@ -1489,6 +1502,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 remainingTabsState.connectionTabs.push(info);
             }
         });
+
         documentTabs.forEach((info) => {
             if (tabIds.includes(info.dataModelEntry.id)) {
                 closingTabs.documentTabs.push(info);
@@ -1505,9 +1519,11 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         await Promise.all(closingTabs.shellSessionTabs.map(async (info) => {
             await this.removeShellTab(info.dataModelEntry.id, false);
         }));
+
         await Promise.all(closingTabs.connectionTabs.map(async (info) => {
             await this.removeConnectionTab(info);
         }));
+
         closingTabs.documentTabs.forEach((info) => {
             this.removeDocument(info.dataModelEntry.id, info.dataModelEntry.id);
         });
@@ -1570,7 +1586,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
     };
 
     /**
-     * Similar to `removeTabs`, but for shell session tabs.
+     * Similar to `removeTab`, but for shell session tabs.
      *
      * @param id The session (tab) id to remove.
      * @param updateAppState Whether application state and tabs have to be updated, defaults to true.
@@ -1578,23 +1594,41 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
      * @returns A promise resolving to true, when the tab removal is finished.
      */
     private removeShellTab = async (id: string, updateAppState = true): Promise<boolean> => {
-        const { shellSessionTabs } = this.state;
+        const { selectedPage, shellSessionTabs } = this.state;
 
         if (updateAppState) {
             // Remove all result data from the application DB.
             void ApplicationDB.removeDataByTabId(StoreType.Shell, id);
         }
 
-        const session = shellSessionTabs.find((info) => {
+        const index = shellSessionTabs.findIndex((info) => {
             return info.dataModelEntry.id === id;
         });
 
-        if (session) {
+        if (index > -1) {
             this.documentDataModel.removeShellSession(undefined, id);
 
+            const session = shellSessionTabs[index];
             await session.savedState.backend.closeShellSession();
 
+            shellSessionTabs.splice(index, 1);
             requisitions.executeRemote("sessionRemoved", session.dataModelEntry.details);
+
+            let newSelection = selectedPage;
+
+            if (id === newSelection) {
+                if (index > 0) {
+                    newSelection = shellSessionTabs[index - 1].dataModelEntry.id;
+                } else {
+                    if (index >= shellSessionTabs.length - 1) {
+                        newSelection = "sessions"; // The overview page cannot be closed.
+                    } else {
+                        newSelection = shellSessionTabs[index + 1].dataModelEntry.id;
+                    }
+                }
+            }
+
+            this.setState({ selectedPage: newSelection, shellSessionTabs });
         }
 
         if (updateAppState) {
@@ -1602,9 +1636,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 return t.dataModelEntry.id !== id;
             });
 
-            this.updateAppTabsState({
-                shellSessionTabs: remainingTabs,
-            }, [id]);
+            this.updateAppTabsState({ shellSessionTabs: remainingTabs }, [id]);
         }
 
         return true;
@@ -1983,6 +2015,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         const connectionState = tab ? this.connectionPresentation.get(tab.dataModelEntry) : undefined;
         if (connectionState) {
             this.latestPagesByConnection.set(tab!.connection.details.id, details.tabId);
+
             // Check if we have an open document with the new id
             // (administration pages like server status count here too).
             const newEditor = connectionState.documentStates.find((candidate: IOpenDocumentState) => {
@@ -1997,9 +2030,12 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
 
                 // Must be an administration page or an external script then.
                 if (details.document.type === OdmEntityType.Script) {
-                    const newState = this.addEditorFromScript(details.tabId, tab!.connection,
-                        details.document, details.content ?? "");
-                    connectionState.documentStates.push(newState);
+                    // External scripts come with their full content.
+                    if (details.content !== undefined) {
+                        const newState = this.addEditorFromScript(details.tabId, tab!.connection,
+                            details.document, details.content);
+                        connectionState.documentStates.push(newState);
+                    }
                 } else {
                     const document = details.document as IOdmAdminEntry;
                     const newState: IOpenDocumentState = {
@@ -2141,7 +2177,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             }
 
             default: {
-                return this.#sidebarCommandHandler.handleDocumentCommand(command, entry);
+                return this.sidebarCommandHandler.handleDocumentCommand(command, entry);
             }
         }
 
@@ -2161,40 +2197,81 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
         qualifiedName?: QualifiedName): Promise<ISideBarCommandResult> => {
         const { connectionTabs } = this.state;
 
+        // First command which need no entry.
+        if (!entry) {
+            switch (command.command) {
+                case "addConsole": {
+                    void this.activateShellTab(uuid());
+
+                    return { success: true };
+                }
+
+                case "msg.logOut": {
+                    await this.connectionsDataModel.clear();
+                    this.documentDataModel.clear();
+                    this.ociDataModel.clear();
+                    webSession.clearCredentials();
+
+                    // No need to manually close any connection. The data models take care to close when
+                    // they are cleared.
+                    this.setState({ connectionTabs: [], documentTabs: [], shellSessionTabs: [] });
+
+                    void requisitions.execute("userLoggedOut", {});
+
+                    return { success: true };
+                }
+
+                default: {
+                    return this.sidebarCommandHandler.handleConnectionTreeCommand(command, entry, qualifiedName);
+                }
+            }
+        }
+
         const canClose = this.currentTabRef.current ? (await this.currentTabRef.current.canClose()) : true;
         if (!canClose) {
             return { success: false };
         }
 
-        const connection = entry?.connection;
-        const connectionId = connection?.details.id;
-        let pageId: string | undefined;
-        if (connection) {
-            pageId = this.resolveLatestPageId(connection);
-        }
-
-        switch (command.command) {
-            case "msg.openConnection": {
-                if (connection) {
-                    const initialEditor = (command.arguments && command.arguments.length > 0)
-                        ? command.arguments[0]
-                        : undefined;
-                    await this.showPage({ connectionId, pageId, force: true, editor: initialEditor as InitialEditor });
+        if (entry.type === CdmEntityType.ConnectionGroup) {
+            switch (command.command) {
+                default: {
+                    return this.sidebarCommandHandler.handleConnectionTreeCommand(command, entry, qualifiedName);
                 }
-
-                break;
+            }
+        } else {
+            const connection = entry.connection;
+            const connectionId = connection?.details.id;
+            let pageId: string | undefined;
+            if (connection) {
+                pageId = this.resolveLatestPageId(connection);
             }
 
-            case "msg.loadScriptFromDisk": {
-                if (connection) {
-                    await this.loadScriptFromDisk(connection.details, pageId);
+            switch (command.command) {
+                case "msg.openConnection": {
+                    if (connection) {
+                        const initialEditor = (command.arguments && command.arguments.length > 0)
+                            ? command.arguments[0]
+                            : undefined;
+                        await this.showPage({
+                            connectionId,
+                            pageId,
+                            force: true,
+                            editor: initialEditor as InitialEditor,
+                        });
+                    }
+
+                    break;
                 }
 
-                break;
-            }
+                case "msg.loadScriptFromDisk": {
+                    if (connection) {
+                        await this.loadScriptFromDisk(connection.details, pageId);
+                    }
 
-            case "setCurrentSchemaMenuItem": {
-                if (connection) {
+                    break;
+                }
+
+                case "setCurrentSchemaMenuItem": {
                     const tab = connectionTabs.find((tab) => {
                         return tab.connection.details.id === connection.details.id;
                     });
@@ -2204,31 +2281,32 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                             id: tab.dataModelEntry.id, connectionId: connection.details.id, schema: qualifiedName.name!,
                         });
                     }
+
+                    break;
                 }
 
-                break;
-            }
+                case "msg.newSessionUsingConnection": {
+                    await this.activateShellTab(uuid(), connection?.details.id, connection?.details.caption);
 
-            case "msg.newSessionUsingConnection": {
-                await this.activateShellTab(uuid(), connection?.details.id, connection?.details.caption);
+                    break;
+                }
 
-                break;
-            }
+                case "addConsole": {
+                    void this.activateShellTab(uuid());
 
-            case "addConsole": {
-                void this.activateShellTab(uuid());
+                    break;
+                }
 
-                break;
-            }
+                case "msg.logOut": {
+                    await this.doLogout();
 
-            case "msg.logOut": {
-                await this.doLogout();
+                    break;
+                }
 
-                break;
-            }
-
-            default: {
-                return this.#sidebarCommandHandler.handleConnectionTreeCommand(command, entry, qualifiedName, pageId);
+                default: {
+                    return this.sidebarCommandHandler.handleConnectionTreeCommand(command, entry, qualifiedName,
+                        pageId);
+                }
             }
         }
 
@@ -2317,7 +2395,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
             }
 
             default: {
-                return this.#sidebarCommandHandler.handleOciCommand(command, entry);
+                return this.sidebarCommandHandler.handleOciCommand(command, entry);
             }
         }
 
@@ -2449,7 +2527,7 @@ export class DocumentModule extends Component<{}, IDocumentModuleState> {
                 requisitions.executeRemote("sessionAdded", document.details);
             } catch (error) {
                 const message = convertErrorToString(error);
-                void ui.showErrorMessage(`Shell Session Error: ${message}`, {});
+                void ui.showErrorMessage("Shell Session Error: " + message, {});
             }
 
             this.hideProgress(true);

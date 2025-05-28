@@ -50,9 +50,9 @@ class TestConnectionEditor extends ConnectionEditor {
         return this.validateConnectionValues(closing, values, data);
     };
 
-    public testGenerateEditorConfig = (details?: IConnectionDetails): IDialogValues => {
+    public testGenerateEditorConfig = (currentPath: string, details?: IConnectionDetails): IDialogValues => {
         // @ts-ignore
-        return this.generateEditorConfig(details);
+        return this.generateEditorConfig(currentPath, details);
     };
 }
 
@@ -76,6 +76,7 @@ describe("ConnectionEditor tests", (): void => {
 
     const testMySQLConnection: IConnectionDetails = {
         id: -1,
+        index: -1,
         dbType: DBType.MySQL,
         caption: "DocumentModule Test Connection 1",
         description: "DocumentModule Test MyQSL Connection",
@@ -134,7 +135,7 @@ describe("ConnectionEditor tests", (): void => {
         expect(portals.length).toBe(0);
 
         const editor = component.find<ConnectionEditor>(ConnectionEditor);
-        await editor.instance().show("MySQL", false, testMySQLConnection);
+        await editor.instance().show("MySQL", false, "", testMySQLConnection);
 
         await waitFor(() => {
             expect(screen.getByText("Advanced")).toBeDefined();
@@ -180,7 +181,7 @@ describe("ConnectionEditor tests", (): void => {
         expect(portals.length).toBe(0);
 
         const editor = component.find<TestConnectionEditor>(TestConnectionEditor);
-        await editor.instance().show("MySQL", false, testMySQLConnection);
+        await editor.instance().show("MySQL", false, "", testMySQLConnection);
 
         await waitFor(() => {
             expect(screen.getByText("Host Name or IP Address")).toBeDefined();
@@ -541,7 +542,7 @@ describe("ConnectionEditor tests", (): void => {
         );
 
         const editor = component.find<TestConnectionEditor>(TestConnectionEditor);
-        const result = editor.instance().testGenerateEditorConfig(testMySQLConnection);
+        const result = editor.instance().testGenerateEditorConfig("", testMySQLConnection);
 
         expect(result.sections.get("information")!.values.caption.value).toEqual(testMySQLConnection.caption);
         expect(result.sections.get("information")!.values.description.value).toEqual(testMySQLConnection.description);

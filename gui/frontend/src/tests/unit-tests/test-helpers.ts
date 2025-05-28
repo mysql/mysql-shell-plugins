@@ -839,6 +839,7 @@ export const createBackend = async (): Promise<ShellInterfaceSqlEditor> => {
 
     const testConnection: IConnectionDetails = {
         id: -1,
+        index: -1,
         dbType: DBType.MySQL,
         caption: "ShellInterfaceDb Test Connection 1",
         description: "ShellInterfaceDb Test Connection",

@@ -48,7 +48,7 @@ import { MySQLConnCompression, MySQLConnectionScheme } from "../../frontend/src/
 import { IMdsProfileData } from "../../frontend/src/communication/ProtocolMds.js";
 import type { ICdmSchemaEntry } from "../../frontend/src/data-models/ConnectionDataModel.js";
 import { requisitions } from "../../frontend/src/supplement/Requisitions.js";
-import { DBType } from "../../frontend/src/supplement/ShellInterface/index.js";
+import { DBType, type IConnectionDetails } from "../../frontend/src/supplement/ShellInterface/index.js";
 import { ShellInterface } from "../../frontend/src/supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceShellSession } from "../../frontend/src/supplement/ShellInterface/ShellInterfaceShellSession.js";
 import { webSession } from "../../frontend/src/supplement/WebSession.js";
@@ -822,13 +822,14 @@ export class MDSCommandHandler {
                 await commands.executeCommand("msg.mds.refreshOciProfiles");
 
                 if (createDbConnection) {
-                    const details = {
+                    const details: IConnectionDetails = {
                         id: 0, // Will be replaced with the ID returned from the BE call.
+                        index: 0,
                         dbType: DBType.MySQL,
                         caption: instanceName,
                         description: "MySQL Router Connection",
                         useSSH: false,
-                        useMDS: false,
+                        useMHS: false,
                         options: {
                             /* eslint-disable @typescript-eslint/naming-convention */
                             "scheme": MySQLConnectionScheme.MySQL,

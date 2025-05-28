@@ -169,14 +169,17 @@ const extensionUILayer: IUILayer = {
         }
     },
 
-    confirm: async (message: string, yes: string, no: string, extra?: string): Promise<string | undefined> => {
-        if (extra === undefined) {
-            const result = await ui.showInformationMessage(message, { modal: true }, yes, no);
-
-            return Promise.resolve(result);
+    confirm: async (message: string, yes: string, no?: string, extra?: string): Promise<string | undefined> => {
+        const items: string[] = [yes];
+        if (no !== undefined) {
+            items.push(no);
         }
 
-        const result = await ui.showInformationMessage(message, { modal: true }, yes, no, extra);
+        if (extra !== undefined) {
+            items.push(extra);
+        }
+
+        const result = await ui.showInformationMessage(message, { modal: true }, ...items);
 
         return Promise.resolve(result);
     },

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -32,36 +32,39 @@ import { ComponentBase, IComponentProperties } from "../Component/ComponentBase.
 import { Container, Orientation } from "../Container/Container.js";
 import { Label } from "../Label/Label.js";
 
+export interface IBreadCrumbSegment {
+    id: string | number;
+    caption: string;
+    selected?: boolean;
+}
+
+/** Details for a breadcrum path. */
 // TODO: breadcrumb picker popup for a breadcrumb item.
 export interface IBreadcrumbProperties extends IComponentProperties {
-    path?: string[];
+    path: IBreadCrumbSegment[];
     separator?: string | ComponentChild;
-    selected?: number;
+    showPicker?: boolean;
 
-    onSelect?: (path: string[]) => void;
+    onSelect?: (path: number[]) => void;
 }
 
 export class Breadcrumb extends ComponentBase<IBreadcrumbProperties> {
 
     public static override defaultProps = {
         path: [""],
-        separator: "❯",
+        showPicker: false,
     };
 
     public constructor(props: IBreadcrumbProperties) {
         super(props);
 
-        this.addHandledProperties("path", "separator", "selected", "onSelect");
+        this.addHandledProperties("path", "separator", "onSelect");
     }
 
     public render(): ComponentChild {
-        const { id, children, path, separator, selected } = this.props;
-        const className = this.getEffectiveClassNames([
-            "breadcrumb",
-            "verticalCenterContent",
-        ]);
+        const { children, path, separator, showPicker } = this.props;
+        const className = this.getEffectiveClassNames(["breadcrumb"]);
 
-        const baseId = id as string || "breadcrumb";
         let content;
 
         if (children != null) {
@@ -70,25 +73,23 @@ export class Breadcrumb extends ComponentBase<IBreadcrumbProperties> {
             const separatorItem = typeof separator === "string"
                 ? <Label className="separator" caption={separator} />
                 : separator;
-            content = path?.map((element: string, index: number): ComponentChild => {
-                const elementId = `${baseId}${index}`;
-
+            content = path.map((segment): ComponentChild => {
                 return (
                     <>
                         <Button
-                            key={elementId}
-                            id={element}
-                            className={"breadcrumbItem" + (index === selected ? " selected" : "")}
+                            key={segment.id}
+                            id={String(segment.id)}
+                            className={"breadcrumbItem" + (segment.selected ? " selected" : "")}
                             onClick={this.handleButtonClick}
                         >
-                            {element}
+                            {segment.caption}
                         </Button>
                         {separatorItem}
                     </>
                 );
             });
 
-            if (content) {
+            if (content && showPicker) {
                 content.push(
                     <Button key="picker" className="picker" caption="..." />,
                 );
@@ -109,10 +110,10 @@ export class Breadcrumb extends ComponentBase<IBreadcrumbProperties> {
     private handleButtonClick = (e: MouseEvent | KeyboardEvent, props: IComponentProperties): void => {
         const parent = (e.currentTarget as HTMLElement).parentElement;
         if (parent) {
-            const path: string[] = [];
-            const buttons = Array.from(parent.getElementsByTagName("button"));
+            const path: number[] = [];
+            const buttons = Array.from(parent.getElementsByClassName("button"));
             for (const button of buttons) {
-                path.push(button.id);
+                path.push(parseInt(button.id, 10));
                 if (button.id === props.id) {
                     break;
                 }
