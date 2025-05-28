@@ -277,13 +277,20 @@ export class Misc {
     public static removeDatabaseConnections = (): void => {
         const sqliteFile = join(process.env.MYSQLSH_GUI_CUSTOM_CONFIG_DIR, "plugin_data", "gui_plugin",
             "mysqlsh_gui_backend.sqlite3");
-        const query1 = "DELETE FROM main.profile_has_db_connection";
-        const query2 = "DELETE FROM main.db_connection";
+
+        const queries = [
+            "DELETE FROM main.profile_has_db_connection",
+            "DELETE FROM main.db_connection",
+            "DELETE FROM main.folder_path WHERE caption <> '/'",
+            "DELETE FROM main.session",
+        ];
 
         if (existsSync(sqliteFile)) {
             const sqlite = new Database(sqliteFile);
-            sqlite.run(query1);
-            sqlite.run(query2);
+
+            for (const query of queries) {
+                sqlite.run(query);
+            }
             sqlite.close();
         } else {
             throw new Error(`Could not find the sqlite file. Expected location: ${sqliteFile}`);

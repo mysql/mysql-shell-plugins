@@ -580,6 +580,19 @@ export class E2EAccordionSection {
     };
 
     /**
+     * Verifies if the tree item has children
+     * @param element The element
+     * @returns A condition resolving to true if the tree item has children, false otherwise
+     */
+    public untilTreeItemHasChildren = (element: string): Condition<boolean> => {
+        return new Condition(`for ${element} to have a red mark`, async () => {
+            const treeItem = await this.getTreeItem(element);
+
+            return treeItem.hasChildren();
+        });
+    };
+
+    /**
      * Gets an action button from a tree element
      * @param element The tree item name
      * @param actionButton The action button d

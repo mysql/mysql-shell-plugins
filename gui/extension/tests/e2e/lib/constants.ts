@@ -584,7 +584,18 @@ export const dbTreeSectionMoreActionsCtxMenu = new Map([
     [resetExtension, 4],
 ]);
 
+export const addSubfolder = "Add Sub Folder";
+export const editFolder = "Edit Folder";
+export const removeFolder = "Delete Folder";
+
+export const groupsCtxMenu = new Map([
+    [addSubfolder, 1],
+    [editFolder, 2],
+    [removeFolder, 3],
+]);
+
 export const restServiceMetadataSchema = "mysql_rest_service_metadata";
 export const ociFailure = "OCI Failure";
 export const mysqlRouters = "MySQL Routers";
 export const reloadDataBaseInformation = "Reload Database Information";
+

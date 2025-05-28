@@ -129,6 +129,8 @@ interface IButtonDialogValue extends IBaseDialogValue {
 
     value?: string;
 
+    icon?: Codicon | string;
+
     /** Called when the button is clicked. The passed in id is what was used to define the button value entry. */
     onClick?: (id: string, values: IDialogValues, dialog: ValueEditDialog) => void;
 }
@@ -430,7 +432,7 @@ interface IValueEditDialogProperties extends IComponentProperties {
 
     advancedAction?: (values: IDialogValues, props: IButtonProperties) => void;
     onValidate?: (closing: boolean, values: IDialogValues, data?: IDictionary) => IDialogValidations;
-    onClose?: (closure: DialogResponseClosure, values: IDialogValues, data?: IDictionary) => void;
+    onClose?: (closure: DialogResponseClosure, values: IDialogValues, data?: IDictionary) => Promise<void> | void;
     onToggleAdvanced?: (checked: boolean) => void;
     onSelectTab?: (id: string) => void;
 }
@@ -678,17 +680,33 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
 
         values.sections.forEach((section) => {
             const entry = section.values[id];
-            if (entry && (entry.type === "text" || entry.type === "choice")) {
-                entry.value = value;
-                if (entry.type === "text") {
+            switch (entry?.type) {
+                case "text": {
+                    entry.value = value;
                     entry.showLoading = false;
+
+                    const { onValidate } = this.props;
+                    const validations = onValidate?.(false, values, data) || { messages: {} };
+                    this.setState({ values, validations });
+
+                    return;
                 }
 
-                const { onValidate } = this.props;
-                const validations = onValidate?.(false, values, data) || { messages: {} };
-                this.setState({ values, validations });
+                case "choice": {
+                    entry.value = value;
+                    if (!entry.choices.includes(value)) {
+                        // If a new value is entered, add it to the list of choices.
+                        entry.choices.push(value);
+                    }
 
-                return;
+                    const { onValidate } = this.props;
+                    const validations = onValidate?.(false, values, data) || { messages: {} };
+                    this.setState({ values, validations });
+
+                    return;
+                }
+
+                default:
             }
         });
     };
@@ -1084,8 +1102,15 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
                                 caption={text?.toLocaleString()}
                                 id={key}
                                 key={key}
+                                imageOnly={entry.value.icon !== undefined && entry.value.caption === undefined}
                                 onClick={this.btnClick.bind(this, sectionId)}
-                            />);
+                            >
+                                {entry.value.icon && <Icon
+                                    src={entry.value.icon}
+                                    data-tooltip="inherit"
+                                    style={{ width: "16px", height: "16px" }}
+                                />}
+                            </Button>);
 
                         break;
                     }
@@ -1568,7 +1593,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             }
 
             // Only send success close events here. Closed on cancel are handled in `handleClose`.
-            onClose?.(DialogResponseClosure.Accept, values, data);
+            void onClose?.(DialogResponseClosure.Accept, values, data);
         }
 
         this.dialogRef.current?.close(!accepted);
@@ -1806,7 +1831,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             const { values, data } = this.state;
 
             this.dialogRef.current?.close(false);
-            onClose?.(DialogResponseClosure.Accept, values, data);
+            void onClose?.(DialogResponseClosure.Accept, values, data);
         }
     };
 
@@ -1841,7 +1866,7 @@ export class ValueEditDialog extends ComponentBase<IValueEditDialogProperties, I
             const { onClose } = this.props;
             const { values, data } = this.state;
 
-            onClose?.(DialogResponseClosure.Decline, values, data);
+            void onClose?.(DialogResponseClosure.Decline, values, data);
         }
     };
 

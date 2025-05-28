@@ -1,0 +1,271 @@
+/*
+ * Copyright (c) 2025, Oracle and/or its affiliates.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License, version 2.0,
+ * as published by the Free Software Foundation.
+ *
+ * This program is designed to work with certain software (including
+ * but not limited to OpenSSL) that is licensed under separate terms, as
+ * designated in a particular file or component or in included license
+ * documentation.  The authors of MySQL hereby grant you an additional
+ * permission to link the program and your derivative works with the
+ * separately licensed software that they have either included with
+ * the program or referenced in the documentation.
+ *
+ * This program is distributed in the hope that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+ * the GNU General Public License, version 2.0, for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+.msg.connectionTile {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+
+    align-items: stretch;
+
+    margin: 2px;
+    padding: 0 0 0 20px;
+    width: 270px;
+    height: 80px;
+
+    border-radius: 4px;
+    border: 2px solid var(--connectionTile-border);
+
+    color: var(--connectionTile-foreground);
+    background-color: var(--connectionTile-background);
+
+    transition: background .15s ease-in;
+    user-select: none;
+}
+
+/* Need a stronger focus indicator for this big buttons. A single thin line doesn't work well. */
+.msg.connectionTile:focus,
+.msg.connectionTile:focus-within {
+    outline: none;
+    border-color: var(--connectionTileCreateNew-activeBackground);
+    color: var(--connectionTile-activeForeground);
+    background-color: var(--connectionTile-activeBackground);
+}
+
+.msg.connectionTile:focus::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    left: -4px;
+    right: -4px;
+    border-radius: 4px;
+    border: 2px dashed var(--focusBorder);
+    overflow: visible;
+}
+
+.msg.button.connectionTile .icon {
+    flex: 0 0 40px;
+    margin-right: 16px;
+
+    /* for codicons */
+    font-size: 28pt;
+    align-content: center;
+
+    color: var(--connectionTile-foreground);
+}
+
+.msg.connectionTile:not(:disabled).dropTarget,
+.msg.connectionTile:not(:disabled):hover {
+    background-color: var(--connectionTile-hoverBackground);
+}
+
+.msg.connectionTile:not(:disabled):active {
+    color: var(--connectionTile-activeForeground);
+    border-color: var(--connectionTile-activeBorder);
+    background-color: var(--connectionTile-activeBackground);
+}
+
+.msg.connectionTile.createNew:not(:disabled).dropTarget,
+.msg.connectionTile.createNew:not(:disabled):hover {
+    background-color: var(--connectionTileCreateNew-hoverBackground);
+}
+
+.msg.connectionTile.createNew:not(:disabled):active {
+    color: var(--connectionTileCreateNew-activeForeground);
+    border-color: var(--connectionTileCreateNew-activeBorder);
+    background-color: var(--connectionTileCreateNew-activeBackground);
+}
+
+.msg.connectionTile.createNew {
+    border-color: var(--connectionTileCreateNew-border);
+    background-color: var(--connectionTileCreateNew-background);
+    color: var(--connectionTileCreateNew-foreground);
+}
+
+.msg.connectionTile.createNew:focus {
+    color: var(--connectionTileCreateNew-activeForeground);
+    border-color: transparent;
+    background-color: var(--connectionTileCreateNew-activeBackground);
+}
+
+.msg.connectionTile.group {
+    border-color: var(--connectionTileGroup-border);
+    background-color: var(--connectionTileGroup-background);
+    color: var(--connectionTileGroup-foreground);
+}
+
+.msg.connectionTile.group:not(:disabled).dropTarget,
+.msg.connectionTile.group:not(:disabled):hover {
+    background-color: var(--connectionTileGroup-hoverBackground);
+}
+
+.msg.connectionTile.group:not(:disabled):active {
+    color: var(--connectionTileGroup-activeForeground);
+    border-color: var(--connectionTileGroup-activeBorder);
+    background-color: var(--connectionTileGroup-activeBackground);
+}
+
+.msg.connectionTile.group:focus {
+    color: var(--connectionTileGroup-activeForeground);
+    border-color: transparent;
+    background-color: var(--connectionTileGroup-activeBackground);
+}
+
+.msg.connectionTile.back {
+    border-color: var(--connectionTileBack-border);
+    background-color: var(--connectionTileBack-background);
+    color: var(--connectionTileBack-foreground);
+}
+
+.msg.connectionTile.back:not(:disabled).dropTarget,
+.msg.connectionTile.back:not(:disabled):hover {
+    background-color: var(--connectionTileBack-hoverBackground);
+}
+
+.msg.connectionTile.back:not(:disabled):active {
+    color: var(--connectionTileBack-activeForeground);
+    border-color: var(--connectionTileBack-activeBorder);
+    background-color: var(--connectionTileBack-activeBackground);
+}
+
+.msg.connectionTile.back:focus {
+    color: var(--connectionTileBack-activeForeground);
+    border-color: transparent;
+    background-color: var(--connectionTileBack-activeBackground);
+}
+
+.msg.connectionTile .textHost {
+    flex: 1 1 auto;
+    justify-content: center;
+    padding-right: 39px;
+}
+
+.msg.connectionTile .label {
+    margin: 0;
+    padding: 0;
+
+    text-align: left;
+
+    color: var(--connectionTile-foreground);
+}
+
+.msg.connectionTile .tileCaption {
+    font-size: 1.15rem;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.msg.connectionTile .tileDescription {
+    font-size: 0.8rem;
+}
+
+.msg.connectionTile.secondary .label {
+    color: var(--connectionTileCreateNew--foreground);
+}
+
+.msg.connectionTile.secondary .icon {
+    background-color: var(--connectionTileCreateNew-foreground);
+}
+
+.msg.connectionTile #actionsBackground {
+    visibility: hidden;
+    position: absolute;
+
+    top: 0;
+    right: 0;
+    margin: 0;
+
+    width: 39px;
+    height: 76px;
+
+    border: none;
+    background: var(--connectionTile-border);
+    opacity: 35%;
+}
+
+.msg.connectionTile #actions {
+    display: flex;
+    visibility: hidden;
+    position: absolute;
+    justify-items: center;
+
+    top: 0;
+    right: 0;
+    margin: 0;
+
+    width: 39px;
+    height: 76px;
+
+    border: none;
+    background: none;
+}
+
+.msg.connectionTile:focus #actions,
+.msg.connectionTile:hover #actions,
+.msg.connectionTile:focus #actionsBackground,
+.msg.connectionTile:hover #actionsBackground {
+    visibility: visible;
+}
+
+.msg.connectionTile #actions > #triggerEditMenu {
+    flex: 1 1 auto;
+
+    min-width: 0;
+    width: 17px;
+    height: 17px;
+
+    padding: 0;
+    margin: 0;
+
+    color: var(--icon-foreground);
+    font-weight: 800;
+
+    text-align: center;
+    border: none;
+    background: var(--connectionTile-border);
+}
+
+.msg.connectionTile #actions .button {
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+    background: none;
+    border: none;
+    color: var(--connectionTile-foreground);
+    width: 24px;
+    height: 24px;
+
+    opacity: 100%;
+}
+
+.msg.connectionTile #actions .icon {
+    flex: 0 0 16px;
+    height: 16px;
+    margin: 0;
+}

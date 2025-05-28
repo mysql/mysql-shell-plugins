@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -54,7 +54,7 @@ export class MdsHWClusterDialog extends ValueDialogBase {
     }
 
     public handleCloseDialog = (closure: DialogResponseClosure, dialogValues: IDialogValues,
-        data?: IDictionary): void => {
+        data?: IDictionary): Promise<void> => {
         const { onClose } = this.props;
 
         if (closure === DialogResponseClosure.Accept && data) {
@@ -69,6 +69,8 @@ export class MdsHWClusterDialog extends ValueDialogBase {
         } else {
             onClose(closure);
         }
+
+        return Promise.resolve();
     };
 
     public validateInput = (closing: boolean, values: IDialogValues): IDialogValidations => {

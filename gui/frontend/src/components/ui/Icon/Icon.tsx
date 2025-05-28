@@ -78,7 +78,7 @@ export class Icon extends ComponentBase<IIconProperties> {
         let maskSize: string | undefined = "100% 100%";
         let maskComposite: string | undefined = "subtract";
         const olLayers: ComponentChild[] = [];
-        if (overlays) {
+        if (overlays && overlays.length > 0) {
             className += " withOverlay";
 
             overlays.forEach((overlay) => {

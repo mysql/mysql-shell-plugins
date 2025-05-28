@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -430,6 +430,7 @@ export enum Codicon {
     TriangleRight,
     TriangleUp,
     Twitter,
+    TypeHierarchySub,
     Unfold,
     UngroupByRefType,
     Unlock,
@@ -862,6 +863,7 @@ export const iconNameMap = new Map<Codicon, string>([
     [Codicon.TriangleRight, "triangle-right"],
     [Codicon.TriangleUp, "triangle-up"],
     [Codicon.Twitter, "twitter"],
+    [Codicon.TypeHierarchySub, "type-hierarchy-sub"],
     [Codicon.Unfold, "unfold"],
     [Codicon.UngroupByRefType, "ungroup-by-ref-type"],
     [Codicon.Unlock, "unlock"],

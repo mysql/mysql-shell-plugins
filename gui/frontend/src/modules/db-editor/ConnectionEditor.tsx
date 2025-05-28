@@ -24,8 +24,10 @@
  */
 
 import { ComponentChild, createRef } from "preact";
-import { DialogResponseClosure, IDictionary, IServicePasswordRequest } from "../../app-logic/general-types.js";
 
+import {
+    DialogResponseClosure, DialogType, IDictionary, IServicePasswordRequest,
+} from "../../app-logic/general-types.js";
 import {
     IMySQLConnectionOptions, MySQLConnCompression, MySQLConnectionScheme, MySQLSqlMode, MySQLSslMode,
 } from "../../communication/MySQL.js";
@@ -38,6 +40,7 @@ import {
 } from "../../components/Dialogs/ValueEditDialog.js";
 import { CheckState, ICheckboxProperties } from "../../components/ui/Checkbox/Checkbox.js";
 
+import { DialogHost } from "../../app-logic/DialogHost.js";
 import { ui } from "../../app-logic/UILayer.js";
 import { ComponentBase, IComponentProperties, IComponentState } from "../../components/ui/Component/ComponentBase.js";
 import { Container, ContentAlignment, ContentWrap, Orientation } from "../../components/ui/Container/Container.js";
@@ -45,12 +48,12 @@ import { Grid } from "../../components/ui/Grid/Grid.js";
 import { GridCell } from "../../components/ui/Grid/GridCell.js";
 import { Label } from "../../components/ui/Label/Label.js";
 import { ProgressIndicator } from "../../components/ui/ProgressIndicator/ProgressIndicator.js";
-import type { ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
+import { CdmEntityType } from "../../data-models/ConnectionDataModel.js";
 import { requisitions } from "../../supplement/Requisitions.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { ShellInterface } from "../../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceShellSession } from "../../supplement/ShellInterface/ShellInterfaceShellSession.js";
-import { DBConnectionEditorType, DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
+import { ConnectionEditorType, DBType, IConnectionDetails } from "../../supplement/ShellInterface/index.js";
 import { RunMode, webSession } from "../../supplement/WebSession.js";
 import { convertErrorToString } from "../../utilities/helpers.js";
 import { basename, filterInt } from "../../utilities/string-helpers.js";
@@ -88,6 +91,9 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
     private confirmNewBastionDialogRef = createRef<ConfirmDialog>();
 
     private knowDbTypes: string[] = [];
+
+    // A list of paths created from the folder structure for connections.
+    private knownPaths: string[] = [];
 
     private liveUpdateFields: IConnectionDialogLiveUpdateFields = {
         bastionId: { value: "", loading: false },
@@ -170,12 +176,15 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
      *
      * @param dbTypeName The name of the database type to use.
      * @param newConnection A flag indicating if a new connection is to be created.
+     * @param currentPath The current path for the connection. Only used when details are undefined.
      * @param details Optional connection details for existing connections.
      */
-    public async show(dbTypeName: string, newConnection: boolean, details?: IConnectionDetails): Promise<void> {
+    public async show(dbTypeName: string, newConnection: boolean, currentPath: string,
+        details?: IConnectionDetails): Promise<void> {
         if (this.knowDbTypes.length === 0) {
             this.knowDbTypes = await ShellInterface.core.getDbTypes();
         }
+        await this.loadKnownFolders();
 
         this.liveUpdateFields.bastionName.value = "";
         this.liveUpdateFields.mdsDatabaseName.value = "";
@@ -203,7 +212,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 this.liveUpdateFields.profileName = profileName;
                 this.liveUpdateFields.bastionId.value = bastionId;
                 this.liveUpdateFields.dbSystemId = mysqlDbSystemId;
-                this.loadMdsAdditionalDataAndShowConnectionDlg(dbTypeName, newConnection, details);
+                this.loadMdsAdditionalDataAndShowConnectionDlg(dbTypeName, newConnection, currentPath, details);
             } else if (details && !bastionId && profileName && mysqlDbSystemId) {
                 let compartmentId = "";
                 if ("compartment-id" in details.options) {
@@ -224,13 +233,13 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     (details.options as IMySQLConnectionOptions)["bastion-id"] = bastions[0].id;
                     this.liveUpdateFields.bastionId.value =
                         (details.options as IMySQLConnectionOptions)["bastion-id"] as string;
-                    this.loadMdsAdditionalDataAndShowConnectionDlg(dbTypeName, newConnection, details);
+                    this.loadMdsAdditionalDataAndShowConnectionDlg(dbTypeName, newConnection, currentPath, details);
                 } else {
-                    this.confirmBastionCreation(details);
+                    this.confirmBastionCreation(currentPath, details);
                 }
             } else {
                 // A connection dialog without MySQL DB system id.
-                // Activate the SSH/MDS contexts as needed
+                // Activate the SSH/MDS contexts as needed.
                 const contexts: string[] = [dbTypeName];
                 if (details?.useSSH) {
                     contexts.push("useSSH");
@@ -241,7 +250,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 }
 
                 this.editorRef.current.show(
-                    this.generateEditorConfig(details),
+                    this.generateEditorConfig(currentPath, details),
                     {
                         contexts,
                         title: editorHeading,
@@ -297,13 +306,18 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         } else {
             // Check duplicate captions.
             const context = this.context as DocumentContextType;
-            const connections = context.connectionsDataModel.connections;
-            const entry = connections.find((element: ICdmConnectionEntry) => {
-                return element.details.caption === informationSection.caption.value;
+            const roots = context.connectionsDataModel.roots;
+            const entry = roots.find((element) => {
+                if (element.type === CdmEntityType.Connection) {
+                    return element.details.caption === informationSection.caption.value;
+                }
+
+                return undefined;
             });
 
             // The caption can be the same if it is the one from the connection that is currently being edited.
-            if (entry && (String(entry.details.id) !== values.id || data?.createNew)) {
+            if (entry?.type === CdmEntityType.Connection
+                && (String(entry.details.id) !== values.id || data?.createNew)) {
                 result.messages.caption = "A connection with that caption exists already";
             }
         }
@@ -380,6 +394,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     useSSH: false,
                     useMHS: false,
                     options: {},
+                    folderPath: generalSection.folderPath.value as string,
+                    index: -1,
                 };
 
                 if (isSqlite) {
@@ -401,9 +417,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 details.useSSH = mysqlDetailsSection.useSSH.value as boolean;
                 details.caption = informationSection.caption.value as string;
                 details.description = informationSection.description.value as string;
-
-                // TODO: use current active nesting group, once available.
-                // details.folderPath = ...
+                details.folderPath = generalSection.folderPath.value as string;
 
                 if (isSqlite) {
                     details.options = {
@@ -481,7 +495,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     };
 
                     details.settings = {
-                        defaultEditor: generalSection.defaultEditor.value as DBConnectionEditorType,
+                        defaultEditor: generalSection.defaultEditor.value as ConnectionEditorType,
                     };
                 }
 
@@ -499,21 +513,22 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
     /**
      * Generates the object to be used for the value editor.
      *
+     * @param currentPath Specifies the current path for the connection. Only used when details are undefined.
      * @param details The properties of an existing connection or undefined for a new one.
      *
      * @returns The necessary dialog values to edit this connection.
      */
-    private generateEditorConfig = (details?: IConnectionDetails): IDialogValues => {
+    private generateEditorConfig = (currentPath: string, details?: IConnectionDetails): IDialogValues => {
         const context = this.context as DocumentContextType;
-        const connections = context.connectionsDataModel.connections;
+        const connections = context.connectionsDataModel.roots;
 
         let caption = `New Connection`;
 
         let index = 1;
         while (index < 1000) {
             const candidate = `New Connection ${index}`;
-            if (connections.findIndex((element: ICdmConnectionEntry) => {
-                return element.details.caption === candidate;
+            if (connections.findIndex((element) => {
+                return element.type === CdmEntityType.Connection && element.details.caption === candidate;
             }) === -1) {
                 caption = candidate;
 
@@ -525,12 +540,12 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
 
         const description = "A new Database Connection";
 
-        let defaultEditor = DBConnectionEditorType.DbNotebook;
+        let defaultEditor = ConnectionEditorType.DbNotebook;
         if (webSession.runMode === RunMode.SingleServer) {
             // In single server mode take the default editor from the settings.
             defaultEditor = Settings.get("dbEditor.defaultEditor", "notebook") === "notebook"
-                ? DBConnectionEditorType.DbNotebook
-                : DBConnectionEditorType.DbScript;
+                ? ConnectionEditorType.DbNotebook
+                : ConnectionEditorType.DbScript;
         } else if (details?.settings?.defaultEditor) {
             defaultEditor = details.settings.defaultEditor;
         }
@@ -550,6 +565,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             settings: {
                 defaultEditor,
             },
+            folderPath: currentPath,
+            index: -1,
         };
 
         // In the dialog config we have to provide values for each DB type, because the user can switch the type.
@@ -620,17 +637,19 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     type: "choice",
                     caption: "Default Editor:",
                     value: defaultEditor,
-                    choices: [DBConnectionEditorType.DbNotebook, DBConnectionEditorType.DbScript],
+                    choices: [ConnectionEditorType.DbNotebook, ConnectionEditorType.DbScript],
                     description: "Choose between a modern notebook interface or a traditional script editor",
                     horizontalSpan: 3,
                 },
                 folderPath: {
                     type: "choice",
                     caption: "Folder Path:",
-                    value: "/",
-                    choices: ["/"],
+                    value: !details.folderPath ? "/" : details.folderPath,
+                    choices: this.knownPaths,
                     description: "Path of the folder holding the connection",
                     horizontalSpan: 3,
+                    options: [CommonDialogValueOption.Grouped],
+                    onChange: this.addFolder,
                 },
                 databaseType: {
                     type: "choice",
@@ -1110,8 +1129,8 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         this.editorRef.current?.updateDropdownValue(items, this.activeOciProfileName ?? "", "profileName");
     }
 
-    private loadMdsAdditionalDataAndShowConnectionDlg = ((dbTypeName: string, newConnection: boolean,
-        details?: IConnectionDetails): void => {
+    private loadMdsAdditionalDataAndShowConnectionDlg(dbTypeName: string, newConnection: boolean,
+        currentPath: string, details?: IConnectionDetails): void {
         const contexts: string[] = [dbTypeName];
         if (details?.useMHS) {
             contexts.push("useMDS");
@@ -1124,7 +1143,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         this.beginValueUpdating("Loading...", "bastionName");
         this.beginValueUpdating("Loading...", "mysqlDbSystemName");
         this.editorRef.current?.show(
-            this.generateEditorConfig(details),
+            this.generateEditorConfig(currentPath, details),
             {
                 contexts,
                 title: editorHeading,
@@ -1153,7 +1172,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             .catch(() => {
                 this.updateInputValue("<error loading database OCI name data>", "mysqlDbSystemName");
             });
-    });
+    }
 
     private handleBastionIdChange = (value: string, _dialog: ValueEditDialog, forceUpdate = false): void => {
         if (value !== this.liveUpdateFields.bastionId.value || forceUpdate) {
@@ -1272,7 +1291,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
         this.editorRef.current?.updateInputValue(value, valueId);
     };
 
-    private confirmBastionCreation = (connection?: IConnectionDetails): void => {
+    private confirmBastionCreation = (currentPath: string, connection?: IConnectionDetails): void => {
         if (this.confirmNewBastionDialogRef.current) {
             this.confirmNewBastionDialogRef.current.show(
                 (<Container orientation={Orientation.TopDown}>
@@ -1291,15 +1310,16 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                 },
                 "Create New Bastion",
                 undefined,
-                { connection },
+                { currentPath, connection },
             );
         }
 
     };
 
-    private handleCreateNewBastion = (closure: DialogResponseClosure, values?: IDictionary): void => {
+    private handleCreateNewBastion = ((closure: DialogResponseClosure, values?: IDictionary): void => {
         if (closure === DialogResponseClosure.Accept && values) {
             const details = values.connection as IConnectionDetails;
+            const currentPath = values.currentPath as string ?? "/";
             const contexts: string[] = [DBType.MySQL];
             if (details.useSSH) {
                 contexts.push("useSSH");
@@ -1313,7 +1333,7 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
             this.beginValueUpdating("Loading...", "bastionId");
 
             this.editorRef.current?.show(
-                this.generateEditorConfig(details),
+                this.generateEditorConfig(currentPath, details),
                 {
                     contexts,
                     title: editorHeading,
@@ -1357,6 +1377,56 @@ export class ConnectionEditor extends ComponentBase<IConnectionEditorProperties,
                     this.editorRef.current?.updateInputValue("<error loading database OCI name data>",
                         "mysqlDbSystemName");
                 });
+        }
+    });
+
+    private addFolder = (value: string, dialog: ValueEditDialog): void => {
+        const values = dialog.getDialogValues();
+        const generalSection = values.sections.get("general")!.values;
+        const folderPath = generalSection.folderPath.value as string;
+
+        if (folderPath === "<Add new folder>") {
+            void DialogHost.showDialog({
+                id: "connectionFolderPath",
+                type: DialogType.Prompt,
+                title: "Create New Folder",
+                values: {
+                    prompt: "Enter the name of the new folder to create:",
+                },
+                description: ["A connection folder is an organizational unit for connections."],
+            }).then((response) => {
+                if (response.closure === DialogResponseClosure.Accept && response.values) {
+                    let newFolderName = response.values.input as string;
+                    if (newFolderName.length === 0 || !newFolderName.startsWith("/")) {
+                        newFolderName = "/" + newFolderName;
+                    }
+                    this.editorRef.current?.updateInputValue(newFolderName, "folderPath");
+                } else {
+                    this.editorRef.current?.updateInputValue("/", "folderPath");
+                }
+            });
+        }
+    };
+
+    /**
+     * Loads all known folders from the database and creates a list of paths out of the hierarchical folder structure.
+     */
+    private loadKnownFolders = async (): Promise<void> => {
+        this.knownPaths = ["<Add new folder>"];
+
+        const addPaths = async (parent: number, currentPath: string): Promise<void> => {
+            const list = await ShellInterface.dbConnections.listFolderPaths(parent);
+            for (const entry of list) {
+                const newPath = (currentPath.length === 1 ? "" : currentPath) + "/" + entry.caption;
+                this.knownPaths.push(newPath);
+                await addPaths(entry.id, newPath);
+            }
+        };
+
+        const topLevel = await ShellInterface.dbConnections.listFolderPaths();
+        for (const entry of topLevel) {
+            this.knownPaths.push(entry.caption);
+            await addPaths(entry.id, entry.caption);
         }
     };
 

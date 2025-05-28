@@ -29,12 +29,22 @@ import type {
     IMrsServiceData, IMrsStatusData, IMrsUserData,
 } from "../../../communication/ProtocolMrs.js";
 import type { IWebviewProvider } from "../../../supplement/RequisitionTypes.js";
-import { DBConnectionEditorType, DBType, type IConnectionDetails } from "../../../supplement/ShellInterface/index.js";
+import {
+    ConnectionEditorType, DBType, type IConnectionDetails, type IFolderPath,
+} from "../../../supplement/ShellInterface/index.js";
 
 /** Some variables to configure the mock functions during tests: */
 export const cdmMockState = {
     mockConnectedLoaded: false,
     haveMockConnectionResponse: false,
+};
+
+export const connectionFolderMock1: IFolderPath = {
+    id: 2,
+    caption: "Test folder 1",
+    parentFolderId: 1,
+    index: 0,
+    type: "folder",
 };
 
 export const connectionDetailsMock1: IConnectionDetails[] = [{
@@ -54,8 +64,10 @@ export const connectionDetailsMock1: IConnectionDetails[] = [{
     sqlMode: "ANSI_MODE",
     heatWaveAvailable: true,
     settings: {
-        defaultEditor: DBConnectionEditorType.DbNotebook,
+        defaultEditor: ConnectionEditorType.DbNotebook,
     },
+    index: 0,
+    type: "connection",
 }, {
     id: 2,
     dbType: DBType.Sqlite,
@@ -68,8 +80,10 @@ export const connectionDetailsMock1: IConnectionDetails[] = [{
     useMHS: false,
     version: 0,
     settings: {
-        defaultEditor: DBConnectionEditorType.DbScript,
+        defaultEditor: ConnectionEditorType.DbScript,
     },
+    index: 0,
+    type: "connection",
 }];
 
 export const extraConnectionDetails: IConnectionDetails = {
@@ -89,8 +103,9 @@ export const extraConnectionDetails: IConnectionDetails = {
     sqlMode: "ANSI_MODE",
     heatWaveAvailable: false,
     settings: {
-        defaultEditor: DBConnectionEditorType.DbScript,
+        defaultEditor: ConnectionEditorType.DbScript,
     },
+    index: 0,
 };
 
 export const openConnectionDataMock1: IOpenConnectionData = {

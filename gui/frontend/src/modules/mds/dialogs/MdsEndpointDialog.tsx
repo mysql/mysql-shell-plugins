@@ -259,7 +259,7 @@ export class MdsEndpointDialog extends ValueDialogBase {
     }
 
     private handleCloseDialog = (closure: DialogResponseClosure, dialogValues: IDialogValues,
-        data?: IDictionary): void => {
+        data?: IDictionary): Promise<void> => {
         const { onClose } = this.props;
 
         if (closure === DialogResponseClosure.Accept && data) {
@@ -292,5 +292,7 @@ export class MdsEndpointDialog extends ValueDialogBase {
         } else {
             onClose(closure);
         }
+
+        return Promise.resolve();
     };
 }

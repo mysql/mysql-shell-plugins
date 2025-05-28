@@ -34,6 +34,7 @@ import {
 import { ShellInterfaceDb } from "./ShellInterfaceDb.js";
 import { ShellInterfaceMhs } from "./ShellInterfaceMhs.js";
 import { ShellInterfaceMrs } from "./ShellInterfaceMrs.js";
+import { promiseWithTimeout } from "../../utilities/helpers.js";
 
 export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPromptReplyBackend {
 
@@ -78,10 +79,10 @@ export class ShellInterfaceSqlEditor extends ShellInterfaceDb implements IPrompt
     public override async closeSession(): Promise<void> {
         const moduleSessionId = this.moduleSessionId;
         if (moduleSessionId) {
-            await MessageScheduler.get.sendRequest({
+            await promiseWithTimeout(MessageScheduler.get.sendRequest({
                 requestType: ShellAPIGui.GuiSqlEditorCloseSession,
                 parameters: { args: { moduleSessionId } },
-            });
+            }), 5000);
             webSession.setModuleSessionId(this.moduleSessionLookupId);
         }
     }

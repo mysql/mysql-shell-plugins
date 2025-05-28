@@ -177,4 +177,22 @@ export class E2ETreeItem extends WebElement {
         });
     };
 
+    /**
+     * Gets the tree item type (connection or group)
+     * @returns A promise resolving with the item type
+     */
+    public getType = async (): Promise<string> => {
+        const el = await this.findElement(locator.section.tree.element.icon.exists);
+        const isConnection = (await el.getCssValue("mask-image")).includes("connection");
+        const isGroup = (await el.getAttribute("class")).includes("codicon-type-hierarchy-sub");
+
+        if (isConnection) {
+            return constants.treeItemConnection;
+        } else if (isGroup) {
+            return constants.treeItemGroup;
+        } else {
+            throw new Error(`Could not check the tree item type for '${this.caption}'`);
+        }
+    };
+
 }

@@ -201,7 +201,7 @@ export class Tabview extends ComponentBase<ITabviewProperties, IState> {
     public render(): ComponentChild {
         const {
             tabPosition, stretchTabs, hideSingleTab, pages, tabBorderWidth, style, contentSeparatorWidth, selectedId,
-            showTabs, canReorderTabs, auxillary,
+            showTabs, canReorderTabs, auxillary, closeTabs,
         } = this.props;
 
         const className = this.getEffectiveClassNames([
@@ -322,7 +322,7 @@ export class Tabview extends ComponentBase<ITabviewProperties, IState> {
                                 </div>
                             </div>
                             {auxillary && <span className="auxillary">{auxillary}</span>}
-                            {this.props.closeTabs && (
+                            {closeTabs && (
                                 <Menu
                                     id="tabMenu"
                                     ref={this.tabMenuRef}
@@ -589,18 +589,22 @@ export class Tabview extends ComponentBase<ITabviewProperties, IState> {
     };
 
     private getTabById(id: string): ITabviewPage | undefined {
-        return this.props.pages.find((p) => {
+        const { pages } = this.props;
+
+        return pages.find((p) => {
             return p.id === id;
         });
     }
 
     private showTabMenu = (event: MouseEvent): void => {
+        const { closeTabs } = this.props;
+
         event.preventDefault();
         event.stopPropagation();
 
         this.tabMenuRef.current?.close();
 
-        if (!this.props.closeTabs) {
+        if (!closeTabs) {
             return;
         }
 
@@ -610,7 +614,7 @@ export class Tabview extends ComponentBase<ITabviewProperties, IState> {
         }
 
         // Hide menu completely if there are no tabs to close.
-        if (!this.getTabById(currentTabId) || !this.getClosingAllTabIds().length) {
+        if (!this.getTabById(currentTabId) || this.getClosingAllTabIds().length === 0) {
             return;
         }
 
@@ -629,26 +633,31 @@ export class Tabview extends ComponentBase<ITabviewProperties, IState> {
     };
 
     private async closeIfAllowed(ids: string[]): Promise<void> {
-        if (!this.props.closeTabs) {
+        const { closeTabs, canCloseTab } = this.props;
+
+        if (!closeTabs) {
             return;
         }
 
         const closingIds = ids;
         for (const [index, id] of ids.entries()) {
             let canClose = true;
-            if (this.props.canCloseTab) {
-                canClose = await this.props.canCloseTab(id);
+            if (canCloseTab) {
+                canClose = await canCloseTab(id);
             }
+
             if (!canClose) {
                 closingIds.splice(index, 1);
             }
         }
 
-        void this.props.closeTabs?.(closingIds);
+        void closeTabs?.(closingIds);
     }
 
     private getClosingOtherTabIds(ownId: string): string[] {
-        return this.props.pages.filter((page) => {
+        const { pages } = this.props;
+
+        return pages.filter((page) => {
             return page.id !== ownId && page.canClose;
         }).map((page) => {
             return page.id;
@@ -662,10 +671,12 @@ export class Tabview extends ComponentBase<ITabviewProperties, IState> {
     }
 
     private getClosingToTheRightTabIds(ownId: string): string[] {
+        const { pages } = this.props;
+
         const closingIds: string[] = [];
 
         let closeAfterIndex = Infinity;
-        this.props.pages.forEach((page, index) => {
+        pages.forEach((page, index) => {
             if (!page.canClose) {
                 return;
             }
@@ -689,7 +700,9 @@ export class Tabview extends ComponentBase<ITabviewProperties, IState> {
     }
 
     private getClosingAllTabIds(): string[] {
-        return this.props.pages.filter((page) => {
+        const { pages } = this.props;
+
+        return pages.filter((page) => {
             return page.canClose;
         }).map((page) => {
             return page.id;

@@ -40,6 +40,7 @@ import { ShellTasksTreeDataProvider } from "./tree-providers/ShellTreeProvider/S
 import { ui } from "../../frontend/src/app-logic/UILayer.js";
 import type { IShellModuleDataCategoriesEntry, IShellProfile } from "../../frontend/src/communication/ProtocolGui.js";
 import {
+    CdmEntityType,
     ConnectionDataModel, type ICdmConnectionEntry, type ICdmSchemaEntry,
 } from "../../frontend/src/data-models/ConnectionDataModel.js";
 import type {
@@ -96,6 +97,9 @@ export class ExtensionHost {
     #connectionsDataModel: ConnectionDataModel;
 
     public constructor(public context: ExtensionContext) {
+        // Access the node specific message scheduler once to create the correct version of it.
+        void NodeMessageScheduler.get;
+
         this.#connectionsDataModel = new ConnectionDataModel(false);
         void this.#connectionsDataModel.initialize(); // Async init, but don't wait.
 
@@ -174,15 +178,13 @@ export class ExtensionHost {
      */
     public determineConnection = async (dbType?: DBType,
         forcePicker?: boolean, showErrorMessages = true): Promise<ICdmConnectionEntry | undefined> => {
-        let connections = this.#connectionsDataModel.connections;
+        let connections: ICdmConnectionEntry[] = [];
 
         let title = "Select a connection for SQL execution";
         if (!forcePicker) {
             const connectionName = workspace.getConfiguration("msg.editor").get<string>("defaultDbConnection");
             if (connectionName) {
-                const connection = connections.find((candidate) => {
-                    return candidate.details.caption === connectionName;
-                });
+                const connection = this.#connectionsDataModel.findConnectionEntryByCaption(connectionName);
 
                 if (!connection) {
                     if (showErrorMessages) {
@@ -205,8 +207,8 @@ export class ExtensionHost {
 
         // If a specific dbType was specified, filter connections by that DBType
         if (dbType) {
-            connections = connections.filter((conn) => {
-                return conn.details.dbType === dbType;
+            connections = this.#connectionsDataModel.connectionList.filter((entry) => {
+                return entry.type === CdmEntityType.Connection && entry.details.dbType === dbType;
             });
         }
 
@@ -310,9 +312,6 @@ export class ExtensionHost {
      * Prepares all VS Code providers for first use.
      */
     private setupEnvironment(): void {
-        // Access the node specific message scheduler once to create the correct version of it.
-        void NodeMessageScheduler.get;
-
         // Register the extension host as target for broadcasts.
         requisitions.setRemoteTarget(this);
 

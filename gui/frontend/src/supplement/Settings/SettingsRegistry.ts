@@ -412,11 +412,20 @@ export const registerSettings = (): void => {
     );
 
     registerSettingCategory("dbEditor.connectionBrowser", "Connection Browser", "Settings related to the connection " +
-        "overview page in the DB Editor Module");
+        "overview page");
     registerSetting(
         "dbEditor.connectionBrowser.showGreeting",
         "Show Greeting",
         "If set, a message section is shown with some useful links.",
+        "boolean",
+        true,
+        false,
+    );
+
+    registerSetting(
+        "dbEditor.connectionBrowser.sortFoldersFirst",
+        "Sort Folders First",
+        "If set, folders are sorted before connections in the connection overview.",
         "boolean",
         true,
         false,

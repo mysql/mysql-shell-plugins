@@ -28,6 +28,7 @@ import * as constants from "../../constants";
 import * as interfaces from "../../interfaces";
 import * as locator from "../../locators";
 import { DialogHelper } from "./DialogHelper";
+import { FolderDialog } from "./FolderDialog";
 
 /**
  * This class aggregates the functions to interact with the database connection dialog
@@ -58,6 +59,22 @@ export class DatabaseConnectionDialog {
         }
         if (dbConfig.description) {
             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.description, dbConfig.description);
+        }
+        if (dbConfig.folderPath) {
+            await dialog.findElement(locator.dbConnectionDialog.folderPath.exists).click();
+            const selectList = await driver.wait(until
+                .elementLocated(locator.dbConnectionDialog.folderPath.selectList.exists),
+
+                constants.wait1second * 3, "Could not find the Folder Path select list");
+
+            if (dbConfig.folderPath.new === true) {
+                await selectList.findElement(locator.dbConnectionDialog.folderPath.selectList.addNewFolder).click();
+                await FolderDialog.setFolderValue(dbConfig.folderPath.value);
+                await FolderDialog.ok();
+            } else {
+                await selectList.findElement(locator.dbConnectionDialog.folderPath.selectList
+                    .item(dbConfig.folderPath.value)).click();
+            }
         }
         if (dbConfig.dbType) {
             if (dbConfig.dbType === "MySQL") {
@@ -271,6 +288,11 @@ export class DatabaseConnectionDialog {
             caption: await DialogHelper.getFieldValue(dialog, locator.dbConnectionDialog.caption),
             description: await DialogHelper.getFieldValue(dialog, locator.dbConnectionDialog.description),
         };
+
+        dbConnection.folderPath = {
+            value: await (await dialog.findElement(locator.dbConnectionDialog.folderPath.label)).getText(),
+        };
+
         if (dbConnection.dbType === "MySQL") {
             const basic: interfaces.IConnBasicMySQL = {
                 hostname: await DialogHelper.getFieldValue(dialog, locator.dbConnectionDialog.mysql.basic.hostname),

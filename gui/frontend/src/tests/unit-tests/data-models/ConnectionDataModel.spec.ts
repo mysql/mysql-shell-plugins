@@ -28,15 +28,18 @@ import type {
     IMrsAuthAppData, IMrsContentFileData, IMrsContentSetData, IMrsRouterData, IMrsRouterService, IMrsSchemaData,
     IMrsServiceData, IMrsStatusData, IMrsUserData,
 } from "../../../communication/ProtocolMrs.js";
-import { ConnectionDataModel, type ConnectionDataModelEntry } from "../../../data-models/ConnectionDataModel.js";
-import { webSession, type ILoginCredentials } from "../../../supplement/WebSession.js";
+import {
+    CdmEntityType, ConnectionDataModel, type ConnectionDataModelEntry, type ICdmConnectionEntry,
+    type ICdmConnectionGroupEntry,
+} from "../../../data-models/ConnectionDataModel.js";
+import { webSession } from "../../../supplement/WebSession.js";
 import { sleep } from "../../../utilities/helpers.js";
 import { uiLayerMock } from "../__mocks__/UILayerMock.js";
 import { checkNoUiWarningsOrErrors } from "../test-helpers.js";
 import {
-    authAppsData, cdmMockState, connectionDetailsMock1, extraConnectionDetails, mrsContentFileData, mrsContentSetData,
-    mrsRouterData, mrsSchemaData, mrsServiceData, mrsServicesData, mrsStatusMock, mrsUserData, openConnectionDataMock1,
-    routerServiceData, type OpenConnectionResponse,
+    authAppsData, cdmMockState, connectionDetailsMock1, connectionFolderMock1, extraConnectionDetails,
+    mrsContentFileData, mrsContentSetData, mrsRouterData, mrsSchemaData, mrsServiceData, mrsServicesData,
+    mrsStatusMock, mrsUserData, openConnectionDataMock1, routerServiceData, type OpenConnectionResponse,
 } from "./data-model-test-data.js";
 
 const dataModelChanged = jest.fn();
@@ -146,6 +149,31 @@ jest.mock("../../../supplement/ShellInterface/ShellInterfaceDbConnection.js", ()
                     return [...connectionDetailsMock1];
                 }),
                 removeDbConnection: jest.fn(),
+                listFolderPaths: jest.fn().mockImplementation(() => {
+                    return Promise.resolve([
+                        {
+                            id: 1,
+                            caption: "Test folder",
+                            parentFolderId: undefined,
+                        },
+                    ]);
+                }),
+                listAll: jest.fn().mockImplementation((profileId: number, folderId: number) => {
+                    if (profileId === -1 || folderId > 1) {
+                        return Promise.resolve([]);
+                    }
+
+                    if (!cdmMockState.mockConnectedLoaded) { // Simulate varying connection loading conditions.
+                        cdmMockState.mockConnectedLoaded = true;
+
+                        return connectionDetailsMock1.slice(0, 1);
+                    }
+
+                    return Promise.resolve([
+                        connectionFolderMock1,
+                        ...connectionDetailsMock1,
+                    ]);
+                }),
             };
         }),
     };
@@ -195,34 +223,44 @@ describe("ConnectionDataModel", () => {
     });
 
     it("Connection handling", async () => {
-        let connections = dataModel.connections;
-        expect(connections.length).toBe(1);
+        let roots = dataModel.roots;
+        expect(roots.length).toBe(1);
 
         await dataModel.reloadConnections();
-        connections = dataModel.connections;
-        expect(connections.length).toBe(2);
+        roots = dataModel.roots;
+        expect(roots.length).toBe(3);
+
+        expect(roots[0].type).toBe(CdmEntityType.ConnectionGroup);
+        const firstGroup = roots[0] as ICdmConnectionGroupEntry;
+        expect(firstGroup.caption).toBe("Test folder 1");
+
+        expect(roots[1].type).toBe(CdmEntityType.Connection);
+        const firstConnection = roots[1] as ICdmConnectionEntry;
+
+        expect(roots[2].type).toBe(CdmEntityType.Connection);
+        const secondConnection = roots[2] as ICdmConnectionEntry;
 
         // The connection member of a connection points to itself.
-        expect(connections[0].connection).toEqual(connections[0]);
-        expect(connections[0].isOpen).toBe(false);
+        expect(firstConnection.connection).toEqual(firstConnection);
+        expect(firstConnection.isOpen).toBe(false);
 
         // Open a connection.
-        await connections[0].refresh?.();
-        expect(connections[0].isOpen).toBe(false); // No data was provided yet.
+        await firstConnection.refresh?.();
+        expect(firstConnection.isOpen).toBe(false); // No data was provided yet.
 
         // Close the connection to reset its initialized state.
-        await connections[0].close?.();
+        await firstConnection.close?.();
 
         // Try again, this time with data.
         cdmMockState.haveMockConnectionResponse = true;
-        await connections[0].refresh?.();
-        expect(connections[0].isOpen).toBe(true);
-        expect(dataModel.isValidConnectionId(connections[0].details.id)).toBe(true);
+        await firstConnection.refresh?.();
+        expect(firstConnection.isOpen).toBe(true);
+        expect(dataModel.isValidConnectionId(firstConnection.details.id)).toBe(true);
 
         // Run the MRS timer at least once. For this we need to expand the MRS item in the connection.
         // This test cannot be used when an MRS database upgrade is due.
-        if (connections[0].mrsEntry) {
-            connections[0].mrsEntry.state.expanded = true;
+        if (firstConnection.mrsEntry) {
+            firstConnection.mrsEntry.state.expanded = true;
 
             expect(dataModel.autoRouterRefresh).toBe(false);
             dataModel.autoRouterRefresh = true;
@@ -233,15 +271,15 @@ describe("ConnectionDataModel", () => {
         }
 
         // We only opened the first connection. Check that again and then close all connections.
-        expect(connections[0].isOpen).toBe(true);
-        expect(connections[1].isOpen).toBe(false);
+        expect(firstConnection.isOpen).toBe(true);
+        expect(secondConnection.isOpen).toBe(false);
         await dataModel.closeAllConnections();
-        expect(connections[0].isOpen).toBe(false);
-        expect(connections[1].isOpen).toBe(false);
+        expect(firstConnection.isOpen).toBe(false);
+        expect(secondConnection.isOpen).toBe(false);
 
         // Creating a new connection entry does not add it to the data model.
         const connection = dataModel.createConnectionEntry(extraConnectionDetails);
-        expect(dataModel.connections).toHaveLength(2);
+        expect(dataModel.roots).toHaveLength(3);
 
         // Still you can open it.
         await connection.refresh!();
@@ -251,31 +289,31 @@ describe("ConnectionDataModel", () => {
 
         expect(dataModel.isValidConnectionId(1)).toBe(true); // A connection with id 1 is in the DM.
 
-        expect(dataModel.findConnectionEntryById(1)).toEqual(connections[0]);
+        expect(dataModel.findConnectionEntryById(1)).toEqual(roots[1]);
 
         expect(dataModel.findConnectionEntryById(3)).toBeUndefined();
-        dataModel.addConnectionEntry(connection); // Now we have 3 connections.
-        expect(dataModel.connections).toHaveLength(3);
+        await dataModel.addConnectionEntry(connection); // Now we have 3 connections.
+        expect(dataModel.roots).toHaveLength(4);
         expect(dataModel.findConnectionEntryById(3)).toEqual(connection);
 
         // Make the extra connection use the same id as the second connection and update that. This will replace
         // the details of the second connection by that of the 3rd. But first test they are not already equal.
-        expect(dataModel.connections[1].details).not.toEqual(extraConnectionDetails);
+        expect(secondConnection.details).not.toEqual(extraConnectionDetails);
 
         extraConnectionDetails.id = 2;
         dataModel.updateConnectionDetails(extraConnectionDetails);
-        expect(dataModel.connections).toHaveLength(3);
-        expect(dataModel.connections[1].details).toEqual(extraConnectionDetails);
+        expect(dataModel.roots).toHaveLength(4);
+        expect(secondConnection.details).toEqual(extraConnectionDetails);
 
         // Now the same with the first DM connection entry. Make it use the second connection id and update it.
         connection.details.id = 1;
-        expect(dataModel.connections[1].details).not.toEqual(dataModel.connections[0].details);
+        expect(secondConnection.details).not.toEqual(firstConnection.details);
         dataModel.updateConnectionDetails(connection);
-        expect(dataModel.connections[1].details).toEqual(dataModel.connections[0].details);
+        expect(secondConnection.details).toEqual(firstConnection.details);
 
         webSession.profile.id = -1; // Simulate no profile.
         await dataModel.reloadConnections();
-        expect(dataModel.connections).toHaveLength(0);
+        expect(dataModel.roots).toHaveLength(0);
 
         checkNoUiWarningsOrErrors();
 
@@ -287,8 +325,8 @@ describe("ConnectionDataModel", () => {
         cdmMockState.haveMockConnectionResponse = true;
 
         await dataModel.reloadConnections();
-        const connections = dataModel.connections;
-        expect(connections).toHaveLength(2);
+        const roots = dataModel.roots;
+        expect(roots).toHaveLength(3);
 
         const refresh = async (entry: ConnectionDataModelEntry) => {
             await entry.refresh?.();
@@ -300,27 +338,37 @@ describe("ConnectionDataModel", () => {
             }
         };
 
-        for (const connection of connections) {
+        for (const connection of roots) {
             await refresh(connection);
         }
 
+        expect(roots[0].type).toBe(CdmEntityType.ConnectionGroup);
+        const firstFolder = roots[0] as ICdmConnectionEntry;
+        expect(firstFolder.caption).toBe("Test folder 1");
+
+        expect(roots[1].type).toBe(CdmEntityType.Connection);
+        const firstConnection = roots[1] as ICdmConnectionEntry;
+
+        expect(roots[2].type).toBe(CdmEntityType.Connection);
+        const secondConnection = roots[2] as ICdmConnectionEntry;
+
         // Now check if everything was loaded. We don't check everything here, just a few examples.
         // Also here, if there's an MRS db upgrade pending, we don't have an MRS item to check.
-        if (connections[0].mrsEntry) {
-            expect(connections[0].mrsEntry).toBeDefined();
-            expect(connections[0].mrsEntry.services).toHaveLength(1);
-            expect(connections[0].mrsEntry.routerGroup.routers).toHaveLength(1);
+        if (firstConnection.mrsEntry) {
+            expect(firstConnection.mrsEntry).toBeDefined();
+            expect(firstConnection.mrsEntry.services).toHaveLength(1);
+            expect(firstConnection.mrsEntry.routerGroup.routers).toHaveLength(1);
         }
 
-        expect(connections[0].adminEntry).toBeDefined();
-        expect(connections[1].schemaEntries).toHaveLength(2);
+        expect(firstConnection.adminEntry).toBeDefined();
+        expect(secondConnection.schemaEntries).toHaveLength(2);
 
-        expect(connections[1].schemaEntries[0].procedures.getChildren!()).toHaveLength(15);
-        expect(connections[1].schemaEntries[0].procedures.members).toHaveLength(15);
-        expect(connections[1].schemaEntries[0].procedures.members[5].schema).toBe("sakila");
-        expect(connections[1].schemaEntries[1].tables.members[5].connection).toBe(connections[1]);
-        expect(connections[1].schemaEntries[1].tables.members[5].triggers.members).toHaveLength(2);
-        expect(connections[1].schemaEntries[1].tables.members[5].columns.members).toHaveLength(2);
+        expect(secondConnection.schemaEntries[0].procedures.getChildren!()).toHaveLength(15);
+        expect(secondConnection.schemaEntries[0].procedures.members).toHaveLength(15);
+        expect(secondConnection.schemaEntries[0].procedures.members[5].schema).toBe("sakila");
+        expect(secondConnection.schemaEntries[1].tables.members[5].connection).toBe(roots[2]);
+        expect(secondConnection.schemaEntries[1].tables.members[5].triggers.members).toHaveLength(2);
+        expect(secondConnection.schemaEntries[1].tables.members[5].columns.members).toHaveLength(2);
 
         checkNoUiWarningsOrErrors();
     });
@@ -328,8 +376,8 @@ describe("ConnectionDataModel", () => {
     it("MRS auth apps", async () => {
         cdmMockState.haveMockConnectionResponse = true;
         await dataModel.reloadConnections();
-        const connections = dataModel.connections;
-        await connections[0].refresh?.();
+        const roots = dataModel.roots;
+        await roots[0].refresh?.();
 
 
         checkNoUiWarningsOrErrors();

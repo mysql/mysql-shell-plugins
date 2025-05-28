@@ -37,9 +37,9 @@ export class ConnectionDataModelListener {
      *
      * @returns A promise always fulfilled to true.
      */
-    public handleConnectionAdded = (details: IConnectionDetails): Promise<boolean> => {
+    public handleConnectionAdded = async (details: IConnectionDetails): Promise<boolean> => {
         const entry = this.connectionsDataModel.createConnectionEntry(details);
-        this.connectionsDataModel.addConnectionEntry(entry);
+        await this.connectionsDataModel.addConnectionEntry(entry);
 
         return Promise.resolve(true);
     };
@@ -51,7 +51,7 @@ export class ConnectionDataModelListener {
      *
      * @returns A promise always fulfilled to true.
      */
-    public handleConnectionUpdated = (details: IConnectionDetails): Promise<boolean> => {
+    public handleConnectionUpdated = async (details: IConnectionDetails): Promise<boolean> => {
         this.connectionsDataModel.updateConnectionDetails(details);
 
         return Promise.resolve(true);

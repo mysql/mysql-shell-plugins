@@ -38,8 +38,8 @@ import { DBType, type IConnectionDetails } from "../supplement/ShellInterface/in
 import { convertErrorToString, uuid } from "../utilities/helpers.js";
 import {
     CdmEntityType, ICdmAdminEntry, ICdmConnectionEntry, ICdmRestRootEntry, ICdmSchemaEntry,
-    type ConnectionDataModelEntry, type ICdmAdminPageEntry, type ICdmRestAuthAppGroupEntry,
-    type ICdmRestRouterGroupEntry,
+    type ConnectionDataModelEntry, type ICdmAdminPageEntry, type ICdmConnectionGroupEntry,
+    type ICdmRestAuthAppGroupEntry, type ICdmRestRouterGroupEntry,
 } from "./ConnectionDataModel.js";
 import { createDataModelEntryState } from "./data-model-helpers.js";
 import type { ICdmAccessManager, IDataModelEntryState, ProgressCallback } from "./data-model-types.js";
@@ -66,6 +66,7 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
 
     private ignoreMrsUpgrade: boolean = false;
 
+    #parent?: ICdmConnectionGroupEntry;
     #currentSchema: string = "";
 
     public constructor(name: string, details: IConnectionDetails, updater: ICdmAccessManager,
@@ -96,6 +97,29 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
             this.#currentSchema = value;
             void this.backend.setCurrentSchema(value);
         }
+    }
+
+    public get parent(): ICdmConnectionGroupEntry | undefined {
+        return this.#parent;
+    }
+
+    /**
+     * Sets a new parent group for this connection. This will also update the folder path.
+     *
+     * @param parent The new parent group. If undefined, the connection is moved to the root level.
+     */
+    public set parent(parent: ICdmConnectionGroupEntry | undefined) {
+        const mutableThis = this as Mutable<ConnectionEntryImpl>;
+        this.#parent = parent;
+
+        const pathParts: string[] = [];
+        while (parent) {
+            pathParts.unshift(parent.caption);
+            parent = parent.parent as ICdmConnectionGroupEntry;
+        }
+
+        const newPath = pathParts.join("/");
+        mutableThis.details.folderPath = newPath.length > 0 ? newPath : "/";
     }
 
     public async initialize(callback?: ProgressCallback): Promise<boolean> {
@@ -244,14 +268,19 @@ export class ConnectionEntryImpl implements ICdmConnectionEntry {
      * Closes the connection and releases all resources.
      */
     private async closeConnection(): Promise<void> {
-        await this.backend.closeSession();
-
-        this.open = false;
-        this.#currentSchema = "";
-        (this.state as Mutable<IDataModelEntryState>).initialized = false;
-        this.mrsEntry = undefined;
-        this.adminEntry = undefined;
-        this.schemaEntries.length = 0;
+        try {
+            // This can fail if the backend is no longer available.
+            await this.backend.closeSession();
+        } catch {
+            // Ignore the error, as we are closing the connection anyway.
+        } finally {
+            this.open = false;
+            this.#currentSchema = "";
+            (this.state as Mutable<IDataModelEntryState>).initialized = false;
+            this.mrsEntry = undefined;
+            this.adminEntry = undefined;
+            this.schemaEntries.length = 0;
+        }
     }
 
     /**

@@ -25,8 +25,7 @@
 
 import { mount } from "enzyme";
 
-import { BrowserTileType } from "../../../../../components/ui/BrowserTile/BrowserTile.js";
-import { ConnectionTile } from "../../../../../components/ui/ConnectionTile/ConnectionTile.js";
+import { ConnectionTile, ConnectionTileType } from "../../../../../components/ui/ConnectionTile/ConnectionTile.js";
 import { Assets } from "../../../../../supplement/Assets.js";
 import { DBType, IConnectionDetails } from "../../../../../supplement/ShellInterface/index.js";
 
@@ -44,10 +43,10 @@ describe("ConnectionTile component tests", (): void => {
         const component = mount<ConnectionTile>(
             <ConnectionTile
                 id="tile1"
-                tileId={1}
+                tileId={"1"}
                 caption={details.caption}
                 description={details.description}
-                type={BrowserTileType.Open}
+                type={ConnectionTileType.Open}
                 icon={Assets.file.mysqlIcon}
 
             />,

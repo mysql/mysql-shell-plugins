@@ -23,14 +23,14 @@
  * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-import { requisitions } from "./Requisitions.js";
-import { appParameters } from "./AppParameters.js";
-import { IShellProfile } from "../communication/ProtocolGui.js";
-import { ShellInterface } from "./ShellInterface/ShellInterface.js";
-import { Cookies } from "./Storage/Cookies.js";
 import { ui } from "../app-logic/UILayer.js";
+import { IShellProfile } from "../communication/ProtocolGui.js";
 import { convertErrorToString } from "../utilities/helpers.js";
 import { arrayBufferToBase64, base64ToArrayBuffer } from "../utilities/string-helpers.js";
+import { appParameters } from "./AppParameters.js";
+import { requisitions } from "./Requisitions.js";
+import { ShellInterface } from "./ShellInterface/ShellInterface.js";
+import { Cookies } from "./Storage/Cookies.js";
 
 /** Determines what conditions are used when running the app. The UI will change based on that.  */
 export enum RunMode {

@@ -766,3 +766,18 @@ body[theme=light] .msg#shellEditorHost .shellPromptItem#schema::after {
 .msg#connectionEditor .checkList {
     max-height: 120px;
 }
+
+.msg .connectionBrowser .breadcrumb .breadcrumbItem {
+    background: none;
+    padding: 0;
+    margin: 0;
+    min-width: 10px;
+}
+
+.msg .connectionBrowser .breadcrumb .breadcrumbItem:hover {
+    background: var(--button-background);
+}
+
+.msg #frontPageContent #contentTitle {
+    padding-right: 14px;
+}

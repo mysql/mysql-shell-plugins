@@ -31,9 +31,8 @@ import type {
 import { requisitions } from "../../../../frontend/src/supplement/Requisitions.js";
 
 import {
-    CdmEntityType, ConnectionDataModelEntry, ICdmRestRootEntry,
-    ICdmSchemaEntry, cdbDbEntityTypeName, cdmDbEntityTypes,
-    type ConnectionDataModel, type ICdmConnectionEntry,
+    CdmEntityType, ConnectionDataModelEntry, ICdmRestRootEntry, ICdmSchemaEntry, cdbDbEntityTypeName, cdmDbEntityTypes,
+    type ConnectionDataModel, type ConnectionDataModelNoGroupEntry, type ICdmConnectionEntry,
 } from "../../../../frontend/src/data-models/ConnectionDataModel.js";
 
 import { ui } from "../../../../frontend/src/app-logic/UILayer.js";
@@ -47,6 +46,7 @@ import { convertErrorToString } from "../../../../frontend/src/utilities/helpers
 import { DBConnectionViewProvider } from "../../WebviewProviders/DBConnectionViewProvider.js";
 import { AdminSectionTreeItem } from "./AdminSectionTreeItem.js";
 import { AdminTreeItem } from "./AdminTreeItem.js";
+import { ConnectionGroupTreeItem } from "./ConnectionGroupTreeItem.js";
 import { ConnectionMySQLTreeItem } from "./ConnectionMySQLTreeItem.js";
 import { ConnectionSqliteTreeItem } from "./ConnectionSqliteTreeItem.js";
 import { MrsAuthAppGroupTreeItem } from "./MrsAuthAppGroupTreeItem.js";
@@ -80,7 +80,7 @@ import { SchemaViewSqliteTreeItem } from "./SchemaViewSqliteTreeItem.js";
 
 /** A class to provide the entire tree structure for DB editor connections and the DB objects from them. */
 export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionDataModelEntry> {
-    static #adminPageTypeToIcon = new Map<AdminPageType, string>([
+    private static adminPageTypeToIcon = new Map<AdminPageType, string>([
         ["serverStatus", "adminServerStatus.svg"],
         ["clientConnections", "clientConnections.svg"],
         ["performanceDashboard", "adminPerformanceDashboard.svg"],
@@ -97,6 +97,9 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
 
     // When set a timer will be started to remove all current schemas from the tree.
     private clearCurrentSchemas = false;
+
+    // When set the data model is being updated and no refresh should be triggered.
+    private updating = false;
 
     private openEditorCounts = new Map<ICdmConnectionEntry, number>();
 
@@ -117,8 +120,8 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
     }
 
     public dispose(): void {
-        requisitions.unregister("refreshConnection", this.refreshConnection);
         requisitions.unregister("proxyRequest", this.proxyRequest);
+        requisitions.unregister("refreshConnection", this.refreshConnection);
 
         void this.closeAllConnections();
     }
@@ -168,12 +171,14 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
 
     public makeCurrentSchema(entry: ICdmSchemaEntry): void {
         entry.parent.currentSchema = entry.caption;
-        this.changeEvent.fire(entry.parent);
+        this.refresh(entry.parent);
     }
 
     public resetCurrentSchemas(): void {
-        this.dataModel.connections.forEach((connection) => {
-            connection.currentSchema = "";
+        this.dataModel.roots.forEach((connection) => {
+            if (connection.type === CdmEntityType.Connection) {
+                connection.currentSchema = "";
+            }
         });
         this.changeEvent.fire(undefined);
     }
@@ -186,6 +191,10 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
      */
     public getTreeItem(entry: ConnectionDataModelEntry): TreeItem {
         switch (entry.type) {
+            case CdmEntityType.ConnectionGroup: {
+                return new ConnectionGroupTreeItem(entry);
+            }
+
             case CdmEntityType.Connection: {
                 if (entry.details.dbType === DBType.MySQL) {
                     return new ConnectionMySQLTreeItem(entry);
@@ -199,7 +208,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
             }
 
             case CdmEntityType.AdminPage: {
-                const icon = ConnectionsTreeDataProvider.#adminPageTypeToIcon.get(entry.pageType) ?? "";
+                const icon = ConnectionsTreeDataProvider.adminPageTypeToIcon.get(entry.pageType) ?? "";
 
                 return new AdminSectionTreeItem(entry, icon, false, entry.command);
             }
@@ -337,7 +346,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
     }
 
     public getParent(entry: ConnectionDataModelEntry): ConnectionDataModelEntry | undefined {
-        if (entry.type !== CdmEntityType.Connection) {
+        if (entry.type !== CdmEntityType.ConnectionGroup) {
             return entry.parent;
         }
 
@@ -348,10 +357,12 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
         if (!entry) {
             await this.dataModel.initialize();
 
-            return this.dataModel.connections;
+            return this.sortGroupMembers(this.dataModel.roots);
         }
 
         try {
+            this.updating = true;
+
             // Initialize the entry if it hasn't been done yet.
             await entry.refresh?.((result?: string | Error): void => {
                 if (result instanceof Error) {
@@ -364,6 +375,8 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
             void ui.showErrorMessage(convertErrorToString(error), {});
 
             return [];
+        } finally {
+            this.updating = false;
         }
 
         let children = entry.getChildren?.() ?? [];
@@ -375,6 +388,8 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
                     return !systemSchemas.has(schema.caption);
                 });
             }
+        } else if (entry.type === CdmEntityType.ConnectionGroup) {
+            children = this.sortGroupMembers(children);
         }
 
         return children;
@@ -425,7 +440,7 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
      *
      * @returns The CREATE statement for the given database object.
      */
-    public async getCreateSqlScript(entry: ConnectionDataModelEntry, entryType: string, withDelimiter = false,
+    public async getCreateSqlScript(entry: ConnectionDataModelNoGroupEntry, entryType: string, withDelimiter = false,
         withDrop = false): Promise<string> {
         let sql = "";
 
@@ -481,8 +496,8 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
         return sql;
     }
 
-    public async copyCreateScriptToClipboard(entry: ConnectionDataModelEntry, dbType: string, withDelimiter = false,
-        withDrop = false): Promise<void> {
+    public async copyCreateScriptToClipboard(entry: ConnectionDataModelNoGroupEntry, dbType: string,
+        withDelimiter = false, withDrop = false): Promise<void> {
         try {
             const sql = await this.getCreateSqlScript(entry, dbType, withDelimiter, withDrop);
 
@@ -568,6 +583,17 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
                 return this.refreshConnection(data);
             }
 
+            case "refreshConnectionGroup": {
+                const groupId = request.original.parameter as number;
+                if (groupId === undefined || groupId < 0) {
+                    this.refresh();
+                } else {
+                    const group = this.dataModel.findConnectionGroupEntryById(groupId);
+                    this.refresh(group);
+                }
+                break;
+            }
+
             case "connectionAdded": {
                 await this.dataModel.reloadConnections();
                 this.refresh();
@@ -630,12 +656,12 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
                 const entry = this.dataModel.findConnectionEntryById(parseInt(response, 10));
 
                 if (entry) {
-                    void entry.mrsEntry?.refresh?.().then(() => {
-                        this.changeEvent.fire(entry);
-                    });
+                    void entry.mrsEntry?.refresh?.(); // Tree item refresh happens in the data model change handler.
+
+                    return Promise.resolve(true);
                 }
 
-                return Promise.resolve(true);
+                break;
             }
 
             default:
@@ -645,15 +671,25 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
     };
 
     private dataModelChanged = (list: Readonly<Array<ISubscriberActionType<ConnectionDataModelEntry>>>): void => {
+        if (this.updating) {
+            return;
+        }
+
         list.forEach((action) => {
             switch (action.action) {
                 case "add": {
-                    this.changeEvent.fire(action.entry);
+                    this.changeEvent.fire(action.entry?.parent);
                     break;
                 }
 
                 case "remove": {
-                    this.changeEvent.fire(action.entry);
+                    const parent = action.entry?.parent;
+                    if (parent?.type === CdmEntityType.ConnectionGroup && parent?.folderPath.id === 1) {
+                        // A top level entry was removed, so refresh the entire tree.
+                        this.changeEvent.fire(undefined);
+                    } else {
+                        this.changeEvent.fire(action.entry?.parent);
+                    }
                     break;
                 }
 
@@ -690,4 +726,33 @@ export class ConnectionsTreeDataProvider implements TreeDataProvider<ConnectionD
 
         return true;
     };
+
+    /**
+     * If enabled in the settings, sorts the group members by their type (group first, then the rest).
+     *
+     * @param children The children to sort.
+     *
+     * @returns The sorted children or the original children if sorting is disabled.
+     */
+    private sortGroupMembers(children: ConnectionDataModelEntry[]) {
+        const configuration = workspace.getConfiguration("msg.dbEditor");
+        const foldersFirst = configuration.get("connectionBrowser.sortFoldersFirst", false);
+        if (foldersFirst) {
+            children = children.sort((a, b) => {
+                const aIsGroup = a.type === CdmEntityType.ConnectionGroup;
+                const bIsGroup = b.type === CdmEntityType.ConnectionGroup;
+
+                if (aIsGroup && !bIsGroup) {
+                    return -1;
+                } else if (!aIsGroup && bIsGroup) {
+                    return 1;
+                }
+
+                return 0;
+            });
+        }
+
+        return children;
+    }
+
 }

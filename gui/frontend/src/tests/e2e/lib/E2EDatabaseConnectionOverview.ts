@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -28,6 +28,8 @@ import * as constants from "./constants.js";
 import * as locator from "./locators.js";
 import { E2EToolbar } from "./E2EToolbar.js";
 import { Os } from "./os.js";
+import { IDBConnection } from "./interfaces.js";
+import { DatabaseConnectionDialog } from "./Dialogs/DatabaseConnectionDialog.js";
 
 /**
  * This class represents the database connection overview page, and all its related functions
@@ -45,6 +47,17 @@ export class E2EDatabaseConnectionOverview {
         return new Condition("for the Connection Overview page to be opened", async () => {
             return (await driver.findElements(locator.dbConnectionOverview.exists)).length > 0;
         });
+    };
+
+    /**
+     * Adds a new connection
+     * @param connection The DB Connection
+     */
+    public addNewConnection = async (connection: IDBConnection): Promise<void> => {
+
+        await driver.findElement(locator.dbConnectionOverview.newDBConnection).click();
+        await DatabaseConnectionDialog.setConnection(connection);
+
     };
 
     /**
@@ -71,6 +84,25 @@ export class E2EDatabaseConnectionOverview {
         }, constants.wait5seconds, `The connection ${name} was not found on the Connection Browser`);
 
         return db!;
+    };
+
+    /**
+     * Clicks on a group and waits until the breadcrumb has the group name, ensuring the user is inside the group
+     * @param name The group caption
+     * @returns A promise resolving with the group
+     */
+    public joinGroup = async (name: string): Promise<void> => {
+        await driver.wait(async () => {
+            const breadCrump = await this.getBreadCrumb();
+
+            if (!breadCrump.includes(name)) {
+                const group = await this.getGroup(name);
+                await group.click();
+            } else {
+                return true;
+            }
+
+        });
     };
 
     /**
@@ -132,6 +164,49 @@ export class E2EDatabaseConnectionOverview {
     };
 
     /**
+     * Verifies if a group exists on the DB Connection Overview
+     * @param name The group name
+     * @returns A promise resolving to true if the group exists, false otherwise
+     */
+    public existsGroup = async (name: string): Promise<boolean> => {
+        let found = false;
+
+        await driver.wait(async () => {
+            try {
+                const hosts = await driver.findElements(locator.dbConnectionOverview.group.tile);
+                for (const host of hosts) {
+                    const hostCation = await host.findElement(locator.dbConnectionOverview.group.caption);
+                    const textCaption = await hostCation.getText();
+                    if (textCaption.match(new RegExp(name)) !== null) {
+                        found = true;
+
+                        break;
+                    }
+                }
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait5seconds, "The groups were always stale");
+
+        return found;
+    };
+
+    /**
+     * Verifies if a group exists on the DB Connection Overview
+     * @param name The group name
+     * @returns A condition resolving to true if the group exists, false otherwise
+     */
+    public untilGroupExists = (name: string): Condition<boolean> => {
+        return new Condition(`for ${name} to exist`, async () => {
+            return this.existsGroup(name);
+        });
+    };
+
+    /**
      * Verifies if a Database connection exists on the DB Connection Overview
      * @param dbConnection The database connection caption
      * @returns A condition resolving to true if the connection exists, false otherwise
@@ -164,7 +239,80 @@ export class E2EDatabaseConnectionOverview {
             .click()
             .keyUp(Os.isMacOs() ? Key.COMMAND : Key.ALT)
             .perform();
+    };
 
+    /**
+     * Gets the breadcrumb item links
+     * @returns A promise resolving with the breadcrumb items as an array of WebElements
+     */
+    public getBreadCrumbLinks = async (): Promise<WebElement[]> => {
+        const breadCrumb = await driver.findElement(locator.dbConnectionOverview.breadCrumb.exists);
+
+        return breadCrumb.findElements(locator.dbConnectionOverview.breadCrumb.item);
+    };
+
+    /**
+     * Gets the breadcrumb items as full path
+     * @returns A promise resolving with the breadcrumb items as an array of WebElements
+     */
+    public getBreadCrumb = async (): Promise<string> => {
+        let breadcrumb: string[];
+        await driver.wait(async () => {
+            try {
+                const breadCrumb = await driver.findElement(locator.dbConnectionOverview.breadCrumb.exists);
+                const items = await breadCrumb.findElements(locator.dbConnectionOverview.breadCrumb.item);
+
+                breadcrumb = await Promise.all(items.map(async (item: WebElement) => {
+                    return (await item.getText()).replace(/\s/g, "");
+                }));
+
+                return true;
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
+                }
+            }
+        }, constants.wait3seconds, "Could not get the breadcrumb items");
+
+        return breadcrumb!.join("");
+    };
+
+    /**
+     * Verifies if the breadcrumb is equal to a value
+     * @param value The breadcrumb value
+     * @returns A condition resolving to true when the breadcrumb is equal to the value
+     */
+    public untilBreadCrumbIs = (value: string): Condition<boolean> => {
+        return new Condition(`for breadcrumb to be '${value}'`, async () => {
+            return (await this.getBreadCrumb()) === value;
+        });
+    };
+
+    /**
+     * Gets a group from the DB Connection Overview
+     * @param name The group caption
+     * @returns A promise resolving with the group
+     */
+    public getGroup = async (name: string): Promise<WebElement> => {
+        const group = await driver.wait(async () => {
+            const groups = await driver.findElements(locator.dbConnectionOverview.group.tile);
+
+            for (const grp of groups) {
+                try {
+                    const el = await (await grp
+                        .findElement(locator.dbConnectionOverview.group.caption)).getText();
+                    if (el.match(new RegExp(name)) !== null) {
+                        return grp;
+                    }
+                } catch (e) {
+                    return undefined;
+                }
+            }
+
+            return undefined;
+        }, constants.wait5seconds, `The group ${name} was not found on the Connection Browser`);
+
+        return group!;
     };
 
 }

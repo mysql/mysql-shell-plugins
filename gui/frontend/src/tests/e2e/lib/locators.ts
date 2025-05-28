@@ -44,6 +44,17 @@ export const dbConnectionDialog = {
     databaseTypeList: By.id("databaseTypePopup"),
     databaseTypeMysql: By.id("MySQL"),
     databaseTypeSqlite: By.id("Sqlite"),
+    folderPath: {
+        exists: By.id("folderPath"),
+        label: By.css("#folderPath label"),
+        selectList: {
+            exists: By.css("#folderPathPopup .popup.visible"),
+            addNewFolder: By.id("<Add new folder>"),
+            item: (itemName: string): By => {
+                return By.id(itemName);
+            },
+        },
+    },
     mysql: {
         basic: {
             hostname: By.id("hostName"),
@@ -119,6 +130,13 @@ export const dbConnectionDialog = {
     ok: By.id("ok"),
     cancel: By.id("cancel"),
     errorMessage: By.css(".message.error"),
+};
+
+export const createNewFolderDialog = {
+    exists: By.id("connectionFolderPath"),
+    name: By.id("input"),
+    ok: By.id("ok"),
+    cancel: By.id("cancel"),
 };
 
 // CONFIRM DIALOG
@@ -237,6 +255,7 @@ export const dbConnectionOverview = {
     newConsoleButton: By.id("newConsoleMenuButton"),
     browser: By.className("connectionBrowser"),
     newDBConnection: By.id("-1"),
+    back: By.id("-2"),
     dbConnection: {
         tile: By.css("#tilesHost .connectionTile"),
         caption: By.className("tileCaption"),
@@ -249,6 +268,15 @@ export const dbConnectionOverview = {
         newNotebook: By.id("tileNewNotebookAction"),
         newScript: By.id("tileNewScriptAction"),
         contextMenu: By.css(".noArrow.menu"),
+    },
+    group: {
+        tile: By.css("#tilesHost .group"),
+        caption: By.className("tileCaption"),
+        description: By.css(".tileDescription"),
+    },
+    breadCrumb: {
+        exists: By.css(".breadcrumb"),
+        item: By.css(".breadcrumbItem"),
     },
     closeHeader: By.id("closeButton"),
 };
@@ -1124,6 +1152,7 @@ export const section = {
             icon: {
                 exists: By.className("icon"),
                 redDot: By.css(".iconHost .overlay"),
+                isGroup: By.css(".codicon-type-hierarchy-sub"),
             },
             dbTreeEntry: By.className("connectionTreeEntry"),
             mainCaption: By.id("mainCaption"),

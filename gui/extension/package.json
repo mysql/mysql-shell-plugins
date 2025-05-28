@@ -227,6 +227,11 @@
                     "default": true,
                     "description": "If set, a message section is shown with some useful links."
                 },
+                "msg.dbEditor.connectionBrowser.sortFoldersFirst": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If set, folders are sorted before connections in the connection overview."
+                },
                 "msg.sql.limitRowCount": {
                     "type": "number",
                     "default": 1000,
@@ -762,10 +767,6 @@
                 "title": "Edit REST Schema..."
             },
             {
-                "command": "msg.mrs.dumpCreateSchemaSql",
-                "title": "Dump REST Schema SQL..."
-            },
-            {
                 "command": "msg.mrs.editAuthApp",
                 "title": "Edit Authentication App"
             },
@@ -836,10 +837,6 @@
             {
                 "command": "msg.mrs.loadSchemaFromJSONFile",
                 "title": "Load REST Schema From JSON File..."
-            },
-            {
-                "command": "msg.mrs.exportServiceSdk",
-                "title": "Dump REST Client SDK Files ..."
             },
             {
                 "command": "msg.mrs.exportServiceSdk",
@@ -1100,6 +1097,18 @@
             {
                 "command": "msg.msm.generateDeploymentScript",
                 "title": "Generate Deployment Script"
+            },
+            {
+                "command": "msg.addSubFolder",
+                "title": "Add Sub Folder"
+            },
+            {
+                "command": "msg.editFolder",
+                "title": "Edit Folder"
+            },
+            {
+                "command": "msg.removeFolder",
+                "title": "Delete Folder"
             }
         ],
         "submenus": [
@@ -1436,23 +1445,23 @@
             "view/item/context": [
                 {
                     "command": "msg.refreshConnection",
-                    "when": "view == msg.connections && viewItem =~ /^connection.*/",
+                    "when": "view == msg.connections && viewItem == connectionMySQL || viewItem == connectionSqlite",
                     "group": "inline"
                 },
                 {
                     "command": "msg.openConnectionNotebook",
-                    "when": "view == msg.connections && viewItem =~ /^connection.*/",
+                    "when": "view == msg.connections && viewItem == connectionMySQL || viewItem == connectionSqlite",
                     "group": "inline"
                 },
                 {
                     "command": "msg.openConnectionSqlScript",
-                    "when": "view == msg.connections && viewItem =~ /^connection.*/",
+                    "when": "view == msg.connections && viewItem == connectionMySQL || viewItem == connectionSqlite",
                     "group": "inline"
                 },
                 {
                     "command": "msg.openConnection",
                     "alt": "msg.openConnectionNewTab",
-                    "when": "view == msg.connections && viewItem =~ /^connection.*/",
+                    "when": "view == msg.connections && viewItem == connectionMySQL || viewItem == connectionSqlite",
                     "group": "1_msg@1"
                 },
                 {
@@ -1462,17 +1471,17 @@
                 },
                 {
                     "command": "msg.editConnection",
-                    "when": "view == msg.connections && viewItem =~ /^connection.*/",
+                    "when": "view == msg.connections && viewItem == connectionMySQL || viewItem == connectionSqlite",
                     "group": "3_msg@1"
                 },
                 {
                     "command": "msg.duplicateConnection",
-                    "when": "view == msg.connections && viewItem =~ /^connection.*/",
+                    "when": "view == msg.connections && viewItem == connectionMySQL || viewItem == connectionSqlite",
                     "group": "3_msg@2"
                 },
                 {
                     "command": "msg.removeConnection",
-                    "when": "view == msg.connections && viewItem =~ /^connection.*/",
+                    "when": "view == msg.connections && viewItem == connectionMySQL || viewItem == connectionSqlite",
                     "group": "3_msg@3"
                 },
                 {
@@ -1483,7 +1492,7 @@
                 },
                 {
                     "command": "msg.loadScriptFromDisk",
-                    "when": "view == msg.connections && viewItem =~ /^connection.*/",
+                    "when": "view == msg.connections && viewItem == connectionMySQL || viewItem == connectionSqlite",
                     "group": "5_msg@1"
                 },
                 {
@@ -1639,27 +1648,27 @@
                 {
                     "command": "msg.newScriptSqlite",
                     "group": "inline@2",
-                    "when": "view == msg.openEditors && viewItem == connectionSQLite"
+                    "when": "view == msg.openEditors && viewItem == connectionSqlite"
                 },
                 {
                     "command": "msg.newScriptSqlite",
                     "group": "scripts@2",
-                    "when": "view == msg.openEditors && viewItem == connectionSQLite"
+                    "when": "view == msg.openEditors && viewItem == connectionSqlite"
                 },
                 {
                     "command": "msg.newScriptJs",
                     "group": "scripts@3",
-                    "when": "view == msg.openEditors && viewItem =~ /^connection.*/"
+                    "when": "view == msg.openEditors && viewItem == connectionMySQL || viewItem == connectionSqlite"
                 },
                 {
                     "command": "msg.newScriptTs",
                     "group": "scripts@4",
-                    "when": "view == msg.openEditors && viewItem =~ /^connection.*/"
+                    "when": "view == msg.openEditors && viewItem == connectionMySQL || viewItem == connectionSqlite"
                 },
                 {
                     "command": "msg.loadScriptFromDisk",
                     "group": "scripts2@1",
-                    "when": "view == msg.openEditors && viewItem =~ /^connection.*/"
+                    "when": "view == msg.openEditors && viewItem == connectionMySQL || viewItem == connectionSqlite"
                 },
                 {
                     "command": "msg.newSessionUsingConnection",
@@ -1988,6 +1997,21 @@
                     "command": "msg.mds.getLoadBalancer",
                     "when": "view == msg.oci && viewItem == mdsLoadBalancer",
                     "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.addSubFolder",
+                    "when": "view == msg.connections && viewItem == connectionGroup",
+                    "group": "1_msg@1"
+                },
+                {
+                    "command": "msg.editFolder",
+                    "when": "view == msg.connections && viewItem == connectionGroup",
+                    "group": "2_msg@1"
+                },
+                {
+                    "command": "msg.removeFolder",
+                    "when": "view == msg.connections && viewItem == connectionGroup",
+                    "group": "3_msg@1"
                 }
             ]
         },

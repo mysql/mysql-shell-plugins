@@ -158,7 +158,6 @@ export class E2EAccordionSection {
      */
     public createDatabaseConnection = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
         await this.clickToolbarButton(constants.createNewDatabaseConnection);
-        await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists), constants.wait10seconds);
         await DatabaseConnectionDialog.setConnection(dbConfig);
     };
 
@@ -627,43 +626,43 @@ export class E2EAccordionSection {
             rootItemLocator = locator.section.tree.element.openEditorTreeEntry;
         }
 
-        const action = async () => {
-            const treeItems = await this.getVisibleTreeItems();
+        await driver.wait(async () => {
+            try {
+                const treeItems = await this.getVisibleTreeItems();
 
-            if (treeItems.length > 0) {
+                if (treeItems.length > 0) {
 
-                for (const item of treeItems) {
-                    const webElement = await item.findElement(rootItemLocator);
+                    for (const item of treeItems) {
+                        const webElement = await item.findElement(rootItemLocator);
 
-                    if (this.accordionSectionName === constants.dbTreeSection) {
+                        if (this.accordionSectionName === constants.dbTreeSection) {
 
-                        const refCaption = await (await webElement
-                            .findElement(locator.section.tree.element.mainCaption)).getText();
+                            const refCaption = await (await webElement
+                                .findElement(locator.section.tree.element.mainCaption)).getText();
 
-                        if (refCaption === caption) {
-                            exists = true;
-                            break;
-                        }
-                    } else {
-                        const refCaption = await (await webElement
-                            .findElement(locator.section.tree.element.label)).getText();
+                            if (refCaption === caption) {
+                                exists = true;
+                                break;
+                            }
+                        } else {
+                            const refCaption = await (await webElement
+                                .findElement(locator.section.tree.element.label)).getText();
 
-                        if (refCaption === caption) {
-                            exists = true;
-                            break;
+                            if (refCaption === caption) {
+                                exists = true;
+                                break;
+                            }
                         }
                     }
+
+                    return true;
+                }
+            } catch (e) {
+                if (!(e instanceof error.StaleElementReferenceError)) {
+                    throw e;
                 }
             }
-        };
-
-        await action().catch(async (e: Error) => {
-            if (e instanceof error.StaleElementReferenceError) {
-                await action();
-            } else {
-                throw e;
-            }
-        });
+        }, constants.wait5seconds, `Could not verify if tree item '${caption}' exists`);
 
         return exists;
     };
@@ -896,6 +895,51 @@ export class E2EAccordionSection {
         return new Condition(`for ${caption} to be default`, async () => {
             return this.treeItemIsDefault(caption);
         });
+    };
+
+    /**
+     * Gets the tree items that are database connections from the DATABASE CONNECTIONS section
+     * @returns A promise resolving with the database connections
+     */
+    public getTreeDatabaseConnections = async (): Promise<interfaces.ITreeDBConnection[]> => {
+
+        const dbConnections: interfaces.ITreeDBConnection[] = [];
+        await this.focus();
+        await this.clickToolbarButton(constants.collapseAll);
+        const treeItems = await driver.findElements(locator.section.tree.element.exists);
+
+        for (const item of treeItems) {
+            const icon = await item.findElement(locator.section.tree.element.icon.exists);
+            const backgroundImage = await icon.getCssValue("background-image");
+
+            if (backgroundImage.match(/connection/) !== null || backgroundImage.match(/ociDbSystem/) !== null) {
+                const itemName = await (await item.findElement(locator.section.tree.element.mainCaption)).getText();
+                let mysql = false;
+                if (backgroundImage.match(/Sqlite/) === null) {
+                    mysql = true;
+                }
+                dbConnections.push({
+                    name: itemName,
+                    isMySQL: mysql,
+                });
+            }
+        }
+
+        return dbConnections;
+    };
+
+    /**
+     * Removes a DB Connection by right-clicking on its tree element and selection "Delete DB Connection"
+     * @param caption The DB connection caption
+     */
+    public removeDatabaseConnection = async (caption: string): Promise<void> => {
+
+        await this.openContextMenuAndSelect(caption, constants.deleteDBConnection);
+        const dialog = await driver.wait(until.elementLocated(
+            locator.confirmDialog.exists), constants.wait15seconds, "confirm dialog was not found");
+        await dialog.findElement(locator.confirmDialog.accept).click();
+        await driver.wait(this.untilTreeItemDoesNotExists(caption), constants.wait5seconds);
+
     };
 
 }

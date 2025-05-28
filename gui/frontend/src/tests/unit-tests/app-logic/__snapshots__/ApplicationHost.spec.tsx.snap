@@ -22,9 +22,26 @@ exports[`Application host tests Rendering About 1`] = `
           value={
             {
               "connectionsDataModel": ConnectionDataModel {
-                "connections": [],
                 "notifySubscribers": [Function],
                 "refreshMrsRoutersTimer": undefined,
+                "rootGroup": {
+                  "caption": "",
+                  "entries": [],
+                  "folderPath": {
+                    "caption": "/",
+                    "id": 1,
+                    "index": 0,
+                  },
+                  "id": "",
+                  "refresh": [Function],
+                  "state": {
+                    "expanded": false,
+                    "expandedOnce": false,
+                    "initialized": true,
+                    "isLeaf": false,
+                  },
+                  "type": 0,
+                },
                 "routerRefreshTime": 10000,
                 "singleServerMode": false,
                 "subscribers": Set {
@@ -1110,9 +1127,26 @@ exports[`Application host tests Rendering About 1`] = `
                                         value={
                                           {
                                             "connectionsDataModel": ConnectionDataModel {
-                                              "connections": [],
                                               "notifySubscribers": [Function],
                                               "refreshMrsRoutersTimer": undefined,
+                                              "rootGroup": {
+                                                "caption": "",
+                                                "entries": [],
+                                                "folderPath": {
+                                                  "caption": "/",
+                                                  "id": 1,
+                                                  "index": 0,
+                                                },
+                                                "id": "",
+                                                "refresh": [Function],
+                                                "state": {
+                                                  "expanded": false,
+                                                  "expandedOnce": false,
+                                                  "initialized": true,
+                                                  "isLeaf": false,
+                                                },
+                                                "type": 0,
+                                              },
                                               "routerRefreshTime": 10000,
                                               "singleServerMode": false,
                                               "subscribers": Set {
@@ -2292,9 +2326,26 @@ exports[`Application host tests Rendering About 1`] = `
                                         />,
                                         "value": {
                                           "connectionsDataModel": ConnectionDataModel {
-                                            "connections": [],
                                             "notifySubscribers": [Function],
                                             "refreshMrsRoutersTimer": undefined,
+                                            "rootGroup": {
+                                              "caption": "",
+                                              "entries": [],
+                                              "folderPath": {
+                                                "caption": "/",
+                                                "id": 1,
+                                                "index": 0,
+                                              },
+                                              "id": "",
+                                              "refresh": [Function],
+                                              "state": {
+                                                "expanded": false,
+                                                "expandedOnce": false,
+                                                "initialized": true,
+                                                "isLeaf": false,
+                                              },
+                                              "type": 0,
+                                            },
                                             "routerRefreshTime": 10000,
                                             "singleServerMode": false,
                                             "subscribers": Set {
@@ -2829,9 +2880,26 @@ exports[`Application host tests Rendering About 1`] = `
                                         value={
                                           {
                                             "connectionsDataModel": ConnectionDataModel {
-                                              "connections": [],
                                               "notifySubscribers": [Function],
                                               "refreshMrsRoutersTimer": undefined,
+                                              "rootGroup": {
+                                                "caption": "",
+                                                "entries": [],
+                                                "folderPath": {
+                                                  "caption": "/",
+                                                  "id": 1,
+                                                  "index": 0,
+                                                },
+                                                "id": "",
+                                                "refresh": [Function],
+                                                "state": {
+                                                  "expanded": false,
+                                                  "expandedOnce": false,
+                                                  "initialized": true,
+                                                  "isLeaf": false,
+                                                },
+                                                "type": 0,
+                                              },
                                               "routerRefreshTime": 10000,
                                               "singleServerMode": false,
                                               "subscribers": Set {
@@ -4011,9 +4079,26 @@ exports[`Application host tests Rendering About 1`] = `
                                         />,
                                         "value": {
                                           "connectionsDataModel": ConnectionDataModel {
-                                            "connections": [],
                                             "notifySubscribers": [Function],
                                             "refreshMrsRoutersTimer": undefined,
+                                            "rootGroup": {
+                                              "caption": "",
+                                              "entries": [],
+                                              "folderPath": {
+                                                "caption": "/",
+                                                "id": 1,
+                                                "index": 0,
+                                              },
+                                              "id": "",
+                                              "refresh": [Function],
+                                              "state": {
+                                                "expanded": false,
+                                                "expandedOnce": false,
+                                                "initialized": true,
+                                                "isLeaf": false,
+                                              },
+                                              "type": 0,
+                                            },
                                             "routerRefreshTime": 10000,
                                             "singleServerMode": false,
                                             "subscribers": Set {
@@ -4718,9 +4803,26 @@ exports[`Application host tests Rendering About 1`] = `
                                         value={
                                           {
                                             "connectionsDataModel": ConnectionDataModel {
-                                              "connections": [],
                                               "notifySubscribers": [Function],
                                               "refreshMrsRoutersTimer": undefined,
+                                              "rootGroup": {
+                                                "caption": "",
+                                                "entries": [],
+                                                "folderPath": {
+                                                  "caption": "/",
+                                                  "id": 1,
+                                                  "index": 0,
+                                                },
+                                                "id": "",
+                                                "refresh": [Function],
+                                                "state": {
+                                                  "expanded": false,
+                                                  "expandedOnce": false,
+                                                  "initialized": true,
+                                                  "isLeaf": false,
+                                                },
+                                                "type": 0,
+                                              },
                                               "routerRefreshTime": 10000,
                                               "singleServerMode": false,
                                               "subscribers": Set {
@@ -5900,9 +6002,26 @@ exports[`Application host tests Rendering About 1`] = `
                                         />,
                                         "value": {
                                           "connectionsDataModel": ConnectionDataModel {
-                                            "connections": [],
                                             "notifySubscribers": [Function],
                                             "refreshMrsRoutersTimer": undefined,
+                                            "rootGroup": {
+                                              "caption": "",
+                                              "entries": [],
+                                              "folderPath": {
+                                                "caption": "/",
+                                                "id": 1,
+                                                "index": 0,
+                                              },
+                                              "id": "",
+                                              "refresh": [Function],
+                                              "state": {
+                                                "expanded": false,
+                                                "expandedOnce": false,
+                                                "initialized": true,
+                                                "isLeaf": false,
+                                              },
+                                              "type": 0,
+                                            },
                                             "routerRefreshTime": 10000,
                                             "singleServerMode": false,
                                             "subscribers": Set {
@@ -6423,9 +6542,26 @@ exports[`Application host tests Rendering About 1`] = `
                                         value={
                                           {
                                             "connectionsDataModel": ConnectionDataModel {
-                                              "connections": [],
                                               "notifySubscribers": [Function],
                                               "refreshMrsRoutersTimer": undefined,
+                                              "rootGroup": {
+                                                "caption": "",
+                                                "entries": [],
+                                                "folderPath": {
+                                                  "caption": "/",
+                                                  "id": 1,
+                                                  "index": 0,
+                                                },
+                                                "id": "",
+                                                "refresh": [Function],
+                                                "state": {
+                                                  "expanded": false,
+                                                  "expandedOnce": false,
+                                                  "initialized": true,
+                                                  "isLeaf": false,
+                                                },
+                                                "type": 0,
+                                              },
                                               "routerRefreshTime": 10000,
                                               "singleServerMode": false,
                                               "subscribers": Set {
@@ -7605,9 +7741,26 @@ exports[`Application host tests Rendering About 1`] = `
                                         />,
                                         "value": {
                                           "connectionsDataModel": ConnectionDataModel {
-                                            "connections": [],
                                             "notifySubscribers": [Function],
                                             "refreshMrsRoutersTimer": undefined,
+                                            "rootGroup": {
+                                              "caption": "",
+                                              "entries": [],
+                                              "folderPath": {
+                                                "caption": "/",
+                                                "id": 1,
+                                                "index": 0,
+                                              },
+                                              "id": "",
+                                              "refresh": [Function],
+                                              "state": {
+                                                "expanded": false,
+                                                "expandedOnce": false,
+                                                "initialized": true,
+                                                "isLeaf": false,
+                                              },
+                                              "type": 0,
+                                            },
                                             "routerRefreshTime": 10000,
                                             "singleServerMode": false,
                                             "subscribers": Set {
@@ -9009,6 +9162,12 @@ exports[`Application host tests Rendering About 1`] = `
                           </div>
                         </Container>
                       </Accordion>
+                      <Menu
+                        id="connectionGroupContextMenu"
+                        onItemClick={[Function]}
+                        orientation="column"
+                        placement="bottom-start"
+                      />
                       <Menu
                         id="connectionContextMenu"
                         isItemDisabled={[Function]}
@@ -10152,9 +10311,26 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
           value={
             {
               "connectionsDataModel": ConnectionDataModel {
-                "connections": [],
                 "notifySubscribers": [Function],
                 "refreshMrsRoutersTimer": undefined,
+                "rootGroup": {
+                  "caption": "",
+                  "entries": [],
+                  "folderPath": {
+                    "caption": "/",
+                    "id": 1,
+                    "index": 0,
+                  },
+                  "id": "",
+                  "refresh": [Function],
+                  "state": {
+                    "expanded": false,
+                    "expandedOnce": false,
+                    "initialized": true,
+                    "isLeaf": false,
+                  },
+                  "type": 0,
+                },
                 "routerRefreshTime": 10000,
                 "singleServerMode": false,
                 "subscribers": Set {
@@ -11188,9 +11364,26 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                         value={
                                           {
                                             "connectionsDataModel": ConnectionDataModel {
-                                              "connections": [],
                                               "notifySubscribers": [Function],
                                               "refreshMrsRoutersTimer": undefined,
+                                              "rootGroup": {
+                                                "caption": "",
+                                                "entries": [],
+                                                "folderPath": {
+                                                  "caption": "/",
+                                                  "id": 1,
+                                                  "index": 0,
+                                                },
+                                                "id": "",
+                                                "refresh": [Function],
+                                                "state": {
+                                                  "expanded": false,
+                                                  "expandedOnce": false,
+                                                  "initialized": true,
+                                                  "isLeaf": false,
+                                                },
+                                                "type": 0,
+                                              },
                                               "routerRefreshTime": 10000,
                                               "singleServerMode": false,
                                               "subscribers": Set {
@@ -12370,9 +12563,26 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                         />,
                                         "value": {
                                           "connectionsDataModel": ConnectionDataModel {
-                                            "connections": [],
                                             "notifySubscribers": [Function],
                                             "refreshMrsRoutersTimer": undefined,
+                                            "rootGroup": {
+                                              "caption": "",
+                                              "entries": [],
+                                              "folderPath": {
+                                                "caption": "/",
+                                                "id": 1,
+                                                "index": 0,
+                                              },
+                                              "id": "",
+                                              "refresh": [Function],
+                                              "state": {
+                                                "expanded": false,
+                                                "expandedOnce": false,
+                                                "initialized": true,
+                                                "isLeaf": false,
+                                              },
+                                              "type": 0,
+                                            },
                                             "routerRefreshTime": 10000,
                                             "singleServerMode": false,
                                             "subscribers": Set {
@@ -12855,9 +13065,26 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                         value={
                                           {
                                             "connectionsDataModel": ConnectionDataModel {
-                                              "connections": [],
                                               "notifySubscribers": [Function],
                                               "refreshMrsRoutersTimer": undefined,
+                                              "rootGroup": {
+                                                "caption": "",
+                                                "entries": [],
+                                                "folderPath": {
+                                                  "caption": "/",
+                                                  "id": 1,
+                                                  "index": 0,
+                                                },
+                                                "id": "",
+                                                "refresh": [Function],
+                                                "state": {
+                                                  "expanded": false,
+                                                  "expandedOnce": false,
+                                                  "initialized": true,
+                                                  "isLeaf": false,
+                                                },
+                                                "type": 0,
+                                              },
                                               "routerRefreshTime": 10000,
                                               "singleServerMode": false,
                                               "subscribers": Set {
@@ -14037,9 +14264,26 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                         />,
                                         "value": {
                                           "connectionsDataModel": ConnectionDataModel {
-                                            "connections": [],
                                             "notifySubscribers": [Function],
                                             "refreshMrsRoutersTimer": undefined,
+                                            "rootGroup": {
+                                              "caption": "",
+                                              "entries": [],
+                                              "folderPath": {
+                                                "caption": "/",
+                                                "id": 1,
+                                                "index": 0,
+                                              },
+                                              "id": "",
+                                              "refresh": [Function],
+                                              "state": {
+                                                "expanded": false,
+                                                "expandedOnce": false,
+                                                "initialized": true,
+                                                "isLeaf": false,
+                                              },
+                                              "type": 0,
+                                            },
                                             "routerRefreshTime": 10000,
                                             "singleServerMode": false,
                                             "subscribers": Set {
@@ -14692,9 +14936,26 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                         value={
                                           {
                                             "connectionsDataModel": ConnectionDataModel {
-                                              "connections": [],
                                               "notifySubscribers": [Function],
                                               "refreshMrsRoutersTimer": undefined,
+                                              "rootGroup": {
+                                                "caption": "",
+                                                "entries": [],
+                                                "folderPath": {
+                                                  "caption": "/",
+                                                  "id": 1,
+                                                  "index": 0,
+                                                },
+                                                "id": "",
+                                                "refresh": [Function],
+                                                "state": {
+                                                  "expanded": false,
+                                                  "expandedOnce": false,
+                                                  "initialized": true,
+                                                  "isLeaf": false,
+                                                },
+                                                "type": 0,
+                                              },
                                               "routerRefreshTime": 10000,
                                               "singleServerMode": false,
                                               "subscribers": Set {
@@ -15874,9 +16135,26 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                         />,
                                         "value": {
                                           "connectionsDataModel": ConnectionDataModel {
-                                            "connections": [],
                                             "notifySubscribers": [Function],
                                             "refreshMrsRoutersTimer": undefined,
+                                            "rootGroup": {
+                                              "caption": "",
+                                              "entries": [],
+                                              "folderPath": {
+                                                "caption": "/",
+                                                "id": 1,
+                                                "index": 0,
+                                              },
+                                              "id": "",
+                                              "refresh": [Function],
+                                              "state": {
+                                                "expanded": false,
+                                                "expandedOnce": false,
+                                                "initialized": true,
+                                                "isLeaf": false,
+                                              },
+                                              "type": 0,
+                                            },
                                             "routerRefreshTime": 10000,
                                             "singleServerMode": false,
                                             "subscribers": Set {
@@ -16345,9 +16623,26 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                         value={
                                           {
                                             "connectionsDataModel": ConnectionDataModel {
-                                              "connections": [],
                                               "notifySubscribers": [Function],
                                               "refreshMrsRoutersTimer": undefined,
+                                              "rootGroup": {
+                                                "caption": "",
+                                                "entries": [],
+                                                "folderPath": {
+                                                  "caption": "/",
+                                                  "id": 1,
+                                                  "index": 0,
+                                                },
+                                                "id": "",
+                                                "refresh": [Function],
+                                                "state": {
+                                                  "expanded": false,
+                                                  "expandedOnce": false,
+                                                  "initialized": true,
+                                                  "isLeaf": false,
+                                                },
+                                                "type": 0,
+                                              },
                                               "routerRefreshTime": 10000,
                                               "singleServerMode": false,
                                               "subscribers": Set {
@@ -17527,9 +17822,26 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                                         />,
                                         "value": {
                                           "connectionsDataModel": ConnectionDataModel {
-                                            "connections": [],
                                             "notifySubscribers": [Function],
                                             "refreshMrsRoutersTimer": undefined,
+                                            "rootGroup": {
+                                              "caption": "",
+                                              "entries": [],
+                                              "folderPath": {
+                                                "caption": "/",
+                                                "id": 1,
+                                                "index": 0,
+                                              },
+                                              "id": "",
+                                              "refresh": [Function],
+                                              "state": {
+                                                "expanded": false,
+                                                "expandedOnce": false,
+                                                "initialized": true,
+                                                "isLeaf": false,
+                                              },
+                                              "type": 0,
+                                            },
                                             "routerRefreshTime": 10000,
                                             "singleServerMode": false,
                                             "subscribers": Set {
@@ -18931,6 +19243,12 @@ exports[`Application host tests Rendering Debugger Maximized 1`] = `
                           </div>
                         </Container>
                       </Accordion>
+                      <Menu
+                        id="connectionGroupContextMenu"
+                        onItemClick={[Function]}
+                        orientation="column"
+                        placement="bottom-start"
+                      />
                       <Menu
                         id="connectionContextMenu"
                         isItemDisabled={[Function]}
@@ -20074,9 +20392,26 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
           value={
             {
               "connectionsDataModel": ConnectionDataModel {
-                "connections": [],
                 "notifySubscribers": [Function],
                 "refreshMrsRoutersTimer": undefined,
+                "rootGroup": {
+                  "caption": "",
+                  "entries": [],
+                  "folderPath": {
+                    "caption": "/",
+                    "id": 1,
+                    "index": 0,
+                  },
+                  "id": "",
+                  "refresh": [Function],
+                  "state": {
+                    "expanded": false,
+                    "expandedOnce": false,
+                    "initialized": true,
+                    "isLeaf": false,
+                  },
+                  "type": 0,
+                },
                 "routerRefreshTime": 10000,
                 "singleServerMode": false,
                 "subscribers": Set {
@@ -21110,9 +21445,26 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                         value={
                                           {
                                             "connectionsDataModel": ConnectionDataModel {
-                                              "connections": [],
                                               "notifySubscribers": [Function],
                                               "refreshMrsRoutersTimer": undefined,
+                                              "rootGroup": {
+                                                "caption": "",
+                                                "entries": [],
+                                                "folderPath": {
+                                                  "caption": "/",
+                                                  "id": 1,
+                                                  "index": 0,
+                                                },
+                                                "id": "",
+                                                "refresh": [Function],
+                                                "state": {
+                                                  "expanded": false,
+                                                  "expandedOnce": false,
+                                                  "initialized": true,
+                                                  "isLeaf": false,
+                                                },
+                                                "type": 0,
+                                              },
                                               "routerRefreshTime": 10000,
                                               "singleServerMode": false,
                                               "subscribers": Set {
@@ -22292,9 +22644,26 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                         />,
                                         "value": {
                                           "connectionsDataModel": ConnectionDataModel {
-                                            "connections": [],
                                             "notifySubscribers": [Function],
                                             "refreshMrsRoutersTimer": undefined,
+                                            "rootGroup": {
+                                              "caption": "",
+                                              "entries": [],
+                                              "folderPath": {
+                                                "caption": "/",
+                                                "id": 1,
+                                                "index": 0,
+                                              },
+                                              "id": "",
+                                              "refresh": [Function],
+                                              "state": {
+                                                "expanded": false,
+                                                "expandedOnce": false,
+                                                "initialized": true,
+                                                "isLeaf": false,
+                                              },
+                                              "type": 0,
+                                            },
                                             "routerRefreshTime": 10000,
                                             "singleServerMode": false,
                                             "subscribers": Set {
@@ -22777,9 +23146,26 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                         value={
                                           {
                                             "connectionsDataModel": ConnectionDataModel {
-                                              "connections": [],
                                               "notifySubscribers": [Function],
                                               "refreshMrsRoutersTimer": undefined,
+                                              "rootGroup": {
+                                                "caption": "",
+                                                "entries": [],
+                                                "folderPath": {
+                                                  "caption": "/",
+                                                  "id": 1,
+                                                  "index": 0,
+                                                },
+                                                "id": "",
+                                                "refresh": [Function],
+                                                "state": {
+                                                  "expanded": false,
+                                                  "expandedOnce": false,
+                                                  "initialized": true,
+                                                  "isLeaf": false,
+                                                },
+                                                "type": 0,
+                                              },
                                               "routerRefreshTime": 10000,
                                               "singleServerMode": false,
                                               "subscribers": Set {
@@ -23959,9 +24345,26 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                         />,
                                         "value": {
                                           "connectionsDataModel": ConnectionDataModel {
-                                            "connections": [],
                                             "notifySubscribers": [Function],
                                             "refreshMrsRoutersTimer": undefined,
+                                            "rootGroup": {
+                                              "caption": "",
+                                              "entries": [],
+                                              "folderPath": {
+                                                "caption": "/",
+                                                "id": 1,
+                                                "index": 0,
+                                              },
+                                              "id": "",
+                                              "refresh": [Function],
+                                              "state": {
+                                                "expanded": false,
+                                                "expandedOnce": false,
+                                                "initialized": true,
+                                                "isLeaf": false,
+                                              },
+                                              "type": 0,
+                                            },
                                             "routerRefreshTime": 10000,
                                             "singleServerMode": false,
                                             "subscribers": Set {
@@ -24614,9 +25017,26 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                         value={
                                           {
                                             "connectionsDataModel": ConnectionDataModel {
-                                              "connections": [],
                                               "notifySubscribers": [Function],
                                               "refreshMrsRoutersTimer": undefined,
+                                              "rootGroup": {
+                                                "caption": "",
+                                                "entries": [],
+                                                "folderPath": {
+                                                  "caption": "/",
+                                                  "id": 1,
+                                                  "index": 0,
+                                                },
+                                                "id": "",
+                                                "refresh": [Function],
+                                                "state": {
+                                                  "expanded": false,
+                                                  "expandedOnce": false,
+                                                  "initialized": true,
+                                                  "isLeaf": false,
+                                                },
+                                                "type": 0,
+                                              },
                                               "routerRefreshTime": 10000,
                                               "singleServerMode": false,
                                               "subscribers": Set {
@@ -25796,9 +26216,26 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                         />,
                                         "value": {
                                           "connectionsDataModel": ConnectionDataModel {
-                                            "connections": [],
                                             "notifySubscribers": [Function],
                                             "refreshMrsRoutersTimer": undefined,
+                                            "rootGroup": {
+                                              "caption": "",
+                                              "entries": [],
+                                              "folderPath": {
+                                                "caption": "/",
+                                                "id": 1,
+                                                "index": 0,
+                                              },
+                                              "id": "",
+                                              "refresh": [Function],
+                                              "state": {
+                                                "expanded": false,
+                                                "expandedOnce": false,
+                                                "initialized": true,
+                                                "isLeaf": false,
+                                              },
+                                              "type": 0,
+                                            },
                                             "routerRefreshTime": 10000,
                                             "singleServerMode": false,
                                             "subscribers": Set {
@@ -26267,9 +26704,26 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                         value={
                                           {
                                             "connectionsDataModel": ConnectionDataModel {
-                                              "connections": [],
                                               "notifySubscribers": [Function],
                                               "refreshMrsRoutersTimer": undefined,
+                                              "rootGroup": {
+                                                "caption": "",
+                                                "entries": [],
+                                                "folderPath": {
+                                                  "caption": "/",
+                                                  "id": 1,
+                                                  "index": 0,
+                                                },
+                                                "id": "",
+                                                "refresh": [Function],
+                                                "state": {
+                                                  "expanded": false,
+                                                  "expandedOnce": false,
+                                                  "initialized": true,
+                                                  "isLeaf": false,
+                                                },
+                                                "type": 0,
+                                              },
                                               "routerRefreshTime": 10000,
                                               "singleServerMode": false,
                                               "subscribers": Set {
@@ -27449,9 +27903,26 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                                         />,
                                         "value": {
                                           "connectionsDataModel": ConnectionDataModel {
-                                            "connections": [],
                                             "notifySubscribers": [Function],
                                             "refreshMrsRoutersTimer": undefined,
+                                            "rootGroup": {
+                                              "caption": "",
+                                              "entries": [],
+                                              "folderPath": {
+                                                "caption": "/",
+                                                "id": 1,
+                                                "index": 0,
+                                              },
+                                              "id": "",
+                                              "refresh": [Function],
+                                              "state": {
+                                                "expanded": false,
+                                                "expandedOnce": false,
+                                                "initialized": true,
+                                                "isLeaf": false,
+                                              },
+                                              "type": 0,
+                                            },
                                             "routerRefreshTime": 10000,
                                             "singleServerMode": false,
                                             "subscribers": Set {
@@ -28853,6 +29324,12 @@ exports[`Application host tests Rendering Debugger Normal 1`] = `
                           </div>
                         </Container>
                       </Accordion>
+                      <Menu
+                        id="connectionGroupContextMenu"
+                        onItemClick={[Function]}
+                        orientation="column"
+                        placement="bottom-start"
+                      />
                       <Menu
                         id="connectionContextMenu"
                         isItemDisabled={[Function]}
@@ -29996,9 +30473,26 @@ exports[`Application host tests Rendering Preferences 1`] = `
           value={
             {
               "connectionsDataModel": ConnectionDataModel {
-                "connections": [],
                 "notifySubscribers": [Function],
                 "refreshMrsRoutersTimer": undefined,
+                "rootGroup": {
+                  "caption": "",
+                  "entries": [],
+                  "folderPath": {
+                    "caption": "/",
+                    "id": 1,
+                    "index": 0,
+                  },
+                  "id": "",
+                  "refresh": [Function],
+                  "state": {
+                    "expanded": false,
+                    "expandedOnce": false,
+                    "initialized": true,
+                    "isLeaf": false,
+                  },
+                  "type": 0,
+                },
                 "routerRefreshTime": 10000,
                 "singleServerMode": false,
                 "subscribers": Set {
@@ -31110,9 +31604,26 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                         value={
                                           {
                                             "connectionsDataModel": ConnectionDataModel {
-                                              "connections": [],
                                               "notifySubscribers": [Function],
                                               "refreshMrsRoutersTimer": undefined,
+                                              "rootGroup": {
+                                                "caption": "",
+                                                "entries": [],
+                                                "folderPath": {
+                                                  "caption": "/",
+                                                  "id": 1,
+                                                  "index": 0,
+                                                },
+                                                "id": "",
+                                                "refresh": [Function],
+                                                "state": {
+                                                  "expanded": false,
+                                                  "expandedOnce": false,
+                                                  "initialized": true,
+                                                  "isLeaf": false,
+                                                },
+                                                "type": 0,
+                                              },
                                               "routerRefreshTime": 10000,
                                               "singleServerMode": false,
                                               "subscribers": Set {
@@ -32292,9 +32803,26 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                         />,
                                         "value": {
                                           "connectionsDataModel": ConnectionDataModel {
-                                            "connections": [],
                                             "notifySubscribers": [Function],
                                             "refreshMrsRoutersTimer": undefined,
+                                            "rootGroup": {
+                                              "caption": "",
+                                              "entries": [],
+                                              "folderPath": {
+                                                "caption": "/",
+                                                "id": 1,
+                                                "index": 0,
+                                              },
+                                              "id": "",
+                                              "refresh": [Function],
+                                              "state": {
+                                                "expanded": false,
+                                                "expandedOnce": false,
+                                                "initialized": true,
+                                                "isLeaf": false,
+                                              },
+                                              "type": 0,
+                                            },
                                             "routerRefreshTime": 10000,
                                             "singleServerMode": false,
                                             "subscribers": Set {
@@ -32855,9 +33383,26 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                         value={
                                           {
                                             "connectionsDataModel": ConnectionDataModel {
-                                              "connections": [],
                                               "notifySubscribers": [Function],
                                               "refreshMrsRoutersTimer": undefined,
+                                              "rootGroup": {
+                                                "caption": "",
+                                                "entries": [],
+                                                "folderPath": {
+                                                  "caption": "/",
+                                                  "id": 1,
+                                                  "index": 0,
+                                                },
+                                                "id": "",
+                                                "refresh": [Function],
+                                                "state": {
+                                                  "expanded": false,
+                                                  "expandedOnce": false,
+                                                  "initialized": true,
+                                                  "isLeaf": false,
+                                                },
+                                                "type": 0,
+                                              },
                                               "routerRefreshTime": 10000,
                                               "singleServerMode": false,
                                               "subscribers": Set {
@@ -34037,9 +34582,26 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                         />,
                                         "value": {
                                           "connectionsDataModel": ConnectionDataModel {
-                                            "connections": [],
                                             "notifySubscribers": [Function],
                                             "refreshMrsRoutersTimer": undefined,
+                                            "rootGroup": {
+                                              "caption": "",
+                                              "entries": [],
+                                              "folderPath": {
+                                                "caption": "/",
+                                                "id": 1,
+                                                "index": 0,
+                                              },
+                                              "id": "",
+                                              "refresh": [Function],
+                                              "state": {
+                                                "expanded": false,
+                                                "expandedOnce": false,
+                                                "initialized": true,
+                                                "isLeaf": false,
+                                              },
+                                              "type": 0,
+                                            },
                                             "routerRefreshTime": 10000,
                                             "singleServerMode": false,
                                             "subscribers": Set {
@@ -34770,9 +35332,26 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                         value={
                                           {
                                             "connectionsDataModel": ConnectionDataModel {
-                                              "connections": [],
                                               "notifySubscribers": [Function],
                                               "refreshMrsRoutersTimer": undefined,
+                                              "rootGroup": {
+                                                "caption": "",
+                                                "entries": [],
+                                                "folderPath": {
+                                                  "caption": "/",
+                                                  "id": 1,
+                                                  "index": 0,
+                                                },
+                                                "id": "",
+                                                "refresh": [Function],
+                                                "state": {
+                                                  "expanded": false,
+                                                  "expandedOnce": false,
+                                                  "initialized": true,
+                                                  "isLeaf": false,
+                                                },
+                                                "type": 0,
+                                              },
                                               "routerRefreshTime": 10000,
                                               "singleServerMode": false,
                                               "subscribers": Set {
@@ -35952,9 +36531,26 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                         />,
                                         "value": {
                                           "connectionsDataModel": ConnectionDataModel {
-                                            "connections": [],
                                             "notifySubscribers": [Function],
                                             "refreshMrsRoutersTimer": undefined,
+                                            "rootGroup": {
+                                              "caption": "",
+                                              "entries": [],
+                                              "folderPath": {
+                                                "caption": "/",
+                                                "id": 1,
+                                                "index": 0,
+                                              },
+                                              "id": "",
+                                              "refresh": [Function],
+                                              "state": {
+                                                "expanded": false,
+                                                "expandedOnce": false,
+                                                "initialized": true,
+                                                "isLeaf": false,
+                                              },
+                                              "type": 0,
+                                            },
                                             "routerRefreshTime": 10000,
                                             "singleServerMode": false,
                                             "subscribers": Set {
@@ -36501,9 +37097,26 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                         value={
                                           {
                                             "connectionsDataModel": ConnectionDataModel {
-                                              "connections": [],
                                               "notifySubscribers": [Function],
                                               "refreshMrsRoutersTimer": undefined,
+                                              "rootGroup": {
+                                                "caption": "",
+                                                "entries": [],
+                                                "folderPath": {
+                                                  "caption": "/",
+                                                  "id": 1,
+                                                  "index": 0,
+                                                },
+                                                "id": "",
+                                                "refresh": [Function],
+                                                "state": {
+                                                  "expanded": false,
+                                                  "expandedOnce": false,
+                                                  "initialized": true,
+                                                  "isLeaf": false,
+                                                },
+                                                "type": 0,
+                                              },
                                               "routerRefreshTime": 10000,
                                               "singleServerMode": false,
                                               "subscribers": Set {
@@ -37683,9 +38296,26 @@ exports[`Application host tests Rendering Preferences 1`] = `
                                         />,
                                         "value": {
                                           "connectionsDataModel": ConnectionDataModel {
-                                            "connections": [],
                                             "notifySubscribers": [Function],
                                             "refreshMrsRoutersTimer": undefined,
+                                            "rootGroup": {
+                                              "caption": "",
+                                              "entries": [],
+                                              "folderPath": {
+                                                "caption": "/",
+                                                "id": 1,
+                                                "index": 0,
+                                              },
+                                              "id": "",
+                                              "refresh": [Function],
+                                              "state": {
+                                                "expanded": false,
+                                                "expandedOnce": false,
+                                                "initialized": true,
+                                                "isLeaf": false,
+                                              },
+                                              "type": 0,
+                                            },
                                             "routerRefreshTime": 10000,
                                             "singleServerMode": false,
                                             "subscribers": Set {
@@ -39087,6 +39717,12 @@ exports[`Application host tests Rendering Preferences 1`] = `
                           </div>
                         </Container>
                       </Accordion>
+                      <Menu
+                        id="connectionGroupContextMenu"
+                        onItemClick={[Function]}
+                        orientation="column"
+                        placement="bottom-start"
+                      />
                       <Menu
                         id="connectionContextMenu"
                         isItemDisabled={[Function]}

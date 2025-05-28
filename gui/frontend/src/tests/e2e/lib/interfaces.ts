@@ -82,6 +82,10 @@ export interface IDBConnection {
     dbType?: string;
     caption?: string;
     description?: string;
+    folderPath?: {
+        new?: boolean;
+        value?: string;
+    };
     basic?: IConnBasicMySQL | IConnBasicSqlite;
     ssl?: IConnSSL;
     advanced?: IConnAdvancedMySQL | IConnAdvancedSqlite;
