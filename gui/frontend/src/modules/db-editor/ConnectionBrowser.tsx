@@ -28,26 +28,26 @@ import { Children } from "preact/compat";
 
 import { requisitions } from "../../supplement/Requisitions.js";
 
-import {
-    DialogResponseClosure, DialogType, IDialogResponse, IDictionary,
-} from "../../app-logic/general-types.js";
-import { MySQLConnectionScheme } from "../../communication/MySQL.js";
+import { DialogResponseClosure, DialogType, IDialogResponse, IDictionary } from "../../app-logic/general-types.js";
 import { IMySQLDbSystem } from "../../communication/index.js";
-import {
-    BrowserTileType, IBrowserTileProperties, ITileActionOptions,
-} from "../../components/ui/BrowserTile/BrowserTile.js";
+import { Breadcrumb, type IBreadCrumbSegment } from "../../components/ui/Breadcrumb/Breadcrumb.js";
 import { Codicon } from "../../components/ui/Codicon.js";
 import {
-    ComponentBase, ComponentPlacement, IComponentProperties,
+    ComponentBase, ComponentPlacement, IComponentProperties, type IComponentState,
 } from "../../components/ui/Component/ComponentBase.js";
-import { ConnectionTile, IConnectionTileProperties } from "../../components/ui/ConnectionTile/ConnectionTile.js";
-import { Container, ContentWrap, Orientation } from "../../components/ui/Container/Container.js";
+import {
+    ConnectionTile, ConnectionTileType, IConnectionTileProperties, type ITileActionOptions,
+} from "../../components/ui/ConnectionTile/ConnectionTile.js";
+import { Container, ContentAlignment, ContentWrap, Orientation } from "../../components/ui/Container/Container.js";
 import { FrontPage } from "../../components/ui/FrontPage/FrontPage.js";
 import { Label } from "../../components/ui/Label/Label.js";
 import { Menu } from "../../components/ui/Menu/Menu.js";
 import { IMenuItemProperties, MenuItem } from "../../components/ui/Menu/MenuItem.js";
 import { Toolbar } from "../../components/ui/Toolbar/Toolbar.js";
-import type { ConnectionDataModel, ICdmConnectionEntry } from "../../data-models/ConnectionDataModel.js";
+import {
+    CdmEntityType, type ConnectionDMActionList, type ConnectionDataModel, type ICdmConnectionEntry,
+    type ICdmConnectionGroupEntry,
+} from "../../data-models/ConnectionDataModel.js";
 import { Assets } from "../../supplement/Assets.js";
 import { Settings } from "../../supplement/Settings/Settings.js";
 import { DBType, IConnectionDetails, type IShellSessionDetails } from "../../supplement/ShellInterface/index.js";
@@ -63,7 +63,11 @@ interface IConnectionBrowserProperties extends IComponentProperties {
     onRemoveConnection: (entry: ICdmConnectionEntry) => void;
 }
 
-export class ConnectionBrowser extends ComponentBase<IConnectionBrowserProperties> {
+interface IConnectionBrowserState extends IComponentState {
+    currentGroup?: ICdmConnectionGroupEntry;
+}
+
+export class ConnectionBrowser extends ComponentBase<IConnectionBrowserProperties, IConnectionBrowserState> {
     public static override contextType = DocumentContext;
 
     private static dbTypeToIconMap = new Map<DBType, string>([
@@ -80,11 +84,13 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     public constructor(props: IConnectionBrowserProperties) {
         super(props);
 
-        this.addHandledProperties("connections", "toolbarItems", "onAddConnection", "onUpdateConnection");
+        this.state = {};
+        this.addHandledProperties("toolbarItems", "onAddConnection", "onUpdateConnection", "onRemoveConnection");
     }
 
     public override componentDidMount(): void {
         requisitions.register("settingsChanged", this.handleSettingsChanged);
+        requisitions.register("refreshConnectionGroup", this.refreshConnectionGroup);
         requisitions.register("dbFileDropped", this.dbFileDropped);
         requisitions.register("addNewConnection", this.addNewConnection);
         requisitions.register("editConnection", this.editConnection);
@@ -106,6 +112,7 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         }
 
         requisitions.unregister("settingsChanged", this.handleSettingsChanged);
+        requisitions.unregister("refreshConnectionGroup", this.refreshConnectionGroup);
         requisitions.unregister("dbFileDropped", this.dbFileDropped);
         requisitions.unregister("addNewConnection", this.addNewConnection);
         requisitions.unregister("editConnection", this.editConnection);
@@ -116,37 +123,95 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
 
     public render(): ComponentChild {
         const { toolbarItems } = this.props;
+        const { currentGroup } = this.state;
 
         const className = this.getEffectiveClassNames(["connectionBrowser"]);
-        const connections = this.connections;
+
+        let currentList = currentGroup ? currentGroup.entries : this.roots;
+        const foldersFirst = Settings.get("dbEditor.connectionBrowser.sortFoldersFirst", true);
+        if (foldersFirst) {
+            currentList = Array.from(currentList); // Sort only the copy, not the original list.
+            currentList.sort((a, b) => {
+                const aIsGroup = a.type === CdmEntityType.ConnectionGroup ? 0 : 1;
+                const bIsGroup = b.type === CdmEntityType.ConnectionGroup ? 0 : 1;
+
+                return aIsGroup - bIsGroup;
+            });
+        }
 
         const tiles = [];
-        connections.forEach((connection) => {
-            if (connection) {
+
+        if (currentGroup) {
+            tiles.push(<ConnectionTile
+                tileId={"-2"}
+                key={-2}
+                caption={"Back"}
+                description={"Go up one folder level"}
+                icon={Codicon.ChevronLeft}
+                type={ConnectionTileType.Back}
+                onAction={this.handleTileAction}
+            />);
+        }
+
+        currentList.forEach((root) => {
+            if (root.type === CdmEntityType.ConnectionGroup) {
                 tiles.push(
                     <ConnectionTile
-                        tileId={connection.details.id}
-                        key={connection.details.id}
-                        entry={connection}
-                        caption={connection.details.caption}
-                        description={connection.details.description}
-                        icon={ConnectionBrowser.dbTypeToIconMap.get(connection.details.dbType)!}
-                        type={BrowserTileType.Open}
+                        tileId={root.id}
+                        key={root.id}
+                        entry={root}
+                        caption={root.caption}
+                        description={"Connection Group"}
+                        icon={Assets.file.folderIcon}
+                        type={ConnectionTileType.Group}
                         draggable
                         onAction={this.handleTileAction}
 
                     //onTileReorder={this.handleTileReorder}
                     />,
                 );
+            } else {
+                tiles.push(
+                    <ConnectionTile
+                        tileId={root.id}
+                        key={root.details.id}
+                        entry={root}
+                        caption={root.caption}
+                        description={root.details.description}
+                        icon={ConnectionBrowser.dbTypeToIconMap.get(root.details.dbType)!}
+                        type={ConnectionTileType.Open}
+                        draggable
+                        onAction={this.handleTileAction}
 
+                    //onTileReorder={this.handleTileReorder}
+                    />,
+                );
             }
         });
+
+        // Generate a string version of the folder path.
+        let folderPath = "";
+        const path: IBreadCrumbSegment[] = [];
+        let runner = currentGroup;
+        while (runner) {
+            path.unshift({ id: runner.folderPath.id, caption: runner.caption + " / ", selected: false });
+            if (folderPath.length > 0) {
+                folderPath = "/" + folderPath;
+            }
+            folderPath = runner.caption + folderPath;
+
+            runner = runner.parent;
+        }
+
+        if (path.length === 0) {
+            path.unshift({ id: 1, caption: "/", selected: false });
+        }
 
         const dataModel = this.dataModel;
         if (dataModel) {
             tiles.push(
                 <ConnectionTile
-                    tileId={-1}
+                    tileId={"-1"}
                     key={-1}
                     entry={dataModel.createConnectionEntry({
                         id: -1,
@@ -159,11 +224,13 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                             dbFile: "",
                             dbName: "",
                         },
+                        folderPath,
+                        index: -1,
                     })}
                     caption="New Connection"
                     description="Add a new database connection"
                     icon={Assets.misc.plusIcon}
-                    type={BrowserTileType.CreateNew}
+                    type={ConnectionTileType.CreateNew}
                     onAction={this.handleTileAction}
 
                 //onTileReorder={this.handleTileReorder}
@@ -177,6 +244,8 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             <div className="expander" />
             {toolbarItems.auxiliary}
         </Toolbar>;
+
+        const contentTitle = "Database Connections";
 
         return (
             <Container
@@ -223,7 +292,16 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
                     }
                     onCloseGreeting={this.handleCloseGreeting}
                 >
-                    <Label id="contentTitle" caption="Database Connections" />
+                    <Container
+                        id="frontPageContent"
+                        crossAlignment={ContentAlignment.Center}
+                    >
+                        <Label id="contentTitle" caption={contentTitle} />
+                        <Breadcrumb
+                            path={path}
+                            onSelect={this.handleSelectPath}
+                        />
+                    </Container>
                     <Container
                         innerRef={this.hostRef}
                         id="tilesHost"
@@ -252,11 +330,13 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     };
 
     private editConnection = (connectionId: number): Promise<boolean> => {
-        const connections = this.connections;
-        const details = connections.find((candidate) => { return candidate.details.id === connectionId; });
+        const connections = this.dataModel?.connectionList;
+        const connection = connections?.find((candidate) => {
+            return candidate.type === CdmEntityType.Connection && candidate.details.id === connectionId;
+        });
 
-        if (details) {
-            this.doHandleTileAction("edit", details, undefined);
+        if (connection) {
+            this.doHandleTileAction("edit", connection, undefined);
 
             return Promise.resolve(true);
         }
@@ -265,11 +345,14 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     };
 
     private removeConnection = (connectionId: number): Promise<boolean> => {
-        const connections = this.connections;
+        const connections = this.dataModel?.connectionList;
 
-        const details = connections.find((candidate) => { return candidate.details.id === connectionId; });
-        if (details) {
-            this.doHandleTileAction("remove", details, undefined);
+        const connection = connections?.find((candidate) => {
+            return candidate.type === CdmEntityType.Connection && candidate.details.id === connectionId;
+        });
+
+        if (connection) {
+            this.doHandleTileAction("remove", connection, undefined);
 
             return Promise.resolve(true);
         }
@@ -278,11 +361,14 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     };
 
     private duplicateConnection = (connectionId: number): Promise<boolean> => {
-        const connections = this.connections;
+        const connections = this.dataModel?.connectionList;
 
-        const details = connections.find((candidate) => { return candidate.details.id === connectionId; });
-        if (details) {
-            this.doHandleTileAction("duplicate", details, undefined);
+        const connection = connections?.find((candidate) => {
+            return candidate.type === CdmEntityType.Connection && candidate.details.id === connectionId;
+        });
+
+        if (connection) {
+            this.doHandleTileAction("duplicate", connection, undefined);
 
             return Promise.resolve(true);
         }
@@ -291,13 +377,39 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
     };
 
     private handleSettingsChanged = (entry?: { key: string; value: unknown; }): Promise<boolean> => {
-        if (entry?.key === "dbEditor.connectionBrowser.showGreeting") {
+        if (entry?.key === "dbEditor.connectionBrowser.showGreeting"
+            || entry?.key === "dbEditor.connectionBrowser.sortFoldersFirst") {
             this.forceUpdate();
 
             return Promise.resolve(true);
         }
 
         return Promise.resolve(false);
+    };
+
+    /**
+     * Triggered when one specific or all top level groups need to be refreshed.
+     * Refreshing the top level groups also means to refresh all top level connections.
+     *
+     * @param groupId The id of the group to refresh. If not provided, the top level groups are refreshed.
+     *
+     * @returns A promise that resolves to `true`.
+     */
+    private refreshConnectionGroup = async (groupId?: number): Promise<boolean> => {
+        if (groupId !== undefined && groupId >= 0) {
+            const context = this.context as DocumentContextType;
+            if (context) {
+                const group = context.connectionsDataModel.findConnectionGroupEntryById(groupId);
+                if (group) {
+                    await group.refresh?.();
+                    this.forceUpdate();
+                } else {
+                    await context.connectionsDataModel.reloadConnections();
+                }
+            }
+        }
+
+        return Promise.resolve(true);
     };
 
     private handleCloseGreeting = (): void => {
@@ -310,12 +422,17 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             this.hostRef.current.classList.remove("dropTarget");
         }
 
-        const connections = this.connections;
+        if (!this.dataModel) {
+            return Promise.resolve(false);
+        }
+
+        const connections = this.dataModel?.connectionList;
         const caption = `New Connection ${connections.length}`;
         const description = "A new Database Connection";
+        const folderPath = this.generateFolderPathFromCurrentGroup();
 
         // Don't wait here. The editor will be shown asynchronously.
-        void this.editorRef.current?.show(DBType.Sqlite, true, {
+        void this.editorRef.current?.show(DBType.Sqlite, true, "", {
             id: -1,
             dbType: DBType.Sqlite,
             caption,
@@ -325,6 +442,8 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             options: {
                 dbFile: fileName,
             },
+            folderPath,
+            index: -1,
         });
 
         return Promise.resolve(true);
@@ -384,16 +503,51 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         return false;
     };
 
-    private handleTileAction = (action: string, props: IBrowserTileProperties | undefined,
+    private handleTileAction = (action: string, props: IConnectionTileProperties | undefined,
         options: unknown): void => {
 
         const tileProps = props as IConnectionTileProperties;
-        this.doHandleTileAction(action, tileProps?.entry, options as IDictionary);
+        if (action === "new") {
+            this.doHandleTileAction(action, undefined, options as IDictionary);
+        } else {
+            this.doHandleTileAction(action, tileProps?.entry, options as IDictionary);
+        }
     };
 
-    private doHandleTileAction = (action: string, entry: ICdmConnectionEntry | undefined,
+    private doHandleTileAction = (action: string, entry: ICdmConnectionEntry | ICdmConnectionGroupEntry | undefined,
         options?: ITileActionOptions): void => {
-        const dbType = entry?.details.dbType ?? DBType.MySQL;
+
+        let dbType: DBType | undefined;
+
+        if (entry?.type === CdmEntityType.Connection) {
+            dbType = entry?.details ? entry.details.dbType : DBType.MySQL;
+        } else if (action === "new") {
+            void this.editorRef.current?.show(DBType.MySQL, true, this.generateFolderPathFromCurrentGroup());
+
+            return;
+        } else {
+            // Can only be group activation. If entry is undefined, we have to go up one level.
+            if (!entry) {
+                let { currentGroup } = this.state;
+                if (currentGroup && currentGroup.parent) { // Just a sanity check. You cannot go up on root level.
+                    currentGroup = currentGroup.parent;
+                    void currentGroup.refresh?.().then(() => {
+                        if (currentGroup!.folderPath.caption === "/") {
+                            // This is the root group - no parent.
+                            currentGroup = undefined;
+                        }
+
+                        this.setState({ currentGroup });
+                    });
+                }
+            } else {
+                void entry.refresh?.().then(() => {
+                    this.setState({ currentGroup: entry });
+                });
+            }
+
+            return;
+        }
 
         switch (action) {
             case "menu": {
@@ -406,48 +560,12 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
             }
 
             case "edit": {
-                void this.editorRef.current?.show(dbType, false, entry?.details);
-                break;
-            }
-
-            case "new": {
-                if (options && options.id !== undefined) {
-                    let host;
-                    if (options.endpoints && Array.isArray(options.endpoints) && options.endpoints.length > 0) {
-                        host = options.endpoints[0].ipAddress;
-                    }
-
-                    const connectionDetails: IConnectionDetails = {
-                        id: -1,
-                        caption: options.displayName as string ?? "",
-                        dbType: DBType.MySQL,
-                        description: options.description as string ?? "",
-                        useMHS: true,
-                        useSSH: false,
-                        options: {
-                            /* eslint-disable @typescript-eslint/naming-convention */
-                            "compartment-id": options.compartmentId,
-                            "mysql-db-system-id": options.id,
-                            "profile-name": options.profileName ?? "DEFAULT",
-
-                            // Disable support for bastion to be stored in freeform tags for the time being
-                            // "bastion-id": (options.freeformTags as IDictionary)?.bastionId ?? undefined,
-                            host,
-                            "scheme": MySQLConnectionScheme.MySQL,
-                            /* eslint-enable @typescript-eslint/naming-convention */
-                        },
-                    };
-                    void this.editorRef.current?.show(dbType, true, connectionDetails);
-
-                } else {
-                    void this.editorRef.current?.show(dbType, true);
-                }
-
+                void this.editorRef.current?.show(dbType, false, "", entry.details);
                 break;
             }
 
             case "duplicate": {
-                void this.editorRef.current?.show(dbType, true, entry?.details);
+                void this.editorRef.current?.show(dbType, true, "", entry.details);
 
                 break;
             }
@@ -581,15 +699,53 @@ export class ConnectionBrowser extends ComponentBase<IConnectionBrowserPropertie
         }
     };
 
-    private get connections(): ICdmConnectionEntry[] {
-        return (this.context as DocumentContextType)?.connectionsDataModel.connections ?? [];
+    private get roots(): Array<ICdmConnectionEntry | ICdmConnectionGroupEntry> {
+        return (this.context as DocumentContextType)?.connectionsDataModel.roots ?? [];
     }
 
     private get dataModel(): ConnectionDataModel | undefined {
         return (this.context as DocumentContextType)?.connectionsDataModel;
     }
 
-    private dataModelChanged = (): void => {
+    private dataModelChanged = (actions: Readonly<ConnectionDMActionList>): void => {
+        if (actions.length === 1) {
+            // Check if our current group was removed.
+            const { currentGroup } = this.state;
+
+            const action = actions[0];
+            if (action.action === "remove" && action.entry === currentGroup) {
+                if (currentGroup?.parent) {
+                    this.setState({
+                        currentGroup: currentGroup.parent.folderPath.id === 1 ? undefined : currentGroup.parent,
+                    });
+                }
+            }
+        }
+
         this.forceUpdate();
     };
+
+    private handleSelectPath = (path: number[]): void => {
+        const dataModel = this.dataModel;
+        if (dataModel) {
+            const group = dataModel.findConnectionGroupById(path);
+            if (group) {
+                // Set undefined for the root group.
+                this.setState({ currentGroup: group.folderPath.id === 1 ? undefined : group });
+            }
+        }
+    };
+
+    private generateFolderPathFromCurrentGroup(): string {
+        const { currentGroup } = this.state;
+
+        const path: string[] = [];
+        let runner = currentGroup;
+        while (runner) {
+            path.unshift(runner.caption);
+            runner = runner.parent;
+        }
+
+        return path.join("/");
+    }
 }

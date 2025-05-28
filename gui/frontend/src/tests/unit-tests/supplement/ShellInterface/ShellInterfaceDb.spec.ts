@@ -53,7 +53,7 @@ describe("ShellInterfaceDb Tests", () => {
         credentials = getDbCredentials();
         testConnection = {
             id: -1,
-
+            index: -1,
             dbType: DBType.MySQL,
             caption: "ShellInterfaceDb Test Connection 1",
             description: "ShellInterfaceDb Test Connection",

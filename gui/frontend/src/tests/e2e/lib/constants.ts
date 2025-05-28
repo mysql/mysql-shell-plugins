@@ -328,3 +328,7 @@ export const configureInstanceForRestService = "Configure Instance for MySQL RES
 export const configureRestService = "Configure MySQL REST Service";
 export const mysqlAIServer = "MySQL AI Server";
 
+export const addSubfolder = "Add Subfolder";
+export const editFolder = "Edit Folder";
+export const removeFolder = "Remove Folder";
+

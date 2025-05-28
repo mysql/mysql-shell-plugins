@@ -119,8 +119,10 @@ export interface IUILayer {
     /**
      * Asks the user for a yes/no decision. Returns the yes/no string, depending on what the user clicked or
      * undefined if the user clicked outside/cancelled the dialog (e.g. pressed <escape>).
+     * Note: in the extension there's always a "cancel" button. Don't specify a "no" button if you want to
+     *       to avoid an additional button.
      */
-    confirm(message: string, yes: string, no: string, extra?: string): Promise<string | undefined>;
+    confirm(message: string, yes: string, no?: string, extra?: string): Promise<string | undefined>;
 
     /**
      * Triggers a password request.

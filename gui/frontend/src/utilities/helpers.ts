@@ -307,6 +307,45 @@ export const waitFor = async (timeout: number, condition: () => boolean): Promis
 };
 
 /**
+ * @returns a promise that resolves when either the given promise resolves or the timeout is reached.
+ *          If the timeout is reached, the promise is rejected with the given error.
+ *          If the promise resolves before the timeout, the result of the promise is returned.
+ *
+ * @param promise The promise to wait for.
+ * @param ms The timeout in milliseconds.
+ * @param timeoutError The error to reject with if the timeout is reached.
+ *                    If not given, a default error is used.
+ */
+export const promiseWithTimeout = <T>(promise: Promise<T>, ms: number,
+    timeoutError = new Error("Promised timed out")): Promise<T> => {
+    const timeout = new Promise<never>((_, reject) => {
+        setTimeout(() => { return reject(timeoutError); }, ms);
+    });
+
+    return Promise.race([promise, timeout]);
+};
+
+/**
+ * Splits an array into two, based on a predicate.
+ *
+ * @param list The array to split.
+ * @param predicate The predicate to use for the split.
+ *
+ * @returns A tuple with two arrays, the first one containing all elements for which the predicate returned true,
+ *          the second one containing all elements for which the predicate returned false.
+ */
+export const partition = <T>(list: T[], predicate: (item: T) => boolean): [T[], T[]] => {
+    return list.reduce(
+        (accumulator, item) => {
+            accumulator[predicate(item) ? 0 : 1].push(item);
+
+            return accumulator;
+        },
+        [[], []] as [T[], T[]],
+    );
+};
+
+/**
  * Flattens an object by converting all members that are itself objects (array, object) to strings.
  *
  * @param o The object to flatten.

@@ -34,15 +34,15 @@ import { EnabledState } from "../modules/mrs/mrs-helpers.js";
 import { requisitions } from "../supplement/Requisitions.js";
 import { ShellInterface } from "../supplement/ShellInterface/ShellInterface.js";
 import { ShellInterfaceSqlEditor } from "../supplement/ShellInterface/ShellInterfaceSqlEditor.js";
-import { DBType, type IConnectionDetails } from "../supplement/ShellInterface/index.js";
+import { DBType, type IConnectionDetails, type IFolderPath } from "../supplement/ShellInterface/index.js";
 import { RunMode, webSession, type ILoginCredentials } from "../supplement/WebSession.js";
-import { convertErrorToString, uuid } from "../utilities/helpers.js";
+import { convertErrorToString, partition, uuid } from "../utilities/helpers.js";
 import { compareVersionStrings, formatBytes } from "../utilities/string-helpers.js";
 import { ConnectionEntryImpl } from "./ConnectionEntryImpl.js";
 import { createDataModelEntryState } from "./data-model-helpers.js";
 import {
     type AdminPageType, type Command, type DataModelSubscriber, type ICdmAccessManager, type IDataModelEntryState,
-    type ISubscriberActionType, type ProgressCallback, type SubscriberAction,
+    type ISubscriberActionType, type ProgressCallback,
 } from "./data-model-types.js";
 
 /**
@@ -59,6 +59,8 @@ import {
 
 /** The types of entries we can have in the model. */
 export enum CdmEntityType {
+    /** A group of connections. */
+    ConnectionGroup,
 
     /** A database connection. */
     Connection,
@@ -209,7 +211,7 @@ export interface ICdmBaseEntry {
      */
     id: string;
 
-    /** The caption of the entry. */
+    /** The caption of the entry in the UI. */
     readonly caption: string;
 
     /** A description with additional information about the entry. */
@@ -543,8 +545,10 @@ export type CdmRestTypes1 = ICdmRestRootEntry | ICdmRestServiceEntry | ICdmRestR
     | ICdmRestContentSetEntry | ICdmRestAuthAppEntry | ICdmRestUserEntry | ICdmRestContentFileEntry
     | ICdmRestDbObjectEntry | ICdmRestRouterServiceEntry;
 
-/** The top level entry for a connection. The entire data model is made of a list of these. */
+/** The top level entry for a connection. The entire data model is made of a list of these (possibly in a group). */
 export interface ICdmConnectionEntry extends ICdmBaseEntry {
+    readonly parent?: ICdmConnectionGroupEntry;
+
     readonly type: CdmEntityType.Connection;
 
     readonly details: IConnectionDetails;
@@ -572,15 +576,24 @@ export interface ICdmConnectionEntry extends ICdmBaseEntry {
     /** Only used for MySQL connections. */
     readonly adminEntry?: ICdmAdminEntry;
 
-    /** Close this connection and free resources. Call {@link initialize} to open it again. */
+    /** Closes this connection and frees resources. Call {@link initialize} to open it again. */
     close(): Promise<void>;
 
     /** Creates a copy of this connection and opens it. */
     duplicate(): Promise<ICdmConnectionEntry>;
 }
 
+/** Connections can be grouped together and this is the entry for such groups. */
+export interface ICdmConnectionGroupEntry extends Omit<ICdmBaseEntry, "connection"> {
+    readonly parent?: ICdmConnectionGroupEntry;
+    readonly type: CdmEntityType.ConnectionGroup;
+    readonly folderPath: IFolderPath;
+    readonly entries: Array<ICdmConnectionEntry | ICdmConnectionGroupEntry>;
+}
+
 /** A union type of all possible interfaces. */
 export type ConnectionDataModelEntry =
+    | ICdmConnectionGroupEntry
     | ICdmConnectionEntry
     | ICdmSchemaEntry
     | ICdmSchemaGroupEntry<CdmSchemaGroupMemberType>
@@ -610,8 +623,19 @@ export type ConnectionDataModelEntry =
     | ICdmRestContentFileEntry
     | ICdmRestDbObjectEntry;
 
+/** All possible types except connection groups. */
+export type ConnectionDataModelNoGroupEntry = Exclude<ConnectionDataModelEntry, ICdmConnectionGroupEntry>;
+
+export type ConnectionDMActionList = Array<ISubscriberActionType<ConnectionDataModelEntry>>;
+
+/** Given a specific connection group this type contains all subgroups and connections of that group, recursively. */
+export interface IFlatGroupList {
+    groups: ICdmConnectionGroupEntry[];
+    connections: ICdmConnectionEntry[];
+}
+
 export class ConnectionDataModel implements ICdmAccessManager {
-    public readonly connections: ICdmConnectionEntry[] = [];
+    private rootGroup: ICdmConnectionGroupEntry;
 
     private subscribers = new Set<DataModelSubscriber<ConnectionDataModelEntry>>();
 
@@ -630,7 +654,40 @@ export class ConnectionDataModel implements ICdmAccessManager {
      *                    is enabled.
      */
     public constructor(private singleServerMode: boolean, refreshTime = 10000) {
+        this.rootGroup = {
+            id: uuid(),
+            caption: "",
+            type: CdmEntityType.ConnectionGroup,
+            folderPath: { id: 1, caption: "/", index: 0 },
+            entries: [],
+            state: createDataModelEntryState(),
+        };
+
+        if (singleServerMode) {
+            // In single server mode we only have one connection, with no details. The backend will ignore the values
+            // and open a connection to a server, configured in the startup details.
+            const details: IConnectionDetails = {
+                id: 0,
+                index: 0,
+                dbType: DBType.MySQL,
+                caption: "MySQL AI Server",
+                description: "",
+                options: {},
+            };
+
+            const connection = new ConnectionEntryImpl(details.caption, details, this, false);
+            this.rootGroup.entries.push(connection);
+        } else {
+            this.rootGroup.refresh = () => { return this.updateConnectionGroup(this.rootGroup); };
+        }
+
         this.routerRefreshTime = refreshTime;
+    }
+    /**
+     * @returns the list of connections a user has stored in the backend.
+     */
+    public get roots(): Array<ICdmConnectionGroupEntry | ICdmConnectionEntry> {
+        return this.rootGroup.entries;
     }
 
     public get autoRouterRefresh(): boolean {
@@ -640,7 +697,8 @@ export class ConnectionDataModel implements ICdmAccessManager {
     public set autoRouterRefresh(value: boolean) {
         if (value) {
             this.refreshMrsRoutersTimer = setInterval(() => {
-                this.connections.forEach((c) => {
+                const list = this.connectionList;
+                list.forEach((c) => {
                     if (c.mrsEntry?.state.expanded) {
                         void c.mrsEntry.refresh!();
                     }
@@ -689,13 +747,9 @@ export class ConnectionDataModel implements ICdmAccessManager {
     }
 
     /** Empties the data model and resets it to uninitialized. */
-    public clear(): void {
-        this.connections.forEach((e) => {
-            if (e.isOpen) {
-                void e.close();
-            }
-        });
-        this.connections.length = 0;
+    public async clear(): Promise<void> {
+        await this.closeAllConnections();
+        this.rootGroup.entries.length = 0;
         this.#initialized = false;
         this.notifySubscribers([{ action: "clear" }]);
     }
@@ -714,24 +768,37 @@ export class ConnectionDataModel implements ICdmAccessManager {
 
     /** Closes all connections, but keeps them in the data model. */
     public async closeAllConnections(): Promise<void> {
-        for (const connection of this.connections) {
-            const entry = connection as Mutable<ICdmConnectionEntry>;
-            await entry.close();
+        const connections = this.connectionList;
+        for (const connection of connections) {
+            await connection.close();
         }
     }
 
     /**
-     * Tries to drop the given item, if it is a database object or a connection. The caller must ensure the user
-     * confirms the action. The entry remains in the data model and must be removed explicitly
+     * Tries to drop the given item from it's remote location (e.g. database server, OCI etc.). The caller must ensure
+     * the user confirms the action. The entry remains in the data model and must be removed explicitly
      * using {@link removeEntry}. Especially for connections call {@link removeEntry} before dropping the entry, to
      * ensure the connection is closed.
      *
-     * @param entry The entry to drop. If that is not a database object, an error is thrown.
+     * @param entry The entry to drop.
      *
      * @returns A promise that resolves once the item is dropped.
      */
     public async dropItem(entry: ConnectionDataModelEntry): Promise<void> {
         switch (entry.type) {
+            case CdmEntityType.ConnectionGroup: {
+                const folder = entry.folderPath;
+                const list = await ShellInterface.dbConnections.listAll(webSession.currentProfileId,
+                    folder.id);
+                if (list.length > 0) {
+                    throw new Error("Cannot drop a connection group, which is not empty.");
+                }
+
+                await ShellInterface.dbConnections.removeFolderPath(folder.id);
+
+                return;
+            }
+
             case CdmEntityType.Connection: {
                 return ShellInterface.dbConnections.removeDbConnection(webSession.currentProfileId, entry.details.id);
             }
@@ -758,7 +825,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
      * @param connectionId The id of the connection to check.
      */
     public isValidConnectionId(connectionId: number): boolean {
-        return this.connections.some((e) => { return e.details.id === connectionId; });
+        return this.findConnectionEntryById(connectionId) !== undefined;
     }
 
     /**
@@ -769,7 +836,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
      * @returns The qualified name for the entry.
      * @throws An error if the entry is not a database object.
      */
-    public getQualifiedName(entry: ConnectionDataModelEntry): string {
+    public getQualifiedName(entry: ConnectionDataModelNoGroupEntry): string {
         // Find the schema name from the entry, if it is a database object.
         let schema = "";
         let tableOrView = "";
@@ -823,19 +890,23 @@ export class ConnectionDataModel implements ICdmAccessManager {
 
     /**
      * Removes the given entry from the data model. If the entry is a connection, its session will be closed.
-     * Otherwise no further action is taken.
      *
-     * @param entry The entry to remove. Note: group entries are never removed.
+     * @param entry The entry to remove.
      */
     public async removeEntry(entry: ConnectionDataModelEntry): Promise<void> {
-        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        const actions: ConnectionDMActionList = [];
 
         switch (entry.type) {
+            case CdmEntityType.ConnectionGroup:
             case CdmEntityType.Connection: {
-                const index = this.connections.indexOf(entry);
+                const parent = entry.parent ?? this.rootGroup;
+                const index = parent.entries.indexOf(entry);
                 if (index >= 0) {
-                    await entry.close();
-                    const removed = this.connections.splice(index, 1);
+                    if (entry.type === CdmEntityType.Connection) {
+                        await entry.close();
+                    }
+
+                    const removed = parent.entries.splice(index, 1);
                     actions.push({ action: "remove", entry: removed[0] });
                 }
 
@@ -1030,9 +1101,14 @@ export class ConnectionDataModel implements ICdmAccessManager {
      *
      * @param entry The entry to add.
      */
-    public addConnectionEntry(entry: ICdmConnectionEntry): void {
-        this.connections.push(entry);
-        this.notifySubscribers([{ action: "add", entry }]);
+    public async addConnectionEntry(entry: ICdmConnectionEntry): Promise<void> {
+        const actions: ConnectionDMActionList = [];
+
+        const group = await this.groupFromPath(entry.details.folderPath, actions);
+        group.entries.push(entry);
+        (entry as ConnectionEntryImpl).parent = group;
+
+        this.notifySubscribers(actions);
     }
 
     /**
@@ -1041,7 +1117,25 @@ export class ConnectionDataModel implements ICdmAccessManager {
      * @param id The id of the connection to find.
      */
     public findConnectionEntryById(id: number): ICdmConnectionEntry | undefined {
-        return this.connections.find((e) => { return e.details.id === id; });
+        return this.connectionList.find((entry) => { return entry.details.id === id; });
+    }
+
+    /**
+     * @returns The connection group entry with the given id, or `undefined` if no such entry exists.
+     *
+     * @param id The id of the connection group to find.
+     */
+    public findConnectionGroupEntryById(id: number): ICdmConnectionGroupEntry | undefined {
+        return this.groupList.find((entry) => { return entry.folderPath.id === id; });
+    }
+
+    /**
+     * @returns The first connection entry with the given title/caption, or `undefined` if no such entry exists.
+     *
+     * @param caption The caption of the connection to find.
+     */
+    public findConnectionEntryByCaption(caption: string): ICdmConnectionEntry | undefined {
+        return this.connectionList.find((entry) => { return entry.details.caption === caption; });
     }
 
     public updateConnectionDetails(data: IConnectionDetails | ICdmConnectionEntry): ICdmConnectionEntry | undefined {
@@ -1069,7 +1163,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
 
     /**
      * This method is called by entries that are implemented in own files to update their content.
-     * This avoids dragging all initialization code into their file.
+     * This avoids dragging all initialization code into their files.
      *
      * @param entry The entry to update.
      * @param callback An optional callback to report progress.
@@ -1096,120 +1190,192 @@ export class ConnectionDataModel implements ICdmAccessManager {
         }
     }
 
+    /**
+     * @returns a flat list of all loaded connections (no groups).
+     */
+    public get connectionList(): ICdmConnectionEntry[] {
+        const result: ICdmConnectionEntry[] = [];
+
+        const addEntry = (entry: ICdmConnectionGroupEntry | ICdmConnectionEntry) => {
+            if (entry.type === CdmEntityType.Connection) {
+                result.push(entry);
+            } else {
+                for (const child of entry.entries) {
+                    addEntry(child);
+                }
+            }
+        };
+
+        for (const entry of this.rootGroup.entries) {
+            addEntry(entry);
+        }
+
+        return result;
+    }
+
+    /**
+     * @returns a flat list of all loaded groups (no connections).
+     */
+    public get groupList(): ICdmConnectionGroupEntry[] {
+        const result: ICdmConnectionGroupEntry[] = [];
+
+        const addEntry = (entry: ICdmConnectionGroupEntry | ICdmConnectionEntry) => {
+            if (entry.type === CdmEntityType.ConnectionGroup) {
+                result.push(entry);
+                for (const child of entry.entries) {
+                    addEntry(child);
+                }
+            }
+        };
+
+        for (const entry of this.rootGroup.entries) {
+            addEntry(entry);
+        }
+
+        return result;
+    }
+
     public async getCredentials(): Promise<ILoginCredentials | undefined> {
         return webSession.decryptCredentials();
+    }
+
+    /**
+     * Makes sure there are group entries in this data model for the path segments in the given path.
+     * This will also create the folders in the backend.
+     *
+     * @param folderPath The path to create (or verify).
+     * @param actions Used to add action info for changes done in this method.
+     *
+     * @returns The group entry for the last part of the path.
+     */
+    public async groupFromPath(folderPath?: string,
+        actions?: ConnectionDMActionList): Promise<ICdmConnectionGroupEntry> {
+        if (!folderPath || folderPath === "/") {
+            // This is a top level entry and has no parent folder.
+            return this.rootGroup;
+        }
+
+        const path = folderPath.substring(1);
+
+        // Walk the full path and create group entries as needed.
+        const parts = path.split("/");
+        let currentGroup = this.rootGroup;
+        let currentList = this.rootGroup.entries;
+        for (const part of parts) {
+            // Does a group with this name already exist?
+            let group = currentList.find((e) => {
+                return e.caption === part && e.type === CdmEntityType.ConnectionGroup;
+            }) as ICdmConnectionGroupEntry | undefined;
+
+            if (group === undefined) {
+                const folderPath = await ShellInterface.dbConnections.addFolderPath(webSession.currentProfileId, part,
+                    currentGroup?.folderPath.id);
+
+                group = {
+                    type: CdmEntityType.ConnectionGroup,
+                    id: uuid(),
+                    caption: part,
+                    parent: currentGroup,
+                    entries: [],
+                    state: createDataModelEntryState(false, false),
+                    folderPath,
+                    getChildren: () => { return group!.entries; },
+                    refresh: () => { return this.updateConnectionGroup(group!); },
+                };
+
+                actions?.push({ action: "add", entry: group });
+
+                currentList.push(group);
+            }
+            currentGroup = group;
+            currentList = group.entries;
+        }
+
+        return currentGroup;
+    }
+
+    public findConnectionGroupByName(path: string[]): ICdmConnectionGroupEntry | undefined {
+        let group: ICdmConnectionGroupEntry | undefined = this.rootGroup;
+        path.shift(); // Remove the first entry which is our root group.
+        for (const part of path) {
+            group = group.entries.find((e) => {
+                return e.type === CdmEntityType.ConnectionGroup && e.folderPath.caption === part;
+            }) as ICdmConnectionGroupEntry | undefined;
+
+            if (!group) {
+                break;
+            }
+        }
+
+        return group;
+    }
+
+    public findConnectionGroupById(path: number[]): ICdmConnectionGroupEntry | undefined {
+        let group: ICdmConnectionGroupEntry | undefined = this.rootGroup;
+        path.shift(); // Remove the first entry which is our root group.
+        for (const part of path) {
+            group = group.entries.find((e) => {
+                return e.type === CdmEntityType.ConnectionGroup && e.folderPath.id === part;
+            }) as ICdmConnectionGroupEntry | undefined;
+
+            if (!group) {
+                break;
+            }
+        }
+
+        return group;
+    }
+
+    /**
+     * Scans the given connection group and returns a flat list of all groups and connections in that group.
+     * This will refresh the group and all it's subgroups, if needed.
+     *
+     * @param group The group to flatten. It will be included in the result.
+     *
+     * @returns A flat list of all groups and connections in the given group.
+     */
+    public async flattenGroupList(group: ICdmConnectionGroupEntry): Promise<IFlatGroupList> {
+        const result: IFlatGroupList = {
+            groups: [group],
+            connections: [],
+        };
+
+        await group.refresh?.();
+        const addEntry = async (entry: ICdmConnectionGroupEntry | ICdmConnectionEntry) => {
+            if (entry.type === CdmEntityType.ConnectionGroup) {
+                result.groups.push(entry);
+                await entry.refresh?.();
+                for (const child of entry.entries) {
+                    await addEntry(child);
+                }
+            } else {
+                result.connections.push(entry);
+            }
+        };
+
+        for (const entry of group.entries) {
+            await addEntry(entry);
+        }
+
+        return result;
     }
 
     /**
      * Queries the backend for a list of stored user DB connections and updates the connection list.
      * It does a diff between the current list and the new list and closes all connections that are no longer in the
      * new list, while keeping existing connections open.
+     *
+     * @returns A promise that resolves once the connections are updated (true means success).
      */
-    private async updateConnections(): Promise<void> {
-        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+    private async updateConnections(): Promise<boolean> {
+        if (!this.singleServerMode) {
+            const promise = this.updateConnectionGroup(this.rootGroup);
+            requisitions.executeRemote("connectionsUpdated", undefined);
 
-        if (webSession.currentProfileId === -1) {
-            await this.closeAllConnections();
-
-            this.#initialized = false;
-            this.connections.length = 0;
-            actions.push({ action: "clear" });
-        } else if (this.singleServerMode) {
-            if (this.connections.length === 0) {
-                // In single server mode we only have one connection, with no details.
-                // The back will ignore the values and open a connection to a server, configure in the
-                // startup details.
-                const details: IConnectionDetails = {
-                    id: 0,
-                    dbType: DBType.MySQL,
-                    caption: "MySQL AI Server",
-                    description: "",
-                    options: {},
-                };
-
-                const connection = new ConnectionEntryImpl(details.caption, details, this,
-                    webSession.runMode !== RunMode.SingleServer);
-                this.connections.push(connection);
-                actions.push({ action: "add", entry: connection });
-            }
-        } else {
-            try {
-                const detailList = await ShellInterface.dbConnections.listDbConnections(webSession.currentProfileId);
-
-                // Close and remove all open connections that are no longer in the new list.
-                // Sort in new connection entries on the way. Keep in mind they are ordered by what the user has set!
-                let left = 0;  // The current index into the existing entries.
-                let right = 0; // The current index into the new entries while looking for a match.
-                while (left < this.connections.length && detailList.length > 0) {
-                    if (this.connections[left].details.caption === detailList[right].caption) {
-                        // Entries match.
-                        if (right > 0) {
-                            // We had to jump over other entries to arrive here. Add those
-                            // as new entries in our current list.
-                            for (let i = 0; i < right; ++i) {
-                                const details = detailList[i];
-                                const connection = new ConnectionEntryImpl(details.caption, details, this,
-                                    webSession.runMode !== RunMode.SingleServer);
-                                this.connections.splice(left, 0, connection);
-                            }
-
-                            detailList.splice(0, right);
-                            right = 0;
-                        }
-
-                        // Advance to the next entry.
-                        ++left;
-                        detailList.shift();
-                    } else {
-                        // Entries don't match. Check if we can find the current entry in the new
-                        // list at a higher position (which would mean we have new entries before
-                        // the current one).
-                        while (++right < detailList.length) {
-                            if (this.connections[left].details.caption === detailList[right].caption) {
-                                break;
-                            }
-                        }
-
-                        if (right === detailList.length) {
-                            // Current entry no longer exists. Close the session (if one is open)
-                            // and remove it from the current list.
-                            const entry = this.connections.splice(left, 1)[0];
-                            await entry.close();
-
-                            // Reset the right index to the top of the list and keep the current
-                            // index where it is (points already to the next entry after removal).
-                            right = 0;
-                        }
-                    }
-                }
-
-                // Take over all remaining entries from the new list.
-                while (detailList.length > 0) {
-                    ++left;
-
-                    const details = detailList.shift()!;
-                    const connection = new ConnectionEntryImpl(details.caption, details, this,
-                        webSession.runMode !== RunMode.SingleServer);
-                    this.connections.push(connection);
-                    actions.push({ action: "add", entry: connection });
-                }
-
-                // Remove all remaining entries we haven't touched yet.
-                while (left < this.connections.length) {
-                    const entry = this.connections.splice(left, 1)[0];
-                    await entry.close();
-                    actions.push({ action: "remove", entry });
-                }
-            } catch (reason) {
-                const message = convertErrorToString(reason);
-                void ui.showErrorMessage(`Cannot load DB connections: ${message}`, {});
-
-                throw reason;
-            }
+            return promise;
         }
 
-        this.notifySubscribers(actions);
-        requisitions.executeRemote("connectionsUpdated", undefined);
+        return false;
     }
 
     /**
@@ -1222,7 +1388,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
      * @returns True if the operation was successful, false otherwise.
      */
     private updateConnection(connection: Mutable<ConnectionEntryImpl>): boolean {
-        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        const actions: ConnectionDMActionList = [];
         try {
             // The schemaNames list is updated in ConnectionEntryImpl right before this method is called.
 
@@ -1384,7 +1550,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
         tableGroup: DeepMutable<ICdmSchemaGroupEntry<CdmEntityType.Table>>): Promise<boolean> {
         tableGroup.state.initialized = true;
 
-        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        const actions: ConnectionDMActionList = [];
         try {
             const schema = tableGroup.parent.caption;
             const tableNames = await tableGroup.connection.backend.getSchemaObjectNames(schema, "Table");
@@ -1534,7 +1700,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
         viewGroup: DeepMutable<ICdmSchemaGroupEntry<CdmEntityType.View>>): Promise<boolean> {
         viewGroup.state.initialized = true;
 
-        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        const actions: ConnectionDMActionList = [];
         try {
             const schema = viewGroup.parent.caption;
             const viewNames = await viewGroup.connection.backend.getSchemaObjectNames(schema, "View");
@@ -1594,7 +1760,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
         eventGroup: DeepMutable<ICdmSchemaGroupEntry<CdmEntityType.Event>>): Promise<boolean> {
         eventGroup.state.initialized = true;
 
-        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        const actions: ConnectionDMActionList = [];
         try {
             const schema = eventGroup.parent.caption;
             const eventNames = await eventGroup.connection.backend.getSchemaObjectNames(schema, "Event");
@@ -1649,7 +1815,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
         group: DeepMutable<ICdmSchemaGroupEntry<CdmEntityType.StoredProcedure>>): Promise<boolean> {
         group.state.initialized = true;
 
-        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        const actions: ConnectionDMActionList = [];
         try {
             const schema = group.parent.caption;
             const procedures = await group.connection.backend
@@ -1709,7 +1875,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
         group: DeepMutable<ICdmSchemaGroupEntry<CdmEntityType.StoredFunction>>): Promise<boolean> {
         group.state.initialized = true;
 
-        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        const actions: ConnectionDMActionList = [];
         try {
             const schema = group.parent.caption;
             const functions = await group.connection.backend
@@ -1768,7 +1934,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
     private async updateView(viewEntry: DeepMutable<ICdmViewEntry>): Promise<boolean> {
         viewEntry.state.initialized = true;
 
-        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        const actions: ConnectionDMActionList = [];
         try {
             // Unlike tables, there are no column group nodes. Instead, columns are attached directly to a view node.
             const columnNames = await viewEntry.connection.backend.getTableObjectNames(viewEntry.schema,
@@ -1829,7 +1995,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
         columnGroup: DeepMutable<ICdmTableGroupEntry<CdmEntityType.Column>>): Promise<boolean> {
         columnGroup.state.initialized = true;
 
-        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        const actions: ConnectionDMActionList = [];
         try {
             const schema = columnGroup.parent.schema;
             const table = columnGroup.parent.caption;
@@ -1896,7 +2062,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
         indexGroup: DeepMutable<ICdmTableGroupEntry<CdmEntityType.Index>>): Promise<boolean> {
         indexGroup.state.initialized = true;
 
-        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        const actions: ConnectionDMActionList = [];
         try {
             const schema = indexGroup.parent.schema;
             const table = indexGroup.parent.caption;
@@ -1953,7 +2119,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
         foreignKeyGroup: DeepMutable<ICdmTableGroupEntry<CdmEntityType.ForeignKey>>): Promise<boolean> {
         foreignKeyGroup.state.initialized = true;
 
-        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        const actions: ConnectionDMActionList = [];
         try {
             const schema = foreignKeyGroup.parent.schema;
             const table = foreignKeyGroup.parent.caption;
@@ -2012,7 +2178,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
         triggerGroup: DeepMutable<ICdmTableGroupEntry<CdmEntityType.Trigger>>): Promise<boolean> {
         triggerGroup.state.initialized = true;
 
-        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        const actions: ConnectionDMActionList = [];
         try {
             const schema = triggerGroup.parent.schema;
             const table = triggerGroup.parent.caption;
@@ -2077,7 +2243,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
     private async updateMrsRoot(mrsRoot: DeepMutable<ICdmRestRootEntry>,
         callback?: ProgressCallback): Promise<boolean> {
 
-        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        const actions: ConnectionDMActionList = [];
         try {
             const backend = mrsRoot.parent.backend;
 
@@ -2196,10 +2362,11 @@ export class ConnectionDataModel implements ICdmAccessManager {
 
     private async updateMrsAuthAppGroup(authAppGroup: DeepMutable<ICdmRestAuthAppGroupEntry>,
         callback?: ProgressCallback): Promise<boolean> {
-        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        const actions: ConnectionDMActionList = [];
 
         try {
             const backend = authAppGroup.connection.backend;
+            authAppGroup.state.initialized = true;
             authAppGroup.authApps.length = 0;
 
             callback?.("Loading MRS auth apps ...");
@@ -2247,7 +2414,7 @@ export class ConnectionDataModel implements ICdmAccessManager {
     }
 
     private async updateMrsService(serviceEntry: DeepMutable<ICdmRestServiceEntry>): Promise<boolean> {
-        const actions: Array<{ action: SubscriberAction, entry?: ConnectionDataModelEntry; }> = [];
+        const actions: ConnectionDMActionList = [];
 
         try {
             serviceEntry.state.initialized = true;
@@ -2620,4 +2787,105 @@ export class ConnectionDataModel implements ICdmAccessManager {
 
         return routerEntry;
     }
+
+    private async updateConnectionGroup(group: ICdmConnectionGroupEntry): Promise<boolean> {
+        const mutableGroup = group as DeepMutable<ICdmConnectionGroupEntry>;
+        mutableGroup.state.initialized = true;
+
+        const actions: ConnectionDMActionList = [];
+        try {
+            // TODO: update the group caption and folder path, once we have a `getFolder` method in the backend.
+            const newList = await ShellInterface.dbConnections.listAll(webSession.currentProfileId,
+                group.folderPath.id === -1 ? undefined : group.folderPath.id);
+
+            const predicate = (left: ICdmConnectionEntry | ICdmConnectionGroupEntry,
+                right: IConnectionDetails | IFolderPath) => {
+                if ((left.type === CdmEntityType.Connection) !== (right.type === "connection")) {
+                    // Not the same type (group vs. connection).
+                    return false;
+                }
+
+                if (left.type === CdmEntityType.Connection) {
+                    return left.details.id === right.id;
+                }
+
+                return left.folderPath.id === right.id;
+            };
+
+            // Remove entries no longer in the list.
+            const [_, entriesToRemove] = partition(group.entries, (e) => {
+                return newList.find((newEntry) => {
+                    return predicate(e, newEntry);
+                }) !== undefined;
+            });
+
+            for (const connection of entriesToRemove) {
+                actions.push({ action: "remove", entry: connection });
+            }
+
+            // Create a new list from the remaining entries in their order.
+            const newGroupEntries: Array<ICdmConnectionEntry | ICdmConnectionGroupEntry> = [];
+            for (const newEntry of newList) {
+                const existing = group.entries.find((e) => {
+                    return predicate(e, newEntry);
+                }) as Mutable<ICdmConnectionEntry | ICdmConnectionGroupEntry> | undefined;
+
+                if (existing) {
+                    if (existing.type === CdmEntityType.Connection) {
+                        // Copy the new values to the existing entry and keep those that are not in the new entry
+                        // (e.g. the folder path).
+                        existing.details = Object.assign(existing.details, newEntry as IConnectionDetails);
+                        existing.caption = newEntry.caption;
+                    } else {
+                        const connectionEntry = existing as Mutable<ICdmConnectionGroupEntry>;
+                        connectionEntry.folderPath = newEntry as IFolderPath;
+                        connectionEntry.caption = newEntry.caption;
+                    }
+
+                    newGroupEntries.push(existing);
+                    actions.push({ action: "update", entry: existing });
+
+                    continue;
+                }
+
+                if (newEntry.type === "connection") { // A connection (details actually).
+                    const connectionEntry = new ConnectionEntryImpl(newEntry.caption, newEntry, this, true);
+                    connectionEntry.parent = group;
+                    newGroupEntries.push(connectionEntry);
+                    actions.push({ action: "add", entry: connectionEntry });
+                } else {
+                    const newGroup = {
+                        type: CdmEntityType.ConnectionGroup,
+                        id: uuid(),
+                        parent: mutableGroup,
+                        caption: newEntry.caption,
+                        entries: [],
+                        state: createDataModelEntryState(false, false),
+                        folderPath: newEntry,
+                        getChildren: () => { return newGroup.entries; },
+                        refresh: () => { return this.updateConnectionGroup(newGroup); },
+                        flattenedEntries: async (): Promise<IFlatGroupList> => {
+                            return this.flattenGroupList(newGroup);
+                        },
+                    } as ICdmConnectionGroupEntry;
+
+                    newGroupEntries.push(newGroup);
+
+                    actions.push({ action: "add", entry: newGroup });
+                }
+            }
+
+            mutableGroup.entries = newGroupEntries;
+
+            this.notifySubscribers(actions);
+        } catch (reason) {
+            const message = convertErrorToString(reason);
+            void ui.showErrorMessage(`Cannot load connections for group ${group.caption}: ${message}`, {});
+
+            return false;
+        }
+
+        return true;
+    }
+
 }

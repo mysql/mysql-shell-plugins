@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -36,10 +36,10 @@ jest.mock("../../../../components/Theming/assets/light-modern-color-theme.json",
         },
         tokenColors: [{
             scope: [],
-            settings: {background: "#FFF"},
+            settings: { background: "#FFF" },
         }],
     };
-  }, { virtual: true });
+}, { virtual: true });
 
 describe("ThemeManager tests", () => {
     const themeManager = ThemeManager.get;
@@ -74,12 +74,12 @@ describe("ThemeManager tests", () => {
         const themeClass = `any-${type}`;
         const css = `
 
-        --text-link-decoration: none; --vscode-font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
-        --vscode-font-weight: normal; --vscode-font-size: 13px; 
-        --vscode-editor-font-family: Menlo, Monaco, 'Courier New', monospace; 
-        --vscode-editor-font-weight: normal; --vscode-editor-font-size: 12px; 
+        --text-link-decoration: none; --vscode-font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        --vscode-font-weight: normal; --vscode-font-size: 13px;
+        --vscode-editor-font-family: Menlo, Monaco, 'Courier New', monospace;
+        --vscode-editor-font-weight: normal; --vscode-editor-font-size: 12px;
         --vscode-foreground: #cccccc; --vscode-textLink-foreground: #3794ff;
-        
+
         `;
         const theme = themeManager.parseHostTheme({
             css,
@@ -104,7 +104,7 @@ describe("ThemeManager tests", () => {
             },
             tokenColors: [{
                 scope: [],
-                settings: {background: "#FFF"},
+                settings: { background: "#FFF" },
             }],
         };
         expect(theme).toEqual(expected);
@@ -244,13 +244,13 @@ describe("ThemeManager tests", () => {
 
     describe("Test processThemePipeline", () => {
         it("Empty theme with default colors", () => {
-            const css = themeManager.generateCssWithDefaults({name: "test"}, "light");
+            const css = themeManager.generateCssWithDefaults({ name: "test" }, "light");
 
             // At least one default light color
             expect(css).toEqual(expect.stringContaining(`--textLink-foreground: #000;`));
 
             // At least one light app colors
-            expect(css).toEqual(expect.stringContaining(`--browserTile-border: #6CB9E0;`));
+            expect(css).toEqual(expect.stringContaining(`--connectionTile-border: #6CB9E0;`));
 
             // At least one language color
             expect(css).toEqual(expect.stringContaining(`--editorPrompt-primary-sql: #db8f00;`));

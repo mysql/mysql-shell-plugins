@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -30,6 +30,7 @@ import * as locator from "../locators.js";
 import { DialogHelper } from "./DialogHelper.js";
 import { E2EToolbar } from "../E2EToolbar.js";
 import { ConfirmDialog } from "./ConfirmationDialog.js";
+import { FolderDialog } from "./FolderDialog.js";
 
 /**
  * This class aggregates the functions to interact with the database connection dialog
@@ -44,7 +45,7 @@ export class DatabaseConnectionDialog {
     public static setConnection = async (dbConfig: interfaces.IDBConnection): Promise<void> => {
 
         const dialog = await driver.wait(until.elementLocated(locator.dbConnectionDialog.exists),
-            constants.wait25seconds, "Connection dialog was not displayed");
+            constants.wait10seconds, "Connection dialog was not displayed");
         if (dbConfig.dbType) {
             const inDBType = await dialog.findElement(locator.dbConnectionDialog.databaseType);
             await inDBType.click();
@@ -58,6 +59,24 @@ export class DatabaseConnectionDialog {
         if (dbConfig.description) {
             await DialogHelper.setFieldText(dialog, locator.dbConnectionDialog.description, dbConfig.description);
         }
+
+        if (dbConfig.folderPath) {
+            await dialog.findElement(locator.dbConnectionDialog.folderPath.exists).click();
+            const selectList = await driver.wait(until
+                .elementLocated(locator.dbConnectionDialog.folderPath.selectList.exists),
+
+                constants.wait3seconds, "Could not find the Folder Path select list");
+
+            if (dbConfig.folderPath.new === true) {
+                await selectList.findElement(locator.dbConnectionDialog.folderPath.selectList.addNewFolder).click();
+                await FolderDialog.setFolderValue(dbConfig.folderPath.value!);
+                await FolderDialog.ok();
+            } else {
+                await selectList.findElement(locator.dbConnectionDialog.folderPath.selectList
+                    .item(dbConfig.folderPath.value!)).click();
+            }
+        }
+
         if (dbConfig.dbType) {
 
             if (dbConfig.dbType === "MySQL") {
@@ -292,6 +311,10 @@ export class DatabaseConnectionDialog {
                 .getText(),
             caption: await DialogHelper.getFieldValue(dialog, locator.dbConnectionDialog.caption),
             description: await DialogHelper.getFieldValue(dialog, locator.dbConnectionDialog.description),
+        };
+
+        dbConnection.folderPath = {
+            value: await (await dialog.findElement(locator.dbConnectionDialog.folderPath.label)).getText(),
         };
 
         if (dbConnection.dbType === "MySQL") {

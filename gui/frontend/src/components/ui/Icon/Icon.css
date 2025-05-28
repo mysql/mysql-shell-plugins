@@ -26,6 +26,7 @@
 .msg .iconHost {
     flex-shrink: 0;
     position: relative;
+    width: 16px;
 }
 
 .msg.icon:not(.codicon) {
@@ -34,8 +35,6 @@
 }
 
 .msg.icon.withOverlay {
-    width: 16px;
-
     mask-size: 100% 100%;
     mask-repeat: no-repeat;
     mask-composite: subtract;

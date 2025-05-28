@@ -3,15 +3,14 @@
 exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`] = `
 <ConnectionTile
   caption="Tile 1"
-  className="connectionTile"
   description="A description"
   icon="scriptMysql.svg"
   id="tile1"
-  tileId={1}
+  tileId="1"
   type={0}
 >
   <Button
-    className="msg browserTile connectionTile"
+    className="msg connectionTile"
     id="tile1"
     onClick={[Function]}
     onDragEnter={[Function]}
@@ -22,7 +21,7 @@ exports[`ConnectionTile component tests Test ConnectionTile output (Snapshot) 1`
     onKeyPress={[Function]}
   >
     <div
-      className="msg button browserTile connectionTile"
+      className="msg button connectionTile"
       id="tile1"
       onClick={[Function]}
       onDragEnter={[Function]}

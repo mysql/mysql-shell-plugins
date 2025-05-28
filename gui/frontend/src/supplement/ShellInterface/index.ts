@@ -33,7 +33,7 @@ export enum DBType {
     Sqlite = "Sqlite",
 }
 
-export enum DBConnectionEditorType {
+export enum ConnectionEditorType {
     DbNotebook = "DB Notebook",
     DbScript = "DB Script",
 }
@@ -41,7 +41,7 @@ export enum DBConnectionEditorType {
 type IShellConnectionOptions = IMySQLConnectionOptions | ISqliteConnectionOptions | IDictionary;
 
 export interface IConnectionSettings {
-    defaultEditor?: DBConnectionEditorType;
+    defaultEditor?: ConnectionEditorType;
 }
 
 export interface IConnectionDetails {
@@ -64,6 +64,9 @@ export interface IConnectionDetails {
     /** The server edition (commercial, GPL) */
     edition?: string;
 
+    /** Connection specific UI settings. */
+    settings?: IConnectionSettings;
+
     /** Is MHS (MySQL Heatwave Service) available on this server? */
     heatWaveAvailable?: boolean;
 
@@ -73,8 +76,14 @@ export interface IConnectionDetails {
     /** Is this an OCI cloud DB System? */
     isCloudInstance?: boolean;
 
-    /** Connection specific UI settings. */
-    settings?: IConnectionSettings;
+    /** A path under which the connection is organized. This is just a logical structure. */
+    folderPath?: string;
+
+    /** The index of the connection in the folder path. Set by the backend. */
+    index: number;
+
+    /** Certain APIs set this member, when folders and connections are mixed. */
+    type?: "connection";
 }
 
 export interface IShellSessionDetails {
@@ -111,4 +120,7 @@ export interface IFolderPath {
     caption: string;
     parentFolderId?: number;
     index: number;
+
+    /** Certain APIs set this member, when folders and connections are mixed. */
+    type?: "folder";
 }

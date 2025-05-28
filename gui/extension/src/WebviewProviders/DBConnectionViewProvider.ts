@@ -339,7 +339,7 @@ export class DBConnectionViewProvider extends WebviewProvider {
             // callback.
             ["refreshConnection", "connectionAdded", "connectionUpdated", "connectionRemoved", "refreshOciTree",
                 "codeBlocksUpdate", "editorLoadScript", "editorSaveScript", "createNewEditor", "documentOpened",
-                "documentClosed", "selectDocument", "sessionAdded", "sessionRemoved"]
+                "documentClosed", "selectDocument", "sessionAdded", "sessionRemoved", "refreshConnectionGroup"]
                 .forEach((requestType: keyof IRequestTypeMap) => {
                     this.requisitions!.register(requestType, this.forwardRequest.bind(this, requestType));
                 });

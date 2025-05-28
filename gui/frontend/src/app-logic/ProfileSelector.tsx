@@ -348,7 +348,8 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
         return result;
     };
 
-    private handleProfileChanges = (closure: DialogResponseClosure, values: IDialogValues, payload: unknown): void => {
+    private handleProfileChanges = (closure: DialogResponseClosure, values: IDialogValues,
+        payload: unknown): Promise<void> => {
         if (closure === DialogResponseClosure.Accept) {
             const details = payload as { saveProfile: boolean; section: string; };
 
@@ -418,6 +419,8 @@ export class ProfileSelector extends ComponentBase<{}, IProfileSelectorState> {
                 }
             }
         }
+
+        return Promise.resolve();
     };
 
     private updateProfile = async (profileToEdit: IShellProfile, setDefault: boolean): Promise<void> => {

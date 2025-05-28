@@ -36,7 +36,9 @@ import type {
 
 import type { IThemeChangeData } from "../components/Theming/ThemeManager.js";
 import type { StatusBarAlignment } from "../components/ui/Statusbar/StatusBarItem.js";
-import type { ConnectionDataModelEntry, ICdmConnectionEntry } from "../data-models/ConnectionDataModel.js";
+import type {
+    ConnectionDataModelEntry, ICdmConnectionEntry,
+} from "../data-models/ConnectionDataModel.js";
 import type { AdminPageType } from "../data-models/data-model-types.js";
 import type { OdmEntityType } from "../data-models/OpenDocumentDataModel.js";
 import type { IConnectionDetails, IShellSessionDetails } from "./ShellInterface/index.js";
@@ -585,8 +587,11 @@ export interface IRequestTypeMap {
 
     "refreshOciTree": SimpleCallback;
 
-    /** Used to refresh a connection (if `data` is assigned) or all connections (if not). */
+    /** Used to refresh a connection (if `data` is assigned) or the root connections (if not). */
     "refreshConnection": (data?: ICdmConnectionEntry) => Promise<boolean>;
+
+    /** Used to refresh a connection group (if `data` is assigned) or the root connection groups (if not). */
+    "refreshConnectionGroup": (groupId?: number) => Promise<boolean>;
 
     /** Triggered when the list of connections has been updated and is now available. */
     "connectionsUpdated": SimpleCallback;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 2.0,
@@ -99,7 +99,9 @@ export class AwaitableValueEditDialog extends ComponentBase {
         return { messages: {} };
     };
 
-    private handleCloseDialog = (closure: DialogResponseClosure, values: IDialogValues): void => {
+    private handleCloseDialog = (closure: DialogResponseClosure, values: IDialogValues): Promise<void> => {
         this.#signal?.notify({ closure, values });
+
+        return Promise.resolve();
     };
 }

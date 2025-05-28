@@ -29,6 +29,8 @@ import { MessageScheduler } from "../../communication/MessageScheduler.js";
 import { IShellDictionary } from "../../communication/Protocol.js";
 import { ShellAPIGui } from "../../communication/ProtocolGui.js";
 
+export type ConnectionsAndFoldersList = Array<IConnectionDetails | IFolderPath>;
+
 /** Interface for connection management. */
 export class ShellInterfaceDbConnection {
     /**
@@ -36,12 +38,12 @@ export class ShellInterfaceDbConnection {
      *
      * @param profileId The id of the profile.
      * @param connection An object holding all data of the connection.
-     * @param folderPathId The folder path id used for grouping and nesting connections, optional
+     * @param folderPathId The folder path id used for grouping and nesting connections.
      *
      * @returns A promise resolving to the tuple containing (connection_id, folder_path_id, index).
      */
     public async addDbConnection(profileId: number, connection: IConnectionDetails,
-        folderPathId: number | undefined = undefined): Promise<[number, number, number] | undefined> {
+        folderPathId?: number): Promise<[number, number, number]> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiDbConnectionsAddDbConnection,
             parameters: {
@@ -232,12 +234,13 @@ export class ShellInterfaceDbConnection {
      *
      * @returns A promise resolving to a list of dictionaries containing connections and folders sorted by index.
      */
-    public async listAll(profileId: number, folderId?: number): Promise<Array<IConnectionDetails | IFolderPath>> {
+    public async listAll(profileId: number, folderId?: number): Promise<ConnectionsAndFoldersList> {
         const response = await MessageScheduler.get.sendRequest({
             requestType: ShellAPIGui.GuiDbConnectionsListAll,
             parameters: { args: { profileId, folderId } },
         });
 
+        // The list comes with a type field in each entry, just for this specific API.
         return response.result;
     }
 }
