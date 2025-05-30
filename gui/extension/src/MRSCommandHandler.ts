@@ -471,6 +471,98 @@ export class MRSCommandHandler {
             }
         };
 
+        const createStatementContentSetSql = async (entry?: ICdmRestContentSetEntry,
+            toFile?: boolean) => {
+            if (!entry) {
+                void ui.showErrorMessage(`Error creating the SQL for this REST Content Set`, {});
+
+                return;
+            }
+
+            try {
+                if (toFile) {
+                    const convertedUrl = convertPathToCamelCase(entry.details.requestPath) + "."
+                        + convertPathToCamelCase(entry.details.hostCtx);
+                    const overwrite = true;
+
+                    const value = await window.showSaveDialog({
+                        title: "Export REST Content Set SQL to file...",
+                        defaultUri: Uri.file(`${os.homedir()}/${convertedUrl}.mrs.sql`),
+                        saveLabel: "Export SQL File",
+                    });
+
+                    if (value === undefined) {
+                        return;
+                    }
+
+                    const result = await entry.connection.backend.mrs.dumpContentSetCreateStatement(
+                        entry.details.id, value.fsPath, overwrite);
+
+                    if (result) {
+                        void ui.showInformationMessage(`The REST Content Set SQL was exported`, {});
+                    } else {
+                        void ui.showErrorMessage(`Error creating the SQL for this REST Content Set`, {});
+                    }
+                } else {
+                    const result = await entry.connection.backend.mrs.getContentSetCreateStatement(
+                        entry.details.id);
+
+                    void env.clipboard.writeText(result).then(() => {
+                        void ui.showInformationMessage("The CREATE statement was copied to the system clipboard", {});
+                    });
+                }
+            } catch (reason) {
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`Error setting the default REST Content Set: ${message}`, {});
+            }
+        };
+
+        const createStatementContentFileSql = async (entry?: ICdmRestContentFileEntry,
+            toFile?: boolean) => {
+            if (!entry) {
+                void ui.showErrorMessage(`Error creating the SQL for this REST Content File`, {});
+
+                return;
+            }
+
+            try {
+                if (toFile) {
+                    const convertedUrl = convertPathToCamelCase(entry.details.requestPath) + "."
+                        + convertPathToCamelCase(entry.details.hostCtx);
+                    const overwrite = true;
+
+                    const value = await window.showSaveDialog({
+                        title: "Export REST Content File SQL to file...",
+                        defaultUri: Uri.file(`${os.homedir()}/${convertedUrl}.mrs.sql`),
+                        saveLabel: "Export SQL File",
+                    });
+
+                    if (value === undefined) {
+                        return;
+                    }
+
+                    const result = await entry.connection.backend.mrs.dumpContentFileCreateStatement(
+                        entry.details.id, value.fsPath, overwrite);
+
+                    if (result) {
+                        void ui.showInformationMessage(`The REST Content File SQL was exported`, {});
+                    } else {
+                        void ui.showErrorMessage(`Error creating the SQL for this REST Content File`, {});
+                    }
+                } else {
+                    const result = await entry.connection.backend.mrs.getContentFileCreateStatement(
+                        entry.details.id);
+
+                    void env.clipboard.writeText(result).then(() => {
+                        void ui.showInformationMessage("The CREATE statement was copied to the system clipboard", {});
+                    });
+                }
+            } catch (reason) {
+                const message = convertErrorToString(reason);
+                void ui.showErrorMessage(`Error setting the default REST Content File: ${message}`, {});
+            }
+        };
+
         context.subscriptions.push(commands.registerCommand("msg.mrs.dumpCreateServiceSql",
             async (entry?: ICdmRestServiceEntry) => {
                 if (!entry) {
@@ -576,6 +668,16 @@ export class MRSCommandHandler {
                 await createStatementDbObjectSql(entry, true);
             }));
 
+        context.subscriptions.push(commands.registerCommand("msg.mrs.exportCreateContentSetSql",
+            async (entry?: ICdmRestContentSetEntry) => {
+                await createStatementContentSetSql(entry, true);
+            }));
+
+        context.subscriptions.push(commands.registerCommand("msg.mrs.exportCreateContentFileSql",
+            async (entry?: ICdmRestContentFileEntry) => {
+                await createStatementContentFileSql(entry, true);
+            }));
+
         context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateServiceSql",
             async (entry?: ICdmRestServiceEntry) => {
                 await createStatementServiceSql(entry, false);
@@ -624,23 +726,12 @@ export class MRSCommandHandler {
 
         host.context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateContentSetSql",
             async (entry?: ICdmRestContentSetEntry) => {
-                if (!entry) {
-                    void ui.showErrorMessage(`Error creating the SQL for this REST Content Set`, {});
+                await createStatementContentSetSql(entry, false);
+            }));
 
-                    return;
-                }
-
-                try {
-                    const result = await entry.connection.backend.mrs.getContentSetCreateStatement(
-                        entry.details.id);
-
-                    void env.clipboard.writeText(result).then(() => {
-                        void ui.showInformationMessage("The CREATE statement was copied to the system clipboard", {});
-                    });
-
-                } catch (reason) {
-                    void ui.showErrorMessage(`Error getting the SQL for this REST Content Set`, {});
-                }
+        host.context.subscriptions.push(commands.registerCommand("msg.mrs.copyCreateContentFileSql",
+            async (entry?: ICdmRestContentFileEntry) => {
+                await createStatementContentFileSql(entry, false);
             }));
 
 
